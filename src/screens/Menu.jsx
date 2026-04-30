@@ -11,12 +11,14 @@ import {
   Gauge,
   Layers,
   Leaf,
+  RotateCw,
   School,
   ShoppingCart,
   Soup,
   Sparkles,
   Users,
   Utensils,
+  Wand2,
   Wheat,
   X,
 } from "lucide-react";
@@ -398,7 +400,17 @@ function DishCard({ slot, onTap, group, showGroupTag }) {
   );
 }
 
-export function MenuScreen({ data, menuPlan, onDishTap, onNav, onRegenerate, onReset }) {
+export function MenuScreen({
+  data,
+  menuPlan,
+  isGenerating = false,
+  error = null,
+  onDishTap,
+  onNav,
+  onRegenerate,
+  onRetry,
+  onReset,
+}) {
   const [activeGroupIds, setActiveGroupIds] = useState(() =>
     data.groups.slice(0, 1).map((g) => g.id)
   );
@@ -449,11 +461,25 @@ export function MenuScreen({ data, menuPlan, onDishTap, onNav, onRegenerate, onR
             Tu menú
           </h2>
           <div style={{ display: "flex", gap: 8 }}>
-            <button type="button" onClick={onReset} style={ghostButtonStyle}>
+            <button
+              type="button"
+              onClick={onReset}
+              style={ghostButtonStyle}
+              disabled={isGenerating}
+            >
               Reiniciar
             </button>
-            <button type="button" onClick={onRegenerate} style={primaryMiniButtonStyle}>
-              Regenerar
+            <button
+              type="button"
+              onClick={onRegenerate}
+              style={{
+                ...primaryMiniButtonStyle,
+                opacity: isGenerating ? 0.6 : 1,
+                cursor: isGenerating ? "default" : "pointer",
+              }}
+              disabled={isGenerating}
+            >
+              {isGenerating ? "Generando…" : "Regenerar"}
             </button>
           </div>
         </div>
@@ -527,7 +553,7 @@ export function MenuScreen({ data, menuPlan, onDishTap, onNav, onRegenerate, onR
           />
         </div>
 
-        {warnings.length > 0 && (
+        {!isGenerating && !error && warnings.length > 0 && (
           <div style={warningPanelStyle}>
             <button
               type="button"
@@ -559,6 +585,17 @@ export function MenuScreen({ data, menuPlan, onDishTap, onNav, onRegenerate, onR
         )}
       </div>
 
+      {isGenerating && <GeneratingSkeleton />}
+
+      {!isGenerating && error && (
+        <ErrorCard error={error} onRetry={onRetry} />
+      )}
+
+      {!isGenerating && !error && Object.keys(menuPlan).length === 0 && (
+        <EmptyState onRegenerate={onRegenerate} />
+      )}
+
+      {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
       <div style={{ padding: "0 16px" }}>
         {DAYS.map((day) => {
           const meals = getMeals(data);
@@ -661,14 +698,233 @@ export function MenuScreen({ data, menuPlan, onDishTap, onNav, onRegenerate, onR
           );
         })}
       </div>
+      )}
 
-      <div style={{ padding: "12px 24px 16px", display: "flex", gap: 10 }}>
-        <button type="button" onClick={() => onNav("shopping")} style={shoppingButtonStyle}>
-          <ShoppingCart size={16} />
-          Lista de la compra
-        </button>
-      </div>
+      {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
+        <div style={{ padding: "12px 24px 16px", display: "flex", gap: 10 }}>
+          <button type="button" onClick={() => onNav("shopping")} style={shoppingButtonStyle}>
+            <ShoppingCart size={16} />
+            Lista de la compra
+          </button>
+        </div>
+      )}
       <BottomNav active="menu" onNav={onNav} />
+    </div>
+  );
+}
+
+function GeneratingSkeleton() {
+  const skeletonRows = [0, 1, 2];
+  return (
+    <div style={{ padding: "0 16px" }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "14px 14px",
+          background: "#fff",
+          borderRadius: 14,
+          border: "1px solid #ecf1ed",
+          marginBottom: 14,
+        }}
+      >
+        <span
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 12,
+            background: "#eaf2ec",
+            color: "#3f6948",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Wand2 size={16} />
+        </span>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 900, color: "#15331c" }}>
+            Generando tu menú con IA…
+          </div>
+          <div style={{ fontSize: 11, color: "#8d978f", marginTop: 2 }}>
+            Tarda unos segundos. Estamos encajando alergias, kcal, tupper y horarios.
+          </div>
+        </div>
+      </div>
+      {skeletonRows.map((i) => (
+        <div key={i} style={{ marginBottom: 14 }}>
+          <div
+            style={{
+              width: 60,
+              height: 12,
+              borderRadius: 4,
+              background: "#e8eee9",
+              marginBottom: 8,
+            }}
+          />
+          {[0, 1].map((j) => (
+            <div
+              key={j}
+              style={{
+                display: "flex",
+                gap: 12,
+                padding: 14,
+                background: "#fff",
+                borderRadius: 14,
+                border: "1px solid #ecf1ed",
+                marginBottom: 8,
+                animation: "pulse 1.4s ease-in-out infinite",
+              }}
+            >
+              <div
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 14,
+                  background: "#eef3ef",
+                  flexShrink: 0,
+                }}
+              />
+              <div style={{ flex: 1 }}>
+                <div
+                  style={{
+                    width: "70%",
+                    height: 14,
+                    borderRadius: 4,
+                    background: "#eef3ef",
+                    marginBottom: 8,
+                  }}
+                />
+                <div
+                  style={{ display: "flex", gap: 6 }}
+                >
+                  <div style={{ width: 50, height: 18, borderRadius: 999, background: "#f1f5f2" }} />
+                  <div style={{ width: 60, height: 18, borderRadius: 999, background: "#f1f5f2" }} />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
+      <style>{`
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+      `}</style>
+    </div>
+  );
+}
+
+function ErrorCard({ error, onRetry }) {
+  return (
+    <div style={{ padding: "0 16px" }}>
+      <div
+        style={{
+          padding: "16px 16px 14px",
+          background: "#fff5ef",
+          border: "1px solid #f1c08a",
+          borderRadius: 16,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 8,
+            color: "#a85a00",
+          }}
+        >
+          <AlertTriangle size={18} />
+          <div style={{ fontSize: 14, fontWeight: 900 }}>No se pudo generar el menú</div>
+        </div>
+        <div style={{ fontSize: 12, color: "#7a4a12", marginBottom: 14, lineHeight: 1.45 }}>
+          {error?.message ?? "La IA no respondió correctamente. Inténtalo de nuevo."}
+        </div>
+        {onRetry && (
+          <button
+            type="button"
+            onClick={onRetry}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 14px",
+              borderRadius: 12,
+              border: "none",
+              background: "#1a3a24",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <RotateCw size={13} />
+            Reintentar
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({ onRegenerate }) {
+  return (
+    <div style={{ padding: "0 16px" }}>
+      <div
+        style={{
+          padding: "20px 16px",
+          background: "#fff",
+          border: "1px dashed #d9e5dd",
+          borderRadius: 16,
+          textAlign: "center",
+        }}
+      >
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 12,
+            background: "#eaf2ec",
+            color: "#3f6948",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: 10,
+          }}
+        >
+          <Wand2 size={18} />
+        </div>
+        <div style={{ fontSize: 14, fontWeight: 900, color: "#15331c", marginBottom: 4 }}>
+          Aún no tienes menú esta semana
+        </div>
+        <div style={{ fontSize: 12, color: "#8d978f", marginBottom: 14, lineHeight: 1.45 }}>
+          Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.
+        </div>
+        {onRegenerate && (
+          <button
+            type="button"
+            onClick={onRegenerate}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "10px 14px",
+              borderRadius: 12,
+              border: "none",
+              background: "#1a3a24",
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 900,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <Wand2 size={13} />
+            Generar
+          </button>
+        )}
+      </div>
     </div>
   );
 }

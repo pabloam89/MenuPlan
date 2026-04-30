@@ -12,10 +12,12 @@ import {
 } from "./screens/Onboarding.jsx";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { ShoppingScreen } from "./screens/Shopping.jsx";
-import { generateMenu, getMeals } from "./lib/planner.js";
+import { getMeals } from "./lib/planner.js";
+import { generateMenuWithAI } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { groupsFromModel } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
+import { registerRecipes } from "./data/recipes.js";
 
 const INITIAL_DATA = {
   members: [],
@@ -209,10 +211,21 @@ export default function App() {
   const [shopping, setShopping] = useState(persisted?.shopping ?? { items: [] });
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [toast, setToast] = useState(null);
+  const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
+  const [menuError, setMenuError] = useState(null);
+  const lastRegenerateArgs = useRef(null);
+
+  // Re-hydrate AI-generated recipes from persisted state so DishCard / Shopping
+  // can resolve ids after a reload.
+  useEffect(() => {
+    const dyn = persisted?.aiRecipes;
+    if (Array.isArray(dyn) && dyn.length > 0) registerRecipes(dyn);
+  }, [persisted]);
+  const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
   useEffect(() => {
-    saveState({ screen, onbStep, data, menuPlan, shopping });
-  }, [screen, onbStep, data, menuPlan, shopping]);
+    saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes });
+  }, [screen, onbStep, data, menuPlan, shopping, aiRecipes]);
 
   const ensureGroupsIfMissing = () => {
     if (data.groups.length === 0 && data.members.length > 0) {
@@ -220,25 +233,53 @@ export default function App() {
     }
   };
 
-  const regenerateMenu = (nextData) => {
+  const regenerateMenu = async (nextData) => {
     const working = nextData ?? data;
     let groups = working.groups;
     if (groups.length === 0 && working.members.length > 0) {
       groups = groupsFromModel(working.members, working.menuModel);
       setData((d) => ({ ...d, groups }));
     }
-    const plan = generateMenu({ ...working, groups });
-    setMenuPlan(plan);
-    const sh = buildShoppingList(plan, groups, getMeals(working));
-    const items = sh.byCategory.flatMap((c) => c.items);
-    setShopping({ items });
-    showToast("Menú generado");
+    if (groups.length === 0) {
+      setMenuError({ message: "Añade al menos un miembro antes de generar el menú." });
+      return;
+    }
+    lastRegenerateArgs.current = { nextData };
+    setIsGeneratingMenu(true);
+    setMenuError(null);
+    try {
+      const { plan, recipes } = await generateMenuWithAI({ ...working, groups });
+      registerRecipes(recipes);
+      setAiRecipes((cur) => {
+        const byId = new Map(cur.map((r) => [r.id, r]));
+        for (const r of recipes) byId.set(r.id, r);
+        return Array.from(byId.values());
+      });
+      setMenuPlan(plan);
+      const sh = buildShoppingList(plan, groups, getMeals(working));
+      const items = sh.byCategory.flatMap((c) => c.items);
+      setShopping({ items });
+      showToast("Menú generado con IA");
+    } catch (err) {
+      console.error("Error generating menu", err);
+      setMenuError({
+        message: err?.message || "No se pudo generar el menú.",
+        cause: err?.cause,
+      });
+    } finally {
+      setIsGeneratingMenu(false);
+    }
   };
 
-  const goToMenu = () => {
+  const retryGenerateMenu = () => {
+    const args = lastRegenerateArgs.current ?? {};
+    return regenerateMenu(args.nextData);
+  };
+
+  const goToMenu = async () => {
     ensureGroupsIfMissing();
-    regenerateMenu();
     setScreen("menu");
+    await regenerateMenu();
   };
 
   const handleNav = (id) => {
@@ -264,6 +305,8 @@ export default function App() {
     setShopping({ items: [] });
     setSelectedSlot(null);
     setOnbStep(0);
+    setAiRecipes([]);
+    setMenuError(null);
     setScreen("splash");
   };
 
@@ -375,9 +418,12 @@ export default function App() {
           <MenuScreen
             data={data}
             menuPlan={menuPlan}
+            isGenerating={isGeneratingMenu}
+            error={menuError}
             onDishTap={(recipe, slot) => setSelectedSlot({ recipe, slot })}
             onNav={handleNav}
             onRegenerate={() => regenerateMenu()}
+            onRetry={retryGenerateMenu}
             onReset={handleReset}
           />
         )}
