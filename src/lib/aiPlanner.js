@@ -3,6 +3,7 @@ import { membersOfGroup } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
+import { formatFixedDishesForAI } from "./fixedDishes.js";
 
 const INGREDIENT_CATEGORIES = [
   "Verduras y frutas",
@@ -165,7 +166,7 @@ function buildFamilyContext(data) {
       ...(data.kitchenTools ?? []),
       ...(data.customKitchenTools ?? []),
     ],
-    fixedDishes: data.fixedDishes ?? [],
+    fixedDishes: formatFixedDishesForAI(data.fixedDishes ?? []),
     timeWeekdayMin: data.timeWeekday ?? 30,
     timeWeekendMin: data.timeWeekend ?? 60,
     hasBudget: Boolean(data.hasBudget),
@@ -185,7 +186,7 @@ REGLAS DE NEGOCIO (estrictas):
 - Evita repetir el mismo recipeId dentro del mismo grupo en la semana (máximo 1 vez).
 - Evita la misma proteína (pescado, carne, legumbres, huevos) dos comidas consecutivas del mismo grupo.
 - Si schoolProteinsToAvoid no está vacío para el día, NO uses esa proteína en la cena de ese grupo ese día.
-- Si fixedDishes tiene platos, asegúrate de que aparezcan al menos 1 vez en el plan del grupo.
+- Si fixedDishes tiene platos, inclúyelos timesPerWeek veces en las comidas indicadas (meals: Comida/Cena).
 - Las recetas deben ser variadas y mezclar tradición española e internacional.
 - macros en gramos coherentes con kcal: 4·protein + 4·carbs + 9·fat ≈ kcal por ración.
 - ingredient.category DEBE ser exactamente uno de: "Verduras y frutas", "Carnes y pescados", "Legumbres y pasta", "Lácteos y huevos", "Panadería y cereales", "Despensa".

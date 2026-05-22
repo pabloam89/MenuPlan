@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BottomNav, ProgressDots } from "./components/ui.jsx";
+import { BottomNav } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -8,6 +8,7 @@ import {
   OnboardingSchoolMenu,
   OnboardingGoals,
   OnboardingCooking,
+  OnboardingProgressContext,
 } from "./screens/Onboarding.jsx";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { ShoppingScreen } from "./screens/Shopping.jsx";
@@ -17,6 +18,8 @@ import { getMeals } from "./lib/planner.js";
 import { groupsFromModel } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
+import { migrateFixedDishes } from "./lib/fixedDishes.js";
+import { suggestHomeRole } from "./lib/stages.js";
 
 const INITIAL_DATA = {
   members: [],
@@ -65,16 +68,37 @@ function migrate(state) {
   // Old schema had global `data.allergies`; move it to every member so nothing is lost.
   const legacyAllergies = Array.isArray(d.allergies) ? d.allergies : [];
   if (Array.isArray(d.members)) {
-    d.members = d.members.map((m) => ({
-      ...m,
-      id: m.id ?? Math.random().toString(36).slice(2, 10),
-      allergies: Array.isArray(m.allergies)
-        ? m.allergies
-        : [...legacyAllergies],
-      dislikes: Array.isArray(m.dislikes) ? m.dislikes : [],
-      useBirthDate: Boolean(m.useBirthDate),
-      birthDate: typeof m.birthDate === "string" ? m.birthDate : "",
-    }));
+    d.members = d.members.map((m) => {
+      const age = m.useBirthDate
+        ? (() => {
+            if (!m.birthDate) return 30;
+            const d0 = new Date(m.birthDate);
+            if (Number.isNaN(d0.getTime())) return 30;
+            const now = new Date();
+            let a = now.getFullYear() - d0.getFullYear();
+            const md = now.getMonth() - d0.getMonth();
+            const dd = now.getDate() - d0.getDate();
+            if (md < 0 || (md === 0 && dd < 0)) a -= 1;
+            return Math.max(0, a);
+          })()
+        : Number.isFinite(m.age)
+          ? m.age
+          : parseInt(m.age, 10) || 30;
+      return {
+        ...m,
+        id: m.id ?? Math.random().toString(36).slice(2, 10),
+        allergies: Array.isArray(m.allergies)
+          ? m.allergies
+          : [...legacyAllergies],
+        dislikes: Array.isArray(m.dislikes) ? m.dislikes : [],
+        useBirthDate: Boolean(m.useBirthDate),
+        birthDate: typeof m.birthDate === "string" ? m.birthDate : "",
+        homeRole:
+          typeof m.homeRole === "string" && m.homeRole
+            ? m.homeRole
+            : suggestHomeRole(age),
+      };
+    });
   }
   d.groups = Array.isArray(d.groups) ? d.groups : [];
   d.customAllergies = Array.isArray(d.customAllergies) ? d.customAllergies : [];
@@ -201,6 +225,7 @@ function migrate(state) {
     };
   }
   delete d.allergies;
+  d.fixedDishes = migrateFixedDishes(d.fixedDishes);
   return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
 
@@ -406,10 +431,13 @@ export default function App() {
         )}
 
         {screen === "onboarding" && (
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <ProgressDots current={safeOnbStep} total={ONB_STEP_COUNT} onJump={setOnbStep} />
-            <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
-          </div>
+          <OnboardingProgressContext.Provider
+            value={{ current: safeOnbStep, total: ONB_STEP_COUNT, onJump: setOnbStep }}
+          >
+            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+              <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
+            </div>
+          </OnboardingProgressContext.Provider>
         )}
 
         {screen === "menu" && (

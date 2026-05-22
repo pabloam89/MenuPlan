@@ -26,9 +26,16 @@ export function Chip({ label, selected, onClick, removable }) {
   );
 }
 
-export function ProgressDots({ current, total, onJump }) {
+export function ProgressDots({ current, total, onJump, compact = false }) {
   return (
-    <div style={{ display: "flex", gap: 6, justifyContent: "center", padding: "12px 0" }}>
+    <div
+      style={{
+        display: "flex",
+        gap: compact ? 4 : 6,
+        justifyContent: "center",
+        padding: compact ? 0 : "12px 0",
+      }}
+    >
       {Array.from({ length: total }, (_, i) => (
         <div
           key={i}

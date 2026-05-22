@@ -42,7 +42,7 @@ const ICONS_BY_TYPE = {
   chef: ChefHat,
 };
 
-const COLE_COLOR = "#a85a7e";
+const COLE_COLOR = "#2d5a3d";
 
 function formatQty(qty, unit) {
   if (unit === "ud") return `${Math.ceil(qty)} ${Math.ceil(qty) === 1 ? "ud" : "uds"}`;

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpDown,
   BookOpenCheck,
@@ -32,11 +32,19 @@ import {
   UtensilsCrossed,
   X,
 } from "lucide-react";
-import { Chip, SliderInput, Avatar, AvatarStack } from "../components/ui.jsx";
-import { stageForAge, stageLabel } from "../lib/stages.js";
+import { Chip, SliderInput, Avatar, AvatarStack, ProgressDots } from "../components/ui.jsx";
+import { HOUSEHOLD_ROLES, stageForAge, stageLabel, suggestHomeRole } from "../lib/stages.js";
+import { migrateFixedDishes, normalizeFixedDish } from "../lib/fixedDishes.js";
 import { groupsFromModel, membersOfGroup, uid } from "../lib/groups.js";
-import { ALL_DAY_MEALS, DAYS, dayLabel, getMeals, isLunchMeal } from "../lib/planner.js";
-import { SCHOOL_DAYS, SCHOOL_COURSES } from "../lib/schoolMenu.js";
+import {
+  ALL_DAY_MEALS,
+  DAYS,
+  dayLabel,
+  getMeals,
+  isLunchMeal,
+  primaryDayMeal,
+} from "../lib/planner.js";
+import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
 import { importSchoolMenuFile } from "../lib/schoolMenuImport.js";
 
 function ageFromBirthDate(birthDate) {
@@ -74,6 +82,8 @@ function stateIcon(value, size = 14) {
   return <Minus size={size} />;
 }
 
+export const OnboardingProgressContext = createContext(null);
+
 // ─── Shell ─────────────────────────────────────────────────────
 
 export function OnboardingShell({
@@ -87,6 +97,21 @@ export function OnboardingShell({
   nextLabel = "Afinar menú",
   finishLabel = "Generar menú",
 }) {
+  const progress = useContext(OnboardingProgressContext);
+  const headerBtn = {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "8px 14px",
+    borderRadius: 10,
+    border: "1.5px solid #2d5a3d",
+    background: "#fff",
+    color: "#2d5a3d",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+  };
+
   return (
     <div
       style={{
@@ -96,49 +121,35 @@ export function OnboardingShell({
         flexDirection: "column",
       }}
     >
-      <div style={{ minHeight: 38, marginBottom: 6, display: "flex", justifyContent: "space-between" }}>
-        <div>
+      <div
+        style={{
+          minHeight: 38,
+          marginBottom: 6,
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+        }}
+      >
+        <div style={{ flex: "0 0 auto", minWidth: onBack ? undefined : 0 }}>
           {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "8px 14px",
-                borderRadius: 10,
-                border: "1.5px solid #2d5a3d",
-                background: "#fff",
-                color: "#2d5a3d",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
+            <button type="button" onClick={onBack} style={headerBtn}>
               Atrás
             </button>
           )}
         </div>
-        <div>
+        {progress && (
+          <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
+            <ProgressDots
+              current={progress.current}
+              total={progress.total}
+              onJump={progress.onJump}
+              compact
+            />
+          </div>
+        )}
+        <div style={{ flex: "0 0 auto" }}>
           {onReset && (
-            <button
-              type="button"
-              onClick={onReset}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "8px 14px",
-                borderRadius: 10,
-                border: "1.5px solid #2d5a3d",
-                background: "#fff",
-                color: "#2d5a3d",
-                fontSize: 13,
-                fontWeight: 700,
-                cursor: "pointer",
-              }}
-            >
+            <button type="button" onClick={onReset} style={headerBtn}>
               Reiniciar
             </button>
           )}
@@ -203,22 +214,26 @@ export function OnboardingShell({
 
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) {
   const [name, setName] = useState("");
-  const [inputMode, setInputMode] = useState("age");
-  const [age, setAge] = useState("");
+  const [ageStr, setAgeStr] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [ageMode, setAgeMode] = useState("number");
+  const dateInputRef = useRef(null);
 
   const trimmedName = name.trim();
-  const useBirthDate = inputMode === "birthDate";
-  const parsedAge = parseInt(age, 10);
+  const parsedAge = parseInt(ageStr, 10);
   const ageFromDob = ageFromBirthDate(birthDate);
-  const ageProvided = useBirthDate
-    ? Boolean(birthDate) && Number.isFinite(ageFromDob) && ageFromDob >= 0
-    : Number.isFinite(parsedAge) && parsedAge >= 0;
+  const computedAge =
+    ageMode === "date" && birthDate
+      ? ageFromDob
+      : Number.isFinite(parsedAge)
+        ? parsedAge
+        : NaN;
+  const ageProvided = Number.isFinite(computedAge) && computedAge >= 0;
   const canAdd = trimmedName.length > 0 && ageProvided;
+  const showCalculatedAge = ageMode === "date" && Boolean(birthDate);
 
   const addMember = () => {
     if (!canAdd) return;
-    const computedAge = useBirthDate ? ageFromDob : parsedAge;
     setData((d) => ({
       ...d,
       members: [
@@ -227,8 +242,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
           id: uid(),
           name: trimmedName,
           age: computedAge,
-          useBirthDate,
-          birthDate: useBirthDate ? birthDate : "",
+          useBirthDate: ageMode === "date" && Boolean(birthDate),
+          birthDate: ageMode === "date" ? birthDate : "",
+          homeRole: suggestHomeRole(computedAge),
           stageDetail: "",
           allergies: [],
           dislikes: [],
@@ -236,52 +252,68 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
       ],
     }));
     setName("");
-    setAge("");
+    setAgeStr("");
     setBirthDate("");
+    setAgeMode("number");
   };
 
-  const updateMemberMode = (id, mode) =>
+  const updateMemberAge = (id, val) => {
+    const age = parseInt(val.replace(/\D/g, ""), 10);
     setData((d) => ({
       ...d,
       members: d.members.map((m) =>
-        m.id !== id
-          ? m
-          : {
+        m.id === id
+          ? {
               ...m,
-              useBirthDate: mode === "birthDate",
-              birthDate: mode === "birthDate" ? m.birthDate ?? "" : "",
+              age: Number.isFinite(age) ? age : 0,
+              useBirthDate: false,
+              birthDate: "",
+              homeRole: suggestHomeRole(Number.isFinite(age) ? age : memberAge(m)),
             }
+          : m
       ),
     }));
+  };
 
-  const updateMemberAge = (id, val) =>
+  const updateMemberHomeRole = (id, homeRole) =>
     setData((d) => ({
       ...d,
-      members: d.members.map((m) => (m.id === id ? { ...m, age: parseInt(val, 10) || 0 } : m)),
-    }));
-
-  const updateMemberBirthDate = (id, val) =>
-    setData((d) => ({
-      ...d,
-      members: d.members.map((m) =>
-        m.id === id ? { ...m, birthDate: val, age: ageFromBirthDate(val) } : m
-      ),
+      members: d.members.map((m) => (m.id === id ? { ...m, homeRole } : m)),
     }));
 
   const removeMember = (id) =>
     setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
 
   const hasMembers = data.members.length > 0;
+  const colHdr = {
+    fontSize: 11,
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  };
+  const ageBoxStyle = (active, readonly) => ({
+    width: 44,
+    height: 44,
+    borderRadius: 10,
+    border: `1.5px solid ${active ? "#2d5a3d" : "#ddd"}`,
+    background: readonly ? "rgba(45,90,61,.06)" : "#fff",
+    fontSize: 15,
+    fontWeight: 800,
+    textAlign: "center",
+    color: "#1a3a24",
+    outline: "none",
+    flexShrink: 0,
+  });
 
   return (
     <OnboardingShell
       title="¿Quién come en casa?"
-      subtitle="Añade personas con edad o fecha de nacimiento"
+      subtitle="Empieza por quien vive o come en casa"
       onReset={onReset}
       onNext={hasMembers ? onNext : undefined}
       onFinish={hasMembers ? onFinish : undefined}
     >
-      <div style={{ display: "flex", gap: 8, marginBottom: 8 }}>
+      <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
         <input
           value={name}
           onChange={(e) => setName(e.target.value)}
@@ -302,22 +334,13 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
           onClick={addMember}
           disabled={!canAdd}
           aria-label="Añadir"
-          title={
-            !trimmedName
-              ? "Indica un nombre"
-              : !ageProvided
-              ? useBirthDate
-                ? "Indica la fecha de nacimiento"
-                : "Indica la edad"
-              : "Añadir"
-          }
           style={{
             background: canAdd ? "#2d5a3d" : "#cdd5d0",
             color: "#fff",
             border: "none",
             borderRadius: 10,
-            width: 44,
-            height: 44,
+            width: 48,
+            height: 48,
             flexShrink: 0,
             cursor: canAdd ? "pointer" : "not-allowed",
             display: "flex",
@@ -325,80 +348,68 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
             justifyContent: "center",
           }}
         >
-          <Plus size={18} />
+          <Plus size={20} />
         </button>
       </div>
 
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={() => setInputMode("age")}
-          style={{
-            flex: 1,
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: `1.5px solid ${inputMode === "age" ? "#2d5a3d" : "#ddd"}`,
-            background: inputMode === "age" ? "rgba(45,90,61,.08)" : "#fff",
-            color: "#2d5a3d",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-        >
-          Edad
-        </button>
-        <button
-          type="button"
-          onClick={() => setInputMode("birthDate")}
-          style={{
-            flex: 1,
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: `1.5px solid ${inputMode === "birthDate" ? "#2d5a3d" : "#ddd"}`,
-            background: inputMode === "birthDate" ? "rgba(45,90,61,.08)" : "#fff",
-            color: "#2d5a3d",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-          }}
-        >
-          Fecha nacimiento
-        </button>
-      </div>
-
-      {inputMode === "age" ? (
+      <p style={{ fontSize: 12, fontWeight: 700, color: "#666", margin: "0 0 8px" }}>
+        ¿Qué edad tiene?
+      </p>
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
         <input
-          value={age}
-          onChange={(e) => setAge(e.target.value.replace(/\D/g, ""))}
-          placeholder="Edad"
-          style={{
-            width: "100%",
-            marginBottom: 6,
-            padding: "12px 14px",
-            borderRadius: 10,
-            border: "1.5px solid #ddd",
-            fontSize: 14,
-            outline: "none",
-            textAlign: "center",
+          type="text"
+          inputMode="numeric"
+          readOnly={showCalculatedAge}
+          value={showCalculatedAge ? String(ageFromDob) : ageStr}
+          onChange={(e) => {
+            setAgeStr(e.target.value.replace(/\D/g, ""));
+            setBirthDate("");
+            setAgeMode("number");
           }}
+          onFocus={() => {
+            if (showCalculatedAge) {
+              setBirthDate("");
+              setAgeMode("number");
+              setAgeStr("");
+            }
+          }}
+          placeholder="—"
+          style={ageBoxStyle(ageMode === "number" || showCalculatedAge, showCalculatedAge)}
           onKeyDown={(e) => e.key === "Enter" && addMember()}
         />
-      ) : (
-        <input
-          type="date"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
+        <button
+          type="button"
+          onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
           style={{
-            width: "100%",
-            marginBottom: 6,
-            padding: "12px 14px",
-            borderRadius: 10,
-            border: "1.5px solid #ddd",
-            fontSize: 14,
-            outline: "none",
+            ...ageBoxStyle(ageMode === "date", false),
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            background: ageMode === "date" ? "rgba(45,90,61,.08)" : "#fff",
+            position: "relative",
           }}
-        />
-      )}
+        >
+          <CalendarDays size={20} color="#2d5a3d" />
+          <input
+            ref={dateInputRef}
+            type="date"
+            value={birthDate}
+            onChange={(e) => {
+              setBirthDate(e.target.value);
+              setAgeMode("date");
+            }}
+            style={{
+              position: "absolute",
+              opacity: 0,
+              width: 1,
+              height: 1,
+              pointerEvents: "none",
+            }}
+            tabIndex={-1}
+          />
+        </button>
+      </div>
 
       <div
         style={{
@@ -409,144 +420,117 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
           fontWeight: 600,
         }}
       >
-        {!trimmedName && !age && !birthDate
+        {!trimmedName && !ageStr && !birthDate
           ? "Añade un nombre y la edad o fecha de nacimiento."
           : !trimmedName
-          ? "Falta el nombre."
-          : !ageProvided
-          ? useBirthDate
-            ? "Falta la fecha de nacimiento."
-            : "Falta la edad."
-          : "Listo · pulsa + para añadir."}
+            ? "Falta el nombre."
+            : !ageProvided
+              ? "Indica la edad o elige fecha de nacimiento."
+              : "Listo · pulsa + para añadir."}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 12 }}>
-        {data.members.map((m) => (
+      {hasMembers && (
+        <div style={{ marginTop: 8 }}>
           <div
-            key={m.id}
             style={{
-              background: "#f6f9f7",
-              borderRadius: 12,
-              padding: "10px 12px",
+              display: "grid",
+              gridTemplateColumns: "1fr 48px minmax(88px, 1fr) 28px",
+              gap: 8,
+              alignItems: "center",
+              marginBottom: 8,
+              padding: "0 4px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <Avatar name={m.name} size={30} />
-              <span style={{ fontWeight: 700, color: "#1a3a24", flex: 1 }}>{m.name}</span>
+            <span style={{ ...colHdr, color: "#1a3a24" }}>Nombre</span>
+            <span style={{ ...colHdr, color: "#3d6b4f", textAlign: "center" }}>Edad</span>
+            <span style={{ ...colHdr, color: "#5a7a4a" }}>En casa</span>
+            <span />
+          </div>
+          {data.members.map((m) => (
+            <div
+              key={m.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 48px minmax(88px, 1fr) 28px",
+                gap: 8,
+                alignItems: "center",
+                marginBottom: 8,
+                background: "#f6f9f7",
+                borderRadius: 10,
+                padding: "8px 10px",
+              }}
+            >
               <span
                 style={{
-                  background: "#fff",
-                  border: "1px solid #e0e6e2",
-                  color: "#555",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: "#1a3a24",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {m.name}
+              </span>
+              <input
+                inputMode="numeric"
+                value={String(memberAge(m))}
+                onChange={(e) => updateMemberAge(m.id, e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "6px 4px",
+                  borderRadius: 8,
+                  border: "1px solid #ddd",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textAlign: "center",
+                  color: "#1a3a24",
+                }}
+              />
+              <select
+                value={m.homeRole ?? suggestHomeRole(memberAge(m))}
+                onChange={(e) => updateMemberHomeRole(m.id, e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "6px 6px",
+                  borderRadius: 8,
+                  border: "1px solid #ddd",
                   fontSize: 11,
                   fontWeight: 700,
-                  padding: "4px 8px",
-                  borderRadius: 8,
+                  color: "#1a3a24",
+                  background: "#fff",
                 }}
               >
-                {memberAge(m)} años
-              </span>
-              <span
-                style={{
-                  background: "#e8f0ea",
-                  color: "#2d5a3d",
-                  fontSize: 10,
-                  fontWeight: 700,
-                  padding: "4px 8px",
-                  borderRadius: 8,
-                  textTransform: "uppercase",
-                }}
-              >
-                {stageLabel({ ...m, age: memberAge(m) })}
-              </span>
+                {HOUSEHOLD_ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
               <button
                 type="button"
                 onClick={() => removeMember(m.id)}
                 style={{
-                  cursor: "pointer",
-                  color: "#bbb",
                   border: "none",
                   background: "transparent",
+                  cursor: "pointer",
+                  color: "#bbb",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Minus size={18} />
+                <Minus size={16} />
               </button>
             </div>
-            <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-              <button
-                type="button"
-                onClick={() => updateMemberMode(m.id, "age")}
-                style={{
-                  flex: 1,
-                  padding: "7px 9px",
-                  borderRadius: 8,
-                  border: `1px solid ${!m.useBirthDate ? "#2d5a3d" : "#ddd"}`,
-                  background: !m.useBirthDate ? "rgba(45,90,61,.08)" : "#fff",
-                  color: "#2d5a3d",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Edad
-              </button>
-              <button
-                type="button"
-                onClick={() => updateMemberMode(m.id, "birthDate")}
-                style={{
-                  flex: 1,
-                  padding: "7px 9px",
-                  borderRadius: 8,
-                  border: `1px solid ${m.useBirthDate ? "#2d5a3d" : "#ddd"}`,
-                  background: m.useBirthDate ? "rgba(45,90,61,.08)" : "#fff",
-                  color: "#2d5a3d",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Fecha
-              </button>
-            </div>
-            {m.useBirthDate ? (
-              <input
-                type="date"
-                value={m.birthDate ?? ""}
-                onChange={(e) => updateMemberBirthDate(m.id, e.target.value)}
-                style={{
-                  width: "100%",
-                  marginTop: 8,
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                }}
-              />
-            ) : (
-              <input
-                type="text"
-                inputMode="numeric"
-                value={String(m.age ?? "")}
-                onChange={(e) => updateMemberAge(m.id, e.target.value.replace(/\D/g, ""))}
-                style={{
-                  width: "100%",
-                  marginTop: 8,
-                  padding: "8px 10px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                }}
-              />
-            )}
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </OnboardingShell>
   );
 }
 
-// ─── Restrictions (per-member + custom + matrix) ──────────────
+// ─── Restrictions ───────────────────────────────────────────────
 
 const BASE_ALLERGY_OPTIONS = ["Gluten", "Lactosa", "Frutos secos", "Marisco", "Huevo", "Soja", "Pescado"];
 const BASE_DISLIKE_OPTIONS = [
@@ -560,14 +544,115 @@ const BASE_DISLIKE_OPTIONS = [
   "Picante",
 ];
 
+function restrictionTabStyle(active) {
+  return {
+    flex: 1,
+    padding: "10px 12px",
+    borderRadius: 10,
+    border: "none",
+    background: active ? "#2d5a3d" : "#f0f0f0",
+    color: active ? "#fff" : "#555",
+    fontSize: 13,
+    fontWeight: 800,
+    cursor: "pointer",
+  };
+}
+
+function compactChipStyle(selected) {
+  return {
+    flexShrink: 0,
+    height: 30,
+    padding: "0 12px",
+    borderRadius: 15,
+    border: `1.5px solid ${selected ? "#2d5a3d" : "rgba(45,90,61,.2)"}`,
+    background: selected ? "#2d5a3d" : "rgba(45,90,61,.08)",
+    color: selected ? "#fff" : "#2d5a3d",
+    fontSize: 11,
+    fontWeight: 600,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+  };
+}
+
+function ChipScrollRow({ options, selectedSet, onToggle, onAddClick, addOpen, addValue, onAddValueChange, onAddConfirm, addPlaceholder }) {
+  return (
+    <div>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          overflowX: "auto",
+          paddingBottom: 4,
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {options.map((label) => (
+          <button key={label} type="button" onClick={() => onToggle(label)} style={compactChipStyle(selectedSet.has(label))}>
+            {label}
+          </button>
+        ))}
+        <button type="button" onClick={onAddClick} style={{ ...compactChipStyle(false), width: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Plus size={14} />
+        </button>
+      </div>
+      {addOpen && (
+        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+          <input
+            value={addValue}
+            onChange={(e) => onAddValueChange(e.target.value)}
+            placeholder={addPlaceholder}
+            style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1.5px solid #ddd", fontSize: 13 }}
+            onKeyDown={(e) => e.key === "Enter" && onAddConfirm()}
+          />
+          <button
+            type="button"
+            onClick={onAddConfirm}
+            style={{
+              width: 38,
+              borderRadius: 10,
+              border: "none",
+              background: "#2d5a3d",
+              color: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Check size={16} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset }) {
-  const [activeId, setActiveId] = useState("house");
+  const mealOptions = getMeals(data);
+  const [tab, setTab] = useState("avoid");
+  const [allergyMemberId, setAllergyMemberId] = useState(data.members[0]?.id ?? null);
   const [customAllergy, setCustomAllergy] = useState("");
   const [customDislike, setCustomDislike] = useState("");
-  const [showMatrix, setShowMatrix] = useState(false);
   const [showAddAllergy, setShowAddAllergy] = useState(false);
   const [showAddDislike, setShowAddDislike] = useState(false);
+  const [showMatrix, setShowMatrix] = useState(false);
   const [dish, setDish] = useState("");
+  const [newDishTimes, setNewDishTimes] = useState(1);
+  const [newDishMeals, setNewDishMeals] = useState(() => [...mealOptions]);
+
+  useEffect(() => {
+    if (!data.members.some((m) => m.id === allergyMemberId)) {
+      setAllergyMemberId(data.members[0]?.id ?? null);
+    }
+  }, [data.members, allergyMemberId]);
+
+  useEffect(() => {
+    setNewDishMeals((cur) => {
+      const valid = cur.filter((m) => mealOptions.includes(m));
+      if (valid.length > 0) return valid;
+      return [...mealOptions];
+    });
+  }, [mealOptions.join("|")]);
 
   const allergyOptions = useMemo(
     () => [...BASE_ALLERGY_OPTIONS, ...(data.customAllergies ?? [])],
@@ -601,500 +686,417 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
         : [...(d.dislikes ?? []), val],
     }));
 
-  const addCustom = (type) => {
-    const raw = type === "allergy" ? customAllergy : customDislike;
-    const label = titleCase(raw);
+  const addCustomAllergy = () => {
+    const label = titleCase(customAllergy);
+    if (!label || !allergyMemberId) return;
+    setData((d) => ({
+      ...d,
+      customAllergies: (d.customAllergies ?? []).includes(label)
+        ? d.customAllergies
+        : [...(d.customAllergies ?? []), label],
+    }));
+    toggleMember(allergyMemberId, "allergies", label);
+    setCustomAllergy("");
+    setShowAddAllergy(false);
+  };
+
+  const addCustomDislike = () => {
+    const label = titleCase(customDislike);
     if (!label) return;
-    if (type === "allergy") {
-      setData((d) => ({
-        ...d,
-        customAllergies: (d.customAllergies ?? []).includes(label)
-          ? d.customAllergies
-          : [...(d.customAllergies ?? []), label],
-      }));
-      if (allergyTargetId) toggleMember(allergyTargetId, "allergies", label);
-      setCustomAllergy("");
-      return;
-    }
     setData((d) => ({
       ...d,
       customDislikes: (d.customDislikes ?? []).includes(label)
         ? d.customDislikes
         : [...(d.customDislikes ?? []), label],
     }));
-    if (activeId === "house") toggleHouse(label);
-    else toggleMember(activeId, "dislikes", label);
+    toggleHouse(label);
     setCustomDislike("");
+    setShowAddDislike(false);
   };
 
-  const peopleColumns = [
-    ...data.members.map((m) => ({ id: m.id, label: m.name })),
-    { id: "house", label: "Casa" },
-  ];
-  const allergyTargetId = activeId === "house" ? (data.members[0]?.id ?? null) : activeId;
-  const visibleAllergyOptions = allergyOptions.slice(0, 5);
-  const visibleDislikeOptions = dislikeOptions.slice(0, 5);
+  const allergyMember = data.members.find((m) => m.id === allergyMemberId);
+  const allergySelected = new Set(allergyMember?.allergies ?? []);
+  const houseDislikeSelected = new Set(data.dislikes ?? []);
+
   const hasAnyMarks =
     (data.dislikes ?? []).length > 0 ||
     data.members.some((m) => (m.allergies?.length ?? 0) > 0 || (m.dislikes?.length ?? 0) > 0);
-  const fixedFreqs = ["semanal", "quincenal", "de vez en cuando"];
+
+  const toggleNewDishMeal = (meal) => {
+    setNewDishMeals((cur) => {
+      const has = cur.includes(meal);
+      if (has && cur.length <= 1) return cur;
+      return has ? cur.filter((m) => m !== meal) : [...cur, meal];
+    });
+  };
+
   const addFixedDish = () => {
     const label = normalizeTextValue(dish);
-    if (!label) return;
+    if (!label || newDishMeals.length === 0) return;
+    const entry = normalizeFixedDish({
+      name: label,
+      timesPerWeek: newDishTimes,
+      meals: newDishMeals,
+    });
+    if (!entry) return;
     setData((d) => ({
       ...d,
-      fixedDishes: [...(d.fixedDishes ?? []), { name: label, freq: "semanal" }],
+      fixedDishes: [...migrateFixedDishes(d.fixedDishes ?? []), entry],
     }));
     setDish("");
+    setNewDishTimes(1);
+    setNewDishMeals([...mealOptions]);
   };
+
+  const updateFixedDish = (idx, patch) =>
+    setData((d) => {
+      const list = migrateFixedDishes(d.fixedDishes ?? []);
+      const next = list.map((fd, i) => (i === idx ? normalizeFixedDish({ ...fd, ...patch }) : fd)).filter(Boolean);
+      return { ...d, fixedDishes: next };
+    });
+
   const removeFixedDish = (idx) =>
     setData((d) => ({
       ...d,
-      fixedDishes: (d.fixedDishes ?? []).filter((_, i) => i !== idx),
+      fixedDishes: migrateFixedDishes(d.fixedDishes ?? []).filter((_, i) => i !== idx),
     }));
-  const setFixedDishFreq = (idx, freq) =>
-    setData((d) => ({
-      ...d,
-      fixedDishes: (d.fixedDishes ?? []).map((fd, i) => (i === idx ? { ...fd, freq } : fd)),
-    }));
+
+  const fixedList = migrateFixedDishes(data.fixedDishes ?? []);
+
+  const matrixItems = useMemo(() => {
+    const items = new Set([...allergyOptions]);
+    for (const m of data.members) {
+      for (const a of m.allergies ?? []) items.add(a);
+      for (const d of m.dislikes ?? []) items.add(d);
+    }
+    for (const d of data.dislikes ?? []) items.add(d);
+    return Array.from(items);
+  }, [allergyOptions, data.members, data.dislikes]);
 
   return (
     <OnboardingShell
-      title="Restricciones"
-      subtitle="Alergias, no come y platos fijos"
+      title="¿Qué tenemos en cuenta?"
+      subtitle="Lo que evitamos y lo que quieres repetir cada semana"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div
-        style={{
-          display: "flex",
-          gap: 6,
-          overflowX: "auto",
-          paddingBottom: 8,
-          marginBottom: 12,
-        }}
-      >
-        {data.members.map((m) => {
-          const sel = m.id === activeId;
-          return (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => setActiveId(m.id)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                borderRadius: 20,
-                border: "none",
-                padding: "6px 10px 6px 6px",
-                background: sel ? "#2d5a3d" : "#f0f0f0",
-                color: sel ? "#fff" : "#555",
-                fontSize: 12,
-                fontWeight: 700,
-                cursor: "pointer",
-                flexShrink: 0,
-              }}
-            >
-              <Avatar name={m.name} size={22} color={sel ? "rgba(255,255,255,.25)" : "#bbb"} />
-              {m.name}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => setActiveId("house")}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            borderRadius: 20,
-            border: "none",
-            padding: "6px 12px",
-            background: activeId === "house" ? "#2d5a3d" : "#f0f0f0",
-            color: activeId === "house" ? "#fff" : "#555",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-            flexShrink: 0,
-          }}
-        >
-          <House size={13} />
-          Toda la casa
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <button type="button" onClick={() => setTab("avoid")} style={restrictionTabStyle(tab === "avoid")}>
+          Evitar
+        </button>
+        <button type="button" onClick={() => setTab("repeat")} style={restrictionTabStyle(tab === "repeat")}>
+          Repetir
         </button>
       </div>
 
-      <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
-          <p style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 6 }}>
-            Alergias
-          </p>
-          {activeId === "house" && (
-            <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-              Selecciona una persona para editar alergias individuales.
-            </p>
-          )}
-          <div style={{ marginBottom: 10 }}>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-                gap: 8,
-                alignItems: "center",
-              }}
-            >
-              {Array.from({ length: 5 }, (_, idx) => visibleAllergyOptions[idx] ?? null).map((a, idx) =>
-                a ? (
-                <button
-                  key={`${a}-${idx}`}
-                  type="button"
-                  onClick={() => allergyTargetId && toggleMember(allergyTargetId, "allergies", a)}
-                  style={{
-                    width: "100%",
-                    height: 38,
-                    padding: "6px 8px",
-                    borderRadius: 19,
-                    border: `1.5px solid ${
-                      data.members.find((m) => m.id === allergyTargetId)?.allergies?.includes(a)
-                        ? "#2d5a3d"
-                        : "rgba(45,90,61,.2)"
-                    }`,
-                    background: data.members.find((m) => m.id === allergyTargetId)?.allergies?.includes(a)
-                      ? "#2d5a3d"
-                      : "rgba(45,90,61,.08)",
-                    color: data.members.find((m) => m.id === allergyTargetId)?.allergies?.includes(a)
-                      ? "#fff"
-                      : "#2d5a3d",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {a}
-                </button>
-                ) : (
-                  <div key={`allergy-empty-${idx}`} />
-                )
-              )}
-              <button
-                type="button"
-                onClick={() => setShowAddAllergy((v) => !v)}
-                style={{
-                  background: "#2d5a3d",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 19,
-                  width: "100%",
-                  height: 38,
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Plus size={16} />
-              </button>
+      {tab === "avoid" && (
+        <>
+          <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
+              <p style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24", margin: 0 }}>Alergias</p>
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                {data.members.map((m) => {
+                  const sel = m.id === allergyMemberId;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setAllergyMemberId(m.id)}
+                      title={m.name}
+                      style={{
+                        border: sel ? "2px solid #2d5a3d" : "2px solid transparent",
+                        borderRadius: "50%",
+                        padding: 0,
+                        background: "transparent",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Avatar name={m.name} size={28} color={sel ? "#2d5a3d" : "#bbb"} />
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
-          {showAddAllergy && (
-            <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-              <input
-                value={customAllergy}
-                onChange={(e) => setCustomAllergy(e.target.value)}
-                placeholder="Añadir alergia"
-                style={{
-                  flex: 1,
-                  padding: "10px 12px",
-                  borderRadius: 10,
-                  border: "1.5px solid #ddd",
-                  fontSize: 13,
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => addCustom("allergy")}
-                style={{
-                  width: 38,
-                  borderRadius: 10,
-                  border: "none",
-                  background: "#2d5a3d",
-                  color: "#fff",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
-                <Check size={16} />
-              </button>
-            </div>
-          )}
-        </div>
-
-      <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 10 }}>
-        <p style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 8 }}>
-          {activeId === "house" ? "No come nadie en casa" : "No come"}
-        </p>
-        <div style={{ marginBottom: 10 }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-              gap: 8,
-              alignItems: "center",
-            }}
-          >
-            {Array.from({ length: 5 }, (_, idx) => visibleDislikeOptions[idx] ?? null).map((d, idx) =>
-              d ? (
-                <button
-                  key={`${d}-${idx}`}
-                  type="button"
-                  onClick={() =>
-                    activeId === "house" ? toggleHouse(d) : toggleMember(activeId, "dislikes", d)
-                  }
-                  style={{
-                    width: "100%",
-                    height: 38,
-                    padding: "6px 8px",
-                    borderRadius: 19,
-                    border: `1.5px solid ${
-                      (
-                        activeId === "house"
-                          ? (data.dislikes ?? []).includes(d)
-                          : data.members.find((m) => m.id === activeId)?.dislikes?.includes(d)
-                      )
-                        ? "#2d5a3d"
-                        : "rgba(45,90,61,.2)"
-                    }`,
-                    background:
-                      activeId === "house"
-                        ? (data.dislikes ?? []).includes(d)
-                          ? "#2d5a3d"
-                          : "rgba(45,90,61,.08)"
-                        : data.members.find((m) => m.id === activeId)?.dislikes?.includes(d)
-                        ? "#2d5a3d"
-                        : "rgba(45,90,61,.08)",
-                    color:
-                      activeId === "house"
-                        ? (data.dislikes ?? []).includes(d)
-                          ? "#fff"
-                          : "#2d5a3d"
-                        : data.members.find((m) => m.id === activeId)?.dislikes?.includes(d)
-                        ? "#fff"
-                        : "#2d5a3d",
-                    fontSize: 12,
-                    fontWeight: 500,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                  }}
-                >
-                  {d}
-                </button>
-              ) : (
-                <div key={`dislike-empty-${idx}`} />
-              )
+            {allergyMember && (
+              <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+                Para <strong>{allergyMember.name}</strong>
+              </p>
             )}
+            <ChipScrollRow
+              options={allergyOptions}
+              selectedSet={allergySelected}
+              onToggle={(label) => allergyMemberId && toggleMember(allergyMemberId, "allergies", label)}
+              onAddClick={() => setShowAddAllergy((v) => !v)}
+              addOpen={showAddAllergy}
+              addValue={customAllergy}
+              onAddValueChange={setCustomAllergy}
+              onAddConfirm={addCustomAllergy}
+              addPlaceholder="Añadir alergia"
+            />
+          </div>
+
+          <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
+            <p style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24", margin: "0 0 8px" }}>
+              No come nadie en casa
+            </p>
+            <ChipScrollRow
+              options={dislikeOptions}
+              selectedSet={houseDislikeSelected}
+              onToggle={toggleHouse}
+              onAddClick={() => setShowAddDislike((v) => !v)}
+              addOpen={showAddDislike}
+              addValue={customDislike}
+              onAddValueChange={setCustomDislike}
+              onAddConfirm={addCustomDislike}
+              addPlaceholder="Añadir alimento"
+            />
+          </div>
+
+          {hasAnyMarks && (
             <button
               type="button"
-              onClick={() => setShowAddDislike((v) => !v)}
+              onClick={() => setShowMatrix((v) => !v)}
               style={{
-                background: "#2d5a3d",
-                color: "#fff",
-                border: "none",
-                borderRadius: 19,
                 width: "100%",
-                height: 38,
-                cursor: "pointer",
+                padding: "10px 12px",
+                borderRadius: 10,
+                border: "1px solid #d7e1db",
+                background: "#f6f9f7",
+                color: "#2d5a3d",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
+                justifyContent: "space-between",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+                marginBottom: showMatrix ? 10 : 0,
               }}
             >
-              <Plus size={16} />
+              Ver tabla completa
+              <Grid2X2 size={14} />
             </button>
-          </div>
-        </div>
-        {showAddDislike && (
-          <div style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+          )}
+
+          {hasAnyMarks && showMatrix && (
+            <div style={{ overflowX: "auto", border: "1px solid #e3ebe6", borderRadius: 10, background: "#fff" }}>
+              <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 280 }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: 8, fontSize: 11, color: "#666" }} />
+                    {data.members.map((m) => (
+                      <th key={m.id} style={{ textAlign: "center", padding: 8 }}>
+                        <Avatar name={m.name} size={22} />
+                      </th>
+                    ))}
+                    <th style={{ textAlign: "center", padding: 8, fontSize: 10, color: "#666", fontWeight: 700 }}>
+                      En casa
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matrixItems.map((item) => {
+                    const isAllergyOption = allergyOptions.includes(item);
+                    return (
+                      <tr key={item} style={{ borderTop: "1px solid #f0f3f1" }}>
+                        <td style={{ padding: 8, fontSize: 11, fontWeight: 600, color: "#444" }}>{item}</td>
+                        {data.members.map((m) => {
+                          const allergy = (m.allergies ?? []).includes(item);
+                          const personalDislike = (m.dislikes ?? []).includes(item);
+                          const show = isAllergyOption ? allergy : personalDislike;
+                          return (
+                            <td key={`${item}-${m.id}`} style={{ textAlign: "center", padding: 8 }}>
+                              {isAllergyOption ? (
+                                show ? (
+                                  <span style={{ fontSize: 10, fontWeight: 800, color: "#c45a2c" }}>A</span>
+                                ) : (
+                                  <Minus size={12} color="#ddd" />
+                                )
+                              ) : show ? (
+                                <Check size={13} color="#2d5a3d" />
+                              ) : (
+                                <Minus size={12} color="#ddd" />
+                              )}
+                            </td>
+                          );
+                        })}
+                        <td style={{ textAlign: "center", padding: 8 }}>
+                          {!isAllergyOption && (data.dislikes ?? []).includes(item) ? (
+                            <Check size={13} color="#2d5a3d" />
+                          ) : (
+                            <Minus size={12} color="#ddd" />
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </>
+      )}
+
+      {tab === "repeat" && (
+        <>
+          <p style={{ fontSize: 13, fontWeight: 700, color: "#555", margin: "0 0 10px" }}>
+            Platos fijos
+          </p>
+          <div
+            style={{
+              background: "#f6f9f7",
+              borderRadius: 10,
+              padding: "12px",
+              marginBottom: 10,
+            }}
+          >
             <input
-              value={customDislike}
-              onChange={(e) => setCustomDislike(e.target.value)}
-              placeholder="Añadir alimento"
+              value={dish}
+              onChange={(e) => setDish(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && addFixedDish()}
+              placeholder="Ej: Tortilla de patatas"
               style={{
-                flex: 1,
+                width: "100%",
                 padding: "10px 12px",
                 borderRadius: 10,
                 border: "1.5px solid #ddd",
                 fontSize: 13,
+                marginBottom: 10,
+                boxSizing: "border-box",
               }}
             />
+            <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 10 }}>
+              <div style={{ flex: "1 1 100px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Veces por semana</p>
+                <input
+                  type="number"
+                  min={1}
+                  max={7}
+                  value={newDishTimes}
+                  onChange={(e) =>
+                    setNewDishTimes(Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)))
+                  }
+                  style={{
+                    width: "100%",
+                    padding: "8px 10px",
+                    borderRadius: 8,
+                    border: "1px solid #ddd",
+                    fontSize: 14,
+                    fontWeight: 700,
+                    textAlign: "center",
+                  }}
+                />
+              </div>
+              <div style={{ flex: "2 1 140px" }}>
+                <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Cuándo</p>
+                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                  {mealOptions.map((meal) => (
+                    <Chip
+                      key={meal}
+                      label={meal}
+                      selected={newDishMeals.includes(meal)}
+                      onClick={() => toggleNewDishMeal(meal)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
             <button
               type="button"
-              onClick={() => addCustom("dislike")}
+              onClick={addFixedDish}
+              disabled={!normalizeTextValue(dish) || newDishMeals.length === 0}
               style={{
-                width: 38,
+                width: "100%",
+                padding: "10px",
                 borderRadius: 10,
                 border: "none",
                 background: "#2d5a3d",
                 color: "#fff",
+                fontWeight: 700,
+                fontSize: 13,
                 cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
+                opacity: !normalizeTextValue(dish) ? 0.5 : 1,
               }}
             >
-              <Check size={16} />
+              Añadir plato
             </button>
           </div>
-        )}
-      </div>
 
-      {hasAnyMarks && (
-        <button
-          type="button"
-          onClick={() => setShowMatrix((v) => !v)}
-          style={{
-            width: "100%",
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: "1px solid #d7e1db",
-            background: "#f6f9f7",
-            color: "#2d5a3d",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            fontWeight: 700,
-            fontSize: 12,
-            cursor: "pointer",
-          }}
-        >
-          Matriz de marcas
-          <Grid2X2 size={14} />
-        </button>
-      )}
-
-      {hasAnyMarks && showMatrix && (
-        <div
-          style={{
-            overflowX: "auto",
-            marginTop: 10,
-            border: "1px solid #e3ebe6",
-            borderRadius: 10,
-            background: "#fff",
-          }}
-        >
-          <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 360 }}>
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left", padding: "8px", fontSize: 11, color: "#666" }}>Ítem</th>
-                {peopleColumns.map((p) => (
-                  <th key={p.id} style={{ textAlign: "center", padding: "8px", fontSize: 11, color: "#666" }}>
-                    {p.label}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {[...allergyOptions, ...dislikeOptions].map((item) => (
-                <tr key={item} style={{ borderTop: "1px solid #f0f3f1" }}>
-                  <td style={{ padding: "8px", fontSize: 12, color: "#444", fontWeight: 600 }}>{item}</td>
-                  {peopleColumns.map((p) => {
-                    const checked =
-                      p.id === "house"
-                        ? (data.dislikes ?? []).includes(item)
-                        : (data.members.find((m) => m.id === p.id)?.allergies ?? []).includes(item) ||
-                          (data.members.find((m) => m.id === p.id)?.dislikes ?? []).includes(item);
-                    return (
-                      <td key={`${item}-${p.id}`} style={{ textAlign: "center", padding: "8px" }}>
-                        {checked ? <Check size={13} color="#2d5a3d" /> : <Minus size={13} color="#ccc" />}
-                      </td>
-                    );
-                  })}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#555", margin: "14px 0 8px" }}>
-        Platos fijos
-      </p>
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <input
-          value={dish}
-          onChange={(e) => setDish(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && addFixedDish()}
-          placeholder="Ej: Tortilla de patatas"
-          style={{
-            flex: 1,
-            padding: "10px 12px",
-            borderRadius: 10,
-            border: "1.5px solid #ddd",
-            fontSize: 13,
-          }}
-        />
-        <button
-          type="button"
-          onClick={addFixedDish}
-          style={{
-            width: 38,
-            borderRadius: 10,
-            border: "none",
-            background: "#2d5a3d",
-            color: "#fff",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Plus size={16} />
-        </button>
-      </div>
-      {(data.fixedDishes ?? []).map((fd, idx) => (
-        <div
-          key={`${fd.name}-${idx}`}
-          style={{
-            background: "#f6f9f7",
-            borderRadius: 10,
-            padding: "10px 12px",
-            marginBottom: 8,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{fd.name}</span>
-            <button
-              type="button"
-              onClick={() => removeFixedDish(idx)}
-              style={{ border: "none", background: "transparent", cursor: "pointer", color: "#bbb" }}
+          {fixedList.map((fd, idx) => (
+            <div
+              key={`${fd.name}-${idx}`}
+              style={{
+                background: "#f6f9f7",
+                borderRadius: 10,
+                padding: "10px 12px",
+                marginBottom: 8,
+              }}
             >
-              <Minus size={15} />
-            </button>
-          </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-            {fixedFreqs.map((freq) => (
-              <Chip
-                key={`${fd.name}-${freq}`}
-                label={freq}
-                selected={fd.freq === freq}
-                onClick={() => setFixedDishFreq(idx, freq)}
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{fd.name}</span>
+                <button
+                  type="button"
+                  onClick={() => removeFixedDish(idx)}
+                  style={{ border: "none", background: "transparent", cursor: "pointer", color: "#bbb" }}
+                >
+                  <Minus size={15} />
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+                <div style={{ flex: "1 1 100px" }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Veces por semana</p>
+                  <input
+                    type="number"
+                    min={1}
+                    max={7}
+                    value={fd.timesPerWeek}
+                    onChange={(e) =>
+                      updateFixedDish(idx, {
+                        timesPerWeek: Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)),
+                      })
+                    }
+                    style={{
+                      width: "100%",
+                      padding: "8px 10px",
+                      borderRadius: 8,
+                      border: "1px solid #ddd",
+                      fontSize: 14,
+                      fontWeight: 700,
+                      textAlign: "center",
+                    }}
+                  />
+                </div>
+                <div style={{ flex: "2 1 140px" }}>
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Cuándo</p>
+                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                    {mealOptions.map((meal) => {
+                      const selected = fd.meals.includes(meal);
+                      return (
+                        <Chip
+                          key={meal}
+                          label={meal}
+                          selected={selected}
+                          onClick={() => {
+                            const next = selected
+                              ? fd.meals.filter((m) => m !== meal)
+                              : [...fd.meals, meal];
+                            if (next.length === 0) return;
+                            updateFixedDish(idx, { meals: next });
+                          }}
+                        />
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
     </OnboardingShell>
   );
 }
-
-// ─── Menu model (with simple manual move) ─────────────────────
 
 export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, onReset }) {
   const models = [
@@ -1239,8 +1241,7 @@ const SLOT_CONFIG = {
   casa: { label: "Casa", color: "#2d5a3d" },
   tupper: { label: "Tupper", color: "#c67030" },
   fuera: { label: "Fuera", color: "#5a7ea8" },
-  cole: { label: "Cole", color: "#a85a7e" },
-  off: { label: "Sin", color: "#888" },
+  cole: { label: "Cole", color: "#3d7a52" },
 };
 
 const MIXED_COLOR = "#aaa";
@@ -1293,7 +1294,34 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   // Sheet state: { day, meal | null } — when meal is null, the sheet is in
   // "day mode" (only row-level actions, no per-member edition for a slot).
   const [sheetSlot, setSheetSlot] = useState(null);
+  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
   const [toast, setToast] = useState(null);
+  const mainMeal = primaryDayMeal(data);
+
+  const hasSchoolMenuLoaded = useMemo(() => {
+    const sm = data.schoolMenus ?? { shared: {}, byMember: {} };
+    if (hasAnySchoolDish(sm.shared)) return true;
+    return Object.values(sm.byMember ?? {}).some((m) => hasAnySchoolDish(m));
+  }, [data.schoolMenus]);
+
+  const scheduleSummary = useMemo(() => {
+    let planificar = 0;
+    let cole = 0;
+    let fuera = 0;
+    let tupper = 0;
+    for (const day of DAYS) {
+      for (const meal of meals) {
+        for (const id of memberList) {
+          const v = data.schedule[`${id}|${day}|${meal}`] ?? "casa";
+          if (v === "cole") cole += 1;
+          else if (v === "fuera") fuera += 1;
+          else if (v === "tupper") tupper += 1;
+          else if (v === "casa") planificar += 1;
+        }
+      }
+    }
+    return { planificar, cole, fuera, tupper };
+  }, [data.schedule, meals, memberList]);
   const showToast = (msg) => {
     setToast(msg);
     window.clearTimeout(showToast._t);
@@ -1344,16 +1372,18 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       const colable = subjectMembers.some(
         (m) => stageForAge(memberAge(m)).id !== "adulto"
       );
+      const main = primaryDayMeal(d);
+      const dayMeals = getMeals(d);
       for (const day of DAYS) {
         const isWeekday = !["Sáb", "Dom"].includes(day);
-        for (const meal of meals) {
-          const isLunch = isLunchMeal(meal);
+        for (const meal of dayMeals) {
+          const isMain = meal === main;
           let value;
           if (preset === "casa-todo") value = "casa";
           else if (preset === "tupper-laborable")
-            value = isWeekday && isLunch ? "tupper" : "casa";
+            value = isWeekday && isMain ? "tupper" : "casa";
           else if (preset === "cole-laborable")
-            value = isWeekday && isLunch ? (colable ? "cole" : "fuera") : "casa";
+            value = isWeekday && isMain ? (colable ? "cole" : "fuera") : "casa";
           else if (preset === "fuera-finde") value = !isWeekday ? "fuera" : "casa";
           else continue;
           for (const id of subjectMemberIds) {
@@ -1400,29 +1430,128 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   const showSubjectTabs = memberList.length > 1;
 
+  const openDay = (day) => {
+    if (subjectMemberIds.length === 0) return;
+    setSheetSlot({ day, meal: mainMeal });
+  };
+
   return (
     <OnboardingShell
-      title="¿Cuándo coméis en casa?"
-      subtitle="Elige qué comidas planificar · toca una celda para marcar dónde coméis"
+      title="¿Dónde coméis?"
+      subtitle="Marca dónde come cada uno · toca una celda para elegir"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      <SectionTitle>Comidas del día</SectionTitle>
-      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-        Marca las que quieres cubrir en el menú
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-        {ALL_DAY_MEALS.map((meal) => (
-          <Chip
-            key={meal}
-            label={meal}
-            selected={meals.includes(meal)}
-            onClick={() => toggleDayMeal(meal)}
-          />
-        ))}
+      <SectionTitle>Acciones rápidas · {subjectLabel}</SectionTitle>
+      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
+        <button type="button" onClick={() => applyPreset("casa-todo")} style={presetStyle}>
+          <House size={13} /> Casa siempre
+        </button>
+        <button type="button" onClick={() => applyPreset("tupper-laborable")} style={presetStyle}>
+          <BriefcaseBusiness size={13} /> Tupper L-V
+        </button>
+        {allowCole && (
+          <button type="button" onClick={() => applyPreset("cole-laborable")} style={presetStyle}>
+            <School size={13} /> Cole L-V
+          </button>
+        )}
+        <button type="button" onClick={() => applyPreset("fuera-finde")} style={presetStyle}>
+          <UtensilsCrossed size={13} /> Finde fuera
+        </button>
       </div>
+
+      <div
+        style={{
+          padding: "10px 12px",
+          borderRadius: 10,
+          background: "rgba(45,90,61,.08)",
+          border: "1px solid #d7e1db",
+          fontSize: 12,
+          color: "#1a3a24",
+          lineHeight: 1.45,
+          marginBottom: 12,
+        }}
+      >
+        <strong>Esta semana:</strong> {scheduleSummary.planificar} comidas a planificar en casa
+        {scheduleSummary.cole > 0 && ` · ${scheduleSummary.cole} en cole`}
+        {scheduleSummary.tupper > 0 && ` · ${scheduleSummary.tupper} tupper`}
+        {scheduleSummary.fuera > 0 && ` · ${scheduleSummary.fuera} fuera`}
+      </div>
+
+      {hasSchoolMenuLoaded && allowCole && (
+        <div
+          style={{
+            padding: "8px 10px",
+            borderRadius: 10,
+            background: "rgba(61,122,82,.1)",
+            border: "1px solid rgba(45,90,61,.2)",
+            fontSize: 11,
+            color: "#2d5a3d",
+            marginBottom: 12,
+            fontWeight: 600,
+          }}
+        >
+          Menú del cole cargado — «Cole L-V» solo aplica a niños/as en {mainMeal.toLowerCase()}.
+        </div>
+      )}
+
+      <SheetIconLegend columns={sheetColumns(allowCole)} />
+
+      <SectionTitle>Calendario</SectionTitle>
+      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+        Pulsa un día para igualar · pulsa una celda para elegir
+      </p>
+      <ScheduleGrid
+        meals={meals}
+        memberIds={subjectMemberIds}
+        schedule={data.schedule}
+        onCellClick={openCell}
+        onDayClick={openDay}
+      />
+
+      <button
+        type="button"
+        onClick={() => setMoreOptionsOpen((v) => !v)}
+        style={{
+          width: "100%",
+          marginTop: 14,
+          padding: "10px 12px",
+          borderRadius: 10,
+          border: "1px solid #e3ebe6",
+          background: "#fafcfb",
+          color: "#555",
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontFamily: "inherit",
+        }}
+        aria-expanded={moreOptionsOpen}
+      >
+        Más opciones (comidas del día y editar por)
+        {moreOptionsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
+
+      {moreOptionsOpen && (
+        <div style={{ marginTop: 12 }}>
+          <SectionTitle>Comidas del día</SectionTitle>
+          <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+            Marca las que quieres cubrir en el menú
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+            {ALL_DAY_MEALS.map((meal) => (
+              <Chip
+                key={meal}
+                label={meal}
+                selected={meals.includes(meal)}
+                onClick={() => toggleDayMeal(meal)}
+              />
+            ))}
+          </div>
 
       {showSubjectTabs && (
         <>
@@ -1545,35 +1674,8 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
           )}
         </>
       )}
-
-      <SectionTitle>Acciones rápidas · {subjectLabel}</SectionTitle>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
-        <button type="button" onClick={() => applyPreset("casa-todo")} style={presetStyle}>
-          <House size={13} /> Casa siempre
-        </button>
-        <button type="button" onClick={() => applyPreset("tupper-laborable")} style={presetStyle}>
-          <BriefcaseBusiness size={13} /> Tupper L-V
-        </button>
-        {allowCole && (
-          <button type="button" onClick={() => applyPreset("cole-laborable")} style={presetStyle}>
-            <School size={13} /> Cole L-V
-          </button>
-        )}
-        <button type="button" onClick={() => applyPreset("fuera-finde")} style={presetStyle}>
-          <UtensilsCrossed size={13} /> Finde fuera
-        </button>
-      </div>
-
-      <SectionTitle>Calendario</SectionTitle>
-      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-        Pulsa una celda para elegir
-      </p>
-      <ScheduleGrid
-        meals={meals}
-        memberIds={subjectMemberIds}
-        schedule={data.schedule}
-        onCellClick={openCell}
-      />
+        </div>
+      )}
 
       {sheetSlot && (
         <ScheduleSlotSheet
@@ -1918,10 +2020,18 @@ function DayHeader() {
   );
 }
 
-function ScheduleCell({ value, states, onClick, size = 16 }) {
+const CELL_SHORT = {
+  casa: "Casa",
+  tupper: "Tup",
+  cole: "Cole",
+  fuera: "Fuera",
+  mixed: "Mix",
+};
+
+function ScheduleCell({ value, states, onClick, size = 14 }) {
   const isMixed = value === "mixed";
-  const conf = SLOT_CONFIG[value] ?? SLOT_CONFIG.casa;
-  const isOff = value === "off";
+  const normalized = value === "off" ? "casa" : value;
+  const conf = SLOT_CONFIG[normalized] ?? SLOT_CONFIG.casa;
   const color = isMixed ? MIXED_COLOR : conf.color;
   const Tag = onClick ? "button" : "div";
   return (
@@ -1931,21 +2041,24 @@ function ScheduleCell({ value, states, onClick, size = 16 }) {
       title={isMixed ? "Distinto por persona — pulsa para editar" : "Pulsa para elegir"}
       style={{
         width: "100%",
-        aspectRatio: "1",
+        minHeight: 48,
         borderRadius: 8,
         cursor: onClick ? "pointer" : "default",
         background: isMixed ? "#fafafa" : "#f8fbf9",
-        border: `1.5px ${isMixed ? "dashed" : "solid"} ${
-          isOff ? "#e3ebe6" : `${color}55`
-        }`,
+        border: `1.5px ${isMixed ? "dashed" : "solid"} ${color}55`,
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        color: isOff ? "#bbb" : color,
-        padding: 0,
+        gap: 2,
+        color,
+        padding: "4px 2px",
       }}
     >
-      {isMixed ? <MixedDots states={states ?? []} /> : stateIcon(value, size)}
+      {isMixed ? <MixedDots states={states ?? []} /> : stateIcon(normalized, size)}
+      <span style={{ fontSize: 9, fontWeight: 800, lineHeight: 1 }}>
+        {isMixed ? CELL_SHORT.mixed : CELL_SHORT[normalized] ?? ""}
+      </span>
     </Tag>
   );
 }
@@ -2032,9 +2145,10 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
             {meal}
           </div>
           {DAYS.map((day) => {
-            const memberStates = memberIds.map(
-              (id) => schedule[`${id}|${day}|${meal}`] ?? "casa"
-            );
+            const memberStates = memberIds.map((id) => {
+              const raw = schedule[`${id}|${day}|${meal}`] ?? "casa";
+              return raw === "off" ? "casa" : raw;
+            });
             let value;
             if (memberStates.length === 0) value = "off";
             else if (memberStates.length === 1) value = memberStates[0];
@@ -2244,9 +2358,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             flex: 1,
             padding: "9px 10px",
             borderRadius: 10,
-            border: `1.5px solid ${scope === "shared" ? "#a85a7e" : "#ddd"}`,
-            background: scope === "shared" ? "rgba(168,90,126,.08)" : "#fff",
-            color: "#a85a7e",
+            border: `1.5px solid ${scope === "shared" ? "#2d5a3d" : "#ddd"}`,
+            background: scope === "shared" ? "rgba(45,90,61,.08)" : "#fff",
+            color: "#2d5a3d",
             fontSize: 12,
             fontWeight: 700,
             cursor: "pointer",
@@ -2266,9 +2380,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             flex: 1,
             padding: "9px 10px",
             borderRadius: 10,
-            border: `1.5px solid ${scope === "individual" ? "#a85a7e" : "#ddd"}`,
-            background: scope === "individual" ? "rgba(168,90,126,.08)" : "#fff",
-            color: "#a85a7e",
+            border: `1.5px solid ${scope === "individual" ? "#2d5a3d" : "#ddd"}`,
+            background: scope === "individual" ? "rgba(45,90,61,.08)" : "#fff",
+            color: "#2d5a3d",
             fontSize: 12,
             fontWeight: 700,
             cursor: "pointer",
@@ -2307,7 +2421,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                   borderRadius: 20,
                   border: "none",
                   padding: "6px 10px 6px 6px",
-                  background: sel ? "#a85a7e" : "#f0f0f0",
+                  background: sel ? "#2d5a3d" : "#f0f0f0",
                   color: sel ? "#fff" : "#555",
                   fontSize: 12,
                   fontWeight: 700,
@@ -2336,8 +2450,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           gap: 12,
           padding: "14px 14px",
           borderRadius: 12,
-          border: "1.5px dashed #c9b1bd",
-          background: importing ? "#fbf3f7" : "#fff",
+          border: "1.5px dashed rgba(45,90,61,.35)",
+          background: importing ? "#f6f9f7" : "#fff",
           cursor: importing ? "default" : "pointer",
           marginBottom: 8,
         }}
@@ -2347,8 +2461,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             width: 36,
             height: 36,
             borderRadius: 10,
-            background: "rgba(168,90,126,.12)",
-            color: "#a85a7e",
+            background: "rgba(45,90,61,.12)",
+            color: "#2d5a3d",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
@@ -2370,11 +2484,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               textOverflow: "ellipsis",
             }}
           >
-            {importing
-              ? importStatus || "…"
-              : importedFileName
-              ? importedFileName
-              : "Detección 1º · 2º · postre, L-V"}
+            {importing ? importStatus || "…" : importedFileName || ""}
           </div>
         </div>
         <input
@@ -2406,9 +2516,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       {!importing && !importError && importStatus && importedFileName && (
         <div
           style={{
-            background: "rgba(168,90,126,.08)",
-            border: "1px solid #e6c8d5",
-            color: "#a85a7e",
+            background: "rgba(45,90,61,.08)",
+            border: "1px solid #d7e1db",
+            color: "#2d5a3d",
             borderRadius: 10,
             padding: "8px 10px",
             fontSize: 11,
@@ -2430,9 +2540,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           style={{
             padding: "6px 10px",
             borderRadius: 8,
-            border: "1.5px solid #e6c8d5",
+            border: "1.5px solid #d7e1db",
             background: "#fff",
-            color: "#a85a7e",
+            color: "#2d5a3d",
             fontSize: 11,
             fontWeight: 700,
             cursor: "pointer",
@@ -2478,8 +2588,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               style={{
                 fontSize: 10,
                 fontWeight: 800,
-                color: "#a85a7e",
-                background: "rgba(168,90,126,.12)",
+                color: "#2d5a3d",
+                background: "rgba(45,90,61,.12)",
                 padding: "2px 6px",
                 borderRadius: 6,
                 letterSpacing: 0,
@@ -2511,7 +2621,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               style={{
                 fontSize: 11,
                 fontWeight: 800,
-                color: "#a85a7e",
+                color: "#2d5a3d",
                 textTransform: "uppercase",
                 letterSpacing: 1,
                 marginBottom: 6,
@@ -2542,7 +2652,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                       border: "1px solid #e3ebe6",
                       fontSize: 11,
                       fontWeight: 800,
-                      color: "#a85a7e",
+                      color: "#2d5a3d",
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",

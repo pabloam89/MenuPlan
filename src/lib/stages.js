@@ -8,6 +8,25 @@ export const STAGES = {
   adulto: { id: "adulto", label: "Adulto", short: "Adulto", range: [18, 200] },
 };
 
+export const HOUSEHOLD_ROLES = [
+  "Adulto",
+  "Pareja",
+  "Hijo/a",
+  "Bebé",
+  "Abuelo/a",
+  "Compi",
+  "Amigo/a",
+  "Otro",
+];
+
+export function suggestHomeRole(age) {
+  const a = Number(age);
+  if (Number.isNaN(a)) return "Adulto";
+  if (a <= 2) return "Bebé";
+  if (a < 18) return "Hijo/a";
+  return "Adulto";
+}
+
 export const ADULT_DETAILS = [
   "Trabajo",
   "Teletrabajo",

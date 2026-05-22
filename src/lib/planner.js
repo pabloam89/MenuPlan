@@ -2,6 +2,11 @@ import { RECIPES } from "../data/recipes.js";
 import { membersOfGroup } from "./groups.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { stageForAge } from "./stages.js";
+import {
+  fixedDishScoreBoost,
+  markFixedDishPlaced,
+  migrateFixedDishes,
+} from "./fixedDishes.js";
 
 export const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -32,6 +37,12 @@ export function getMeals(data) {
 
 export function isLunchMeal(meal) {
   return meal === "Comida";
+}
+
+/** First planned meal of the day (Comida if selected, else first chip). */
+export function primaryDayMeal(data) {
+  const meals = getMeals(data);
+  return meals.find(isLunchMeal) ?? meals[0];
 }
 
 // Schedule cell values:
@@ -122,13 +133,6 @@ function groupTargetKcal(data, group) {
 
 function mealKcalTarget(targetKcal, meal) {
   return recipeMealType(meal) === "cena" ? targetKcal * 0.28 : targetKcal * 0.38;
-}
-
-function recipeMatchesFixedDish(recipe, fixedDish) {
-  const wanted = normalizedText(fixedDish?.name);
-  if (!wanted) return false;
-  const name = normalizedText(recipe.name);
-  return name.includes(wanted) || wanted.includes(name);
 }
 
 function recipeToolIssues(recipe, availableTools) {
@@ -224,8 +228,7 @@ function recipeScore(recipe, ctx) {
   if (ctx.schoolProteins.has(primaryProteinFromRecipe(recipe))) score -= 22;
   if (ctx.schoolProteins.size > 0 && recipe.tags.includes("verdura")) score += 10;
 
-  const fixedDishHit = (ctx.fixedDishes ?? []).some((fd) => recipeMatchesFixedDish(recipe, fd));
-  if (fixedDishHit) score += 70;
+  score += fixedDishScoreBoost(recipe, ctx.meal, ctx.fixedTracks ?? []);
 
   // Avoid repeating same recipe / proteine in same week
   if (ctx.usedIds.has(recipe.id)) score -= 200;
@@ -299,6 +302,8 @@ export function generateMenu(data) {
   const { members, groups, schedule, dislikes, cookLevel, timeWeekday, timeWeekend } = data;
   const plan = { _warnings: [] };
 
+  const fixedTracks = migrateFixedDishes(data.fixedDishes).map((fd) => ({ ...fd, placed: 0 }));
+
   for (const group of groups) {
     plan[group.id] = {};
     const groupMembers = membersOfGroup(group, members);
@@ -370,7 +375,7 @@ export function generateMenu(data) {
           proteinCount,
           typeCount,
           schoolProteins,
-          fixedDishes: data.fixedDishes ?? [],
+          fixedTracks,
         };
         const recipe = pickRecipe(ctx);
         if (!recipe) {
@@ -386,6 +391,7 @@ export function generateMenu(data) {
           continue;
         }
         usedIds.add(recipe.id);
+        markFixedDishPlaced(recipe, meal, fixedTracks);
         const protein = primaryProteinFromRecipe(recipe);
         if (protein) proteinCount[protein] = (proteinCount[protein] ?? 0) + 1;
         for (const tag of recipe.tags) {
