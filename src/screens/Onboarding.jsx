@@ -17,18 +17,25 @@ import {
   Minus,
   Plus,
   School,
+  Coins,
+  Dumbbell,
+  Heart,
+  RotateCcw,
+  Shuffle,
   Sparkles,
+  Tag,
   Upload,
+  Zap,
   User,
   Users,
   Utensils,
   UtensilsCrossed,
   X,
 } from "lucide-react";
-import { Chip, SliderInput, Avatar } from "../components/ui.jsx";
+import { Chip, SliderInput, Avatar, AvatarStack } from "../components/ui.jsx";
 import { stageForAge, stageLabel } from "../lib/stages.js";
 import { groupsFromModel, membersOfGroup, uid } from "../lib/groups.js";
-import { DAYS, getMeals } from "../lib/planner.js";
+import { ALL_DAY_MEALS, DAYS, dayLabel, getMeals, isLunchMeal } from "../lib/planner.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES } from "../lib/schoolMenu.js";
 import { importSchoolMenuFile } from "../lib/schoolMenuImport.js";
 
@@ -1238,15 +1245,6 @@ const SLOT_CONFIG = {
 
 const MIXED_COLOR = "#aaa";
 
-function nextSlotValue(current, allowCole) {
-  const order = allowCole
-    ? ["casa", "tupper", "cole", "fuera", "off"]
-    : ["casa", "tupper", "fuera", "off"];
-  const safe = current === "mixed" ? "casa" : current ?? "casa";
-  const idx = order.indexOf(safe);
-  return order[(idx + 1) % order.length];
-}
-
 function consensusState(memberIds, schedule, day, meal) {
   if (memberIds.length === 0) return "off";
   const states = memberIds.map((id) => schedule[`${id}|${day}|${meal}`] ?? "casa");
@@ -1255,32 +1253,34 @@ function consensusState(memberIds, schedule, day, meal) {
 
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
   const meals = getMeals(data);
-  // Default to group editing whenever the menu model has groups; fall back to
-  // individual when there's a single person or no groups defined yet.
-  const defaultMode =
-    data.groups.length >= 1 && data.members.length > 1 ? "group" : "single";
+  const memberList = data.members ?? [];
+  const groupList = data.groups ?? [];
+  const defaultMode = memberList.length > 1 ? "all" : "single";
   const [subjectMode, setSubjectMode] = useState(defaultMode);
-  const [activeGroupId, setActiveGroupId] = useState(data.groups[0]?.id ?? null);
-  const [activeMemberId, setActiveMemberId] = useState(data.members[0]?.id ?? null);
+  const [activeGroupId, setActiveGroupId] = useState(groupList[0]?.id ?? null);
+  const [activeMemberId, setActiveMemberId] = useState(memberList[0]?.id ?? null);
 
-  // Keep active subject pointers valid when groups/members change.
-  if (!data.groups.find((g) => g.id === activeGroupId)) {
-    const nextGroupId = data.groups[0]?.id ?? null;
-    if (activeGroupId !== nextGroupId) setActiveGroupId(nextGroupId);
-  }
-  if (!data.members.find((m) => m.id === activeMemberId)) {
-    const nextMemberId = data.members[0]?.id ?? null;
-    if (activeMemberId !== nextMemberId) setActiveMemberId(nextMemberId);
-  }
+  useEffect(() => {
+    if (!groupList.find((g) => g.id === activeGroupId)) {
+      setActiveGroupId(groupList[0]?.id ?? null);
+    }
+  }, [groupList, activeGroupId]);
+
+  useEffect(() => {
+    if (!memberList.find((m) => m.id === activeMemberId)) {
+      setActiveMemberId(memberList[0]?.id ?? null);
+    }
+  }, [memberList, activeMemberId]);
 
   const activeGroup = data.groups.find((g) => g.id === activeGroupId);
   const activeMember = data.members.find((m) => m.id === activeMemberId);
 
   // Member ids affected by the current subject (a group's members, or a single member).
   const subjectMemberIds = useMemo(() => {
+    if (subjectMode === "all") return memberList.map((m) => m.id);
     if (subjectMode === "group") return activeGroup?.memberIds ?? [];
     return activeMember ? [activeMember.id] : [];
-  }, [subjectMode, activeGroup, activeMember]);
+  }, [subjectMode, activeGroup, activeMember, memberList]);
 
   const subjectMembers = useMemo(
     () => subjectMemberIds.map((id) => data.members.find((m) => m.id === id)).filter(Boolean),
@@ -1318,32 +1318,9 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     }));
   };
 
-  const setAllForDay = (day, value) => {
+  const openCell = (day, meal) => {
     if (subjectMemberIds.length === 0) return;
-    setData((d) => {
-      const next = { ...d.schedule };
-      for (const meal of meals) {
-        for (const id of subjectMemberIds) {
-          next[`${id}|${day}|${meal}`] = value;
-        }
-      }
-      return { ...d, schedule: next };
-    });
-  };
-
-  const cycle = (day, meal) => {
-    if (subjectMemberIds.length === 0) return;
-    const cur =
-      subjectMode === "group"
-        ? consensusState(subjectMemberIds, data.schedule, day, meal)
-        : data.schedule[`${subjectMemberIds[0]}|${day}|${meal}`] ?? "casa";
-    // For groups with diverging members, open the editor instead of cycling
-    // — that way we never overwrite individual variations by accident.
-    if (cur === "mixed") {
-      setSheetSlot({ day, meal });
-      return;
-    }
-    setSlots(subjectMemberIds, day, meal, nextSlotValue(cur, allowCole));
+    setSheetSlot({ day, meal });
   };
 
   const countMixedCells = (memberIds, schedule) => {
@@ -1361,7 +1338,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   const applyPreset = (preset) => {
     if (subjectMemberIds.length === 0) return;
     const overwritten =
-      subjectMode === "group" ? countMixedCells(subjectMemberIds, data.schedule) : 0;
+      subjectMemberIds.length > 1 ? countMixedCells(subjectMemberIds, data.schedule) : 0;
     setData((d) => {
       const next = { ...d.schedule };
       const colable = subjectMembers.some(
@@ -1370,7 +1347,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       for (const day of DAYS) {
         const isWeekday = !["Sáb", "Dom"].includes(day);
         for (const meal of meals) {
-          const isLunch = meal.toLowerCase() === "comida";
+          const isLunch = isLunchMeal(meal);
           let value;
           if (preset === "casa-todo") value = "casa";
           else if (preset === "tupper-laborable")
@@ -1395,47 +1372,14 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     }
   };
 
-  // Meal editor
-  const renameMeal = (idx, value) => {
+  const toggleDayMeal = (meal) => {
     setData((d) => {
-      const oldName = (d.meals ?? meals)[idx];
-      const newName = value.trim();
-      if (!newName || newName === oldName) return d;
-      const newMeals = (d.meals ?? meals).map((m, i) => (i === idx ? newName : m));
-      // Migrate schedule keys "memberId|day|<old>" → "memberId|day|<new>".
-      const newSchedule = {};
-      for (const [k, v] of Object.entries(d.schedule)) {
-        const parts = k.split("|");
-        if (parts.length === 3 && parts[2] === oldName) {
-          newSchedule[`${parts[0]}|${parts[1]}|${newName}`] = v;
-        } else {
-          newSchedule[k] = v;
-        }
-      }
-      return { ...d, meals: newMeals, schedule: newSchedule };
-    });
-  };
-  const removeMeal = (idx) => {
-    if (meals.length <= 1) return;
-    const target = meals[idx];
-    if (!window.confirm(`¿Quitar "${target}"? Se perderán las marcas de ese momento.`)) return;
-    setData((d) => {
-      const newMeals = (d.meals ?? meals).filter((_, i) => i !== idx);
-      const newSchedule = {};
-      for (const [k, v] of Object.entries(d.schedule)) {
-        const parts = k.split("|");
-        if (parts.length === 3 && parts[2] === target) continue;
-        newSchedule[k] = v;
-      }
-      return { ...d, meals: newMeals, schedule: newSchedule };
-    });
-  };
-  const addMeal = () => {
-    setData((d) => {
-      const cur = d.meals ?? meals;
-      const candidates = ["Desayuno", "Almuerzo", "Merienda", "Picoteo"];
-      const fresh = candidates.find((c) => !cur.includes(c)) ?? `Comida ${cur.length + 1}`;
-      return { ...d, meals: [...cur, fresh] };
+      const cur = getMeals(d);
+      const selected = cur.includes(meal);
+      if (selected && cur.length <= 1) return d;
+      const nextSet = selected ? cur.filter((m) => m !== meal) : [...cur, meal];
+      const nextMeals = ALL_DAY_MEALS.filter((m) => nextSet.includes(m));
+      return { ...d, meals: nextMeals };
     });
   };
 
@@ -1448,123 +1392,159 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   }
 
   const subjectLabel =
-    subjectMode === "group"
-      ? activeGroup?.label ?? "grupo"
-      : activeMember?.name ?? "persona";
+    subjectMode === "all"
+      ? "toda la familia"
+      : subjectMode === "group"
+        ? activeGroup?.label ?? "grupo"
+        : activeMember?.name ?? "persona";
+
+  const showSubjectTabs = memberList.length > 1;
 
   return (
     <OnboardingShell
       title="¿Cuándo coméis en casa?"
-      subtitle="Edita por grupo o persona; los presets se aplican al sujeto activo"
+      subtitle="Elige qué comidas planificar · toca una celda para marcar dónde coméis"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
       <SectionTitle>Comidas del día</SectionTitle>
-      <MealEditor
-        meals={meals}
-        onRename={renameMeal}
-        onRemove={removeMeal}
-        onAdd={addMeal}
-      />
-
-      <SectionTitle>Editar por</SectionTitle>
-      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={() => setSubjectMode("group")}
-          style={tabButtonStyle(subjectMode === "group")}
-        >
-          <Users size={14} />
-          Por grupo ({data.groups.length})
-        </button>
-        <button
-          type="button"
-          onClick={() => setSubjectMode("single")}
-          style={tabButtonStyle(subjectMode === "single")}
-        >
-          <User size={14} />
-          Individual ({data.members.length})
-        </button>
+      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+        Marca las que quieres cubrir en el menú
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        {ALL_DAY_MEALS.map((meal) => (
+          <Chip
+            key={meal}
+            label={meal}
+            selected={meals.includes(meal)}
+            onClick={() => toggleDayMeal(meal)}
+          />
+        ))}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          gap: 6,
-          overflowX: "auto",
-          paddingBottom: 8,
-          marginBottom: 10,
-        }}
-      >
-        {subjectMode === "group" &&
-          data.groups.map((g) => {
-            const sel = g.id === activeGroupId;
-            const groupMembers = membersOfGroup(g, data.members);
-            return (
+      {showSubjectTabs && (
+        <>
+          <SectionTitle>Editar por</SectionTitle>
+          <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              onClick={() => setSubjectMode("all")}
+              style={tabButtonStyle(subjectMode === "all")}
+            >
+              <AvatarStack
+                names={memberList.map((m) => m.name)}
+                size={20}
+                max={4}
+                color={subjectMode === "all" ? "rgba(255,255,255,.35)" : "#bbb"}
+              />
+              Todos
+            </button>
+            {groupList.length > 0 && (
               <button
-                key={g.id}
                 type="button"
-                onClick={() => setActiveGroupId(g.id)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  borderRadius: 20,
-                  border: "none",
-                  padding: "6px 12px 6px 8px",
-                  background: sel ? g.color : "#f0f0f0",
-                  color: sel ? "#fff" : "#555",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  flexShrink: 0,
-                }}
+                onClick={() => setSubjectMode("group")}
+                style={tabButtonStyle(subjectMode === "group")}
               >
-                <span
-                  style={{
-                    fontSize: 10,
-                    background: sel ? "rgba(255,255,255,.25)" : "rgba(0,0,0,.06)",
-                    padding: "1px 6px",
-                    borderRadius: 6,
-                  }}
-                >
-                  {groupMembers.length}
-                </span>
-                {g.label}
+                <Users size={14} />
+                Grupo
               </button>
-            );
-          })}
-        {subjectMode === "single" &&
-          data.members.map((m) => {
-            const sel = m.id === activeMemberId;
-            return (
-              <button
-                key={m.id}
-                type="button"
-                onClick={() => setActiveMemberId(m.id)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  borderRadius: 20,
-                  border: "none",
-                  padding: "6px 10px 6px 6px",
-                  background: sel ? "#2d5a3d" : "#f0f0f0",
-                  color: sel ? "#fff" : "#555",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  flexShrink: 0,
-                }}
-              >
-                <Avatar name={m.name} size={22} color={sel ? "rgba(255,255,255,.25)" : "#bbb"} />
-                {m.name}
-              </button>
-            );
-          })}
-      </div>
+            )}
+            <button
+              type="button"
+              onClick={() => setSubjectMode("single")}
+              style={tabButtonStyle(subjectMode === "single")}
+            >
+              <User size={14} />
+              Persona
+            </button>
+          </div>
+
+          {subjectMode !== "all" && (
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                overflowX: "auto",
+                paddingBottom: 8,
+                marginBottom: 10,
+              }}
+            >
+              {subjectMode === "group" &&
+                groupList.map((g) => {
+                  const sel = g.id === activeGroupId;
+                  const groupMembers = membersOfGroup(g, memberList);
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => setActiveGroupId(g.id)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        borderRadius: 20,
+                        border: "none",
+                        padding: "6px 12px 6px 8px",
+                        background: sel ? g.color : "#f0f0f0",
+                        color: sel ? "#fff" : "#555",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 10,
+                          background: sel ? "rgba(255,255,255,.25)" : "rgba(0,0,0,.06)",
+                          padding: "1px 6px",
+                          borderRadius: 6,
+                        }}
+                      >
+                        {groupMembers.length}
+                      </span>
+                      {g.label}
+                    </button>
+                  );
+                })}
+              {subjectMode === "single" &&
+                memberList.map((m) => {
+                  const sel = m.id === activeMemberId;
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setActiveMemberId(m.id)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        borderRadius: 20,
+                        border: "none",
+                        padding: "6px 10px 6px 6px",
+                        background: sel ? "#2d5a3d" : "#f0f0f0",
+                        color: sel ? "#fff" : "#555",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        cursor: "pointer",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Avatar
+                        name={m.name}
+                        size={22}
+                        color={sel ? "rgba(255,255,255,.25)" : "#bbb"}
+                      />
+                      {m.name}
+                    </button>
+                  );
+                })}
+            </div>
+          )}
+        </>
+      )}
 
       <SectionTitle>Acciones rápidas · {subjectLabel}</SectionTitle>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
@@ -1585,16 +1565,14 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       </div>
 
       <SectionTitle>Calendario</SectionTitle>
+      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+        Pulsa una celda para elegir
+      </p>
       <ScheduleGrid
         meals={meals}
         memberIds={subjectMemberIds}
         schedule={data.schedule}
-        onCellClick={cycle}
-        onDayClick={
-          subjectMode === "group" && subjectMemberIds.length > 1
-            ? (day) => setSheetSlot({ day, meal: null })
-            : undefined
-        }
+        onCellClick={openCell}
       />
 
       {sheetSlot && (
@@ -1610,10 +1588,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
           }
           onSetAllSlot={(value) => {
             setSlots(subjectMemberIds, sheetSlot.day, sheetSlot.meal, value);
-          }}
-          onSetAllDay={(value) => {
-            setAllForDay(sheetSlot.day, value);
-            setSheetSlot(null);
           }}
         />
       )}
@@ -1644,6 +1618,45 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   );
 }
 
+const SLOT_COLUMNS = ["casa", "tupper", "cole", "fuera"];
+
+function sheetColumns(showCole) {
+  return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
+}
+
+function SheetIconLegend({ columns }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexWrap: "wrap",
+        gap: "6px 12px",
+        marginBottom: 10,
+      }}
+    >
+      {columns.map((s) => {
+        const c = SLOT_CONFIG[s].color;
+        return (
+          <span
+            key={s}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 10,
+              fontWeight: 600,
+              color: "#666",
+            }}
+          >
+            <span style={{ color: c, display: "inline-flex" }}>{stateIcon(s, 12)}</span>
+            {SLOT_CONFIG[s].label}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function ScheduleSlotSheet({
   day,
   meal,
@@ -1653,15 +1666,10 @@ function ScheduleSlotSheet({
   onClose,
   onSetMember,
   onSetAllSlot,
-  onSetAllDay,
 }) {
-  // When `meal` is null we render in "day mode": only the row-level actions are
-  // shown (per-member editing requires a specific meal context).
-  const dayMode = !meal;
-  const allowedStates = useMemo(
-    () => (allowCole ? ["casa", "tupper", "cole", "fuera", "off"] : ["casa", "tupper", "fuera", "off"]),
-    [allowCole]
-  );
+  const dayName = dayLabel(day);
+  const columns = sheetColumns(allowCole);
+  const title = `${dayName} · ${meal}`;
 
   return (
     <div
@@ -1683,22 +1691,18 @@ function ScheduleSlotSheet({
           borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: 420,
-          maxHeight: "85vh",
-          overflowY: "auto",
-          padding: "18px 18px 22px",
+          padding: "12px 14px 18px",
         }}
       >
         <div
           style={{
             display: "flex",
-            alignItems: "baseline",
+            alignItems: "center",
             justifyContent: "space-between",
-            marginBottom: 14,
+            marginBottom: 8,
           }}
         >
-          <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1a3a24" }}>
-            {dayMode ? day : `${day} · ${meal}`}
-          </h3>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#1a3a24" }}>{title}</h3>
           <button
             type="button"
             onClick={onClose}
@@ -1707,7 +1711,7 @@ function ScheduleSlotSheet({
               background: "transparent",
               border: "none",
               color: "#888",
-              fontSize: 24,
+              fontSize: 22,
               cursor: "pointer",
               padding: 4,
               lineHeight: 1,
@@ -1717,261 +1721,149 @@ function ScheduleSlotSheet({
           </button>
         </div>
 
-        {!dayMode && (
-          <>
-            <SectionTitle>Por persona</SectionTitle>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
-              {members.map((m) => {
-                const cur = schedule[`${m.id}|${day}|${meal}`] ?? "casa";
-                const memberAllowsCole = stageForAge(memberAge(m)).id !== "adulto";
-                const memberStates = memberAllowsCole
-                  ? ["casa", "tupper", "cole", "fuera", "off"]
-                  : ["casa", "tupper", "fuera", "off"];
-                return (
-                  <div
-                    key={m.id}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "8px 10px",
-                      background: "#f7f9f8",
-                      borderRadius: 10,
-                    }}
-                  >
-                    <Avatar name={m.name} size={28} />
-                    <span
-                      style={{
-                        flex: 1,
-                        minWidth: 0,
-                        fontSize: 13,
-                        fontWeight: 700,
-                        color: "#1a3a24",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {m.name}
-                    </span>
-                    <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                      {memberStates.map((s) => {
-                        const sel = cur === s;
-                        const c = SLOT_CONFIG[s].color;
-                        return (
-                          <button
-                            key={s}
-                            type="button"
-                            onClick={() => onSetMember(m.id, s)}
-                            title={SLOT_CONFIG[s].label}
-                            aria-label={SLOT_CONFIG[s].label}
-                            style={{
-                              width: 30,
-                              height: 30,
-                              borderRadius: 8,
-                              border: `1.5px solid ${sel ? c : "#e3ebe6"}`,
-                              background: sel ? `${c}1a` : "#fff",
-                              color: sel ? c : "#bbb",
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              padding: 0,
-                            }}
-                          >
-                            {stateIcon(s, 14)}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+        <SheetIconLegend columns={columns} />
 
-            <SectionTitle>Igualar todos en {meal}</SectionTitle>
-            <StatePillRow states={allowedStates} onClick={onSetAllSlot} />
-            <div style={{ height: 18 }} />
+        {members.length > 1 && (
+          <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 10,
+                background: "rgba(45,90,61,.1)",
+                border: "1.5px solid rgba(45,90,61,.28)",
+                marginBottom: 0,
+              }}
+            >
+              <span
+                style={{
+                  flex: 1,
+                  fontSize: 13,
+                  fontWeight: 800,
+                  color: "#2d5a3d",
+                  minWidth: 0,
+                }}
+              >
+                Todos
+              </span>
+              <SlotIconRow columns={columns} value={null} onPick={onSetAllSlot} />
+            </div>
+            <div
+              style={{
+                height: 1,
+                background: "#e3ebe6",
+                margin: "12px 0",
+                width: "100%",
+              }}
+            />
           </>
         )}
 
-        <SectionTitle>{dayMode ? `Igualar todo el ${day}` : `Igualar TODO el ${day}`}</SectionTitle>
-        <StatePillRow
-          states={allowedStates}
-          onClick={(value) => {
-            onSetAllDay(value);
-          }}
-        />
-        <p style={{ fontSize: 11, color: "#888", marginTop: 8, marginBottom: 0 }}>
-          Aplica a todas las comidas del {day} para todos los miembros.
-        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {members.map((m) => {
+            const raw = schedule[`${m.id}|${day}|${meal}`] ?? "casa";
+            const cur = raw === "off" ? "casa" : raw;
+            const kid = stageForAge(memberAge(m)).id !== "adulto";
+            return (
+              <div
+                key={m.id}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Avatar name={m.name} size={24} />
+                  <span
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 700,
+                      color: "#1a3a24",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {m.name}
+                  </span>
+                </div>
+                <SlotIconRow
+                  columns={columns}
+                  value={cur}
+                  onPick={(s) => onSetMember(m.id, s)}
+                  memberIsKid={kid}
+                />
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
 }
 
-function StatePillRow({ states, onClick }) {
+function SlotIconButton({ state, selected, disabled, onClick }) {
+  const c = SLOT_CONFIG[state]?.color ?? "#888";
   return (
-    <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-      {states.map((s) => {
-        const c = SLOT_CONFIG[s].color;
+    <button
+      type="button"
+      disabled={disabled}
+      onClick={disabled ? undefined : onClick}
+      title={SLOT_CONFIG[state]?.label}
+      aria-label={SLOT_CONFIG[state]?.label}
+      style={{
+        width: 36,
+        height: 36,
+        borderRadius: 8,
+        border: `1.5px solid ${selected ? c : "#e3ebe6"}`,
+        background: disabled ? "transparent" : selected ? `${c}18` : "#fff",
+        color: disabled ? "transparent" : selected ? c : "#bbb",
+        cursor: disabled ? "default" : "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 0,
+        opacity: disabled ? 0 : 1,
+      }}
+    >
+      {!disabled && stateIcon(state, 15)}
+    </button>
+  );
+}
+
+function SlotIconRow({ columns, value, onPick, memberIsKid = true }) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${columns.length}, 36px)`,
+        gap: 4,
+      }}
+    >
+      {columns.map((s) => {
+        const disabled = s === "cole" && memberIsKid === false;
         return (
-          <button
+          <SlotIconButton
             key={s}
-            type="button"
-            onClick={() => onClick(s)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: `1.5px solid ${c}`,
-              background: `${c}10`,
-              color: c,
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            {stateIcon(s, 13)}
-            {SLOT_CONFIG[s].label}
-          </button>
+            state={s}
+            selected={value === s}
+            disabled={disabled}
+            onClick={() => onPick(s)}
+          />
         );
       })}
     </div>
-  );
-}
-
-function MealEditor({ meals, onRename, onRemove, onAdd }) {
-  return (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
-      {meals.map((meal, idx) => (
-        <MealChip
-          key={`${meal}-${idx}`}
-          value={meal}
-          onCommit={(v) => onRename(idx, v)}
-          onRemove={meals.length > 1 ? () => onRemove(idx) : null}
-        />
-      ))}
-      <button
-        type="button"
-        onClick={onAdd}
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 4,
-          padding: "6px 12px",
-          borderRadius: 19,
-          height: 32,
-          border: "1.5px dashed #2d5a3d",
-          background: "#fff",
-          color: "#2d5a3d",
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: "pointer",
-        }}
-      >
-        <Plus size={13} /> Añadir
-      </button>
-    </div>
-  );
-}
-
-function MealChip({ value, onCommit, onRemove }) {
-  const [editing, setEditing] = useState(false);
-  const [draft, setDraft] = useState(value);
-  const [lastValue, setLastValue] = useState(value);
-  if (value !== lastValue) {
-    setLastValue(value);
-    setDraft(value);
-  }
-
-  const commit = () => {
-    setEditing(false);
-    if (draft.trim() && draft !== value) onCommit(draft);
-    else setDraft(value);
-  };
-
-  return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 4,
-        padding: editing ? "0 6px 0 10px" : "0 4px 0 12px",
-        borderRadius: 19,
-        height: 32,
-        background: "rgba(45,90,61,.08)",
-        border: "1px solid #d7e1db",
-      }}
-    >
-      <Utensils size={11} color="#2d5a3d" />
-      {editing ? (
-        <input
-          autoFocus
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.currentTarget.blur();
-            if (e.key === "Escape") {
-              setDraft(value);
-              setEditing(false);
-            }
-          }}
-          style={{
-            border: "none",
-            background: "transparent",
-            outline: "none",
-            fontSize: 12,
-            fontWeight: 700,
-            color: "#2d5a3d",
-            width: Math.max(60, draft.length * 7.5),
-            fontFamily: "inherit",
-          }}
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setEditing(true)}
-          style={{
-            border: "none",
-            background: "transparent",
-            color: "#2d5a3d",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-            padding: 0,
-            fontFamily: "inherit",
-          }}
-        >
-          {value}
-        </button>
-      )}
-      {onRemove && (
-        <button
-          type="button"
-          onClick={onRemove}
-          aria-label={`Quitar ${value}`}
-          style={{
-            border: "none",
-            background: "transparent",
-            color: "#888",
-            cursor: "pointer",
-            padding: 0,
-            width: 22,
-            height: 22,
-            borderRadius: 11,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <X size={12} />
-        </button>
-      )}
-    </span>
   );
 }
 
@@ -2036,7 +1928,7 @@ function ScheduleCell({ value, states, onClick, size = 16 }) {
     <Tag
       type={onClick ? "button" : undefined}
       onClick={onClick}
-      title={isMixed ? "Variaciones individuales — pulsa para editar" : undefined}
+      title={isMixed ? "Distinto por persona — pulsa para editar" : "Pulsa para elegir"}
       style={{
         width: "100%",
         aspectRatio: "1",
@@ -2785,9 +2677,9 @@ const DEFAULT_GOAL_DEFS = [
   {
     id: "economico",
     label: "Económico",
-    profile: { freqs: { legumbres: 4, pescado: 1 } },
+    profile: { kcal: 1950, freqs: { legumbres: 4, pescado: 1 } },
   },
-  { id: "rapido", label: "Rápido", profile: {} },
+  { id: "rapido", label: "Rápido", profile: { freqs: { verdura: 4 } } },
   {
     id: "deportivo",
     label: "Deportivo",
@@ -2796,6 +2688,28 @@ const DEFAULT_GOAL_DEFS = [
   { id: "variado", label: "Variado", profile: {} },
   { id: "no-repetir-proteina", label: "Sin repetir proteína", profile: {} },
 ];
+
+const GOAL_ICON_MAP = {
+  sano: Heart,
+  economico: Coins,
+  rapido: Zap,
+  deportivo: Dumbbell,
+  variado: Shuffle,
+  "no-repetir-proteina": RotateCcw,
+};
+
+const GOAL_TOGGLE_HINTS = {
+  sano: "Más verdura, pescado y legumbres",
+  economico: "Más legumbres, menos pescado",
+  rapido: "Platos rápidos (≤25 min)",
+  deportivo: "Más proteína y energía",
+  variado: "Más variedad al generar el menú",
+  "no-repetir-proteina": "Evita repetir la misma proteína",
+};
+
+function goalsManualKey(subjectId) {
+  return subjectId ?? "__global__";
+}
 
 const BASE_KCAL = 2000;
 const BASE_FREQS = { legumbres: 2, verdura: 3, pescado: 2 };
@@ -2845,6 +2759,23 @@ const FREQ_LABELS = {
   huevos: "Huevos",
   fruta: "Fruta",
 };
+
+function describeGoalEffects(goalIds, kcal, freqs) {
+  if (!goalIds.length) {
+    return "Sin objetivos activos · pulsa uno para empezar";
+  }
+  const hints = [];
+  const ids = new Set(goalIds);
+  for (const id of ids) {
+    if (GOAL_TOGGLE_HINTS[id]) hints.push(GOAL_TOGGLE_HINTS[id]);
+  }
+  const topFreqs = Object.entries(freqs)
+    .filter(([, v]) => v >= 3)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 2)
+    .map(([k, v]) => `${FREQ_LABELS[k] ?? capitalize(k)} ≥${v}/sem`);
+  return [`${kcal} kcal`, ...hints.slice(0, 3), ...topFreqs].join(" · ");
+}
 
 function slugifyGoalLabel(label) {
   return String(label ?? "")
@@ -2901,6 +2832,13 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
     (subjectId && data.kcalByGroup?.[subjectId]) ?? data.kcal ?? 2000;
   const activeFreqs =
     (subjectId && data.freqsByGroup?.[subjectId]) ?? data.freqs ?? {};
+  const goalsManual = Boolean(data.goalsManualByGroup?.[goalsManualKey(subjectId)]);
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+
+  const effectSummary = useMemo(
+    () => describeGoalEffects(activeGoals, activeKcal, activeFreqs),
+    [activeGoals, activeKcal, activeFreqs]
+  );
 
   // ── Toast (lifecycle-safe; timer cleared on unmount) ──
   const [toast, setToast] = useState(null);
@@ -2918,26 +2856,36 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
   );
 
   // ── Per-subject writers ──
+  const markGoalsManual = (d) => ({
+    ...d,
+    goalsManualByGroup: {
+      ...(d.goalsManualByGroup ?? {}),
+      [goalsManualKey(subjectId)]: true,
+    },
+  });
+
   const writeSubjectKcal = (newKcal) => {
     setData((d) => {
+      const next = markGoalsManual(d);
       if (subjectId) {
         return {
-          ...d,
-          kcalByGroup: { ...(d.kcalByGroup ?? {}), [subjectId]: newKcal },
+          ...next,
+          kcalByGroup: { ...(next.kcalByGroup ?? {}), [subjectId]: newKcal },
         };
       }
-      return { ...d, kcal: newKcal };
+      return { ...next, kcal: newKcal };
     });
   };
   const writeSubjectFreqs = (newFreqs) => {
     setData((d) => {
+      const next = markGoalsManual(d);
       if (subjectId) {
         return {
-          ...d,
-          freqsByGroup: { ...(d.freqsByGroup ?? {}), [subjectId]: newFreqs },
+          ...next,
+          freqsByGroup: { ...(next.freqsByGroup ?? {}), [subjectId]: newFreqs },
         };
       }
-      return { ...d, freqs: newFreqs };
+      return { ...next, freqs: newFreqs };
     });
   };
   // Toggling needs to fire `showToast` AFTER the state is computed — keeping
@@ -2945,30 +2893,75 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
   // mode and trigger a setState during render, which made the screen
   // collapse when chaining presets.
   const toggleGoal = (goalId) => {
-    let selectedLabel = "";
+    const manualKey = goalsManualKey(subjectId);
+    let toastMsg = "";
     setData((d) => {
+      const defs = d.goalDefs ?? goalDefs;
       const currentGoals =
         (subjectId && d.goalsByGroup?.[subjectId]) ?? d.goals ?? [];
       const isActive = currentGoals.includes(goalId);
       const newGoalIds = isActive
         ? currentGoals.filter((g) => g !== goalId)
         : [...currentGoals, goalId];
-      selectedLabel = goalDefs.find((g) => g.id === goalId)?.label ?? "";
-      const profile = combinedGoalProfile(newGoalIds, d.goalDefs ?? goalDefs);
+      const manual = Boolean(d.goalsManualByGroup?.[manualKey]);
+      const profile = combinedGoalProfile(newGoalIds, defs);
+      const label = defs.find((g) => g.id === goalId)?.label ?? "";
+      const hint = GOAL_TOGGLE_HINTS[goalId];
 
+      if (manual) {
+        toastMsg = isActive
+          ? `Quitado «${label}» (kcal y frecuencias sin cambiar)`
+          : `Añadido «${label}»${hint ? ` · ${hint}` : ""} (ajuste manual activo)`;
+        if (subjectId) {
+          return {
+            ...d,
+            goalsByGroup: { ...(d.goalsByGroup ?? {}), [subjectId]: newGoalIds },
+          };
+        }
+        return { ...d, goals: newGoalIds };
+      }
+
+      toastMsg = hint ?? `Perfil «${label}» aplicado`;
+      const patch = {
+        goals: newGoalIds,
+        kcal: profile.kcal,
+        freqs: profile.freqs,
+        goalsManualByGroup: { ...(d.goalsManualByGroup ?? {}), [manualKey]: false },
+      };
       if (subjectId) {
         return {
           ...d,
           goalsByGroup: { ...(d.goalsByGroup ?? {}), [subjectId]: newGoalIds },
           kcalByGroup: { ...(d.kcalByGroup ?? {}), [subjectId]: profile.kcal },
           freqsByGroup: { ...(d.freqsByGroup ?? {}), [subjectId]: profile.freqs },
+          goalsManualByGroup: patch.goalsManualByGroup,
         };
       }
-      return { ...d, goals: newGoalIds, kcal: profile.kcal, freqs: profile.freqs };
+      return { ...d, ...patch };
     });
-    if (selectedLabel) {
-      showToast(`Objetivos recalculados con "${selectedLabel}"`);
-    }
+    if (toastMsg) showToast(toastMsg);
+  };
+
+  const resetGoalsFromPresets = () => {
+    const profile = combinedGoalProfile(activeGoals, goalDefs);
+    const manualKey = goalsManualKey(subjectId);
+    setData((d) => {
+      const patch = {
+        goalsManualByGroup: { ...(d.goalsManualByGroup ?? {}), [manualKey]: false },
+        kcal: profile.kcal,
+        freqs: profile.freqs,
+      };
+      if (subjectId) {
+        return {
+          ...d,
+          ...patch,
+          kcalByGroup: { ...(d.kcalByGroup ?? {}), [subjectId]: profile.kcal },
+          freqsByGroup: { ...(d.freqsByGroup ?? {}), [subjectId]: profile.freqs },
+        };
+      }
+      return { ...d, ...patch };
+    });
+    showToast("Valores recalculados desde los objetivos");
   };
 
   // ── Edit / add / remove chips ──
@@ -3074,7 +3067,7 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
   return (
     <OnboardingShell
       title="¿Qué queréis comer?"
-      subtitle="Toca un objetivo y los sliders se ajustan al perfil"
+      subtitle="Elige uno o varios objetivos · el menú se adapta"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -3109,14 +3102,14 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
       <SectionTitle>
         {hasMultipleGroups ? `Objetivos · ${activeGroupLabel}` : "Objetivos"}
       </SectionTitle>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
         {goalDefs.map((def) => (
           <GoalChip
             key={def.id}
             def={def}
             selected={activeGoals.includes(def.id)}
             onToggle={() => toggleGoal(def.id)}
-            onRename={(v) => renameGoalDef(def.id, v)}
+            onRename={def.isCustom ? (v) => renameGoalDef(def.id, v) : null}
             onRemove={def.isCustom ? () => removeGoalDef(def.id) : null}
           />
         ))}
@@ -3151,105 +3144,182 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
             type="button"
             onClick={() => setAddingGoal(true)}
             style={{
-              ...chipStyle(false),
+              ...goalChipStyle(false),
               border: "1.5px dashed #2d5a3d",
               cursor: "pointer",
-              fontWeight: 700,
             }}
           >
-            <Plus size={12} /> Añadir
+            <Plus size={14} /> Añadir
           </button>
         )}
       </div>
 
-      <SliderInput
-        label="Objetivo calórico"
-        value={activeKcal}
-        min={1200}
-        max={3000}
-        step={100}
-        suffix=" kcal"
-        onChange={(v) => writeSubjectKcal(v)}
-      />
-
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 10,
+          padding: "10px 12px",
+          borderRadius: 10,
+          background: "rgba(45,90,61,.08)",
+          border: "1px solid #d7e1db",
+          marginBottom: goalsManual ? 8 : 14,
+          fontSize: 12,
+          color: "#1a3a24",
+          lineHeight: 1.45,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>
-          Frecuencia mínima semanal
-        </span>
-        {!addingFreq && (
+        {effectSummary}
+      </div>
+
+      {goalsManual && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            marginBottom: 14,
+          }}
+        >
+          <span style={{ fontSize: 11, color: "#888" }}>
+            Ajustaste kcal o frecuencias a mano
+          </span>
           <button
             type="button"
-            onClick={() => setAddingFreq(true)}
+            onClick={resetGoalsFromPresets}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
               padding: "5px 10px",
-              borderRadius: 16,
-              border: "1.5px dashed #2d5a3d",
+              borderRadius: 8,
+              border: "1.5px solid #2d5a3d",
               background: "#fff",
               color: "#2d5a3d",
               fontSize: 11,
               fontWeight: 700,
               cursor: "pointer",
-            }}
-          >
-            <Plus size={11} /> Añadir tipo
-          </button>
-        )}
-      </div>
-
-      {addingFreq && (
-        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-          <input
-            autoFocus
-            value={draftFreq}
-            onChange={(e) => setDraftFreq(e.target.value)}
-            onBlur={addFreq}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
-              if (e.key === "Escape") {
-                setDraftFreq("");
-                setAddingFreq(false);
-              }
-            }}
-            placeholder="Carne, fruta, huevos…"
-            style={{
-              flex: 1,
-              padding: "8px 12px",
-              borderRadius: 10,
-              border: "1.5px solid #2d5a3d",
-              fontSize: 13,
-              outline: "none",
               fontFamily: "inherit",
             }}
-          />
+          >
+            Recalcular
+          </button>
         </div>
       )}
 
-      {freqEntries.length === 0 && !addingFreq && (
-        <p style={{ fontSize: 12, color: "#aaa", margin: "4px 0 12px" }}>
-          Sin tipos definidos. Pulsa "Añadir tipo".
-        </p>
-      )}
+      <button
+        type="button"
+        onClick={() => setAdvancedOpen((v) => !v)}
+        style={{
+          width: "100%",
+          padding: "10px 12px",
+          borderRadius: 10,
+          border: "1px solid #e3ebe6",
+          background: "#fafcfb",
+          color: "#555",
+          fontSize: 12,
+          fontWeight: 700,
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          fontFamily: "inherit",
+          marginBottom: advancedOpen ? 12 : 0,
+        }}
+        aria-expanded={advancedOpen}
+      >
+        Ajustar detalle (kcal y frecuencias)
+        {advancedOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+      </button>
 
-      {freqEntries.map(([key, value]) => (
-        <FreqRow
-          key={key}
-          freqKey={key}
-          value={value ?? 2}
-          onChange={(v) => setFreqValue(key, v)}
-          onRename={(v) => renameFreq(key, v)}
-          onRemove={() => removeFreq(key)}
-        />
-      ))}
+      {advancedOpen && (
+        <>
+          <SliderInput
+            label="Objetivo calórico"
+            value={activeKcal}
+            min={1200}
+            max={3000}
+            step={100}
+            suffix=" kcal"
+            onChange={(v) => writeSubjectKcal(v)}
+          />
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginBottom: 10,
+              marginTop: 8,
+            }}
+          >
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>
+              Frecuencia mínima semanal
+            </span>
+            {!addingFreq && (
+              <button
+                type="button"
+                onClick={() => setAddingFreq(true)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "5px 10px",
+                  borderRadius: 16,
+                  border: "1.5px dashed #2d5a3d",
+                  background: "#fff",
+                  color: "#2d5a3d",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                }}
+              >
+                <Plus size={11} /> Añadir tipo
+              </button>
+            )}
+          </div>
+
+          {addingFreq && (
+            <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+              <input
+                autoFocus
+                value={draftFreq}
+                onChange={(e) => setDraftFreq(e.target.value)}
+                onBlur={addFreq}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") e.currentTarget.blur();
+                  if (e.key === "Escape") {
+                    setDraftFreq("");
+                    setAddingFreq(false);
+                  }
+                }}
+                placeholder="Carne, fruta, huevos…"
+                style={{
+                  flex: 1,
+                  padding: "8px 12px",
+                  borderRadius: 10,
+                  border: "1.5px solid #2d5a3d",
+                  fontSize: 13,
+                  outline: "none",
+                  fontFamily: "inherit",
+                }}
+              />
+            </div>
+          )}
+
+          {freqEntries.length === 0 && !addingFreq && (
+            <p style={{ fontSize: 12, color: "#aaa", margin: "4px 0 12px" }}>
+              Sin tipos definidos. Pulsa «Añadir tipo».
+            </p>
+          )}
+
+          {freqEntries.map(([key, value]) => (
+            <FreqRow
+              key={key}
+              freqKey={key}
+              value={value ?? 2}
+              onChange={(v) => setFreqValue(key, v)}
+              onRename={(v) => renameFreq(key, v)}
+              onRemove={() => removeFreq(key)}
+            />
+          ))}
+        </>
+      )}
 
       {toast && (
         <div
@@ -3313,12 +3383,32 @@ function subjectPillStyle(selected, color = "#2d5a3d") {
   };
 }
 
+function goalChipStyle(selected) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 14px",
+    borderRadius: 20,
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+    fontFamily: "inherit",
+    border: `1.5px solid ${selected ? "#2d5a3d" : "rgba(45,90,61,.25)"}`,
+    background: selected ? "#2d5a3d" : "rgba(45,90,61,.08)",
+    color: selected ? "#fff" : "#2d5a3d",
+    transition: "background .15s, border-color .15s",
+  };
+}
+
+function GoalIcon({ id, selected }) {
+  const Icon = GOAL_ICON_MAP[id] ?? Tag;
+  return <Icon size={15} strokeWidth={2.2} color={selected ? "#fff" : "#2d5a3d"} />;
+}
+
 function GoalChip({ def, selected, onToggle, onRename, onRemove }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(def.label);
-  // Keep the editor draft in sync if the label changes externally. Using
-  // render-time state adjustment is the React-recommended replacement for
-  // a `useEffect` that just calls `setState` to mirror a prop.
   const [lastLabel, setLastLabel] = useState(def.label);
   if (def.label !== lastLabel) {
     setLastLabel(def.label);
@@ -3326,10 +3416,10 @@ function GoalChip({ def, selected, onToggle, onRename, onRemove }) {
   }
   const commit = () => {
     setEditing(false);
-    if (draft.trim() && draft.trim() !== def.label) onRename(draft.trim());
+    if (onRename && draft.trim() && draft.trim() !== def.label) onRename(draft.trim());
     else setDraft(def.label);
   };
-  if (editing) {
+  if (editing && onRename) {
     return (
       <input
         autoFocus
@@ -3344,7 +3434,7 @@ function GoalChip({ def, selected, onToggle, onRename, onRemove }) {
           }
         }}
         style={{
-          padding: "6px 14px",
+          padding: "8px 14px",
           borderRadius: 20,
           border: "1.5px solid #2d5a3d",
           fontSize: 13,
@@ -3355,57 +3445,42 @@ function GoalChip({ def, selected, onToggle, onRename, onRemove }) {
       />
     );
   }
-  const hasProfile = Object.keys(def.profile ?? {}).length > 0;
   return (
-    <span style={{ ...chipStyle(selected), paddingRight: onRemove ? 6 : 10 }}>
-      {hasProfile && (
-        <Sparkles size={11} color={selected ? "#fff" : "#2d5a3d"} />
-      )}
-      <span onClick={onToggle} style={{ cursor: "pointer" }}>
-        {def.label}
-      </span>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setEditing(true);
-        }}
-        aria-label={`Editar ${def.label}`}
-        style={iconBtnStyle(selected)}
-      >
-        <FileText size={11} />
-      </button>
+    <button
+      type="button"
+      onClick={onToggle}
+      onDoubleClick={onRename ? () => setEditing(true) : undefined}
+      title={onRename ? `${def.label} · doble clic para renombrar` : def.label}
+      style={goalChipStyle(selected)}
+    >
+      <GoalIcon id={def.id} selected={selected} />
+      {def.label}
       {onRemove && (
-        <button
-          type="button"
+        <span
+          role="button"
+          tabIndex={0}
           onClick={(e) => {
             e.stopPropagation();
             onRemove();
           }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.stopPropagation();
+              onRemove();
+            }
+          }}
           aria-label={`Quitar ${def.label}`}
-          style={iconBtnStyle(selected)}
+          style={{
+            marginLeft: 2,
+            display: "inline-flex",
+            opacity: 0.85,
+          }}
         >
           <X size={12} />
-        </button>
+        </span>
       )}
-    </span>
+    </button>
   );
-}
-
-function iconBtnStyle(selected) {
-  return {
-    border: "none",
-    background: "transparent",
-    color: selected ? "rgba(255,255,255,.85)" : "#2d5a3d",
-    cursor: "pointer",
-    padding: 0,
-    width: 18,
-    height: 18,
-    borderRadius: 9,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-  };
 }
 
 function FreqRow({ freqKey, value, onChange, onRename, onRemove }) {
@@ -3520,7 +3595,7 @@ function capitalize(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
-export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onReset }) {
+export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   const levels = [
     { id: "basic", icon: <BookOpenCheck size={20} />, label: "Básico", desc: "Lo justo para sobrevivir" },
     { id: "normal", icon: <ChefHat size={20} />, label: "Normal", desc: "Me defiendo bien" },
@@ -3581,6 +3656,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
+      finishLabel={finishLabel}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
         {levels.map((l) => (

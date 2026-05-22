@@ -8,13 +8,12 @@ import {
   OnboardingSchoolMenu,
   OnboardingGoals,
   OnboardingCooking,
-  OnboardingBudget,
 } from "./screens/Onboarding.jsx";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { ShoppingScreen } from "./screens/Shopping.jsx";
-import { getMeals } from "./lib/planner.js";
 import { generateMenuWithAI } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
+import { getMeals } from "./lib/planner.js";
 import { groupsFromModel } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
@@ -156,6 +155,9 @@ function migrate(state) {
   if (!d.goalsByGroup || typeof d.goalsByGroup !== "object") d.goalsByGroup = {};
   if (!d.kcalByGroup || typeof d.kcalByGroup !== "object") d.kcalByGroup = {};
   if (!d.freqsByGroup || typeof d.freqsByGroup !== "object") d.freqsByGroup = {};
+  if (!d.goalsManualByGroup || typeof d.goalsManualByGroup !== "object") {
+    d.goalsManualByGroup = {};
+  }
   if (!Array.isArray(d.cookSkills)) d.cookSkills = [];
   if (!Array.isArray(d.kitchenTools)) d.kitchenTools = [];
   if (!Array.isArray(d.customKitchenTools)) d.customKitchenTools = [];
@@ -215,7 +217,7 @@ export default function App() {
   const [menuError, setMenuError] = useState(null);
   const lastRegenerateArgs = useRef(null);
 
-  // Re-hydrate AI-generated recipes from persisted state so DishCard / Shopping
+  // Re-hydrate AI-generated recipes from persisted state so DishCard
   // can resolve ids after a reload.
   useEffect(() => {
     const dyn = persisted?.aiRecipes;
@@ -257,8 +259,7 @@ export default function App() {
       });
       setMenuPlan(plan);
       const sh = buildShoppingList(plan, groups, getMeals(working));
-      const items = sh.byCategory.flatMap((c) => c.items);
-      setShopping({ items });
+      setShopping({ items: sh.byCategory.flatMap((c) => c.items) });
       showToast("Menú generado con IA");
     } catch (err) {
       console.error("Error generating menu", err);
@@ -310,9 +311,14 @@ export default function App() {
     setScreen("splash");
   };
 
-  // Order: Members → Restrictions(+Platos fijos) → Menu Model →
-  //        School Menu → Schedule → Goals → Cooking → Budget.
-  // Every step exposes onFinish={goToMenu} so the user can generate at any moment.
+  // Order: Members → Restrictions → Menu Model → School Menu → Schedule → Goals → Cooking.
+  const ONB_STEP_COUNT = 7;
+  const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
+
+  useEffect(() => {
+    if (onbStep >= ONB_STEP_COUNT) setOnbStep(ONB_STEP_COUNT - 1);
+  }, [onbStep]);
+
   const onbScreens = [
     <OnboardingMembers
       data={data}
@@ -364,16 +370,8 @@ export default function App() {
     <OnboardingCooking
       data={data}
       setData={setData}
-      onNext={() => setOnbStep(7)}
       onBack={() => setOnbStep(5)}
       onFinish={goToMenu}
-      onReset={handleReset}
-    />,
-    <OnboardingBudget
-      data={data}
-      setData={setData}
-      onFinish={goToMenu}
-      onBack={() => setOnbStep(6)}
       onReset={handleReset}
     />,
   ];
@@ -409,8 +407,8 @@ export default function App() {
 
         {screen === "onboarding" && (
           <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            <ProgressDots current={onbStep} total={8} onJump={setOnbStep} />
-            <div style={{ flex: 1 }}>{onbScreens[onbStep]}</div>
+            <ProgressDots current={safeOnbStep} total={ONB_STEP_COUNT} onJump={setOnbStep} />
+            <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
           </div>
         )}
 

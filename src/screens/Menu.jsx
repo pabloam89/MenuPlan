@@ -27,7 +27,7 @@ import { BottomNav, Chip, AvatarStack } from "../components/ui.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { getMenuInsights } from "../lib/menuInsights.js";
-import { DAYS, getMeals, slotKey } from "../lib/planner.js";
+import { DAYS, getMeals, isLunchMeal, slotKey } from "../lib/planner.js";
 import { getSchoolDish, hasAnySchoolDish } from "../lib/schoolMenu.js";
 
 const ICONS_BY_TYPE = {
@@ -600,7 +600,7 @@ export function MenuScreen({
         {DAYS.map((day) => {
           const meals = getMeals(data);
           const hasAnyContent = meals.some((meal) => {
-            const isLunch = meal.toLowerCase() === "comida";
+            const isLunch = isLunchMeal(meal);
             return visibleGroups.some((g) => {
               if (menuPlan[g.id]?.[`${day}-${meal}`]) return true;
               if (!isLunch) return false;
@@ -635,7 +635,7 @@ export function MenuScreen({
                 <span style={{ flex: 1, height: 1, background: "#e6eee8" }} />
               </div>
               {meals.map((meal) => {
-                const isLunch = meal.toLowerCase() === "comida";
+                const isLunch = isLunchMeal(meal);
                 const cards = visibleGroups.flatMap((g) => {
                   const result = [];
                   const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;

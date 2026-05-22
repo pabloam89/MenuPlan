@@ -4,11 +4,34 @@ import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { stageForAge } from "./stages.js";
 
 export const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-// Default meals; can be overridden by data.meals (editable per family).
+
+export const DAY_LABELS = {
+  Lun: "Lunes",
+  Mar: "Martes",
+  Mié: "Miércoles",
+  Jue: "Jueves",
+  Vie: "Viernes",
+  Sáb: "Sábado",
+  Dom: "Domingo",
+};
+
+export function dayLabel(short) {
+  return DAY_LABELS[short] ?? short;
+}
+export const ALL_DAY_MEALS = ["Desayuno", "Comida", "Cena"];
+// Default selection when none stored yet.
 export const MEALS = ["Comida", "Cena"];
 
 export function getMeals(data) {
-  return Array.isArray(data?.meals) && data.meals.length > 0 ? data.meals : MEALS;
+  if (Array.isArray(data?.meals) && data.meals.length > 0) {
+    const selected = ALL_DAY_MEALS.filter((m) => data.meals.includes(m));
+    if (selected.length > 0) return selected;
+  }
+  return MEALS;
+}
+
+export function isLunchMeal(meal) {
+  return meal === "Comida";
 }
 
 // Schedule cell values:
@@ -92,13 +115,9 @@ function daySchoolProteins(data, groupMembers, day) {
   );
 }
 
-function groupTargetKcal(data, group, goalIds) {
+function groupTargetKcal(data, group) {
   const base = data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000;
-  let target = base;
-  if (goalIds.includes("sano")) target -= 100;
-  if (goalIds.includes("deportivo")) target += 250;
-  if (goalIds.includes("economico")) target -= 50;
-  return Math.max(1200, Math.min(3000, target));
+  return Math.max(1200, Math.min(3000, base));
 }
 
 function mealKcalTarget(targetKcal, meal) {
@@ -310,7 +329,7 @@ export function generateMenu(data) {
     );
     const goalIds = Array.from(new Set([...groupGoalIds, ...memberGoalIds]));
     const freqs = data.freqsByGroup?.[group.id] ?? data.freqs ?? {};
-    const targetKcal = groupTargetKcal(data, group, goalIds);
+    const targetKcal = groupTargetKcal(data, group);
     const kitchenTools = [
       ...(Array.isArray(data.kitchenTools) ? data.kitchenTools : []),
       ...(Array.isArray(data.customKitchenTools) ? data.customKitchenTools : []),
