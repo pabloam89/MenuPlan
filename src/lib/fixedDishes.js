@@ -5,12 +5,16 @@ export function normalizeFixedDish(raw) {
   if (!name) return null;
 
   if (typeof raw.timesPerWeek === "number") {
-    const meals =
-      Array.isArray(raw.meals) && raw.meals.length > 0 ? raw.meals : ["Comida", "Cena"];
+    const rawMeals =
+      Array.isArray(raw.meals) && raw.meals.length > 0 ? raw.meals : ["Comida"];
+    const meal =
+      rawMeals.find((m) => String(m).toLowerCase() === "comida") ??
+      rawMeals.find((m) => String(m).toLowerCase() === "cena") ??
+      rawMeals[0];
     return {
       name,
       timesPerWeek: Math.min(7, Math.max(1, Math.round(raw.timesPerWeek))),
-      meals: [...meals],
+      meals: [meal],
     };
   }
 
@@ -19,7 +23,7 @@ export function normalizeFixedDish(raw) {
   if (freq === "quincenal") timesPerWeek = 1;
   else if (freq === "de vez en cuando") timesPerWeek = 1;
 
-  return { name, timesPerWeek, meals: ["Comida", "Cena"] };
+  return { name, timesPerWeek, meals: ["Comida"] };
 }
 
 export function migrateFixedDishes(list) {

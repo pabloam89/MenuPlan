@@ -24,6 +24,7 @@ import {
   Shuffle,
   Sparkles,
   Tag,
+  Trash2,
   Upload,
   Zap,
   User,
@@ -231,6 +232,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   const ageProvided = Number.isFinite(computedAge) && computedAge >= 0;
   const canAdd = trimmedName.length > 0 && ageProvided;
   const showCalculatedAge = ageMode === "date" && Boolean(birthDate);
+  const hasMembers = data.members.length > 0;
+  const showPersonas = trimmedName.length > 0 || hasMembers;
 
   const addMember = () => {
     if (!canAdd) return;
@@ -284,16 +287,17 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   const removeMember = (id) =>
     setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
 
-  const hasMembers = data.members.length > 0;
   const colHdr = {
     fontSize: 11,
     fontWeight: 800,
     textTransform: "uppercase",
     letterSpacing: 0.3,
   };
+  const cellText = { fontSize: 11, fontWeight: 700, color: "#1a3a24" };
+  const fieldH = 44;
   const ageBoxStyle = (active, readonly) => ({
-    width: 44,
-    height: 44,
+    width: fieldH,
+    height: fieldH,
     borderRadius: 10,
     border: `1.5px solid ${active ? "#2d5a3d" : "#ddd"}`,
     background: readonly ? "rgba(45,90,61,.06)" : "#fff",
@@ -304,157 +308,188 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     outline: "none",
     flexShrink: 0,
   });
+  const gridCols = "minmax(0, 1fr) 40px minmax(72px, 1fr) 28px";
 
   return (
     <OnboardingShell
       title="¿Quién come en casa?"
-      subtitle="Empieza por quien vive o come en casa"
+      subtitle="Un nombre y su edad por persona — en un minuto lo tienes."
       onReset={onReset}
       onNext={hasMembers ? onNext : undefined}
       onFinish={hasMembers ? onFinish : undefined}
     >
-      <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nombre"
+      <div style={{ marginBottom: 16 }}>
+        <div
           style={{
-            flex: 1,
-            minWidth: 0,
-            padding: "12px 14px",
-            borderRadius: 10,
-            border: "1.5px solid #ddd",
-            fontSize: 14,
-            outline: "none",
-          }}
-          onKeyDown={(e) => e.key === "Enter" && addMember()}
-        />
-        <button
-          type="button"
-          onClick={addMember}
-          disabled={!canAdd}
-          aria-label="Añadir"
-          style={{
-            background: canAdd ? "#2d5a3d" : "#cdd5d0",
-            color: "#fff",
-            border: "none",
-            borderRadius: 10,
-            width: 48,
-            height: 48,
-            flexShrink: 0,
-            cursor: canAdd ? "pointer" : "not-allowed",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
+            gap: 8,
+            alignItems: "flex-end",
+            marginBottom: 4,
           }}
         >
-          <Plus size={20} />
-        </button>
-      </div>
-
-      <p style={{ fontSize: 12, fontWeight: 700, color: "#666", margin: "0 0 8px" }}>
-        ¿Qué edad tiene?
-      </p>
-      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
-        <input
-          type="text"
-          inputMode="numeric"
-          readOnly={showCalculatedAge}
-          value={showCalculatedAge ? String(ageFromDob) : ageStr}
-          onChange={(e) => {
-            setAgeStr(e.target.value.replace(/\D/g, ""));
-            setBirthDate("");
-            setAgeMode("number");
-          }}
-          onFocus={() => {
-            if (showCalculatedAge) {
+          <span style={{ ...colHdr, color: "#1a3a24", flex: "1 1 168px", maxWidth: 168 }}>
+            Nombre
+          </span>
+          <span style={{ ...colHdr, color: "#3d6b4f", width: 96 }}>Edad</span>
+          <span style={{ flex: 1 }} />
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="María"
+            style={{
+              flex: "1 1 168px",
+              maxWidth: 168,
+              minWidth: 0,
+              height: fieldH,
+              padding: "0 12px",
+              borderRadius: 10,
+              border: "1.5px solid #ddd",
+              fontSize: 14,
+              outline: "none",
+              boxSizing: "border-box",
+            }}
+            onKeyDown={(e) => e.key === "Enter" && addMember()}
+          />
+          <input
+            type="text"
+            inputMode="numeric"
+            readOnly={showCalculatedAge}
+            value={showCalculatedAge ? String(ageFromDob) : ageStr}
+            onChange={(e) => {
+              setAgeStr(e.target.value.replace(/\D/g, ""));
               setBirthDate("");
               setAgeMode("number");
-              setAgeStr("");
-            }
-          }}
-          placeholder="—"
-          style={ageBoxStyle(ageMode === "number" || showCalculatedAge, showCalculatedAge)}
-          onKeyDown={(e) => e.key === "Enter" && addMember()}
-        />
-        <button
-          type="button"
-          onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
+            }}
+            onFocus={() => {
+              if (showCalculatedAge) {
+                setBirthDate("");
+                setAgeMode("number");
+                setAgeStr("");
+              }
+            }}
+            style={ageBoxStyle(ageMode === "number" || showCalculatedAge, showCalculatedAge)}
+            onKeyDown={(e) => e.key === "Enter" && addMember()}
+          />
+          <button
+            type="button"
+            onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
+            style={{
+              ...ageBoxStyle(ageMode === "date", false),
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              background: ageMode === "date" ? "rgba(45,90,61,.08)" : "#fff",
+              position: "relative",
+            }}
+          >
+            <CalendarDays size={20} color="#2d5a3d" />
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={birthDate}
+              onChange={(e) => {
+                setBirthDate(e.target.value);
+                setAgeMode("date");
+              }}
+              style={{
+                position: "absolute",
+                opacity: 0,
+                width: 1,
+                height: 1,
+                pointerEvents: "none",
+              }}
+              tabIndex={-1}
+            />
+          </button>
+          <div style={{ flex: 1, minWidth: 8 }} />
+          <button
+            type="button"
+            onClick={addMember}
+            disabled={!canAdd}
+            style={{
+              height: fieldH,
+              padding: "0 14px",
+              borderRadius: 10,
+              border: "none",
+              background: canAdd ? "#2d5a3d" : "#cdd5d0",
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: canAdd ? "pointer" : "not-allowed",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              flexShrink: 0,
+              fontFamily: "inherit",
+            }}
+          >
+            <Plus size={16} />
+            Añadir
+          </button>
+        </div>
+      </div>
+
+      {showPersonas && (
+        <div
           style={{
-            ...ageBoxStyle(ageMode === "date", false),
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            background: ageMode === "date" ? "rgba(45,90,61,.08)" : "#fff",
-            position: "relative",
+            marginTop: 28,
+            paddingTop: 20,
+            borderTop: "1px solid rgba(45,90,61,.12)",
           }}
         >
-          <CalendarDays size={20} color="#2d5a3d" />
-          <input
-            ref={dateInputRef}
-            type="date"
-            value={birthDate}
-            onChange={(e) => {
-              setBirthDate(e.target.value);
-              setAgeMode("date");
-            }}
-            style={{
-              position: "absolute",
-              opacity: 0,
-              width: 1,
-              height: 1,
-              pointerEvents: "none",
-            }}
-            tabIndex={-1}
-          />
-        </button>
-      </div>
-
-      <div
-        style={{
-          fontSize: 11,
-          color: canAdd ? "#2d5a3d" : "#a85a7e",
-          marginBottom: 12,
-          minHeight: 16,
-          fontWeight: 600,
-        }}
-      >
-        {!trimmedName && !ageStr && !birthDate
-          ? "Añade un nombre y la edad o fecha de nacimiento."
-          : !trimmedName
-            ? "Falta el nombre."
-            : !ageProvided
-              ? "Indica la edad o elige fecha de nacimiento."
-              : "Listo · pulsa + para añadir."}
-      </div>
-
-      {hasMembers && (
-        <div style={{ marginTop: 8 }}>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 48px minmax(88px, 1fr) 28px",
+              gridTemplateColumns: gridCols,
               gap: 8,
               alignItems: "center",
-              marginBottom: 8,
+              marginBottom: 6,
               padding: "0 4px",
             }}
           >
             <span style={{ ...colHdr, color: "#1a3a24" }}>Nombre</span>
             <span style={{ ...colHdr, color: "#3d6b4f", textAlign: "center" }}>Edad</span>
-            <span style={{ ...colHdr, color: "#5a7a4a" }}>En casa</span>
+            <span style={{ ...colHdr, color: "#5a7a4a" }}>En casa es</span>
             <span />
           </div>
+
+          {trimmedName && (
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: gridCols,
+                gap: 8,
+                alignItems: "center",
+                marginBottom: 6,
+                padding: "8px 10px",
+                borderRadius: 10,
+                border: "1.5px dashed rgba(45,90,61,.35)",
+                background: "rgba(45,90,61,.03)",
+              }}
+            >
+              <span style={{ ...cellText, color: "#3d6b4f" }}>{trimmedName}</span>
+              <span style={{ ...cellText, textAlign: "center", color: "#888" }}>
+                {ageProvided ? computedAge : "—"}
+              </span>
+              <span style={{ ...cellText, color: "#888" }}>
+                {ageProvided ? suggestHomeRole(computedAge) : "—"}
+              </span>
+              <span />
+            </div>
+          )}
+
           {data.members.map((m) => (
             <div
               key={m.id}
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 48px minmax(88px, 1fr) 28px",
+                gridTemplateColumns: gridCols,
                 gap: 8,
                 alignItems: "center",
-                marginBottom: 8,
+                marginBottom: 6,
                 background: "#f6f9f7",
                 borderRadius: 10,
                 padding: "8px 10px",
@@ -462,9 +497,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
             >
               <span
                 style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  color: "#1a3a24",
+                  ...cellText,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -478,13 +511,12 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
                 onChange={(e) => updateMemberAge(m.id, e.target.value)}
                 style={{
                   width: "100%",
-                  padding: "6px 4px",
+                  padding: "5px 2px",
                   borderRadius: 8,
                   border: "1px solid #ddd",
-                  fontSize: 12,
-                  fontWeight: 700,
+                  ...cellText,
                   textAlign: "center",
-                  color: "#1a3a24",
+                  boxSizing: "border-box",
                 }}
               />
               <select
@@ -492,13 +524,12 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
                 onChange={(e) => updateMemberHomeRole(m.id, e.target.value)}
                 style={{
                   width: "100%",
-                  padding: "6px 6px",
+                  padding: "5px 4px",
                   borderRadius: 8,
                   border: "1px solid #ddd",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  color: "#1a3a24",
+                  ...cellText,
                   background: "#fff",
+                  boxSizing: "border-box",
                 }}
               >
                 {HOUSEHOLD_ROLES.map((r) => (
@@ -510,17 +541,19 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
               <button
                 type="button"
                 onClick={() => removeMember(m.id)}
+                aria-label={`Quitar a ${m.name}`}
                 style={{
                   border: "none",
                   background: "transparent",
                   cursor: "pointer",
-                  color: "#bbb",
+                  color: "#c47070",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  padding: 0,
                 }}
               >
-                <Minus size={16} />
+                <Trash2 size={15} />
               </button>
             </div>
           ))}
@@ -529,6 +562,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     </OnboardingShell>
   );
 }
+
 
 // ─── Restrictions ───────────────────────────────────────────────
 
@@ -544,72 +578,279 @@ const BASE_DISLIKE_OPTIONS = [
   "Picante",
 ];
 
+/** Exactly 5 presets in the 2×3 grid; F2C3 is «Otro». */
+const GRID_ALLERGY_SLOTS = ["Gluten", "Lactosa", "Frutos secos", "Marisco", "Huevo"];
+const GRID_DISLIKE_SLOTS = ["Hígado", "Coliflor", "Cebolla", "Pimiento", "Aceitunas"];
+
 function restrictionTabStyle(active) {
   return {
     flex: 1,
-    padding: "10px 12px",
+    padding: "8px 12px",
     borderRadius: 10,
-    border: "none",
-    background: active ? "#2d5a3d" : "#f0f0f0",
-    color: active ? "#fff" : "#555",
-    fontSize: 13,
-    fontWeight: 800,
+    border: `1.5px solid ${active ? "#2d5a3d" : "#e0e6e2"}`,
+    background: active ? "rgba(45,90,61,.08)" : "#fff",
+    color: active ? "#2d5a3d" : "#888",
+    fontSize: 12,
+    fontWeight: 700,
     cursor: "pointer",
+    fontFamily: "inherit",
   };
 }
 
-function compactChipStyle(selected) {
+function gridChipStyle(selected) {
   return {
-    flexShrink: 0,
-    height: 30,
-    padding: "0 12px",
-    borderRadius: 15,
-    border: `1.5px solid ${selected ? "#2d5a3d" : "rgba(45,90,61,.2)"}`,
-    background: selected ? "#2d5a3d" : "rgba(45,90,61,.08)",
-    color: selected ? "#fff" : "#2d5a3d",
-    fontSize: 11,
-    fontWeight: 600,
+    height: 26,
+    padding: "0 4px",
+    borderRadius: 7,
+    border: `1px solid ${selected ? "rgba(45,90,61,.45)" : "#e5ebe7"}`,
+    background: selected ? "rgba(45,90,61,.1)" : "#fff",
+    color: selected ? "#1a3a24" : "#777",
+    fontSize: 10,
+    fontWeight: selected ? 700 : 500,
     cursor: "pointer",
     whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    fontFamily: "inherit",
   };
 }
 
-function ChipScrollRow({ options, selectedSet, onToggle, onAddClick, addOpen, addValue, onAddValueChange, onAddConfirm, addPlaceholder }) {
+const fixedRowH = 36;
+const fixedTimesInputStyle = {
+  width: 36,
+  height: fixedRowH,
+  padding: "0 2px",
+  borderRadius: 8,
+  border: "1px solid #ddd",
+  fontSize: 12,
+  fontWeight: 700,
+  textAlign: "center",
+  color: "#1a3a24",
+  outline: "none",
+  boxSizing: "border-box",
+  flexShrink: 0,
+  background: "#fff",
+};
+
+const fixedMealSelectStyle = {
+  height: fixedRowH,
+  padding: "0 8px",
+  borderRadius: 8,
+  border: "1px solid #ddd",
+  fontSize: 11,
+  fontWeight: 600,
+  color: "#1a3a24",
+  background: "#fff",
+  outline: "none",
+  flexShrink: 0,
+  minWidth: 0,
+  maxWidth: 118,
+  fontFamily: "inherit",
+};
+
+const fieldLbl = {
+  fontSize: 10,
+  fontWeight: 700,
+  color: "#888",
+  margin: "0 0 4px",
+  textTransform: "uppercase",
+  letterSpacing: 0.2,
+};
+
+function mealToSelectValue(meals, mealOptions) {
+  const m = meals[0];
+  if (m && mealOptions.includes(m)) return m;
+  return mealOptions.find((x) => x.toLowerCase() === "comida") ?? mealOptions[0];
+}
+
+function MealSelect({ meals, mealOptions, onChange }) {
+  const comida = mealOptions.find((m) => m.toLowerCase() === "comida") ?? mealOptions[0];
+  const cena = mealOptions.find((m) => m.toLowerCase() === "cena") ?? mealOptions[1];
+  const value = mealToSelectValue(meals, mealOptions);
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange([e.target.value])}
+      style={{ ...fixedMealSelectStyle, width: "100%", maxWidth: "none" }}
+      aria-label="Cuándo"
+    >
+      {comida && <option value={comida}>Comida</option>}
+      {cena && cena !== comida && <option value={cena}>Cena</option>}
+    </select>
+  );
+}
+
+function FixedDishRow({ name, nameValue, onNameChange, times, meals, mealOptions, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
+  const isNew = onNameChange != null;
+  return (
+    <div style={{ display: "flex", gap: 6, alignItems: "flex-end" }}>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        {isNew && <p style={fieldLbl}>Nombre</p>}
+        {isNew ? (
+          <input
+            value={nameValue}
+            onChange={(e) => onNameChange(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && onSubmit?.()}
+            placeholder="Ej: Tortilla"
+            style={{
+              width: "100%",
+              height: fixedRowH,
+              padding: "0 10px",
+              borderRadius: 8,
+              border: "1px solid #ddd",
+              fontSize: 13,
+              outline: "none",
+              boxSizing: "border-box",
+              background: "#fff",
+            }}
+          />
+        ) : (
+          <p
+            style={{
+              margin: 0,
+              height: fixedRowH,
+              lineHeight: `${fixedRowH}px`,
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#1a3a24",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {name}
+          </p>
+        )}
+      </div>
+      <div style={{ flexShrink: 0 }}>
+        <p style={fieldLbl}>Veces</p>
+        <input
+          type="number"
+          min={1}
+          max={7}
+          value={times}
+          onChange={(e) => onTimesChange(Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)))}
+          style={fixedTimesInputStyle}
+          aria-label="Veces por semana"
+        />
+      </div>
+      <div style={{ flex: "0 1 108px", minWidth: 88 }}>
+        <p style={fieldLbl}>Cuándo</p>
+        <MealSelect meals={meals} mealOptions={mealOptions} onChange={onMealsChange} />
+      </div>
+      {isNew ? (
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={!canSubmit}
+          aria-label="Añadir plato"
+          style={{
+            width: fixedRowH,
+            height: fixedRowH,
+            borderRadius: 8,
+            border: "none",
+            background: canSubmit ? "#2d5a3d" : "#cdd5d0",
+            color: "#fff",
+            cursor: canSubmit ? "pointer" : "not-allowed",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            padding: 0,
+          }}
+        >
+          <Plus size={16} />
+        </button>
+      ) : (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label={`Quitar ${name}`}
+          style={{
+            width: fixedRowH,
+            height: fixedRowH,
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            color: "#c47070",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            padding: 0,
+          }}
+        >
+          <Trash2 size={14} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function AvoidOptionGrid({ slotLabels, selectedSet, onToggle, onAddClick, addOpen, addValue, onAddValueChange, onAddConfirm, addPlaceholder }) {
+  const gridRowH = 26;
+  const gridGap = 6;
+
   return (
     <div>
       <div
         style={{
-          display: "flex",
-          gap: 8,
-          overflowX: "auto",
-          paddingBottom: 4,
-          WebkitOverflowScrolling: "touch",
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gridTemplateRows: `repeat(2, ${gridRowH}px)`,
+          gap: gridGap,
         }}
       >
-        {options.map((label) => (
-          <button key={label} type="button" onClick={() => onToggle(label)} style={compactChipStyle(selectedSet.has(label))}>
+        {slotLabels.slice(0, 5).map((label) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => onToggle(label)}
+            title={label}
+            style={{
+              ...gridChipStyle(selectedSet.has(label)),
+              width: "100%",
+              height: gridRowH,
+              display: "block",
+            }}
+          >
             {label}
           </button>
         ))}
-        <button type="button" onClick={onAddClick} style={{ ...compactChipStyle(false), width: 36, padding: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Plus size={14} />
+        <button
+          type="button"
+          onClick={onAddClick}
+          style={{
+            ...gridChipStyle(addOpen),
+            width: "100%",
+            height: gridRowH,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 0,
+            fontSize: 10,
+            fontWeight: 600,
+          }}
+        >
+          Otro
         </button>
       </div>
       {addOpen && (
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
           <input
             value={addValue}
             onChange={(e) => onAddValueChange(e.target.value)}
             placeholder={addPlaceholder}
-            style={{ flex: 1, padding: "10px 12px", borderRadius: 10, border: "1.5px solid #ddd", fontSize: 13 }}
+            style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid #ddd", fontSize: 12 }}
             onKeyDown={(e) => e.key === "Enter" && onAddConfirm()}
+            autoFocus
           />
           <button
             type="button"
             onClick={onAddConfirm}
             style={{
-              width: 38,
-              borderRadius: 10,
+              width: 34,
+              borderRadius: 8,
               border: "none",
               background: "#2d5a3d",
               color: "#fff",
@@ -619,7 +860,7 @@ function ChipScrollRow({ options, selectedSet, onToggle, onAddClick, addOpen, ad
               justifyContent: "center",
             }}
           >
-            <Check size={16} />
+            <Check size={14} />
           </button>
         </div>
       )}
@@ -638,7 +879,11 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
   const [showMatrix, setShowMatrix] = useState(false);
   const [dish, setDish] = useState("");
   const [newDishTimes, setNewDishTimes] = useState(1);
-  const [newDishMeals, setNewDishMeals] = useState(() => [...mealOptions]);
+  const [newDishMeals, setNewDishMeals] = useState(() => {
+    const meals = getMeals(data);
+    const comida = meals.find((m) => m.toLowerCase() === "comida");
+    return [comida ?? meals[0] ?? "Comida"];
+  });
 
   useEffect(() => {
     if (!data.members.some((m) => m.id === allergyMemberId)) {
@@ -648,9 +893,10 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
 
   useEffect(() => {
     setNewDishMeals((cur) => {
-      const valid = cur.filter((m) => mealOptions.includes(m));
-      if (valid.length > 0) return valid;
-      return [...mealOptions];
+      const m = cur[0];
+      if (m && mealOptions.includes(m)) return [m];
+      const comida = mealOptions.find((x) => x.toLowerCase() === "comida");
+      return [comida ?? mealOptions[0]];
     });
   }, [mealOptions.join("|")]);
 
@@ -714,21 +960,14 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
     setShowAddDislike(false);
   };
 
-  const allergyMember = data.members.find((m) => m.id === allergyMemberId);
-  const allergySelected = new Set(allergyMember?.allergies ?? []);
+  const allergySelected = new Set(
+    data.members.find((m) => m.id === allergyMemberId)?.allergies ?? []
+  );
   const houseDislikeSelected = new Set(data.dislikes ?? []);
 
   const hasAnyMarks =
     (data.dislikes ?? []).length > 0 ||
     data.members.some((m) => (m.allergies?.length ?? 0) > 0 || (m.dislikes?.length ?? 0) > 0);
-
-  const toggleNewDishMeal = (meal) => {
-    setNewDishMeals((cur) => {
-      const has = cur.includes(meal);
-      if (has && cur.length <= 1) return cur;
-      return has ? cur.filter((m) => m !== meal) : [...cur, meal];
-    });
-  };
 
   const addFixedDish = () => {
     const label = normalizeTextValue(dish);
@@ -745,7 +984,8 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
     }));
     setDish("");
     setNewDishTimes(1);
-    setNewDishMeals([...mealOptions]);
+    const comida = mealOptions.find((m) => m.toLowerCase() === "comida");
+    setNewDishMeals([comida ?? mealOptions[0]]);
   };
 
   const updateFixedDish = (idx, patch) =>
@@ -762,16 +1002,17 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
     }));
 
   const fixedList = migrateFixedDishes(data.fixedDishes ?? []);
+  const canAddDish = Boolean(normalizeTextValue(dish)) && newDishMeals.length > 0;
 
   const matrixItems = useMemo(() => {
-    const items = new Set([...allergyOptions]);
+    const items = new Set();
     for (const m of data.members) {
       for (const a of m.allergies ?? []) items.add(a);
       for (const d of m.dislikes ?? []) items.add(d);
     }
     for (const d of data.dislikes ?? []) items.add(d);
     return Array.from(items);
-  }, [allergyOptions, data.members, data.dislikes]);
+  }, [data.members, data.dislikes]);
 
   return (
     <OnboardingShell
@@ -819,13 +1060,8 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
                 })}
               </div>
             </div>
-            {allergyMember && (
-              <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-                Para <strong>{allergyMember.name}</strong>
-              </p>
-            )}
-            <ChipScrollRow
-              options={allergyOptions}
+            <AvoidOptionGrid
+              slotLabels={GRID_ALLERGY_SLOTS}
               selectedSet={allergySelected}
               onToggle={(label) => allergyMemberId && toggleMember(allergyMemberId, "allergies", label)}
               onAddClick={() => setShowAddAllergy((v) => !v)}
@@ -833,7 +1069,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
               addValue={customAllergy}
               onAddValueChange={setCustomAllergy}
               onAddConfirm={addCustomAllergy}
-              addPlaceholder="Añadir alergia"
+              addPlaceholder="Otra alergia"
             />
           </div>
 
@@ -841,8 +1077,8 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
             <p style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24", margin: "0 0 8px" }}>
               No come nadie en casa
             </p>
-            <ChipScrollRow
-              options={dislikeOptions}
+            <AvoidOptionGrid
+              slotLabels={GRID_DISLIKE_SLOTS}
               selectedSet={houseDislikeSelected}
               onToggle={toggleHouse}
               onAddClick={() => setShowAddDislike((v) => !v)}
@@ -850,7 +1086,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
               addValue={customDislike}
               onAddValueChange={setCustomDislike}
               onAddConfirm={addCustomDislike}
-              addPlaceholder="Añadir alimento"
+              addPlaceholder="Otro alimento"
             />
           </div>
 
@@ -880,59 +1116,43 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
           )}
 
           {hasAnyMarks && showMatrix && (
-            <div style={{ overflowX: "auto", border: "1px solid #e3ebe6", borderRadius: 10, background: "#fff" }}>
-              <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 280 }}>
-                <thead>
-                  <tr>
-                    <th style={{ textAlign: "left", padding: 8, fontSize: 11, color: "#666" }} />
-                    {data.members.map((m) => (
-                      <th key={m.id} style={{ textAlign: "center", padding: 8 }}>
-                        <Avatar name={m.name} size={22} />
-                      </th>
-                    ))}
-                    <th style={{ textAlign: "center", padding: 8, fontSize: 10, color: "#666", fontWeight: 700 }}>
-                      En casa
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {matrixItems.map((item) => {
-                    const isAllergyOption = allergyOptions.includes(item);
-                    return (
-                      <tr key={item} style={{ borderTop: "1px solid #f0f3f1" }}>
-                        <td style={{ padding: 8, fontSize: 11, fontWeight: 600, color: "#444" }}>{item}</td>
-                        {data.members.map((m) => {
-                          const allergy = (m.allergies ?? []).includes(item);
-                          const personalDislike = (m.dislikes ?? []).includes(item);
-                          const show = isAllergyOption ? allergy : personalDislike;
-                          return (
-                            <td key={`${item}-${m.id}`} style={{ textAlign: "center", padding: 8 }}>
-                              {isAllergyOption ? (
-                                show ? (
-                                  <span style={{ fontSize: 10, fontWeight: 800, color: "#c45a2c" }}>A</span>
-                                ) : (
-                                  <Minus size={12} color="#ddd" />
-                                )
-                              ) : show ? (
-                                <Check size={13} color="#2d5a3d" />
-                              ) : (
-                                <Minus size={12} color="#ddd" />
-                              )}
-                            </td>
-                          );
-                        })}
-                        <td style={{ textAlign: "center", padding: 8 }}>
-                          {!isAllergyOption && (data.dislikes ?? []).includes(item) ? (
-                            <Check size={13} color="#2d5a3d" />
-                          ) : (
-                            <Minus size={12} color="#ddd" />
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+            <div style={{ border: "1px solid #e3ebe6", borderRadius: 10, background: "#fff", overflow: "hidden" }}>
+              {matrixItems.map((item, idx) => {
+                const withAllergy = data.members.filter((m) => (m.allergies ?? []).includes(item));
+                return (
+                  <div
+                    key={item}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      padding: "9px 12px",
+                      borderTop: idx > 0 ? "1px solid #f0f3f1" : "none",
+                    }}
+                  >
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#1a3a24", minWidth: 0 }}>{item}</span>
+                    {withAllergy.length > 0 ? (
+                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
+                        {withAllergy.map((m) => (
+                          <Avatar key={m.id} name={m.name} size={22} title={m.name} />
+                        ))}
+                      </div>
+                    ) : (
+                      <span
+                        style={{
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: "#2d5a3d",
+                          flexShrink: 0,
+                        }}
+                      >
+                        Todos
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           )}
         </>
@@ -940,87 +1160,25 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
 
       {tab === "repeat" && (
         <>
-          <p style={{ fontSize: 13, fontWeight: 700, color: "#555", margin: "0 0 10px" }}>
-            Platos fijos
-          </p>
           <div
             style={{
               background: "#f6f9f7",
               borderRadius: 10,
-              padding: "12px",
-              marginBottom: 10,
+              padding: "10px",
+              marginBottom: 8,
             }}
           >
-            <input
-              value={dish}
-              onChange={(e) => setDish(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && addFixedDish()}
-              placeholder="Ej: Tortilla de patatas"
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: "1.5px solid #ddd",
-                fontSize: 13,
-                marginBottom: 10,
-                boxSizing: "border-box",
-              }}
+            <FixedDishRow
+              nameValue={dish}
+              onNameChange={setDish}
+              times={newDishTimes}
+              meals={newDishMeals}
+              mealOptions={mealOptions}
+              onTimesChange={setNewDishTimes}
+              onMealsChange={setNewDishMeals}
+              onSubmit={addFixedDish}
+              canSubmit={canAddDish}
             />
-            <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap", marginBottom: 10 }}>
-              <div style={{ flex: "1 1 100px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Veces por semana</p>
-                <input
-                  type="number"
-                  min={1}
-                  max={7}
-                  value={newDishTimes}
-                  onChange={(e) =>
-                    setNewDishTimes(Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)))
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "8px 10px",
-                    borderRadius: 8,
-                    border: "1px solid #ddd",
-                    fontSize: 14,
-                    fontWeight: 700,
-                    textAlign: "center",
-                  }}
-                />
-              </div>
-              <div style={{ flex: "2 1 140px" }}>
-                <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Cuándo</p>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                  {mealOptions.map((meal) => (
-                    <Chip
-                      key={meal}
-                      label={meal}
-                      selected={newDishMeals.includes(meal)}
-                      onClick={() => toggleNewDishMeal(meal)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </div>
-            <button
-              type="button"
-              onClick={addFixedDish}
-              disabled={!normalizeTextValue(dish) || newDishMeals.length === 0}
-              style={{
-                width: "100%",
-                padding: "10px",
-                borderRadius: 10,
-                border: "none",
-                background: "#2d5a3d",
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 13,
-                cursor: "pointer",
-                opacity: !normalizeTextValue(dish) ? 0.5 : 1,
-              }}
-            >
-              Añadir plato
-            </button>
           </div>
 
           {fixedList.map((fd, idx) => (
@@ -1029,67 +1187,19 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
               style={{
                 background: "#f6f9f7",
                 borderRadius: 10,
-                padding: "10px 12px",
-                marginBottom: 8,
+                padding: "8px 10px",
+                marginBottom: 6,
               }}
             >
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{fd.name}</span>
-                <button
-                  type="button"
-                  onClick={() => removeFixedDish(idx)}
-                  style={{ border: "none", background: "transparent", cursor: "pointer", color: "#bbb" }}
-                >
-                  <Minus size={15} />
-                </button>
-              </div>
-              <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
-                <div style={{ flex: "1 1 100px" }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Veces por semana</p>
-                  <input
-                    type="number"
-                    min={1}
-                    max={7}
-                    value={fd.timesPerWeek}
-                    onChange={(e) =>
-                      updateFixedDish(idx, {
-                        timesPerWeek: Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)),
-                      })
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "8px 10px",
-                      borderRadius: 8,
-                      border: "1px solid #ddd",
-                      fontSize: 14,
-                      fontWeight: 700,
-                      textAlign: "center",
-                    }}
-                  />
-                </div>
-                <div style={{ flex: "2 1 140px" }}>
-                  <p style={{ fontSize: 11, fontWeight: 700, color: "#666", margin: "0 0 4px" }}>Cuándo</p>
-                  <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                    {mealOptions.map((meal) => {
-                      const selected = fd.meals.includes(meal);
-                      return (
-                        <Chip
-                          key={meal}
-                          label={meal}
-                          selected={selected}
-                          onClick={() => {
-                            const next = selected
-                              ? fd.meals.filter((m) => m !== meal)
-                              : [...fd.meals, meal];
-                            if (next.length === 0) return;
-                            updateFixedDish(idx, { meals: next });
-                          }}
-                        />
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <FixedDishRow
+                name={fd.name}
+                times={fd.timesPerWeek}
+                meals={fd.meals}
+                mealOptions={mealOptions}
+                onTimesChange={(n) => updateFixedDish(idx, { timesPerWeek: n })}
+                onMealsChange={(meals) => updateFixedDish(idx, { meals })}
+                onRemove={() => removeFixedDish(idx)}
+              />
             </div>
           ))}
         </>
@@ -1255,17 +1365,9 @@ function consensusState(memberIds, schedule, day, meal) {
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
   const meals = getMeals(data);
   const memberList = data.members ?? [];
-  const groupList = data.groups ?? [];
   const defaultMode = memberList.length > 1 ? "all" : "single";
   const [subjectMode, setSubjectMode] = useState(defaultMode);
-  const [activeGroupId, setActiveGroupId] = useState(groupList[0]?.id ?? null);
   const [activeMemberId, setActiveMemberId] = useState(memberList[0]?.id ?? null);
-
-  useEffect(() => {
-    if (!groupList.find((g) => g.id === activeGroupId)) {
-      setActiveGroupId(groupList[0]?.id ?? null);
-    }
-  }, [groupList, activeGroupId]);
 
   useEffect(() => {
     if (!memberList.find((m) => m.id === activeMemberId)) {
@@ -1273,15 +1375,12 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     }
   }, [memberList, activeMemberId]);
 
-  const activeGroup = data.groups.find((g) => g.id === activeGroupId);
   const activeMember = data.members.find((m) => m.id === activeMemberId);
 
-  // Member ids affected by the current subject (a group's members, or a single member).
   const subjectMemberIds = useMemo(() => {
     if (subjectMode === "all") return memberList.map((m) => m.id);
-    if (subjectMode === "group") return activeGroup?.memberIds ?? [];
     return activeMember ? [activeMember.id] : [];
-  }, [subjectMode, activeGroup, activeMember, memberList]);
+  }, [subjectMode, activeMember, memberList]);
 
   const subjectMembers = useMemo(
     () => subjectMemberIds.map((id) => data.members.find((m) => m.id === id)).filter(Boolean),
@@ -1294,7 +1393,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   // Sheet state: { day, meal | null } — when meal is null, the sheet is in
   // "day mode" (only row-level actions, no per-member edition for a slot).
   const [sheetSlot, setSheetSlot] = useState(null);
-  const [moreOptionsOpen, setMoreOptionsOpen] = useState(false);
   const [toast, setToast] = useState(null);
   const mainMeal = primaryDayMeal(data);
 
@@ -1304,24 +1402,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     return Object.values(sm.byMember ?? {}).some((m) => hasAnySchoolDish(m));
   }, [data.schoolMenus]);
 
-  const scheduleSummary = useMemo(() => {
-    let planificar = 0;
-    let cole = 0;
-    let fuera = 0;
-    let tupper = 0;
-    for (const day of DAYS) {
-      for (const meal of meals) {
-        for (const id of memberList) {
-          const v = data.schedule[`${id}|${day}|${meal}`] ?? "casa";
-          if (v === "cole") cole += 1;
-          else if (v === "fuera") fuera += 1;
-          else if (v === "tupper") tupper += 1;
-          else if (v === "casa") planificar += 1;
-        }
-      }
-    }
-    return { planificar, cole, fuera, tupper };
-  }, [data.schedule, meals, memberList]);
   const showToast = (msg) => {
     setToast(msg);
     window.clearTimeout(showToast._t);
@@ -1422,13 +1502,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   }
 
   const subjectLabel =
-    subjectMode === "all"
-      ? "toda la familia"
-      : subjectMode === "group"
-        ? activeGroup?.label ?? "grupo"
-        : activeMember?.name ?? "persona";
-
-  const showSubjectTabs = memberList.length > 1;
+    subjectMode === "all" ? "familia" : (activeMember?.name ?? "individual");
 
   const openDay = (day) => {
     if (subjectMemberIds.length === 0) return;
@@ -1444,6 +1518,93 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       onNext={onNext}
       onFinish={onFinish}
     >
+      {memberList.length > 1 && (
+        <div style={{ marginBottom: 14 }}>
+          <div style={{ display: "flex", gap: 8, marginBottom: subjectMode === "single" ? 10 : 0 }}>
+            <button
+              type="button"
+              onClick={() => setSubjectMode("all")}
+              style={tabButtonStyle(subjectMode === "all")}
+            >
+              <AvatarStack
+                names={memberList.map((m) => m.name)}
+                size={20}
+                max={4}
+                color={subjectMode === "all" ? "rgba(255,255,255,.35)" : "#bbb"}
+              />
+              Familia
+            </button>
+            <button
+              type="button"
+              onClick={() => setSubjectMode("single")}
+              style={tabButtonStyle(subjectMode === "single")}
+            >
+              <User size={14} />
+              Individual
+            </button>
+          </div>
+          {subjectMode === "single" && (
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                overflowX: "auto",
+                paddingTop: 10,
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              {memberList.map((m) => {
+                const sel = m.id === activeMemberId;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setActiveMemberId(m.id)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      borderRadius: 20,
+                      border: "none",
+                      padding: "6px 10px 6px 6px",
+                      background: sel ? "#2d5a3d" : "#f0f0f0",
+                      color: sel ? "#fff" : "#555",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <Avatar
+                      name={m.name}
+                      size={22}
+                      color={sel ? "rgba(255,255,255,.25)" : "#bbb"}
+                    />
+                    {m.name}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      <SectionTitle>Comidas del día</SectionTitle>
+      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
+        Marca las que quieres cubrir en el menú
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+        {ALL_DAY_MEALS.map((meal) => (
+          <Chip
+            key={meal}
+            label={meal}
+            selected={meals.includes(meal)}
+            onClick={() => toggleDayMeal(meal)}
+          />
+        ))}
+      </div>
+
       <SectionTitle>Acciones rápidas · {subjectLabel}</SectionTitle>
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
         <button type="button" onClick={() => applyPreset("casa-todo")} style={presetStyle}>
@@ -1460,24 +1621,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         <button type="button" onClick={() => applyPreset("fuera-finde")} style={presetStyle}>
           <UtensilsCrossed size={13} /> Finde fuera
         </button>
-      </div>
-
-      <div
-        style={{
-          padding: "10px 12px",
-          borderRadius: 10,
-          background: "rgba(45,90,61,.08)",
-          border: "1px solid #d7e1db",
-          fontSize: 12,
-          color: "#1a3a24",
-          lineHeight: 1.45,
-          marginBottom: 12,
-        }}
-      >
-        <strong>Esta semana:</strong> {scheduleSummary.planificar} comidas a planificar en casa
-        {scheduleSummary.cole > 0 && ` · ${scheduleSummary.cole} en cole`}
-        {scheduleSummary.tupper > 0 && ` · ${scheduleSummary.tupper} tupper`}
-        {scheduleSummary.fuera > 0 && ` · ${scheduleSummary.fuera} fuera`}
       </div>
 
       {hasSchoolMenuLoaded && allowCole && (
@@ -1497,8 +1640,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         </div>
       )}
 
-      <SheetIconLegend columns={sheetColumns(allowCole)} />
-
       <SectionTitle>Calendario</SectionTitle>
       <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
         Pulsa un día para igualar · pulsa una celda para elegir
@@ -1510,172 +1651,18 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         onCellClick={openCell}
         onDayClick={openDay}
       />
-
-      <button
-        type="button"
-        onClick={() => setMoreOptionsOpen((v) => !v)}
-        style={{
-          width: "100%",
-          marginTop: 14,
-          padding: "10px 12px",
-          borderRadius: 10,
-          border: "1px solid #e3ebe6",
-          background: "#fafcfb",
-          color: "#555",
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          fontFamily: "inherit",
-        }}
-        aria-expanded={moreOptionsOpen}
-      >
-        Más opciones (comidas del día y editar por)
-        {moreOptionsOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-      </button>
-
-      {moreOptionsOpen && (
-        <div style={{ marginTop: 12 }}>
-          <SectionTitle>Comidas del día</SectionTitle>
-          <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-            Marca las que quieres cubrir en el menú
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-            {ALL_DAY_MEALS.map((meal) => (
-              <Chip
-                key={meal}
-                label={meal}
-                selected={meals.includes(meal)}
-                onClick={() => toggleDayMeal(meal)}
-              />
-            ))}
-          </div>
-
-      {showSubjectTabs && (
-        <>
-          <SectionTitle>Editar por</SectionTitle>
-          <div style={{ display: "flex", gap: 8, marginBottom: 10, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              onClick={() => setSubjectMode("all")}
-              style={tabButtonStyle(subjectMode === "all")}
-            >
-              <AvatarStack
-                names={memberList.map((m) => m.name)}
-                size={20}
-                max={4}
-                color={subjectMode === "all" ? "rgba(255,255,255,.35)" : "#bbb"}
-              />
-              Todos
-            </button>
-            {groupList.length > 0 && (
-              <button
-                type="button"
-                onClick={() => setSubjectMode("group")}
-                style={tabButtonStyle(subjectMode === "group")}
-              >
-                <Users size={14} />
-                Grupo
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={() => setSubjectMode("single")}
-              style={tabButtonStyle(subjectMode === "single")}
-            >
-              <User size={14} />
-              Persona
-            </button>
-          </div>
-
-          {subjectMode !== "all" && (
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                overflowX: "auto",
-                paddingBottom: 8,
-                marginBottom: 10,
-              }}
-            >
-              {subjectMode === "group" &&
-                groupList.map((g) => {
-                  const sel = g.id === activeGroupId;
-                  const groupMembers = membersOfGroup(g, memberList);
-                  return (
-                    <button
-                      key={g.id}
-                      type="button"
-                      onClick={() => setActiveGroupId(g.id)}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        borderRadius: 20,
-                        border: "none",
-                        padding: "6px 12px 6px 8px",
-                        background: sel ? g.color : "#f0f0f0",
-                        color: sel ? "#fff" : "#555",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 10,
-                          background: sel ? "rgba(255,255,255,.25)" : "rgba(0,0,0,.06)",
-                          padding: "1px 6px",
-                          borderRadius: 6,
-                        }}
-                      >
-                        {groupMembers.length}
-                      </span>
-                      {g.label}
-                    </button>
-                  );
-                })}
-              {subjectMode === "single" &&
-                memberList.map((m) => {
-                  const sel = m.id === activeMemberId;
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setActiveMemberId(m.id)}
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        borderRadius: 20,
-                        border: "none",
-                        padding: "6px 10px 6px 6px",
-                        background: sel ? "#2d5a3d" : "#f0f0f0",
-                        color: sel ? "#fff" : "#555",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <Avatar
-                        name={m.name}
-                        size={22}
-                        color={sel ? "rgba(255,255,255,.25)" : "#bbb"}
-                      />
-                      {m.name}
-                    </button>
-                  );
-                })}
-            </div>
-          )}
-        </>
-      )}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8, marginBottom: 12 }}>
+        <div
+          style={{
+            padding: "8px 10px",
+            borderRadius: 8,
+            border: "1px solid #e3ebe6",
+            background: "#fafcfb",
+          }}
+        >
+          <SheetIconLegend columns={sheetColumns(allowCole)} compact />
         </div>
-      )}
+      </div>
 
       {sheetSlot && (
         <ScheduleSlotSheet
@@ -1726,14 +1713,15 @@ function sheetColumns(showCole) {
   return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
 }
 
-function SheetIconLegend({ columns }) {
+function SheetIconLegend({ columns, compact = false }) {
   return (
     <div
       style={{
         display: "flex",
         flexWrap: "wrap",
-        gap: "6px 12px",
-        marginBottom: 10,
+        gap: compact ? "4px 10px" : "6px 12px",
+        marginBottom: compact ? 0 : 10,
+        justifyContent: compact ? "flex-end" : "flex-start",
       }}
     >
       {columns.map((s) => {
@@ -2796,8 +2784,9 @@ const DEFAULT_GOAL_DEFS = [
     profile: { kcal: 2400, freqs: { pescado: 3, verdura: 4, legumbres: 3 } },
   },
   { id: "variado", label: "Variado", profile: {} },
-  { id: "no-repetir-proteina", label: "Sin repetir proteína", profile: {} },
 ];
+
+const GOAL_GRID_IDS = ["sano", "economico", "rapido", "deportivo", "variado"];
 
 const GOAL_ICON_MAP = {
   sano: Heart,
@@ -2805,16 +2794,6 @@ const GOAL_ICON_MAP = {
   rapido: Zap,
   deportivo: Dumbbell,
   variado: Shuffle,
-  "no-repetir-proteina": RotateCcw,
-};
-
-const GOAL_TOGGLE_HINTS = {
-  sano: "Más verdura, pescado y legumbres",
-  economico: "Más legumbres, menos pescado",
-  rapido: "Platos rápidos (≤25 min)",
-  deportivo: "Más proteína y energía",
-  variado: "Más variedad al generar el menú",
-  "no-repetir-proteina": "Evita repetir la misma proteína",
 };
 
 function goalsManualKey(subjectId) {
@@ -2865,26 +2844,112 @@ const FREQ_LABELS = {
   legumbres: "Legumbres",
   verdura: "Verdura",
   pescado: "Pescado",
-  carne: "Carne",
-  huevos: "Huevos",
-  fruta: "Fruta",
 };
 
-function describeGoalEffects(goalIds, kcal, freqs) {
-  if (!goalIds.length) {
-    return "Sin objetivos activos · pulsa uno para empezar";
-  }
-  const hints = [];
-  const ids = new Set(goalIds);
-  for (const id of ids) {
-    if (GOAL_TOGGLE_HINTS[id]) hints.push(GOAL_TOGGLE_HINTS[id]);
-  }
-  const topFreqs = Object.entries(freqs)
-    .filter(([, v]) => v >= 3)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 2)
-    .map(([k, v]) => `${FREQ_LABELS[k] ?? capitalize(k)} ≥${v}/sem`);
-  return [`${kcal} kcal`, ...hints.slice(0, 3), ...topFreqs].join(" · ");
+function goalGridCellStyle(selected) {
+  return {
+    ...gridChipStyle(selected),
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 2,
+    height: 36,
+    padding: "4px 2px",
+    width: "100%",
+  };
+}
+
+function GoalOptionGrid({
+  goalDefs,
+  selectedIds,
+  onToggle,
+  onAddClick,
+  addOpen,
+  addValue,
+  onAddValueChange,
+  onAddConfirm,
+}) {
+  const gridRowH = 36;
+  const gridGap = 6;
+
+  return (
+    <div>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+          gridTemplateRows: `repeat(2, ${gridRowH}px)`,
+          gap: gridGap,
+        }}
+      >
+        {GOAL_GRID_IDS.map((id) => {
+          const def = goalDefs.find((g) => g.id === id);
+          if (!def) return <div key={id} />;
+          const selected = selectedIds.includes(id);
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onToggle(id)}
+              title={def.label}
+              style={goalGridCellStyle(selected)}
+            >
+              <GoalIcon id={id} selected={selected} />
+              <span style={{ fontSize: 9, fontWeight: 700, lineHeight: 1.1 }}>{def.label}</span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          onClick={onAddClick}
+          style={{
+            ...gridChipStyle(addOpen),
+            width: "100%",
+            height: gridRowH,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 0,
+            fontSize: 10,
+            fontWeight: 600,
+            color: "#2d5a3d",
+          }}
+        >
+          Otro
+        </button>
+      </div>
+      {addOpen && (
+        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+          <input
+            value={addValue}
+            onChange={(e) => onAddValueChange(e.target.value)}
+            placeholder="Tu objetivo"
+            style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid #ddd", fontSize: 12 }}
+            onKeyDown={(e) => e.key === "Enter" && onAddConfirm()}
+            autoFocus
+          />
+          <button
+            type="button"
+            onClick={onAddConfirm}
+            style={{
+              width: 34,
+              borderRadius: 8,
+              border: "none",
+              background: "#2d5a3d",
+              color: "#fff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Check size={14} />
+          </button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 function slugifyGoalLabel(label) {
@@ -2938,17 +3003,10 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
   // keeps working when groups are introduced for the first time.
   const activeGoals =
     (subjectId && data.goalsByGroup?.[subjectId]) ?? data.goals ?? [];
-  const activeKcal =
-    (subjectId && data.kcalByGroup?.[subjectId]) ?? data.kcal ?? 2000;
   const activeFreqs =
-    (subjectId && data.freqsByGroup?.[subjectId]) ?? data.freqs ?? {};
-  const goalsManual = Boolean(data.goalsManualByGroup?.[goalsManualKey(subjectId)]);
-  const [advancedOpen, setAdvancedOpen] = useState(false);
-
-  const effectSummary = useMemo(
-    () => describeGoalEffects(activeGoals, activeKcal, activeFreqs),
-    [activeGoals, activeKcal, activeFreqs]
-  );
+    (subjectId && data.freqsByGroup?.[subjectId]) ?? data.freqs ?? { ...BASE_FREQS };
+  const [addingGoal, setAddingGoal] = useState(false);
+  const [draftGoal, setDraftGoal] = useState("");
 
   // ── Toast (lifecycle-safe; timer cleared on unmount) ──
   const [toast, setToast] = useState(null);
@@ -2974,18 +3032,6 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
     },
   });
 
-  const writeSubjectKcal = (newKcal) => {
-    setData((d) => {
-      const next = markGoalsManual(d);
-      if (subjectId) {
-        return {
-          ...next,
-          kcalByGroup: { ...(next.kcalByGroup ?? {}), [subjectId]: newKcal },
-        };
-      }
-      return { ...next, kcal: newKcal };
-    });
-  };
   const writeSubjectFreqs = (newFreqs) => {
     setData((d) => {
       const next = markGoalsManual(d);
@@ -3016,12 +3062,9 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
       const manual = Boolean(d.goalsManualByGroup?.[manualKey]);
       const profile = combinedGoalProfile(newGoalIds, defs);
       const label = defs.find((g) => g.id === goalId)?.label ?? "";
-      const hint = GOAL_TOGGLE_HINTS[goalId];
 
       if (manual) {
-        toastMsg = isActive
-          ? `Quitado «${label}» (kcal y frecuencias sin cambiar)`
-          : `Añadido «${label}»${hint ? ` · ${hint}` : ""} (ajuste manual activo)`;
+        toastMsg = isActive ? `Quitado «${label}»` : `Añadido «${label}»`;
         if (subjectId) {
           return {
             ...d,
@@ -3031,7 +3074,7 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
         return { ...d, goals: newGoalIds };
       }
 
-      toastMsg = hint ?? `Perfil «${label}» aplicado`;
+      toastMsg = isActive ? `Quitado «${label}»` : `Añadido «${label}»`;
       const patch = {
         goals: newGoalIds,
         kcal: profile.kcal,
@@ -3052,39 +3095,6 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
     if (toastMsg) showToast(toastMsg);
   };
 
-  const resetGoalsFromPresets = () => {
-    const profile = combinedGoalProfile(activeGoals, goalDefs);
-    const manualKey = goalsManualKey(subjectId);
-    setData((d) => {
-      const patch = {
-        goalsManualByGroup: { ...(d.goalsManualByGroup ?? {}), [manualKey]: false },
-        kcal: profile.kcal,
-        freqs: profile.freqs,
-      };
-      if (subjectId) {
-        return {
-          ...d,
-          ...patch,
-          kcalByGroup: { ...(d.kcalByGroup ?? {}), [subjectId]: profile.kcal },
-          freqsByGroup: { ...(d.freqsByGroup ?? {}), [subjectId]: profile.freqs },
-        };
-      }
-      return { ...d, ...patch };
-    });
-    showToast("Valores recalculados desde los objetivos");
-  };
-
-  // ── Edit / add / remove chips ──
-  const renameGoalDef = (id, newLabel) => {
-    const v = newLabel.trim();
-    if (!v) return;
-    setData((d) => ({
-      ...d,
-      goalDefs: (d.goalDefs ?? []).map((g) =>
-        g.id === id ? { ...g, label: v } : g
-      ),
-    }));
-  };
   const removeGoalDef = (id) => {
     setData((d) => {
       const def = (d.goalDefs ?? []).find((g) => g.id === id);
@@ -3104,8 +3114,6 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
     });
   };
 
-  const [addingGoal, setAddingGoal] = useState(false);
-  const [draftGoal, setDraftGoal] = useState("");
   const addCustomGoal = () => {
     const v = draftGoal.trim();
     setAddingGoal(false);
@@ -3137,11 +3145,12 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
       }
       return { ...d, goalDefs, goals: [...currentGoals, newId] };
     });
+    showToast(`Añadido «${v}»`);
   };
 
-  // ── Frequencies (per-subject) ──
   const setFreqValue = (key, v) =>
     writeSubjectFreqs({ ...activeFreqs, [key]: v });
+
   const removeFreq = (key) => {
     const next = { ...activeFreqs };
     delete next[key];
@@ -3177,7 +3186,7 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
   return (
     <OnboardingShell
       title="¿Qué queréis comer?"
-      subtitle="Elige uno o varios objetivos · el menú se adapta"
+      subtitle="Elige objetivos y cuántas veces por semana"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -3204,7 +3213,7 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
             })}
           </div>
           <p style={{ fontSize: 11, color: "#888", marginTop: 6 }}>
-            Cada grupo guarda sus propios objetivos, kcal y frecuencias.
+            Cada grupo guarda sus propios objetivos y frecuencias.
           </p>
         </div>
       )}
@@ -3212,93 +3221,56 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
       <SectionTitle>
         {hasMultipleGroups ? `Objetivos · ${activeGroupLabel}` : "Objetivos"}
       </SectionTitle>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-        {goalDefs.map((def) => (
-          <GoalChip
-            key={def.id}
-            def={def}
-            selected={activeGoals.includes(def.id)}
-            onToggle={() => toggleGoal(def.id)}
-            onRename={def.isCustom ? (v) => renameGoalDef(def.id, v) : null}
-            onRemove={def.isCustom ? () => removeGoalDef(def.id) : null}
-          />
-        ))}
-        {addingGoal ? (
-          <input
-            autoFocus
-            value={draftGoal}
-            onChange={(e) => setDraftGoal(e.target.value)}
-            onBlur={addCustomGoal}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
-              if (e.key === "Escape") {
-                setDraftGoal("");
-                setAddingGoal(false);
-              }
-            }}
-            placeholder="Tu objetivo"
-            style={{
-              padding: "6px 14px",
-              borderRadius: 20,
-              border: "1.5px solid #2d5a3d",
-              fontSize: 13,
-              outline: "none",
-              background: "#fff",
-              color: "#2d5a3d",
-              fontFamily: "inherit",
-              minWidth: 110,
-            }}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setAddingGoal(true)}
-            style={{
-              ...goalChipStyle(false),
-              border: "1.5px dashed #2d5a3d",
-              cursor: "pointer",
-            }}
-          >
-            <Plus size={14} /> Añadir
-          </button>
+      <div style={{ marginBottom: 16 }}>
+        <GoalOptionGrid
+          goalDefs={goalDefs}
+          selectedIds={activeGoals}
+          onToggle={toggleGoal}
+          onAddClick={() => setAddingGoal((v) => !v)}
+          addOpen={addingGoal}
+          addValue={draftGoal}
+          onAddValueChange={setDraftGoal}
+          onAddConfirm={addCustomGoal}
+        />
+        {goalDefs.some((g) => g.isCustom) && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+            {goalDefs
+              .filter((g) => g.isCustom)
+              .map((def) => (
+                <GoalChip
+                  key={def.id}
+                  def={def}
+                  selected={activeGoals.includes(def.id)}
+                  onToggle={() => toggleGoal(def.id)}
+                  onRemove={() => removeGoalDef(def.id)}
+                />
+              ))}
+          </div>
         )}
       </div>
 
       <div
         style={{
-          padding: "10px 12px",
-          borderRadius: 10,
-          background: "rgba(45,90,61,.08)",
-          border: "1px solid #d7e1db",
-          marginBottom: goalsManual ? 8 : 14,
-          fontSize: 12,
-          color: "#1a3a24",
-          lineHeight: 1.45,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 10,
         }}
       >
-        {effectSummary}
-      </div>
-
-      {goalsManual && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 8,
-            marginBottom: 14,
-          }}
-        >
-          <span style={{ fontSize: 11, color: "#888" }}>
-            Ajustaste kcal o frecuencias a mano
-          </span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>
+          Frecuencia mínima semanal
+        </span>
+        {!addingFreq && (
           <button
             type="button"
-            onClick={resetGoalsFromPresets}
+            onClick={() => setAddingFreq(true)}
             style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
               padding: "5px 10px",
-              borderRadius: 8,
-              border: "1.5px solid #2d5a3d",
+              borderRadius: 16,
+              border: "1.5px dashed #2d5a3d",
               background: "#fff",
               color: "#2d5a3d",
               fontSize: 11,
@@ -3307,129 +3279,55 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
               fontFamily: "inherit",
             }}
           >
-            Recalcular
+            <Plus size={11} /> Añadir tipo
           </button>
+        )}
+      </div>
+
+      {addingFreq && (
+        <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+          <input
+            autoFocus
+            value={draftFreq}
+            onChange={(e) => setDraftFreq(e.target.value)}
+            onBlur={addFreq}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") e.currentTarget.blur();
+              if (e.key === "Escape") {
+                setDraftFreq("");
+                setAddingFreq(false);
+              }
+            }}
+            placeholder="Carne, fruta, huevos…"
+            style={{
+              flex: 1,
+              padding: "8px 12px",
+              borderRadius: 10,
+              border: "1.5px solid #2d5a3d",
+              fontSize: 13,
+              outline: "none",
+              fontFamily: "inherit",
+            }}
+          />
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={() => setAdvancedOpen((v) => !v)}
-        style={{
-          width: "100%",
-          padding: "10px 12px",
-          borderRadius: 10,
-          border: "1px solid #e3ebe6",
-          background: "#fafcfb",
-          color: "#555",
-          fontSize: 12,
-          fontWeight: 700,
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          fontFamily: "inherit",
-          marginBottom: advancedOpen ? 12 : 0,
-        }}
-        aria-expanded={advancedOpen}
-      >
-        Ajustar detalle (kcal y frecuencias)
-        {advancedOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-      </button>
-
-      {advancedOpen && (
-        <>
-          <SliderInput
-            label="Objetivo calórico"
-            value={activeKcal}
-            min={1200}
-            max={3000}
-            step={100}
-            suffix=" kcal"
-            onChange={(v) => writeSubjectKcal(v)}
-          />
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              marginBottom: 10,
-              marginTop: 8,
-            }}
-          >
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#555" }}>
-              Frecuencia mínima semanal
-            </span>
-            {!addingFreq && (
-              <button
-                type="button"
-                onClick={() => setAddingFreq(true)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: "5px 10px",
-                  borderRadius: 16,
-                  border: "1.5px dashed #2d5a3d",
-                  background: "#fff",
-                  color: "#2d5a3d",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                <Plus size={11} /> Añadir tipo
-              </button>
-            )}
-          </div>
-
-          {addingFreq && (
-            <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-              <input
-                autoFocus
-                value={draftFreq}
-                onChange={(e) => setDraftFreq(e.target.value)}
-                onBlur={addFreq}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") e.currentTarget.blur();
-                  if (e.key === "Escape") {
-                    setDraftFreq("");
-                    setAddingFreq(false);
-                  }
-                }}
-                placeholder="Carne, fruta, huevos…"
-                style={{
-                  flex: 1,
-                  padding: "8px 12px",
-                  borderRadius: 10,
-                  border: "1.5px solid #2d5a3d",
-                  fontSize: 13,
-                  outline: "none",
-                  fontFamily: "inherit",
-                }}
-              />
-            </div>
-          )}
-
-          {freqEntries.length === 0 && !addingFreq && (
-            <p style={{ fontSize: 12, color: "#aaa", margin: "4px 0 12px" }}>
-              Sin tipos definidos. Pulsa «Añadir tipo».
-            </p>
-          )}
-
-          {freqEntries.map(([key, value]) => (
-            <FreqRow
-              key={key}
-              freqKey={key}
-              value={value ?? 2}
-              onChange={(v) => setFreqValue(key, v)}
-              onRename={(v) => renameFreq(key, v)}
-              onRemove={() => removeFreq(key)}
-            />
-          ))}
-        </>
+      {freqEntries.length === 0 && !addingFreq && (
+        <p style={{ fontSize: 12, color: "#aaa", margin: "4px 0 12px" }}>
+          Sin tipos definidos. Pulsa «Añadir tipo».
+        </p>
       )}
+
+      {freqEntries.map(([key, value]) => (
+        <FreqRow
+          key={key}
+          freqKey={key}
+          value={value ?? 2}
+          onChange={(v) => setFreqValue(key, v)}
+          onRename={(v) => renameFreq(key, v)}
+          onRemove={() => removeFreq(key)}
+        />
+      ))}
 
       {toast && (
         <div
