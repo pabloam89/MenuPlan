@@ -14,12 +14,17 @@ import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { ShoppingScreen } from "./screens/Shopping.jsx";
 import { generateMenuWithAI } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
-import { getMeals } from "./lib/planner.js";
+import { getMeals, replaceMenuSlot } from "./lib/planner.js";
 import { groupsFromModel } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { suggestHomeRole } from "./lib/stages.js";
+import demoState from "./dev/demoState.json";
+
+const DEV_DEMO_MENU =
+  import.meta.env.DEV &&
+  new URLSearchParams(window.location.search).get("demo") === "1";
 
 const INITIAL_DATA = {
   members: [],
@@ -230,8 +235,13 @@ function migrate(state) {
 }
 
 export default function App() {
-  const persisted = useMemo(() => migrate(loadState()), []);
-  const [screen, setScreen] = useState("splash");
+  const persisted = useMemo(
+    () => (DEV_DEMO_MENU ? migrate(demoState) : migrate(loadState())),
+    []
+  );
+  const [screen, setScreen] = useState(
+    DEV_DEMO_MENU ? (persisted?.screen ?? "menu") : "splash"
+  );
   const [onbStep, setOnbStep] = useState(persisted?.onbStep ?? 0);
   const [data, setData] = useState(persisted?.data ?? INITIAL_DATA);
   const [menuPlan, setMenuPlan] = useState(persisted?.menuPlan ?? {});
@@ -321,6 +331,37 @@ export default function App() {
     setToast(msg);
     window.clearTimeout(showToast._t);
     showToast._t = window.setTimeout(() => setToast(null), 1800);
+  };
+
+  const handleReplaceSlot = (selection, _reason) => {
+    const { groupId, day, meal, recipe } = selection;
+    const result = replaceMenuSlot(data, menuPlan, {
+      groupId,
+      day,
+      meal,
+      excludeRecipeId: recipe.id,
+      course: selection.course ?? "main",
+    });
+    if (!result) {
+      showToast("No hay otra receta compatible para este hueco");
+      return;
+    }
+    const groups =
+      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    setMenuPlan((plan) => {
+      const next = {
+        ...plan,
+        [groupId]: {
+          ...(plan[groupId] ?? {}),
+          [`${day}-${meal}`]: result.slot,
+        },
+      };
+      const sh = buildShoppingList(next, groups, getMeals(data));
+      setShopping({ items: sh.byCategory.flatMap((c) => c.items) });
+      return next;
+    });
+    setSelectedSlot(null);
+    showToast(`Sustituido por «${result.recipe.name}»`);
   };
 
   const handleReset = () => {
@@ -446,11 +487,12 @@ export default function App() {
             menuPlan={menuPlan}
             isGenerating={isGeneratingMenu}
             error={menuError}
-            onDishTap={(recipe, slot) => setSelectedSlot({ recipe, slot })}
+            onDishTap={(selection) => setSelectedSlot(selection)}
             onNav={handleNav}
             onRegenerate={() => regenerateMenu()}
             onRetry={retryGenerateMenu}
             onReset={handleReset}
+            onToast={showToast}
           />
         )}
 
@@ -466,7 +508,7 @@ export default function App() {
           recipe={selectedSlot.recipe}
           slot={selectedSlot.slot}
           onClose={() => setSelectedSlot(null)}
-          onReject={() => setSelectedSlot(null)}
+          onReject={(reason) => handleReplaceSlot(selectedSlot, reason)}
         />
       )}
 

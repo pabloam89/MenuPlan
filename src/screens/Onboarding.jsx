@@ -680,6 +680,59 @@ function MealSelect({ meals, mealOptions, onChange }) {
   );
 }
 
+function clampTimesPerWeek(n) {
+  return Math.min(7, Math.max(1, Math.round(n)));
+}
+
+/** Veces/semana: edita como texto y valida al salir del campo (evita saltar a 7 al teclear). */
+function FixedTimesInput({ value, onChange }) {
+  const [draft, setDraft] = useState(() => String(value));
+  const [lastValue, setLastValue] = useState(value);
+
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(String(value));
+  }
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (trimmed === "") {
+      onChange(1);
+      setDraft("1");
+      return;
+    }
+    const n = parseInt(trimmed, 10);
+    if (Number.isNaN(n)) {
+      onChange(1);
+      setDraft("1");
+      return;
+    }
+    const clamped = clampTimesPerWeek(n);
+    onChange(clamped);
+    setDraft(String(clamped));
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[1-7]*"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 1))}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+        if (e.key === "Escape") {
+          setDraft(String(value));
+          e.currentTarget.blur();
+        }
+      }}
+      style={fixedTimesInputStyle}
+      aria-label="Veces por semana"
+    />
+  );
+}
+
 function FixedDishRow({ name, nameValue, onNameChange, times, meals, mealOptions, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
   const isNew = onNameChange != null;
   return (
@@ -724,15 +777,7 @@ function FixedDishRow({ name, nameValue, onNameChange, times, meals, mealOptions
       </div>
       <div style={{ flexShrink: 0 }}>
         <p style={fieldLbl}>Veces</p>
-        <input
-          type="number"
-          min={1}
-          max={7}
-          value={times}
-          onChange={(e) => onTimesChange(Math.min(7, Math.max(1, parseInt(e.target.value, 10) || 1)))}
-          style={fixedTimesInputStyle}
-          aria-label="Veces por semana"
-        />
+        <FixedTimesInput value={times} onChange={onTimesChange} />
       </div>
       <div style={{ flex: "0 1 108px", minWidth: 88 }}>
         <p style={fieldLbl}>Cuándo</p>

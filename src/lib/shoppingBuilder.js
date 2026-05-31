@@ -44,45 +44,48 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS) {
       for (const meal of meals) {
         const slot = slots[`${day}-${meal}`];
         if (!slot) continue;
-        const recipe = RECIPES_BY_ID[slot.recipeId];
-        if (!recipe) continue;
-        for (const ing of recipe.ingredients) {
-          const scaled = scaleIngredient(ing, slot.eaters, recipe.servings);
-          const key = `${ing.id}|${ing.unit}`;
-          if (!aggregate[key]) {
-            aggregate[key] = {
-              id: key,
+        const recipeIds = [slot.firstRecipeId, slot.recipeId].filter(Boolean);
+        for (const rid of recipeIds) {
+          const recipe = RECIPES_BY_ID[rid];
+          if (!recipe) continue;
+          for (const ing of recipe.ingredients) {
+            const scaled = scaleIngredient(ing, slot.eaters, recipe.servings);
+            const key = `${ing.id}|${ing.unit}`;
+            if (!aggregate[key]) {
+              aggregate[key] = {
+                id: key,
+                name: ing.name,
+                category: ing.category,
+                unit: ing.unit,
+                qty: 0,
+                price: 0,
+                sources: [],
+                have: false,
+                manual: false,
+              };
+            }
+            aggregate[key].qty += scaled.qty;
+            aggregate[key].price += scaled.scaledPrice;
+            aggregate[key].sources.push({
+              day,
+              meal,
+              group: group.label,
+              recipeName: recipe.name,
+            });
+
+            dayBuckets[day].push({
+              id: `${day}-${meal}-${groupId}-${rid}-${ing.id}`,
               name: ing.name,
               category: ing.category,
+              qty: scaled.qty,
               unit: ing.unit,
-              qty: 0,
-              price: 0,
-              sources: [],
-              have: false,
-              manual: false,
-            };
+              price: scaled.scaledPrice,
+              displayQty: formatQty(scaled.qty, ing.unit),
+              meal,
+              group: group.label,
+              recipeName: recipe.name,
+            });
           }
-          aggregate[key].qty += scaled.qty;
-          aggregate[key].price += scaled.scaledPrice;
-          aggregate[key].sources.push({
-            day,
-            meal,
-            group: group.label,
-            recipeName: recipe.name,
-          });
-
-          dayBuckets[day].push({
-            id: `${day}-${meal}-${groupId}-${ing.id}`,
-            name: ing.name,
-            category: ing.category,
-            qty: scaled.qty,
-            unit: ing.unit,
-            price: scaled.scaledPrice,
-            displayQty: formatQty(scaled.qty, ing.unit),
-            meal,
-            group: group.label,
-            recipeName: recipe.name,
-          });
         }
       }
     }
