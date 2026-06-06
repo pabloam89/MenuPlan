@@ -2,20 +2,21 @@ import { createElement, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BookOpen,
+  Calendar,
   ChefHat,
   Clock3,
+  Download,
   Drumstick,
   Egg,
   Fish,
   Flame,
   Gauge,
-  Layers,
   Leaf,
   RotateCw,
   School,
+  Share2,
   ShoppingCart,
   Soup,
-  Sparkles,
   Users,
   Utensils,
   Wand2,
@@ -26,9 +27,16 @@ import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { BottomNav, Chip, AvatarStack } from "../components/ui.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "../lib/groups.js";
-import { getMenuInsights } from "../lib/menuInsights.js";
+import { downloadMenu, shareMenu } from "../lib/menuExport.js";
+import { buildProfileSummary } from "../lib/profileSummary.js";
+import { partialEaterInitials } from "../lib/slotEaters.js";
 import { DAYS, getMeals, isLunchMeal, slotKey } from "../lib/planner.js";
 import { getSchoolDish, hasAnySchoolDish } from "../lib/schoolMenu.js";
+import {
+  calendarDayNumber,
+  formatWeekRangeLabel,
+  getWeekDates,
+} from "../lib/weekCalendar.js";
 
 const ICONS_BY_TYPE = {
   fish: Fish,
@@ -187,38 +195,131 @@ function DishVisual({ recipe, height = 220 }) {
   );
 }
 
-function PremiumMetric({ icon, label, value, caption, tone }) {
+function ProfileButton({ onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        padding: "7px 12px",
+        borderRadius: 999,
+        border: "1px solid #e6eee8",
+        background: "#fff",
+        color: "#526057",
+        fontSize: 12,
+        fontWeight: 800,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        flexShrink: 0,
+      }}
+    >
+      Tu perfil
+    </button>
+  );
+}
+
+function ProfileSummarySheet({ sections, onClose, onEdit }) {
   return (
     <div
+      onClick={onClose}
       style={{
-        flex: 1,
-        minWidth: 0,
-        borderRadius: 16,
-        padding: "11px 12px",
-        background: "#fff",
-        border: "1px solid #ecf1ed",
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,.45)",
+        zIndex: 150,
+        display: "flex",
+        alignItems: "flex-end",
+        justifyContent: "center",
       }}
     >
       <div
+        onClick={(e) => e.stopPropagation()}
         style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 6,
-          color: tone,
-          marginBottom: 6,
-          fontSize: 9,
-          fontWeight: 800,
-          textTransform: "uppercase",
-          letterSpacing: 0.8,
+          background: "#fff",
+          borderRadius: "20px 20px 0 0",
+          width: "100%",
+          maxWidth: 420,
+          maxHeight: "78vh",
+          overflow: "auto",
+          padding: "16px 18px 24px",
         }}
       >
-        {createElement(icon, { size: 12 })}
-        {label}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 14,
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>
+            Tu perfil
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            style={{
+              border: "none",
+              background: "#f0f4f1",
+              borderRadius: 999,
+              width: 32,
+              height: 32,
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+        {sections.map((sec) => (
+          <div key={sec.title} style={{ marginBottom: 14 }}>
+            <div
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                color: "#8d978f",
+                textTransform: "uppercase",
+                letterSpacing: 1,
+                marginBottom: 6,
+              }}
+            >
+              {sec.title}
+            </div>
+            {sec.lines.map((line) => (
+              <div
+                key={line}
+                style={{ fontSize: 13, color: "#1a3a24", lineHeight: 1.45, marginBottom: 2 }}
+              >
+                {line}
+              </div>
+            ))}
+          </div>
+        ))}
+        <button
+          type="button"
+          onClick={onEdit}
+          style={{
+            width: "100%",
+            marginTop: 8,
+            padding: "12px",
+            borderRadius: 12,
+            border: "1.5px solid #2d5a3d",
+            background: "#fff",
+            color: "#2d5a3d",
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Editar en Ajustes
+        </button>
       </div>
-      <div style={{ fontSize: 19, fontWeight: 900, color: "#15331c", lineHeight: 1 }}>
-        {value}
-      </div>
-      <div style={{ fontSize: 10, color: "#8d978f", marginTop: 4 }}>{caption}</div>
     </div>
   );
 }
@@ -284,7 +385,25 @@ function SchoolDishCard({ name, courses }) {
   );
 }
 
-function DishCard({ slot, onTap, group, showGroupTag }) {
+function dishesFromSlot(slot, isLunch) {
+  if (!slot?.recipeId) return [];
+  const items = [];
+  if (isLunch && slot.firstRecipeId) {
+    items.push({
+      course: "1º",
+      courseKey: "first",
+      recipeId: slot.firstRecipeId,
+    });
+  }
+  items.push({
+    course: isLunch && slot.firstRecipeId ? "2º" : null,
+    courseKey: "main",
+    recipeId: slot.recipeId,
+  });
+  return items;
+}
+
+function DishCard({ slot, onTap, group, showGroupTag, eaterInitials = [], courseLabel = null }) {
   if (!slot) {
     return (
       <div
@@ -305,14 +424,11 @@ function DishCard({ slot, onTap, group, showGroupTag }) {
 
   const recipe = RECIPES_BY_ID[slot.recipeId];
   if (!recipe) return null;
-  const hasWarning = (slot.warnings ?? []).length > 0;
-  const firstWarning = hasWarning ? slot.warnings[0] : null;
 
   return (
     <button
       type="button"
-      onClick={() => onTap(recipe, slot)}
-      title={firstWarning ? firstWarning.message : undefined}
+      onClick={onTap}
       style={{
         width: "100%",
         border: "1px solid #ecf1ed",
@@ -342,29 +458,26 @@ function DishCard({ slot, onTap, group, showGroupTag }) {
           }}
         />
       )}
-      {hasWarning && (
+      {courseLabel && (
         <span
-          aria-label="Aviso"
           style={{
             position: "absolute",
             top: 10,
-            right: 10,
-            width: 16,
-            height: 16,
-            borderRadius: 999,
-            background: "#f1a23a",
-            color: "#fff",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
+            left: 10,
+            fontSize: 9,
+            fontWeight: 900,
+            color: "#2d5a3d",
+            background: "#eef3ef",
+            padding: "2px 6px",
+            borderRadius: 6,
           }}
         >
-          <AlertTriangle size={9} />
+          {courseLabel}
         </span>
       )}
       <DishIcon recipe={recipe} size={44} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: hasWarning ? 22 : 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {showGroupTag && group && (
             <span
               style={{
@@ -391,11 +504,57 @@ function DishCard({ slot, onTap, group, showGroupTag }) {
         >
           {recipe.name}
         </div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8 }}>
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
           <MacroPill label="min" value={recipe.time} tone="#2d5a3d" />
-          <MacroPill label="g prot" value={recipe.macros.protein} tone="#5a7ea8" />
+          {slot.mode === "tupper" && (
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 800,
+                padding: "4px 8px",
+                borderRadius: 999,
+                background: "#fff5ef",
+                color: "#c67030",
+              }}
+            >
+              tupper
+            </span>
+          )}
         </div>
       </div>
+      {eaterInitials.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 3,
+            flexShrink: 0,
+            alignSelf: "center",
+            maxWidth: 56,
+            justifyContent: "flex-end",
+          }}
+        >
+          {eaterInitials.map((init) => (
+            <span
+              key={init}
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 7,
+                background: "#eef3ef",
+                color: "#2d5a3d",
+                fontSize: 9,
+                fontWeight: 900,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {init}
+            </span>
+          ))}
+        </div>
+      )}
     </button>
   );
 }
@@ -410,11 +569,17 @@ export function MenuScreen({
   onRegenerate,
   onRetry,
   onReset,
+  onToast,
 }) {
   const [activeGroupIds, setActiveGroupIds] = useState(() =>
     data.groups.slice(0, 1).map((g) => g.id)
   );
-  const [warningsOpen, setWarningsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+
+  const weekDates = useMemo(() => getWeekDates(), []);
+  const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates), [weekDates]);
+  const profileSections = useMemo(() => buildProfileSummary(data), [data]);
+  const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
 
   const toggleGroup = (id) => {
     setActiveGroupIds((cur) => {
@@ -427,15 +592,32 @@ export function MenuScreen({
   };
 
   const visibleGroups = data.groups.filter((g) => activeGroupIds.includes(g.id));
-  const visibleGroupSet = new Set(visibleGroups.map((g) => g.id));
   const showGroupTag = visibleGroups.length > 1;
-  const warnings = (menuPlan._warnings ?? []).filter((warning) =>
-    visibleGroupSet.has(warning.groupId)
-  );
-  const insights = useMemo(
-    () => getMenuInsights(menuPlan, visibleGroups),
-    [menuPlan, visibleGroups]
-  );
+
+  const handleShare = async () => {
+    try {
+      const result = await shareMenu(data, menuPlan, data.groups);
+      if (result.method === "cancelled") return;
+      const msg =
+        result.method === "share"
+          ? "Menú compartido"
+          : result.method === "clipboard"
+            ? "Menú copiado al portapapeles"
+            : "Menú descargado";
+      onToast?.(msg);
+    } catch {
+      onToast?.("No se pudo compartir el menú");
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      await downloadMenu(data, menuPlan, data.groups);
+      onToast?.("Menú descargado");
+    } catch {
+      onToast?.("No se pudo descargar el menú");
+    }
+  };
 
   return (
     <div style={{ paddingBottom: 0, background: "#f7f9f7" }}>
@@ -449,17 +631,19 @@ export function MenuScreen({
             marginBottom: 14,
           }}
         >
-          <h2
-            style={{
-              fontSize: 26,
-              fontWeight: 900,
-              color: "#142f1d",
-              margin: 0,
-              letterSpacing: "-.7px",
-            }}
-          >
-            Tu menú
-          </h2>
+          <div>
+            <h2
+              style={{
+                fontSize: 26,
+                fontWeight: 900,
+                color: "#142f1d",
+                margin: 0,
+                letterSpacing: "-.7px",
+              }}
+            >
+              Tu menú
+            </h2>
+          </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
               type="button"
@@ -486,103 +670,153 @@ export function MenuScreen({
 
         <div
           style={{
-            display: "flex",
-            gap: 6,
-            overflowX: "auto",
-            paddingBottom: 8,
-            marginBottom: 12,
+            height: 1,
+            background: "#e6eee8",
+            marginBottom: 14,
           }}
-        >
-          {data.groups.map((g) => {
-            const sel = activeGroupIds.includes(g.id);
-            const members = membersOfGroup(g, data.members);
-            return (
-              <button
-                key={g.id}
-                type="button"
-                onClick={() => toggleGroup(g.id)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "7px 12px 7px 8px",
-                  borderRadius: 999,
-                  background: sel ? g.color : "#fff",
-                  color: sel ? "#fff" : "#526057",
-                  fontSize: 12,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  border: `1px solid ${sel ? g.color : "#e6eee8"}`,
-                  fontFamily: "inherit",
-                }}
-              >
-                <AvatarStack
-                  names={members.map((m) => m.name)}
-                  size={22}
-                  max={3}
-                  color={sel ? "rgba(255,255,255,.25)" : "#c9d2cc"}
-                />
-                {g.label}
-              </button>
-            );
-          })}
-        </div>
+        />
 
-        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-          <PremiumMetric
-            icon={Layers}
-            label="Variedad"
-            value={`${insights.varietyScore}%`}
-            caption={`${insights.uniqueCount} platos únicos`}
-            tone="#3f6948"
-          />
-          <PremiumMetric
-            icon={Sparkles}
-            label="Proteína media"
-            value={`${insights.proteinAvg}g`}
-            caption="por plato"
-            tone="#5a7ea8"
-          />
-          <PremiumMetric
-            icon={Clock3}
-            label="Tiempo medio"
-            value={`${insights.timeAvg}m`}
-            caption={`${insights.tupperCount} tupper`}
-            tone="#c67030"
-          />
-        </div>
-
-        {!isGenerating && !error && warnings.length > 0 && (
-          <div style={warningPanelStyle}>
-            <button
-              type="button"
-              onClick={() => setWarningsOpen((open) => !open)}
-              style={warningButtonStyle}
+        <div style={{ marginBottom: 14 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                flex: 1,
+                minWidth: 0,
+                flexWrap: "wrap",
+              }}
             >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <AlertTriangle size={14} />
-                {warnings.length} aviso{warnings.length === 1 ? "" : "s"} para revisar
-              </span>
-              <span>{warningsOpen ? "Ocultar" : "Ver"}</span>
-            </button>
-            {warningsOpen && (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
-                {warnings.slice(0, 8).map((warning, idx) => (
-                  <div
-                    key={`${warning.groupId}-${warning.day}-${warning.meal}-${idx}`}
-                    style={{ fontSize: 11, color: "#7a4a12" }}
+              {data.groups.map((g) => {
+                const sel = activeGroupIds.includes(g.id);
+                const members = membersOfGroup(g, data.members);
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => toggleGroup(g.id)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: "7px 12px 7px 8px",
+                      borderRadius: 999,
+                      background: sel ? g.color : "#fff",
+                      color: sel ? "#fff" : "#526057",
+                      fontSize: 12,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      flexShrink: 0,
+                      border: `1px solid ${sel ? g.color : "#e6eee8"}`,
+                      fontFamily: "inherit",
+                    }}
                   >
-                    <strong>
-                      {warning.groupLabel} · {warning.day} · {warning.meal}:
-                    </strong>{" "}
-                    {warning.message}
-                  </div>
-                ))}
+                    <AvatarStack
+                      names={members.map((m) => m.name)}
+                      size={22}
+                      max={3}
+                      color={sel ? "rgba(255,255,255,.25)" : "#c9d2cc"}
+                    />
+                    {g.label}
+                  </button>
+                );
+              })}
+            </div>
+            {hasMenu && (
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                <button
+                  type="button"
+                  onClick={handleShare}
+                  aria-label="Compartir menú"
+                  title="Compartir"
+                  style={iconChipButtonStyle}
+                >
+                  <Share2 size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  aria-label="Descargar menú"
+                  title="Descargar"
+                  style={iconChipButtonStyle}
+                >
+                  <Download size={16} />
+                </button>
               </div>
             )}
           </div>
-        )}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 10,
+              marginTop: 10,
+            }}
+          >
+            <div
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "7px 11px",
+                borderRadius: 12,
+                background: "#fff",
+                border: "1px solid #ecf1ed",
+              }}
+            >
+              <span
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: "#eef3ef",
+                  color: "#2d5a3d",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Calendar size={14} />
+              </span>
+              <div>
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 800,
+                    color: "#8d978f",
+                    textTransform: "uppercase",
+                    letterSpacing: 0.9,
+                    lineHeight: 1,
+                    marginBottom: 3,
+                  }}
+                >
+                  Semana
+                </div>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 900,
+                    color: "#142f1d",
+                    letterSpacing: "-.2px",
+                    lineHeight: 1,
+                  }}
+                >
+                  {weekLabel}
+                </div>
+              </div>
+            </div>
+            <ProfileButton onClick={() => setProfileOpen(true)} />
+          </div>
+        </div>
       </div>
 
       {isGenerating && <GeneratingSkeleton />}
@@ -616,11 +850,29 @@ export function MenuScreen({
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: 8,
+                  gap: 10,
                   padding: "0 4px",
                   marginBottom: 10,
                 }}
               >
+                <span
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 10,
+                    background: "#fff",
+                    border: "1px solid #e6eee8",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: 15,
+                    fontWeight: 900,
+                    color: "#142f1d",
+                    flexShrink: 0,
+                  }}
+                >
+                  {calendarDayNumber(day, weekDates)}
+                </span>
                 <span
                   style={{
                     fontSize: 12,
@@ -639,7 +891,11 @@ export function MenuScreen({
                 const cards = visibleGroups.flatMap((g) => {
                   const result = [];
                   const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
-                  if (slot) result.push({ kind: "dish", group: g, slot });
+                  if (slot) {
+                    for (const dish of dishesFromSlot(slot, isLunch)) {
+                      result.push({ kind: "dish", group: g, slot, dish });
+                    }
+                  }
                   if (isLunch) {
                     const groupMembers = membersOfGroup(g, data.members);
                     for (const m of groupMembers) {
@@ -676,11 +932,33 @@ export function MenuScreen({
                       {cards.map((card, idx) =>
                         card.kind === "dish" ? (
                           <DishCard
-                            key={`dish-${card.group.id}-${idx}`}
-                            slot={card.slot}
-                            onTap={onDishTap}
+                            key={`dish-${card.group.id}-${card.dish.courseKey}-${idx}`}
+                            slot={{ ...card.slot, recipeId: card.dish.recipeId }}
+                            courseLabel={card.dish.course}
+                            onTap={() =>
+                              onDishTap({
+                                recipe: RECIPES_BY_ID[card.dish.recipeId],
+                                slot: card.slot,
+                                groupId: card.group.id,
+                                day,
+                                meal,
+                                group: card.group,
+                                course: card.dish.courseKey,
+                              })
+                            }
                             group={card.group}
                             showGroupTag={showGroupTag}
+                            eaterInitials={
+                              card.dish.courseKey === "main"
+                                ? partialEaterInitials(
+                                    card.group,
+                                    data.members,
+                                    data.schedule ?? {},
+                                    day,
+                                    meal
+                                  )
+                                : []
+                            }
                           />
                         ) : (
                           <SchoolDishCard
@@ -701,13 +979,25 @@ export function MenuScreen({
       )}
 
       {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
-        <div style={{ padding: "12px 24px 16px", display: "flex", gap: 10 }}>
+        <div style={{ padding: "12px 16px 16px", display: "flex", gap: 10 }}>
           <button type="button" onClick={() => onNav("shopping")} style={shoppingButtonStyle}>
             <ShoppingCart size={16} />
-            Lista de la compra
+            Compra
           </button>
         </div>
       )}
+
+      {profileOpen && (
+        <ProfileSummarySheet
+          sections={profileSections}
+          onClose={() => setProfileOpen(false)}
+          onEdit={() => {
+            setProfileOpen(false);
+            onNav("settings");
+          }}
+        />
+      )}
+
       <BottomNav active="menu" onNav={onNav} />
     </div>
   );
@@ -1007,18 +1297,6 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
             ))}
           </section>
 
-          {(slot.warnings ?? []).length > 0 && (
-            <section style={detailWarningStyle}>
-              <AlertTriangle size={15} />
-              <div>
-                <div style={{ fontWeight: 900, marginBottom: 4 }}>Avisos de ajuste</div>
-                {(slot.warnings ?? []).map((warning) => (
-                  <div key={`${warning.type}-${warning.message}`}>{warning.message}</div>
-                ))}
-              </div>
-            </section>
-          )}
-
           <section style={recipeBlockStyle}>
             <div style={sectionTitleStyle}>
               <BookOpen size={16} /> Receta
@@ -1125,30 +1403,6 @@ const primaryMiniButtonStyle = {
   color: "#fff",
 };
 
-const warningPanelStyle = {
-  background: "#fff8ed",
-  border: "1px solid #f1c58f",
-  borderRadius: 14,
-  padding: "10px 12px",
-  marginBottom: 12,
-};
-
-const warningButtonStyle = {
-  width: "100%",
-  border: "none",
-  background: "transparent",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 8,
-  padding: 0,
-  cursor: "pointer",
-  fontFamily: "inherit",
-  color: "#8a4f00",
-  fontSize: 12,
-  fontWeight: 800,
-};
-
 const shoppingButtonStyle = {
   flex: 1,
   padding: "14px",
@@ -1156,13 +1410,29 @@ const shoppingButtonStyle = {
   border: "none",
   background: "#1a3a24",
   color: "#fff",
-  fontSize: 14,
+  fontSize: 13,
   fontWeight: 900,
   cursor: "pointer",
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
   gap: 8,
+  fontFamily: "inherit",
+};
+
+const iconChipButtonStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 36,
+  height: 36,
+  padding: 0,
+  borderRadius: 999,
+  border: "1px solid #e6eee8",
+  background: "#fff",
+  color: "#2d5a3d",
+  cursor: "pointer",
+  flexShrink: 0,
   fontFamily: "inherit",
 };
 
@@ -1223,18 +1493,6 @@ const macroCardStyle = {
   padding: "14px 15px",
   background: "#fff",
   border: "1px solid #e8eee9",
-  marginBottom: 14,
-};
-
-const detailWarningStyle = {
-  display: "flex",
-  gap: 8,
-  background: "#fff8ed",
-  color: "#8a4f00",
-  borderRadius: 14,
-  padding: "12px",
-  fontSize: 12,
-  lineHeight: 1.45,
   marginBottom: 14,
 };
 

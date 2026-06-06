@@ -1,0 +1,1260 @@
+{
+  "screen": "menu",
+  "onbStep": 6,
+  "data": {
+    "members": [
+      {
+        "id": "m-pablo",
+        "name": "Pablo",
+        "age": 35,
+        "allergies": [],
+        "dislikes": [],
+        "useBirthDate": false,
+        "birthDate": "",
+        "homeRole": "Adulto"
+      },
+      {
+        "id": "m-ana",
+        "name": "Ana",
+        "age": 33,
+        "allergies": [],
+        "dislikes": [
+          "Coliflor"
+        ],
+        "useBirthDate": false,
+        "birthDate": "",
+        "homeRole": "Adulto"
+      },
+      {
+        "id": "m-leo",
+        "name": "Leo",
+        "age": 8,
+        "allergies": [],
+        "dislikes": [],
+        "useBirthDate": false,
+        "birthDate": "",
+        "homeRole": "Hijo/a"
+      }
+    ],
+    "dislikes": [],
+    "customAllergies": [],
+    "customDislikes": [],
+    "fixedDishes": [],
+    "menuModel": "same",
+    "meals": [
+      "Comida",
+      "Cena"
+    ],
+    "schedule": {},
+    "schoolMenus": {
+      "shared": {},
+      "byMember": {}
+    },
+    "goals": [
+      "sano",
+      "variado"
+    ],
+    "goalDefs": [],
+    "kcal": 2000,
+    "freqs": {
+      "legumbres": 3,
+      "verdura": 4,
+      "pescado": 2
+    },
+    "goalsByGroup": {},
+    "kcalByGroup": {},
+    "freqsByGroup": {},
+    "cookLevel": "normal",
+    "cookSkills": [
+      "Pasta",
+      "Horno"
+    ],
+    "kitchenTools": [
+      "Horno",
+      "Microondas"
+    ],
+    "customKitchenTools": [],
+    "timeWeekday": 35,
+    "timeWeekend": 60,
+    "hasBudget": false,
+    "budget": 80,
+    "supermarkets": [],
+    "groups": [
+      {
+        "id": "uck1a48c",
+        "label": "Familia",
+        "memberIds": [
+          "m-pablo",
+          "m-ana",
+          "m-leo"
+        ],
+        "color": "#2d5a3d"
+      }
+    ]
+  },
+  "menuPlan": {
+    "_warnings": [
+      {
+        "type": "kcal",
+        "message": "Se aleja del objetivo calórico suave (410 kcal vs 760 kcal).",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Lun",
+        "meal": "Comida"
+      },
+      {
+        "type": "kcal",
+        "message": "Se aleja del objetivo calórico suave (500 kcal vs 760 kcal).",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Mar",
+        "meal": "Comida"
+      },
+      {
+        "type": "time",
+        "message": "Supera el tiempo disponible (50 min vs 35 min).",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Mié",
+        "meal": "Comida"
+      },
+      {
+        "type": "time",
+        "message": "Supera el tiempo disponible (40 min vs 35 min).",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Jue",
+        "meal": "Comida"
+      },
+      {
+        "type": "kcal",
+        "message": "Se aleja del objetivo calórico suave (500 kcal vs 760 kcal).",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Jue",
+        "meal": "Comida"
+      },
+      {
+        "type": "time",
+        "message": "Supera el tiempo disponible (55 min vs 35 min).",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Vie",
+        "meal": "Comida"
+      },
+      {
+        "type": "tool",
+        "message": "Puede requerir Plancha y no está marcado como disponible.",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Sáb",
+        "meal": "Comida"
+      },
+      {
+        "type": "kcal",
+        "message": "Se aleja del objetivo calórico suave (400 kcal vs 760 kcal).",
+        "groupId": "uck1a48c",
+        "groupLabel": "Familia",
+        "day": "Sáb",
+        "meal": "Comida"
+      }
+    ],
+    "uck1a48c": {
+      "Lun-Comida": {
+        "recipeId": "merluza-salsa-verde",
+        "firstRecipeId": "pure-verduras-ninos",
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": [
+          {
+            "type": "kcal",
+            "message": "Se aleja del objetivo calórico suave (410 kcal vs 760 kcal)."
+          }
+        ]
+      },
+      "Lun-Cena": {
+        "recipeId": "pasta-bolonesa",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      },
+      "Mar-Comida": {
+        "recipeId": "pescadilla-rebozada",
+        "firstRecipeId": "pure-verduras-ninos",
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": [
+          {
+            "type": "kcal",
+            "message": "Se aleja del objetivo calórico suave (500 kcal vs 760 kcal)."
+          }
+        ]
+      },
+      "Mar-Cena": {
+        "recipeId": "ensalada-cesar",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      },
+      "Mié-Comida": {
+        "recipeId": "pollo-horno-patatas",
+        "firstRecipeId": "pure-verduras-ninos",
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": [
+          {
+            "type": "time",
+            "message": "Supera el tiempo disponible (50 min vs 35 min)."
+          }
+        ]
+      },
+      "Mié-Cena": {
+        "recipeId": "arroz-tres-delicias",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      },
+      "Jue-Comida": {
+        "recipeId": "tortilla-patatas",
+        "firstRecipeId": "pure-verduras-ninos",
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": [
+          {
+            "type": "time",
+            "message": "Supera el tiempo disponible (40 min vs 35 min)."
+          },
+          {
+            "type": "kcal",
+            "message": "Se aleja del objetivo calórico suave (500 kcal vs 760 kcal)."
+          }
+        ]
+      },
+      "Jue-Cena": {
+        "recipeId": "macarrones-boloñesa-ninos",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      },
+      "Vie-Comida": {
+        "recipeId": "paella-mixta",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": [
+          {
+            "type": "time",
+            "message": "Supera el tiempo disponible (55 min vs 35 min)."
+          }
+        ]
+      },
+      "Vie-Cena": {
+        "recipeId": "tortilla-francesa",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      },
+      "Sáb-Comida": {
+        "recipeId": "atun-pimientos",
+        "firstRecipeId": "pure-verduras-ninos",
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": [
+          {
+            "type": "tool",
+            "message": "Puede requerir Plancha y no está marcado como disponible."
+          },
+          {
+            "type": "kcal",
+            "message": "Se aleja del objetivo calórico suave (400 kcal vs 760 kcal)."
+          }
+        ]
+      },
+      "Sáb-Cena": {
+        "recipeId": "pizza-casera",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      },
+      "Dom-Comida": {
+        "recipeId": "paella-mixta",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      },
+      "Dom-Cena": {
+        "recipeId": "empanada-atun",
+        "firstRecipeId": null,
+        "mode": "casa",
+        "eaters": 3,
+        "warnings": []
+      }
+    }
+  },
+  "shopping": {
+    "items": [
+      {
+        "id": "ajo|ud",
+        "name": "Ajos",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 2.25,
+        "price": 0.23,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Merluza en salsa verde"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "3 uds"
+      },
+      {
+        "id": "calabacin|ud",
+        "name": "Calabacín",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 3.75,
+        "price": 2.36,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "4 uds"
+      },
+      {
+        "id": "cebolla|ud",
+        "name": "Cebolla",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 3,
+        "price": 1.2,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pasta boloñesa"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pollo al horno con patatas"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Tortilla de patatas"
+          },
+          {
+            "day": "Dom",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Empanada de atún"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "3 uds"
+      },
+      {
+        "id": "guisantes|g",
+        "name": "Guisantes",
+        "category": "Verduras y frutas",
+        "unit": "g",
+        "qty": 150,
+        "price": 0.75,
+        "sources": [
+          {
+            "day": "Mié",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Arroz tres delicias"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "150g"
+      },
+      {
+        "id": "lechuga|ud",
+        "name": "Lechuga romana",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 3,
+        "price": 2.97,
+        "sources": [
+          {
+            "day": "Mar",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Ensalada César"
+          },
+          {
+            "day": "Vie",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Tortilla francesa + ensalada"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "3 uds"
+      },
+      {
+        "id": "limon|ud",
+        "name": "Limón",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 0.75,
+        "price": 0.3,
+        "sources": [
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pollo al horno con patatas"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "1 ud"
+      },
+      {
+        "id": "patata|ud",
+        "name": "Patatas",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 16.5,
+        "price": 4.13,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pescadilla rebozada con patatas"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pollo al horno con patatas"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Tortilla de patatas"
+          },
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "17 uds"
+      },
+      {
+        "id": "perejil|ud",
+        "name": "Perejil",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 0.75,
+        "price": 0.38,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Merluza en salsa verde"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "1 ud"
+      },
+      {
+        "id": "pimiento-rojo|ud",
+        "name": "Pimiento rojo",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 3,
+        "price": 2.7,
+        "sources": [
+          {
+            "day": "Vie",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          },
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Atún a la plancha con pimientos"
+          },
+          {
+            "day": "Dom",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "3 uds"
+      },
+      {
+        "id": "pimiento-verde|ud",
+        "name": "Pimiento verde",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 1.5,
+        "price": 1.2,
+        "sources": [
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Atún a la plancha con pimientos"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "2 uds"
+      },
+      {
+        "id": "puerro|ud",
+        "name": "Puerro",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 3.75,
+        "price": 3,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "4 uds"
+      },
+      {
+        "id": "tomate|ud",
+        "name": "Tomates",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 3,
+        "price": 1.5,
+        "sources": [
+          {
+            "day": "Vie",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Tortilla francesa + ensalada"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "3 uds"
+      },
+      {
+        "id": "zanahoria|ud",
+        "name": "Zanahoria",
+        "category": "Verduras y frutas",
+        "unit": "ud",
+        "qty": 8.25,
+        "price": 2.47,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Mié",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Arroz tres delicias"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          },
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Puré de verduras"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "9 uds"
+      },
+      {
+        "id": "atun|g",
+        "name": "Atún fresco",
+        "category": "Carnes y pescados",
+        "unit": "g",
+        "qty": 450,
+        "price": 11.25,
+        "sources": [
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Atún a la plancha con pimientos"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "450g"
+      },
+      {
+        "id": "carne-picada|g",
+        "name": "Carne picada",
+        "category": "Carnes y pescados",
+        "unit": "g",
+        "qty": 375,
+        "price": 3.15,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pasta boloñesa"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "375g"
+      },
+      {
+        "id": "gambas|g",
+        "name": "Gambas",
+        "category": "Carnes y pescados",
+        "unit": "g",
+        "qty": 300,
+        "price": 7.5,
+        "sources": [
+          {
+            "day": "Vie",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          },
+          {
+            "day": "Dom",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "300g"
+      },
+      {
+        "id": "jamon-york|g",
+        "name": "Jamón york",
+        "category": "Carnes y pescados",
+        "unit": "g",
+        "qty": 112.5,
+        "price": 1.69,
+        "sources": [
+          {
+            "day": "Mié",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Arroz tres delicias"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "113g"
+      },
+      {
+        "id": "merluza|g",
+        "name": "Merluza",
+        "category": "Carnes y pescados",
+        "unit": "g",
+        "qty": 600,
+        "price": 5.64,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Merluza en salsa verde"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "600g"
+      },
+      {
+        "id": "pollo|g",
+        "name": "Pechuga de pollo",
+        "category": "Carnes y pescados",
+        "unit": "g",
+        "qty": 2175,
+        "price": 8.7,
+        "sources": [
+          {
+            "day": "Mar",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Ensalada César"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pollo al horno con patatas"
+          },
+          {
+            "day": "Vie",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          },
+          {
+            "day": "Dom",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "2.2kg"
+      },
+      {
+        "id": "pescadilla|g",
+        "name": "Pescadilla",
+        "category": "Carnes y pescados",
+        "unit": "g",
+        "qty": 450,
+        "price": 4.05,
+        "sources": [
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pescadilla rebozada con patatas"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "450g"
+      },
+      {
+        "id": "aceite-oliva|ml",
+        "name": "Aceite de oliva",
+        "category": "Despensa",
+        "unit": "ml",
+        "qty": 232.5,
+        "price": 2.33,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Merluza en salsa verde"
+          },
+          {
+            "day": "Mié",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pollo al horno con patatas"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Tortilla de patatas"
+          },
+          {
+            "day": "Vie",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          },
+          {
+            "day": "Vie",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Tortilla francesa + ensalada"
+          },
+          {
+            "day": "Sáb",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Atún a la plancha con pimientos"
+          },
+          {
+            "day": "Dom",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "233ml"
+      },
+      {
+        "id": "atun-lata|g",
+        "name": "Atún en lata",
+        "category": "Despensa",
+        "unit": "g",
+        "qty": 225,
+        "price": 3.15,
+        "sources": [
+          {
+            "day": "Dom",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Empanada de atún"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "225g"
+      },
+      {
+        "id": "harina|g",
+        "name": "Harina",
+        "category": "Despensa",
+        "unit": "g",
+        "qty": 97.5,
+        "price": 0.11,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Merluza en salsa verde"
+          },
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pescadilla rebozada con patatas"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "98g"
+      },
+      {
+        "id": "oregano|g",
+        "name": "Orégano",
+        "category": "Despensa",
+        "unit": "g",
+        "qty": 3.75,
+        "price": 0.11,
+        "sources": [
+          {
+            "day": "Sáb",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pizza casera"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "4g"
+      },
+      {
+        "id": "tomate-frito|g",
+        "name": "Tomate triturado",
+        "category": "Despensa",
+        "unit": "g",
+        "qty": 900,
+        "price": 2.38,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pasta boloñesa"
+          },
+          {
+            "day": "Jue",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Macarrones con tomate"
+          },
+          {
+            "day": "Sáb",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pizza casera"
+          },
+          {
+            "day": "Dom",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Empanada de atún"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "900g"
+      },
+      {
+        "id": "arroz|g",
+        "name": "Arroz bomba",
+        "category": "Legumbres y pasta",
+        "unit": "g",
+        "qty": 600,
+        "price": 2.52,
+        "sources": [
+          {
+            "day": "Vie",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          },
+          {
+            "day": "Dom",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Paella mixta"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "600g"
+      },
+      {
+        "id": "arroz-largo|g",
+        "name": "Arroz largo",
+        "category": "Legumbres y pasta",
+        "unit": "g",
+        "qty": 300,
+        "price": 0.9,
+        "sources": [
+          {
+            "day": "Mié",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Arroz tres delicias"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "300g"
+      },
+      {
+        "id": "espaguetis|g",
+        "name": "Espaguetis",
+        "category": "Legumbres y pasta",
+        "unit": "g",
+        "qty": 375,
+        "price": 0.71,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pasta boloñesa"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "375g"
+      },
+      {
+        "id": "macarrones|g",
+        "name": "Macarrones",
+        "category": "Legumbres y pasta",
+        "unit": "g",
+        "qty": 300,
+        "price": 0.66,
+        "sources": [
+          {
+            "day": "Jue",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Macarrones con tomate"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "300g"
+      },
+      {
+        "id": "huevos|ud",
+        "name": "Huevos",
+        "category": "Lácteos y huevos",
+        "unit": "ud",
+        "qty": 13.5,
+        "price": 2.7,
+        "sources": [
+          {
+            "day": "Mar",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Pescadilla rebozada con patatas"
+          },
+          {
+            "day": "Mié",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Arroz tres delicias"
+          },
+          {
+            "day": "Jue",
+            "meal": "Comida",
+            "group": "Familia",
+            "recipeName": "Tortilla de patatas"
+          },
+          {
+            "day": "Vie",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Tortilla francesa + ensalada"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "14 uds"
+      },
+      {
+        "id": "mozzarella|g",
+        "name": "Mozzarella",
+        "category": "Lácteos y huevos",
+        "unit": "g",
+        "qty": 187.5,
+        "price": 1.2,
+        "sources": [
+          {
+            "day": "Sáb",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pizza casera"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "188g"
+      },
+      {
+        "id": "parmesano|g",
+        "name": "Queso parmesano",
+        "category": "Lácteos y huevos",
+        "unit": "g",
+        "qty": 97.5,
+        "price": 1.71,
+        "sources": [
+          {
+            "day": "Lun",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pasta boloñesa"
+          },
+          {
+            "day": "Mar",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Ensalada César"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "98g"
+      },
+      {
+        "id": "queso-rallado|g",
+        "name": "Queso rallado",
+        "category": "Lácteos y huevos",
+        "unit": "g",
+        "qty": 60,
+        "price": 0.78,
+        "sources": [
+          {
+            "day": "Jue",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Macarrones con tomate"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "60g"
+      },
+      {
+        "id": "harina-pizza|g",
+        "name": "Harina de pizza",
+        "category": "Panadería y cereales",
+        "unit": "g",
+        "qty": 375,
+        "price": 0.83,
+        "sources": [
+          {
+            "day": "Sáb",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Pizza casera"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "375g"
+      },
+      {
+        "id": "masa-empanada|ud",
+        "name": "Masa empanada",
+        "category": "Panadería y cereales",
+        "unit": "ud",
+        "qty": 1.5,
+        "price": 3.3,
+        "sources": [
+          {
+            "day": "Dom",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Empanada de atún"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "2 uds"
+      },
+      {
+        "id": "picatostes|g",
+        "name": "Picatostes",
+        "category": "Panadería y cereales",
+        "unit": "g",
+        "qty": 75,
+        "price": 0.6,
+        "sources": [
+          {
+            "day": "Mar",
+            "meal": "Cena",
+            "group": "Familia",
+            "recipeName": "Ensalada César"
+          }
+        ],
+        "have": false,
+        "manual": false,
+        "displayQty": "75g"
+      }
+    ]
+  },
+  "aiRecipes": []
+}

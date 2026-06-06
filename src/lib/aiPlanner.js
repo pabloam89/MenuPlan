@@ -53,6 +53,7 @@ const SlotResponseSchema = z.object({
   day: z.enum(DAYS),
   meal: z.string().min(1),
   recipeId: z.string().min(1),
+  firstRecipeId: z.string().min(1).optional(),
   eaters: z.number().int().nonnegative(),
   mode: z.enum(["casa", "tupper"]),
 });
@@ -185,6 +186,12 @@ REGLAS DE NEGOCIO (estrictas):
 - Cumple lo mejor posible las freqs semanales del grupo (mínimos a la semana de cada categoría).
 - Evita repetir el mismo recipeId dentro del mismo grupo en la semana (máximo 1 vez).
 - Evita la misma proteína (pescado, carne, legumbres, huevos) dos comidas consecutivas del mismo grupo.
+- En Comida, el 1º (firstRecipeId) y el 2º (recipeId) NO pueden repetir: misma proteína (ej. pollo), legumbre (ej. lentejas+alubias) ni base de carbohidrato (arroz, pasta, cuscús, quinoa…). El 1º debe ser ligero (crema, ensalada, sopa de verduras).
+- En el mismo día y grupo, no repitas la misma proteína entre Comida y Cena (ej. pollo a mediodía y pollo por la noche).
+- Nunca dos platos de cuchara en la misma comida (puré+legumbres, crema+guiso, sopa+lentejas).
+- Tras un 1º de legumbre/sopa/crema/puré, el 2º debe ser proteína sólida (pollo, pescado, carne…), no pasta, paella, arroz ni otra legumbre.
+- Paella y pizza son plato único: sin 2º, o solo ensalada/crema muy ligera de 1º.
+- Máximo un plato de pasta por día y grupo (no pasta a comida y macarrones a cena).
 - Si schoolProteinsToAvoid no está vacío para el día, NO uses esa proteína en la cena de ese grupo ese día.
 - Si fixedDishes tiene platos, inclúyelos timesPerWeek veces en las comidas indicadas (meals: Comida/Cena).
 - Las recetas deben ser variadas y mezclar tradición española e internacional.
@@ -226,7 +233,8 @@ FORMATO DE SALIDA:
   ]
 }
 
-- Hay un slot del input → un slot del output (mismo groupId, day, meal, eaters, mode).
+- En slots de meal "Comida", incluye firstRecipeId (1º ligero: crema/verdura/ensalada) y recipeId (2º principal con proteína).
+- En "Cena", solo recipeId (sin firstRecipeId).
 - Cada recipeId del array slots DEBE existir en el array recipes.
 - Las recetas pueden compartirse entre grupos si el plato lo permite.`;
 
@@ -368,6 +376,7 @@ function materializePlan(recipes, slots, data) {
     if (!plan[s.groupId]) plan[s.groupId] = {};
     plan[s.groupId][`${s.day}-${s.meal}`] = {
       recipeId: s.recipeId,
+      firstRecipeId: s.firstRecipeId ?? null,
       eaters: s.eaters,
       mode: s.mode,
       warnings: [],

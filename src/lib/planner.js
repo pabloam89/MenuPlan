@@ -1,4 +1,4 @@
-import { RECIPES } from "../data/recipes.js";
+import { RECIPES, RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "./groups.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { stageForAge } from "./stages.js";
@@ -7,6 +7,15 @@ import {
   markFixedDishPlaced,
   migrateFixedDishes,
 } from "./fixedDishes.js";
+import {
+  comidaPairConflict,
+  dayPastaPenalty,
+  dayProteinPenalty,
+  isSoloPlato,
+  isValidPrimero,
+  recipeProteinKey,
+  trackDayPasta,
+} from "./recipeDiversity.js";
 
 export const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -228,6 +237,17 @@ function recipeScore(recipe, ctx) {
   if (ctx.schoolProteins.has(primaryProteinFromRecipe(recipe))) score -= 22;
   if (ctx.schoolProteins.size > 0 && recipe.tags.includes("verdura")) score += 10;
 
+  score -= dayProteinPenalty(recipe, ctx.dayProteinKeys);
+  score -= dayPastaPenalty(recipe, ctx.dayFlags?.hasPasta);
+
+  if (ctx.partnerRecipe) {
+    const conflict =
+      ctx.partnerRole === "main"
+        ? comidaPairConflict(recipe, ctx.partnerRecipe)
+        : comidaPairConflict(ctx.partnerRecipe, recipe);
+    if (conflict) score -= 200;
+  }
+
   score += fixedDishScoreBoost(recipe, ctx.meal, ctx.fixedTracks ?? []);
 
   // Avoid repeating same recipe / proteine in same week
@@ -254,6 +274,62 @@ export function pickRecipe(ctx) {
     }
   }
   return best;
+}
+
+/** 1º de comida: solo platos ligeros válidos. */
+export function pickComidaPrimero(ctx, excludeIds = new Set(), partnerRecipe = null) {
+  let best = null;
+  let bestScore = -Infinity;
+  for (const r of RECIPES) {
+    if (excludeIds.has(r.id)) continue;
+    if (!isValidPrimero(r)) continue;
+    if (partnerRecipe && comidaPairConflict(r, partnerRecipe)) continue;
+    let s = recipeScore(r, ctx);
+    if (s === -Infinity) continue;
+    const tags = r.tags ?? [];
+    if (tags.includes("crema") || tags.includes("sopa")) s += 24;
+    if (tags.includes("verdura") && !tags.includes("legumbres")) s += 18;
+    if (tags.includes("legumbres")) s += 8;
+    if (r.kcal > 320) s -= 12;
+    if (s > bestScore) {
+      bestScore = s;
+      best = r;
+    }
+  }
+  return best;
+}
+
+/** Pick 2º + 1º con reglas de comida española. */
+function pickComidaPair(ctx) {
+  const ranked = RECIPES.map((r) => ({ r, s: recipeScore(r, ctx) }))
+    .filter(({ s }) => s > -Infinity)
+    .sort((a, b) => b.s - a.s);
+
+  for (const { r: main } of ranked.slice(0, 22)) {
+    if (isSoloPlato(main)) {
+      const primero = pickComidaPrimero(ctx, new Set([main.id]), main);
+      return { main, primero: primero ?? null };
+    }
+    const primero = pickComidaPrimero(ctx, new Set([main.id]), main);
+    if (primero) return { main, primero };
+  }
+
+  const main = ranked[0]?.r ?? null;
+  if (!main) return { main: null, primero: null };
+  return { main, primero: pickComidaPrimero(ctx, new Set([main.id]), main) };
+}
+
+function trackDayProtein(dayProteinKeys, recipe) {
+  const pk = recipeProteinKey(recipe);
+  if (pk) dayProteinKeys.add(pk);
+}
+
+function trackRecipeUsage(recipe, meal, ctx, usedIds, proteinCount, typeCount, fixedTracks) {
+  usedIds.add(recipe.id);
+  markFixedDishPlaced(recipe, meal, fixedTracks);
+  const protein = primaryProteinFromRecipe(recipe);
+  if (protein) proteinCount[protein] = (proteinCount[protein] ?? 0) + 1;
+  for (const tag of recipe.tags) typeCount[tag] = (typeCount[tag] ?? 0) + 1;
 }
 
 function warningsForRecipe(recipe, ctx) {
@@ -342,6 +418,8 @@ export function generateMenu(data) {
 
     const meals = getMeals(data);
     for (const day of DAYS) {
+      const dayProteinKeys = new Set();
+      const dayFlags = { hasPasta: false };
       for (const meal of meals) {
         const mode = modeForGroupSlot(group, members, schedule, day, meal);
         const slot = `${day}-${meal}`;
@@ -376,8 +454,20 @@ export function generateMenu(data) {
           typeCount,
           schoolProteins,
           fixedTracks,
+          dayProteinKeys,
+          dayFlags,
         };
-        const recipe = pickRecipe(ctx);
+        let recipe;
+        let firstRecipeId = null;
+
+        if (isLunchMeal(meal)) {
+          const pair = pickComidaPair(ctx);
+          recipe = pair.main;
+          if (pair.primero) firstRecipeId = pair.primero.id;
+        } else {
+          recipe = pickRecipe(ctx);
+        }
+
         if (!recipe) {
           plan[group.id][slot] = null;
           plan._warnings.push({
@@ -390,13 +480,19 @@ export function generateMenu(data) {
           });
           continue;
         }
-        usedIds.add(recipe.id);
-        markFixedDishPlaced(recipe, meal, fixedTracks);
-        const protein = primaryProteinFromRecipe(recipe);
-        if (protein) proteinCount[protein] = (proteinCount[protein] ?? 0) + 1;
-        for (const tag of recipe.tags) {
-          typeCount[tag] = (typeCount[tag] ?? 0) + 1;
+
+        if (firstRecipeId) {
+          const primero = RECIPES_BY_ID[firstRecipeId];
+          if (primero) {
+            trackRecipeUsage(primero, meal, ctx, usedIds, proteinCount, typeCount, fixedTracks);
+            trackDayPasta(primero, dayFlags);
+            trackDayProtein(dayProteinKeys, primero);
+          }
         }
+
+        trackRecipeUsage(recipe, meal, ctx, usedIds, proteinCount, typeCount, fixedTracks);
+        trackDayPasta(recipe, dayFlags);
+        trackDayProtein(dayProteinKeys, recipe);
         const slotWarnings = warningsForRecipe(recipe, ctx);
         for (const warning of slotWarnings) {
           plan._warnings.push({
@@ -409,6 +505,7 @@ export function generateMenu(data) {
         }
         plan[group.id][slot] = {
           recipeId: recipe.id,
+          firstRecipeId,
           mode: mode.mode,
           eaters,
           warnings: slotWarnings,
@@ -418,4 +515,170 @@ export function generateMenu(data) {
   }
 
   return plan;
+}
+
+/**
+ * Pick an alternative recipe for one slot (local catalogue). Updates counts from
+ * the rest of the week's plan for that group.
+ */
+export function replaceMenuSlot(
+  data,
+  menuPlan,
+  { groupId, day, meal, excludeRecipeId, course = "main" }
+) {
+  const group = (data.groups ?? []).find((g) => g.id === groupId);
+  if (!group) return null;
+
+  const { members, schedule, dislikes, cookLevel, timeWeekday, timeWeekend } = data;
+  const groupMembers = membersOfGroup(group, members);
+  if (groupMembers.length === 0) return null;
+
+  const mode = modeForGroupSlot(group, members, schedule, day, meal);
+  if (!mode.cook) return null;
+
+  const groupHasKids = groupMembers.some((m) => {
+    const s = stageForAge(m.age).id;
+    return s === "baby" || s === "infantil" || s === "primaria";
+  });
+  const groupAllergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));
+  const groupDislikes = Array.from(
+    new Set([...(dislikes ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])])
+  );
+  const groupGoalIds = data.goalsByGroup?.[group.id] ?? data.goals ?? [];
+  const memberGoalIds = groupMembers.flatMap((m) => data.goalsByGroup?.[m.id] ?? []);
+  const goalIds = Array.from(new Set([...groupGoalIds, ...memberGoalIds]));
+  const freqs = data.freqsByGroup?.[group.id] ?? data.freqs ?? {};
+  const targetKcal = groupTargetKcal(data, group);
+  const kitchenTools = [
+    ...(Array.isArray(data.kitchenTools) ? data.kitchenTools : []),
+    ...(Array.isArray(data.customKitchenTools) ? data.customKitchenTools : []),
+  ];
+
+  const usedIds = new Set(excludeRecipeId ? [excludeRecipeId] : []);
+  const proteinCount = { pescado: 0, carne: 0, legumbres: 0, huevos: 0 };
+  const typeCount = {};
+  const slotKeyStr = `${day}-${meal}`;
+  const currentSlot = menuPlan[groupId]?.[slotKeyStr] ?? {};
+  const dayPrefix = `${day}-`;
+  const dayProteinKeys = new Set();
+  const dayFlags = { hasPasta: false };
+
+  for (const [key, slot] of Object.entries(menuPlan[groupId] ?? {})) {
+    if (key.startsWith(dayPrefix) && key !== slotKeyStr) {
+      if (slot?.firstRecipeId) {
+        trackDayProtein(dayProteinKeys, RECIPES_BY_ID[slot.firstRecipeId]);
+        trackDayPasta(RECIPES_BY_ID[slot.firstRecipeId], dayFlags);
+      }
+      if (slot?.recipeId) {
+        trackDayProtein(dayProteinKeys, RECIPES_BY_ID[slot.recipeId]);
+        trackDayPasta(RECIPES_BY_ID[slot.recipeId], dayFlags);
+      }
+    }
+  }
+
+  const partnerId =
+    course === "first" ? currentSlot.recipeId : currentSlot.firstRecipeId ?? null;
+  const partnerRecipe = partnerId ? RECIPES_BY_ID[partnerId] : null;
+
+  for (const [key, slot] of Object.entries(menuPlan[groupId] ?? {})) {
+    if (key === slotKeyStr) {
+      if (course !== "first" && slot?.firstRecipeId) usedIds.add(slot.firstRecipeId);
+      if (course !== "main" && slot?.recipeId) usedIds.add(slot.recipeId);
+      continue;
+    }
+    if (slot?.recipeId) {
+      usedIds.add(slot.recipeId);
+      const r = RECIPES_BY_ID[slot.recipeId];
+      if (r) {
+        const protein = primaryProteinFromRecipe(r);
+        if (protein) proteinCount[protein] = (proteinCount[protein] ?? 0) + 1;
+        for (const tag of r.tags) typeCount[tag] = (typeCount[tag] ?? 0) + 1;
+      }
+    }
+    if (slot?.firstRecipeId) {
+      usedIds.add(slot.firstRecipeId);
+      const r = RECIPES_BY_ID[slot.firstRecipeId];
+      if (r) {
+        const protein = primaryProteinFromRecipe(r);
+        if (protein) proteinCount[protein] = (proteinCount[protein] ?? 0) + 1;
+        for (const tag of r.tags) typeCount[tag] = (typeCount[tag] ?? 0) + 1;
+      }
+    }
+  }
+
+  const eaters = groupMembers.filter((m) => {
+    const s = schedule[slotKey(m.id, day, meal)] ?? "casa";
+    return s === "casa" || s === "tupper";
+  }).length;
+
+  const isWeekend = day === "Sáb" || day === "Dom";
+  const schoolProteins = daySchoolProteins(data, groupMembers, day);
+  const fixedTracks = migrateFixedDishes(data.fixedDishes).map((fd) => ({ ...fd, placed: 0 }));
+
+  const ctx = {
+    meal,
+    mode: mode.mode,
+    groupHasKids,
+    isWeekend,
+    timeWeekday,
+    timeWeekend,
+    cookLevel,
+    cookSkills: data.cookSkills ?? [],
+    kitchenTools,
+    targetKcal,
+    goalIds,
+    freqs,
+    allergies: groupAllergies,
+    dislikes: groupDislikes,
+    usedIds,
+    proteinCount,
+    typeCount,
+    schoolProteins,
+    fixedTracks,
+    dayProteinKeys,
+    dayFlags,
+    partnerRecipe,
+    partnerRole: partnerRecipe ? (course === "first" ? "main" : "first") : null,
+  };
+
+  const pickFn = course === "first" ? pickComidaPrimero : pickRecipe;
+  const pickArgs =
+    course === "first"
+      ? [ctx, new Set([excludeRecipeId].filter(Boolean)), partnerRecipe]
+      : [ctx];
+  let recipe = pickFn(...pickArgs);
+  if (!recipe || recipe.id === excludeRecipeId) {
+    let best = null;
+    let bestScore = -Infinity;
+    for (const r of RECIPES) {
+      if (r.id === excludeRecipeId) continue;
+      if (course === "first") {
+        if (!isValidPrimero(r)) continue;
+        if (partnerRecipe && comidaPairConflict(r, partnerRecipe)) continue;
+      } else if (partnerRecipe && comidaPairConflict(partnerRecipe, r)) {
+        continue;
+      }
+      const s = recipeScore(r, ctx);
+      if (s > bestScore) {
+        bestScore = s;
+        best = r;
+      }
+    }
+    recipe = best;
+  }
+
+  if (!recipe) return null;
+
+  const slotWarnings = warningsForRecipe(recipe, ctx);
+  const base = {
+    recipeId: currentSlot.recipeId,
+    firstRecipeId: currentSlot.firstRecipeId ?? null,
+    mode: mode.mode,
+    eaters,
+    warnings: slotWarnings,
+  };
+  if (course === "first") base.firstRecipeId = recipe.id;
+  else base.recipeId = recipe.id;
+
+  return { recipe, slot: base, course };
 }
