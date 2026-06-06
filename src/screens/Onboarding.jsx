@@ -46,7 +46,7 @@ import {
   primaryDayMeal,
 } from "../lib/planner.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
-import { importSchoolMenuFile } from "../lib/schoolMenuImport.js";
+import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 
 function ageFromBirthDate(birthDate) {
   if (!birthDate) return 30;
@@ -2186,6 +2186,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   const [importStatus, setImportStatus] = useState("");
   const [importError, setImportError] = useState(null);
   const [importedFileName, setImportedFileName] = useState("");
+  const [parsedWeeks, setParsedWeeks] = useState([]);
+  const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const fileInputRef = useRef(null);
 
   const targetMap =
@@ -2213,6 +2215,23 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         schoolMenus: {
           ...sm,
           byMember: { ...(sm.byMember ?? {}), [activeKidId]: { ...cur, ...next } },
+        },
+      };
+    });
+  };
+
+  const replaceDishes = (next) => {
+    setData((d) => {
+      const sm = d.schoolMenus ?? { shared: {}, byMember: {} };
+      if (scope === "shared") {
+        return { ...d, schoolMenus: { ...sm, shared: next } };
+      }
+      if (!activeKidId) return d;
+      return {
+        ...d,
+        schoolMenus: {
+          ...sm,
+          byMember: { ...(sm.byMember ?? {}), [activeKidId]: next },
         },
       };
     });
@@ -2262,6 +2281,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       };
     });
     setImportedFileName("");
+    setParsedWeeks([]);
+    setSelectedWeekIdx(0);
   };
 
   const handleFile = async (file) => {
@@ -2270,7 +2291,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     setImportError(null);
     setImportStatus("Leyendo archivo…");
     try {
-      const { entries } = await importSchoolMenuFile(file, {
+      const { weeks, entries } = await importSchoolMenuFile(file, {
         onProgress: (p) => {
           if (p.stage === "pdf-text") {
             setImportStatus(`Leyendo PDF (${p.page}/${p.total})…`);
@@ -2281,23 +2302,41 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           } else if (p.stage === "ocr-progress" && p.status) {
             const pct = typeof p.progress === "number" ? Math.round(p.progress * 100) : null;
             setImportStatus(`OCR · ${p.status}${pct != null ? ` ${pct}%` : ""}`);
+          } else if (p.stage === "ai-parse") {
+            setImportStatus("Usando IA para interpretar el menú…");
           }
         },
       });
+
       const detected = Object.keys(entries).length;
-      const daysWithSomething = new Set(
-        Object.keys(entries).map((k) => k.split("-")[0])
-      ).size;
       if (detected === 0) {
         setImportError(
           "No detecté platos automáticamente. Edita las celdas manualmente abajo."
         );
+        setParsedWeeks([]);
       } else {
-        applyDishes(entries);
+        setParsedWeeks(weeks);
+        const bestIdx = selectBestWeek(weeks);
+        setSelectedWeekIdx(bestIdx);
+        const selectedEntries = weeks[bestIdx]?.entries ?? entries;
+        replaceDishes(selectedEntries);
         setImportedFileName(file.name ?? "");
-        setImportStatus(
-          `Detectados ${daysWithSomething}/5 días (${detected} platos) · revisa antes de continuar`
-        );
+
+        if (weeks.length > 1) {
+          const daysInWeek = new Set(
+            Object.keys(selectedEntries).map((k) => k.split("-")[0])
+          ).size;
+          setImportStatus(
+            `Detectadas ${weeks.length} semanas · Semana ${bestIdx + 1} seleccionada (${daysInWeek}/5 días)`
+          );
+        } else {
+          const daysWithSomething = new Set(
+            Object.keys(selectedEntries).map((k) => k.split("-")[0])
+          ).size;
+          setImportStatus(
+            `Detectados ${daysWithSomething}/5 días (${detected} platos) · revisa antes de continuar`
+          );
+        }
       }
     } catch (err) {
       setImportError(err?.message ?? "No se pudo procesar el archivo");
@@ -2518,6 +2557,52 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         >
           <FileText size={13} />
           {importStatus}
+        </div>
+      )}
+
+      {parsedWeeks.length > 1 && !importing && (
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            overflowX: "auto",
+            paddingBottom: 4,
+            marginBottom: 8,
+          }}
+        >
+          {parsedWeeks.map((w, i) => {
+            const sel = i === selectedWeekIdx;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => {
+                  setSelectedWeekIdx(i);
+                  replaceDishes(w.entries);
+                  const days = new Set(
+                    Object.keys(w.entries).map((k) => k.split("-")[0])
+                  ).size;
+                  setImportStatus(
+                    `Detectadas ${parsedWeeks.length} semanas · Semana ${i + 1} seleccionada (${days}/5 días)`
+                  );
+                }}
+                style={{
+                  padding: "6px 12px",
+                  borderRadius: 8,
+                  border: `1.5px solid ${sel ? "#2d5a3d" : "#ddd"}`,
+                  background: sel ? "rgba(45,90,61,.08)" : "#fff",
+                  color: "#2d5a3d",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {w.weekLabel || `Semana ${i + 1}`}
+              </button>
+            );
+          })}
         </div>
       )}
 
