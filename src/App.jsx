@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -6,10 +6,9 @@ import {
   OnboardingMenuModel,
   OnboardingSchedule,
   OnboardingSchoolMenu,
-  OnboardingGoals,
   OnboardingCooking,
-  OnboardingProgressContext,
 } from "./screens/Onboarding.jsx";
+import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { ShoppingScreen } from "./screens/Shopping.jsx";
 import { generateMenuWithAI } from "./lib/aiPlanner.js";
@@ -251,6 +250,7 @@ export default function App() {
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
   const [menuError, setMenuError] = useState(null);
   const lastRegenerateArgs = useRef(null);
+  const generateAbortRef = useRef(null);
 
   // Re-hydrate AI-generated recipes from persisted state so DishCard
   // can resolve ids after a reload.
@@ -260,8 +260,14 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
+  // Debounced: serializar todo el estado a localStorage en cada pulsación de
+  // tecla del onboarding es perceptible en móviles modestos.
   useEffect(() => {
-    saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes });
+    const t = window.setTimeout(
+      () => saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes }),
+      400
+    );
+    return () => window.clearTimeout(t);
   }, [screen, onbStep, data, menuPlan, shopping, aiRecipes]);
 
   const ensureGroupsIfMissing = () => {
@@ -270,7 +276,14 @@ export default function App() {
     }
   };
 
-  const regenerateMenu = async (nextData) => {
+  const toastTimer = useRef(null);
+  const showToast = useCallback((msg) => {
+    setToast(msg);
+    window.clearTimeout(toastTimer.current);
+    toastTimer.current = window.setTimeout(() => setToast(null), 1800);
+  }, []);
+
+  const regenerateMenu = useCallback(async (nextData) => {
     const working = nextData ?? data;
     let groups = working.groups;
     if (groups.length === 0 && working.members.length > 0) {
@@ -282,10 +295,13 @@ export default function App() {
       return;
     }
     lastRegenerateArgs.current = { nextData };
+    if (generateAbortRef.current) generateAbortRef.current.abort();
+    const ctrl = new AbortController();
+    generateAbortRef.current = ctrl;
     setIsGeneratingMenu(true);
     setMenuError(null);
     try {
-      const { plan, recipes } = await generateMenuWithAI({ ...working, groups });
+      const { plan, recipes } = await generateMenuWithAI({ ...working, groups }, { signal: ctrl.signal });
       registerRecipes(recipes);
       setAiRecipes((cur) => {
         const byId = new Map(cur.map((r) => [r.id, r]));
@@ -297,20 +313,32 @@ export default function App() {
       setShopping({ items: sh.byCategory.flatMap((c) => c.items) });
       showToast("Menú generado con IA");
     } catch (err) {
+      if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
       setMenuError({
         message: err?.message || "No se pudo generar el menú.",
         cause: err?.cause,
       });
     } finally {
+      if (generateAbortRef.current === ctrl) generateAbortRef.current = null;
       setIsGeneratingMenu(false);
     }
-  };
+  }, [data, showToast]);
 
-  const retryGenerateMenu = () => {
+  const handleRegenerate = useCallback(() => regenerateMenu(), [regenerateMenu]);
+
+  const stopGeneration = useCallback(() => {
+    if (generateAbortRef.current) {
+      generateAbortRef.current.abort();
+      generateAbortRef.current = null;
+    }
+    setIsGeneratingMenu(false);
+  }, []);
+
+  const retryGenerateMenu = useCallback(() => {
     const args = lastRegenerateArgs.current ?? {};
     return regenerateMenu(args.nextData);
-  };
+  }, [regenerateMenu]);
 
   const goToMenu = async () => {
     ensureGroupsIfMissing();
@@ -318,22 +346,18 @@ export default function App() {
     await regenerateMenu();
   };
 
-  const handleNav = (id) => {
+  const handleNav = useCallback((id) => {
     if (id === "settings") {
       setScreen("onboarding");
       setOnbStep(0);
     } else {
       setScreen(id);
     }
-  };
+  }, []);
 
-  const showToast = (msg) => {
-    setToast(msg);
-    window.clearTimeout(showToast._t);
-    showToast._t = window.setTimeout(() => setToast(null), 1800);
-  };
+  const handleDishTap = useCallback((selection) => setSelectedSlot(selection), []);
 
-  const handleReplaceSlot = (selection, _reason) => {
+  const handleReplaceSlot = useCallback((selection) => {
     const { groupId, day, meal, recipe } = selection;
     const result = replaceMenuSlot(data, menuPlan, {
       groupId,
@@ -362,9 +386,9 @@ export default function App() {
     });
     setSelectedSlot(null);
     showToast(`Sustituido por «${result.recipe.name}»`);
-  };
+  }, [data, menuPlan, showToast]);
 
-  const handleReset = () => {
+  const handleReset = useCallback(() => {
     if (!window.confirm("¿Reiniciar todo? Se borrarán datos y menús guardados.")) return;
     clearState();
     setData(INITIAL_DATA);
@@ -375,11 +399,15 @@ export default function App() {
     setAiRecipes([]);
     setMenuError(null);
     setScreen("splash");
-  };
+  }, []);
 
   // Order: Members → Restrictions → Menu Model → School Menu → Schedule → Goals → Cooking.
-  const ONB_STEP_COUNT = 7;
+  const ONB_STEP_COUNT = 6;
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
+  const onbProgressValue = useMemo(
+    () => ({ current: safeOnbStep, total: ONB_STEP_COUNT, onJump: setOnbStep }),
+    [safeOnbStep, ONB_STEP_COUNT]
+  );
 
   useEffect(() => {
     if (onbStep >= ONB_STEP_COUNT) setOnbStep(ONB_STEP_COUNT - 1);
@@ -425,18 +453,10 @@ export default function App() {
       onFinish={goToMenu}
       onReset={handleReset}
     />,
-    <OnboardingGoals
-      data={data}
-      setData={setData}
-      onNext={() => setOnbStep(6)}
-      onBack={() => setOnbStep(4)}
-      onFinish={goToMenu}
-      onReset={handleReset}
-    />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onBack={() => setOnbStep(5)}
+      onBack={() => setOnbStep(4)}
       onFinish={goToMenu}
       onReset={handleReset}
     />,
@@ -472,9 +492,7 @@ export default function App() {
         )}
 
         {screen === "onboarding" && (
-          <OnboardingProgressContext.Provider
-            value={{ current: safeOnbStep, total: ONB_STEP_COUNT, onJump: setOnbStep }}
-          >
+          <OnboardingProgressContext.Provider value={onbProgressValue}>
             <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
               <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
             </div>
@@ -484,13 +502,15 @@ export default function App() {
         {screen === "menu" && (
           <MenuScreen
             data={data}
+            setData={setData}
             menuPlan={menuPlan}
             isGenerating={isGeneratingMenu}
             error={menuError}
-            onDishTap={(selection) => setSelectedSlot(selection)}
+            onDishTap={handleDishTap}
             onNav={handleNav}
-            onRegenerate={() => regenerateMenu()}
+            onRegenerate={handleRegenerate}
             onRetry={retryGenerateMenu}
+            onStop={stopGeneration}
             onReset={handleReset}
             onToast={showToast}
           />
@@ -508,7 +528,7 @@ export default function App() {
           recipe={selectedSlot.recipe}
           slot={selectedSlot.slot}
           onClose={() => setSelectedSlot(null)}
-          onReject={(reason) => handleReplaceSlot(selectedSlot, reason)}
+          onReject={() => handleReplaceSlot(selectedSlot)}
         />
       )}
 
@@ -536,7 +556,7 @@ export default function App() {
   );
 }
 
-const SPLASH_BG = "/splash.jpg";
+const SPLASH_BG = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80";
 
 function SplashScreen({ onNext, hasSaved, onResume }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
@@ -583,6 +603,14 @@ function SplashScreen({ onNext, hasSaved, onResume }) {
           filter: "saturate(108%) contrast(102%)",
           transform: "scale(1.05)",
           animation: "kenburns 22s ease-in-out infinite",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          background: "rgba(0,0,0,0.25)",
         }}
       />
       <div

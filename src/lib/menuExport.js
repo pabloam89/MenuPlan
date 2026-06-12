@@ -1,5 +1,4 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
-import { membersOfGroup } from "./groups.js";
 import { DAYS, getMeals } from "./planner.js";
 import { formatWeekRangeLabel, getWeekDates } from "./weekCalendar.js";
 

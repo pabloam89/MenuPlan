@@ -1,4 +1,4 @@
-import { createElement, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BookOpen,
@@ -24,11 +24,11 @@ import {
   X,
 } from "lucide-react";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
-import { BottomNav, Chip, AvatarStack } from "../components/ui.jsx";
+import { BottomNav, Chip, AvatarStack, SliderInput } from "../components/ui.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
-import { buildProfileSummary } from "../lib/profileSummary.js";
+import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { partialEaterInitials } from "../lib/slotEaters.js";
 import { DAYS, getMeals, isLunchMeal, slotKey } from "../lib/planner.js";
 import { getSchoolDish, hasAnySchoolDish } from "../lib/schoolMenu.js";
@@ -220,7 +220,84 @@ function ProfileButton({ onClick }) {
   );
 }
 
-function ProfileSummarySheet({ sections, onClose, onEdit }) {
+const COOK_LEVELS = [
+  { id: "basic", label: "Básico" },
+  { id: "normal", label: "Normal" },
+  { id: "pro", label: "Pro" },
+];
+
+const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Robot/Thermomix", "Olla rápida", "Batidora"];
+
+const FREQ_OPTIONS = [
+  { id: "verdura", label: "Verdura" },
+  { id: "pescado", label: "Pescado" },
+  { id: "legumbres", label: "Legumbres" },
+];
+
+const profileLabelStyle = {
+  fontSize: 10,
+  fontWeight: 800,
+  color: "#8d978f",
+  textTransform: "uppercase",
+  letterSpacing: 1,
+  marginBottom: 6,
+};
+
+function FreqStepper({ label, value, onChange }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+      <span style={{ fontSize: 13, fontWeight: 600, color: "#1a3a24" }}>{label}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(0, value - 1))}
+          style={{
+            width: 28, height: 28, borderRadius: 8, border: "1px solid #d7e1db",
+            background: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700,
+            color: "#2d5a3d", display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "inherit",
+          }}
+        >
+          −
+        </button>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", minWidth: 40, textAlign: "center" }}>
+          ≥{value}/sem
+        </span>
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(7, value + 1))}
+          style={{
+            width: 28, height: 28, borderRadius: 8, border: "1px solid #d7e1db",
+            background: "#fff", cursor: "pointer", fontSize: 16, fontWeight: 700,
+            color: "#2d5a3d", display: "flex", alignItems: "center", justifyContent: "center",
+            fontFamily: "inherit",
+          }}
+        >
+          +
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
+  const members = data.members ?? [];
+  const allergies = [...new Set(members.flatMap((m) => m.allergies ?? []))];
+  const dislikes = [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])];
+  const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
+  const freqs = data.freqs ?? {};
+
+  const toggleTool = (tool) =>
+    setData((d) => ({
+      ...d,
+      kitchenTools: (d.kitchenTools ?? []).includes(tool)
+        ? (d.kitchenTools ?? []).filter((v) => v !== tool)
+        : [...(d.kitchenTools ?? []), tool],
+    }));
+
+  const setFreq = (id, val) =>
+    setData((d) => ({ ...d, freqs: { ...d.freqs, [id]: val } }));
+
   return (
     <div
       onClick={onClose}
@@ -241,83 +318,141 @@ function ProfileSummarySheet({ sections, onClose, onEdit }) {
           borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: 420,
-          maxHeight: "78vh",
+          maxHeight: "82vh",
           overflow: "auto",
-          padding: "16px 18px 24px",
+          padding: "16px 18px calc(18px + env(safe-area-inset-bottom, 0px))",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 14,
-          }}
-        >
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>
-            Tu perfil
-          </h3>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Ajustes</h3>
           <button
             type="button"
             onClick={onClose}
             aria-label="Cerrar"
             style={{
-              border: "none",
-              background: "#f0f4f1",
-              borderRadius: 999,
-              width: 32,
-              height: 32,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              border: "none", background: "#f0f4f1", borderRadius: 999,
+              width: 32, height: 32, cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
             <X size={18} />
           </button>
         </div>
-        {sections.map((sec) => (
-          <div key={sec.title} style={{ marginBottom: 14 }}>
-            <div
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: "#8d978f",
-                textTransform: "uppercase",
-                letterSpacing: 1,
-                marginBottom: 6,
-              }}
-            >
-              {sec.title}
+
+        {members.length > 0 && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={profileLabelStyle}>Familia</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {members.map((m) => (
+                <span
+                  key={m.id}
+                  style={{
+                    padding: "4px 10px", borderRadius: 8, background: "#f0f5f1",
+                    fontSize: 12, fontWeight: 600, color: "#1a3a24",
+                  }}
+                >
+                  {m.name}
+                </span>
+              ))}
             </div>
-            {sec.lines.map((line) => (
-              <div
-                key={line}
-                style={{ fontSize: 13, color: "#1a3a24", lineHeight: 1.45, marginBottom: 2 }}
-              >
-                {line}
-              </div>
+          </div>
+        )}
+
+        {(allergies.length > 0 || dislikes.length > 0) && (
+          <div style={{ marginBottom: 12 }}>
+            <div style={profileLabelStyle}>Evitar</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {allergies.map((a) => (
+                <span key={a} style={{ padding: "4px 10px", borderRadius: 8, background: "#fef3f0", fontSize: 12, fontWeight: 600, color: "#a83a1f" }}>
+                  {a}
+                </span>
+              ))}
+              {dislikes.map((d) => (
+                <span key={d} style={{ padding: "4px 10px", borderRadius: 8, background: "#f5f0e8", fontSize: 12, fontWeight: 600, color: "#8a6d3b" }}>
+                  {d}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={profileLabelStyle}>Nivel de cocina</div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {COOK_LEVELS.map((l) => {
+              const sel = data.cookLevel === l.id;
+              return (
+                <button
+                  type="button"
+                  key={l.id}
+                  onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+                  style={{
+                    flex: 1, padding: "8px 4px", borderRadius: 8, cursor: "pointer",
+                    background: sel ? "rgba(45,90,61,.12)" : "#f5f7f5",
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "transparent"}`,
+                    fontFamily: "inherit", fontSize: 12, fontWeight: 700,
+                    color: sel ? "#2d5a3d" : "#666",
+                  }}
+                >
+                  {l.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={profileLabelStyle}>Herramientas</div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {allTools.map((t) => (
+              <Chip
+                key={t}
+                label={t}
+                selected={(data.kitchenTools ?? []).includes(t)}
+                onClick={() => toggleTool(t)}
+              />
             ))}
           </div>
-        ))}
+        </div>
+
+        <div style={{ marginBottom: 12 }}>
+          <div style={profileLabelStyle}>Frecuencias mínimas</div>
+          {FREQ_OPTIONS.map((f) => (
+            <FreqStepper
+              key={f.id}
+              label={f.label}
+              value={freqs[f.id] ?? 0}
+              onChange={(v) => setFreq(f.id, v)}
+            />
+          ))}
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <div style={profileLabelStyle}>Tiempo disponible</div>
+          <SliderInput
+            label="Entre semana"
+            value={data.timeWeekday ?? 30}
+            min={10} max={90} step={5} suffix=" min"
+            onChange={(v) => setData((d) => ({ ...d, timeWeekday: v }))}
+          />
+          <SliderInput
+            label="Finde"
+            value={data.timeWeekend ?? 60}
+            min={10} max={120} step={5} suffix=" min"
+            onChange={(v) => setData((d) => ({ ...d, timeWeekend: v }))}
+          />
+        </div>
+
         <button
           type="button"
-          onClick={onEdit}
+          onClick={onRegenerate}
           style={{
-            width: "100%",
-            marginTop: 8,
-            padding: "12px",
-            borderRadius: 12,
-            border: "1.5px solid #2d5a3d",
-            background: "#fff",
-            color: "#2d5a3d",
-            fontSize: 13,
-            fontWeight: 800,
-            cursor: "pointer",
-            fontFamily: "inherit",
+            width: "100%", padding: "12px", borderRadius: 12,
+            border: "none", background: "#2d5a3d", color: "#fff",
+            fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
           }}
         >
-          Editar en Ajustes
+          Regenerar menú
         </button>
       </div>
     </div>
@@ -559,8 +694,9 @@ function DishCard({ slot, onTap, group, showGroupTag, eaterInitials = [], course
   );
 }
 
-export function MenuScreen({
+export const MenuScreen = memo(function MenuScreen({
   data,
+  setData,
   menuPlan,
   isGenerating = false,
   error = null,
@@ -568,6 +704,7 @@ export function MenuScreen({
   onNav,
   onRegenerate,
   onRetry,
+  onStop,
   onReset,
   onToast,
 }) {
@@ -578,7 +715,6 @@ export function MenuScreen({
 
   const weekDates = useMemo(() => getWeekDates(), []);
   const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates), [weekDates]);
-  const profileSections = useMemo(() => buildProfileSummary(data), [data]);
   const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
 
   const toggleGroup = (id) => {
@@ -819,7 +955,7 @@ export function MenuScreen({
         </div>
       </div>
 
-      {isGenerating && <GeneratingSkeleton />}
+      {isGenerating && <GeneratingSkeleton onStop={onStop} />}
 
       {!isGenerating && error && (
         <ErrorCard error={error} onRetry={onRetry} />
@@ -988,12 +1124,13 @@ export function MenuScreen({
       )}
 
       {profileOpen && (
-        <ProfileSummarySheet
-          sections={profileSections}
+        <ProfileSettingsSheet
+          data={data}
+          setData={setData}
           onClose={() => setProfileOpen(false)}
-          onEdit={() => {
+          onRegenerate={() => {
             setProfileOpen(false);
-            onNav("settings");
+            onRegenerate();
           }}
         />
       )}
@@ -1001,17 +1138,34 @@ export function MenuScreen({
       <BottomNav active="menu" onNav={onNav} />
     </div>
   );
-}
+});
 
-function GeneratingSkeleton() {
+const COUNTDOWN_TOTAL = 90;
+
+function GeneratingSkeleton({ onStop }) {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const start = Date.now();
+    const id = setInterval(() => {
+      setElapsed(Math.floor((Date.now() - start) / 1000));
+    }, 250);
+    return () => clearInterval(id);
+  }, []);
+
+  const remaining = Math.max(0, COUNTDOWN_TOTAL - elapsed);
+  const progress = Math.min(1, elapsed / COUNTDOWN_TOTAL);
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  const timeLabel = remaining > 0
+    ? `${mins}:${String(secs).padStart(2, "0")}`
+    : null;
+
   const skeletonRows = [0, 1, 2];
   return (
     <div style={{ padding: "0 16px" }}>
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
           padding: "14px 14px",
           background: "#fff",
           borderRadius: 14,
@@ -1019,29 +1173,88 @@ function GeneratingSkeleton() {
           marginBottom: 14,
         }}
       >
-        <span
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 12,
-            background: "#eaf2ec",
-            color: "#3f6948",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Wand2 size={16} />
-        </span>
-        <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 12,
+              background: "#eaf2ec",
+              color: "#3f6948",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Wand2 size={16} />
+          </span>
           <div style={{ fontSize: 13, fontWeight: 900, color: "#15331c" }}>
-            Generando tu menú con IA…
-          </div>
-          <div style={{ fontSize: 11, color: "#8d978f", marginTop: 2 }}>
-            Tarda unos segundos. Estamos encajando alergias, kcal, tupper y horarios.
+            Generando tu menú…
           </div>
         </div>
+
+        <div
+          style={{
+            height: 6,
+            borderRadius: 3,
+            background: "#ecf1ed",
+            overflow: "hidden",
+            marginBottom: 6,
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progress * 100}%`,
+              borderRadius: 3,
+              background: "#2d5a3d",
+              transition: "width .3s linear",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            fontSize: 11,
+            fontWeight: 700,
+            color: "#8d978f",
+          }}
+        >
+          <span>{timeLabel ? `~${timeLabel}` : "Casi listo…"}</span>
+          <span>{Math.round(progress * 100)}%</span>
+        </div>
       </div>
+
+      {onStop && (
+        <button
+          type="button"
+          onClick={onStop}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            width: "100%",
+            padding: "10px 0",
+            marginBottom: 14,
+            borderRadius: 10,
+            border: "1.5px solid #d7e1db",
+            background: "#fff",
+            color: "#2d5a3d",
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          <X size={14} />
+          Detener
+        </button>
+      )}
+
       {skeletonRows.map((i) => (
         <div key={i} style={{ marginBottom: 14 }}>
           <div
@@ -1086,9 +1299,7 @@ function GeneratingSkeleton() {
                     marginBottom: 8,
                   }}
                 />
-                <div
-                  style={{ display: "flex", gap: 6 }}
-                >
+                <div style={{ display: "flex", gap: 6 }}>
                   <div style={{ width: 50, height: 18, borderRadius: 999, background: "#f1f5f2" }} />
                   <div style={{ width: 60, height: 18, borderRadius: 999, background: "#f1f5f2" }} />
                 </div>
@@ -1222,8 +1433,35 @@ function EmptyState({ onRegenerate }) {
 export function DishDetail({ recipe, slot, onClose, onReject }) {
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
+  // Las recetas IA llegan sin steps (se generan bajo demanda para acortar la
+  // generación del menú); las del catálogo estático ya los traen.
+  const [steps, setSteps] = useState(() => recipe.steps ?? []);
+  const [stepsLoading, setStepsLoading] = useState(
+    () => (recipe.steps?.length ?? 0) === 0
+  );
   const ingredients = scaledIngredients(recipe, slot.eaters);
   const macros = recipe.macros;
+
+  useEffect(() => {
+    if ((recipe.steps?.length ?? 0) > 0) return undefined;
+    let active = true;
+    const ctrl = new AbortController();
+    generateRecipeSteps(recipe, { signal: ctrl.signal })
+      .then((s) => {
+        recipe.steps = s;
+        if (active) {
+          setSteps(s);
+          setStepsLoading(false);
+        }
+      })
+      .catch(() => {
+        if (active) setStepsLoading(false);
+      });
+    return () => {
+      active = false;
+      ctrl.abort();
+    };
+  }, [recipe]);
 
   return (
     <div style={detailOverlayStyle} onClick={onClose}>
@@ -1318,21 +1556,38 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
             <div style={{ fontSize: 12, fontWeight: 900, color: "#15331c", marginBottom: 8 }}>
               Paso a paso
             </div>
-            <ol
-              style={{
-                margin: 0,
-                paddingLeft: 18,
-                color: "#526057",
-                fontSize: 13,
-                lineHeight: 1.6,
-              }}
-            >
-              {recipe.steps.map((step) => (
-                <li key={step} style={{ marginBottom: 6 }}>
-                  {step}
-                </li>
-              ))}
-            </ol>
+            {stepsLoading ? (
+              <div
+                style={{
+                  fontSize: 13,
+                  color: "#8a948d",
+                  animation: "pulse 1.4s ease-in-out infinite",
+                }}
+              >
+                Preparando el paso a paso…
+                <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }`}</style>
+              </div>
+            ) : steps.length > 0 ? (
+              <ol
+                style={{
+                  margin: 0,
+                  paddingLeft: 18,
+                  color: "#526057",
+                  fontSize: 13,
+                  lineHeight: 1.6,
+                }}
+              >
+                {steps.map((step) => (
+                  <li key={step} style={{ marginBottom: 6 }}>
+                    {step}
+                  </li>
+                ))}
+              </ol>
+            ) : (
+              <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
+                No se pudo cargar el paso a paso. Cierra y vuelve a abrir el plato para reintentar.
+              </p>
+            )}
           </section>
 
           {recipe.allergens.length > 0 && (

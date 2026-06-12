@@ -496,29 +496,29 @@ export async function extractTextFromPdf(file, { onProgress } = {}) {
 
   const rawText = textParts.join("\n").trim();
 
+  // No usable text layer → scanned PDF. OCR every page as a local fallback.
   if (rawText.length < 40) {
     onProgress?.({ stage: "ocr-fallback", page: 0, total: pdf.numPages });
-    const tesseract = await import("tesseract.js");
+    // One worker for the whole document — tesseract.recognize() spins up and
+    // tears down a worker (re-loading ~15 MB of language data) on every call.
+    const { createWorker } = await import("tesseract.js");
+    const worker = await createWorker("spa");
     const ocrParts = [];
-    for (let i = 1; i <= pdf.numPages; i += 1) {
-      onProgress?.({ stage: "ocr-page", page: i, total: pdf.numPages });
-      const page = await pdf.getPage(i);
-      const viewport = page.getViewport({ scale: 2 });
-      const canvas = document.createElement("canvas");
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext("2d");
-      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-      const { data } = await tesseract.recognize(canvas, "spa", {
-        logger: (m) =>
-          onProgress?.({
-            stage: "ocr-progress",
-            ...m,
-            page: i,
-            total: pdf.numPages,
-          }),
-      });
-      ocrParts.push(data.text);
+    try {
+      for (let i = 1; i <= pdf.numPages; i += 1) {
+        onProgress?.({ stage: "ocr-page", page: i, total: pdf.numPages });
+        const page = await pdf.getPage(i);
+        const viewport = page.getViewport({ scale: 2 });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d");
+        await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+        const { data } = await worker.recognize(canvas);
+        ocrParts.push(data.text);
+      }
+    } finally {
+      await worker.terminate();
     }
     return { rawText: ocrParts.join("\n"), weeks: [] };
   }
@@ -537,87 +537,6 @@ export async function extractTextFromImage(file, { onProgress } = {}) {
 
 export async function extractTextFromCsv(file) {
   return await file.text();
-}
-
-// ---------------------------------------------------------------------------
-// AI-assisted fallback
-// ---------------------------------------------------------------------------
-
-async function parseSchoolMenuWithAI(rawText) {
-  const body = {
-    model: "claude-sonnet-4-5-20250929",
-    max_tokens: 4000,
-    system: `Eres un parser de menús escolares españoles. Extraes los platos del menú del comedor.
-
-El menú tiene 5 días (Lunes a Viernes) y 3 platos por día:
-- Primero: primer plato (sopa, legumbres, pasta, arroz, verdura…)
-- Segundo: segundo plato (carne, pescado, huevos…)
-- Postre: postre (fruta, yogur, natillas, flan…)
-
-Devuelve ÚNICAMENTE un JSON con esta estructura, sin texto adicional:
-{
-  "weeks": [
-    {
-      "weekLabel": "Semana del X al Y de Mes",
-      "entries": {
-        "Lun-Primero": "nombre del plato",
-        "Lun-Segundo": "nombre del plato",
-        "Lun-Postre": "nombre del postre",
-        "Mar-Primero": "...",
-        "Mar-Segundo": "...",
-        "Mar-Postre": "...",
-        "Mié-Primero": "...",
-        "Mié-Segundo": "...",
-        "Mié-Postre": "...",
-        "Jue-Primero": "...",
-        "Jue-Segundo": "...",
-        "Jue-Postre": "...",
-        "Vie-Primero": "...",
-        "Vie-Segundo": "...",
-        "Vie-Postre": "..."
-      }
-    }
-  ]
-}
-
-Reglas:
-- Si hay varias semanas, incluye todas en el array "weeks".
-- Ignora datos nutricionales, alérgenos, cabeceras y pies de página.
-- Si un plato no se puede determinar, omite esa clave.
-- Normaliza nombres: primera letra mayúscula.
-- Los días abreviados son: Lun, Mar, Mié, Jue, Vie.`,
-    messages: [
-      {
-        role: "user",
-        content: `Extrae el menú escolar:\n\n${rawText.slice(0, 8000)}`,
-      },
-    ],
-  };
-
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
-  });
-
-  if (!response.ok) throw new Error("AI parsing failed");
-  const payload = await response.json();
-  const text = payload?.content?.[0]?.text ?? "";
-
-  const trimmed = text.trim();
-  let parsed;
-  try {
-    parsed = JSON.parse(trimmed);
-  } catch {
-    const start = trimmed.indexOf("{");
-    const end = trimmed.lastIndexOf("}");
-    if (start === -1 || end === -1 || end <= start) {
-      throw new Error("No JSON in AI response");
-    }
-    parsed = JSON.parse(trimmed.slice(start, end + 1));
-  }
-
-  return parsed.weeks ?? [];
 }
 
 // ---------------------------------------------------------------------------
@@ -670,6 +589,33 @@ export function selectBestWeek(weeks) {
 // High-level entry point
 // ---------------------------------------------------------------------------
 
+async function aiParseWeeks(file, type) {
+  const { parseMenu, menuToWeeksFormat } = await import("./menuParser.js");
+  const menu = await parseMenu(file, type);
+  return menuToWeeksFormat(menu);
+}
+
+// PDF: the vision model handles multi-week detection and dish placement far
+// more reliably than the local coordinate parser across the varied layouts
+// schools use, so it leads. Local text/coordinate extraction and tesseract OCR
+// are the fallbacks when the model is unavailable or returns nothing.
+async function importPdfMenu(file, { onProgress } = {}) {
+  try {
+    onProgress?.({ stage: "ai-parse" });
+    const weeks = await aiParseWeeks(file, "pdf");
+    if (weeks.length > 0) return { rawText: "", weeks };
+  } catch {
+    // fall through to local extraction / OCR
+  }
+
+  const result = await extractTextFromPdf(file, { onProgress });
+  const weeks =
+    result.weeks && result.weeks.length > 0
+      ? result.weeks
+      : [{ weekLabel: "", entries: parseSchoolMenuText(result.rawText) }];
+  return { rawText: result.rawText, weeks };
+}
+
 export async function importSchoolMenuFile(file, { onProgress } = {}) {
   const name = (file.name ?? "").toLowerCase();
   const type = (file.type ?? "").toLowerCase();
@@ -677,37 +623,31 @@ export async function importSchoolMenuFile(file, { onProgress } = {}) {
   let rawText = "";
   let weeks = [];
 
-  const isPdf =
-    type === "application/pdf" || name.endsWith(".pdf");
+  const isPdf = type === "application/pdf" || name.endsWith(".pdf");
   const isImage =
     type.startsWith("image/") || /\.(png|jpe?g|webp)$/.test(name);
   const isCsv = type === "text/csv" || name.endsWith(".csv");
 
-  if (isPdf || isCsv) {
+  if (isPdf) {
+    ({ rawText, weeks } = await importPdfMenu(file, { onProgress }));
+  } else if (isCsv) {
+    // CSV is parsed locally (papaparse) — no network round-trip.
     try {
-      onProgress?.({ stage: "ai-parse" });
-      const { parseMenu, menuToWeeksFormat } = await import("./menuParser.js");
-      const menu = await parseMenu(file, isPdf ? "pdf" : "csv");
-      weeks = menuToWeeksFormat(menu);
-    } catch (err) {
-      if (isPdf) {
-        const result = await extractTextFromPdf(file, { onProgress });
-        rawText = result.rawText;
-        weeks = result.weeks ?? [];
-        if (weeks.length === 0) {
-          const entries = parseSchoolMenuText(rawText);
-          weeks = [{ weekLabel: "", entries }];
-        }
-      } else {
-        rawText = await extractTextFromCsv(file);
-        const entries = parseSchoolMenuCsv(rawText);
-        weeks = [{ weekLabel: "", entries }];
-      }
+      weeks = await aiParseWeeks(file, "csv");
+    } catch {
+      rawText = await extractTextFromCsv(file);
+      weeks = [{ weekLabel: "", entries: parseSchoolMenuCsv(rawText) }];
     }
   } else if (isImage) {
-    rawText = await extractTextFromImage(file, { onProgress });
-    const entries = parseSchoolMenuText(rawText);
-    weeks = [{ weekLabel: "", entries }];
+    // Vision model first (more accurate on photos than tesseract); OCR fallback.
+    try {
+      onProgress?.({ stage: "ai-parse" });
+      weeks = await aiParseWeeks(file, "image");
+      if (weeks.length === 0) throw new Error("empty");
+    } catch {
+      rawText = await extractTextFromImage(file, { onProgress });
+      weeks = [{ weekLabel: "", entries: parseSchoolMenuText(rawText) }];
+    }
   } else {
     throw new Error("Formato no soportado. Usa PDF, JPG/PNG o CSV.");
   }

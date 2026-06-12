@@ -1,4 +1,4 @@
-import { Fragment, createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpDown,
   BookOpenCheck,
@@ -34,7 +34,8 @@ import {
   X,
 } from "lucide-react";
 import { Chip, SliderInput, Avatar, AvatarStack, ProgressDots } from "../components/ui.jsx";
-import { HOUSEHOLD_ROLES, stageForAge, stageLabel, suggestHomeRole } from "../lib/stages.js";
+import { OnboardingProgressContext } from "./onboardingProgressContext.js";
+import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish } from "../lib/fixedDishes.js";
 import { groupsFromModel, membersOfGroup, uid } from "../lib/groups.js";
 import {
@@ -42,7 +43,6 @@ import {
   DAYS,
   dayLabel,
   getMeals,
-  isLunchMeal,
   primaryDayMeal,
 } from "../lib/planner.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
@@ -82,8 +82,6 @@ function stateIcon(value, size = 14) {
   if (value === "fuera") return <UtensilsCrossed size={size} />;
   return <Minus size={size} />;
 }
-
-export const OnboardingProgressContext = createContext(null);
 
 // ─── Shell ─────────────────────────────────────────────────────
 
@@ -930,29 +928,18 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
     return [comida ?? meals[0] ?? "Comida"];
   });
 
-  useEffect(() => {
-    if (!data.members.some((m) => m.id === allergyMemberId)) {
-      setAllergyMemberId(data.members[0]?.id ?? null);
-    }
-  }, [data.members, allergyMemberId]);
+  // Valores derivados en render (sin efectos con setState): si el miembro o
+  // las comidas seleccionadas dejan de existir, recae en el primer valor válido.
+  const validAllergyMemberId = data.members.some((m) => m.id === allergyMemberId)
+    ? allergyMemberId
+    : data.members[0]?.id ?? null;
 
-  useEffect(() => {
-    setNewDishMeals((cur) => {
-      const m = cur[0];
-      if (m && mealOptions.includes(m)) return [m];
-      const comida = mealOptions.find((x) => x.toLowerCase() === "comida");
-      return [comida ?? mealOptions[0]];
-    });
-  }, [mealOptions.join("|")]);
-
-  const allergyOptions = useMemo(
-    () => [...BASE_ALLERGY_OPTIONS, ...(data.customAllergies ?? [])],
-    [data.customAllergies]
-  );
-  const dislikeOptions = useMemo(
-    () => [...BASE_DISLIKE_OPTIONS, ...(data.customDislikes ?? [])],
-    [data.customDislikes]
-  );
+  const validNewDishMeals = (() => {
+    const valid = newDishMeals.filter((m) => mealOptions.includes(m));
+    if (valid.length > 0) return valid;
+    const comida = mealOptions.find((x) => x.toLowerCase() === "comida");
+    return [comida ?? mealOptions[0]].filter(Boolean);
+  })();
 
   const toggleMember = (id, field, val) =>
     setData((d) => ({
@@ -979,14 +966,14 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
 
   const addCustomAllergy = () => {
     const label = titleCase(customAllergy);
-    if (!label || !allergyMemberId) return;
+    if (!label || !validAllergyMemberId) return;
     setData((d) => ({
       ...d,
       customAllergies: (d.customAllergies ?? []).includes(label)
         ? d.customAllergies
         : [...(d.customAllergies ?? []), label],
     }));
-    toggleMember(allergyMemberId, "allergies", label);
+    toggleMember(validAllergyMemberId, "allergies", label);
     setCustomAllergy("");
     setShowAddAllergy(false);
   };
@@ -1006,7 +993,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
   };
 
   const allergySelected = new Set(
-    data.members.find((m) => m.id === allergyMemberId)?.allergies ?? []
+    data.members.find((m) => m.id === validAllergyMemberId)?.allergies ?? []
   );
   const houseDislikeSelected = new Set(data.dislikes ?? []);
 
@@ -1016,11 +1003,11 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
 
   const addFixedDish = () => {
     const label = normalizeTextValue(dish);
-    if (!label || newDishMeals.length === 0) return;
+    if (!label || validNewDishMeals.length === 0) return;
     const entry = normalizeFixedDish({
       name: label,
       timesPerWeek: newDishTimes,
-      meals: newDishMeals,
+      meals: validNewDishMeals,
     });
     if (!entry) return;
     setData((d) => ({
@@ -1047,7 +1034,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
     }));
 
   const fixedList = migrateFixedDishes(data.fixedDishes ?? []);
-  const canAddDish = Boolean(normalizeTextValue(dish)) && newDishMeals.length > 0;
+  const canAddDish = Boolean(normalizeTextValue(dish)) && validNewDishMeals.length > 0;
 
   const matrixItems = useMemo(() => {
     const items = new Set();
@@ -1084,7 +1071,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
               <p style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24", margin: 0 }}>Alergias</p>
               <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
                 {data.members.map((m) => {
-                  const sel = m.id === allergyMemberId;
+                  const sel = m.id === validAllergyMemberId;
                   return (
                     <button
                       key={m.id}
@@ -1108,7 +1095,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
             <AvoidOptionGrid
               slotLabels={GRID_ALLERGY_SLOTS}
               selectedSet={allergySelected}
-              onToggle={(label) => allergyMemberId && toggleMember(allergyMemberId, "allergies", label)}
+              onToggle={(label) => validAllergyMemberId && toggleMember(validAllergyMemberId, "allergies", label)}
               onAddClick={() => setShowAddAllergy((v) => !v)}
               addOpen={showAddAllergy}
               addValue={customAllergy}
@@ -1217,7 +1204,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
               nameValue={dish}
               onNameChange={setDish}
               times={newDishTimes}
-              meals={newDishMeals}
+              meals={validNewDishMeals}
               mealOptions={mealOptions}
               onTimesChange={setNewDishTimes}
               onMealsChange={setNewDishMeals}
@@ -1401,26 +1388,19 @@ const SLOT_CONFIG = {
 
 const MIXED_COLOR = "#aaa";
 
-function consensusState(memberIds, schedule, day, meal) {
-  if (memberIds.length === 0) return "off";
-  const states = memberIds.map((id) => schedule[`${id}|${day}|${meal}`] ?? "casa");
-  return states.every((s) => s === states[0]) ? states[0] : "mixed";
-}
-
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
   const meals = getMeals(data);
-  const memberList = data.members ?? [];
+  const memberList = useMemo(() => data.members ?? [], [data.members]);
   const defaultMode = memberList.length > 1 ? "all" : "single";
   const [subjectMode, setSubjectMode] = useState(defaultMode);
   const [activeMemberId, setActiveMemberId] = useState(memberList[0]?.id ?? null);
 
-  useEffect(() => {
-    if (!memberList.find((m) => m.id === activeMemberId)) {
-      setActiveMemberId(memberList[0]?.id ?? null);
-    }
-  }, [memberList, activeMemberId]);
+  // Derivado en render: si el miembro activo deja de existir, recae en el primero.
+  const validActiveMemberId = memberList.find((m) => m.id === activeMemberId)
+    ? activeMemberId
+    : memberList[0]?.id ?? null;
 
-  const activeMember = data.members.find((m) => m.id === activeMemberId);
+  const activeMember = data.members.find((m) => m.id === validActiveMemberId);
 
   const subjectMemberIds = useMemo(() => {
     if (subjectMode === "all") return memberList.map((m) => m.id);
@@ -1599,7 +1579,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
               }}
             >
               {memberList.map((m) => {
-                const sel = m.id === activeMemberId;
+                const sel = m.id === validActiveMemberId;
                 return (
                   <button
                     key={m.id}
@@ -1826,7 +1806,9 @@ function ScheduleSlotSheet({
           borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: 420,
-          padding: "12px 14px 18px",
+          padding: "12px 14px calc(18px + env(safe-area-inset-bottom, 0px))",
+          maxHeight: "70vh",
+          overflowY: "auto",
         }}
       >
         <div
@@ -2247,24 +2229,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     if (hasAnyDish) setReviewOpen(true);
   }, [hasAnyDish]);
 
-  const applyDishes = (next) => {
-    setData((d) => {
-      const sm = d.schoolMenus ?? { shared: {}, byMember: {} };
-      if (scope === "shared") {
-        return { ...d, schoolMenus: { ...sm, shared: { ...(sm.shared ?? {}), ...next } } };
-      }
-      if (!activeKidId) return d;
-      const cur = sm.byMember?.[activeKidId] ?? {};
-      return {
-        ...d,
-        schoolMenus: {
-          ...sm,
-          byMember: { ...(sm.byMember ?? {}), [activeKidId]: { ...cur, ...next } },
-        },
-      };
-    });
-  };
-
   const replaceDishes = (next) => {
     setData((d) => {
       const sm = d.schoolMenus ?? { shared: {}, byMember: {} };
@@ -2519,9 +2483,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 12,
-          padding: "14px 14px",
-          borderRadius: 12,
+          gap: 10,
+          padding: "6px 12px",
+          borderRadius: 10,
           border: "1.5px dashed rgba(45,90,61,.35)",
           background: importing ? "#f6f9f7" : "#fff",
           cursor: importing ? "default" : "pointer",
@@ -2530,9 +2494,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       >
         <span
           style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
+            width: 30,
+            height: 30,
+            borderRadius: 8,
             background: "rgba(45,90,61,.12)",
             color: "#2d5a3d",
             display: "inline-flex",
@@ -2541,7 +2505,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             flexShrink: 0,
           }}
         >
-          {importing ? <Loader2 size={18} className="rotating" /> : <Upload size={18} />}
+          {importing ? <Loader2 size={16} className="rotating" /> : <Upload size={16} />}
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>
@@ -2585,69 +2549,41 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         </div>
       )}
 
-      {!importing && !importError && importStatus && importedFileName && (
-        <div
-          style={{
-            background: "rgba(45,90,61,.08)",
-            border: "1px solid #d7e1db",
-            color: "#2d5a3d",
-            borderRadius: 10,
-            padding: "8px 10px",
-            fontSize: 11,
-            marginBottom: 8,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-          }}
-        >
-          <FileText size={13} />
-          {importStatus}
-        </div>
-      )}
 
       {parsedWeeks.length > 1 && !importing && (
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            overflowX: "auto",
-            paddingBottom: 4,
-            marginBottom: 8,
-          }}
-        >
-          {parsedWeeks.map((w, i) => {
-            const sel = i === selectedWeekIdx;
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => {
-                  setSelectedWeekIdx(i);
-                  replaceDishes(w.entries);
-                  const days = new Set(
-                    Object.keys(w.entries).map((k) => k.split("-")[0])
-                  ).size;
-                  setImportStatus(
-                    `Detectadas ${parsedWeeks.length} semanas · Semana ${i + 1} seleccionada (${days}/5 días)`
-                  );
-                }}
-                style={{
-                  padding: "6px 12px",
-                  borderRadius: 8,
-                  border: `1.5px solid ${sel ? "#2d5a3d" : "#ddd"}`,
-                  background: sel ? "rgba(45,90,61,.08)" : "#fff",
-                  color: "#2d5a3d",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  flexShrink: 0,
-                  whiteSpace: "nowrap",
-                }}
-              >
+        <div style={{ marginBottom: 8 }}>
+          <select
+            value={selectedWeekIdx}
+            onChange={(e) => {
+              const i = Number(e.target.value);
+              setSelectedWeekIdx(i);
+              replaceDishes(parsedWeeks[i].entries);
+              const days = new Set(
+                Object.keys(parsedWeeks[i].entries).map((k) => k.split("-")[0])
+              ).size;
+              setImportStatus(
+                `Detectadas ${parsedWeeks.length} semanas · Semana ${i + 1} seleccionada (${days}/5 días)`
+              );
+            }}
+            style={{
+              padding: "6px 12px",
+              borderRadius: 8,
+              border: "1.5px solid #2d5a3d",
+              background: "#fff",
+              color: "#2d5a3d",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              width: "100%",
+              fontFamily: "inherit",
+            }}
+          >
+            {parsedWeeks.map((w, i) => (
+              <option key={i} value={i}>
                 {w.weekLabel || `Semana ${i + 1}`}
-              </button>
-            );
-          })}
+              </option>
+            ))}
+          </select>
         </div>
       )}
 
@@ -2655,18 +2591,23 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         <button
           type="button"
           onClick={clearAll}
+          aria-label="Vaciar menú"
+          title="Vaciar"
           style={{
-            padding: "6px 10px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 32,
+            height: 32,
+            padding: 0,
             borderRadius: 8,
             border: "1.5px solid #d7e1db",
             background: "#fff",
             color: "#2d5a3d",
-            fontSize: 11,
-            fontWeight: 700,
             cursor: "pointer",
           }}
         >
-          Vaciar
+          <Trash2 size={18} />
         </button>
       </div>
 
@@ -2701,21 +2642,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           }}
         >
           Revisar / editar
-          {hasAnyDish && (
-            <span
-              style={{
-                fontSize: 10,
-                fontWeight: 800,
-                color: "#2d5a3d",
-                background: "rgba(45,90,61,.12)",
-                padding: "2px 6px",
-                borderRadius: 6,
-                letterSpacing: 0,
-              }}
-            >
-              {Object.keys(targetMap).length} platos
-            </span>
-          )}
         </span>
         {reviewOpen ? (
           <ChevronUp size={16} color="#888" />
@@ -3739,7 +3665,6 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
     { id: "normal", icon: <ChefHat size={20} />, label: "Normal", desc: "Me defiendo bien" },
     { id: "pro", icon: <Sparkles size={20} />, label: "Me gusta cocinar", desc: "Disfruto experimentando" },
   ];
-  const skills = ["Pasta", "Arroces", "Horno", "Salsas", "Wok", "Repostería", "Guisos", "Plancha"];
   const tools = [
     "Airfryer",
     "Horno",
@@ -3751,13 +3676,6 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
   const availableTools = [...tools, ...(data.customKitchenTools ?? [])];
   const [addingTool, setAddingTool] = useState(false);
   const [draftTool, setDraftTool] = useState("");
-  const toggleSkill = (s) =>
-    setData((d) => ({
-      ...d,
-      cookSkills: d.cookSkills.includes(s)
-        ? d.cookSkills.filter((v) => v !== s)
-        : [...d.cookSkills, s],
-    }));
   const toggleTool = (tool) =>
     setData((d) => ({
       ...d,
@@ -3796,37 +3714,34 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       onFinish={onFinish}
       finishLabel={finishLabel}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-        {levels.map((l) => (
-          <div
-            key={l.id}
-            onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "14px 16px",
-              borderRadius: 12,
-              cursor: "pointer",
-              background: data.cookLevel === l.id ? "rgba(45,90,61,.08)" : "#f8f8f8",
-              border: `2px solid ${data.cookLevel === l.id ? "#2d5a3d" : "transparent"}`,
-            }}
-          >
-            <span style={{ color: "#2d5a3d" }}>{l.icon}</span>
-            <div>
-              <div style={{ fontWeight: 700, color: "#1a3a24", fontSize: 14 }}>{l.label}</div>
-              <div style={{ fontSize: 12, color: "#888" }}>{l.desc}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 10 }}>
-        ¿Qué se te da bien?
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-        {skills.map((s) => (
-          <Chip key={s} label={s} selected={data.cookSkills.includes(s)} onClick={() => toggleSkill(s)} />
-        ))}
+      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+        {levels.map((l) => {
+          const sel = data.cookLevel === l.id;
+          return (
+            <button
+              type="button"
+              key={l.id}
+              onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 4,
+                padding: "10px 4px",
+                borderRadius: 10,
+                cursor: "pointer",
+                background: sel ? "rgba(45,90,61,.1)" : "#f8f8f8",
+                border: `1.5px solid ${sel ? "#2d5a3d" : "transparent"}`,
+                fontFamily: "inherit",
+                color: sel ? "#2d5a3d" : "#666",
+              }}
+            >
+              <span style={{ color: "#2d5a3d", fontSize: 18 }}>{l.icon}</span>
+              <span style={{ fontWeight: 700, fontSize: 12, color: "#1a3a24" }}>{l.label}</span>
+            </button>
+          );
+        })}
       </div>
       <p style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 10 }}>
         Herramientas disponibles

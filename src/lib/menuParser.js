@@ -141,62 +141,29 @@ async function callClaude(messages, { system } = {}) {
   return payload?.content?.[0]?.text ?? "";
 }
 
-async function parsePdfMenu(file) {
-  const buffer = await file.arrayBuffer();
-  const base64 = btoa(
-    new Uint8Array(buffer).reduce((s, b) => s + String.fromCharCode(b), "")
-  );
+// Chunked base64 — avoids the O(n²) char-by-char reduce on multi-MB files.
+async function fileToBase64(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let binary = "";
+  const CHUNK = 0x8000;
+  for (let i = 0; i < bytes.length; i += CHUNK) {
+    binary += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+  }
+  return btoa(binary);
+}
 
-  const userContent = [
-    {
-      type: "document",
-      source: {
-        type: "base64",
-        media_type: "application/pdf",
-        data: base64,
-      },
-    },
-    {
-      type: "text",
-      text: "Extract the complete school menu from this PDF. Return ONLY the JSON.",
-    },
-  ];
-
+// Send a document/image content block to Claude and validate the JSON,
+// retrying once with the validation errors fed back.
+async function parseDocumentMenu(userContent) {
   const rawText = await callClaude(
     [{ role: "user", content: userContent }],
     { system: SYSTEM_PROMPT }
   );
 
-  // ── DIAGNOSTIC LOGS ──
-  console.log("[menuParser] Raw API response length:", rawText.length);
-  console.log("[menuParser] Raw API response (first 500 chars):", rawText.slice(0, 500));
-
   const parsed = extractJson(rawText);
-
-  console.log("[menuParser] Parsed semanas count:", parsed.semanas?.length ?? 0);
-  if (parsed.semanas) {
-    for (const w of parsed.semanas) {
-      const lunes = w.dias?.find((d) => d.dia === "lunes");
-      console.log(
-        `[menuParser] Semana ${w.numero}: ${w.dias?.length ?? 0} días, lunes primero="${lunes?.primero ?? "N/A"}"`
-      );
-    }
-  }
-
   const result = MenuSchema.safeParse(parsed);
-
-  console.log("[menuParser] Zod validation:", result.success ? "OK" : "FAILED");
-  if (!result.success) {
-    console.error(
-      "[menuParser] Zod errors:",
-      result.error.issues.slice(0, 10).map((i) => `${i.path.join(".")}: ${i.message}`)
-    );
-  }
-  // ── END DIAGNOSTICS ──
-
   if (result.success) return result.data;
 
-  // Retry once with validation feedback
   const errorMsg = result.error.issues
     .slice(0, 5)
     .map((i) => `${i.path.join(".")}: ${i.message}`)
@@ -214,19 +181,43 @@ async function parsePdfMenu(file) {
     { system: SYSTEM_PROMPT }
   );
 
-  console.log("[menuParser] Retry response length:", retryText.length);
-
   const retryParsed = extractJson(retryText);
   const retryResult = MenuSchema.safeParse(retryParsed);
-
-  console.log("[menuParser] Retry Zod validation:", retryResult.success ? "OK" : "FAILED");
-
   if (retryResult.success) return retryResult.data;
 
   const failedField = retryResult.error.issues[0];
   throw new Error(
     `Validación fallida tras reintento: ${failedField.path.join(".")} — ${failedField.message}`
   );
+}
+
+async function parsePdfMenu(file) {
+  const base64 = await fileToBase64(file);
+  return parseDocumentMenu([
+    {
+      type: "document",
+      source: { type: "base64", media_type: "application/pdf", data: base64 },
+    },
+    {
+      type: "text",
+      text: "Extract the complete school menu from this PDF. Return ONLY the JSON.",
+    },
+  ]);
+}
+
+async function parseImageMenu(file) {
+  const base64 = await fileToBase64(file);
+  const mediaType = (file.type || "").startsWith("image/") ? file.type : "image/jpeg";
+  return parseDocumentMenu([
+    {
+      type: "image",
+      source: { type: "base64", media_type: mediaType, data: base64 },
+    },
+    {
+      type: "text",
+      text: "Extract the complete school menu from this image. Return ONLY the JSON.",
+    },
+  ]);
 }
 
 // ---------------------------------------------------------------------------
@@ -416,5 +407,8 @@ export async function parseMenu(file, type) {
   if (type === "pdf") {
     return parsePdfMenu(file);
   }
-  throw new Error("Tipo no soportado. Usa 'pdf' o 'csv'.");
+  if (type === "image") {
+    return parseImageMenu(file);
+  }
+  throw new Error("Tipo no soportado. Usa 'pdf', 'image' o 'csv'.");
 }
