@@ -31,25 +31,32 @@ export function ProgressDots({ current, total, onJump, compact = false }) {
     <div
       style={{
         display: "flex",
+        alignItems: "center",
         gap: compact ? 4 : 6,
         justifyContent: "center",
         padding: compact ? 0 : "12px 0",
+        width: "100%",
       }}
     >
-      {Array.from({ length: total }, (_, i) => (
-        <div
-          key={i}
-          onClick={() => onJump(i)}
-          style={{
-            width: i === current ? 24 : 8,
-            height: 8,
-            borderRadius: 4,
-            background: i <= current ? "#2d5a3d" : "#ddd",
-            cursor: "pointer",
-            transition: "all .3s",
-          }}
-        />
-      ))}
+      {Array.from({ length: total }, (_, i) => {
+        const isActive = i === current;
+        const isDone   = i < current;
+        return (
+          <div
+            key={i}
+            onClick={() => onJump(i)}
+            style={{
+              flex:         1,
+              height:       isActive ? 5 : 4,
+              borderRadius: 99,
+              background:   isDone ? "#2d5a3d" : isActive ? "#4cba6e" : "#d6e6db",
+              cursor:       "pointer",
+              transition:   "all .35s cubic-bezier(.4,0,.2,1)",
+              boxShadow:    isActive ? "0 0 6px rgba(76,186,110,.6)" : "none",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -99,24 +106,36 @@ export function BottomNav({ active, onNav }) {
 }
 
 export function SliderInput({ label, value, min, max, step, suffix, onChange }) {
+  const pct = ((value - min) / (max - min)) * 100;
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-        <span style={{ fontSize: 13, color: "#555" }}>{label}</span>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#2d5a3d" }}>
-          {value}
-          {suffix}
-        </span>
+    <div style={{ background: "#fff", border: "1px solid #eef2ef", borderRadius: 16, padding: "14px 16px 12px", marginBottom: 12 }}>
+      <style>{`
+        .sl-ios { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; }
+        .sl-ios::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.18), 0 0 0 1.5px rgba(0,0,0,.07); cursor: pointer; transition: box-shadow .1s; }
+        .sl-ios:active::-webkit-slider-thumb { box-shadow: 0 3px 14px rgba(0,0,0,.24), 0 0 0 1.5px rgba(0,0,0,.09); }
+        .sl-ios::-moz-range-thumb { width: 28px; height: 28px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.18); cursor: pointer; }
+      `}</style>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 14 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: "#444" }}>{label}</span>
+        <span style={{ fontSize: 15, fontWeight: 800, color: "#2d5a3d" }}>{value}{suffix}</span>
       </div>
-      <input
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(+e.target.value)}
-        style={{ width: "100%", accentColor: "#2d5a3d" }}
-      />
+      <div style={{ position: "relative", height: 28, display: "flex", alignItems: "center" }}>
+        <div style={{ position: "absolute", left: 0, right: 0, height: 4, borderRadius: 2, background: "#e5ede7", pointerEvents: "none" }} />
+        <div style={{ position: "absolute", left: 0, height: 4, borderRadius: 2, background: "#2d5a3d", width: `${pct}%`, pointerEvents: "none" }} />
+        <input
+          className="sl-ios"
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(+e.target.value)}
+        />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+        <span style={{ fontSize: 11, color: "#bfcec4" }}>{min}{suffix}</span>
+        <span style={{ fontSize: 11, color: "#bfcec4" }}>{max}{suffix}</span>
+      </div>
     </div>
   );
 }

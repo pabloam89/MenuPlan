@@ -556,8 +556,6 @@ export default function App() {
   );
 }
 
-const SPLASH_BG = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=800&q=80";
-
 function SplashScreen({ onNext, hasSaved, onResume }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
 
@@ -573,149 +571,189 @@ function SplashScreen({ onNext, hasSaved, onResume }) {
         display: "flex",
         flexDirection: "column",
         justifyContent: "flex-end",
-        background: "#1a3a24",
+        background: "#0a160e",
       }}
     >
       <style>{`
-        @keyframes kenburns {
-          0%   { transform: scale(1.1) translate(0,0); }
-          50%  { transform: scale(1.2) translate(-10px, -6px); }
-          100% { transform: scale(1.1) translate(0,0); }
-        }
-        @keyframes pulseHint {
-          0%, 100% { opacity: .7; transform: translateY(0); }
-          50%      { opacity: 1;  transform: translateY(-4px); }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
         }
         @keyframes fadeUp {
-          from { opacity: 0; transform: translateY(14px); }
+          from { opacity: 0; transform: translateY(22px); }
           to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes glowPulse {
+          0%, 100% { opacity: .55; transform: scale(1); }
+          50%       { opacity: .75; transform: scale(1.06); }
+        }
+        @keyframes shimmer {
+          0%   { transform: translateX(-120%) skewX(-18deg); }
+          100% { transform: translateX(320%) skewX(-18deg); }
+        }
+        @keyframes btnGlow {
+          0%, 100% { box-shadow: 0 8px 28px rgba(61,122,82,.45), 0 2px 8px rgba(0,0,0,.25); }
+          50%       { box-shadow: 0 10px 36px rgba(61,122,82,.7),  0 2px 8px rgba(0,0,0,.25); }
+        }
+        .splash-btn {
+          transition: transform .14s ease;
+          animation: btnGlow 3s ease-in-out infinite;
+          animation-delay: 1.2s;
+        }
+        .splash-btn:active { transform: scale(.97); }
+        .splash-btn .shimmer-bar {
+          position: absolute;
+          top: 0; left: 0;
+          width: 40%;
+          height: 100%;
+          background: linear-gradient(90deg, transparent, rgba(255,255,255,.22), transparent);
+          border-radius: inherit;
+          animation: shimmer 3.2s ease-in-out infinite;
+          animation-delay: 1.8s;
+          pointer-events: none;
         }
       `}</style>
 
+      {/* Vídeo de fondo */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: "cover",
+          animation: "fadeIn 1.2s ease-out",
+        }}
+      >
+        <source src="/splash.mp4" type="video/mp4" />
+      </video>
+
+      {/* Overlay oscuro uniforme */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
-          backgroundImage: `url(${SPLASH_BG})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          filter: "saturate(108%) contrast(102%)",
-          transform: "scale(1.05)",
-          animation: "kenburns 22s ease-in-out infinite",
+          background: "rgba(0,0,0,0.32)",
         }}
       />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.25)",
-        }}
-      />
+
+      {/* Gradiente inferior */}
       <div
         aria-hidden="true"
         style={{
           position: "absolute",
           inset: 0,
           background:
-            "linear-gradient(180deg, rgba(10,22,14,0) 0%, rgba(10,22,14,0) 40%, rgba(10,22,14,.72) 72%, rgba(10,22,14,.96) 100%)",
+            "linear-gradient(180deg, rgba(5,14,8,0) 0%, rgba(5,14,8,.1) 45%, rgba(5,14,8,.82) 75%, rgba(5,14,8,.98) 100%)",
         }}
       />
 
+      {/* Glow detrás del título */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 340,
+          height: 340,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(61,122,82,.38) 0%, transparent 70%)",
+          animation: "glowPulse 5s ease-in-out infinite",
+          zIndex: 1,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Título centrado arriba */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 2,
+          padding: "72px 32px 0",
+          color: "#fff",
+          textAlign: "center",
+          animation: "fadeUp .8s ease-out both",
+        }}
+      >
+        <h1
+          style={{
+            fontSize: 76,
+            fontWeight: 900,
+            margin: "0 0 18px",
+            letterSpacing: "-3px",
+            lineHeight: 1,
+            fontFamily: "'Playfair Display', Georgia, serif",
+            textShadow: "0 2px 24px rgba(0,0,0,.55)",
+          }}
+        >
+          Menú<span style={{ color: "#7ecb96" }}>Plan</span>
+        </h1>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
+          {[
+            { delay: ".25s", text: "Deja de agobiarte con cuadrar el menú." },
+            { delay: ".4s",  text: "Para que tus hijos coman variado cada semana." },
+          ].map(({ delay, text }) => (
+            <p
+              key={text}
+              style={{
+                fontSize: 20,
+                lineHeight: 1.35,
+                margin: 0,
+                color: "rgba(255,255,255,.88)",
+                fontWeight: 400,
+                fontStyle: "italic",
+                letterSpacing: "-.2px",
+                textShadow: "0 1px 10px rgba(0,0,0,.5)",
+                animation: `fadeUp .8s ease-out ${delay} both`,
+              }}
+            >
+              {text}
+            </p>
+          ))}
+        </div>
+      </div>
+
+      {/* Botón abajo */}
       <div
         style={{
           position: "relative",
-          zIndex: 1,
-          padding: "48px 28px 44px",
-          color: "#fff",
-          textAlign: "left",
-          animation: "fadeUp .9s ease-out",
+          zIndex: 2,
+          padding: "0 28px 64px",
+          animation: "fadeUp .8s ease-out .5s both",
         }}
       >
-        <div
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 10,
-            background: "rgba(255,255,255,.14)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-            padding: "6px 12px",
-            borderRadius: 999,
-            fontSize: 11,
-            fontWeight: 700,
-            letterSpacing: ".8px",
-            textTransform: "uppercase",
-            marginBottom: 18,
-            border: "1px solid rgba(255,255,255,.18)",
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            handleEnter();
           }}
-        >
-          Cole + Casa, sin pensar
-        </div>
-        <h1
           style={{
-            fontSize: 54,
-            fontWeight: 800,
-            margin: 0,
-            letterSpacing: "-1.8px",
-            lineHeight: 1,
-            fontFamily: "'Playfair Display', Georgia, serif",
-            textShadow: "0 2px 24px rgba(0,0,0,.35)",
-          }}
-        >
-          MenuPlan
-        </h1>
-        <p
-          style={{
+            flex: 1,
+            background: "#fff",
+            color: "#1a3a24",
+            border: "none",
+            borderRadius: 14,
+            padding: "16px 24px",
             fontSize: 16,
-            lineHeight: 1.45,
-            margin: "14px 0 0",
-            maxWidth: 320,
-            color: "rgba(255,255,255,.88)",
-            fontWeight: 500,
+            fontWeight: 800,
+            cursor: "pointer",
+            boxShadow: "0 10px 28px rgba(0,0,0,.35)",
+            width: "100%",
           }}
         >
-          Concilia el menú del cole con el de casa. Nosotros completamos la semana para que cenéis equilibrado sin pensar.
-        </p>
-
-        <div style={{ display: "flex", gap: 10, marginTop: 28 }}>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEnter();
-            }}
-            style={{
-              flex: 1,
-              background: "#fff",
-              color: "#1a3a24",
-              border: "none",
-              borderRadius: 14,
-              padding: "16px 24px",
-              fontSize: 16,
-              fontWeight: 800,
-              cursor: "pointer",
-              boxShadow: "0 10px 28px rgba(0,0,0,.35)",
-            }}
-          >
-            {hasSaved ? "Continuar" : "Empezar"}
-          </button>
-        </div>
-
-        <div
-          style={{
-            marginTop: 22,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 12,
-            color: "rgba(255,255,255,.75)",
-            animation: "pulseHint 1.8s ease-in-out infinite",
-            letterSpacing: ".4px",
-          }}
-        >
-          Toca en cualquier punto para entrar
-        </div>
+          {hasSaved ? "Continuar" : "Empezar ya"}
+        </button>
       </div>
     </div>
   );

@@ -2,10 +2,14 @@ import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "reac
 import {
   ArrowUpDown,
   BookOpenCheck,
+  GitBranch,
   BriefcaseBusiness,
   CalendarDays,
   Check,
   ChefHat,
+  Coffee,
+  Sun,
+  Moon,
   ChevronDown,
   ChevronUp,
   Drumstick,
@@ -583,15 +587,20 @@ const GRID_DISLIKE_SLOTS = ["Hígado", "Coliflor", "Cebolla", "Pimiento", "Aceit
 function restrictionTabStyle(active) {
   return {
     flex: 1,
-    padding: "8px 12px",
-    borderRadius: 10,
-    border: `1.5px solid ${active ? "#2d5a3d" : "#e0e6e2"}`,
-    background: active ? "rgba(45,90,61,.08)" : "#fff",
-    color: active ? "#2d5a3d" : "#888",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 6,
+    padding: "14px 8px 12px",
+    borderRadius: 14,
+    border: `1.5px solid ${active ? "#2d5a3d" : "#e3ebe6"}`,
+    background: active ? "#2d5a3d" : "#f4f7f5",
+    color: active ? "#fff" : "#9ab0a1",
     fontSize: 12,
     fontWeight: 700,
     cursor: "pointer",
     fontFamily: "inherit",
+    transition: "all .15s ease",
   };
 }
 
@@ -1057,9 +1066,11 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
     >
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         <button type="button" onClick={() => setTab("avoid")} style={restrictionTabStyle(tab === "avoid")}>
+          <UtensilsCrossed size={20} />
           Evitar
         </button>
         <button type="button" onClick={() => setTab("repeat")} style={restrictionTabStyle(tab === "repeat")}>
+          <Heart size={20} />
           Repetir
         </button>
       </div>
@@ -1244,21 +1255,15 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
   const models = [
     {
       id: "same",
-      icon: <Users size={18} color="#fff" />,
+      icon: <Users size={36} color="#2d5a3d" />,
       label: "Todos comemos lo mismo",
       desc: "Un único menú para toda la familia",
     },
     {
-      id: "variation",
-      icon: <Layers2 size={18} color="#fff" />,
-      label: "Base común + variaciones",
-      desc: "Misma base, ajustes para casos concretos",
-    },
-    {
       id: "separate",
-      icon: <ArrowUpDown size={18} color="#fff" />,
-      label: "Grupos separados",
-      desc: "Dos menús en paralelo",
+      icon: <GitBranch size={36} color="#2d5a3d" />,
+      label: "Menús separados",
+      desc: "Cada grupo tiene su propio menú — ideal si hay niños con gustos distintos",
     },
   ];
 
@@ -1286,14 +1291,14 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
 
   return (
     <OnboardingShell
-      title="Modelo de menú"
-      subtitle="Elige modelo base y ajusta personas entre grupos"
+      title="¿Cómo coméis en casa?"
+      subtitle="Elige cómo organizar el menú familiar"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 14 }}>
         {models.map((m) => {
           const sel = data.menuModel === m.id;
           return (
@@ -1303,35 +1308,56 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
               onClick={() => pickModel(m.id)}
               style={{
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
+                justifyContent: "center",
                 gap: 12,
                 width: "100%",
-                textAlign: "left",
-                padding: "12px 14px",
-                borderRadius: 12,
+                textAlign: "center",
+                padding: "28px 20px",
+                borderRadius: 18,
                 cursor: "pointer",
-                background: sel ? "rgba(45,90,61,.08)" : "#f8f8f8",
-                border: `2px solid ${sel ? "#2d5a3d" : "transparent"}`,
+                background: sel ? "rgba(45,90,61,.07)" : "#f7f9f8",
+                border: `2.5px solid ${sel ? "#2d5a3d" : "#e8ede9"}`,
+                boxShadow: sel ? "0 4px 18px rgba(45,90,61,.12)" : "none",
+                transition: "all .15s ease",
               }}
             >
               <span
                 style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 8,
-                  background: "#2d5a3d",
+                  width: 68,
+                  height: 68,
+                  borderRadius: 20,
+                  background: sel ? "rgba(45,90,61,.1)" : "#edf2ee",
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  transition: "background .15s ease",
                 }}
               >
                 {m.icon}
               </span>
-              <span style={{ flex: 1 }}>
-                <div style={{ fontWeight: 700, color: "#1a3a24", fontSize: 14 }}>{m.label}</div>
-                <div style={{ fontSize: 12, color: "#888" }}>{m.desc}</div>
+              <span>
+                <div style={{ fontWeight: 800, color: "#1a3a24", fontSize: 16, marginBottom: 4 }}>{m.label}</div>
+                <div style={{ fontSize: 13, color: "#7a9080", lineHeight: 1.4 }}>{m.desc}</div>
               </span>
-              {sel && <Check size={16} color="#2d5a3d" />}
+              {sel && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "#2d5a3d",
+                    color: "#fff",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "4px 10px",
+                    borderRadius: 20,
+                  }}
+                >
+                  <Check size={12} /> Seleccionado
+                </span>
+              )}
             </button>
           );
         })}
@@ -1380,10 +1406,10 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
 // ─── Schedule (group + individual editing) ────────────────────
 
 const SLOT_CONFIG = {
-  casa: { label: "Casa", color: "#2d5a3d" },
-  tupper: { label: "Tupper", color: "#c67030" },
-  fuera: { label: "Fuera", color: "#5a7ea8" },
-  cole: { label: "Cole", color: "#3d7a52" },
+  casa:   { label: "En casa",     color: "#2d5a3d" },
+  tupper: { label: "Tupper",      color: "#c67030" },
+  fuera:  { label: "Come fuera",  color: "#7c6abf" },
+  cole:   { label: "Comedor",     color: "#d97706" },
 };
 
 const MIXED_COLOR = "#aaa";
@@ -1394,6 +1420,9 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   const defaultMode = memberList.length > 1 ? "all" : "single";
   const [subjectMode, setSubjectMode] = useState(defaultMode);
   const [activeMemberId, setActiveMemberId] = useState(memberList[0]?.id ?? null);
+  const [quickFillOpen, setQuickFillOpen] = useState(false);
+  const [qfWeekday, setQfWeekday] = useState("casa");
+  const [qfFinde, setQfFinde] = useState("casa");
 
   // Derivado en render: si el miembro activo deja de existir, recae en el primero.
   const validActiveMemberId = memberList.find((m) => m.id === activeMemberId)
@@ -1507,6 +1536,36 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     }
   };
 
+  const applyQuickFill = () => {
+    setData((d) => {
+      const next = { ...d.schedule };
+      const dayMeals = getMeals(d);
+      const main = primaryDayMeal(d);
+      const colable = subjectMembers.some(
+        (m) => stageForAge(memberAge(m)).id !== "adulto"
+      );
+      for (const day of DAYS) {
+        const isWeekend = day === "Sáb" || day === "Dom";
+        for (const meal of dayMeals) {
+          const isMain = meal === main;
+          let value;
+          if (!isWeekend) {
+            if (qfWeekday === "cole") value = isMain ? (colable ? "cole" : "fuera") : "casa";
+            else if (qfWeekday === "fuera") value = isMain ? "fuera" : "casa";
+            else value = "casa";
+          } else {
+            value = qfFinde === "fuera" && isMain ? "fuera" : "casa";
+          }
+          for (const id of subjectMemberIds) {
+            next[`${id}|${day}|${meal}`] = value;
+          }
+        }
+      }
+      return { ...d, schedule: next };
+    });
+    setQuickFillOpen(false);
+  };
+
   const toggleDayMeal = (meal) => {
     setData((d) => {
       const cur = getMeals(d);
@@ -1527,7 +1586,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   }
 
   const subjectLabel =
-    subjectMode === "all" ? "familia" : (activeMember?.name ?? "individual");
+    subjectMode === "all" ? "la familia" : (activeMember?.name ?? "individual");
 
   const openDay = (day) => {
     if (subjectMemberIds.length === 0) return;
@@ -1537,7 +1596,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   return (
     <OnboardingShell
       title="¿Dónde coméis?"
-      subtitle="Marca dónde come cada uno · toca una celda para elegir"
+      subtitle="Marca dónde come cada uno durante la semana"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -1615,37 +1674,39 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         </div>
       )}
 
-      <SectionTitle>Comidas del día</SectionTitle>
-      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-        Marca las que quieres cubrir en el menú
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
-        {ALL_DAY_MEALS.map((meal) => (
-          <Chip
-            key={meal}
-            label={meal}
-            selected={meals.includes(meal)}
-            onClick={() => toggleDayMeal(meal)}
-          />
-        ))}
-      </div>
-
-      <SectionTitle>Acciones rápidas · {subjectLabel}</SectionTitle>
-      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
-        <button type="button" onClick={() => applyPreset("casa-todo")} style={presetStyle}>
-          <House size={13} /> Casa siempre
-        </button>
-        <button type="button" onClick={() => applyPreset("tupper-laborable")} style={presetStyle}>
-          <BriefcaseBusiness size={13} /> Tupper L-V
-        </button>
-        {allowCole && (
-          <button type="button" onClick={() => applyPreset("cole-laborable")} style={presetStyle}>
-            <School size={13} /> Cole L-V
-          </button>
-        )}
-        <button type="button" onClick={() => applyPreset("fuera-finde")} style={presetStyle}>
-          <UtensilsCrossed size={13} /> Finde fuera
-        </button>
+      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
+      <SectionTitle>¿Qué comidas quieres organizar?</SectionTitle>
+      <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
+        {ALL_DAY_MEALS.map((meal) => {
+          const sel = meals.includes(meal);
+          const MealIcon =
+            meal === "Desayuno" ? Coffee : meal === "Comida" ? Sun : Moon;
+          return (
+            <button
+              key={meal}
+              type="button"
+              onClick={() => toggleDayMeal(meal)}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 6,
+                padding: "14px 8px 12px",
+                borderRadius: 14,
+                cursor: "pointer",
+                background: sel ? "#2d5a3d" : "#f4f7f5",
+                border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                color: sel ? "#fff" : "#9ab0a1",
+                transition: "all .15s ease",
+                fontFamily: "inherit",
+              }}
+            >
+              <MealIcon size={20} />
+              <span style={{ fontSize: 12, fontWeight: 700 }}>{meal}</span>
+            </button>
+          );
+        })}
       </div>
 
       {hasSchoolMenuLoaded && allowCole && (
@@ -1665,10 +1726,155 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         </div>
       )}
 
-      <SectionTitle>Calendario</SectionTitle>
-      <p style={{ fontSize: 11, color: "#888", margin: "0 0 8px" }}>
-        Pulsa un día para igualar · pulsa una celda para elegir
-      </p>
+      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0 18px" }} />
+      <style>{`
+        @keyframes qfSlideUp {
+          from { transform: translateY(100%); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        @keyframes qfFadeIn {
+          from { opacity: 0; }
+          to   { opacity: 1; }
+        }
+      `}</style>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+        <SectionTitle>Tu semana</SectionTitle>
+        <button
+          type="button"
+          onClick={() => setQuickFillOpen(true)}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "6px 12px 6px 7px",
+            borderRadius: 999,
+            border: "1.5px solid #d4e6da",
+            background: "#f0f7f2",
+            color: "#2d5a3d",
+            fontSize: 12,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          <span style={{
+            width: 22, height: 22, borderRadius: "50%",
+            background: "#2d5a3d",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Zap size={12} color="#fff" />
+          </span>
+          Acciones rápidas
+        </button>
+      </div>
+
+      {quickFillOpen && (
+        <div
+          onClick={() => setQuickFillOpen(false)}
+          style={{
+            position: "fixed", inset: 0,
+            background: "rgba(0,0,0,.45)",
+            zIndex: 200,
+            display: "flex", alignItems: "flex-end", justifyContent: "center",
+            animation: "qfFadeIn .2s ease-out",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: "22px 22px 0 0",
+              width: "100%", maxWidth: 420,
+              padding: "24px 20px calc(28px + env(safe-area-inset-bottom, 0px))",
+              animation: "qfSlideUp .28s cubic-bezier(.32,1,.28,1)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{
+                  width: 36, height: 36, borderRadius: "50%",
+                  background: "#1a3a24",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Zap size={16} color="#fff" />
+                </span>
+                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1a3a24" }}>
+                  {subjectMode === "single" && activeMember
+                    ? `Semana de ${activeMember.name}`
+                    : "Semana de la familia"}
+                </h3>
+              </div>
+              <button
+                type="button" onClick={() => setQuickFillOpen(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", padding: 4, display: "flex" }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <p style={{ fontSize: 13, color: "#999", margin: "0 0 22px", lineHeight: 1.5 }}>
+              {subjectMode === "single"
+                ? `Elige cómo se organiza ${activeMember?.name ?? "esta persona"} y lo aplicamos a toda la semana.`
+                : "Elige un patrón y lo aplicamos a toda la semana. Después puedes ajustar cada celda."}
+            </p>
+
+            <div style={{ marginBottom: 22 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
+                {subjectMode === "single"
+                  ? `Entre semana, ¿dónde come ${activeMember?.name ?? ""}?`
+                  : "Entre semana, ¿dónde coméis?"}
+              </div>
+              <QuickFillSegment
+                value={qfWeekday}
+                onChange={setQfWeekday}
+                options={[
+                  { value: "casa",  icon: <House size={15} />,           label: "En casa" },
+                  ...(allowCole ? [{ value: "cole", icon: <School size={15} />, label: "Niños al cole" }] : []),
+                  { value: "fuera", icon: <UtensilsCrossed size={15} />, label: "Fuera" },
+                ]}
+              />
+            </div>
+
+            <div style={{ marginBottom: 28 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
+                {subjectMode === "single"
+                  ? `El fin de semana, ¿qué hace ${activeMember?.name ?? ""}?`
+                  : "El fin de semana, ¿qué hacéis?"}
+              </div>
+              <QuickFillSegment
+                value={qfFinde}
+                onChange={setQfFinde}
+                options={[
+                  { value: "casa",  icon: <House size={15} />,           label: "En casa" },
+                  { value: "fuera", icon: <UtensilsCrossed size={15} />, label: "Salís a comer" },
+                ]}
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={applyQuickFill}
+              style={{
+                width: "100%",
+                background: "#1a3a24",
+                color: "#fff",
+                border: "none",
+                borderRadius: 14,
+                padding: "16px",
+                fontSize: 15,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              Aplicar a la semana
+            </button>
+          </div>
+        </div>
+      )}
+
       <ScheduleGrid
         meals={meals}
         memberIds={subjectMemberIds}
@@ -1677,14 +1883,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         onDayClick={openDay}
       />
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8, marginBottom: 12 }}>
-        <div
-          style={{
-            padding: "8px 10px",
-            borderRadius: 8,
-            border: "1px solid #e3ebe6",
-            background: "#fafcfb",
-          }}
-        >
+        <div style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #e3ebe6", background: "#fafcfb" }}>
           <SheetIconLegend columns={sheetColumns(allowCole)} compact />
         </div>
       </div>
@@ -1732,7 +1931,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   );
 }
 
-const SLOT_COLUMNS = ["casa", "tupper", "cole", "fuera"];
+const SLOT_COLUMNS = ["casa", "cole", "fuera"];
 
 function sheetColumns(showCole) {
   return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
@@ -1784,7 +1983,7 @@ function ScheduleSlotSheet({
 }) {
   const dayName = dayLabel(day);
   const columns = sheetColumns(allowCole);
-  const title = `${dayName} · ${meal}`;
+  const title = `${meal} del ${dayName.toLowerCase()}`;
 
   return (
     <div
@@ -2002,13 +2201,60 @@ function tabButtonStyle(selected) {
   };
 }
 
+function QuickFillSegment({ value, onChange, options }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        background: "#f0f4f1",
+        borderRadius: 12,
+        padding: 4,
+        gap: 4,
+      }}
+    >
+      {options.map((opt) => {
+        const sel = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              padding: "12px 6px",
+              borderRadius: 9,
+              border: "none",
+              background: sel ? "#fff" : "transparent",
+              color: sel ? "#1a3a24" : "#8aa092",
+              fontWeight: sel ? 800 : 500,
+              fontSize: 12,
+              cursor: "pointer",
+              boxShadow: sel ? "0 1px 6px rgba(0,0,0,.1)" : "none",
+              transition: "all .15s ease",
+              fontFamily: "inherit",
+            }}
+          >
+            {opt.icon}
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 function SectionTitle({ children }) {
   return (
     <div
       style={{
         fontSize: 11,
         fontWeight: 800,
-        color: "#888",
+        color: "#1a3a24",
         textTransform: "uppercase",
         letterSpacing: 1,
         marginBottom: 8,
@@ -2048,7 +2294,14 @@ function ScheduleCell({ value, states, onClick, size = 14 }) {
   const normalized = value === "off" ? "casa" : value;
   const conf = SLOT_CONFIG[normalized] ?? SLOT_CONFIG.casa;
   const color = isMixed ? MIXED_COLOR : conf.color;
+  const isCasa = !isMixed && normalized === "casa";
   const Tag = onClick ? "button" : "div";
+
+  // "Casa" (default) stays muted; anything else gets a solid colored fill so
+  // the exceptions in the week pop visually.
+  const background = isMixed ? "#fff" : isCasa ? "#eef4f0" : color;
+  const fg = isMixed ? MIXED_COLOR : isCasa ? "#6f8f7c" : "#fff";
+
   return (
     <Tag
       type={onClick ? "button" : undefined}
@@ -2056,22 +2309,25 @@ function ScheduleCell({ value, states, onClick, size = 14 }) {
       title={isMixed ? "Distinto por persona — pulsa para editar" : "Pulsa para elegir"}
       style={{
         width: "100%",
-        minHeight: 48,
-        borderRadius: 8,
+        minHeight: 50,
+        borderRadius: 12,
         cursor: onClick ? "pointer" : "default",
-        background: isMixed ? "#fafafa" : "#f8fbf9",
-        border: `1.5px ${isMixed ? "dashed" : "solid"} ${color}55`,
+        background,
+        border: isMixed ? `1.5px dashed ${MIXED_COLOR}` : "none",
+        boxShadow: isCasa || isMixed ? "none" : `0 3px 10px ${color}50`,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        gap: 2,
-        color,
-        padding: "4px 2px",
+        gap: 3,
+        color: fg,
+        padding: "5px 2px",
+        transition: "transform .1s ease",
+        fontFamily: "inherit",
       }}
     >
       {isMixed ? <MixedDots states={states ?? []} /> : stateIcon(normalized, size)}
-      <span style={{ fontSize: 9, fontWeight: 800, lineHeight: 1 }}>
+      <span style={{ fontSize: 9, fontWeight: 800, lineHeight: 1, opacity: isCasa ? 0.75 : 1 }}>
         {isMixed ? CELL_SHORT.mixed : CELL_SHORT[normalized] ?? ""}
       </span>
     </Tag>
@@ -2121,68 +2377,100 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
   // dot stack of every member's state when they diverge. Clicking a consensus
   // cell cycles; clicking a divergent cell opens the slot editor.
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "auto repeat(7, 1fr)", gap: 4 }}>
-      <div />
-      {DAYS.map((d) => (
-        <button
-          key={d}
-          type="button"
-          onClick={onDayClick ? () => onDayClick(d) : undefined}
-          title={onDayClick ? `Igualar todo el ${d}` : undefined}
-          style={{
-            textAlign: "center",
-            fontWeight: 700,
-            color: "#888",
-            padding: 4,
-            fontSize: 11,
-            background: "transparent",
-            border: "none",
-            cursor: onDayClick ? "pointer" : "default",
-            borderRadius: 6,
-            fontFamily: "inherit",
-          }}
-        >
-          {d}
-        </button>
-      ))}
-      {meals.map((meal) => (
-        <Fragment key={meal}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              fontWeight: 600,
-              color: "#555",
-              fontSize: 11,
-              paddingRight: 6,
-            }}
-          >
-            {meal}
-          </div>
-          {DAYS.map((day) => {
-            const memberStates = memberIds.map((id) => {
-              const raw = schedule[`${id}|${day}|${meal}`] ?? "casa";
-              return raw === "off" ? "casa" : raw;
-            });
-            let value;
-            if (memberStates.length === 0) value = "off";
-            else if (memberStates.length === 1) value = memberStates[0];
-            else
-              value = memberStates.every((s) => s === memberStates[0])
-                ? memberStates[0]
-                : "mixed";
-            return (
-              <ScheduleCell
-                key={`${day}-${meal}`}
-                value={value}
-                states={value === "mixed" ? memberStates : undefined}
-                onClick={() => onCellClick(day, meal)}
-                size={16}
-              />
-            );
-          })}
-        </Fragment>
-      ))}
+    <div
+      style={{
+        background: "#fafcfb",
+        border: "1px solid #e8efe9",
+        borderRadius: 18,
+        padding: 10,
+      }}
+    >
+      <div style={{ display: "grid", gridTemplateColumns: "auto repeat(7, 1fr)", gap: 5 }}>
+        <div />
+        {DAYS.map((d) => {
+          const isWeekend = d === "Sáb" || d === "Dom";
+          return (
+            <button
+              key={d}
+              type="button"
+              onClick={onDayClick ? () => onDayClick(d) : undefined}
+              title={onDayClick ? `Igualar todo el ${d}` : undefined}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "0 0 6px",
+                background: "transparent",
+                border: "none",
+                cursor: onDayClick ? "pointer" : "default",
+                fontFamily: "inherit",
+              }}
+            >
+              <span
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: "50%",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: 10,
+                  fontWeight: 800,
+                  background: isWeekend ? "rgba(198,112,48,.14)" : "rgba(45,90,61,.1)",
+                  color: isWeekend ? "#c67030" : "#2d5a3d",
+                }}
+              >
+                {d.slice(0, 2)}
+              </span>
+            </button>
+          );
+        })}
+        {meals.map((meal) => (
+          <Fragment key={meal}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                paddingRight: 7,
+              }}
+              title={meal}
+            >
+              <span style={{ color: "#7a9080", display: "inline-flex" }}>
+                {meal === "Desayuno" ? (
+                  <Coffee size={15} />
+                ) : meal === "Comida" ? (
+                  <Sun size={15} />
+                ) : (
+                  <Moon size={15} />
+                )}
+              </span>
+            </div>
+            {DAYS.map((day) => {
+              const memberStates = memberIds.map((id) => {
+                const raw = schedule[`${id}|${day}|${meal}`] ?? "casa";
+                return raw === "off" ? "casa" : raw;
+              });
+              let value;
+              if (memberStates.length === 0) value = "off";
+              else if (memberStates.length === 1) value = memberStates[0];
+              else
+                value = memberStates.every((s) => s === memberStates[0])
+                  ? memberStates[0]
+                  : "mixed";
+              return (
+                <ScheduleCell
+                  key={`${day}-${meal}`}
+                  value={value}
+                  states={value === "mixed" ? memberStates : undefined}
+                  onClick={() => onCellClick(day, meal)}
+                  size={16}
+                />
+              );
+            })}
+          </Fragment>
+        ))}
+      </div>
     </div>
   );
 }
@@ -2387,50 +2675,39 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       onFinish={onFinish}
     >
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <button
-          type="button"
-          onClick={() => setScope("shared")}
-          style={{
-            flex: 1,
-            padding: "9px 10px",
-            borderRadius: 10,
-            border: `1.5px solid ${scope === "shared" ? "#2d5a3d" : "#ddd"}`,
-            background: scope === "shared" ? "rgba(45,90,61,.08)" : "#fff",
-            color: "#2d5a3d",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-          }}
-        >
-          <School size={14} />
-          Mismo menú para todos
-        </button>
-        <button
-          type="button"
-          onClick={() => setScope("individual")}
-          style={{
-            flex: 1,
-            padding: "9px 10px",
-            borderRadius: 10,
-            border: `1.5px solid ${scope === "individual" ? "#2d5a3d" : "#ddd"}`,
-            background: scope === "individual" ? "rgba(45,90,61,.08)" : "#fff",
-            color: "#2d5a3d",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-          }}
-        >
-          <User size={14} />
-          Por niño/a
-        </button>
+        {[
+          { value: "shared",     icon: <Users size={20} />, label: "Mismo menú para todos" },
+          { value: "individual", icon: <User size={20} />,  label: "Por niño/a" },
+        ].map(({ value, icon, label }) => {
+          const sel = scope === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setScope(value)}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 6,
+                padding: "14px 8px 12px",
+                borderRadius: 14,
+                border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                background: sel ? "#2d5a3d" : "#f4f7f5",
+                color: sel ? "#fff" : "#9ab0a1",
+                fontSize: 12,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                transition: "all .15s ease",
+              }}
+            >
+              {icon}
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {scope === "individual" && (
@@ -2478,59 +2755,84 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       )}
 
       <SectionTitle>Importar menú</SectionTitle>
-      <div
-        onClick={() => !importing && fileInputRef.current?.click()}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "6px 12px",
-          borderRadius: 10,
-          border: "1.5px dashed rgba(45,90,61,.35)",
-          background: importing ? "#f6f9f7" : "#fff",
-          cursor: importing ? "default" : "pointer",
-          marginBottom: 8,
-        }}
-      >
-        <span
+      <div style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "stretch" }}>
+        <div
+          onClick={() => !importing && fileInputRef.current?.click()}
           style={{
-            width: 30,
-            height: 30,
-            borderRadius: 8,
-            background: "rgba(45,90,61,.12)",
-            color: "#2d5a3d",
-            display: "inline-flex",
+            flex: 1,
+            display: "flex",
             alignItems: "center",
-            justifyContent: "center",
-            flexShrink: 0,
+            gap: 10,
+            padding: "6px 12px",
+            borderRadius: 10,
+            border: "1.5px dashed rgba(45,90,61,.35)",
+            background: importing ? "#f6f9f7" : "#fff",
+            cursor: importing ? "default" : "pointer",
           }}
         >
-          {importing ? <Loader2 size={16} className="rotating" /> : <Upload size={16} />}
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>
-            {importing ? "Procesando…" : "Subir PDF, foto o CSV"}
-          </div>
-          <div
+          <span
             style={{
-              fontSize: 11,
-              color: "#888",
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
+              width: 30,
+              height: 30,
+              borderRadius: 8,
+              background: "rgba(45,90,61,.12)",
+              color: "#2d5a3d",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            {importing ? importStatus || "…" : importedFileName || ""}
+            {importing ? <Loader2 size={16} className="rotating" /> : <Upload size={16} />}
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>
+              {importing ? "Procesando…" : "Subir PDF, foto o CSV"}
+            </div>
+            {(importing || importedFileName) && (
+              <div
+                style={{
+                  fontSize: 11,
+                  color: "#888",
+                  whiteSpace: "nowrap",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                }}
+              >
+                {importing ? importStatus || "…" : importedFileName}
+              </div>
+            )}
           </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf,image/*,.csv,text/csv"
+            onChange={onPickFile}
+            disabled={importing}
+            style={{ display: "none" }}
+          />
         </div>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/pdf,image/*,.csv,text/csv"
-          onChange={onPickFile}
-          disabled={importing}
-          style={{ display: "none" }}
-        />
+
+        <button
+          type="button"
+          onClick={clearAll}
+          aria-label="Vaciar menú"
+          title="Vaciar"
+          style={{
+            flexShrink: 0,
+            width: 44,
+            borderRadius: 10,
+            border: "1.5px solid #d7e1db",
+            background: "#fff",
+            color: "#2d5a3d",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+          }}
+        >
+          <Trash2 size={16} />
+        </button>
       </div>
 
       {importError && (
@@ -2587,29 +2889,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         </div>
       )}
 
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-        <button
-          type="button"
-          onClick={clearAll}
-          aria-label="Vaciar menú"
-          title="Vaciar"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: 32,
-            height: 32,
-            padding: 0,
-            borderRadius: 8,
-            border: "1.5px solid #d7e1db",
-            background: "#fff",
-            color: "#2d5a3d",
-            cursor: "pointer",
-          }}
-        >
-          <Trash2 size={18} />
-        </button>
-      </div>
 
       <button
         type="button"
@@ -3671,7 +3950,6 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
     "Microondas",
     "Robot/Thermomix",
     "Olla rápida",
-    "Batidora",
   ];
   const availableTools = [...tools, ...(data.customKitchenTools ?? [])];
   const [addingTool, setAddingTool] = useState(false);
@@ -3714,6 +3992,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       onFinish={onFinish}
       finishLabel={finishLabel}
     >
+      {/* Nivel de cocina — mismo estilo que comida/cena/desayuno */}
       <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
         {levels.map((l) => {
           const sel = data.cookLevel === l.id;
@@ -3727,81 +4006,107 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 4,
-                padding: "10px 4px",
-                borderRadius: 10,
+                gap: 6,
+                padding: "14px 8px 12px",
+                borderRadius: 14,
                 cursor: "pointer",
-                background: sel ? "rgba(45,90,61,.1)" : "#f8f8f8",
-                border: `1.5px solid ${sel ? "#2d5a3d" : "transparent"}`,
+                background: sel ? "#2d5a3d" : "#f4f7f5",
+                border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                color: sel ? "#fff" : "#9ab0a1",
+                transition: "all .15s ease",
                 fontFamily: "inherit",
-                color: sel ? "#2d5a3d" : "#666",
               }}
             >
-              <span style={{ color: "#2d5a3d", fontSize: 18 }}>{l.icon}</span>
-              <span style={{ fontWeight: 700, fontSize: 12, color: "#1a3a24" }}>{l.label}</span>
+              {l.icon}
+              <span style={{ fontWeight: 700, fontSize: 12 }}>{l.label}</span>
             </button>
           );
         })}
       </div>
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 10 }}>
-        Herramientas disponibles
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 20 }}>
-        {availableTools.map((tool) => (
-          <Chip
-            key={tool}
-            label={tool}
-            selected={(data.kitchenTools ?? []).includes(tool)}
-            removable={(data.customKitchenTools ?? []).includes(tool)}
-            onClick={() =>
-              (data.customKitchenTools ?? []).includes(tool) &&
-              (data.kitchenTools ?? []).includes(tool)
-                ? removeCustomTool(tool)
-                : toggleTool(tool)
-            }
-          />
-        ))}
-        {addingTool ? (
-          <input
-            autoFocus
-            value={draftTool}
-            onChange={(e) => setDraftTool(e.target.value)}
-            onBlur={addCustomTool}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") e.currentTarget.blur();
-              if (e.key === "Escape") {
-                setDraftTool("");
-                setAddingTool(false);
-              }
-            }}
-            placeholder="Otra herramienta"
-            style={{
-              padding: "6px 14px",
-              borderRadius: 20,
-              border: "1.5px solid #2d5a3d",
-              fontSize: 13,
-              outline: "none",
-              fontFamily: "inherit",
-              minWidth: 130,
-            }}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => setAddingTool(true)}
-            style={{
-              ...chipStyle(false),
-              border: "1.5px dashed #2d5a3d",
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
-          >
-            <Plus size={12} /> Añadir
-          </button>
-        )}
+
+      <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 20px" }} />
+
+      {/* Herramientas — grid estilo alergias */}
+      <SectionTitle>Herramientas disponibles</SectionTitle>
+      <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 4 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+            gap: 6,
+          }}
+        >
+          {availableTools.map((tool) => {
+            const isCustom = (data.customKitchenTools ?? []).includes(tool);
+            const sel = (data.kitchenTools ?? []).includes(tool);
+            return (
+              <button
+                key={tool}
+                type="button"
+                onClick={() => (isCustom && sel ? removeCustomTool(tool) : toggleTool(tool))}
+                style={{
+                  ...gridChipStyle(sel),
+                  height: 30,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 4,
+                }}
+              >
+                {isCustom && sel && <X size={9} />}
+                {tool}
+              </button>
+            );
+          })}
+          {addingTool ? (
+            <input
+              autoFocus
+              value={draftTool}
+              onChange={(e) => setDraftTool(e.target.value)}
+              onBlur={addCustomTool}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") e.currentTarget.blur();
+                if (e.key === "Escape") { setDraftTool(""); setAddingTool(false); }
+              }}
+              placeholder="Otra…"
+              style={{
+                height: 30,
+                padding: "0 8px",
+                borderRadius: 7,
+                border: "1.5px solid #2d5a3d",
+                fontSize: 11,
+                outline: "none",
+                fontFamily: "inherit",
+              }}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setAddingTool(true)}
+              style={{
+                ...gridChipStyle(false),
+                height: 30,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+                border: "1px dashed #aacbb5",
+                color: "#2d5a3d",
+                fontWeight: 700,
+              }}
+            >
+              <Plus size={11} /> Añadir
+            </button>
+          )}
+        </div>
       </div>
+
+      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
+
+      {/* Tiempo */}
+      <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
       <SliderInput
-        label="Tiempo entre semana"
+        label="Entre semana"
         value={data.timeWeekday}
         min={10}
         max={90}
@@ -3810,7 +4115,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
         onChange={(v) => setData((d) => ({ ...d, timeWeekday: v }))}
       />
       <SliderInput
-        label="Tiempo finde"
+        label="El fin de semana"
         value={data.timeWeekend}
         min={10}
         max={120}
