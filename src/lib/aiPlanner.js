@@ -124,12 +124,16 @@ CRITERIO DE VARIEDAD (lo importante de tu trabajo):
 - Distribuir a lo largo de la semana: pescado, legumbres, carne, huevo, pasta - sin amontonar.
 - Coherencia estacional: aprovecha platos frescos en verano, de cuchara en invierno.
 
-Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
-Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
+RESTRICCIONES POR SLOT:
+- Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
+- Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
+- Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
+
+IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.
 
 FORMATO DE RESPUESTA - SOLO esto, JSON compacto, sin texto:
 {"slots":[{"slotId":"lun_comida_1","recipeId":"sopas_003"},{"slotId":"lun_comida_2","recipeId":"carnes_012"},{"slotId":"lun_cena","recipeId":"huevos_004"}, ...]}
-Un objeto por cada hueco a rellenar. Si usas un plato_unico en la comida, incluye solo el slot _1 con ese plato y omite el _2. Nada más.`;
+Si usas un plato_unico en la comida, incluye solo el slot _1 con ese plato y omite el _2. Nada más.`;
 
 // ── Context builders ────────────────────────────────────────────
 
@@ -225,7 +229,7 @@ function buildGroupContext(data, group) {
 function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay) {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
-    const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode };
+    const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
     if (s.position) out.position = s.position;
     if (s.schoolProteinsToAvoid) out.schoolProteinsToAvoid = s.schoolProteinsToAvoid;
     return out;

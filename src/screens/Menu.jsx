@@ -1207,67 +1207,50 @@ function GeneratingSkeleton({ onStop }) {
   const skeletonRows = [0, 1, 2];
   return (
     <div style={{ padding: "0 16px" }}>
-      <div style={{ display: "flex", alignItems: "stretch", gap: 8, marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
         <div
           style={{
             flex: 1,
-            padding: "12px 14px",
-            background: "#fff",
-            borderRadius: 14,
-            border: "1px solid #ecf1ed",
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
+            height: 6,
+            borderRadius: 3,
+            background: "#ecf1ed",
+            overflow: "hidden",
           }}
         >
-          <Loader2 size={20} color="#2d5a3d" className="rotating" style={{ flexShrink: 0 }} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#15331c" }}>
-                Generando tu menú…
-              </span>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "#8d978f" }}>
-                {timeLabel ? `~${timeLabel}` : "Casi listo…"}
-              </span>
-            </div>
-            <div style={{ height: 4, borderRadius: 2, background: "#ecf1ed", overflow: "hidden" }}>
-              <div
-                style={{
-                  height: "100%",
-                  width: `${progress * 100}%`,
-                  borderRadius: 2,
-                  background: "#2d5a3d",
-                  transition: "width .3s linear",
-                }}
-              />
-            </div>
-          </div>
+          <div
+            style={{
+              height: "100%",
+              width: `${progress * 100}%`,
+              borderRadius: 3,
+              background: "#2d5a3d",
+              transition: "width .3s linear",
+            }}
+          />
         </div>
-
+        <span style={{ fontSize: 11, fontWeight: 700, color: "#8d978f", flexShrink: 0 }}>
+          {timeLabel ?? ""}
+        </span>
         {onStop && (
           <button
             type="button"
             onClick={onStop}
             style={{
-              display: "flex",
-              flexDirection: "column",
+              display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 4,
-              padding: "0 14px",
-              borderRadius: 14,
+              width: 28,
+              height: 28,
+              borderRadius: 8,
               border: "1.5px solid #d7e1db",
               background: "#fff",
               color: "#2d5a3d",
-              fontSize: 11,
-              fontWeight: 700,
               cursor: "pointer",
               fontFamily: "inherit",
               flexShrink: 0,
+              padding: 0,
             }}
           >
-            <StopCircle size={18} />
-            Detener
+            <StopCircle size={14} />
           </button>
         )}
       </div>

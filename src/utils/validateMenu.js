@@ -13,9 +13,8 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
     slotsContext.map((s) => [s.slotId, s]),
   );
 
-  // Build ordered list of meals for consecutive-protein check
   const dayOrder = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
-  const mealOrder = []; // [{slotId, recipeId, dayIdx, mealType, position}]
+  const mealOrder = [];
   for (const { slotId, recipeId } of slotAssignments) {
     const parts = slotId.split("_");
     const daySlug = parts[0];
@@ -30,6 +29,19 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
     if (a.mealType === "cena" && b.mealType === "comida") return 1;
     return (a.position ?? "").localeCompare(b.position ?? "");
   });
+
+  const returnedIds = new Set(slotAssignments.map((s) => s.slotId));
+
+  // 0. Missing slots — every expected slot must be covered
+  for (const ctx of slotsContext) {
+    if (!returnedIds.has(ctx.slotId)) {
+      violations.push({
+        rule: "slot_faltante",
+        slotId: ctx.slotId,
+        message: `El LLM no devolvió asignación para ${ctx.slotId}`,
+      });
+    }
+  }
 
   // 1. All recipeIds must exist in filtered pool
   for (const { slotId, recipeId } of slotAssignments) {
@@ -57,7 +69,6 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
   }
 
   // 3. No repeated mainProtein in consecutive meals
-  // Consecutive = comida_2→cena same day, cena→next day comida_1
   const mainMeals = mealOrder.filter(
     (m) => !(m.mealType === "comida" && m.position === "1"),
   );
@@ -153,6 +164,21 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
     }
   }
 
+  // 8. Time constraint: recipe.time must be ≤ slot maxTime
+  for (const { slotId, recipeId } of slotAssignments) {
+    const ctx = contextBySlot[slotId];
+    if (!ctx?.maxTime) continue;
+    const recipe = poolById[recipeId];
+    if (!recipe) continue;
+    if (recipe.time > ctx.maxTime) {
+      violations.push({
+        rule: "tiempo_excedido",
+        slotId,
+        message: `"${recipe.name}" (${recipe.time}min) excede el límite de ${ctx.maxTime}min`,
+      });
+    }
+  }
+
   return { valid: violations.length === 0, violations };
 }
 
@@ -169,6 +195,7 @@ export function buildCorrectionMessage(violations) {
 /**
  * Deterministic fallback: fix violations by replacing offending recipes
  * with the first valid alternative from the filtered pool.
+ * Also fills missing slots that the LLM omitted.
  */
 export function applyFallback(slotAssignments, violations, filteredPool, slotsContext) {
   const result = slotAssignments.map((s) => ({ ...s }));
@@ -178,7 +205,34 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
   );
   const usedIds = new Set(result.map((s) => s.recipeId));
 
-  for (const v of violations) {
+  // Fill missing slots first
+  const missingViolations = violations.filter((v) => v.rule === "slot_faltante");
+  for (const v of missingViolations) {
+    const ctx = contextBySlot[v.slotId];
+    if (!ctx) continue;
+    const mealType = v.slotId.split("_")[1];
+    const position = v.slotId.split("_")[2];
+
+    const candidate = filteredPool.find((r) => {
+      if (usedIds.has(r.id)) return false;
+      if (ctx.maxTime && r.time > ctx.maxTime) return false;
+      if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
+
+      if (mealType === "cena") return r.mealRole.includes("cena");
+      if (position === "1") return r.mealRole.some((role) => role === "primero" || role === "plato_unico");
+      if (position === "2") return r.mealRole.includes("segundo");
+      return true;
+    });
+
+    if (candidate) {
+      result.push({ slotId: v.slotId, recipeId: candidate.id });
+      usedIds.add(candidate.id);
+    }
+  }
+
+  // Fix other violations by replacing offending recipes
+  const otherViolations = violations.filter((v) => v.rule !== "slot_faltante");
+  for (const v of otherViolations) {
     const idx = result.findIndex((s) => s.slotId === v.slotId);
     if (idx === -1) continue;
     const slot = result[idx];
@@ -189,6 +243,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
 
+      if (ctx?.maxTime && r.time > ctx.maxTime) return false;
       if (v.rule === "legumbres_en_cena" && r.category === "legumbres") return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
 
