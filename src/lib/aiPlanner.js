@@ -217,7 +217,7 @@ function buildGroupContext(data, group) {
     group: { label: group.label, hasKids, allergies, dislikes },
     slots,
     schoolMenuByDay,
-    filterOpts: { allergies, dislikes, hasKids, maxTime: Math.max(timeWeekday, timeWeekend), kitchenTools },
+    filterOpts: { allergies, dislikes, hasKids, maxTime: Math.max(timeWeekday, timeWeekend), kitchenTools, cookLevel: data.cookLevel ?? "normal" },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
       freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? {},

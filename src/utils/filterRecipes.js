@@ -43,6 +43,7 @@ export function filterRecipes({
   hasKids = false,
   maxTime = 120,
   kitchenTools = [],
+  cookLevel = "normal",
 } = {}) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergen));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
@@ -82,13 +83,19 @@ export function filterRecipes({
   // 5. Time — exclude recipes that exceed the max
   pool = pool.filter((r) => r.time <= maxTime);
 
-  // 6. Required appliance — if recipe declares one, user must have it
-  if (toolsLower.size > 0) {
-    pool = pool.filter((r) => {
-      if (!r.requiredAppliance) return true;
-      return toolsLower.has(r.requiredAppliance.toLowerCase());
-    });
+  // 6. Required appliance — exclude if user doesn't have the required tool
+  pool = pool.filter((r) => {
+    if (!r.requiredAppliance) return true;
+    return toolsLower.has(r.requiredAppliance.toLowerCase());
+  });
+
+  // 7. Cook level — deterministic difficulty filter
+  if (cookLevel === "basic") {
+    pool = pool.filter((r) => r.difficulty === "facil");
+  } else if (cookLevel === "normal") {
+    pool = pool.filter((r) => r.difficulty === "facil" || r.difficulty === "normal");
   }
+  // "pro" → all difficulties allowed
 
   // Validate minimum viable pool
   const categories = new Set(pool.map((r) => r.category));
