@@ -729,7 +729,7 @@ function SplashScreen({ onNext, hasSaved, onResume }) {
         style={{
           position: "relative",
           zIndex: 2,
-          padding: "0 28px 64px",
+          padding: "0 28px 40px",
           animation: "fadeUp .8s ease-out .5s both",
         }}
       >

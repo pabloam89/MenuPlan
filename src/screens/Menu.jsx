@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BookOpen,
+  BookOpenCheck,
   Calendar,
   ChefHat,
   Clock3,
@@ -17,6 +18,7 @@ import {
   Share2,
   ShoppingCart,
   Soup,
+  Sparkles,
   Users,
   Utensils,
   Wand2,
@@ -203,27 +205,42 @@ function ProfileButton({ onClick }) {
       style={{
         display: "inline-flex",
         alignItems: "center",
-        padding: "7px 12px",
-        borderRadius: 999,
-        border: "1px solid #e6eee8",
-        background: "#fff",
-        color: "#526057",
-        fontSize: 12,
-        fontWeight: 800,
+        gap: 8,
+        padding: "7px 11px",
+        borderRadius: 12,
+        border: "1px solid #2d5a3d",
+        background: "#2d5a3d",
         cursor: "pointer",
         fontFamily: "inherit",
         flexShrink: 0,
       }}
     >
-      Tu perfil
+      <span
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+          background: "rgba(255,255,255,.18)",
+          color: "#fff",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Users size={14} />
+      </span>
+      <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "-.2px", lineHeight: 1 }}>
+        Tu perfil
+      </div>
     </button>
   );
 }
 
 const COOK_LEVELS = [
-  { id: "basic", label: "Básico" },
-  { id: "normal", label: "Normal" },
-  { id: "pro", label: "Pro" },
+  { id: "basic",  label: "Básico",           icon: <BookOpenCheck size={20} /> },
+  { id: "normal", label: "Normal",            icon: <ChefHat size={20} /> },
+  { id: "pro",    label: "Me gusta cocinar",  icon: <Sparkles size={20} /> },
 ];
 
 const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Robot/Thermomix", "Olla rápida", "Batidora"];
@@ -285,7 +302,6 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const allergies = [...new Set(members.flatMap((m) => m.allergies ?? []))];
   const dislikes = [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])];
   const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
-  const freqs = data.freqs ?? {};
 
   const toggleTool = (tool) =>
     setData((d) => ({
@@ -295,8 +311,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
         : [...(d.kitchenTools ?? []), tool],
     }));
 
-  const setFreq = (id, val) =>
-    setData((d) => ({ ...d, freqs: { ...d.freqs, [id]: val } }));
+  const divider = <div style={{ height: 1, background: "#e8f0ea", margin: "12px 0" }} />;
 
   return (
     <div
@@ -324,7 +339,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Ajustes</h3>
+          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Tu perfil</h3>
           <button
             type="button"
             onClick={onClose}
@@ -339,8 +354,9 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           </button>
         </div>
 
+        {/* Familia */}
         {members.length > 0 && (
-          <div style={{ marginBottom: 12 }}>
+          <div style={{ marginBottom: 0 }}>
             <div style={profileLabelStyle}>Familia</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {members.map((m) => (
@@ -359,7 +375,8 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
         )}
 
         {(allergies.length > 0 || dislikes.length > 0) && (
-          <div style={{ marginBottom: 12 }}>
+          <>
+            {divider}
             <div style={profileLabelStyle}>Evitar</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {allergies.map((a) => (
@@ -373,87 +390,111 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                 </span>
               ))}
             </div>
-          </div>
+          </>
         )}
 
-        <div style={{ marginBottom: 12 }}>
-          <div style={profileLabelStyle}>Nivel de cocina</div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {COOK_LEVELS.map((l) => {
-              const sel = data.cookLevel === l.id;
+        {divider}
+
+        {/* Nivel de cocina — tarjetas con icono */}
+        <div style={profileLabelStyle}>Nivel de cocina</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          {COOK_LEVELS.map((l) => {
+            const sel = data.cookLevel === l.id;
+            return (
+              <button
+                key={l.id}
+                type="button"
+                onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+                style={{
+                  flex: 1,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "14px 8px 12px",
+                  borderRadius: 14,
+                  cursor: "pointer",
+                  background: sel ? "#2d5a3d" : "#f4f7f5",
+                  border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                  color: sel ? "#fff" : "#9ab0a1",
+                  transition: "all .15s ease",
+                  fontFamily: "inherit",
+                  fontSize: 12,
+                  fontWeight: 700,
+                }}
+              >
+                {l.icon}
+                {l.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {divider}
+
+        {/* Herramientas — grid 3 columnas */}
+        <div style={profileLabelStyle}>Herramientas</div>
+        <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 6 }}>
+            {allTools.map((t) => {
+              const sel = (data.kitchenTools ?? []).includes(t);
               return (
                 <button
+                  key={t}
                   type="button"
-                  key={l.id}
-                  onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+                  onClick={() => toggleTool(t)}
                   style={{
-                    flex: 1, padding: "8px 4px", borderRadius: 8, cursor: "pointer",
-                    background: sel ? "rgba(45,90,61,.12)" : "#f5f7f5",
-                    border: `1.5px solid ${sel ? "#2d5a3d" : "transparent"}`,
-                    fontFamily: "inherit", fontSize: 12, fontWeight: 700,
-                    color: sel ? "#2d5a3d" : "#666",
+                    height: 30,
+                    borderRadius: 7,
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "#dde8e0"}`,
+                    background: sel ? "#2d5a3d" : "#fff",
+                    color: sel ? "#fff" : "#526057",
+                    fontSize: 11,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
                   }}
                 >
-                  {l.label}
+                  {t}
                 </button>
               );
             })}
           </div>
         </div>
 
-        <div style={{ marginBottom: 12 }}>
-          <div style={profileLabelStyle}>Herramientas</div>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {allTools.map((t) => (
-              <Chip
-                key={t}
-                label={t}
-                selected={(data.kitchenTools ?? []).includes(t)}
-                onClick={() => toggleTool(t)}
-              />
-            ))}
-          </div>
-        </div>
+        {divider}
 
-        <div style={{ marginBottom: 12 }}>
-          <div style={profileLabelStyle}>Frecuencias mínimas</div>
-          {FREQ_OPTIONS.map((f) => (
-            <FreqStepper
-              key={f.id}
-              label={f.label}
-              value={freqs[f.id] ?? 0}
-              onChange={(v) => setFreq(f.id, v)}
-            />
-          ))}
-        </div>
+        {/* Tiempo disponible */}
+        <div style={{ ...profileLabelStyle, marginBottom: 8 }}>Tiempo disponible</div>
+        <SliderInput
+          label="Entre semana"
+          value={data.timeWeekday ?? 30}
+          min={10} max={90} step={5} suffix=" min"
+          onChange={(v) => setData((d) => ({ ...d, timeWeekday: v }))}
+        />
+        <SliderInput
+          label="Fin de semana"
+          value={data.timeWeekend ?? 60}
+          min={10} max={120} step={5} suffix=" min"
+          onChange={(v) => setData((d) => ({ ...d, timeWeekend: v }))}
+        />
 
-        <div style={{ marginBottom: 16 }}>
-          <div style={profileLabelStyle}>Tiempo disponible</div>
-          <SliderInput
-            label="Entre semana"
-            value={data.timeWeekday ?? 30}
-            min={10} max={90} step={5} suffix=" min"
-            onChange={(v) => setData((d) => ({ ...d, timeWeekday: v }))}
-          />
-          <SliderInput
-            label="Finde"
-            value={data.timeWeekend ?? 60}
-            min={10} max={120} step={5} suffix=" min"
-            onChange={(v) => setData((d) => ({ ...d, timeWeekend: v }))}
-          />
+        <div style={{ marginTop: 16 }}>
+          <button
+            type="button"
+            onClick={onRegenerate}
+            style={{
+              width: "100%", padding: "12px", borderRadius: 12,
+              border: "none", background: "#2d5a3d", color: "#fff",
+              fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Regenerar menú
+          </button>
         </div>
-
-        <button
-          type="button"
-          onClick={onRegenerate}
-          style={{
-            width: "100%", padding: "12px", borderRadius: 12,
-            border: "none", background: "#2d5a3d", color: "#fff",
-            fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-          }}
-        >
-          Regenerar menú
-        </button>
       </div>
     </div>
   );
@@ -888,13 +929,15 @@ export const MenuScreen = memo(function MenuScreen({
               </div>
             )}
           </div>
+
+          <div style={{ height: 1, background: "#e6eee8", margin: "10px 0" }} />
+
           <div
             style={{
               display: "flex",
               alignItems: "center",
               justifyContent: "space-between",
               gap: 10,
-              marginTop: 10,
             }}
           >
             <div
@@ -950,6 +993,7 @@ export const MenuScreen = memo(function MenuScreen({
                 </div>
               </div>
             </div>
+
             <ProfileButton onClick={() => setProfileOpen(true)} />
           </div>
         </div>

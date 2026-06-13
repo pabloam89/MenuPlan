@@ -1116,6 +1116,8 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
             />
           </div>
 
+          <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 12px" }} />
+
           <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
             <p style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24", margin: "0 0 8px" }}>
               No come nadie en casa
@@ -2416,8 +2418,8 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
                   justifyContent: "center",
                   fontSize: 10,
                   fontWeight: 800,
-                  background: isWeekend ? "rgba(198,112,48,.14)" : "rgba(45,90,61,.1)",
-                  color: isWeekend ? "#c67030" : "#2d5a3d",
+                  background: isWeekend ? "#2d5a3d" : "rgba(45,90,61,.1)",
+                  color: isWeekend ? "#a8d5b5" : "#2d5a3d",
                 }}
               >
                 {d.slice(0, 2)}
@@ -2753,6 +2755,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           })}
         </div>
       )}
+
+      <div style={{ height: 1, background: "#d6e9dc", margin: "16px 0 14px" }} />
 
       <SectionTitle>Importar menú</SectionTitle>
       <div style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "stretch" }}>
