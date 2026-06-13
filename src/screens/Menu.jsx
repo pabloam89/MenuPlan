@@ -13,7 +13,9 @@ import {
   Flame,
   Gauge,
   Leaf,
+  Loader2,
   RotateCw,
+  StopCircle,
   School,
   Share2,
   ShoppingCart,
@@ -830,18 +832,15 @@ export const MenuScreen = memo(function MenuScreen({
             >
               Reiniciar
             </button>
-            <button
-              type="button"
-              onClick={onRegenerate}
-              style={{
-                ...primaryMiniButtonStyle,
-                opacity: isGenerating ? 0.6 : 1,
-                cursor: isGenerating ? "default" : "pointer",
-              }}
-              disabled={isGenerating}
-            >
-              {isGenerating ? "Generando…" : "Regenerar"}
-            </button>
+            {!isGenerating && (
+              <button
+                type="button"
+                onClick={onRegenerate}
+                style={primaryMiniButtonStyle}
+              >
+                Regenerar
+              </button>
+            )}
           </div>
         </div>
 
@@ -1208,96 +1207,70 @@ function GeneratingSkeleton({ onStop }) {
   const skeletonRows = [0, 1, 2];
   return (
     <div style={{ padding: "0 16px" }}>
-      <div
-        style={{
-          padding: "14px 14px",
-          background: "#fff",
-          borderRadius: 14,
-          border: "1px solid #ecf1ed",
-          marginBottom: 14,
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 12,
-              background: "#eaf2ec",
-              color: "#3f6948",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Wand2 size={16} />
-          </span>
-          <div style={{ fontSize: 13, fontWeight: 900, color: "#15331c" }}>
-            Generando tu menú…
+      <div style={{ display: "flex", alignItems: "stretch", gap: 8, marginBottom: 14 }}>
+        <div
+          style={{
+            flex: 1,
+            padding: "12px 14px",
+            background: "#fff",
+            borderRadius: 14,
+            border: "1px solid #ecf1ed",
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+          }}
+        >
+          <Loader2 size={20} color="#2d5a3d" className="rotating" style={{ flexShrink: 0 }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#15331c" }}>
+                Generando tu menú…
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "#8d978f" }}>
+                {timeLabel ? `~${timeLabel}` : "Casi listo…"}
+              </span>
+            </div>
+            <div style={{ height: 4, borderRadius: 2, background: "#ecf1ed", overflow: "hidden" }}>
+              <div
+                style={{
+                  height: "100%",
+                  width: `${progress * 100}%`,
+                  borderRadius: 2,
+                  background: "#2d5a3d",
+                  transition: "width .3s linear",
+                }}
+              />
+            </div>
           </div>
         </div>
 
-        <div
-          style={{
-            height: 6,
-            borderRadius: 3,
-            background: "#ecf1ed",
-            overflow: "hidden",
-            marginBottom: 6,
-          }}
-        >
-          <div
+        {onStop && (
+          <button
+            type="button"
+            onClick={onStop}
             style={{
-              height: "100%",
-              width: `${progress * 100}%`,
-              borderRadius: 3,
-              background: "#2d5a3d",
-              transition: "width .3s linear",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 4,
+              padding: "0 14px",
+              borderRadius: 14,
+              border: "1.5px solid #d7e1db",
+              background: "#fff",
+              color: "#2d5a3d",
+              fontSize: 11,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              flexShrink: 0,
             }}
-          />
-        </div>
-
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#8d978f",
-          }}
-        >
-          <span>{timeLabel ? `~${timeLabel}` : "Casi listo…"}</span>
-          <span>{Math.round(progress * 100)}%</span>
-        </div>
+          >
+            <StopCircle size={18} />
+            Detener
+          </button>
+        )}
       </div>
-
-      {onStop && (
-        <button
-          type="button"
-          onClick={onStop}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-            width: "100%",
-            padding: "10px 0",
-            marginBottom: 14,
-            borderRadius: 10,
-            border: "1.5px solid #d7e1db",
-            background: "#fff",
-            color: "#2d5a3d",
-            fontSize: 13,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
-        >
-          <X size={14} />
-          Detener
-        </button>
-      )}
 
       {skeletonRows.map((i) => (
         <div key={i} style={{ marginBottom: 14 }}>
