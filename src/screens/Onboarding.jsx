@@ -1,6 +1,7 @@
-import { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowUpDown,
+  Baby,
   BookOpenCheck,
   GitBranch,
   BriefcaseBusiness,
@@ -35,6 +36,7 @@ import {
   Upload,
   Zap,
   User,
+  UserPlus,
   Users,
   Utensils,
   UtensilsCrossed,
@@ -218,11 +220,25 @@ export function OnboardingShell({
 
 // ─── Members ───────────────────────────────────────────────────
 
+const MEMBER_AVATAR_COLORS = ["#2d5a3d", "#4a7c5e", "#1a3a24", "#3d6b4f", "#5a8a6a", "#2a5040"];
+
+const ROLE_ICON_MAP = {
+  "Adulto":   User,
+  "Pareja":   Heart,
+  "Hijo/a":   Baby,
+  "Bebé":     Baby,
+  "Abuelo/a": User,
+  "Compi":    UserPlus,
+  "Amigo/a":  Users,
+  "Otro":     User,
+};
+
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
   const [birthDate, setBirthDate] = useState("");
   const [ageMode, setAgeMode] = useState("number");
+  const [roleEditId, setRoleEditId] = useState(null);
   const dateInputRef = useRef(null);
 
   const trimmedName = name.trim();
@@ -238,7 +254,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   const canAdd = trimmedName.length > 0 && ageProvided;
   const showCalculatedAge = ageMode === "date" && Boolean(birthDate);
   const hasMembers = data.members.length > 0;
-  const showPersonas = trimmedName.length > 0 || hasMembers;
 
   const addMember = () => {
     if (!canAdd) return;
@@ -265,40 +280,17 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     setAgeMode("number");
   };
 
-  const updateMemberAge = (id, val) => {
-    const age = parseInt(val.replace(/\D/g, ""), 10);
-    setData((d) => ({
-      ...d,
-      members: d.members.map((m) =>
-        m.id === id
-          ? {
-              ...m,
-              age: Number.isFinite(age) ? age : 0,
-              useBirthDate: false,
-              birthDate: "",
-              homeRole: suggestHomeRole(Number.isFinite(age) ? age : memberAge(m)),
-            }
-          : m
-      ),
-    }));
-  };
-
-  const updateMemberHomeRole = (id, homeRole) =>
+  const updateMemberHomeRole = (id, homeRole) => {
     setData((d) => ({
       ...d,
       members: d.members.map((m) => (m.id === id ? { ...m, homeRole } : m)),
     }));
+    setRoleEditId(null);
+  };
 
   const removeMember = (id) =>
     setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
 
-  const colHdr = {
-    fontSize: 11,
-    fontWeight: 800,
-    textTransform: "uppercase",
-    letterSpacing: 0.3,
-  };
-  const cellText = { fontSize: 11, fontWeight: 700, color: "#1a3a24" };
   const fieldH = 44;
   const ageBoxStyle = (active, readonly) => ({
     width: fieldH,
@@ -312,8 +304,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     color: "#1a3a24",
     outline: "none",
     flexShrink: 0,
+    fontFamily: "inherit",
   });
-  const gridCols = "minmax(0, 1fr) 40px minmax(72px, 1fr) 28px";
 
   return (
     <OnboardingShell
@@ -323,247 +315,207 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
       onNext={hasMembers ? onNext : undefined}
       onFinish={hasMembers ? onFinish : undefined}
     >
-      <div style={{ marginBottom: 16 }}>
+      {/* Role picker overlay */}
+      {roleEditId && (
         <div
+          onClick={() => setRoleEditId(null)}
           style={{
-            display: "flex",
-            gap: 8,
-            alignItems: "flex-end",
-            marginBottom: 4,
+            position: "fixed", inset: 0, zIndex: 100,
+            background: "rgba(0,0,0,.35)",
+            display: "flex", alignItems: "flex-end",
           }}
         >
-          <span style={{ ...colHdr, color: "#1a3a24", flex: "1 1 168px", maxWidth: 168 }}>
-            Nombre
-          </span>
-          <span style={{ ...colHdr, color: "#3d6b4f", width: 96 }}>Edad</span>
-          <span style={{ flex: 1 }} />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 420, margin: "0 auto",
+              background: "#fff",
+              borderRadius: "20px 20px 0 0",
+              padding: "20px 20px calc(24px + env(safe-area-inset-bottom, 0px))",
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#888", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 14 }}>
+              ¿Quién es en casa?
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
+              {HOUSEHOLD_ROLES.map((r) => {
+                const member = data.members.find((m) => m.id === roleEditId);
+                const current = member?.homeRole ?? suggestHomeRole(memberAge(member));
+                const sel = r === current;
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => updateMemberHomeRole(roleEditId, r)}
+                    style={{
+                      padding: "10px 6px",
+                      borderRadius: 10,
+                      border: sel ? "2px solid #2d5a3d" : "1.5px solid #e0e8e2",
+                      background: sel ? "#eaf2ec" : "#fff",
+                      color: sel ? "#1a3a24" : "#555",
+                      fontSize: 13,
+                      fontWeight: sel ? 800 : 600,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      textAlign: "center",
+                    }}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+      )}
+
+      {/* Add form — columnas verticales: [Nombre] [Edad] [Añadir] */}
+      <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 16 }}>
+
+        {/* Nombre column */}
+        <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3, color: "#1a3a24", marginBottom: 4 }}>
+            Nombre
+          </div>
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="María"
             style={{
-              flex: "1 1 168px",
-              maxWidth: 168,
-              minWidth: 0,
-              height: fieldH,
-              padding: "0 12px",
-              borderRadius: 10,
-              border: "1.5px solid #ddd",
-              fontSize: 14,
-              outline: "none",
-              boxSizing: "border-box",
+              width: "100%", height: fieldH, padding: "0 12px",
+              borderRadius: 10, border: "1.5px solid #ddd",
+              fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
             }}
             onKeyDown={(e) => e.key === "Enter" && addMember()}
           />
-          <input
-            type="text"
-            inputMode="numeric"
-            readOnly={showCalculatedAge}
-            value={showCalculatedAge ? String(ageFromDob) : ageStr}
-            onChange={(e) => {
-              setAgeStr(e.target.value.replace(/\D/g, ""));
-              setBirthDate("");
-              setAgeMode("number");
-            }}
-            onFocus={() => {
-              if (showCalculatedAge) {
-                setBirthDate("");
-                setAgeMode("number");
-                setAgeStr("");
-              }
-            }}
-            style={ageBoxStyle(ageMode === "number" || showCalculatedAge, showCalculatedAge)}
-            onKeyDown={(e) => e.key === "Enter" && addMember()}
-          />
-          <button
-            type="button"
-            onClick={() => dateInputRef.current?.showPicker?.() ?? dateInputRef.current?.click()}
-            style={{
-              ...ageBoxStyle(ageMode === "date", false),
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              background: ageMode === "date" ? "rgba(45,90,61,.08)" : "#fff",
-              position: "relative",
-            }}
-          >
-            <CalendarDays size={20} color="#2d5a3d" />
-            <input
-              ref={dateInputRef}
-              type="date"
-              value={birthDate}
-              onChange={(e) => {
-                setBirthDate(e.target.value);
-                setAgeMode("date");
-              }}
-              style={{
-                position: "absolute",
-                opacity: 0,
-                width: 1,
-                height: 1,
-                pointerEvents: "none",
-              }}
-              tabIndex={-1}
-            />
-          </button>
-          <div style={{ flex: 1, minWidth: 8 }} />
-          <button
-            type="button"
-            onClick={addMember}
-            disabled={!canAdd}
-            style={{
-              height: fieldH,
-              padding: "0 14px",
-              borderRadius: 10,
-              border: "none",
-              background: canAdd ? "#2d5a3d" : "#cdd5d0",
-              color: "#fff",
-              fontSize: 13,
-              fontWeight: 800,
-              cursor: canAdd ? "pointer" : "not-allowed",
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              flexShrink: 0,
-              fontFamily: "inherit",
-            }}
-          >
-            <Plus size={16} />
-            Añadir
-          </button>
         </div>
-      </div>
 
-      {showPersonas && (
-        <div
+        {/* Edad column: label centered over number input + calendar button */}
+        <div style={{ flexShrink: 0 }}>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3, color: "#3d6b4f", textAlign: "center", marginBottom: 4 }}>
+            Edad
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              type="text"
+              inputMode="numeric"
+              readOnly={showCalculatedAge}
+              value={showCalculatedAge ? String(ageFromDob) : ageStr}
+              onChange={(e) => { setAgeStr(e.target.value.replace(/\D/g, "")); setBirthDate(""); setAgeMode("number"); }}
+              onFocus={() => { if (showCalculatedAge) { setBirthDate(""); setAgeMode("number"); setAgeStr(""); } }}
+              style={ageBoxStyle(ageMode === "number" || showCalculatedAge, showCalculatedAge)}
+              onKeyDown={(e) => e.key === "Enter" && addMember()}
+            />
+            <button
+              type="button"
+              onClick={() => { try { dateInputRef.current?.showPicker?.(); } catch { dateInputRef.current?.click(); } }}
+              style={{
+                ...ageBoxStyle(ageMode === "date", false),
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", background: ageMode === "date" ? "rgba(45,90,61,.08)" : "#fff",
+                position: "relative",
+              }}
+            >
+              <CalendarDays size={20} color="#2d5a3d" />
+              <input
+                ref={dateInputRef}
+                type="date"
+                value={birthDate}
+                onChange={(e) => { setBirthDate(e.target.value); setAgeMode("date"); }}
+                style={{ position: "absolute", opacity: 0, width: 1, height: 1, pointerEvents: "none" }}
+                tabIndex={-1}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Añadir */}
+        <button
+          type="button"
+          onClick={addMember}
+          disabled={!canAdd}
           style={{
-            marginTop: 28,
-            paddingTop: 20,
-            borderTop: "1px solid rgba(45,90,61,.12)",
+            height: fieldH, padding: "0 14px", borderRadius: 10, border: "none",
+            background: canAdd ? "#2d5a3d" : "#cdd5d0", color: "#fff",
+            fontSize: 13, fontWeight: 800, cursor: canAdd ? "pointer" : "not-allowed",
+            display: "inline-flex", alignItems: "center", gap: 6,
+            flexShrink: 0, fontFamily: "inherit",
           }}
         >
+          <Plus size={16} />
+          Añadir
+        </button>
+      </div>
+
+      <style>{`
+        @keyframes memberIn {
+          from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)   scale(1);    }
+        }
+        .member-enter { animation: memberIn .22s cubic-bezier(.25,.46,.45,.94) both; }
+      `}</style>
+
+      {/* Divider */}
+      {hasMembers && (
+        <div style={{ height: 1, background: "rgba(45,90,61,.1)", margin: "4px 0 8px" }} />
+      )}
+
+      {/* Member cards */}
+      {data.members.map((m, idx) => {
+        const role = m.homeRole ?? suggestHomeRole(memberAge(m));
+        const avatarColor = MEMBER_AVATAR_COLORS[idx % MEMBER_AVATAR_COLORS.length];
+        const RoleIcon = ROLE_ICON_MAP[role] ?? User;
+        const initial = m.name.trim()[0]?.toUpperCase() ?? "?";
+        return (
           <div
+            key={m.id}
+            className="member-enter"
             style={{
-              display: "grid",
-              gridTemplateColumns: gridCols,
-              gap: 8,
-              alignItems: "center",
-              marginBottom: 6,
-              padding: "0 4px",
+              display: "flex", alignItems: "center", gap: 10,
+              padding: "10px 12px", background: "#f6f9f7",
+              borderRadius: 14, marginBottom: 8,
             }}
           >
-            <span style={{ ...colHdr, color: "#1a3a24" }}>Nombre</span>
-            <span style={{ ...colHdr, color: "#3d6b4f", textAlign: "center" }}>Edad</span>
-            <span style={{ ...colHdr, color: "#5a7a4a" }}>En casa es</span>
-            <span />
+            <div style={{ width: 40, height: 40, borderRadius: "50%", background: avatarColor,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 15, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
+              {initial}
+            </div>
+            <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: 14, color: "#1a3a24",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {m.name}
+            </div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#3d6b4f", width: 32, textAlign: "center", flexShrink: 0 }}>
+              {memberAge(m)}
+            </div>
+            <button
+              type="button"
+              onClick={() => setRoleEditId(m.id)}
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 5,
+                padding: "5px 10px", borderRadius: 20,
+                border: "1.5px solid #d0e0d6", background: "#fff",
+                color: "#2d5a3d", fontSize: 12, fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+                width: 100, justifyContent: "center",
+              }}
+            >
+              <RoleIcon size={12} />
+              {role}
+              <ChevronDown size={11} />
+            </button>
+            <button
+              type="button"
+              onClick={() => removeMember(m.id)}
+              aria-label={`Quitar a ${m.name}`}
+              style={{ border: "none", background: "transparent", cursor: "pointer", color: "#c47070",
+                display: "flex", alignItems: "center", justifyContent: "center", padding: 4, flexShrink: 0 }}
+            >
+              <Trash2 size={15} />
+            </button>
           </div>
-
-          {trimmedName && (
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: gridCols,
-                gap: 8,
-                alignItems: "center",
-                marginBottom: 6,
-                padding: "8px 10px",
-                borderRadius: 10,
-                border: "1.5px dashed rgba(45,90,61,.35)",
-                background: "rgba(45,90,61,.03)",
-              }}
-            >
-              <span style={{ ...cellText, color: "#3d6b4f" }}>{trimmedName}</span>
-              <span style={{ ...cellText, textAlign: "center", color: "#888" }}>
-                {ageProvided ? computedAge : "—"}
-              </span>
-              <span style={{ ...cellText, color: "#888" }}>
-                {ageProvided ? suggestHomeRole(computedAge) : "—"}
-              </span>
-              <span />
-            </div>
-          )}
-
-          {data.members.map((m) => (
-            <div
-              key={m.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: gridCols,
-                gap: 8,
-                alignItems: "center",
-                marginBottom: 6,
-                background: "#f6f9f7",
-                borderRadius: 10,
-                padding: "8px 10px",
-              }}
-            >
-              <span
-                style={{
-                  ...cellText,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {m.name}
-              </span>
-              <input
-                inputMode="numeric"
-                value={String(memberAge(m))}
-                onChange={(e) => updateMemberAge(m.id, e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "5px 2px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                  ...cellText,
-                  textAlign: "center",
-                  boxSizing: "border-box",
-                }}
-              />
-              <select
-                value={m.homeRole ?? suggestHomeRole(memberAge(m))}
-                onChange={(e) => updateMemberHomeRole(m.id, e.target.value)}
-                style={{
-                  width: "100%",
-                  padding: "5px 4px",
-                  borderRadius: 8,
-                  border: "1px solid #ddd",
-                  ...cellText,
-                  background: "#fff",
-                  boxSizing: "border-box",
-                }}
-              >
-                {HOUSEHOLD_ROLES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => removeMember(m.id)}
-                aria-label={`Quitar a ${m.name}`}
-                style={{
-                  border: "none",
-                  background: "transparent",
-                  cursor: "pointer",
-                  color: "#c47070",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  padding: 0,
-                }}
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+        );
+      })}
     </OnboardingShell>
   );
 }
@@ -1260,13 +1212,13 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
   const models = [
     {
       id: "same",
-      icon: <Users size={36} color="#2d5a3d" />,
+      Icon: Users,
       label: "Todos comemos lo mismo",
       desc: "Un único menú para toda la familia",
     },
     {
       id: "separate",
-      icon: <GitBranch size={36} color="#2d5a3d" />,
+      Icon: GitBranch,
       label: "Menús separados",
       desc: "Cada grupo tiene su propio menú — ideal si hay niños con gustos distintos",
     },
@@ -1322,10 +1274,10 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
                 padding: "28px 20px",
                 borderRadius: 18,
                 cursor: "pointer",
-                background: sel ? "rgba(45,90,61,.07)" : "#f7f9f8",
+                background: sel ? "#2d5a3d" : "#f7f9f8",
                 border: `2.5px solid ${sel ? "#2d5a3d" : "#e8ede9"}`,
-                boxShadow: sel ? "0 4px 18px rgba(45,90,61,.12)" : "none",
-                transition: "all .15s ease",
+                boxShadow: sel ? "0 4px 18px rgba(45,90,61,.25)" : "none",
+                transition: "all .18s ease",
               }}
             >
               <span
@@ -1333,18 +1285,18 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
                   width: 68,
                   height: 68,
                   borderRadius: 20,
-                  background: sel ? "rgba(45,90,61,.1)" : "#edf2ee",
+                  background: sel ? "rgba(255,255,255,.18)" : "#edf2ee",
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "background .15s ease",
+                  transition: "background .18s ease",
                 }}
               >
-                {m.icon}
+                <m.Icon size={36} color={sel ? "#fff" : "#2d5a3d"} />
               </span>
               <span>
-                <div style={{ fontWeight: 800, color: "#1a3a24", fontSize: 16, marginBottom: 4 }}>{m.label}</div>
-                <div style={{ fontSize: 13, color: "#7a9080", lineHeight: 1.4 }}>{m.desc}</div>
+                <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 16, marginBottom: 4 }}>{m.label}</div>
+                <div style={{ fontSize: 13, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.4 }}>{m.desc}</div>
               </span>
               {sel && (
                 <span
@@ -1352,7 +1304,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 4,
-                    background: "#2d5a3d",
+                    background: "rgba(255,255,255,.2)",
                     color: "#fff",
                     fontSize: 12,
                     fontWeight: 700,
@@ -1422,6 +1374,7 @@ const MIXED_COLOR = "#aaa";
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
   const meals = getMeals(data);
   const memberList = useMemo(() => data.members ?? [], [data.members]);
+  const [sheetSlot, setSheetSlot] = useState(null);
   const [quickFillOpen, setQuickFillOpen] = useState(false);
   const [qfWeekday, setQfWeekday] = useState("casa");
   const [qfFinde, setQfFinde] = useState("casa");
@@ -1436,7 +1389,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   // Sheet state: { day, meal | null } — when meal is null, the sheet is in
   // "day mode" (only row-level actions, no per-member edition for a slot).
-  const [sheetSlot, setSheetSlot] = useState(null);
   const [toast, setToast] = useState(null);
   const mainMeal = primaryDayMeal(data);
 
@@ -1949,50 +1901,23 @@ function ScheduleSlotSheet({
     <div
       onClick={onClose}
       style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,.45)",
-        zIndex: 150,
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
+        position: "fixed", inset: 0, background: "rgba(0,0,0,.45)",
+        zIndex: 150, display: "flex", alignItems: "flex-end", justifyContent: "center",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "#fff",
-          borderRadius: "20px 20px 0 0",
-          width: "100%",
-          maxWidth: 420,
+          background: "#fff", borderRadius: "20px 20px 0 0",
+          width: "100%", maxWidth: 420,
           padding: "12px 14px calc(18px + env(safe-area-inset-bottom, 0px))",
-          maxHeight: "70vh",
-          overflowY: "auto",
+          maxHeight: "70vh", overflowY: "auto",
         }}
       >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 8,
-          }}
-        >
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
           <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#1a3a24" }}>{title}</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            style={{
-              background: "transparent",
-              border: "none",
-              color: "#888",
-              fontSize: 22,
-              cursor: "pointer",
-              padding: 4,
-              lineHeight: 1,
-            }}
-          >
+          <button type="button" onClick={onClose}
+            style={{ background: "transparent", border: "none", color: "#888", fontSize: 22, cursor: "pointer", padding: 4, lineHeight: 1 }}>
             ×
           </button>
         </div>
@@ -2001,40 +1926,13 @@ function ScheduleSlotSheet({
 
         {members.length > 1 && (
           <>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "rgba(45,90,61,.1)",
-                border: "1.5px solid rgba(45,90,61,.28)",
-                marginBottom: 0,
-              }}
-            >
-              <span
-                style={{
-                  flex: 1,
-                  fontSize: 13,
-                  fontWeight: 800,
-                  color: "#2d5a3d",
-                  minWidth: 0,
-                }}
-              >
-                Todos
-              </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%",
+              padding: "10px 12px", borderRadius: 10,
+              background: "rgba(45,90,61,.1)", border: "1.5px solid rgba(45,90,61,.28)", marginBottom: 0 }}>
+              <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: "#2d5a3d", minWidth: 0 }}>Todos</span>
               <SlotIconRow columns={columns} value={null} onPick={onSetAllSlot} />
             </div>
-            <div
-              style={{
-                height: 1,
-                background: "#e3ebe6",
-                margin: "12px 0",
-                width: "100%",
-              }}
-            />
+            <div style={{ height: 1, background: "#e3ebe6", margin: "12px 0", width: "100%" }} />
           </>
         )}
 
@@ -2044,42 +1942,12 @@ function ScheduleSlotSheet({
             const cur = raw === "off" ? "casa" : raw;
             const kid = stageForAge(memberAge(m)).id !== "adulto";
             return (
-              <div
-                key={m.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  width: "100%",
-                }}
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
+              <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
+                <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8 }}>
                   <Avatar name={m.name} size={24} />
-                  <span
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 700,
-                      color: "#1a3a24",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
-                    {m.name}
-                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", whiteSpace: "nowrap" }}>{m.name}</span>
                 </div>
-                <SlotIconRow
-                  columns={columns}
-                  value={cur}
-                  onPick={(s) => onSetMember(m.id, s)}
-                  memberIsKid={kid}
-                />
+                <SlotIconRow columns={columns} value={cur} onPick={(s) => onSetMember(m.id, s)} memberIsKid={kid} />
               </div>
             );
           })}
