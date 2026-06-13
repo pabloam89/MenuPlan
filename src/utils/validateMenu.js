@@ -4,6 +4,31 @@
  *
  * Each violation: { rule, slotId, message }
  */
+
+// ── Carb-type extraction ─────────────────────────────────────────
+// Used to detect same-day "guarnición" repetition without catalog edits.
+// Matches recipe name + ingredient list, most specific pattern first.
+const CARB_PATTERNS = [
+  [/arroz|paella|risotto/, "arroz"],
+  [/pasta|macarr[oó]n|espagueti|tallar[íi]n|fideo|penne|lasa[ñn]a|canelones|ravioli/, "pasta"],
+  [/patata|papa\b/, "patatas"],
+  [/quinoa/, "quinoa"],
+  [/c[uú]sc[uú]s|couscous/, "cuscus"],
+  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|rebanada/, "pan"],
+];
+
+function getCarbType(recipe) {
+  const text = [recipe.name, ...recipe.ingredients.map((i) => i.name)]
+    .join(" ")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  for (const [pattern, carbType] of CARB_PATTERNS) {
+    if (pattern.test(text)) return carbType;
+  }
+  return null;
+}
+
 export function validateMenu(slotAssignments, filteredPool, slotsContext) {
   const violations = [];
   const poolIds = new Set(filteredPool.map((r) => r.id));
@@ -31,6 +56,14 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
   });
 
   const returnedIds = new Set(slotAssignments.map((s) => s.slotId));
+
+  // Build comidaByDay once — reused by rules 7 and future macro checks
+  const comidaByDay = {};
+  for (const m of mealOrder) {
+    if (m.mealType !== "comida") continue;
+    if (!comidaByDay[m.daySlug]) comidaByDay[m.daySlug] = {};
+    comidaByDay[m.daySlug][m.position] = m;
+  }
 
   // 0. Missing slots — every expected slot must be covered
   for (const ctx of slotsContext) {
@@ -129,26 +162,20 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
   }
 
   // 6. No repeated recipeId in the week
-  const usedIds = new Map();
+  const usedRecipeIds = new Map();
   for (const { slotId, recipeId } of slotAssignments) {
-    if (usedIds.has(recipeId)) {
+    if (usedRecipeIds.has(recipeId)) {
       violations.push({
         rule: "recipeId_repetido",
         slotId,
-        message: `recipeId "${recipeId}" ya usado en ${usedIds.get(recipeId)}`,
+        message: `recipeId "${recipeId}" ya usado en ${usedRecipeIds.get(recipeId)}`,
       });
     } else {
-      usedIds.set(recipeId, slotId);
+      usedRecipeIds.set(recipeId, slotId);
     }
   }
 
   // 7. Comida structure: primero+segundo or plato_unico
-  const comidaByDay = {};
-  for (const m of mealOrder) {
-    if (m.mealType !== "comida") continue;
-    if (!comidaByDay[m.daySlug]) comidaByDay[m.daySlug] = {};
-    comidaByDay[m.daySlug][m.position] = m;
-  }
   for (const [daySlug, positions] of Object.entries(comidaByDay)) {
     const slot1 = positions["1"];
     const slot2 = positions["2"];
@@ -176,6 +203,27 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
         slotId,
         message: `"${recipe.name}" (${recipe.time}min) excede el límite de ${ctx.maxTime}min`,
       });
+    }
+  }
+
+  // 9. Same carb base within the same day (comida_1 + comida_2 + cena)
+  // Catches cases like: sopa de fideos (pasta) + espaguetis (pasta) the same day
+  const dayUsedCarbs = {};
+  for (const m of mealOrder) {
+    const recipe = poolById[m.recipeId];
+    if (!recipe) continue;
+    const carb = getCarbType(recipe);
+    if (!carb) continue;
+    if (!dayUsedCarbs[m.daySlug]) dayUsedCarbs[m.daySlug] = new Map();
+    const dayCarbs = dayUsedCarbs[m.daySlug];
+    if (dayCarbs.has(carb)) {
+      violations.push({
+        rule: "guarnicion_repetida",
+        slotId: m.slotId,
+        message: `"${recipe.name}" tiene base "${carb}" repetida el ${m.daySlug} (también en ${dayCarbs.get(carb)})`,
+      });
+    } else {
+      dayCarbs.set(carb, m.slotId);
     }
   }
 
@@ -212,11 +260,22 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     if (!ctx) continue;
     const mealType = v.slotId.split("_")[1];
     const position = v.slotId.split("_")[2];
+    const daySlug = v.slotId.split("_")[0];
+
+    // Carb types already used this day (to avoid creating new guarnicion_repetida)
+    const dayCarbsUsed = new Set();
+    for (const s of result) {
+      if (!s.slotId.startsWith(daySlug + "_")) continue;
+      const r = poolById[s.recipeId];
+      if (r) { const c = getCarbType(r); if (c) dayCarbsUsed.add(c); }
+    }
 
     const candidate = filteredPool.find((r) => {
       if (usedIds.has(r.id)) return false;
       if (ctx.maxTime && r.time > ctx.maxTime) return false;
       if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
+      const carb = getCarbType(r);
+      if (carb && dayCarbsUsed.has(carb)) return false;
 
       if (mealType === "cena") return r.mealRole.includes("cena");
       if (position === "1") return r.mealRole.some((role) => role === "primero" || role === "plato_unico");
@@ -238,6 +297,18 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     const slot = result[idx];
     const ctx = contextBySlot[slot.slotId];
     const mealType = slot.slotId.split("_")[1];
+    const daySlug = slot.slotId.split("_")[0];
+
+    // For guarnicion_repetida: collect carb types used in this day (excluding current slot)
+    const dayCarbsUsed = new Set();
+    if (v.rule === "guarnicion_repetida") {
+      for (const s of result) {
+        if (s.slotId === slot.slotId) continue;
+        if (!s.slotId.startsWith(daySlug + "_")) continue;
+        const r = poolById[s.recipeId];
+        if (r) { const c = getCarbType(r); if (c) dayCarbsUsed.add(c); }
+      }
+    }
 
     const replacement = filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
@@ -264,6 +335,11 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         };
         const group = proteinMap[r.mainProtein] ?? r.mainProtein;
         if (ctx.schoolProteinsToAvoid.includes(group)) return false;
+      }
+
+      if (v.rule === "guarnicion_repetida") {
+        const carb = getCarbType(r);
+        if (carb && dayCarbsUsed.has(carb)) return false;
       }
 
       return true;
