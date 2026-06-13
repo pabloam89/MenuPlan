@@ -520,11 +520,43 @@ export async function generateMenuWithAI(data, { signal } = {}) {
         const fr = catalogToFrontendRecipe(catalogRecipe, eaters);
         if (prefix) fr.id = frontendId;
 
-        // Combine recipe name with garnish shortName for natural display
+        // Merge garnish into the recipe: name, time, macros, ingredients
         if (garnishId) {
           const garnish = guarnicionById[garnishId];
           if (garnish) {
             fr.name = `${fr.name} con ${garnish.shortName}`;
+
+            // Time: dishes are cooked in parallel, show the longest
+            fr.time = Math.max(fr.time, garnish.time);
+
+            // Macros: garnish values are stored per baseServings
+            const gPerServing = garnish.baseServings ?? 1;
+            fr.kcal = fr.kcal + Math.round(garnish.kcal / gPerServing);
+            fr.macros = {
+              protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g / gPerServing),
+              carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g / gPerServing),
+              fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g / gPerServing),
+            };
+
+            // Ingredients: scale garnish to actual number of eaters
+            const gFactor = eaters / gPerServing;
+            const gIngredients = garnish.ingredients.map((ing) => {
+              let scaledQty = ing.amount * gFactor;
+              if (ing.unit === "g" || ing.unit === "ml") {
+                scaledQty = Math.round(scaledQty / 5) * 5;
+                if (scaledQty < 5) scaledQty = 5;
+              } else {
+                scaledQty = Math.ceil(scaledQty);
+              }
+              return {
+                id: `garnish-${ing.name.toLowerCase().replace(/\s+/g, "-")}`,
+                name: ing.name,
+                category: guessIngredientCategory(ing.name),
+                qty: scaledQty,
+                unit: ing.unit,
+              };
+            });
+            fr.ingredients = [...fr.ingredients, ...gIngredients];
           }
         }
 
