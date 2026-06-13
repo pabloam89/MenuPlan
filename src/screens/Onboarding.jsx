@@ -2567,6 +2567,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   const [scope, setScope] = useState("shared");
   const [activeKidId, setActiveKidId] = useState(schoolKids[0]?.id ?? null);
   const [importing, setImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState(0);
   const [importStatus, setImportStatus] = useState("");
   const [importError, setImportError] = useState(null);
   const [importedFileName, setImportedFileName] = useState("");
@@ -2647,6 +2648,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       };
     });
     setImportedFileName("");
+    setImportStatus("");
+    setImportProgress(0);
     setParsedWeeks([]);
     setSelectedWeekIdx(0);
   };
@@ -2654,22 +2657,28 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   const handleFile = async (file) => {
     if (!file) return;
     setImporting(true);
+    setImportProgress(0.05);
     setImportError(null);
     setImportStatus("Leyendo archivo…");
     try {
       const { weeks, entries } = await importSchoolMenuFile(file, {
         onProgress: (p) => {
           if (p.stage === "pdf-text") {
+            setImportProgress(0.05 + (p.page / p.total) * 0.45);
             setImportStatus(`Leyendo PDF (${p.page}/${p.total})…`);
           } else if (p.stage === "ocr-fallback") {
+            setImportProgress(0.5);
             setImportStatus("PDF sin texto, aplicando OCR…");
           } else if (p.stage === "ocr-page") {
+            setImportProgress(0.5 + (p.page / p.total) * 0.3);
             setImportStatus(`OCR página ${p.page}/${p.total}…`);
           } else if (p.stage === "ocr-progress" && p.status) {
             const pct = typeof p.progress === "number" ? Math.round(p.progress * 100) : null;
+            setImportProgress(0.5 + (p.progress ?? 0) * 0.3);
             setImportStatus(`OCR · ${p.status}${pct != null ? ` ${pct}%` : ""}`);
           } else if (p.stage === "ai-parse") {
-            setImportStatus("Usando IA para interpretar el menú…");
+            setImportProgress(0.85);
+            setImportStatus("Interpretando con IA…");
           }
         },
       });
@@ -2708,6 +2717,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       setImportError(err?.message ?? "No se pudo procesar el archivo");
     } finally {
       setImporting(false);
+      setImportProgress(0);
     }
   };
 
@@ -2857,21 +2867,58 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             {importing ? <Loader2 size={16} className="rotating" /> : <Upload size={16} />}
           </span>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>
-              {importing ? "Procesando…" : "Subir PDF, foto o CSV"}
-            </div>
-            {(importing || importedFileName) && (
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "#888",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
-                {importing ? importStatus || "…" : importedFileName}
-              </div>
+            {importing ? (
+              <>
+                <div
+                  style={{
+                    height: 5,
+                    borderRadius: 3,
+                    background: "#ecf1ed",
+                    overflow: "hidden",
+                    marginBottom: 5,
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${Math.round(importProgress * 100)}%`,
+                      background: "#2d5a3d",
+                      borderRadius: 3,
+                      transition: "width .4s ease",
+                    }}
+                  />
+                </div>
+                <div
+                  style={{
+                    fontSize: 11,
+                    color: "#8d978f",
+                    whiteSpace: "nowrap",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                  }}
+                >
+                  {importStatus || "…"}
+                </div>
+              </>
+            ) : (
+              <>
+                <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>
+                  Subir PDF, foto o CSV
+                </div>
+                {importedFileName && (
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "#888",
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {importedFileName}
+                  </div>
+                )}
+              </>
             )}
           </div>
           <input
