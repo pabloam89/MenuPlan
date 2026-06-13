@@ -7,12 +7,15 @@ import {
   CalendarDays,
   Check,
   ChefHat,
+  ChevronLeft,
+  ChevronRight,
   Coffee,
   Sun,
   Moon,
   ChevronDown,
   ChevronUp,
   Drumstick,
+  Expand,
   FileText,
   Grid2X2,
   House,
@@ -1419,30 +1422,15 @@ const MIXED_COLOR = "#aaa";
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
   const meals = getMeals(data);
   const memberList = useMemo(() => data.members ?? [], [data.members]);
-  const defaultMode = memberList.length > 1 ? "all" : "single";
-  const [subjectMode, setSubjectMode] = useState(defaultMode);
-  const [activeMemberId, setActiveMemberId] = useState(memberList[0]?.id ?? null);
   const [quickFillOpen, setQuickFillOpen] = useState(false);
   const [qfWeekday, setQfWeekday] = useState("casa");
   const [qfFinde, setQfFinde] = useState("casa");
+  const [dayViewOpen, setDayViewOpen] = useState(false);
+  const [dayViewIdx, setDayViewIdx] = useState(0);
 
-  // Derivado en render: si el miembro activo deja de existir, recae en el primero.
-  const validActiveMemberId = memberList.find((m) => m.id === activeMemberId)
-    ? activeMemberId
-    : memberList[0]?.id ?? null;
-
-  const activeMember = data.members.find((m) => m.id === validActiveMemberId);
-
-  const subjectMemberIds = useMemo(() => {
-    if (subjectMode === "all") return memberList.map((m) => m.id);
-    return activeMember ? [activeMember.id] : [];
-  }, [subjectMode, activeMember, memberList]);
-
-  const subjectMembers = useMemo(
-    () => subjectMemberIds.map((id) => data.members.find((m) => m.id === id)).filter(Boolean),
-    [subjectMemberIds, data.members]
-  );
-  const allowCole = subjectMembers.some(
+  const subjectMemberIds = useMemo(() => memberList.map((m) => m.id), [memberList]);
+  const subjectMembers = memberList;
+  const allowCole = memberList.some(
     (m) => stageForAge(memberAge(m)).id !== "adulto"
   );
 
@@ -1543,22 +1531,26 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       const next = { ...d.schedule };
       const dayMeals = getMeals(d);
       const main = primaryDayMeal(d);
-      const colable = subjectMembers.some(
-        (m) => stageForAge(memberAge(m)).id !== "adulto"
-      );
-      for (const day of DAYS) {
-        const isWeekend = day === "Sáb" || day === "Dom";
-        for (const meal of dayMeals) {
-          const isMain = meal === main;
-          let value;
-          if (!isWeekend) {
-            if (qfWeekday === "cole") value = isMain ? (colable ? "cole" : "fuera") : "casa";
-            else if (qfWeekday === "fuera") value = isMain ? "fuera" : "casa";
-            else value = "casa";
-          } else {
-            value = qfFinde === "fuera" && isMain ? "fuera" : "casa";
-          }
-          for (const id of subjectMemberIds) {
+      for (const id of subjectMemberIds) {
+        const member = d.members.find((m) => m.id === id);
+        const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
+        for (const day of DAYS) {
+          const isWeekend = day === "Sáb" || day === "Dom";
+          for (const meal of dayMeals) {
+            const isMain = meal === main;
+            let value;
+            if (!isWeekend) {
+              if (qfWeekday === "cole") {
+                // Cole only applies to school-age kids; adults stay at home
+                value = isMain ? (isKid ? "cole" : "casa") : "casa";
+              } else if (qfWeekday === "fuera") {
+                value = isMain ? "fuera" : "casa";
+              } else {
+                value = "casa";
+              }
+            } else {
+              value = qfFinde === "fuera" && isMain ? "fuera" : "casa";
+            }
             next[`${id}|${day}|${meal}`] = value;
           }
         }
@@ -1587,8 +1579,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     );
   }
 
-  const subjectLabel =
-    subjectMode === "all" ? "la familia" : (activeMember?.name ?? "individual");
+  const subjectLabel = "la familia";
 
   const openDay = (day) => {
     if (subjectMemberIds.length === 0) return;
@@ -1604,77 +1595,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       onNext={onNext}
       onFinish={onFinish}
     >
-      {memberList.length > 1 && (
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ display: "flex", gap: 8, marginBottom: subjectMode === "single" ? 10 : 0 }}>
-            <button
-              type="button"
-              onClick={() => setSubjectMode("all")}
-              style={tabButtonStyle(subjectMode === "all")}
-            >
-              <AvatarStack
-                names={memberList.map((m) => m.name)}
-                size={20}
-                max={4}
-                color={subjectMode === "all" ? "rgba(255,255,255,.35)" : "#bbb"}
-              />
-              Familia
-            </button>
-            <button
-              type="button"
-              onClick={() => setSubjectMode("single")}
-              style={tabButtonStyle(subjectMode === "single")}
-            >
-              <User size={14} />
-              Individual
-            </button>
-          </div>
-          {subjectMode === "single" && (
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                overflowX: "auto",
-                paddingTop: 10,
-                WebkitOverflowScrolling: "touch",
-              }}
-            >
-              {memberList.map((m) => {
-                const sel = m.id === validActiveMemberId;
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => setActiveMemberId(m.id)}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      borderRadius: 20,
-                      border: "none",
-                      padding: "6px 10px 6px 6px",
-                      background: sel ? "#2d5a3d" : "#f0f0f0",
-                      color: sel ? "#fff" : "#555",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      cursor: "pointer",
-                      flexShrink: 0,
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <Avatar
-                      name={m.name}
-                      size={22}
-                      color={sel ? "rgba(255,255,255,.25)" : "#bbb"}
-                    />
-                    {m.name}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
 
       <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
       <SectionTitle>¿Qué comidas quieres organizar?</SectionTitle>
@@ -1741,35 +1661,65 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       `}</style>
 
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        <SectionTitle>Tu semana</SectionTitle>
+        {/* Semana / Día toggle — alineado a la izquierda donde estaba "Tu semana" */}
+        <div style={{
+          display: "flex", background: "#f0f4f1", borderRadius: 10, padding: 3, gap: 2,
+        }}>
+          <button
+            type="button"
+            onClick={() => setDayViewOpen(false)}
+            style={{
+              padding: "4px 10px", borderRadius: 8, border: "none", fontSize: 11, fontWeight: 700,
+              background: !dayViewOpen ? "#fff" : "transparent",
+              color: !dayViewOpen ? "#1a3a24" : "#9ab0a1",
+              boxShadow: !dayViewOpen ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+              cursor: "pointer", fontFamily: "inherit", transition: "all .15s ease",
+            }}
+          >
+            Semana
+          </button>
+          <button
+            type="button"
+            onClick={() => { setDayViewIdx(0); setDayViewOpen(true); }}
+            style={{
+              padding: "4px 10px", borderRadius: 8, border: "none", fontSize: 11, fontWeight: 700,
+              background: dayViewOpen ? "#2d5a3d" : "transparent",
+              color: dayViewOpen ? "#fff" : "#9ab0a1",
+              boxShadow: dayViewOpen ? "0 1px 4px rgba(45,90,61,.3)" : "none",
+              cursor: "pointer", fontFamily: "inherit", transition: "all .15s ease",
+            }}
+          >
+            Día
+          </button>
+        </div>
         <button
-          type="button"
-          onClick={() => setQuickFillOpen(true)}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 7,
-            padding: "6px 12px 6px 7px",
-            borderRadius: 999,
-            border: "1.5px solid #d4e6da",
-            background: "#f0f7f2",
-            color: "#2d5a3d",
-            fontSize: 12,
-            fontWeight: 700,
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
-        >
-          <span style={{
-            width: 22, height: 22, borderRadius: "50%",
-            background: "#2d5a3d",
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            flexShrink: 0,
-          }}>
-            <Zap size={12} color="#fff" />
-          </span>
-          Acciones rápidas
-        </button>
+            type="button"
+            onClick={() => setQuickFillOpen(true)}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 7,
+              padding: "6px 12px 6px 7px",
+              borderRadius: 999,
+              border: "1.5px solid #d4e6da",
+              background: "#f0f7f2",
+              color: "#2d5a3d",
+              fontSize: 12,
+              fontWeight: 700,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <span style={{
+              width: 22, height: 22, borderRadius: "50%",
+              background: "#2d5a3d",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}>
+              <Zap size={12} color="#fff" />
+            </span>
+            Acciones rápidas
+          </button>
       </div>
 
       {quickFillOpen && (
@@ -1803,9 +1753,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
                   <Zap size={16} color="#fff" />
                 </span>
                 <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1a3a24" }}>
-                  {subjectMode === "single" && activeMember
-                    ? `Semana de ${activeMember.name}`
-                    : "Semana de la familia"}
+                  Semana de la familia
                 </h3>
               </div>
               <button
@@ -1817,16 +1765,12 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
             </div>
 
             <p style={{ fontSize: 13, color: "#999", margin: "0 0 22px", lineHeight: 1.5 }}>
-              {subjectMode === "single"
-                ? `Elige cómo se organiza ${activeMember?.name ?? "esta persona"} y lo aplicamos a toda la semana.`
-                : "Elige un patrón y lo aplicamos a toda la semana. Después puedes ajustar cada celda."}
+              Elige un patrón y lo aplicamos a toda la semana. Después ajusta cada celda en la vista por día.
             </p>
 
             <div style={{ marginBottom: 22 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
-                {subjectMode === "single"
-                  ? `Entre semana, ¿dónde come ${activeMember?.name ?? ""}?`
-                  : "Entre semana, ¿dónde coméis?"}
+                Entre semana, ¿dónde coméis?
               </div>
               <QuickFillSegment
                 value={qfWeekday}
@@ -1841,9 +1785,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
             <div style={{ marginBottom: 28 }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
-                {subjectMode === "single"
-                  ? `El fin de semana, ¿qué hace ${activeMember?.name ?? ""}?`
-                  : "El fin de semana, ¿qué hacéis?"}
+                El fin de semana, ¿qué hacéis?
               </div>
               <QuickFillSegment
                 value={qfFinde}
@@ -1928,6 +1870,22 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         >
           {toast}
         </div>
+      )}
+
+      {dayViewOpen && (
+        <DayView
+          days={DAYS}
+          meals={meals}
+          members={memberList}
+          schedule={data.schedule}
+          coleAllowedIds={new Set(memberList.filter((m) => stageForAge(memberAge(m)).id !== "adulto").map((m) => m.id))}
+          dayIdx={dayViewIdx}
+          onDayChange={setDayViewIdx}
+          onClose={() => setDayViewOpen(false)}
+          onSetMemberSlot={(memberId, day, meal, value) =>
+            setMemberSlot(memberId, day, meal, value)
+          }
+        />
       )}
     </OnboardingShell>
   );
@@ -2371,6 +2329,247 @@ function MixedDots({ states }) {
         );
       })}
     </span>
+  );
+}
+
+const FULL_DAY_NAMES = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), dayIdx, onDayChange, onClose, onSetMemberSlot }) {
+  const [touchStartX, setTouchStartX] = useState(null);
+  const [slideDir, setSlideDir] = useState("none");
+  const [visibleIdx, setVisibleIdx] = useState(dayIdx);
+  const animKeyRef = useRef(0);
+  const [animKey, setAnimKey] = useState(0);
+
+  const goTo = (newIdx, dir) => {
+    if (newIdx < 0 || newIdx >= days.length) return;
+    setSlideDir(dir);
+    animKeyRef.current += 1;
+    setAnimKey(animKeyRef.current);
+    setVisibleIdx(newIdx);
+    onDayChange(newIdx);
+  };
+
+  const handleTouchStart = (e) => setTouchStartX(e.touches[0].clientX);
+  const handleTouchEnd = (e) => {
+    if (touchStartX === null) return;
+    const delta = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(delta) > 40) {
+      delta < 0 ? goTo(visibleIdx + 1, "forward") : goTo(visibleIdx - 1, "backward");
+    }
+    setTouchStartX(null);
+  };
+
+  const cycleState = (memberId, day, meal) => {
+    const canCole = coleAllowedIds.has(memberId);
+    const states = canCole ? ["casa", "cole", "fuera"] : ["casa", "fuera"];
+    const current = schedule[`${memberId}|${day}|${meal}`] ?? "casa";
+    const idx = states.indexOf(current === "off" ? "casa" : current);
+    const next = states[(idx + 1) % states.length];
+    onSetMemberSlot(memberId, day, meal, next);
+  };
+
+  const day = days[visibleIdx];
+  const slideAnim = slideDir === "forward"
+    ? "slideFromRight .22s cubic-bezier(.25,.46,.45,.94) both"
+    : slideDir === "backward"
+    ? "slideFromLeft .22s cubic-bezier(.25,.46,.45,.94) both"
+    : "none";
+
+  const mealIcon = (meal, size = 15) =>
+    meal === "Desayuno" ? <Coffee size={size} /> :
+    meal === "Comida"   ? <Sun size={size} />    : <Moon size={size} />;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 250,
+        background: "rgba(0,0,0,.5)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+        animation: "qfFadeIn .2s ease both",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+        style={{
+          background: "#fff",
+          borderRadius: "22px 22px 0 0",
+          width: "100%",
+          maxWidth: 420,
+          height: "92vh",
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          animation: "qfSlideUp .28s cubic-bezier(.25,.46,.45,.94) both",
+        }}
+      >
+        {/* Header */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "14px 16px 8px", flexShrink: 0,
+        }}>
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              width: 34, height: 34, borderRadius: "50%", border: "none",
+              background: "#f0f4f1", display: "flex", alignItems: "center",
+              justifyContent: "center", cursor: "pointer", flexShrink: 0,
+            }}
+          >
+            <X size={16} />
+          </button>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => goTo(visibleIdx - 1, "backward")}
+              disabled={visibleIdx === 0}
+              style={{
+                width: 30, height: 30, borderRadius: "50%", border: "none",
+                background: visibleIdx === 0 ? "transparent" : "#f0f4f1",
+                color: visibleIdx === 0 ? "#ccc" : "#2d5a3d",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: visibleIdx === 0 ? "default" : "pointer",
+              }}
+            >
+              <ChevronLeft size={15} />
+            </button>
+            <span style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", minWidth: 96, textAlign: "center" }}>
+              {FULL_DAY_NAMES[visibleIdx]}
+            </span>
+            <button
+              type="button"
+              onClick={() => goTo(visibleIdx + 1, "forward")}
+              disabled={visibleIdx === days.length - 1}
+              style={{
+                width: 30, height: 30, borderRadius: "50%", border: "none",
+                background: visibleIdx === days.length - 1 ? "transparent" : "#f0f4f1",
+                color: visibleIdx === days.length - 1 ? "#ccc" : "#2d5a3d",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: visibleIdx === days.length - 1 ? "default" : "pointer",
+              }}
+            >
+              <ChevronRight size={15} />
+            </button>
+          </div>
+
+          <div style={{ width: 34 }} />
+        </div>
+
+        {/* Day progress bar — same style as top progress bar */}
+        <div style={{ display: "flex", gap: 4, padding: "0 20px 10px", flexShrink: 0 }}>
+          {days.map((d, i) => {
+            const active = i === visibleIdx;
+            const wknd = i >= 5;
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => goTo(i, i > visibleIdx ? "forward" : "backward")}
+                style={{
+                  flex: 1, height: active ? 5 : 4, borderRadius: 99, border: "none", padding: 0,
+                  background: active ? "#4cba6e" : wknd ? "rgba(45,90,61,.4)" : "#d6e6db",
+                  boxShadow: active ? "0 0 6px rgba(76,186,110,.6)" : "none",
+                  cursor: "pointer",
+                  transition: "all .25s ease",
+                }}
+                title={d}
+              />
+            );
+          })}
+        </div>
+
+        {/* Hint */}
+        <p style={{
+          margin: "0 20px 10px", fontSize: 11, color: "#9ab0a1", fontStyle: "italic",
+          flexShrink: 0,
+        }}>
+          Toca cada celda para rotar entre En casa, {coleAllowedIds.size > 0 ? "Comedor (solo niños) y " : ""}Come fuera.
+        </p>
+
+        {/* Grid: rows=members, cols=meals */}
+        <div
+          key={animKey}
+          style={{
+            flex: 1, overflow: "auto",
+            padding: "0 16px 28px",
+            animation: slideAnim,
+          }}
+        >
+          {/* Column headers */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: `100px repeat(${meals.length}, 1fr)`,
+            gap: 8, marginBottom: 10,
+          }}>
+            <div />
+            {meals.map((meal) => (
+              <div key={meal} style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                padding: "10px 4px",
+                background: "#2d5a3d", borderRadius: 14,
+                color: "#fff", fontSize: 11, fontWeight: 800,
+              }}>
+                {mealIcon(meal, 16)}
+                {meal}
+              </div>
+            ))}
+          </div>
+
+          {/* Rows = members */}
+          {members.map((member) => (
+            <div
+              key={member.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: `100px repeat(${meals.length}, 1fr)`,
+                gap: 8, marginBottom: 10,
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 4px" }}>
+                <Avatar name={member.name} size={28} />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#1a3a24", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {member.name}
+                </span>
+              </div>
+
+              {meals.map((meal) => {
+                const raw = schedule[`${member.id}|${day}|${meal}`] ?? "casa";
+                const value = raw === "off" ? "casa" : raw;
+                const conf = SLOT_CONFIG[value] ?? SLOT_CONFIG.casa;
+                const isCasa = value === "casa";
+                return (
+                  <button
+                    key={meal}
+                    type="button"
+                    onClick={() => cycleState(member.id, day, meal)}
+                    style={{
+                      height: 68, borderRadius: 16, border: "none",
+                      background: isCasa ? "#eef4f0" : conf.color,
+                      color: isCasa ? "#6f8f7c" : "#fff",
+                      boxShadow: isCasa ? "none" : `0 4px 14px ${conf.color}55`,
+                      display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center",
+                      gap: 5, cursor: "pointer", fontFamily: "inherit",
+                      transition: "background .15s ease, box-shadow .15s ease",
+                    }}
+                  >
+                    {stateIcon(value, 20)}
+                    <span style={{ fontSize: 10, fontWeight: 800, opacity: isCasa ? 0.7 : 1 }}>
+                      {SLOT_CONFIG[value]?.label ?? "En casa"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
 }
 
