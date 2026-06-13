@@ -558,6 +558,28 @@ export default function App() {
 
 function SplashScreen({ onNext, hasSaved, onResume }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
+  const phrases = [
+    "qué te gusta comer",
+    "qué no puedes comer",
+    "cuándo comes en casa",
+    "tu tiempo para cocinar",
+    "el menú del cole de tus hijos",
+  ];
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const total = phrases.length;
+    const interval = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setPhraseIdx((i) => (i + 1) % total);
+        setVisible(true);
+      }, 350);
+    }, 1800);
+    return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div
@@ -699,28 +721,41 @@ function SplashScreen({ onNext, hasSaved, onResume }) {
         >
           Menú<span style={{ color: "#7ecb96" }}>Plan</span>
         </h1>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 4 }}>
-          {[
-            { delay: ".25s", text: "Deja de agobiarte con cuadrar el menú." },
-            { delay: ".4s",  text: "Para que tus hijos coman variado cada semana." },
-          ].map(({ delay, text }) => (
-            <p
-              key={text}
-              style={{
-                fontSize: 20,
-                lineHeight: 1.35,
-                margin: 0,
-                color: "rgba(255,255,255,.88)",
-                fontWeight: 400,
-                fontStyle: "italic",
-                letterSpacing: "-.2px",
-                textShadow: "0 1px 10px rgba(0,0,0,.5)",
-                animation: `fadeUp .8s ease-out ${delay} both`,
-              }}
-            >
-              {text}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
+          <p style={{
+            fontSize: 20, lineHeight: 1.4, margin: 0,
+            color: "rgba(255,255,255,.88)", fontWeight: 400, fontStyle: "italic",
+            letterSpacing: "-.2px", textShadow: "0 1px 10px rgba(0,0,0,.5)",
+            textAlign: "left",
+            animation: "fadeUp .8s ease-out .25s both",
+          }}>
+            Tu app de <span style={{ color: "#7ecb96" }}>menús familiares</span>.
+          </p>
+          <div style={{ animation: "fadeUp .8s ease-out .4s both", textAlign: "left" }}>
+            <p style={{
+              fontSize: 20, lineHeight: 1.4, margin: 0,
+              color: "rgba(255,255,255,.88)", fontWeight: 400, fontStyle: "italic",
+              letterSpacing: "-.2px", textShadow: "0 1px 10px rgba(0,0,0,.5)",
+            }}>
+              Dinos{" "}
+              <span style={{
+                color: "#7ecb96",
+                display: "inline-block",
+                opacity: visible ? 1 : 0,
+                transform: visible ? "translateY(0)" : "translateY(5px)",
+                transition: "opacity .35s ease, transform .35s ease",
+              }}>
+                {phrases[phraseIdx]}
+              </span>
             </p>
-          ))}
+            <p style={{
+              fontSize: 20, lineHeight: 1.4, margin: "6px 0 0",
+              color: "rgba(255,255,255,.88)", fontWeight: 400, fontStyle: "italic",
+              letterSpacing: "-.2px", textShadow: "0 1px 10px rgba(0,0,0,.5)",
+            }}>
+              Y nosotros nos encargamos del resto.
+            </p>
+          </div>
         </div>
       </div>
 
