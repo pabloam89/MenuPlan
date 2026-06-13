@@ -401,6 +401,11 @@ export default function App() {
     setScreen("splash");
   }, []);
 
+  // Navigation direction tracking for slide animations
+  const dirRef = useRef("forward");
+  const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
+  const back = (fn) => { dirRef.current = "backward"; fn(); };
+
   // Order: Members → Restrictions → Menu Model → School Menu → Schedule → Goals → Cooking.
   const ONB_STEP_COUNT = 6;
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
@@ -417,47 +422,47 @@ export default function App() {
     <OnboardingMembers
       data={data}
       setData={setData}
-      onNext={() => setOnbStep(1)}
-      onFinish={goToMenu}
+      onNext={() => fwd(() => setOnbStep(1))}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      onNext={() => setOnbStep(2)}
-      onBack={() => setOnbStep(0)}
-      onFinish={goToMenu}
+      onNext={() => fwd(() => setOnbStep(2))}
+      onBack={() => back(() => setOnbStep(0))}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingMenuModel
       data={data}
       setData={setData}
-      onNext={() => setOnbStep(3)}
-      onBack={() => setOnbStep(1)}
-      onFinish={goToMenu}
+      onNext={() => fwd(() => setOnbStep(3))}
+      onBack={() => back(() => setOnbStep(1))}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingSchoolMenu
       data={data}
       setData={setData}
-      onNext={() => setOnbStep(4)}
-      onBack={() => setOnbStep(2)}
-      onFinish={goToMenu}
+      onNext={() => fwd(() => setOnbStep(4))}
+      onBack={() => back(() => setOnbStep(2))}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingSchedule
       data={data}
       setData={setData}
-      onNext={() => setOnbStep(5)}
-      onBack={() => setOnbStep(3)}
-      onFinish={goToMenu}
+      onNext={() => fwd(() => setOnbStep(5))}
+      onBack={() => back(() => setOnbStep(3))}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onBack={() => setOnbStep(4)}
-      onFinish={goToMenu}
+      onBack={() => back(() => setOnbStep(4))}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
   ];
@@ -466,6 +471,9 @@ export default function App() {
   useEffect(() => {
     if (containerRef.current) containerRef.current.scrollTop = 0;
   }, [screen, onbStep]);
+
+  const animKey = `${screen}-${safeOnbStep}`;
+  const animDir = dirRef.current;
 
   return (
     <div
@@ -479,41 +487,59 @@ export default function App() {
         overflow: "hidden",
       }}
     >
+      <style>{`
+        @keyframes slideFromRight {
+          from { opacity: 0; transform: translateX(48px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideFromLeft {
+          from { opacity: 0; transform: translateX(-48px); }
+          to   { opacity: 1; transform: translateX(0); }
+        }
+        .screen-enter-fwd  { animation: slideFromRight .28s cubic-bezier(.25,.46,.45,.94) both; }
+        .screen-enter-back { animation: slideFromLeft  .28s cubic-bezier(.25,.46,.45,.94) both; }
+      `}</style>
       <div
         ref={containerRef}
         style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
       >
         {screen === "splash" && (
           <SplashScreen
-            onNext={() => setScreen("onboarding")}
+            onNext={() => fwd(() => setScreen("onboarding"))}
             hasSaved={data.members.length > 0}
-            onResume={() => (Object.keys(menuPlan).length > 0 ? setScreen("menu") : setScreen("onboarding"))}
+            onResume={() => fwd(() => (Object.keys(menuPlan).length > 0 ? setScreen("menu") : setScreen("onboarding")))}
           />
         )}
 
         {screen === "onboarding" && (
           <OnboardingProgressContext.Provider value={onbProgressValue}>
-            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            <div
+              key={animKey}
+              className={animDir === "forward" ? "screen-enter-fwd" : "screen-enter-back"}
+              style={{ flex: 1, display: "flex", flexDirection: "column" }}
+            >
               <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
             </div>
           </OnboardingProgressContext.Provider>
         )}
 
         {screen === "menu" && (
-          <MenuScreen
-            data={data}
-            setData={setData}
-            menuPlan={menuPlan}
-            isGenerating={isGeneratingMenu}
-            error={menuError}
-            onDishTap={handleDishTap}
-            onNav={handleNav}
-            onRegenerate={handleRegenerate}
-            onRetry={retryGenerateMenu}
-            onStop={stopGeneration}
-            onReset={handleReset}
-            onToast={showToast}
-          />
+          <div key={animKey} className="screen-enter-fwd">
+            <MenuScreen
+              data={data}
+              setData={setData}
+              menuPlan={menuPlan}
+              isGenerating={isGeneratingMenu}
+              error={menuError}
+              onDishTap={handleDishTap}
+              onNav={handleNav}
+              onRegenerate={handleRegenerate}
+              onRetry={retryGenerateMenu}
+              onStop={stopGeneration}
+              onReset={handleReset}
+              onToast={showToast}
+            />
+          </div>
         )}
 
         {screen === "shopping" && (
