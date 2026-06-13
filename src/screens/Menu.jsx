@@ -487,7 +487,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
         <div style={{ marginTop: 16 }}>
           <button
             type="button"
-            onClick={onRegenerate}
+            onClick={() => { onClose(); onRegenerate(); }}
             style={{
               width: "100%", padding: "12px", borderRadius: 12,
               border: "none", background: "#2d5a3d", color: "#fff",

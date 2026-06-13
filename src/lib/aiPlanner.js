@@ -285,8 +285,26 @@ async function generateGroupMenu(data, group, signal) {
   let parsed;
   try {
     parsed = extractJson(text);
-  } catch (err) {
-    throw new AIPlannerError("No se pudo parsear el JSON de la IA.", { cause: err, raw: text });
+  } catch {
+    // LLM returned non-JSON — ask for a JSON-only retry before giving up
+    const retryText = await request(
+      [
+        { role: "user", content: userMessage },
+        { role: "assistant", content: text },
+        {
+          role: "user",
+          content:
+            'Tu respuesta no contiene JSON válido. Devuelve SOLO esto, sin texto adicional: {"slots":[{"slotId":"...","recipeId":"..."},...]}',
+        },
+      ],
+      RETRY_MODEL,
+    );
+    try {
+      parsed = extractJson(retryText);
+      text = retryText;
+    } catch (err2) {
+      throw new AIPlannerError("No se pudo parsear el JSON de la IA.", { cause: err2, raw: retryText });
+    }
   }
 
   let schemaResult = LLMResponseSchema.safeParse(parsed);
