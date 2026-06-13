@@ -318,6 +318,19 @@ async function generateGroupMenu(data, group, signal) {
 
   let slotAssignments = schemaResult.data.slots;
 
+  // ── DIAGNOSTIC LOG ──
+  const expectedSlotIds = new Set(ctx.slots.map((s) => s.slotId));
+  const returnedSlotIds = new Set(slotAssignments.map((s) => s.slotId));
+  const missingSlots = [...expectedSlotIds].filter((id) => !returnedSlotIds.has(id));
+  const unknownSlots = [...returnedSlotIds].filter((id) => !expectedSlotIds.has(id));
+  const invalidIds = slotAssignments.filter((s) => !recipeCatalogById[s.recipeId]);
+  console.log("[aiPlanner] Slots enviados al LLM:", ctx.slots.length, ctx.slots.map((s) => s.slotId));
+  console.log("[aiPlanner] Slots devueltos por LLM:", slotAssignments.length, slotAssignments.map((s) => `${s.slotId}→${s.recipeId}`));
+  if (missingSlots.length) console.warn("[aiPlanner] SLOTS FALTANTES:", missingSlots);
+  if (unknownSlots.length) console.warn("[aiPlanner] SLOTS DESCONOCIDOS:", unknownSlots);
+  if (invalidIds.length) console.warn("[aiPlanner] IDs NO EN CATÁLOGO:", invalidIds.map((s) => `${s.slotId}→${s.recipeId}`));
+  // ── END DIAGNOSTIC ──
+
   // 2. Business rule validation + up to 2 correction retries
   const MAX_RETRIES = 2;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
