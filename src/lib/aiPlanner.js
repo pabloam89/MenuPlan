@@ -6,6 +6,8 @@ import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, decisionCatalog } from "../utils/filterRecipes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
+import guarnicionesData from "../data/recipes/guarniciones.json";
+import { pairGarnishes } from "../utils/pairGarnishes.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -322,19 +324,6 @@ async function generateGroupMenu(data, group, signal) {
 
   let slotAssignments = schemaResult.data.slots;
 
-  // ── DIAGNOSTIC LOG ──
-  const expectedSlotIds = new Set(ctx.slots.map((s) => s.slotId));
-  const returnedSlotIds = new Set(slotAssignments.map((s) => s.slotId));
-  const missingSlots = [...expectedSlotIds].filter((id) => !returnedSlotIds.has(id));
-  const unknownSlots = [...returnedSlotIds].filter((id) => !expectedSlotIds.has(id));
-  const invalidIds = slotAssignments.filter((s) => !recipeCatalogById[s.recipeId]);
-  console.log("[aiPlanner] Slots enviados al LLM:", ctx.slots.length, ctx.slots.map((s) => s.slotId));
-  console.log("[aiPlanner] Slots devueltos por LLM:", slotAssignments.length, slotAssignments.map((s) => `${s.slotId}→${s.recipeId}`));
-  if (missingSlots.length) console.warn("[aiPlanner] SLOTS FALTANTES:", missingSlots);
-  if (unknownSlots.length) console.warn("[aiPlanner] SLOTS DESCONOCIDOS:", unknownSlots);
-  if (invalidIds.length) console.warn("[aiPlanner] IDs NO EN CATÁLOGO:", invalidIds.map((s) => `${s.slotId}→${s.recipeId}`));
-  // ── END DIAGNOSTIC ──
-
   // 2. Business rule validation + up to 2 correction retries
   const MAX_RETRIES = 2;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
@@ -369,6 +358,10 @@ async function generateGroupMenu(data, group, signal) {
   if (!finalCheck.valid) {
     slotAssignments = applyFallback(slotAssignments, finalCheck.violations, filteredPool, ctx.slots);
   }
+
+  // 4. Pair "principal" recipes with garnishes (deterministic, no LLM)
+  const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
+  slotAssignments = pairGarnishes(slotAssignments, poolById);
 
   return {
     group,
@@ -499,6 +492,8 @@ export async function generateMenuWithAI(data, { signal } = {}) {
   const seenRecipeIds = new Set();
   let placedSlots = 0;
 
+  const guarnicionById = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
+
   for (const { group, slotAssignments, slotsContext } of results) {
     const prefix = multi ? `${group.id}__` : "";
     const eatersBySlot = Object.fromEntries(
@@ -513,7 +508,7 @@ export async function generateMenuWithAI(data, { signal } = {}) {
 
     // Group assignments by day+meal
     const byDayMeal = {};
-    for (const { slotId, recipeId } of slotAssignments) {
+    for (const { slotId, recipeId, garnishId } of slotAssignments) {
       const catalogRecipe = recipeCatalogById[recipeId];
       if (!catalogRecipe) continue;
 
@@ -522,15 +517,18 @@ export async function generateMenuWithAI(data, { signal } = {}) {
 
       if (!seenRecipeIds.has(frontendId)) {
         seenRecipeIds.add(frontendId);
-        allRecipes.push(
-          catalogToFrontendRecipe(catalogRecipe, eaters),
-        );
-        if (prefix) {
-          const prefixed = catalogToFrontendRecipe(catalogRecipe, eaters);
-          prefixed.id = frontendId;
-          allRecipes.pop();
-          allRecipes.push(prefixed);
+        const fr = catalogToFrontendRecipe(catalogRecipe, eaters);
+        if (prefix) fr.id = frontendId;
+
+        // Combine recipe name with garnish shortName for natural display
+        if (garnishId) {
+          const garnish = guarnicionById[garnishId];
+          if (garnish) {
+            fr.name = `${fr.name} con ${garnish.shortName}`;
+          }
         }
+
+        allRecipes.push(fr);
       }
 
       // Parse slotId: "lun_comida_1", "lun_comida_2", "lun_cena"

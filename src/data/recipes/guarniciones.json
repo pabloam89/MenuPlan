@@ -2,6 +2,7 @@
   {
     "id": "guarniciones_001",
     "name": "Arroz blanco",
+    "shortName": "arroz blanco",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -33,6 +34,7 @@
   {
     "id": "guarniciones_002",
     "name": "Patatas cocidas con perejil",
+    "shortName": "patatas cocidas",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -64,6 +66,7 @@
   {
     "id": "guarniciones_003",
     "name": "Puré de patatas",
+    "shortName": "puré de patatas",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -96,6 +99,7 @@
   {
     "id": "guarniciones_004",
     "name": "Patatas salteadas con ajo",
+    "shortName": "patatas al ajillo",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -128,6 +132,7 @@
   {
     "id": "guarniciones_005",
     "name": "Pasta sencilla al aceite y ajo",
+    "shortName": "pasta al ajillo",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -160,6 +165,7 @@
   {
     "id": "guarniciones_006",
     "name": "Cuscús al limón",
+    "shortName": "cuscús al limón",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -192,6 +198,7 @@
   {
     "id": "guarniciones_007",
     "name": "Quinoa al limón y hierbas",
+    "shortName": "quinoa",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -224,6 +231,7 @@
   {
     "id": "guarniciones_008",
     "name": "Arroz integral",
+    "shortName": "arroz integral",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -255,6 +263,7 @@
   {
     "id": "guarniciones_009",
     "name": "Judías verdes al vapor con ajo",
+    "shortName": "judías verdes",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -286,6 +295,7 @@
   {
     "id": "guarniciones_010",
     "name": "Brócoli al ajo",
+    "shortName": "brócoli salteado",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -317,6 +327,7 @@
   {
     "id": "guarniciones_011",
     "name": "Zanahoria glaseada",
+    "shortName": "zanahoria glaseada",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -349,6 +360,7 @@
   {
     "id": "guarniciones_012",
     "name": "Espinacas salteadas con ajo",
+    "shortName": "espinacas salteadas",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -380,6 +392,7 @@
   {
     "id": "guarniciones_013",
     "name": "Calabacín a la plancha",
+    "shortName": "calabacín a la plancha",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -411,6 +424,7 @@
   {
     "id": "guarniciones_014",
     "name": "Ensalada verde",
+    "shortName": "ensalada verde",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -443,6 +457,7 @@
   {
     "id": "guarniciones_015",
     "name": "Ensalada de tomate con cebolla",
+    "shortName": "ensalada de tomate",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -475,6 +490,7 @@
   {
     "id": "guarniciones_016",
     "name": "Pimientos del piquillo salteados",
+    "shortName": "pimientos del piquillo",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -506,6 +522,7 @@
   {
     "id": "guarniciones_017",
     "name": "Pan de barra con aceite",
+    "shortName": "pan",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -535,6 +552,7 @@
   {
     "id": "guarniciones_018",
     "name": "Verduras salteadas",
+    "shortName": "verduras salteadas",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -568,6 +586,7 @@
   {
     "id": "guarniciones_019",
     "name": "Espárragos a la plancha",
+    "shortName": "espárragos a la plancha",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -599,6 +618,7 @@
   {
     "id": "guarniciones_020",
     "name": "Menestra de verduras",
+    "shortName": "menestra de verduras",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -632,6 +652,7 @@
   {
     "id": "guarniciones_021",
     "name": "Champiñones salteados",
+    "shortName": "champiñones salteados",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -664,6 +685,7 @@
   {
     "id": "guarniciones_022",
     "name": "Pepino con yogur y menta",
+    "shortName": "pepino con yogur",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
