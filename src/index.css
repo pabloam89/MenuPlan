@@ -6,11 +6,6 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
-  height: 100%;
-  overflow: hidden;
-}
-
 body {
   font-family: 'DM Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
