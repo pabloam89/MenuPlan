@@ -557,6 +557,14 @@ export async function generateMenuWithAI(data, { signal } = {}) {
               };
             });
             fr.ingredients = [...fr.ingredients, ...gIngredients];
+
+            // Description and steps
+            if (garnish.description) {
+              fr.prepSummary = `${fr.prepSummary}. ${garnish.description}`;
+            }
+            if (garnish.steps?.length) {
+              fr.steps = [...(fr.steps ?? []), ...garnish.steps];
+            }
           }
         }
 
