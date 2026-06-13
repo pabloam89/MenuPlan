@@ -4,7 +4,12 @@
     "name": "Pollo al horno con patatas",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 60,
     "difficulty": "facil",
     "kcal": 486,
@@ -17,13 +22,41 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Contramuslos de pollo", "amount": 400, "unit": "g" },
-      { "name": "Patata", "amount": 300, "unit": "g" },
-      { "name": "Cebolla", "amount": 100, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Romero", "amount": 3, "unit": "g" }
+      {
+        "name": "Contramuslos de pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Romero",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cortar patatas y cebolla en gajos gruesos",
@@ -38,7 +71,11 @@
     "name": "Pechugas de pollo a la plancha",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 15,
     "difficulty": "facil",
     "kcal": 312,
@@ -51,11 +88,31 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pechuga de pollo", "amount": 350, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo en polvo", "amount": 3, "unit": "g" },
-      { "name": "Orégano", "amount": 2, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Pechuga de pollo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo en polvo",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Aplanar ligeramente las pechugas",
@@ -70,7 +127,11 @@
     "name": "Albóndigas en salsa de tomate",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 40,
     "difficulty": "normal",
     "kcal": 438,
@@ -80,17 +141,52 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Carne picada de cerdo", "amount": 300, "unit": "g" },
-      { "name": "Pan rallado", "amount": 30, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Tomate triturado", "amount": 300, "unit": "ml" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Harina", "amount": 15, "unit": "g" }
+      {
+        "name": "Carne picada de cerdo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina",
+        "amount": 15,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Mezclar carne con pan rallado, huevo y ajo picado",
@@ -105,7 +201,10 @@
     "name": "Filetes de lomo empanados",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 462,
@@ -115,14 +214,37 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lomo de cerdo en filetes", "amount": 300, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Pan rallado", "amount": 60, "unit": "g" },
-      { "name": "Harina", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Lomo de cerdo en filetes",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Salpimentar los filetes",
@@ -137,7 +259,11 @@
     "name": "Estofado de ternera",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 90,
     "difficulty": "normal",
     "kcal": 468,
@@ -150,14 +276,46 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Carne de ternera para guisar", "amount": 350, "unit": "g" },
-      { "name": "Patata", "amount": 200, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Vino tinto", "amount": 80, "unit": "ml" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" }
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Sellar la carne en aceite caliente y reservar",
@@ -172,7 +330,10 @@
     "name": "Pollo al ajillo",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 30,
     "difficulty": "facil",
     "kcal": 398,
@@ -185,12 +346,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pollo troceado", "amount": 500, "unit": "g" },
-      { "name": "Ajo", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" },
-      { "name": "Guindilla", "amount": 1, "unit": "ud" }
+      {
+        "name": "Pollo troceado",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Dorar el pollo salpimentado en aceite",
@@ -205,7 +390,11 @@
     "name": "Cinta de lomo adobada",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 15,
     "difficulty": "facil",
     "kcal": 346,
@@ -218,12 +407,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Cinta de lomo", "amount": 300, "unit": "g" },
-      { "name": "Pimentón", "amount": 6, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Orégano", "amount": 3, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Vinagre", "amount": 15, "unit": "ml" }
+      {
+        "name": "Cinta de lomo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Macerar la carne con pimentón, ajo, orégano y vinagre 30 min",
@@ -238,7 +451,10 @@
     "name": "Guiso de ternera con patatas",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 80,
     "difficulty": "normal",
     "kcal": 492,
@@ -251,14 +467,46 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Carne de ternera para guisar", "amount": 300, "unit": "g" },
-      { "name": "Patata", "amount": 250, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Guisantes", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" }
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sellar la ternera en dados en aceite caliente",
@@ -273,7 +521,11 @@
     "name": "Hamburguesas caseras",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 448,
@@ -283,17 +535,52 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Carne picada de ternera", "amount": 300, "unit": "g" },
-      { "name": "Cebolla", "amount": 40, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Pan rallado", "amount": 20, "unit": "g" },
-      { "name": "Pan de hamburguesa", "amount": 2, "unit": "ud" },
-      { "name": "Tomate", "amount": 80, "unit": "g" },
-      { "name": "Lechuga", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Carne picada de ternera",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Pan de hamburguesa",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Lechuga",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Mezclar la carne con cebolla rallada, huevo y pan rallado",
@@ -308,7 +595,11 @@
     "name": "Pollo con pimientos",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 40,
     "difficulty": "facil",
     "kcal": 382,
@@ -321,13 +612,41 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pollo troceado", "amount": 500, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 120, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 120, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" }
+      {
+        "name": "Pollo troceado",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Dorar el pollo salpimentado en aceite",
@@ -342,7 +661,11 @@
     "name": "Costillas de cerdo al horno",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
+    "requiredAppliance": "horno",
     "time": 75,
     "difficulty": "facil",
     "kcal": 528,
@@ -355,13 +678,41 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Costillas de cerdo", "amount": 500, "unit": "g" },
-      { "name": "Ajo", "amount": 15, "unit": "g" },
-      { "name": "Miel", "amount": 20, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Pimentón", "amount": 5, "unit": "g" },
-      { "name": "Romero", "amount": 3, "unit": "g" }
+      {
+        "name": "Costillas de cerdo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Romero",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Marinar costillas con ajo, miel, limón, pimentón y romero",
@@ -376,7 +727,11 @@
     "name": "San Jacobos caseros",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 25,
     "difficulty": "facil",
     "kcal": 498,
@@ -386,16 +741,48 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lomo de cerdo en filetes", "amount": 250, "unit": "g" },
-      { "name": "Jamón cocido", "amount": 60, "unit": "g" },
-      { "name": "Queso en lonchas", "amount": 60, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Pan rallado", "amount": 50, "unit": "g" },
-      { "name": "Harina", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Lomo de cerdo en filetes",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso en lonchas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Rellenar cada filete con jamón y queso y cerrar",
@@ -410,7 +797,11 @@
     "name": "Muslos de pollo al horno",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
+    "requiredAppliance": "horno",
     "time": 50,
     "difficulty": "facil",
     "kcal": 418,
@@ -423,12 +814,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Muslos de pollo", "amount": 500, "unit": "g" },
-      { "name": "Cebolla", "amount": 100, "unit": "g" },
-      { "name": "Ajo", "amount": 12, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Tomillo", "amount": 3, "unit": "g" }
+      {
+        "name": "Muslos de pollo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomillo",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Salpimentar los muslos y colocar en bandeja",
@@ -443,7 +858,11 @@
     "name": "Filetes rusos",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 25,
     "difficulty": "facil",
     "kcal": 392,
@@ -453,16 +872,47 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Carne picada de ternera", "amount": 300, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Pan rallado", "amount": 25, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Perejil", "amount": 5, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Carne picada de ternera",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Mezclar carne con cebolla rallada, huevo, pan rallado y perejil",
@@ -477,7 +927,11 @@
     "name": "Ternera guisada con zanahorias",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 80,
     "difficulty": "normal",
     "kcal": 442,
@@ -490,14 +944,46 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Carne de ternera para guisar", "amount": 350, "unit": "g" },
-      { "name": "Zanahoria", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Vino tinto", "amount": 80, "unit": "ml" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" }
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Sellar la carne en aceite bien caliente",
@@ -512,7 +998,11 @@
     "name": "Pollo en pepitoria",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 50,
     "difficulty": "normal",
     "kcal": 466,
@@ -522,17 +1012,52 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["huevo", "frutos_secos"],
+    "allergens": [
+      "huevo",
+      "frutos_secos"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pollo troceado", "amount": 500, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Almendras", "amount": 30, "unit": "g" },
-      { "name": "Huevo cocido", "amount": 1, "unit": "ud" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Azafrán", "amount": 1, "unit": "g" }
+      {
+        "name": "Pollo troceado",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Almendras",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo cocido",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Dorar el pollo en aceite y reservar",
@@ -547,7 +1072,10 @@
     "name": "Magro con tomate",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 30,
     "difficulty": "facil",
     "kcal": 368,
@@ -560,12 +1088,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Magro de cerdo", "amount": 300, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 200, "unit": "ml" },
-      { "name": "Pimiento verde", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Magro de cerdo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cortar el magro en taquitos y dorar en aceite",
@@ -580,7 +1132,10 @@
     "name": "Secreto ibérico a la plancha",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 15,
     "difficulty": "facil",
     "kcal": 412,
@@ -593,10 +1148,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Secreto ibérico", "amount": 350, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Romero", "amount": 2, "unit": "g" }
+      {
+        "name": "Secreto ibérico",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Romero",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Atemperar la carne 30 min fuera de la nevera",
@@ -611,7 +1182,12 @@
     "name": "Alitas de pollo al horno",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
+    "requiredAppliance": "horno",
     "time": 45,
     "difficulty": "facil",
     "kcal": 386,
@@ -624,12 +1200,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Alitas de pollo", "amount": 500, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Pimentón", "amount": 5, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Miel", "amount": 15, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Alitas de pollo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Miel",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Marinar alitas con ajo, pimentón, miel y limón",
@@ -644,7 +1244,10 @@
     "name": "Solomillo de cerdo al Pedro Ximénez",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 30,
     "difficulty": "normal",
     "kcal": 388,
@@ -657,12 +1260,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Solomillo de cerdo", "amount": 350, "unit": "g" },
-      { "name": "Pedro Ximénez", "amount": 80, "unit": "ml" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Champiñones", "amount": 100, "unit": "g" },
-      { "name": "Nata", "amount": 40, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Solomillo de cerdo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Pedro Ximénez",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Nata",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sellar el solomillo entero en aceite y reservar",
@@ -677,7 +1304,11 @@
     "name": "Carne guisada con verduras",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 80,
     "difficulty": "normal",
     "kcal": 428,
@@ -690,14 +1321,46 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Carne de ternera para guisar", "amount": 300, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Judías verdes", "amount": 100, "unit": "g" },
-      { "name": "Guisantes", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" }
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sellar la carne en dados y reservar",
@@ -712,7 +1375,10 @@
     "name": "Lomo de cerdo en salsa",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 35,
     "difficulty": "facil",
     "kcal": 374,
@@ -725,13 +1391,41 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Lomo de cerdo en filetes", "amount": 300, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" }
+      {
+        "name": "Lomo de cerdo en filetes",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Dorar los filetes de lomo y reservar",
@@ -746,7 +1440,10 @@
     "name": "Escalopines de ternera al limón",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 15,
     "difficulty": "facil",
     "kcal": 338,
@@ -756,15 +1453,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Escalopines de ternera", "amount": 300, "unit": "g" },
-      { "name": "Harina", "amount": 15, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Mantequilla", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Escalopines de ternera",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Enharinar ligeramente los escalopines",
@@ -779,7 +1502,11 @@
     "name": "Pavo a la plancha",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 15,
     "difficulty": "facil",
     "kcal": 278,
@@ -792,11 +1519,31 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pechuga de pavo", "amount": 350, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo en polvo", "amount": 3, "unit": "g" },
-      { "name": "Orégano", "amount": 2, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Pechuga de pavo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo en polvo",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Cortar la pechuga en filetes finos",
@@ -811,7 +1558,11 @@
     "name": "Pollo al curry",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 35,
     "difficulty": "facil",
     "kcal": 396,
@@ -821,16 +1572,46 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pechuga de pollo", "amount": 350, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Nata", "amount": 60, "unit": "ml" },
-      { "name": "Curry en polvo", "amount": 8, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Pechuga de pollo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Dorar el pollo en dados en aceite",
@@ -845,7 +1626,10 @@
     "name": "Albóndigas de pollo",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 35,
     "difficulty": "normal",
     "kcal": 378,
@@ -855,17 +1639,52 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Carne picada de pollo", "amount": 300, "unit": "g" },
-      { "name": "Pan rallado", "amount": 25, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 200, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Carne picada de pollo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Mezclar carne de pollo con huevo, pan rallado y ajo",
@@ -880,7 +1699,10 @@
     "name": "Chuletas de cerdo a la plancha",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 15,
     "difficulty": "facil",
     "kcal": 402,
@@ -893,10 +1715,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Chuletas de cerdo", "amount": 400, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Romero", "amount": 2, "unit": "g" }
+      {
+        "name": "Chuletas de cerdo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Romero",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Salpimentar las chuletas con ajo y romero",
@@ -911,7 +1749,10 @@
     "name": "Pollo con champiñones",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 30,
     "difficulty": "facil",
     "kcal": 362,
@@ -924,13 +1765,41 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pechuga de pollo", "amount": 350, "unit": "g" },
-      { "name": "Champiñones", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Vino blanco", "amount": 50, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Pechuga de pollo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Dorar el pollo en filetes y reservar",
@@ -945,7 +1814,11 @@
     "name": "Redondo de ternera",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 90,
     "difficulty": "normal",
     "kcal": 412,
@@ -958,14 +1831,46 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Redondo de ternera", "amount": 400, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 100, "unit": "g" },
-      { "name": "Vino tinto", "amount": 100, "unit": "ml" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" }
+      {
+        "name": "Redondo de ternera",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sellar el redondo entero en aceite bien caliente",
@@ -980,7 +1885,11 @@
     "name": "Brochetas de pollo",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 25,
     "difficulty": "facil",
     "kcal": 342,
@@ -993,13 +1902,41 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Pechuga de pollo", "amount": 350, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Orégano", "amount": 3, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Pechuga de pollo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Cortar pollo y verduras en dados de 3 cm",
@@ -1014,7 +1951,10 @@
     "name": "Fricandó de ternera",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 70,
     "difficulty": "normal",
     "kcal": 398,
@@ -1024,17 +1964,51 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Filetes finos de ternera", "amount": 300, "unit": "g" },
-      { "name": "Setas", "amount": 150, "unit": "g" },
-      { "name": "Cebolla", "amount": 100, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Vino rancio", "amount": 60, "unit": "ml" },
-      { "name": "Harina", "amount": 15, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" }
+      {
+        "name": "Filetes finos de ternera",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Setas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino rancio",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Enharinar y dorar los filetes en aceite",
@@ -1049,7 +2023,11 @@
     "name": "Escalope de pollo",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 424,
@@ -1059,15 +2037,42 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pechuga de pollo", "amount": 350, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Pan rallado", "amount": 50, "unit": "g" },
-      { "name": "Harina", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Pechuga de pollo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Aplanar las pechugas finamente",
@@ -1082,7 +2087,10 @@
     "name": "Ragú de ternera",
     "category": "carnes",
     "mainProtein": "ternera",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 90,
     "difficulty": "normal",
     "kcal": 436,
@@ -1095,14 +2103,46 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Carne de ternera para guisar", "amount": 350, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Apio", "amount": 50, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 150, "unit": "ml" },
-      { "name": "Vino tinto", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" }
+      {
+        "name": "Carne de ternera para guisar",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Sellar la carne en dados en aceite",
@@ -1117,7 +2157,11 @@
     "name": "Pollo a la cerveza",
     "category": "carnes",
     "mainProtein": "pollo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "principal",
     "time": 45,
     "difficulty": "facil",
     "kcal": 408,
@@ -1127,15 +2171,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pollo troceado", "amount": 500, "unit": "g" },
-      { "name": "Cerveza", "amount": 200, "unit": "ml" },
-      { "name": "Cebolla", "amount": 100, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Pollo troceado",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cerveza",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Dorar el pollo salpimentado en aceite",
@@ -1150,7 +2220,11 @@
     "name": "Flamenquines cordobeses",
     "category": "carnes",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 25,
     "difficulty": "normal",
     "kcal": 512,
@@ -1160,15 +2234,42 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lomo de cerdo en filetes", "amount": 250, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 60, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Pan rallado", "amount": 50, "unit": "g" },
-      { "name": "Harina", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 50, "unit": "ml" }
+      {
+        "name": "Lomo de cerdo en filetes",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 50,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Enrollar cada filete con jamón serrano dentro",

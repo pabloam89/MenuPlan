@@ -4,7 +4,10 @@
     "name": "Merluza en salsa verde",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 25,
     "difficulty": "facil",
     "kcal": 286,
@@ -14,16 +17,47 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado", "gluten"],
+    "allergens": [
+      "pescado",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Merluza en rodajas", "amount": 350, "unit": "g" },
-      { "name": "Ajo", "amount": 12, "unit": "g" },
-      { "name": "Harina", "amount": 10, "unit": "g" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Perejil", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Guisantes", "amount": 50, "unit": "g" }
+      {
+        "name": "Merluza en rodajas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 50,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Dorar ajos laminados en aceite y añadir harina",
@@ -38,7 +72,12 @@
     "name": "Salmón al horno con patatas",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 35,
     "difficulty": "facil",
     "kcal": 468,
@@ -48,15 +87,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lomos de salmón", "amount": 300, "unit": "g" },
-      { "name": "Patata", "amount": 250, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Eneldo", "amount": 3, "unit": "g" }
+      {
+        "name": "Lomos de salmón",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Eneldo",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cortar patatas y cebolla finas y colocar en bandeja con aceite",
@@ -71,7 +136,10 @@
     "name": "Bacalao con tomate",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 30,
     "difficulty": "facil",
     "kcal": 312,
@@ -81,15 +149,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Bacalao desalado", "amount": 350, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 250, "unit": "ml" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" }
+      {
+        "name": "Bacalao desalado",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír cebolla, ajo y pimiento",
@@ -104,7 +198,11 @@
     "name": "Sardinas a la plancha",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 15,
     "difficulty": "facil",
     "kcal": 342,
@@ -114,14 +212,36 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Sardinas", "amount": 400, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Sardinas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Limpiar y salar las sardinas",
@@ -136,7 +256,11 @@
     "name": "Lubina al horno",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 35,
     "difficulty": "facil",
     "kcal": 298,
@@ -146,15 +270,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lubina entera", "amount": 500, "unit": "g" },
-      { "name": "Patata", "amount": 150, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Lubina entera",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Hacer una cama de patata y cebolla en rodajas finas",
@@ -169,7 +319,11 @@
     "name": "Atún a la plancha",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 10,
     "difficulty": "facil",
     "kcal": 308,
@@ -179,13 +333,31 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Rodajas de atún fresco", "amount": 300, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Rodajas de atún fresco",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Salpimentar las rodajas de atún",
@@ -200,7 +372,11 @@
     "name": "Merluza rebozada",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 368,
@@ -210,14 +386,38 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado", "gluten", "huevo"],
+    "allergens": [
+      "pescado",
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Merluza en rodajas", "amount": 350, "unit": "g" },
-      { "name": "Harina", "amount": 40, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Merluza en rodajas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Salpimentar la merluza y secar con papel",
@@ -232,7 +432,11 @@
     "name": "Dorada al horno",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 35,
     "difficulty": "facil",
     "kcal": 306,
@@ -242,15 +446,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Dorada entera", "amount": 500, "unit": "g" },
-      { "name": "Patata", "amount": 150, "unit": "g" },
-      { "name": "Tomate", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Dorada entera",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Hacer cama de patata, cebolla y tomate en rodajas",
@@ -265,7 +495,11 @@
     "name": "Salmón a la plancha",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 12,
     "difficulty": "facil",
     "kcal": 378,
@@ -275,13 +509,31 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lomos de salmón", "amount": 300, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Eneldo", "amount": 3, "unit": "g" }
+      {
+        "name": "Lomos de salmón",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Eneldo",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Salpimentar los lomos de salmón",
@@ -296,7 +548,10 @@
     "name": "Bacalao al pil-pil",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 25,
     "difficulty": "elaborada",
     "kcal": 362,
@@ -306,13 +561,31 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Bacalao desalado", "amount": 350, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 80, "unit": "ml" },
-      { "name": "Ajo", "amount": 15, "unit": "g" },
-      { "name": "Guindilla", "amount": 1, "unit": "ud" }
+      {
+        "name": "Bacalao desalado",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Confitar ajos laminados y guindilla en aceite a fuego lento",
@@ -327,7 +600,11 @@
     "name": "Calamares a la romana",
     "category": "pescados",
     "mainProtein": "marisco",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 356,
@@ -337,14 +614,38 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["moluscos", "gluten", "huevo"],
+    "allergens": [
+      "moluscos",
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Calamares", "amount": 300, "unit": "g" },
-      { "name": "Harina", "amount": 60, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 50, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Calamares",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Limpiar y cortar los calamares en anillas",
@@ -359,7 +660,11 @@
     "name": "Gambas al ajillo",
     "category": "pescados",
     "mainProtein": "marisco",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 10,
     "difficulty": "facil",
     "kcal": 268,
@@ -369,14 +674,36 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["marisco"],
+    "allergens": [
+      "marisco"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Gambas peladas", "amount": 250, "unit": "g" },
-      { "name": "Ajo", "amount": 15, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" },
-      { "name": "Guindilla", "amount": 1, "unit": "ud" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Gambas peladas",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Calentar aceite con ajos laminados y guindilla",
@@ -391,7 +718,12 @@
     "name": "Merluza al horno con verduras",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 35,
     "difficulty": "facil",
     "kcal": 296,
@@ -401,16 +733,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Merluza en lomos", "amount": 350, "unit": "g" },
-      { "name": "Patata", "amount": 150, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Tomate", "amount": 80, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Merluza en lomos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Colocar verduras en rodajas en bandeja con aceite",
@@ -425,7 +787,11 @@
     "name": "Bacalao rebozado",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 388,
@@ -435,14 +801,38 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado", "gluten", "huevo"],
+    "allergens": [
+      "pescado",
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Bacalao desalado", "amount": 350, "unit": "g" },
-      { "name": "Harina", "amount": 40, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 45, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Bacalao desalado",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 45,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Cortar el bacalao en trozos y secar bien",
@@ -457,7 +847,10 @@
     "name": "Trucha a la navarra",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 392,
@@ -467,15 +860,42 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["pescado", "gluten"],
+    "allergens": [
+      "pescado",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Truchas enteras", "amount": 400, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 60, "unit": "g" },
-      { "name": "Harina", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Truchas enteras",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Rellenar cada trucha con lonchas de jamón",
@@ -490,7 +910,10 @@
     "name": "Rape en salsa marinera",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 30,
     "difficulty": "normal",
     "kcal": 312,
@@ -500,17 +923,53 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado", "moluscos", "gluten"],
+    "allergens": [
+      "pescado",
+      "moluscos",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Rape", "amount": 350, "unit": "g" },
-      { "name": "Almejas", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Harina", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Rape",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Sofreír cebolla y ajo, añadir harina",
@@ -525,7 +984,11 @@
     "name": "Palitos de merluza caseros",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 348,
@@ -535,14 +998,38 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado", "gluten", "huevo"],
+    "allergens": [
+      "pescado",
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Merluza en lomos", "amount": 300, "unit": "g" },
-      { "name": "Pan rallado", "amount": 50, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Harina", "amount": 25, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Merluza en lomos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Harina",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cortar la merluza en bastones gruesos",
@@ -557,7 +1044,11 @@
     "name": "Salmón en papillote",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
+    "requiredAppliance": "horno",
     "time": 25,
     "difficulty": "facil",
     "kcal": 382,
@@ -567,16 +1058,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lomos de salmón", "amount": 300, "unit": "g" },
-      { "name": "Calabacín", "amount": 100, "unit": "g" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Puerro", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Eneldo", "amount": 3, "unit": "g" }
+      {
+        "name": "Lomos de salmón",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Eneldo",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cortar verduras en juliana fina",
@@ -591,7 +1112,10 @@
     "name": "Atún encebollado",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
     "time": 25,
     "difficulty": "facil",
     "kcal": 362,
@@ -601,15 +1125,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Atún fresco", "amount": 300, "unit": "g" },
-      { "name": "Cebolla", "amount": 200, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Vino blanco", "amount": 50, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" }
+      {
+        "name": "Atún fresco",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Pochar la cebolla en juliana a fuego lento 15 min",
@@ -624,7 +1174,11 @@
     "name": "Emperador a la plancha",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 12,
     "difficulty": "facil",
     "kcal": 282,
@@ -634,14 +1188,36 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Rodajas de emperador", "amount": 300, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Perejil", "amount": 5, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Rodajas de emperador",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Salpimentar las rodajas de emperador",
@@ -656,7 +1232,10 @@
     "name": "Fideuá",
     "category": "pescados",
     "mainProtein": "marisco",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 40,
     "difficulty": "normal",
     "kcal": 448,
@@ -666,17 +1245,54 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "marisco", "pescado", "moluscos"],
+    "allergens": [
+      "gluten",
+      "marisco",
+      "pescado",
+      "moluscos"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Fideos n°2", "amount": 180, "unit": "g" },
-      { "name": "Gambas", "amount": 150, "unit": "g" },
-      { "name": "Sepia", "amount": 100, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Pimentón", "amount": 4, "unit": "g" },
-      { "name": "Caldo de pescado", "amount": 400, "unit": "ml" }
+      {
+        "name": "Fideos n°2",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Sepia",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 400,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír sepia y gambas y reservar",
@@ -691,7 +1307,11 @@
     "name": "Rosada al horno con limón",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "principal",
+    "requiredAppliance": "horno",
     "time": 25,
     "difficulty": "facil",
     "kcal": 262,
@@ -701,15 +1321,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Rosada en lomos", "amount": 350, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" },
-      { "name": "Vino blanco", "amount": 40, "unit": "ml" }
+      {
+        "name": "Rosada en lomos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Colocar los lomos en bandeja de horno",
@@ -724,7 +1370,11 @@
     "name": "Boquerones en vinagre",
     "category": "pescados",
     "mainProtein": "pescado_azul",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "principal",
     "time": 20,
     "difficulty": "facil",
     "kcal": 218,
@@ -734,14 +1384,36 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Boquerones frescos", "amount": 300, "unit": "g" },
-      { "name": "Vinagre", "amount": 150, "unit": "ml" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Perejil", "amount": 5, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" }
+      {
+        "name": "Boquerones frescos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Limpiar y abrir los boquerones en mariposa",
@@ -756,7 +1428,11 @@
     "name": "Pescadilla al horno",
     "category": "pescados",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["segundo"],
+    "mealRole": [
+      "segundo"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 30,
     "difficulty": "facil",
     "kcal": 272,
@@ -766,15 +1442,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pescadilla en lomos", "amount": 350, "unit": "g" },
-      { "name": "Patata", "amount": 150, "unit": "g" },
-      { "name": "Cebolla", "amount": 70, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Pescadilla en lomos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Disponer patata y cebolla en rodajas en bandeja",
@@ -789,7 +1491,11 @@
     "name": "Calamares encebollados",
     "category": "pescados",
     "mainProtein": "marisco",
-    "mealRole": ["segundo", "cena"],
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
     "time": 30,
     "difficulty": "facil",
     "kcal": 298,
@@ -799,16 +1505,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["moluscos"],
+    "allergens": [
+      "moluscos"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Calamares", "amount": 300, "unit": "g" },
-      { "name": "Cebolla", "amount": 200, "unit": "g" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" },
-      { "name": "Laurel", "amount": 1, "unit": "ud" }
+      {
+        "name": "Calamares",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Pochar la cebolla en juliana a fuego lento 10 min",

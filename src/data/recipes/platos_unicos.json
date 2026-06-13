@@ -4,7 +4,10 @@
     "name": "Paella valenciana",
     "category": "platos_unicos",
     "mainProtein": "pollo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 50,
     "difficulty": "normal",
     "kcal": 528,
@@ -17,14 +20,46 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 200, "unit": "g" },
-      { "name": "Contramuslo de pollo", "amount": 200, "unit": "g" },
-      { "name": "Judías verdes", "amount": 80, "unit": "g" },
-      { "name": "Garrofón", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Pimentón", "amount": 4, "unit": "g" },
-      { "name": "Azafrán", "amount": 1, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Contramuslo de pollo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Garrofón",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Dorar el pollo en aceite en la paella",
@@ -39,7 +74,12 @@
     "name": "Pizza casera",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 40,
     "difficulty": "normal",
     "kcal": 518,
@@ -49,15 +89,42 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Harina", "amount": 250, "unit": "g" },
-      { "name": "Levadura fresca", "amount": 10, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 150, "unit": "ml" },
-      { "name": "Mozzarella", "amount": 125, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Orégano", "amount": 3, "unit": "g" }
+      {
+        "name": "Harina",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Levadura fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Mozzarella",
+        "amount": 125,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Amasar harina con levadura, agua, sal y aceite",
@@ -72,7 +139,11 @@
     "name": "Croquetas de jamón",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mealRole": ["cena", "plato_unico"],
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 45,
     "difficulty": "normal",
     "kcal": 428,
@@ -82,17 +153,53 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "lactosa", "huevo"],
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Jamón serrano", "amount": 80, "unit": "g" },
-      { "name": "Leche", "amount": 300, "unit": "ml" },
-      { "name": "Harina", "amount": 50, "unit": "g" },
-      { "name": "Mantequilla", "amount": 40, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Pan rallado", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 50, "unit": "ml" },
-      { "name": "Nuez moscada", "amount": 2, "unit": "g" }
+      {
+        "name": "Jamón serrano",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Hacer bechamel con mantequilla, harina y leche, añadir jamón picado",
@@ -107,7 +214,12 @@
     "name": "Empanada gallega de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 60,
     "difficulty": "normal",
     "kcal": 468,
@@ -117,16 +229,47 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "pescado"],
+    "allergens": [
+      "gluten",
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Harina", "amount": 250, "unit": "g" },
-      { "name": "Atún en conserva", "amount": 160, "unit": "g" },
-      { "name": "Cebolla", "amount": 120, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" }
+      {
+        "name": "Harina",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en conserva",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Hacer masa con harina, agua, aceite y sal",
@@ -141,7 +284,11 @@
     "name": "Empanadillas de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
-    "mealRole": ["cena", "plato_unico"],
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 35,
     "difficulty": "facil",
     "kcal": 412,
@@ -151,16 +298,48 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "pescado", "huevo"],
+    "allergens": [
+      "gluten",
+      "pescado",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Obleas de empanadilla", "amount": 8, "unit": "ud" },
-      { "name": "Atún en conserva", "amount": 120, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 50, "unit": "g" },
-      { "name": "Huevo cocido", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Obleas de empanadilla",
+        "amount": 8,
+        "unit": "ud"
+      },
+      {
+        "name": "Atún en conserva",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo cocido",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír cebolla y pimiento, añadir tomate y atún",
@@ -175,7 +354,11 @@
     "name": "Crepes de jamón y queso",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mealRole": ["cena", "plato_unico"],
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 398,
@@ -185,15 +368,43 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Harina", "amount": 100, "unit": "g" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Leche", "amount": 200, "unit": "ml" },
-      { "name": "Jamón cocido", "amount": 80, "unit": "g" },
-      { "name": "Queso en lonchas", "amount": 60, "unit": "g" },
-      { "name": "Mantequilla", "amount": 15, "unit": "g" }
+      {
+        "name": "Harina",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Leche",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso en lonchas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 15,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Batir harina, huevos y leche hasta masa fina",
@@ -208,7 +419,12 @@
     "name": "Quiche de verduras",
     "category": "platos_unicos",
     "mainProtein": "huevo",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 50,
     "difficulty": "normal",
     "kcal": 412,
@@ -218,16 +434,48 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Masa quebrada", "amount": 200, "unit": "g" },
-      { "name": "Calabacín", "amount": 100, "unit": "g" },
-      { "name": "Puerro", "amount": 80, "unit": "g" },
-      { "name": "Huevo", "amount": 3, "unit": "ud" },
-      { "name": "Nata", "amount": 100, "unit": "ml" },
-      { "name": "Queso rallado", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Masa quebrada",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Nata",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Forrar molde con masa quebrada y pinchar el fondo",
@@ -242,7 +490,11 @@
     "name": "Patatas rellenas de carne",
     "category": "platos_unicos",
     "mainProtein": "ternera",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 50,
     "difficulty": "normal",
     "kcal": 462,
@@ -252,15 +504,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Patata grande", "amount": 4, "unit": "ud" },
-      { "name": "Carne picada de ternera", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Queso rallado", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Patata grande",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Hornear patatas enteras 30 min a 200°C",
@@ -275,7 +553,11 @@
     "name": "Wrap de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
-    "mealRole": ["cena", "plato_unico"],
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 15,
     "difficulty": "facil",
     "kcal": 382,
@@ -285,15 +567,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Tortilla de trigo", "amount": 2, "unit": "ud" },
-      { "name": "Pechuga de pollo", "amount": 200, "unit": "g" },
-      { "name": "Lechuga", "amount": 50, "unit": "g" },
-      { "name": "Tomate", "amount": 80, "unit": "g" },
-      { "name": "Yogur natural", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Tortilla de trigo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Lechuga",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Hacer el pollo a la plancha y cortar en tiras",
@@ -308,7 +616,11 @@
     "name": "Croquetas de bacalao",
     "category": "platos_unicos",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["cena", "plato_unico"],
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 45,
     "difficulty": "normal",
     "kcal": 418,
@@ -318,17 +630,54 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "lactosa", "huevo", "pescado"],
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo",
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Bacalao desalado", "amount": 120, "unit": "g" },
-      { "name": "Leche", "amount": 300, "unit": "ml" },
-      { "name": "Harina", "amount": 50, "unit": "g" },
-      { "name": "Mantequilla", "amount": 40, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Pan rallado", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 50, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Bacalao desalado",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Hacer bechamel con mantequilla, harina y leche",
@@ -343,7 +692,10 @@
     "name": "Migas manchegas",
     "category": "platos_unicos",
     "mainProtein": "cerdo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "normal",
     "kcal": 498,
@@ -353,16 +705,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Pan del día anterior", "amount": 200, "unit": "g" },
-      { "name": "Chorizo", "amount": 60, "unit": "g" },
-      { "name": "Panceta", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 12, "unit": "g" },
-      { "name": "Pimentón", "amount": 5, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" },
-      { "name": "Uvas", "amount": 60, "unit": "g" }
+      {
+        "name": "Pan del día anterior",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Panceta",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Uvas",
+        "amount": 60,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Humedecer el pan desmigado la noche anterior",
@@ -377,7 +759,11 @@
     "name": "Pimientos rellenos de arroz",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 45,
     "difficulty": "normal",
     "kcal": 368,
@@ -390,13 +776,41 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pimientos rojos", "amount": 4, "unit": "ud" },
-      { "name": "Arroz", "amount": 150, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 150, "unit": "ml" },
-      { "name": "Champiñones", "amount": 80, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Pimientos rojos",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Arroz",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer el arroz y mezclar con cebolla, ajo y champiñones sofritos",
@@ -411,7 +825,12 @@
     "name": "Calzone casero",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 40,
     "difficulty": "normal",
     "kcal": 492,
@@ -421,15 +840,42 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Harina", "amount": 250, "unit": "g" },
-      { "name": "Levadura fresca", "amount": 10, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Mozzarella", "amount": 100, "unit": "g" },
-      { "name": "Jamón cocido", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Harina",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Levadura fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Mozzarella",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Hacer masa de pizza con harina, levadura, agua y aceite",
@@ -444,7 +890,10 @@
     "name": "Tostas de aguacate y huevo",
     "category": "platos_unicos",
     "mainProtein": "huevo",
-    "mealRole": ["cena"],
+    "mealRole": [
+      "cena"
+    ],
+    "type": "completo",
     "time": 10,
     "difficulty": "facil",
     "kcal": 342,
@@ -454,15 +903,42 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan de hogaza", "amount": 120, "unit": "g" },
-      { "name": "Aguacate", "amount": 1, "unit": "ud" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Tomate cherry", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Pan de hogaza",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate cherry",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Tostar las rebanadas de pan",
@@ -477,7 +953,11 @@
     "name": "Patatas bravas con huevo",
     "category": "platos_unicos",
     "mainProtein": "huevo",
-    "mealRole": ["cena", "plato_unico"],
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 448,
@@ -487,15 +967,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["huevo"],
+    "allergens": [
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Patata", "amount": 400, "unit": "g" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 50, "unit": "ml" },
-      { "name": "Pimentón picante", "amount": 4, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Patata",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón picante",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cortar patatas en dados y freír hasta dorar",
@@ -510,7 +1016,10 @@
     "name": "Bocadillo de tortilla",
     "category": "platos_unicos",
     "mainProtein": "huevo",
-    "mealRole": ["cena"],
+    "mealRole": [
+      "cena"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "facil",
     "kcal": 512,
@@ -520,14 +1029,37 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan de barra", "amount": 200, "unit": "g" },
-      { "name": "Patata", "amount": 200, "unit": "g" },
-      { "name": "Huevo", "amount": 3, "unit": "ud" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Pan de barra",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Confitar patata y cebolla en aceite",
@@ -542,7 +1074,11 @@
     "name": "Burritos caseros de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 468,
@@ -552,15 +1088,42 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Tortilla de trigo", "amount": 2, "unit": "ud" },
-      { "name": "Pechuga de pollo", "amount": 250, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Arroz cocido", "amount": 100, "unit": "g" },
-      { "name": "Queso rallado", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Tortilla de trigo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz cocido",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Saltear pollo en tiras con pimiento a fuego fuerte",
@@ -575,7 +1138,10 @@
     "name": "Paella de marisco",
     "category": "platos_unicos",
     "mainProtein": "marisco",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 50,
     "difficulty": "normal",
     "kcal": 482,
@@ -585,17 +1151,53 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["marisco", "moluscos", "pescado"],
+    "allergens": [
+      "marisco",
+      "moluscos",
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 200, "unit": "g" },
-      { "name": "Gambas", "amount": 150, "unit": "g" },
-      { "name": "Mejillones", "amount": 150, "unit": "g" },
-      { "name": "Sepia", "amount": 100, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Azafrán", "amount": 1, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Mejillones",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Sepia",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Sofreír sepia con ajo y tomate en la paella",
@@ -610,7 +1212,10 @@
     "name": "Quesadillas caseras",
     "category": "platos_unicos",
     "mainProtein": "none",
-    "mealRole": ["cena"],
+    "mealRole": [
+      "cena"
+    ],
+    "type": "completo",
     "time": 15,
     "difficulty": "facil",
     "kcal": 388,
@@ -620,14 +1225,37 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Tortilla de trigo", "amount": 2, "unit": "ud" },
-      { "name": "Queso rallado", "amount": 100, "unit": "g" },
-      { "name": "Jamón cocido", "amount": 60, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Tortilla de trigo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Calentar la tortilla en sartén con un poco de aceite",
@@ -642,7 +1270,11 @@
     "name": "Huevos a la riojana",
     "category": "platos_unicos",
     "mainProtein": "huevo",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "facil",
     "kcal": 378,
@@ -652,16 +1284,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["huevo"],
+    "allergens": [
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Huevo", "amount": 4, "unit": "ud" },
-      { "name": "Pimiento choricero", "amount": 2, "unit": "ud" },
-      { "name": "Tomate triturado", "amount": 150, "unit": "ml" },
-      { "name": "Chorizo", "amount": 50, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento choricero",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír cebolla, ajo y chorizo en rodajas",

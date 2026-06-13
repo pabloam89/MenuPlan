@@ -4,7 +4,12 @@
     "name": "Crema de calabacín",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 168,
@@ -14,14 +19,36 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Calabacín", "amount": 400, "unit": "g" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Quesito en porciones", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Calabacín",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Quesito en porciones",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pochar cebolla en aceite",
@@ -36,7 +63,10 @@
     "name": "Sopa de fideos",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 182,
@@ -46,14 +76,36 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Fideos finos", "amount": 80, "unit": "g" },
-      { "name": "Caldo de pollo", "amount": 600, "unit": "ml" },
-      { "name": "Zanahoria", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Fideos finos",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Calentar el caldo con zanahoria rallada",
@@ -68,7 +120,12 @@
     "name": "Crema de calabaza",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 178,
@@ -81,12 +138,36 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Calabaza", "amount": 400, "unit": "g" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Zanahoria", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Nuez moscada", "amount": 2, "unit": "g" }
+      {
+        "name": "Calabaza",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Pochar cebolla en aceite",
@@ -101,7 +182,12 @@
     "name": "Gazpacho andaluz",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 152,
@@ -111,16 +197,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Tomate maduro", "amount": 500, "unit": "g" },
-      { "name": "Pepino", "amount": 80, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Pan del día anterior", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Vinagre de Jerez", "amount": 15, "unit": "ml" }
+      {
+        "name": "Tomate maduro",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Pan del día anterior",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Remojar el pan en agua",
@@ -135,7 +251,12 @@
     "name": "Salmorejo cordobés",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 10,
     "difficulty": "facil",
     "kcal": 228,
@@ -145,16 +266,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Tomate maduro", "amount": 500, "unit": "g" },
-      { "name": "Pan del día anterior", "amount": 80, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 50, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Vinagre de Jerez", "amount": 10, "unit": "ml" },
-      { "name": "Jamón serrano", "amount": 20, "unit": "g" },
-      { "name": "Huevo cocido", "amount": 1, "unit": "ud" }
+      {
+        "name": "Tomate maduro",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pan del día anterior",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo cocido",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Triturar tomate, pan remojado, ajo y vinagre",
@@ -169,7 +320,12 @@
     "name": "Crema de zanahoria",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 158,
@@ -182,11 +338,31 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Zanahoria", "amount": 400, "unit": "g" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Jengibre fresco", "amount": 5, "unit": "g" }
+      {
+        "name": "Zanahoria",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Pochar cebolla en aceite",
@@ -201,7 +377,11 @@
     "name": "Sopa castellana",
     "category": "sopas_cremas",
     "mainProtein": "huevo",
-    "mealRole": ["primero", "plato_unico"],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 248,
@@ -211,16 +391,47 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Pan del día anterior", "amount": 80, "unit": "g" },
-      { "name": "Ajo", "amount": 12, "unit": "g" },
-      { "name": "Pimentón", "amount": 6, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 40, "unit": "g" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Caldo de carne", "amount": 500, "unit": "ml" }
+      {
+        "name": "Pan del día anterior",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 500,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Dorar ajos y jamón en aceite, añadir pimentón",
@@ -235,7 +446,12 @@
     "name": "Vichyssoise",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 192,
@@ -245,14 +461,36 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Puerro", "amount": 250, "unit": "g" },
-      { "name": "Patata", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Nata", "amount": 40, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Puerro",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nata",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pochar puerro y cebolla en aceite",
@@ -267,7 +505,12 @@
     "name": "Crema de puerros",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 172,
@@ -280,10 +523,26 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Puerro", "amount": 300, "unit": "g" },
-      { "name": "Patata", "amount": 150, "unit": "g" },
-      { "name": "Cebolla", "amount": 50, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Puerro",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Limpiar puerros y trocear la parte blanca y verde claro",
@@ -298,7 +557,11 @@
     "name": "Sopa de cebolla",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 40,
     "difficulty": "facil",
     "kcal": 218,
@@ -308,15 +571,42 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Cebolla", "amount": 400, "unit": "g" },
-      { "name": "Caldo de carne", "amount": 500, "unit": "ml" },
-      { "name": "Pan", "amount": 60, "unit": "g" },
-      { "name": "Queso gruyère", "amount": 40, "unit": "g" },
-      { "name": "Mantequilla", "amount": 20, "unit": "g" },
-      { "name": "Vino blanco", "amount": 40, "unit": "ml" }
+      {
+        "name": "Cebolla",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Pan",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso gruyère",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pochar la cebolla en juliana con mantequilla 20 min",
@@ -331,7 +621,12 @@
     "name": "Crema de verduras",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 148,
@@ -344,12 +639,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Calabacín", "amount": 150, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Puerro", "amount": 80, "unit": "g" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Calabacín",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pochar cebolla y puerro",
@@ -364,7 +683,12 @@
     "name": "Crema de champiñones",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 186,
@@ -374,15 +698,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Champiñones", "amount": 300, "unit": "g" },
-      { "name": "Patata", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Nata", "amount": 40, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Champiñones",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nata",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Sofreír cebolla y ajo, añadir champiñones",
@@ -397,7 +747,10 @@
     "name": "Puré de patatas",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 228,
@@ -407,13 +760,31 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Patata", "amount": 400, "unit": "g" },
-      { "name": "Leche", "amount": 80, "unit": "ml" },
-      { "name": "Mantequilla", "amount": 20, "unit": "g" },
-      { "name": "Nuez moscada", "amount": 2, "unit": "g" }
+      {
+        "name": "Patata",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Pelar y trocear las patatas",
@@ -428,7 +799,12 @@
     "name": "Crema de espárragos",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 142,
@@ -441,11 +817,31 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Espárragos trigueros", "amount": 300, "unit": "g" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 50, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Espárragos trigueros",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Trocear espárragos desechando la parte leñosa",
@@ -460,7 +856,12 @@
     "name": "Ajoblanco",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 268,
@@ -470,15 +871,42 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": true,
-    "allergens": ["gluten", "frutos_secos"],
+    "allergens": [
+      "gluten",
+      "frutos_secos"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Almendras crudas", "amount": 100, "unit": "g" },
-      { "name": "Pan del día anterior", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" },
-      { "name": "Vinagre de Jerez", "amount": 15, "unit": "ml" },
-      { "name": "Uvas", "amount": 60, "unit": "g" }
+      {
+        "name": "Almendras crudas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pan del día anterior",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Uvas",
+        "amount": 60,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Remojar pan y almendras peladas en agua fría",
@@ -493,7 +921,12 @@
     "name": "Sopa de tomate",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 25,
     "difficulty": "facil",
     "kcal": 162,
@@ -506,11 +939,31 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Tomate maduro", "amount": 500, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Orégano", "amount": 3, "unit": "g" }
+      {
+        "name": "Tomate maduro",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Sofreír cebolla y ajo en aceite",
@@ -525,7 +978,12 @@
     "name": "Crema de brócoli",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 20,
     "difficulty": "facil",
     "kcal": 152,
@@ -538,11 +996,31 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Brócoli", "amount": 350, "unit": "g" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 50, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Brócoli",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pochar cebolla y ajo",
@@ -557,7 +1035,10 @@
     "name": "Sopa de ajo",
     "category": "sopas_cremas",
     "mainProtein": "huevo",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 212,
@@ -567,15 +1048,42 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Ajo", "amount": 15, "unit": "g" },
-      { "name": "Pan del día anterior", "amount": 60, "unit": "g" },
-      { "name": "Pimentón", "amount": 6, "unit": "g" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Caldo de carne", "amount": 500, "unit": "ml" }
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Pan del día anterior",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 500,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Dorar ajos laminados en aceite a fuego suave",
@@ -590,7 +1098,10 @@
     "name": "Sopa juliana",
     "category": "sopas_cremas",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 128,
@@ -603,13 +1114,41 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Puerro", "amount": 80, "unit": "g" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Judías verdes", "amount": 80, "unit": "g" },
-      { "name": "Nabo", "amount": 60, "unit": "g" },
-      { "name": "Repollo", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" },
-      { "name": "Caldo de verduras", "amount": 500, "unit": "ml" }
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Nabo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Repollo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 500,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cortar todas las verduras en juliana fina",
@@ -624,7 +1163,12 @@
     "name": "Crema de lentejas",
     "category": "sopas_cremas",
     "mainProtein": "legumbre",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 30,
     "difficulty": "facil",
     "kcal": 272,
@@ -637,12 +1181,36 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Lentejas rojas", "amount": 150, "unit": "g" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Comino", "amount": 3, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Lentejas rojas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pochar cebolla y zanahoria",

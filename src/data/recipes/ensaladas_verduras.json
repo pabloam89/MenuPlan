@@ -4,7 +4,11 @@
     "name": "Ensalada mixta",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 10,
     "difficulty": "facil",
     "kcal": 142,
@@ -17,12 +21,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Lechuga", "amount": 150, "unit": "g" },
-      { "name": "Tomate", "amount": 150, "unit": "g" },
-      { "name": "Cebolla", "amount": 40, "unit": "g" },
-      { "name": "Aceitunas", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Vinagre", "amount": 10, "unit": "ml" }
+      {
+        "name": "Lechuga",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Lavar y trocear la lechuga",
@@ -37,7 +65,11 @@
     "name": "Pisto manchego",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 35,
     "difficulty": "facil",
     "kcal": 186,
@@ -50,13 +82,41 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Calabacín", "amount": 200, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 120, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 120, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Tomate maduro", "amount": 200, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" }
+      {
+        "name": "Calabacín",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cortar todas las verduras en dados pequeños",
@@ -71,7 +131,10 @@
     "name": "Menestra de verduras",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 35,
     "difficulty": "normal",
     "kcal": 198,
@@ -81,17 +144,51 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Alcachofas", "amount": 150, "unit": "g" },
-      { "name": "Judías verdes", "amount": 100, "unit": "g" },
-      { "name": "Guisantes", "amount": 80, "unit": "g" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 40, "unit": "g" },
-      { "name": "Harina", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Alcachofas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer las verduras por separado al dente",
@@ -106,7 +203,12 @@
     "name": "Calabacín relleno de carne",
     "category": "ensaladas_verduras",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 45,
     "difficulty": "normal",
     "kcal": 348,
@@ -119,12 +221,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Calabacín", "amount": 400, "unit": "g" },
-      { "name": "Carne picada de cerdo", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 150, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Calabacín",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de cerdo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cortar calabacines por la mitad y vaciar la pulpa",
@@ -139,7 +265,11 @@
     "name": "Espinacas a la catalana",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 15,
     "difficulty": "facil",
     "kcal": 208,
@@ -149,14 +279,36 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": true,
-    "allergens": ["frutos_secos"],
+    "allergens": [
+      "frutos_secos"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Espinacas frescas", "amount": 300, "unit": "g" },
-      { "name": "Pasas", "amount": 20, "unit": "g" },
-      { "name": "Piñones", "amount": 20, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" }
+      {
+        "name": "Espinacas frescas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pasas",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Tostar los piñones en sartén sin aceite",
@@ -171,7 +323,12 @@
     "name": "Pimientos rellenos de carne",
     "category": "ensaladas_verduras",
     "mainProtein": "ternera",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 50,
     "difficulty": "normal",
     "kcal": 382,
@@ -184,12 +341,36 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pimientos rojos", "amount": 4, "unit": "ud" },
-      { "name": "Carne picada de ternera", "amount": 250, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 200, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Pimientos rojos",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Vaciar los pimientos por la parte del tallo",
@@ -204,7 +385,12 @@
     "name": "Berenjenas rellenas",
     "category": "ensaladas_verduras",
     "mainProtein": "cerdo",
-    "mealRole": ["segundo", "plato_unico"],
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 50,
     "difficulty": "normal",
     "kcal": 362,
@@ -214,16 +400,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Berenjena", "amount": 400, "unit": "g" },
-      { "name": "Carne picada de cerdo", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Queso rallado", "amount": 30, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Berenjena",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de cerdo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cortar berenjenas por la mitad y vaciar la pulpa",
@@ -238,7 +454,11 @@
     "name": "Verduras a la plancha",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 156,
@@ -251,11 +471,31 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Calabacín", "amount": 150, "unit": "g" },
-      { "name": "Berenjena", "amount": 150, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 100, "unit": "g" },
-      { "name": "Espárragos trigueros", "amount": 100, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
+      {
+        "name": "Calabacín",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Espárragos trigueros",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cortar verduras en láminas de medio cm",
@@ -270,7 +510,12 @@
     "name": "Escalivada",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 50,
     "difficulty": "facil",
     "kcal": 168,
@@ -283,11 +528,31 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Berenjena", "amount": 200, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 150, "unit": "g" },
-      { "name": "Tomate", "amount": 150, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" }
+      {
+        "name": "Berenjena",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Asar las verduras enteras al horno a 200°C 40 min",
@@ -302,7 +567,11 @@
     "name": "Judías verdes rehogadas",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 132,
@@ -315,10 +584,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Judías verdes", "amount": 350, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Judías verdes",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer las judías en agua con sal 10 min",
@@ -333,7 +618,12 @@
     "name": "Brócoli gratinado",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 25,
     "difficulty": "facil",
     "kcal": 212,
@@ -343,13 +633,31 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Brócoli", "amount": 400, "unit": "g" },
-      { "name": "Bechamel", "amount": 100, "unit": "ml" },
-      { "name": "Queso rallado", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Brócoli",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Bechamel",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer el brócoli en ramilletes 5 min al dente",
@@ -364,7 +672,11 @@
     "name": "Coliflor rebozada",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 238,
@@ -374,13 +686,32 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo"],
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Coliflor", "amount": 400, "unit": "g" },
-      { "name": "Harina", "amount": 30, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Coliflor",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Separar la coliflor en ramilletes y cocer 8 min",
@@ -395,7 +726,11 @@
     "name": "Ensalada campera",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 248,
@@ -408,13 +743,41 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Patata", "amount": 250, "unit": "g" },
-      { "name": "Tomate", "amount": 120, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 80, "unit": "g" },
-      { "name": "Cebolla", "amount": 50, "unit": "g" },
-      { "name": "Aceitunas", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Vinagre", "amount": 10, "unit": "ml" }
+      {
+        "name": "Patata",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer las patatas enteras con piel 25 min",
@@ -429,7 +792,11 @@
     "name": "Champiñones al ajillo",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 12,
     "difficulty": "facil",
     "kcal": 128,
@@ -442,11 +809,31 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Champiñones", "amount": 300, "unit": "g" },
-      { "name": "Ajo", "amount": 12, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" },
-      { "name": "Guindilla", "amount": 1, "unit": "ud" }
+      {
+        "name": "Champiñones",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Limpiar y laminar los champiñones",
@@ -461,7 +848,11 @@
     "name": "Ensaladilla rusa",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "facil",
     "kcal": 312,
@@ -471,16 +862,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["huevo"],
+    "allergens": [
+      "huevo"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Patata", "amount": 250, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Guisantes", "amount": 60, "unit": "g" },
-      { "name": "Atún en conserva", "amount": 60, "unit": "g" },
-      { "name": "Huevo cocido", "amount": 1, "unit": "ud" },
-      { "name": "Mayonesa", "amount": 60, "unit": "g" },
-      { "name": "Aceitunas", "amount": 20, "unit": "g" }
+      {
+        "name": "Patata",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en conserva",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo cocido",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Mayonesa",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas",
+        "amount": 20,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer patata, zanahoria y guisantes, enfriar",
@@ -495,7 +916,10 @@
     "name": "Alcachofas salteadas",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 168,
@@ -508,12 +932,36 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Alcachofas", "amount": 400, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Alcachofas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Limpiar alcachofas dejando el corazón y frotar con limón",
@@ -528,7 +976,12 @@
     "name": "Tumbet mallorquín",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 40,
     "difficulty": "normal",
     "kcal": 268,
@@ -541,12 +994,36 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Patata", "amount": 200, "unit": "g" },
-      { "name": "Berenjena", "amount": 200, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 150, "unit": "g" },
-      { "name": "Tomate maduro", "amount": 200, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Freír patata, berenjena y pimiento por separado",
@@ -561,7 +1038,11 @@
     "name": "Espárragos a la plancha",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 10,
     "difficulty": "facil",
     "kcal": 108,
@@ -574,10 +1055,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Espárragos trigueros", "amount": 300, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Sal en escamas", "amount": 2, "unit": "g" }
+      {
+        "name": "Espárragos trigueros",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Sal en escamas",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Lavar espárragos y cortar la parte leñosa",
@@ -592,7 +1089,11 @@
     "name": "Pimientos del padrón",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 10,
     "difficulty": "facil",
     "kcal": 118,
@@ -605,9 +1106,21 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Pimientos de padrón", "amount": 250, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Sal gorda", "amount": 5, "unit": "g" }
+      {
+        "name": "Pimientos de padrón",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal gorda",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Lavar y secar bien los pimientos",
@@ -622,7 +1135,11 @@
     "name": "Acelgas rehogadas",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 138,
@@ -635,11 +1152,31 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Acelgas", "amount": 400, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Pimentón", "amount": 3, "unit": "g" }
+      {
+        "name": "Acelgas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Lavar y trocear las acelgas separando pencas y hojas",
@@ -654,7 +1191,11 @@
     "name": "Ensalada de tomate",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 5,
     "difficulty": "facil",
     "kcal": 152,
@@ -667,10 +1208,26 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Tomate maduro", "amount": 400, "unit": "g" },
-      { "name": "Cebolla", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Orégano", "amount": 2, "unit": "g" }
+      {
+        "name": "Tomate maduro",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cortar los tomates en rodajas gruesas",
@@ -685,7 +1242,10 @@
     "name": "Lombarda rehogada",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "facil",
     "kcal": 152,
@@ -698,11 +1258,31 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Lombarda", "amount": 400, "unit": "g" },
-      { "name": "Manzana", "amount": 100, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Vinagre", "amount": 15, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Lombarda",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Manzana",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cortar la lombarda en juliana fina",
@@ -717,7 +1297,10 @@
     "name": "Coles de Bruselas salteadas",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 162,
@@ -730,10 +1313,26 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Coles de Bruselas", "amount": 350, "unit": "g" },
-      { "name": "Panceta", "amount": 40, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Coles de Bruselas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Panceta",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Limpiar las coles y cortar por la mitad",
@@ -748,7 +1347,12 @@
     "name": "Ensalada César",
     "category": "ensaladas_verduras",
     "mainProtein": "pollo",
-    "mealRole": ["primero", "plato_unico", "cena"],
+    "mealRole": [
+      "primero",
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 328,
@@ -758,17 +1362,53 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Lechuga romana", "amount": 200, "unit": "g" },
-      { "name": "Pechuga de pollo", "amount": 200, "unit": "g" },
-      { "name": "Pan", "amount": 40, "unit": "g" },
-      { "name": "Queso parmesano", "amount": 20, "unit": "g" },
-      { "name": "Mayonesa", "amount": 30, "unit": "g" },
-      { "name": "Ajo", "amount": 4, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Lechuga romana",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pan",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Mayonesa",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
       "Hacer la pechuga a la plancha y cortar en tiras",
@@ -783,7 +1423,11 @@
     "name": "Verduras al vapor",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 15,
     "difficulty": "facil",
     "kcal": 118,
@@ -796,11 +1440,31 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Brócoli", "amount": 150, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Judías verdes", "amount": 100, "unit": "g" },
-      { "name": "Calabacín", "amount": 100, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Brócoli",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Trocear todas las verduras en tamaños similares",

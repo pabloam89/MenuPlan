@@ -4,7 +4,11 @@
     "name": "Macarrones con tomate",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "plato_unico"],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 412,
@@ -14,15 +18,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Macarrones", "amount": 200, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 250, "unit": "ml" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Orégano", "amount": 3, "unit": "g" }
+      {
+        "name": "Macarrones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer los macarrones en agua con sal",
@@ -37,7 +67,10 @@
     "name": "Espaguetis a la boloñesa",
     "category": "pasta_arroces",
     "mainProtein": "ternera",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 35,
     "difficulty": "facil",
     "kcal": 518,
@@ -47,17 +80,51 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Espaguetis", "amount": 200, "unit": "g" },
-      { "name": "Carne picada de ternera", "amount": 200, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 250, "unit": "ml" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Zanahoria", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Vino tinto", "amount": 40, "unit": "ml" }
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír cebolla, ajo y zanahoria rallada",
@@ -72,7 +139,10 @@
     "name": "Arroz blanco con tomate",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero"],
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 342,
@@ -85,10 +155,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 150, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Rehogar el ajo en aceite",
@@ -103,7 +189,11 @@
     "name": "Arroz al horno",
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 50,
     "difficulty": "normal",
     "kcal": 528,
@@ -116,14 +206,46 @@
     "allergens": [],
     "season": "invierno",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Costilla de cerdo", "amount": 150, "unit": "g" },
-      { "name": "Morcilla", "amount": 60, "unit": "g" },
-      { "name": "Garbanzos cocidos", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Patata", "amount": 100, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Pimentón", "amount": 5, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Costilla de cerdo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Morcilla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Dorar la costilla y la morcilla en cazuela de barro",
@@ -138,7 +260,10 @@
     "name": "Espaguetis carbonara",
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 548,
@@ -148,14 +273,38 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Espaguetis", "amount": 200, "unit": "g" },
-      { "name": "Panceta", "amount": 100, "unit": "g" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Queso parmesano", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Panceta",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer los espaguetis al dente",
@@ -170,7 +319,11 @@
     "name": "Macarrones con atún",
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 448,
@@ -180,16 +333,47 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "pescado"],
+    "allergens": [
+      "gluten",
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Macarrones", "amount": 200, "unit": "g" },
-      { "name": "Atún en conserva", "amount": 120, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 200, "unit": "ml" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Orégano", "amount": 2, "unit": "g" }
+      {
+        "name": "Macarrones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en conserva",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer los macarrones en agua con sal",
@@ -204,7 +388,10 @@
     "name": "Arroz con pollo",
     "category": "pasta_arroces",
     "mainProtein": "pollo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 40,
     "difficulty": "facil",
     "kcal": 498,
@@ -217,14 +404,46 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Contramuslo de pollo", "amount": 250, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Guisantes", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Pimentón", "amount": 4, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Contramuslo de pollo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Dorar el pollo troceado y reservar",
@@ -239,7 +458,10 @@
     "name": "Fideos con carne",
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "facil",
     "kcal": 472,
@@ -249,17 +471,51 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Fideos gruesos", "amount": 180, "unit": "g" },
-      { "name": "Carne picada de cerdo", "amount": 200, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 150, "unit": "ml" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Pimiento verde", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Pimentón", "amount": 4, "unit": "g" }
+      {
+        "name": "Fideos gruesos",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de cerdo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Dorar la carne picada y reservar",
@@ -274,7 +530,11 @@
     "name": "Arroz a la cubana",
     "category": "pasta_arroces",
     "mainProtein": "huevo",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 468,
@@ -284,15 +544,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["huevo"],
+    "allergens": [
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Tomate triturado", "amount": 200, "unit": "ml" },
-      { "name": "Plátano macho", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Plátano macho",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer el arroz blanco 18 min",
@@ -307,7 +593,12 @@
     "name": "Pasta al pesto",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "plato_unico"],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
     "time": 15,
     "difficulty": "facil",
     "kcal": 478,
@@ -317,15 +608,43 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "frutos_secos", "lactosa"],
+    "allergens": [
+      "gluten",
+      "frutos_secos",
+      "lactosa"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Espaguetis", "amount": 200, "unit": "g" },
-      { "name": "Albahaca fresca", "amount": 30, "unit": "g" },
-      { "name": "Piñones", "amount": 20, "unit": "g" },
-      { "name": "Queso parmesano", "amount": 30, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 40, "unit": "ml" }
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Triturar albahaca, piñones, ajo, parmesano y aceite",
@@ -340,7 +659,11 @@
     "name": "Arroz con verduras",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "plato_unico"],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "facil",
     "kcal": 368,
@@ -353,14 +676,46 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Judías verdes", "amount": 80, "unit": "g" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 60, "unit": "g" },
-      { "name": "Guisantes", "amount": 60, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Pimentón", "amount": 4, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Sofreír las verduras troceadas 5 min",
@@ -375,7 +730,10 @@
     "name": "Espaguetis con gambas",
     "category": "pasta_arroces",
     "mainProtein": "marisco",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 438,
@@ -385,16 +743,47 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "marisco"],
+    "allergens": [
+      "gluten",
+      "marisco"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Espaguetis", "amount": 200, "unit": "g" },
-      { "name": "Gambas peladas", "amount": 200, "unit": "g" },
-      { "name": "Ajo", "amount": 12, "unit": "g" },
-      { "name": "Guindilla", "amount": 1, "unit": "ud" },
-      { "name": "Vino blanco", "amount": 40, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas peladas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer los espaguetis al dente",
@@ -409,7 +798,10 @@
     "name": "Arroz negro",
     "category": "pasta_arroces",
     "mainProtein": "marisco",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 35,
     "difficulty": "normal",
     "kcal": 432,
@@ -419,17 +811,51 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["moluscos"],
+    "allergens": [
+      "moluscos"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Sepia", "amount": 200, "unit": "g" },
-      { "name": "Tinta de calamar", "amount": 8, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Caldo de pescado", "amount": 400, "unit": "ml" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Sepia",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tinta de calamar",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 400,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír sepia troceada con cebolla y ajo",
@@ -444,7 +870,11 @@
     "name": "Pasta con champiñones",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 398,
@@ -454,15 +884,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Macarrones", "amount": 200, "unit": "g" },
-      { "name": "Champiñones", "amount": 200, "unit": "g" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Nata", "amount": 50, "unit": "ml" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Macarrones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Nata",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer la pasta al dente",
@@ -477,7 +933,11 @@
     "name": "Arroz tres delicias",
     "category": "pasta_arroces",
     "mainProtein": "huevo",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 428,
@@ -487,16 +947,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["huevo"],
+    "allergens": [
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Huevo", "amount": 2, "unit": "ud" },
-      { "name": "Guisantes", "amount": 60, "unit": "g" },
-      { "name": "Zanahoria", "amount": 60, "unit": "g" },
-      { "name": "Jamón cocido", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Salsa de soja", "amount": 15, "unit": "ml" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer el arroz y enfriar (mejor del día anterior)",
@@ -511,7 +1001,10 @@
     "name": "Tallarines con pollo",
     "category": "pasta_arroces",
     "mainProtein": "pollo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 25,
     "difficulty": "facil",
     "kcal": 472,
@@ -521,16 +1014,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Tallarines", "amount": 200, "unit": "g" },
-      { "name": "Pechuga de pollo", "amount": 200, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Calabacín", "amount": 80, "unit": "g" },
-      { "name": "Salsa de soja", "amount": 20, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Tallarines",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer los tallarines al dente",
@@ -545,7 +1068,11 @@
     "name": "Lasaña de carne",
     "category": "pasta_arroces",
     "mainProtein": "ternera",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 60,
     "difficulty": "normal",
     "kcal": 562,
@@ -555,16 +1082,48 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "lactosa", "huevo"],
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Placas de lasaña", "amount": 120, "unit": "g" },
-      { "name": "Carne picada de ternera", "amount": 250, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 250, "unit": "ml" },
-      { "name": "Bechamel", "amount": 200, "unit": "ml" },
-      { "name": "Queso rallado", "amount": 40, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Placas de lasaña",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Bechamel",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Hacer boloñesa con carne, cebolla y tomate",
@@ -579,7 +1138,11 @@
     "name": "Cannelones de carne",
     "category": "pasta_arroces",
     "mainProtein": "ternera",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
     "time": 60,
     "difficulty": "normal",
     "kcal": 538,
@@ -589,17 +1152,52 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Placas de cannelones", "amount": 100, "unit": "g" },
-      { "name": "Carne picada de ternera", "amount": 250, "unit": "g" },
-      { "name": "Cebolla", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 100, "unit": "ml" },
-      { "name": "Bechamel", "amount": 250, "unit": "ml" },
-      { "name": "Queso rallado", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Nuez moscada", "amount": 2, "unit": "g" }
+      {
+        "name": "Placas de cannelones",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Bechamel",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Sofreír carne con cebolla y tomate",
@@ -614,7 +1212,10 @@
     "name": "Arroz caldoso con marisco",
     "category": "pasta_arroces",
     "mainProtein": "marisco",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 40,
     "difficulty": "normal",
     "kcal": 442,
@@ -624,17 +1225,53 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["marisco", "moluscos", "pescado"],
+    "allergens": [
+      "marisco",
+      "moluscos",
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 160, "unit": "g" },
-      { "name": "Gambas", "amount": 150, "unit": "g" },
-      { "name": "Almejas", "amount": 100, "unit": "g" },
-      { "name": "Sepia", "amount": 100, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Ajo", "amount": 10, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Caldo de pescado", "amount": 500, "unit": "ml" }
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Sepia",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 500,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír sepia con ajo y tomate",
@@ -649,7 +1286,11 @@
     "name": "Pasta con verduras salteadas",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 20,
     "difficulty": "facil",
     "kcal": 386,
@@ -659,16 +1300,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Penne", "amount": 200, "unit": "g" },
-      { "name": "Calabacín", "amount": 100, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Berenjena", "amount": 80, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Albahaca", "amount": 5, "unit": "g" }
+      {
+        "name": "Penne",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Albahaca",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer la pasta al dente",
@@ -683,7 +1354,10 @@
     "name": "Arroz a banda",
     "category": "pasta_arroces",
     "mainProtein": "pescado_blanco",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 40,
     "difficulty": "normal",
     "kcal": 418,
@@ -693,17 +1367,51 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Rape", "amount": 100, "unit": "g" },
-      { "name": "Gambas", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 60, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Pimentón", "amount": 4, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Caldo de pescado", "amount": 400, "unit": "ml" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Rape",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 400,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Hacer caldo con las cabezas de gamba y recortes de rape",
@@ -718,7 +1426,11 @@
     "name": "Espaguetis al ajo y guindilla",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 15,
     "difficulty": "facil",
     "kcal": 396,
@@ -728,14 +1440,36 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Espaguetis", "amount": 200, "unit": "g" },
-      { "name": "Ajo", "amount": 15, "unit": "g" },
-      { "name": "Guindilla", "amount": 2, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Cocer la pasta al dente reservando agua de cocción",
@@ -750,7 +1484,10 @@
     "name": "Fideuá de pollo",
     "category": "pasta_arroces",
     "mainProtein": "pollo",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 35,
     "difficulty": "facil",
     "kcal": 462,
@@ -760,17 +1497,51 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Fideos n°2", "amount": 180, "unit": "g" },
-      { "name": "Contramuslo de pollo", "amount": 250, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Tomate triturado", "amount": 80, "unit": "ml" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Pimentón", "amount": 4, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Caldo de pollo", "amount": 400, "unit": "ml" }
+      {
+        "name": "Fideos n°2",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Contramuslo de pollo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 400,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Dorar el pollo troceado y reservar",
@@ -785,7 +1556,11 @@
     "name": "Ensalada de pasta",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "cena"],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
     "time": 15,
     "difficulty": "facil",
     "kcal": 382,
@@ -795,16 +1570,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "verano",
     "ingredients": [
-      { "name": "Fusilli", "amount": 200, "unit": "g" },
-      { "name": "Tomate cherry", "amount": 100, "unit": "g" },
-      { "name": "Aceitunas negras", "amount": 30, "unit": "g" },
-      { "name": "Maíz dulce", "amount": 50, "unit": "g" },
-      { "name": "Pepino", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Vinagre", "amount": 10, "unit": "ml" }
+      {
+        "name": "Fusilli",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Maíz dulce",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer la pasta al dente y enfriar bajo agua",
@@ -819,7 +1624,11 @@
     "name": "Risotto de champiñones",
     "category": "pasta_arroces",
     "mainProtein": "none",
-    "mealRole": ["primero", "plato_unico"],
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
     "time": 30,
     "difficulty": "normal",
     "kcal": 428,
@@ -829,16 +1638,46 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "invierno",
     "ingredients": [
-      { "name": "Arroz arborio", "amount": 180, "unit": "g" },
-      { "name": "Champiñones", "amount": 200, "unit": "g" },
-      { "name": "Cebolla", "amount": 60, "unit": "g" },
-      { "name": "Vino blanco", "amount": 60, "unit": "ml" },
-      { "name": "Queso parmesano", "amount": 30, "unit": "g" },
-      { "name": "Mantequilla", "amount": 20, "unit": "g" },
-      { "name": "Caldo de verduras", "amount": 500, "unit": "ml" }
+      {
+        "name": "Arroz arborio",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 500,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Sofreír cebolla y champiñones en mantequilla",
