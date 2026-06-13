@@ -388,8 +388,14 @@ export default function App() {
     showToast(`Sustituido por «${result.recipe.name}»`);
   }, [data, menuPlan, showToast]);
 
+  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+
   const handleReset = useCallback(() => {
-    if (!window.confirm("¿Reiniciar todo? Se borrarán datos y menús guardados.")) return;
+    setResetConfirmOpen(true);
+  }, []);
+
+  const doReset = useCallback(() => {
+    setResetConfirmOpen(false);
     clearState();
     setData(INITIAL_DATA);
     setMenuPlan({});
@@ -556,6 +562,78 @@ export default function App() {
           onClose={() => setSelectedSlot(null)}
           onReject={() => handleReplaceSlot(selectedSlot)}
         />
+      )}
+
+      {resetConfirmOpen && (
+        <div
+          onClick={() => setResetConfirmOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 300,
+            background: "rgba(0,0,0,.5)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0 24px",
+            animation: "fadeIn .2s ease both",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: 24,
+              padding: "28px 24px 24px",
+              width: "100%",
+              maxWidth: 360,
+              boxShadow: "0 24px 60px rgba(0,0,0,.25)",
+              animation: "fadeUp .22s ease both",
+            }}
+          >
+            <div style={{
+              width: 52, height: 52, borderRadius: 16,
+              background: "#fff3f3", margin: "0 auto 16px",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <span style={{ fontSize: 26 }}>⚠️</span>
+            </div>
+            <h3 style={{
+              margin: "0 0 8px", fontSize: 19, fontWeight: 900,
+              color: "#142f1d", textAlign: "center",
+            }}>
+              ¿Reiniciar todo?
+            </h3>
+            <p style={{
+              margin: "0 0 24px", fontSize: 14, color: "#6b7b6e",
+              textAlign: "center", lineHeight: 1.5,
+            }}>
+              Se borrarán todos tus datos, menús y configuración. Esta acción no se puede deshacer.
+            </p>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => setResetConfirmOpen(false)}
+                style={{
+                  flex: 1, padding: "14px", borderRadius: 14,
+                  border: "none", background: "#2d5a3d", color: "#fff",
+                  fontSize: 15, fontWeight: 800, cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                onClick={doReset}
+                style={{
+                  flex: 1, padding: "14px", borderRadius: 14,
+                  border: "none", background: "#c0392b", color: "#fff",
+                  fontSize: 15, fontWeight: 800, cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Reiniciar
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {toast && (
