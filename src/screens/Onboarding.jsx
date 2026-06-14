@@ -12,6 +12,7 @@ import {
   ChevronRight,
   Coffee,
   Sun,
+  Sunset,
   Moon,
   ChevronDown,
   ChevronUp,
@@ -176,24 +177,6 @@ export function OnboardingShell({
       <div style={{ flex: 1 }}>{children}</div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-        {onFinish && (
-          <button
-            onClick={onFinish}
-            style={{
-              flex: 1,
-              padding: "14px",
-              borderRadius: 12,
-              border: "1.5px solid #2d5a3d",
-              background: "#fff",
-              color: "#2d5a3d",
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            {finishLabel}
-          </button>
-        )}
         {onNext && (
           <button
             onClick={onNext}
@@ -201,16 +184,39 @@ export function OnboardingShell({
               flex: onFinish ? 1 : 2,
               padding: "14px",
               borderRadius: 12,
+              border: "1.5px solid #c8ddd0",
+              background: "#fff",
+              color: "#2d5a3d",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer",
+            }}
+          >
+            {nextLabel}
+          </button>
+        )}
+        {onFinish && (
+          <button
+            onClick={onFinish}
+            style={{
+              flex: onNext ? 1 : 2,
+              padding: "14px",
+              borderRadius: 12,
               border: "none",
-              background: "#2d5a3d",
+              background: "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
               color: "#fff",
               fontSize: 14,
               fontWeight: 700,
               cursor: "pointer",
-              boxShadow: "0 4px 18px rgba(45,90,61,.25)",
+              boxShadow: "0 4px 18px rgba(76,186,110,.35)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
             }}
           >
-            {nextLabel}
+            <Sparkles size={15} />
+            {finishLabel}
           </button>
         )}
       </div>
@@ -1363,10 +1369,10 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
 // ─── Schedule (group + individual editing) ────────────────────
 
 const SLOT_CONFIG = {
-  casa:   { label: "En casa",     color: "#2d5a3d" },
-  tupper: { label: "Tupper",      color: "#c67030" },
-  fuera:  { label: "Come fuera",  color: "#7c6abf" },
-  cole:   { label: "Comedor",     color: "#d97706" },
+  casa:   { label: "En casa",     color: "#4cba6e" },
+  tupper: { label: "Tupper",      color: "#c05c3a" },
+  fuera:  { label: "Come fuera",  color: "#3d6b8a" },
+  cole:   { label: "Comedor",     color: "#c05c3a" },
 };
 
 const MIXED_COLOR = "#aaa";
@@ -1897,6 +1903,44 @@ function ScheduleSlotSheet({
   const columns = sheetColumns(allowCole);
   const title = `${meal} del ${dayName.toLowerCase()}`;
 
+  // "Todos" cycling — same logic as day view cycleState but for all members
+  const allValues = members.map((m) => schedule[`${m.id}|${day}|${meal}`] ?? "casa");
+  const todosConsensus = allValues.every((v) => v === allValues[0]) ? allValues[0] : null;
+  const cycleTodos = () => {
+    const cur = todosConsensus ?? "casa";
+    const next = columns[(columns.indexOf(cur === "off" ? "casa" : cur) + 1) % columns.length];
+    onSetAllSlot(next);
+  };
+
+  // Day-view cell style — identical to DayView cells
+  const dayViewCell = (state, onClick, disabled = false) => {
+    const conf = SLOT_CONFIG[state] ?? SLOT_CONFIG.casa;
+    if (disabled) return (
+      <div style={{ flex: 1, height: 56, borderRadius: 14, background: "#f4f7f5", opacity: 0.25 }} />
+    );
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        style={{
+          flex: 1, height: 56, borderRadius: 14, border: "none",
+          background: conf.color,
+          color: "#fff",
+          boxShadow: `0 3px 10px ${conf.color}55`,
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center",
+          gap: 4, cursor: "pointer", fontFamily: "inherit",
+          transition: "background .15s ease, box-shadow .15s ease",
+        }}
+      >
+        {stateIcon(state, 16)}
+        <span style={{ fontSize: 10, fontWeight: 800 }}>
+          {conf.label}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div
       onClick={onClose}
@@ -1910,44 +1954,82 @@ function ScheduleSlotSheet({
         style={{
           background: "#fff", borderRadius: "20px 20px 0 0",
           width: "100%", maxWidth: 420,
-          padding: "12px 14px calc(18px + env(safe-area-inset-bottom, 0px))",
-          maxHeight: "70vh", overflowY: "auto",
+          padding: "14px 16px calc(22px + env(safe-area-inset-bottom, 0px))",
+          maxHeight: "75vh", overflowY: "auto",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 800, color: "#1a3a24" }}>{title}</h3>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#1a3a24", textTransform: "capitalize" }}>
+            {title}
+          </h3>
           <button type="button" onClick={onClose}
-            style={{ background: "transparent", border: "none", color: "#888", fontSize: 22, cursor: "pointer", padding: 4, lineHeight: 1 }}>
-            ×
+            style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", padding: 4, display: "flex" }}>
+            <X size={18} />
           </button>
         </div>
 
-        <SheetIconLegend columns={columns} />
-
+        {/* Todos row — cycling button */}
         {members.length > 1 && (
-          <>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, width: "100%",
-              padding: "10px 12px", borderRadius: 10,
-              background: "rgba(45,90,61,.1)", border: "1.5px solid rgba(45,90,61,.28)", marginBottom: 0 }}>
-              <span style={{ flex: 1, fontSize: 13, fontWeight: 800, color: "#2d5a3d", minWidth: 0 }}>Todos</span>
-              <SlotIconRow columns={columns} value={null} onPick={onSetAllSlot} />
+          <div style={{ marginBottom: 14 }}>
+            <div style={{ fontSize: 10, fontWeight: 800, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>
+              Todos
             </div>
-            <div style={{ height: 1, background: "#e3ebe6", margin: "12px 0", width: "100%" }} />
-          </>
+            <div style={{ display: "flex", gap: 8 }}>
+              {columns.map((s) => dayViewCell(
+                s,
+                () => onSetAllSlot(s),
+                false
+              ))}
+            </div>
+            <div style={{ height: 1, background: "#e8f0ea", margin: "12px 0 0" }} />
+          </div>
         )}
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {/* Member rows — same card style as Day View */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {members.map((m) => {
             const raw = schedule[`${m.id}|${day}|${meal}`] ?? "casa";
             const cur = raw === "off" ? "casa" : raw;
             const kid = stageForAge(memberAge(m)).id !== "adulto";
             return (
-              <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10, width: "100%" }}>
-                <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8 }}>
-                  <Avatar name={m.name} size={24} />
-                  <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", whiteSpace: "nowrap" }}>{m.name}</span>
+              <div key={m.id}>
+                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
+                  <Avatar name={m.name} size={22} />
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24" }}>{m.name}</span>
                 </div>
-                <SlotIconRow columns={columns} value={cur} onPick={(s) => onSetMember(m.id, s)} memberIsKid={kid} />
+                <div style={{ display: "flex", gap: 8 }}>
+                  {columns.map((s) => {
+                    const disabled = s === "cole" && !kid;
+                    const conf = SLOT_CONFIG[s] ?? SLOT_CONFIG.casa;
+                    const selected = cur === s;
+                    if (disabled) return (
+                      <div key={s} style={{ flex: 1, height: 56, borderRadius: 14, background: "#f4f7f5", opacity: 0.2 }} />
+                    );
+                    return (
+                      <button
+                        key={s}
+                        type="button"
+                        onClick={() => onSetMember(m.id, s)}
+                        style={{
+                          flex: 1, height: 56, borderRadius: 14, border: "none",
+                          background: selected ? conf.color : "#f4f7f5",
+                          color: selected ? "#fff" : "#bbb",
+                          boxShadow: selected ? `0 3px 10px ${conf.color}55` : "none",
+                          display: "flex", flexDirection: "column",
+                          alignItems: "center", justifyContent: "center",
+                          gap: 4, cursor: "pointer", fontFamily: "inherit",
+                          transition: "background .15s ease",
+                        }}
+                      >
+                        {stateIcon(s, 16)}
+                        <span style={{ fontSize: 10, fontWeight: 800, opacity: selected ? 1 : 0.5 }}>
+                          {conf.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             );
           })}
@@ -2122,13 +2204,12 @@ function ScheduleCell({ value, states, onClick, size = 14 }) {
   const normalized = value === "off" ? "casa" : value;
   const conf = SLOT_CONFIG[normalized] ?? SLOT_CONFIG.casa;
   const color = isMixed ? MIXED_COLOR : conf.color;
-  const isCasa = !isMixed && normalized === "casa";
   const Tag = onClick ? "button" : "div";
 
   // "Casa" (default) stays muted; anything else gets a solid colored fill so
   // the exceptions in the week pop visually.
-  const background = isMixed ? "#fff" : isCasa ? "#eef4f0" : color;
-  const fg = isMixed ? MIXED_COLOR : isCasa ? "#6f8f7c" : "#fff";
+  const background = isMixed ? "#fff" : color;
+  const fg = isMixed ? MIXED_COLOR : "#fff";
 
   return (
     <Tag
@@ -2142,7 +2223,7 @@ function ScheduleCell({ value, states, onClick, size = 14 }) {
         cursor: onClick ? "pointer" : "default",
         background,
         border: isMixed ? `1.5px dashed ${MIXED_COLOR}` : "none",
-        boxShadow: isCasa || isMixed ? "none" : `0 3px 10px ${color}50`,
+        boxShadow: isMixed ? "none" : `0 3px 10px ${color}50`,
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -2155,7 +2236,7 @@ function ScheduleCell({ value, states, onClick, size = 14 }) {
       }}
     >
       {isMixed ? <MixedDots states={states ?? []} /> : stateIcon(normalized, size)}
-      <span style={{ fontSize: 9, fontWeight: 800, lineHeight: 1, opacity: isCasa ? 0.75 : 1 }}>
+      <span style={{ fontSize: 9, fontWeight: 800, lineHeight: 1 }}>
         {isMixed ? CELL_SHORT.mixed : CELL_SHORT[normalized] ?? ""}
       </span>
     </Tag>
@@ -2409,7 +2490,6 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
                 const raw = schedule[`${member.id}|${day}|${meal}`] ?? "casa";
                 const value = raw === "off" ? "casa" : raw;
                 const conf = SLOT_CONFIG[value] ?? SLOT_CONFIG.casa;
-                const isCasa = value === "casa";
                 return (
                   <button
                     key={meal}
@@ -2417,9 +2497,9 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
                     onClick={() => cycleState(member.id, day, meal)}
                     style={{
                       height: 68, borderRadius: 16, border: "none",
-                      background: isCasa ? "#eef4f0" : conf.color,
-                      color: isCasa ? "#6f8f7c" : "#fff",
-                      boxShadow: isCasa ? "none" : `0 4px 14px ${conf.color}55`,
+                      background: conf.color,
+                      color: "#fff",
+                      boxShadow: `0 4px 14px ${conf.color}55`,
                       display: "flex", flexDirection: "column",
                       alignItems: "center", justifyContent: "center",
                       gap: 5, cursor: "pointer", fontFamily: "inherit",
@@ -2427,7 +2507,7 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
                     }}
                   >
                     {stateIcon(value, 20)}
-                    <span style={{ fontSize: 10, fontWeight: 800, opacity: isCasa ? 0.7 : 1 }}>
+                    <span style={{ fontSize: 10, fontWeight: 800 }}>
                       {SLOT_CONFIG[value]?.label ?? "En casa"}
                     </span>
                   </button>
@@ -4225,6 +4305,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
       <SliderInput
         label="Entre semana"
+        icon={BriefcaseBusiness}
         value={data.timeWeekday}
         min={10}
         max={90}
@@ -4234,6 +4315,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       />
       <SliderInput
         label="El fin de semana"
+        icon={Sunset}
         value={data.timeWeekend}
         min={10}
         max={120}
