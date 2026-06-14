@@ -1185,14 +1185,38 @@ export const MenuScreen = memo(function MenuScreen({
 
 const COUNTDOWN_TOTAL = 90;
 
+const GENERATING_PHRASES = [
+  "Calculando variedad para toda la semana…",
+  "Ajustando al menú del cole de los peques…",
+  "Cuadrando gustos de toda la familia…",
+  "Optimizando tiempos de cocina…",
+  "Buscando recetas que no se repitan…",
+  "Pensando qué comer sin agobios…",
+  "Equilibrando proteínas, verduras y algo rico…",
+  "Poniendo orden en la nevera imaginaria…",
+];
+
 function GeneratingSkeleton({ onStop }) {
   const [elapsed, setElapsed] = useState(0);
+  const [phraseIdx, setPhraseIdx] = useState(0);
+  const [phraseVisible, setPhraseVisible] = useState(true);
 
   useEffect(() => {
     const start = Date.now();
     const id = setInterval(() => {
       setElapsed(Math.floor((Date.now() - start) / 1000));
     }, 250);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setPhraseVisible(false);
+      setTimeout(() => {
+        setPhraseIdx((i) => (i + 1) % GENERATING_PHRASES.length);
+        setPhraseVisible(true);
+      }, 350);
+    }, 10000);
     return () => clearInterval(id);
   }, []);
 
@@ -1207,11 +1231,36 @@ function GeneratingSkeleton({ onStop }) {
   const skeletonRows = [0, 1, 2];
   return (
     <div style={{ padding: "0 16px" }}>
+      {/* Spinner + rotating phrase */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <Loader2
+          size={18}
+          color="#2d5a3d"
+          style={{ flexShrink: 0, animation: "spin 1s linear infinite" }}
+        />
+        <span
+          style={{
+            flex: 1,
+            fontSize: 13,
+            fontWeight: 600,
+            color: "#2d5a3d",
+            opacity: phraseVisible ? 1 : 0,
+            transition: "opacity .35s ease",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {GENERATING_PHRASES[phraseIdx]}
+        </span>
+      </div>
+
+      {/* Progress bar + time + stop */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
         <div
           style={{
             flex: 1,
-            height: 6,
+            height: 5,
             borderRadius: 3,
             background: "#ecf1ed",
             overflow: "hidden",
@@ -1222,7 +1271,7 @@ function GeneratingSkeleton({ onStop }) {
               height: "100%",
               width: `${progress * 100}%`,
               borderRadius: 3,
-              background: "#2d5a3d",
+              background: "#4cba6e",
               transition: "width .3s linear",
             }}
           />
@@ -1310,6 +1359,7 @@ function GeneratingSkeleton({ onStop }) {
       ))}
       <style>{`
         @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       `}</style>
     </div>
   );

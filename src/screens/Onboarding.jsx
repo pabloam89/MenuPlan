@@ -177,11 +177,11 @@ export function OnboardingShell({
       <div style={{ flex: 1 }}>{children}</div>
 
       <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
-        {onNext && (
+        {onFinish && onNext && (
           <button
-            onClick={onNext}
+            onClick={onFinish}
             style={{
-              flex: onFinish ? 1 : 2,
+              flex: 1,
               padding: "14px",
               borderRadius: 12,
               border: "1.5px solid #c8ddd0",
@@ -192,14 +192,33 @@ export function OnboardingShell({
               cursor: "pointer",
             }}
           >
+            {finishLabel}
+          </button>
+        )}
+        {onNext && (
+          <button
+            onClick={onNext}
+            style={{
+              flex: onFinish ? 1 : 2,
+              padding: "14px",
+              borderRadius: 12,
+              border: "none",
+              background: "#2d5a3d",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: "pointer",
+              boxShadow: "0 4px 18px rgba(45,90,61,.25)",
+            }}
+          >
             {nextLabel}
           </button>
         )}
-        {onFinish && (
+        {onFinish && !onNext && (
           <button
             onClick={onFinish}
             style={{
-              flex: onNext ? 1 : 2,
+              flex: 2,
               padding: "14px",
               borderRadius: 12,
               border: "none",
