@@ -6,6 +6,7 @@ import {
   Calendar,
   ChefHat,
   Clock3,
+  Coffee,
   Download,
   Drumstick,
   Egg,
@@ -14,12 +15,15 @@ import {
   Gauge,
   Leaf,
   Loader2,
+  Moon,
   RotateCw,
+  Shell,
   StopCircle,
   Share2,
   ShoppingCart,
   Soup,
   Sparkles,
+  Sun,
   Users,
   Utensils,
   Wand2,
@@ -27,13 +31,14 @@ import {
   X,
 } from "lucide-react";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
-import { BottomNav, Chip, AvatarStack, SliderInput } from "../components/ui.jsx";
+import { resolveRecipeAllergens } from "../lib/allergens.js";
+import { BottomNav, Chip, AvatarStack } from "../components/ui.jsx";
+import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
-import { partialEaterInitials } from "../lib/slotEaters.js";
-import { DAYS, getMeals, isLunchMeal, slotKey } from "../lib/planner.js";
+import { DAYS, getMeals, isLunchMeal } from "../lib/planner.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -52,6 +57,32 @@ const ICONS_BY_TYPE = {
   chef: ChefHat,
 };
 
+const TAG_PALETTE = {
+  pescado:   { surface: "#d0e8f8", ink: "#1a4d72", accent: "#2072b8" },
+  carne:     { surface: "#f5cfc0", ink: "#7a2010", accent: "#c03818" },
+  legumbres: { surface: "#bfe8cc", ink: "#1a4a28", accent: "#2d8a48" },
+  verdura:   { surface: "#b8f0cc", ink: "#155028", accent: "#4cba6e" },
+  pasta:     { surface: "#f8ddb8", ink: "#7a4008", accent: "#c07018" },
+  arroz:     { surface: "#f8ddb8", ink: "#7a4008", accent: "#c07018" },
+  huevos:    { surface: "#f8f0a8", ink: "#6a5000", accent: "#c8a000" },
+  sopa:      { surface: "#ddc8f8", ink: "#4a1a90", accent: "#7830d0" },
+  crema:     { surface: "#ddc8f8", ink: "#4a1a90", accent: "#7830d0" },
+};
+
+function tagPalette(recipe) {
+  for (const tag of (recipe?.tags ?? [])) {
+    if (TAG_PALETTE[tag]) return TAG_PALETTE[tag];
+  }
+  return { surface: "#e8f0eb", ink: "#2d5a3d", accent: "#4cba6e" };
+}
+
+const MEAL_META = {
+  Desayuno: { label: "Desayuno", Icon: Coffee },
+  Comida:   { label: "Comida",   Icon: Sun    },
+  Cena:     { label: "Cena",     Icon: Moon   },
+};
+
+const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
 function formatQty(qty, unit) {
   if (unit === "ud") return `${Math.ceil(qty)} ${Math.ceil(qty) === 1 ? "ud" : "uds"}`;
@@ -89,24 +120,24 @@ function MacroPill({ label, value, tone = "#2d5a3d" }) {
   );
 }
 
-function DishIcon({ recipe, size = 44 }) {
-  const visual = visualForRecipe(recipe);
+function DishIcon({ recipe, size = 44, palette }) {
+  const p = palette ?? { accent: "#2d5a3d", ink: "#fff" };
   const Icon = ICONS_BY_TYPE[recipe.iconType] ?? Utensils;
   return (
     <span
       style={{
         width: size,
         height: size,
-        borderRadius: Math.round(size * 0.32),
+        borderRadius: Math.round(size * 0.3),
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        color: visual.ink,
-        background: visual.surface,
+        color: "#fff",
+        background: p.accent,
         flexShrink: 0,
       }}
     >
-      <Icon size={Math.round(size * 0.5)} strokeWidth={2} />
+      <Icon size={Math.round(size * 0.48)} strokeWidth={2.2} />
     </span>
   );
 }
@@ -468,18 +499,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
 
         {/* Tiempo disponible */}
         <div style={{ ...profileLabelStyle, marginBottom: 8 }}>Tiempo disponible</div>
-        <SliderInput
-          label="Entre semana"
-          value={data.timeWeekday ?? 30}
-          min={10} max={90} step={5} suffix=" min"
-          onChange={(v) => setData((d) => ({ ...d, timeWeekday: v }))}
-        />
-        <SliderInput
-          label="Fin de semana"
-          value={data.timeWeekend ?? 60}
-          min={10} max={120} step={5} suffix=" min"
-          onChange={(v) => setData((d) => ({ ...d, timeWeekend: v }))}
-        />
+        <CookTimeEditor data={data} setData={setData} />
 
         <div style={{ marginTop: 16 }}>
           <button
@@ -499,7 +519,6 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   );
 }
 
-
 function dishesFromSlot(slot, isLunch) {
   if (!slot?.recipeId) return [];
   const items = [];
@@ -518,20 +537,10 @@ function dishesFromSlot(slot, isLunch) {
   return items;
 }
 
-function DishCard({ slot, onTap, group, showGroupTag, eaterInitials = [], courseLabel = null }) {
+function DishCard({ slot, onTap, courseLabel = null, showDivider = true }) {
   if (!slot) {
     return (
-      <div
-        style={{
-          padding: "13px 14px",
-          background: "#fafafa",
-          borderRadius: 14,
-          border: "1px dashed #e2e8e3",
-          color: "#bbb",
-          fontSize: 12,
-          textAlign: "center",
-        }}
-      >
+      <div style={{ padding: "10px 0", fontSize: 12, color: "#bbb", fontStyle: "italic" }}>
         No aplica
       </div>
     );
@@ -540,136 +549,117 @@ function DishCard({ slot, onTap, group, showGroupTag, eaterInitials = [], course
   const recipe = RECIPES_BY_ID[slot.recipeId];
   if (!recipe) return null;
 
+  const palette = tagPalette(recipe);
+  const allergenItems = resolveRecipeAllergens(recipe.allergens);
+
   return (
     <button
       type="button"
       onClick={onTap}
       style={{
         width: "100%",
-        border: "1px solid #ecf1ed",
+        border: "none",
+        borderBottom: showDivider ? "1px solid #e8f0ea" : "none",
         textAlign: "left",
         display: "flex",
         gap: 12,
-        padding: "12px 14px",
-        background: "#fff",
-        borderRadius: 16,
+        padding: "12px 2px",
+        background: "transparent",
         cursor: "pointer",
         fontFamily: "inherit",
-        position: "relative",
-        boxShadow: "0 1px 0 rgba(20,47,29,.02)",
       }}
     >
-      {showGroupTag && group && (
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: -1,
-            top: 14,
-            bottom: 14,
-            width: 3,
-            borderRadius: 3,
-            background: group.color,
-          }}
-        />
-      )}
-      {courseLabel && (
-        <span
-          style={{
-            position: "absolute",
-            top: 10,
-            left: 10,
-            fontSize: 9,
-            fontWeight: 900,
-            color: "#2d5a3d",
-            background: "#eef3ef",
-            padding: "2px 6px",
-            borderRadius: 6,
-          }}
-        >
-          {courseLabel}
-        </span>
-      )}
-      <DishIcon recipe={recipe} size={44} />
+      <DishIcon recipe={recipe} size={44} palette={palette} />
       <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {showGroupTag && group && (
+        <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+          <span
+            style={{
+              fontSize: 15,
+              fontWeight: 900,
+              color: "#142f1d",
+              lineHeight: 1.25,
+              letterSpacing: "-.15px",
+            }}
+          >
+            {recipe.name}
+          </span>
+          {courseLabel && (
             <span
               style={{
                 fontSize: 9,
                 fontWeight: 900,
-                color: group.color,
-                textTransform: "uppercase",
-                letterSpacing: 0.7,
+                color: palette.accent,
+                background: `${palette.surface}`,
+                padding: "2px 7px",
+                borderRadius: 6,
               }}
             >
-              {group.label}
+              {courseLabel}
             </span>
           )}
         </div>
-        <div
-          style={{
-            fontSize: 14,
-            fontWeight: 900,
-            color: "#15331c",
-            lineHeight: 1.18,
-            letterSpacing: "-.1px",
-            marginTop: showGroupTag && group ? 2 : 0,
-          }}
-        >
-          {recipe.name}
-        </div>
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 8, alignItems: "center" }}>
-          <MacroPill label="min" value={recipe.time} tone="#2d5a3d" />
-          {slot.mode === "tupper" && (
-            <span
-              style={{
-                fontSize: 9,
-                fontWeight: 800,
-                padding: "4px 8px",
-                borderRadius: 999,
-                background: "#fff5ef",
-                color: "#c67030",
-              }}
-            >
-              tupper
-            </span>
-          )}
-        </div>
-      </div>
-      {eaterInitials.length > 0 && (
         <div
           style={{
             display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginTop: 6,
             flexWrap: "wrap",
-            gap: 3,
-            flexShrink: 0,
-            alignSelf: "center",
-            maxWidth: 56,
-            justifyContent: "flex-end",
           }}
         >
-          {eaterInitials.map((init) => (
+          <span
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 4,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#8d978f",
+            }}
+          >
+            <Clock3 size={13} strokeWidth={2.2} />
+            {recipe.time} min
+          </span>
+          {slot.mode === "tupper" && (
             <span
-              key={init}
               style={{
-                width: 22,
-                height: 22,
-                borderRadius: 7,
-                background: "#eef3ef",
-                color: "#2d5a3d",
-                fontSize: 9,
-                fontWeight: 900,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
+                fontSize: 10,
+                fontWeight: 800,
+                color: "#a85a00",
               }}
             >
-              {init}
+              · tupper
             </span>
-          ))}
+          )}
+          {allergenItems.length > 0 && (
+            <>
+              <span style={{ color: "#dde8e0", fontSize: 12 }}>·</span>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 5,
+                }}
+              >
+                {allergenItems.map(({ id, Icon, label, color }) => (
+                  <span
+                    key={id}
+                    title={label}
+                    aria-label={label}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      color,
+                    }}
+                  >
+                    <Icon size={14} strokeWidth={2.2} />
+                  </span>
+                ))}
+              </span>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </button>
   );
 }
@@ -692,6 +682,12 @@ export const MenuScreen = memo(function MenuScreen({
     data.groups.slice(0, 1).map((g) => g.id)
   );
   const [profileOpen, setProfileOpen] = useState(false);
+  const [viewMode, setViewMode] = useState("dia"); // "dia" | "semana"
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const jsDay = new Date().getDay();
+    const idx = jsDay === 0 ? 6 : jsDay - 1;
+    return DAYS[Math.min(idx, 6)];
+  });
 
   const weekDates = useMemo(() => getWeekDates(), []);
   const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates), [weekDates]);
@@ -708,7 +704,6 @@ export const MenuScreen = memo(function MenuScreen({
   };
 
   const visibleGroups = data.groups.filter((g) => activeGroupIds.includes(g.id));
-  const showGroupTag = visibleGroups.length > 1;
 
   const handleShare = async () => {
     try {
@@ -737,203 +732,102 @@ export const MenuScreen = memo(function MenuScreen({
 
   return (
     <div style={{ paddingBottom: 0, background: "#f7f9f7" }}>
-      <div style={{ padding: "20px 20px 0" }}>
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-end",
-            gap: 12,
-            marginBottom: 14,
-          }}
-        >
-          <div>
-            <h2
-              style={{
-                fontSize: 26,
-                fontWeight: 900,
-                color: "#142f1d",
-                margin: 0,
-                letterSpacing: "-.7px",
-              }}
-            >
-              Tu menú
-            </h2>
-          </div>
+      {/* ── Top header: title + actions ── */}
+      <div style={{ padding: "20px 20px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, marginBottom: 14 }}>
+          <h2 style={{ fontSize: 26, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.7px" }}>
+            Tu menú
+          </h2>
           <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              onClick={onReset}
-              style={ghostButtonStyle}
-              disabled={isGenerating}
-            >
+            <button type="button" onClick={onReset} style={ghostButtonStyle} disabled={isGenerating}>
               Reiniciar
             </button>
             {!isGenerating && (
-              <button
-                type="button"
-                onClick={onRegenerate}
-                style={primaryMiniButtonStyle}
-              >
+              <button type="button" onClick={onRegenerate} style={primaryMiniButtonStyle}>
                 Regenerar
               </button>
             )}
           </div>
         </div>
 
-        <div
-          style={{
-            height: 1,
-            background: "#e6eee8",
-            marginBottom: 14,
-          }}
-        />
-
-        <div style={{ marginBottom: 14 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 10,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                gap: 6,
-                flex: 1,
-                minWidth: 0,
-                flexWrap: "wrap",
-              }}
-            >
-              {data.groups.map((g) => {
-                const sel = activeGroupIds.includes(g.id);
-                const members = membersOfGroup(g, data.members);
-                return (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => toggleGroup(g.id)}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "7px 12px 7px 8px",
-                      borderRadius: 999,
-                      background: sel ? g.color : "#fff",
-                      color: sel ? "#fff" : "#526057",
-                      fontSize: 12,
-                      fontWeight: 800,
-                      cursor: "pointer",
-                      flexShrink: 0,
-                      border: `1px solid ${sel ? g.color : "#e6eee8"}`,
-                      fontFamily: "inherit",
-                    }}
-                  >
-                    <AvatarStack
-                      names={members.map((m) => m.name)}
-                      size={22}
-                      max={3}
-                      color={sel ? "rgba(255,255,255,.25)" : "#c9d2cc"}
-                    />
-                    {g.label}
-                  </button>
-                );
-              })}
-            </div>
-            {hasMenu && (
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                <button
-                  type="button"
-                  onClick={handleShare}
-                  aria-label="Compartir menú"
-                  title="Compartir"
-                  style={iconChipButtonStyle}
-                >
-                  <Share2 size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDownload}
-                  aria-label="Descargar menú"
-                  title="Descargar"
-                  style={iconChipButtonStyle}
-                >
-                  <Download size={16} />
-                </button>
-              </div>
-            )}
-          </div>
-
-          <div style={{ height: 1, background: "#e6eee8", margin: "10px 0" }} />
-
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 10,
-            }}
-          >
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "7px 11px",
-                borderRadius: 12,
-                background: "#fff",
-                border: "1px solid #ecf1ed",
-              }}
-            >
-              <span
-                style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
-                  background: "#eef3ef",
-                  color: "#2d5a3d",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Calendar size={14} />
-              </span>
-              <div>
-                <div
+        {/* Groups + share row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <div style={{ display: "flex", gap: 6, flex: 1, minWidth: 0, flexWrap: "wrap" }}>
+            {data.groups.map((g) => {
+              const sel = activeGroupIds.includes(g.id);
+              const members = membersOfGroup(g, data.members);
+              return (
+                <button key={g.id} type="button" onClick={() => toggleGroup(g.id)}
                   style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    color: "#8d978f",
-                    textTransform: "uppercase",
-                    letterSpacing: 0.9,
-                    lineHeight: 1,
-                    marginBottom: 3,
+                    display: "inline-flex", alignItems: "center", gap: 8,
+                    padding: "7px 12px 7px 8px", borderRadius: 999,
+                    background: sel ? g.color : "#fff", color: sel ? "#fff" : "#526057",
+                    fontSize: 12, fontWeight: 800, cursor: "pointer", flexShrink: 0,
+                    border: `1px solid ${sel ? g.color : "#e6eee8"}`, fontFamily: "inherit",
                   }}
                 >
-                  Semana
-                </div>
-                <div
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 900,
-                    color: "#142f1d",
-                    letterSpacing: "-.2px",
-                    lineHeight: 1,
-                  }}
-                >
-                  {weekLabel}
-                </div>
-              </div>
-            </div>
-
-            <ProfileButton onClick={() => setProfileOpen(true)} />
+                  <AvatarStack names={members.map((m) => m.name)} size={22} max={3}
+                    color={sel ? "rgba(255,255,255,.25)" : "#c9d2cc"} />
+                  {g.label}
+                </button>
+              );
+            })}
           </div>
+          {hasMenu && (
+            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+              <button type="button" onClick={handleShare} aria-label="Compartir" style={iconChipButtonStyle}>
+                <Share2 size={16} />
+              </button>
+              <button type="button" onClick={handleDownload} aria-label="Descargar" style={iconChipButtonStyle}>
+                <Download size={16} />
+              </button>
+            </div>
+          )}
         </div>
       </div>
+
+      {/* ── Divider ── */}
+      <div style={{ height: 1, background: "#e0eae3" }} />
+
+      {/* ── Week card: fecha + perfil + toggle ── */}
+      <div style={{ background: "#fff", padding: "12px 16px 0" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+          {/* Date card */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 11px", borderRadius: 12, background: "#f4f8f5", border: "1px solid #e0eae3" }}>
+            <span style={{ width: 28, height: 28, borderRadius: 8, background: "#2d5a3d", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+              <Calendar size={14} />
+            </span>
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 800, color: "#8d978f", textTransform: "uppercase", letterSpacing: 0.9, lineHeight: 1, marginBottom: 3 }}>Semana</div>
+              <div style={{ fontSize: 13, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px", lineHeight: 1 }}>{weekLabel}</div>
+            </div>
+          </div>
+          <ProfileButton onClick={() => setProfileOpen(true)} />
+        </div>
+
+        {/* Semana / Día toggle */}
+        {hasMenu && (
+          <div style={{ display: "flex", background: "#f0f4f1", borderRadius: 12, padding: 3, marginBottom: 12 }}>
+            {["dia", "semana"].map((mode) => (
+              <button key={mode} type="button" onClick={() => setViewMode(mode)}
+                style={{
+                  flex: 1, padding: "7px 0", borderRadius: 9, border: "none",
+                  background: viewMode === mode ? "#fff" : "transparent",
+                  color: viewMode === mode ? "#142f1d" : "#7a8a7f",
+                  fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                  boxShadow: viewMode === mode ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                  transition: "all .15s",
+                }}
+              >
+                {mode === "dia" ? "Por día" : "Semana"}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Second divider: end of nav zone ── */}
+      <div style={{ height: 3, background: "linear-gradient(to bottom, #e0eae3, #f7f9f7)" }} />
 
       {isGenerating && <GeneratingSkeleton onStop={onStop} />}
 
@@ -946,134 +840,141 @@ export const MenuScreen = memo(function MenuScreen({
       )}
 
       {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
-      <div style={{ padding: "0 16px" }}>
-        {DAYS.map((day) => {
-          const meals = getMeals(data);
-          const hasAnyContent = meals.some((meal) =>
-            visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
-          );
-          if (!hasAnyContent) return null;
-          return (
-            <div key={day} style={{ marginBottom: 18 }}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "0 4px",
-                  marginBottom: 10,
-                }}
-              >
-                <span
+      <div>
+        {/* ── Week strip (only in "dia" mode) ── */}
+        {viewMode === "dia" && (
+          <div style={{ background: "#fff", display: "flex", alignItems: "flex-end", padding: "4px 12px 16px", gap: 2 }}>
+            {DAYS.map((day) => {
+              const meals = getMeals(data);
+              const hasDot = meals.some((meal) =>
+                visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
+              );
+              const isSelected = day === selectedDay;
+              const dayNum = calendarDayNumber(day, weekDates);
+              const isWeekend = day === "Sáb" || day === "Dom";
+              return (
+                <button key={day} type="button" onClick={() => setSelectedDay(day)}
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 10,
-                    background: "#fff",
-                    border: "1px solid #e6eee8",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    fontSize: 15,
-                    fontWeight: 900,
-                    color: "#142f1d",
-                    flexShrink: 0,
+                    flex: isSelected ? 1.4 : 1,
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    gap: 4, padding: isSelected ? "12px 6px 10px" : "8px 4px 8px",
+                    borderRadius: 16, border: "none",
+                    background: isSelected ? "#4cba6e" : isWeekend ? "#f0f8f3" : "transparent",
+                    cursor: "pointer", fontFamily: "inherit",
+                    transition: "all .2s cubic-bezier(.4,0,.2,1)",
+                    boxShadow: isSelected ? "0 4px 16px #4cba6e55" : "none",
                   }}
                 >
-                  {calendarDayNumber(day, weekDates)}
-                </span>
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 900,
-                    color: "#142f1d",
-                    textTransform: "uppercase",
-                    letterSpacing: 1.4,
-                  }}
-                >
-                  {day}
-                </span>
-                <span style={{ flex: 1, height: 1, background: "#e6eee8" }} />
-              </div>
-              {meals.map((meal) => {
-                const isLunch = isLunchMeal(meal);
-                const cards = visibleGroups.flatMap((g) => {
-                  const result = [];
-                  const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
-                  if (slot) {
-                    for (const dish of dishesFromSlot(slot, isLunch)) {
-                      result.push({ kind: "dish", group: g, slot, dish });
-                    }
-                  }
-                  return result;
-                });
-                if (cards.length === 0) return null;
-                return (
-                  <div key={meal} style={{ marginBottom: 10 }}>
-                    <div
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        color: "#7a8580",
-                        padding: "0 4px",
-                        marginBottom: 6,
-                        textTransform: "uppercase",
-                        letterSpacing: 1,
-                      }}
-                    >
-                      {meal}
-                    </div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {cards.map((card, idx) =>
-                        card.kind === "dish" ? (
-                          <DishCard
-                            key={`dish-${card.group.id}-${card.dish.courseKey}-${idx}`}
-                            slot={{ ...card.slot, recipeId: card.dish.recipeId }}
-                            courseLabel={card.dish.course}
-                            onTap={() =>
-                              onDishTap({
-                                recipe: RECIPES_BY_ID[card.dish.recipeId],
-                                slot: card.slot,
-                                groupId: card.group.id,
-                                day,
-                                meal,
-                                group: card.group,
-                                course: card.dish.courseKey,
-                              })
-                            }
-                            group={card.group}
-                            showGroupTag={showGroupTag}
-                            eaterInitials={
-                              card.dish.courseKey === "main"
-                                ? partialEaterInitials(
-                                    card.group,
-                                    data.members,
-                                    data.schedule ?? {},
-                                    day,
-                                    meal
-                                  )
-                                : []
-                            }
-                          />
-                        ) : null
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          );
-        })}
-      </div>
-      )}
+                  <span style={{
+                    fontSize: isSelected ? 10 : 9, fontWeight: 800, letterSpacing: .5, textTransform: "uppercase",
+                    color: isSelected ? "rgba(255,255,255,.85)" : isWeekend ? "#4cba6e" : "#aab5af",
+                  }}>
+                    {DAY_LETTERS[day]}
+                  </span>
+                  <span style={{
+                    fontSize: isSelected ? 20 : 15, fontWeight: 900, lineHeight: 1,
+                    color: isSelected ? "#fff" : "#15331c",
+                    transition: "font-size .2s",
+                  }}>
+                    {dayNum}
+                  </span>
+                  <span style={{
+                    width: 5, height: 5, borderRadius: 999,
+                    background: isSelected ? "rgba(255,255,255,.6)" : hasDot ? "#4cba6e" : "transparent",
+                  }} />
+                </button>
+              );
+            })}
+          </div>
+        )}
 
-      {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
-        <div style={{ padding: "12px 16px 16px", display: "flex", gap: 10 }}>
-          <button type="button" onClick={() => onNav("shopping")} style={shoppingButtonStyle}>
-            <ShoppingCart size={16} />
-            Compra
-          </button>
+        {/* ── Content ── */}
+        <div style={{ padding: "14px 16px 24px" }}>
+          {(viewMode === "dia" ? [selectedDay] : DAYS).map((day) => {
+            const meals = getMeals(data);
+            const dayHasContent = meals.some((meal) =>
+              visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
+            );
+            if (!dayHasContent) return null;
+            return (
+              <div key={day}>
+                {/* Day header — only in semana mode */}
+                {viewMode === "semana" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                    <span style={{
+                      width: 34, height: 34, borderRadius: 10, background: "#2d5a3d",
+                      color: "#fff", display: "inline-flex", alignItems: "center",
+                      justifyContent: "center", fontSize: 15, fontWeight: 900, flexShrink: 0,
+                    }}>
+                      {calendarDayNumber(day, weekDates)}
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d", textTransform: "uppercase", letterSpacing: 1.2 }}>
+                      {day}
+                    </span>
+                  </div>
+                )}
+
+                {meals.map((meal) => {
+                  const isLunch = isLunchMeal(meal);
+                  const cards = visibleGroups.flatMap((g) => {
+                    const result = [];
+                    const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
+                    if (slot) {
+                      for (const dish of dishesFromSlot(slot, isLunch)) {
+                        result.push({ kind: "dish", group: g, slot, dish });
+                      }
+                    }
+                    return result;
+                  });
+                  if (cards.length === 0) return null;
+                  const meta = MEAL_META[meal] ?? { Icon: Utensils, label: meal };
+                  const MealIcon = meta.Icon;
+                  return (
+                    <div key={meal} style={{ marginBottom: 18 }}>
+                      {/* Meal header */}
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                        <span style={{
+                          width: 30, height: 30, borderRadius: 10, background: "#2d5a3d",
+                          color: "#fff", display: "inline-flex", alignItems: "center",
+                          justifyContent: "center", flexShrink: 0,
+                        }}>
+                          <MealIcon size={15} strokeWidth={2.2} />
+                        </span>
+                        <span style={{ fontSize: 14, fontWeight: 900, color: "#142f1d", letterSpacing: ".1px" }}>
+                          {meta.label}
+                        </span>
+                        <span style={{ flex: 1, height: 1, background: "#dde8e0" }} />
+                      </div>
+                      <div style={{ display: "flex", flexDirection: "column" }}>
+                        {cards.map((card, idx) => (
+                            <DishCard
+                              key={`dish-${card.group.id}-${card.dish.courseKey}-${idx}`}
+                              slot={{ ...card.slot, recipeId: card.dish.recipeId }}
+                              courseLabel={card.dish.course}
+                              showDivider={idx < cards.length - 1}
+                              onTap={() =>
+                                onDishTap({
+                                  recipe: RECIPES_BY_ID[card.dish.recipeId],
+                                  slot: card.slot,
+                                  groupId: card.group.id,
+                                  day,
+                                  meal,
+                                  group: card.group,
+                                  course: card.dish.courseKey,
+                                })
+                              }
+                            />
+                          ))}
+                      </div>
+                    </div>
+                  );
+                })}
+                {viewMode === "semana" && <div style={{ height: 1, background: "#e8f0ea", marginBottom: 20 }} />}
+              </div>
+            );
+          })}
         </div>
+      </div>
       )}
 
       {profileOpen && (
@@ -1554,14 +1455,29 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
             <div
               style={{
                 fontSize: 12,
-                color: "#c67030",
+                color: "#526057",
                 marginBottom: 14,
                 display: "flex",
-                gap: 6,
+                alignItems: "center",
+                gap: 8,
+                flexWrap: "wrap",
               }}
             >
-              <AlertTriangle size={14} />
-              Contiene: {recipe.allergens.join(", ")}
+              {resolveRecipeAllergens(recipe.allergens).map(({ id, Icon, label, color }) => (
+                <span
+                  key={id}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    color,
+                    fontWeight: 700,
+                  }}
+                >
+                  <Icon size={14} strokeWidth={2.2} />
+                  {label}
+                </span>
+              ))}
             </div>
           )}
 

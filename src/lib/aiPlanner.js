@@ -7,7 +7,8 @@ import { filterRecipes, decisionCatalog } from "../utils/filterRecipes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
-import { pairGarnishes } from "../utils/pairGarnishes.js";
+import { formatFixedDishesForAI } from "./fixedDishes.js";
+import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -130,6 +131,7 @@ RESTRICCIONES POR SLOT:
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
 - Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
+- Si hay platos a repetir (fixedDishes), colócalos en los huecos indicados usando SOLO recipeIds del catálogo. Si catalogMatches trae ids, usa uno de esos. Si catalogMatches está vacío, elige la receta más parecida por nombre del catálogo; NUNCA inventes ids.
 
 IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.
 
@@ -152,8 +154,7 @@ function buildGroupContext(data, group) {
   );
 
   const kitchenTools = [...(data.kitchenTools ?? []), ...(data.customKitchenTools ?? [])];
-  const timeWeekday = data.timeWeekday ?? 30;
-  const timeWeekend = data.timeWeekend ?? 60;
+  const cookTime = migrateCookTime(data);
 
   const slots = [];
   const schoolMenuByDay = {};
@@ -194,7 +195,7 @@ function buildGroupContext(data, group) {
       }).length;
 
       const mealType = meal.toLowerCase() === "cena" ? "cena" : "comida";
-      const maxTime = isWeekend ? timeWeekend : timeWeekday;
+      const maxTime = maxCookTime(data, { isWeekend, meal });
 
       if (mealType === "comida") {
         const base = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime };
@@ -217,18 +218,24 @@ function buildGroupContext(data, group) {
     group: { label: group.label, hasKids, allergies, dislikes },
     slots,
     schoolMenuByDay,
-    filterOpts: { allergies, dislikes, hasKids, maxTime: Math.max(timeWeekday, timeWeekend), kitchenTools, cookLevel: data.cookLevel ?? "normal" },
+    filterOpts: {
+      allergies,
+      dislikes,
+      hasKids,
+      maxTime: maxCookTimeFilter(data),
+      kitchenTools,
+      cookLevel: data.cookLevel ?? "normal",
+    },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
       freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? {},
       cookLevel: data.cookLevel ?? "normal",
-      timeWeekday,
-      timeWeekend,
+      cookTime,
     },
   };
 }
 
-function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay) {
+function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = []) {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
@@ -247,7 +254,12 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay) {
     parts.push(`\nMenú escolar:\n${JSON.stringify(schoolMenuByDay)}`);
   }
 
-  parts.push(`\nAsigna una receta del catálogo a cada hueco. Sé variado y creativo: no elijas siempre las mismas recetas obvias o populares. Cada generación debe sentirse diferente.`);
+  const fixedForAI = formatFixedDishesForAI(fixedDishes);
+  if (fixedForAI.length > 0) {
+    parts.push(`\nPlatos a repetir:\n${JSON.stringify(fixedForAI)}`);
+  }
+
+  parts.push(`\nAsigna una receta del catálogo a cada hueco.`);
   return parts.join("\n");
 }
 
@@ -272,9 +284,13 @@ async function generateGroupMenu(data, group, signal) {
     throw new AIPlannerError(filterError);
   }
 
-  // Shuffle pool before sending to LLM so it doesn't always pick the same "top" recipes
-  const shuffledPool = [...filteredPool].sort(() => Math.random() - 0.5);
-  const userMessage = buildUserMessage(shuffledPool, ctx.slots, ctx.config, ctx.schoolMenuByDay);
+  const userMessage = buildUserMessage(
+    filteredPool,
+    ctx.slots,
+    ctx.config,
+    ctx.schoolMenuByDay,
+    data.fixedDishes,
+  );
 
   const request = (messages, model = DEFAULT_MODEL) =>
     callModel(

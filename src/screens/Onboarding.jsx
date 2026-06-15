@@ -37,16 +37,16 @@ import {
   Upload,
   Zap,
   User,
-  UserPlus,
   Users,
   Utensils,
   UtensilsCrossed,
   X,
 } from "lucide-react";
 import { Chip, SliderInput, Avatar, AvatarStack, ProgressDots } from "../components/ui.jsx";
+import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole } from "../lib/stages.js";
-import { migrateFixedDishes, normalizeFixedDish } from "../lib/fixedDishes.js";
+import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole } from "../lib/stages.js";
+import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { groupsFromModel, membersOfGroup, uid } from "../lib/groups.js";
 import {
   ALL_DAY_MEALS,
@@ -249,11 +249,11 @@ const MEMBER_AVATAR_COLORS = ["#2d5a3d", "#4a7c5e", "#1a3a24", "#3d6b4f", "#5a8a
 
 const ROLE_ICON_MAP = {
   "Adulto":   User,
-  "Pareja":   Heart,
+  "Papá":     User,
+  "Mamá":     User,
   "Hijo/a":   Baby,
   "Bebé":     Baby,
   "Abuelo/a": User,
-  "Compi":    UserPlus,
   "Amigo/a":  Users,
   "Otro":     User,
 };
@@ -365,7 +365,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
               {HOUSEHOLD_ROLES.map((r) => {
                 const member = data.members.find((m) => m.id === roleEditId);
-                const current = member?.homeRole ?? suggestHomeRole(memberAge(member));
+                const current = migrateHomeRole(member?.homeRole ?? suggestHomeRole(memberAge(member)));
                 const sel = r === current;
                 return (
                   <button
@@ -487,7 +487,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
 
       {/* Member cards */}
       {data.members.map((m, idx) => {
-        const role = m.homeRole ?? suggestHomeRole(memberAge(m));
+        const role = migrateHomeRole(m.homeRole ?? suggestHomeRole(memberAge(m)));
         const avatarColor = MEMBER_AVATAR_COLORS[idx % MEMBER_AVATAR_COLORS.length];
         const RoleIcon = ROLE_ICON_MAP[role] ?? User;
         const initial = m.name.trim()[0]?.toUpperCase() ?? "?";
@@ -1185,6 +1185,9 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
 
       {tab === "repeat" && (
         <>
+          <p style={{ fontSize: 12, color: "#7a9485", margin: "0 0 10px", lineHeight: 1.45 }}>
+            Buscamos coincidencias en el catálogo por nombre. Si no hay match, intentamos lo más parecido; te avisamos abajo.
+          </p>
           <div
             style={{
               background: "#f6f9f7",
@@ -1206,7 +1209,9 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
             />
           </div>
 
-          {fixedList.map((fd, idx) => (
+          {fixedList.map((fd, idx) => {
+            const matches = catalogMatchesForFixedDish(fd);
+            return (
             <div
               key={`${fd.name}-${idx}`}
               style={{
@@ -1225,8 +1230,23 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
                 onMealsChange={(meals) => updateFixedDish(idx, { meals })}
                 onRemove={() => removeFixedDish(idx)}
               />
+              {matches.length === 0 ? (
+                <p style={{ fontSize: 11, color: "#b45309", margin: "6px 2px 0", lineHeight: 1.4 }}>
+                  No hay receta con ese nombre en el catálogo. El planificador elegirá la más parecida o lo omitirá.
+                </p>
+              ) : matches.length === 1 ? (
+                <p style={{ fontSize: 11, color: "#5a7a66", margin: "6px 2px 0", lineHeight: 1.4 }}>
+                  Coincide con: {matches[0].name}
+                </p>
+              ) : (
+                <p style={{ fontSize: 11, color: "#5a7a66", margin: "6px 2px 0", lineHeight: 1.4 }}>
+                  Varias coincidencias: {matches.slice(0, 3).map((r) => r.name).join(", ")}
+                  {matches.length > 3 ? "…" : ""}
+                </p>
+              )}
             </div>
-          ))}
+          );
+          })}
         </>
       )}
     </OnboardingShell>
@@ -1396,6 +1416,47 @@ const SLOT_CONFIG = {
 
 const MIXED_COLOR = "#aaa";
 
+/** Guess quick-fill segment values from the current schedule (main meal only). */
+function inferQuickFillPatterns(data, memberIds, members) {
+  const main = primaryDayMeal(data);
+  const weekdayDays = DAYS.filter((d) => !["Sáb", "Dom"].includes(d));
+  const weekendDays = DAYS.filter((d) => ["Sáb", "Dom"].includes(d));
+
+  const slotValue = (id, day) => data.schedule[`${id}|${day}|${main}`] ?? "casa";
+
+  const inferBlock = (days, { kidsOnlyCole = false } = {}) => {
+    const values = [];
+    for (const day of days) {
+      for (const id of memberIds) {
+        const member = members.find((m) => m.id === id);
+        const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
+        const v = slotValue(id, day);
+        if (kidsOnlyCole && !isKid && v === "cole") values.push("casa");
+        else values.push(v);
+      }
+    }
+    if (values.length === 0) return "casa";
+    if (values.every((v) => v === "cole")) return "cole";
+    if (values.every((v) => v === "fuera")) return "fuera";
+    if (values.every((v) => v === "casa")) return "casa";
+    return null;
+  };
+
+  return {
+    weekday: inferBlock(weekdayDays, { kidsOnlyCole: true }) ?? "casa",
+    weekend: inferBlock(weekendDays) ?? "casa",
+  };
+}
+
+function quickFillValueForDay({ isWeekend, isMain, isKid, qfWeekday, qfFinde }) {
+  if (!isWeekend) {
+    if (qfWeekday === "cole") return isMain ? (isKid ? "cole" : "casa") : "casa";
+    if (qfWeekday === "fuera") return isMain ? "fuera" : "casa";
+    return "casa";
+  }
+  return qfFinde === "fuera" && isMain ? "fuera" : "casa";
+}
+
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
   const meals = getMeals(data);
   const memberList = useMemo(() => data.members ?? [], [data.members]);
@@ -1503,7 +1564,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     }
   };
 
-  const applyQuickFill = () => {
+  const applyQuickFill = (scope = "all") => {
     setData((d) => {
       const next = { ...d.schedule };
       const dayMeals = getMeals(d);
@@ -1513,28 +1574,31 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
         for (const day of DAYS) {
           const isWeekend = day === "Sáb" || day === "Dom";
+          if (scope === "weekday" && isWeekend) continue;
+          if (scope === "weekend" && !isWeekend) continue;
           for (const meal of dayMeals) {
             const isMain = meal === main;
-            let value;
-            if (!isWeekend) {
-              if (qfWeekday === "cole") {
-                // Cole only applies to school-age kids; adults stay at home
-                value = isMain ? (isKid ? "cole" : "casa") : "casa";
-              } else if (qfWeekday === "fuera") {
-                value = isMain ? "fuera" : "casa";
-              } else {
-                value = "casa";
-              }
-            } else {
-              value = qfFinde === "fuera" && isMain ? "fuera" : "casa";
-            }
+            const value = quickFillValueForDay({
+              isWeekend,
+              isMain,
+              isKid,
+              qfWeekday,
+              qfFinde,
+            });
             next[`${id}|${day}|${meal}`] = value;
           }
         }
       }
       return { ...d, schedule: next };
     });
-    setQuickFillOpen(false);
+    if (scope === "all") setQuickFillOpen(false);
+  };
+
+  const openQuickFill = () => {
+    const inferred = inferQuickFillPatterns(data, subjectMemberIds, subjectMembers);
+    setQfWeekday(inferred.weekday);
+    setQfFinde(inferred.weekend);
+    setQuickFillOpen(true);
   };
 
   const toggleDayMeal = (meal) => {
@@ -1671,7 +1735,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         </div>
         <button
             type="button"
-            onClick={() => setQuickFillOpen(true)}
+            onClick={openQuickFill}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -1742,7 +1806,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
             </div>
 
             <p style={{ fontSize: 13, color: "#999", margin: "0 0 22px", lineHeight: 1.5 }}>
-              Elige un patrón y lo aplicamos a toda la semana. Después ajusta cada celda en la vista por día.
+              Elige un patrón para entre semana y otro para el finde. Puedes aplicarlos juntos o por separado sin pisar el otro bloque.
             </p>
 
             <div style={{ marginBottom: 22 }}>
@@ -1776,7 +1840,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
             <button
               type="button"
-              onClick={applyQuickFill}
+              onClick={() => applyQuickFill("all")}
               style={{
                 width: "100%",
                 background: "#1a3a24",
@@ -1788,10 +1852,49 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
                 fontWeight: 800,
                 cursor: "pointer",
                 fontFamily: "inherit",
+                marginBottom: 10,
               }}
             >
-              Aplicar a la semana
+              Aplicar entre semana y finde
             </button>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => applyQuickFill("weekday")}
+                style={{
+                  flex: 1,
+                  background: "#f0f7f2",
+                  color: "#2d5a3d",
+                  border: "1.5px solid #d4e6da",
+                  borderRadius: 12,
+                  padding: "12px 8px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Solo entre semana
+              </button>
+              <button
+                type="button"
+                onClick={() => applyQuickFill("weekend")}
+                style={{
+                  flex: 1,
+                  background: "#f0f7f2",
+                  color: "#2d5a3d",
+                  border: "1.5px solid #d4e6da",
+                  borderRadius: 12,
+                  padding: "12px 8px",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Solo fin de semana
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -1922,59 +2025,26 @@ function ScheduleSlotSheet({
   const columns = sheetColumns(allowCole);
   const title = `${meal} del ${dayName.toLowerCase()}`;
 
-  // "Todos" cycling — same logic as day view cycleState but for all members
+  // "Todos" consensus — highlight only when every member matches
   const allValues = members.map((m) => schedule[`${m.id}|${day}|${meal}`] ?? "casa");
   const todosConsensus = allValues.every((v) => v === allValues[0]) ? allValues[0] : null;
-  const cycleTodos = () => {
-    const cur = todosConsensus ?? "casa";
-    const next = columns[(columns.indexOf(cur === "off" ? "casa" : cur) + 1) % columns.length];
-    onSetAllSlot(next);
-  };
-
-  // Day-view cell style — identical to DayView cells
-  const dayViewCell = (state, onClick, disabled = false) => {
-    const conf = SLOT_CONFIG[state] ?? SLOT_CONFIG.casa;
-    if (disabled) return (
-      <div style={{ flex: 1, height: 56, borderRadius: 14, background: "#f4f7f5", opacity: 0.25 }} />
-    );
-    return (
-      <button
-        type="button"
-        onClick={onClick}
-        style={{
-          flex: 1, height: 56, borderRadius: 14, border: "none",
-          background: conf.color,
-          color: "#fff",
-          boxShadow: `0 3px 10px ${conf.color}55`,
-          display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center",
-          gap: 4, cursor: "pointer", fontFamily: "inherit",
-          transition: "background .15s ease, box-shadow .15s ease",
-        }}
-      >
-        {stateIcon(state, 16)}
-        <span style={{ fontSize: 10, fontWeight: 800 }}>
-          {conf.label}
-        </span>
-      </button>
-    );
-  };
 
   return (
     <div
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, background: "rgba(0,0,0,.45)",
-        zIndex: 150, display: "flex", alignItems: "flex-end", justifyContent: "center",
+        zIndex: 150, display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "24px 16px",
       }}
     >
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "#fff", borderRadius: "20px 20px 0 0",
+          background: "#fff", borderRadius: 20,
           width: "100%", maxWidth: 420,
-          padding: "14px 16px calc(22px + env(safe-area-inset-bottom, 0px))",
-          maxHeight: "75vh", overflowY: "auto",
+          padding: "14px 16px 20px",
+          maxHeight: "60vh", overflowY: "auto",
         }}
       >
         {/* Header */}
@@ -1988,18 +2058,39 @@ function ScheduleSlotSheet({
           </button>
         </div>
 
-        {/* Todos row — cycling button */}
+        {/* Todos row */}
         {members.length > 1 && (
           <div style={{ marginBottom: 14 }}>
             <div style={{ fontSize: 10, fontWeight: 800, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>
               Todos
             </div>
             <div style={{ display: "flex", gap: 8 }}>
-              {columns.map((s) => dayViewCell(
-                s,
-                () => onSetAllSlot(s),
-                false
-              ))}
+              {columns.map((s) => {
+                const conf = SLOT_CONFIG[s] ?? SLOT_CONFIG.casa;
+                const selected = todosConsensus === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => onSetAllSlot(s)}
+                    style={{
+                      flex: 1, height: 56, borderRadius: 14, border: "none",
+                      background: selected ? conf.color : "#f4f7f5",
+                      color: selected ? "#fff" : "#bbb",
+                      boxShadow: selected ? `0 3px 10px ${conf.color}55` : "none",
+                      display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center",
+                      gap: 4, cursor: "pointer", fontFamily: "inherit",
+                      transition: "background .15s ease",
+                    }}
+                  >
+                    {stateIcon(s, 16)}
+                    <span style={{ fontSize: 10, fontWeight: 800, opacity: selected ? 1 : 0.5 }}>
+                      {conf.label}
+                    </span>
+                  </button>
+                );
+              })}
             </div>
             <div style={{ height: 1, background: "#e8f0ea", margin: "12px 0 0" }} />
           </div>
@@ -4322,26 +4413,10 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 
       {/* Tiempo */}
       <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
-      <SliderInput
-        label="Entre semana"
-        icon={BriefcaseBusiness}
-        value={data.timeWeekday}
-        min={10}
-        max={90}
-        step={5}
-        suffix=" min"
-        onChange={(v) => setData((d) => ({ ...d, timeWeekday: v }))}
-      />
-      <SliderInput
-        label="El fin de semana"
-        icon={Sunset}
-        value={data.timeWeekend}
-        min={10}
-        max={120}
-        step={5}
-        suffix=" min"
-        onChange={(v) => setData((d) => ({ ...d, timeWeekend: v }))}
-      />
+      <p style={{ fontSize: 12, color: "#7a9485", margin: "0 0 12px", lineHeight: 1.45 }}>
+        Elige si cocinas lo mismo en comida y cena, o un límite distinto para cada una.
+      </p>
+      <CookTimeEditor data={data} setData={setData} />
     </OnboardingShell>
   );
 }

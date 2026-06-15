@@ -1,3 +1,5 @@
+import { recipeCatalog } from "../data/recipeCatalog.js";
+
 /** Normalized fixed dish: repetitions per week + which meals. */
 export function normalizeFixedDish(raw) {
   if (!raw || typeof raw !== "object") return null;
@@ -71,5 +73,11 @@ export function formatFixedDishesForAI(list) {
     name: fd.name,
     timesPerWeek: fd.timesPerWeek,
     meals: fd.meals,
+    catalogMatches: catalogMatchesForFixedDish(fd).map((r) => ({ id: r.id, name: r.name })),
   }));
+}
+
+export function catalogMatchesForFixedDish(fixedDish, catalog = recipeCatalog) {
+  if (!fixedDish?.name) return [];
+  return catalog.filter((r) => recipeMatchesFixedDish(r, fixedDish));
 }

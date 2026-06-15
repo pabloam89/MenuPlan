@@ -10,14 +10,22 @@ export const STAGES = {
 
 export const HOUSEHOLD_ROLES = [
   "Adulto",
-  "Pareja",
+  "Papá",
+  "Mamá",
   "Hijo/a",
   "Bebé",
   "Abuelo/a",
-  "Compi",
   "Amigo/a",
   "Otro",
 ];
+
+/** Maps legacy stored roles onto the current list. */
+export function migrateHomeRole(role) {
+  if (role === "Pareja") return "Adulto";
+  if (role === "Compi") return "Amigo/a";
+  if (HOUSEHOLD_ROLES.includes(role)) return role;
+  return "Otro";
+}
 
 export function suggestHomeRole(age) {
   const a = Number(age);

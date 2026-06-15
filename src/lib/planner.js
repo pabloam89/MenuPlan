@@ -16,6 +16,7 @@ import {
   recipeProteinKey,
   trackDayPasta,
 } from "./recipeDiversity.js";
+import { maxCookTime } from "./cookTime.js";
 
 export const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
@@ -187,8 +188,8 @@ function recipeScore(recipe, ctx) {
     else score -= 15;
   }
 
-  // Time constraints (weekday vs weekend)
-  const timeBudget = ctx.isWeekend ? ctx.timeWeekend : ctx.timeWeekday;
+  // Time constraints (per meal + weekday/weekend)
+  const timeBudget = ctx.maxTime ?? 30;
   if (recipe.time > timeBudget) score -= (recipe.time - timeBudget) * 1.4;
 
   // Cook level
@@ -334,7 +335,7 @@ function trackRecipeUsage(recipe, meal, ctx, usedIds, proteinCount, typeCount, f
 
 function warningsForRecipe(recipe, ctx) {
   const warnings = [];
-  const timeBudget = ctx.isWeekend ? ctx.timeWeekend : ctx.timeWeekday;
+  const timeBudget = ctx.maxTime ?? 30;
   if (recipe.time > timeBudget) {
     warnings.push({
       type: "time",
@@ -375,7 +376,7 @@ function warningsForRecipe(recipe, ctx) {
  * Generate a menu plan: { [groupId]: { [`${day}-${meal}`]: { recipeId, mode, eaters } | null } }
  */
 export function generateMenu(data) {
-  const { members, groups, schedule, dislikes, cookLevel, timeWeekday, timeWeekend } = data;
+  const { members, groups, schedule, dislikes, cookLevel } = data;
   const plan = { _warnings: [] };
 
   const fixedTracks = migrateFixedDishes(data.fixedDishes).map((fd) => ({ ...fd, placed: 0 }));
@@ -439,8 +440,7 @@ export function generateMenu(data) {
           mode: mode.mode,
           groupHasKids,
           isWeekend,
-          timeWeekday,
-          timeWeekend,
+          maxTime: maxCookTime(data, { isWeekend, meal }),
           cookLevel,
           cookSkills: data.cookSkills ?? [],
           kitchenTools,
@@ -529,7 +529,7 @@ export function replaceMenuSlot(
   const group = (data.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 
-  const { members, schedule, dislikes, cookLevel, timeWeekday, timeWeekend } = data;
+  const { members, schedule, dislikes, cookLevel } = data;
   const groupMembers = membersOfGroup(group, members);
   if (groupMembers.length === 0) return null;
 
@@ -620,8 +620,7 @@ export function replaceMenuSlot(
     mode: mode.mode,
     groupHasKids,
     isWeekend,
-    timeWeekday,
-    timeWeekend,
+    maxTime: maxCookTime(data, { isWeekend, meal }),
     cookLevel,
     cookSkills: data.cookSkills ?? [],
     kitchenTools,

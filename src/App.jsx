@@ -18,7 +18,8 @@ import { groupsFromModel } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
-import { suggestHomeRole } from "./lib/stages.js";
+import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
+import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -55,6 +56,7 @@ const INITIAL_DATA = {
   cookSkills: [],
   kitchenTools: [],
   customKitchenTools: [],
+  cookTime: { ...COOK_TIME_DEFAULTS },
   timeWeekday: 30,
   timeWeekend: 60,
   hasBudget: false,
@@ -97,10 +99,9 @@ function migrate(state) {
         dislikes: Array.isArray(m.dislikes) ? m.dislikes : [],
         useBirthDate: Boolean(m.useBirthDate),
         birthDate: typeof m.birthDate === "string" ? m.birthDate : "",
-        homeRole:
-          typeof m.homeRole === "string" && m.homeRole
-            ? m.homeRole
-            : suggestHomeRole(age),
+        homeRole: migrateHomeRole(
+          typeof m.homeRole === "string" && m.homeRole ? m.homeRole : suggestHomeRole(age),
+        ),
       };
     });
   }
@@ -230,6 +231,7 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
+  d.cookTime = migrateCookTime(d);
   return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
 
@@ -490,7 +492,7 @@ export default function App() {
         background: "#fff",
         fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
         position: "relative",
-        overflow: "hidden",
+        overflowX: "hidden",
       }}
     >
       <style>{`

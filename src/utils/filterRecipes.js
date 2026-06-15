@@ -1,23 +1,5 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
-
-const ALLERGEN_NORMALIZE = {
-  gluten: "gluten",
-  lactosa: "lactosa",
-  "frutos secos": "frutos_secos",
-  marisco: "marisco",
-  huevo: "huevo",
-  soja: "soja",
-  pescado: "pescado",
-  apio: "apio",
-  mostaza: "mostaza",
-  sesamo: "sesamo",
-  moluscos: "moluscos",
-  cacahuete: "cacahuete",
-};
-
-function normalizeAllergen(label) {
-  return ALLERGEN_NORMALIZE[label.toLowerCase()] ?? label.toLowerCase().replace(/\s+/g, "_");
-}
+import { normalizeAllergenId } from "../lib/allergens.js";
 
 function currentSeason() {
   const month = new Date().getMonth() + 1;
@@ -45,7 +27,7 @@ export function filterRecipes({
   kitchenTools = [],
   cookLevel = "normal",
 } = {}) {
-  const blockedAllergens = new Set(allergies.map(normalizeAllergen));
+  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();
@@ -55,7 +37,7 @@ export function filterRecipes({
   // 1. Allergens — exclude any recipe containing a blocked allergen
   if (blockedAllergens.size > 0) {
     pool = pool.filter(
-      (r) => !r.allergens.some((a) => blockedAllergens.has(a)),
+      (r) => !r.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a))),
     );
   }
 

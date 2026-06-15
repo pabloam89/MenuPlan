@@ -1,4 +1,5 @@
 import { migrateFixedDishes } from "./fixedDishes.js";
+import { formatCookTimeSummary } from "./cookTime.js";
 import { DAYS, getMeals, slotKey } from "./planner.js";
 
 const GOAL_LABELS = {
@@ -115,7 +116,7 @@ export function buildProfileSummary(data) {
     title: "Cocina",
     lines: [
       cook,
-      `${data.timeWeekday ?? 30} min laborables · ${data.timeWeekend ?? 60} min finde`,
+      formatCookTimeSummary(data),
       tools.length ? tools.join(", ") : "Sin utensilios marcados",
     ],
   });
