@@ -16,7 +16,6 @@ import {
   Loader2,
   RotateCw,
   StopCircle,
-  School,
   Share2,
   ShoppingCart,
   Soup,
@@ -35,7 +34,6 @@ import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { partialEaterInitials } from "../lib/slotEaters.js";
 import { DAYS, getMeals, isLunchMeal, slotKey } from "../lib/planner.js";
-import { getSchoolDish, hasAnySchoolDish } from "../lib/schoolMenu.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -54,7 +52,6 @@ const ICONS_BY_TYPE = {
   chef: ChefHat,
 };
 
-const COLE_COLOR = "#2d5a3d";
 
 function formatQty(qty, unit) {
   if (unit === "ud") return `${Math.ceil(qty)} ${Math.ceil(qty) === 1 ? "ud" : "uds"}`;
@@ -502,66 +499,6 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   );
 }
 
-function SchoolDishCard({ name, courses }) {
-  const rows = [
-    { label: "1º", value: courses.primero },
-    { label: "2º", value: courses.segundo },
-    { label: "Postre", value: courses.postre },
-  ];
-  const empty = !hasAnySchoolDish(courses);
-  return (
-    <div
-      style={{
-        display: "flex",
-        gap: 10,
-        padding: "12px",
-        background: "#fff",
-        borderRadius: 14,
-        border: `1px dashed ${COLE_COLOR}66`,
-      }}
-    >
-      <span
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 12,
-          background: `${COLE_COLOR}18`,
-          color: COLE_COLOR,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <School size={17} />
-      </span>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 11, fontWeight: 900, color: COLE_COLOR, marginBottom: 4 }}>
-          {name} · comedor
-        </div>
-        {empty ? (
-          <div style={{ fontSize: 12, color: "#bbb", fontStyle: "italic" }}>(sin menú cargado)</div>
-        ) : (
-          rows.map((row) => (
-            <div key={row.label} style={{ display: "flex", gap: 6, fontSize: 12, minWidth: 0 }}>
-              <span style={{ width: 34, color: COLE_COLOR, fontWeight: 900 }}>{row.label}</span>
-              <span
-                style={{
-                  color: row.value ? "#1a3a24" : "#bbb",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {row.value || "-"}
-              </span>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  );
-}
 
 function dishesFromSlot(slot, isLunch) {
   if (!slot?.recipeId) return [];
@@ -1012,16 +949,9 @@ export const MenuScreen = memo(function MenuScreen({
       <div style={{ padding: "0 16px" }}>
         {DAYS.map((day) => {
           const meals = getMeals(data);
-          const hasAnyContent = meals.some((meal) => {
-            const isLunch = isLunchMeal(meal);
-            return visibleGroups.some((g) => {
-              if (menuPlan[g.id]?.[`${day}-${meal}`]) return true;
-              if (!isLunch) return false;
-              return membersOfGroup(g, data.members).some(
-                (m) => (data.schedule[slotKey(m.id, day, meal)] ?? "casa") === "cole"
-              );
-            });
-          });
+          const hasAnyContent = meals.some((meal) =>
+            visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
+          );
           if (!hasAnyContent) return null;
           return (
             <div key={day} style={{ marginBottom: 18 }}>
@@ -1075,18 +1005,6 @@ export const MenuScreen = memo(function MenuScreen({
                       result.push({ kind: "dish", group: g, slot, dish });
                     }
                   }
-                  if (isLunch) {
-                    const groupMembers = membersOfGroup(g, data.members);
-                    for (const m of groupMembers) {
-                      const value = data.schedule[slotKey(m.id, day, meal)] ?? "casa";
-                      if (value === "cole") {
-                        const courses = getSchoolDish(data.schoolMenus, m.id, day);
-                        if (hasAnySchoolDish(courses)) {
-                          result.push({ kind: "school", group: g, member: m, courses });
-                        }
-                      }
-                    }
-                  }
                   return result;
                 });
                 if (cards.length === 0) return null;
@@ -1137,13 +1055,7 @@ export const MenuScreen = memo(function MenuScreen({
                                 : []
                             }
                           />
-                        ) : (
-                          <SchoolDishCard
-                            key={`school-${card.member.id}-${idx}`}
-                            name={card.member.name}
-                            courses={card.courses}
-                          />
-                        )
+                        ) : null
                       )}
                     </div>
                   </div>
