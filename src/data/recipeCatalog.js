@@ -7,6 +7,7 @@ import sopasCremas from "./recipes/sopas_cremas.json";
 import ensaladasVerduras from "./recipes/ensaladas_verduras.json";
 import platosUnicos from "./recipes/platos_unicos.json";
 import cenasRapidas from "./recipes/cenas_rapidas.json";
+import bebes from "./recipes/bebes.json";
 
 const ALL_RECIPES = [
   ...legumbres,
@@ -18,6 +19,7 @@ const ALL_RECIPES = [
   ...ensaladasVerduras,
   ...platosUnicos,
   ...cenasRapidas,
+  ...bebes,
 ];
 
 const seen = new Set();

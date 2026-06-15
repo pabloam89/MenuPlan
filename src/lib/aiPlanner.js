@@ -149,6 +149,7 @@ function buildGroupContext(data, group) {
     const s = stageForAge(m.age).id;
     return s === "baby" || s === "infantil" || s === "primaria";
   });
+  const isBabyGroup = groupMembers.length > 0 && groupMembers.every((m) => stageForAge(m.age).id === "baby");
   const allergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));
   const dislikes = Array.from(
     new Set([...(data.dislikes ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])]),
@@ -199,9 +200,10 @@ function buildGroupContext(data, group) {
       const maxTime = maxCookTime(data, { isWeekend, meal });
 
       if (mealType === "comida") {
-        const base = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime };
-        slots.push({ ...base, slotId: `${daySlug}_comida_1`, position: "primero" });
-        slots.push({ ...base, slotId: `${daySlug}_comida_2`, position: "segundo" });
+        // primero gets ~40% of the budget (min 20 min to keep enough recipe variety)
+        const primeroMaxTime = Math.max(20, Math.round(maxTime * 0.4));
+        slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" });
+        slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" });
       } else {
         const slot = {
           day, daySlug, mealType, eaters, mode: mode.mode, maxTime,
@@ -226,6 +228,7 @@ function buildGroupContext(data, group) {
       maxTime: maxCookTimeFilter(data),
       kitchenTools,
       cookLevel: data.cookLevel ?? "normal",
+      isBabyGroup,
     },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,

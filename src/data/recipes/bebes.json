@@ -1,0 +1,667 @@
+[
+  {
+    "id": "bebes_001",
+    "name": "Puré de calabacín con pollo",
+    "category": "bebes",
+    "mainProtein": "pollo",
+    "mealRole": ["plato_unico", "cena"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 145,
+    "protein_g": 8,
+    "carbs_g": 12,
+    "fat_g": 7,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Calabacín", "amount": 80, "unit": "g" },
+      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
+      { "name": "Patata", "amount": 50, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Pelar y trocear patata y calabacín",
+      "Cocer el pollo con las verduras 15 min",
+      "Triturar todo con un chorrito de aceite"
+    ],
+    "description": "Puré suave de calabacín y patata con pollo cocido, sin sal"
+  },
+  {
+    "id": "bebes_002",
+    "name": "Puré de zanahoria con merluza",
+    "category": "bebes",
+    "mainProtein": "pescado_blanco",
+    "mealRole": ["plato_unico", "cena"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 130,
+    "protein_g": 7,
+    "carbs_g": 14,
+    "fat_g": 5,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["pescado"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Zanahoria", "amount": 80, "unit": "g" },
+      { "name": "Merluza", "amount": 30, "unit": "g" },
+      { "name": "Patata", "amount": 50, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Pelar y trocear zanahoria y patata",
+      "Cocer con la merluza 15 min al vapor o hervido",
+      "Triturar retirando espinas, añadir aceite"
+    ],
+    "description": "Puré de zanahoria y patata con merluza desmenuzada, sin sal"
+  },
+  {
+    "id": "bebes_003",
+    "name": "Puré de calabaza con pavo",
+    "category": "bebes",
+    "mainProtein": "pollo",
+    "mealRole": ["plato_unico", "cena"],
+    "type": "completo",
+    "time": 18,
+    "difficulty": "facil",
+    "kcal": 140,
+    "protein_g": 8,
+    "carbs_g": 14,
+    "fat_g": 5,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Calabaza", "amount": 100, "unit": "g" },
+      { "name": "Pechuga de pavo", "amount": 30, "unit": "g" },
+      { "name": "Patata", "amount": 40, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Pelar y trocear calabaza y patata",
+      "Cocer con el pavo 15 min",
+      "Triturar hasta obtener textura suave"
+    ],
+    "description": "Puré dulce de calabaza con pavo cocido, sin sal"
+  },
+  {
+    "id": "bebes_004",
+    "name": "Puré de patata y judías verdes con ternera",
+    "category": "bebes",
+    "mainProtein": "ternera",
+    "mealRole": ["plato_unico"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 155,
+    "protein_g": 9,
+    "carbs_g": 13,
+    "fat_g": 7,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Patata", "amount": 60, "unit": "g" },
+      { "name": "Judías verdes", "amount": 50, "unit": "g" },
+      { "name": "Ternera magra", "amount": 30, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Trocear patata, judías y ternera",
+      "Cocer todo junto 18 min",
+      "Triturar con un poco de caldo de cocción y aceite"
+    ],
+    "description": "Puré de patata y judías verdes con ternera, sin sal"
+  },
+  {
+    "id": "bebes_005",
+    "name": "Puré de guisantes con pollo",
+    "category": "bebes",
+    "mainProtein": "pollo",
+    "mealRole": ["plato_unico", "cena"],
+    "type": "completo",
+    "time": 18,
+    "difficulty": "facil",
+    "kcal": 148,
+    "protein_g": 9,
+    "carbs_g": 14,
+    "fat_g": 6,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Guisantes", "amount": 70, "unit": "g" },
+      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
+      { "name": "Patata", "amount": 40, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Cocer patata troceada 10 min",
+      "Añadir guisantes y pollo, cocer 8 min más",
+      "Triturar todo con aceite"
+    ],
+    "description": "Puré de guisantes y patata con pollo cocido, sin sal"
+  },
+  {
+    "id": "bebes_006",
+    "name": "Puré de brócoli con merluza",
+    "category": "bebes",
+    "mainProtein": "pescado_blanco",
+    "mealRole": ["plato_unico", "cena"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 128,
+    "protein_g": 7,
+    "carbs_g": 11,
+    "fat_g": 6,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["pescado"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Brócoli", "amount": 70, "unit": "g" },
+      { "name": "Merluza", "amount": 30, "unit": "g" },
+      { "name": "Patata", "amount": 50, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Cocer patata troceada 10 min",
+      "Añadir brócoli y merluza, cocer 8 min",
+      "Triturar retirando espinas, añadir aceite"
+    ],
+    "description": "Puré de brócoli y patata con merluza, sin sal"
+  },
+  {
+    "id": "bebes_007",
+    "name": "Papilla de arroz con pollo",
+    "category": "bebes",
+    "mainProtein": "pollo",
+    "mealRole": ["plato_unico"],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 160,
+    "protein_g": 8,
+    "carbs_g": 22,
+    "fat_g": 4,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Arroz", "amount": 30, "unit": "g" },
+      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
+      { "name": "Zanahoria", "amount": 30, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+    ],
+    "steps": [
+      "Cocer arroz con zanahoria rallada y pollo troceado 12 min",
+      "Triturar hasta textura de papilla",
+      "Añadir unas gotas de aceite"
+    ],
+    "description": "Papilla suave de arroz cocido con pollo y zanahoria"
+  },
+  {
+    "id": "bebes_008",
+    "name": "Puré de lentejas con verduras",
+    "category": "bebes",
+    "mainProtein": "legumbre",
+    "mealRole": ["plato_unico"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 152,
+    "protein_g": 7,
+    "carbs_g": 20,
+    "fat_g": 4,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Lentejas rojas", "amount": 30, "unit": "g" },
+      { "name": "Zanahoria", "amount": 40, "unit": "g" },
+      { "name": "Calabacín", "amount": 40, "unit": "g" },
+      { "name": "Patata", "amount": 30, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Trocear verduras y cocer con las lentejas 18 min",
+      "Triturar hasta textura fina",
+      "Añadir aceite de oliva"
+    ],
+    "description": "Puré de lentejas rojas con zanahoria y calabacín, sin sal"
+  },
+  {
+    "id": "bebes_009",
+    "name": "Puré de boniato con pavo",
+    "category": "bebes",
+    "mainProtein": "pollo",
+    "mealRole": ["plato_unico", "cena"],
+    "type": "completo",
+    "time": 18,
+    "difficulty": "facil",
+    "kcal": 142,
+    "protein_g": 7,
+    "carbs_g": 18,
+    "fat_g": 4,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Boniato", "amount": 80, "unit": "g" },
+      { "name": "Pechuga de pavo", "amount": 30, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Pelar y trocear el boniato",
+      "Cocer con el pavo 15 min",
+      "Triturar con aceite hasta textura suave"
+    ],
+    "description": "Puré dulce de boniato con pavo cocido, sin sal"
+  },
+  {
+    "id": "bebes_010",
+    "name": "Puré de puerro y patata con merluza",
+    "category": "bebes",
+    "mainProtein": "pescado_blanco",
+    "mealRole": ["plato_unico", "cena"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 135,
+    "protein_g": 7,
+    "carbs_g": 13,
+    "fat_g": 6,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["pescado"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Puerro", "amount": 50, "unit": "g" },
+      { "name": "Patata", "amount": 50, "unit": "g" },
+      { "name": "Merluza", "amount": 30, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Limpiar puerro y trocear con la patata",
+      "Cocer con la merluza 15 min",
+      "Triturar retirando espinas, añadir aceite"
+    ],
+    "description": "Puré suave de puerro y patata con merluza, sin sal"
+  },
+  {
+    "id": "bebes_011",
+    "name": "Sopa fina de pollo con arroz",
+    "category": "bebes",
+    "mainProtein": "pollo",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 18,
+    "difficulty": "facil",
+    "kcal": 138,
+    "protein_g": 7,
+    "carbs_g": 18,
+    "fat_g": 4,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Caldo de pollo casero", "amount": 150, "unit": "ml" },
+      { "name": "Arroz", "amount": 20, "unit": "g" },
+      { "name": "Pechuga de pollo", "amount": 20, "unit": "g" },
+      { "name": "Zanahoria", "amount": 20, "unit": "g" }
+    ],
+    "steps": [
+      "Calentar caldo y añadir arroz y zanahoria rallada",
+      "Cocer 12 min a fuego suave",
+      "Desmenuzar el pollo fino y mezclar"
+    ],
+    "description": "Sopa ligera de pollo con arroz muy cocido, ideal para cena"
+  },
+  {
+    "id": "bebes_012",
+    "name": "Puré de garbanzos con verduras",
+    "category": "bebes",
+    "mainProtein": "legumbre",
+    "mealRole": ["plato_unico"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 158,
+    "protein_g": 6,
+    "carbs_g": 22,
+    "fat_g": 5,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Garbanzos cocidos", "amount": 50, "unit": "g" },
+      { "name": "Zanahoria", "amount": 40, "unit": "g" },
+      { "name": "Calabacín", "amount": 40, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Cocer zanahoria y calabacín troceados 12 min",
+      "Añadir garbanzos y calentar 3 min",
+      "Triturar todo con aceite hasta textura fina"
+    ],
+    "description": "Puré de garbanzos con zanahoria y calabacín, sin sal"
+  },
+  {
+    "id": "bebes_013",
+    "name": "Tortilla francesa suave",
+    "category": "bebes",
+    "mainProtein": "huevo",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 8,
+    "difficulty": "facil",
+    "kcal": 120,
+    "protein_g": 7,
+    "carbs_g": 1,
+    "fat_g": 10,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["huevo"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Huevo", "amount": 1, "unit": "ud" },
+      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+    ],
+    "steps": [
+      "Batir el huevo sin sal",
+      "Cuajar en sartén con unas gotas de aceite a fuego suave",
+      "Cortar en trocitos adaptados al bebé"
+    ],
+    "description": "Tortilla francesa muy cuajada cortada en trocitos, sin sal"
+  },
+  {
+    "id": "bebes_014",
+    "name": "Puré de espinacas con patata",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 98,
+    "protein_g": 3,
+    "carbs_g": 12,
+    "fat_g": 4,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Espinacas frescas", "amount": 60, "unit": "g" },
+      { "name": "Patata", "amount": 60, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Cocer patata troceada 12 min",
+      "Añadir espinacas 2 min más",
+      "Triturar con aceite"
+    ],
+    "description": "Puré vegetal de espinacas y patata, sin sal"
+  },
+  {
+    "id": "bebes_015",
+    "name": "Puré de calabacín y patata",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 92,
+    "protein_g": 2,
+    "carbs_g": 13,
+    "fat_g": 4,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Calabacín", "amount": 80, "unit": "g" },
+      { "name": "Patata", "amount": 60, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Pelar y trocear calabacín y patata",
+      "Cocer 12 min al vapor o hervido",
+      "Triturar con aceite"
+    ],
+    "description": "Puré suave de calabacín y patata, sin sal"
+  },
+  {
+    "id": "bebes_016",
+    "name": "Compota de manzana y pera",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 12,
+    "difficulty": "facil",
+    "kcal": 72,
+    "protein_g": 0,
+    "carbs_g": 18,
+    "fat_g": 0,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Manzana", "amount": 80, "unit": "g" },
+      { "name": "Pera", "amount": 80, "unit": "g" }
+    ],
+    "steps": [
+      "Pelar y trocear las frutas",
+      "Cocer a fuego suave 10 min con un poco de agua",
+      "Triturar o chafar con tenedor"
+    ],
+    "description": "Compota casera de manzana y pera, sin azúcar"
+  },
+  {
+    "id": "bebes_017",
+    "name": "Compota de plátano y manzana",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 82,
+    "protein_g": 1,
+    "carbs_g": 20,
+    "fat_g": 0,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Plátano", "amount": 70, "unit": "g" },
+      { "name": "Manzana", "amount": 70, "unit": "g" }
+    ],
+    "steps": [
+      "Pelar y trocear la manzana, cocer 8 min",
+      "Añadir el plátano y calentar 2 min",
+      "Chafar con tenedor hasta textura deseada"
+    ],
+    "description": "Compota suave de plátano y manzana, sin azúcar"
+  },
+  {
+    "id": "bebes_018",
+    "name": "Puré de melocotón y plátano",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 8,
+    "difficulty": "facil",
+    "kcal": 78,
+    "protein_g": 1,
+    "carbs_g": 19,
+    "fat_g": 0,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "verano",
+    "ingredients": [
+      { "name": "Melocotón", "amount": 80, "unit": "g" },
+      { "name": "Plátano", "amount": 60, "unit": "g" }
+    ],
+    "steps": [
+      "Pelar melocotón y plátano",
+      "Chafar con tenedor o triturar en crudo",
+      "Servir directamente"
+    ],
+    "description": "Puré fresco de melocotón y plátano, sin cocción ni azúcar"
+  },
+  {
+    "id": "bebes_019",
+    "name": "Compota de pera y ciruela",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 12,
+    "difficulty": "facil",
+    "kcal": 70,
+    "protein_g": 0,
+    "carbs_g": 17,
+    "fat_g": 0,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "verano",
+    "ingredients": [
+      { "name": "Pera", "amount": 80, "unit": "g" },
+      { "name": "Ciruela", "amount": 60, "unit": "g" }
+    ],
+    "steps": [
+      "Pelar y deshuesar las frutas",
+      "Cocer a fuego suave 10 min",
+      "Triturar hasta textura suave"
+    ],
+    "description": "Compota de pera y ciruela, sin azúcar, buena para el tránsito"
+  },
+  {
+    "id": "bebes_020",
+    "name": "Puré de mango y plátano",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 85,
+    "protein_g": 1,
+    "carbs_g": 21,
+    "fat_g": 0,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "verano",
+    "ingredients": [
+      { "name": "Mango", "amount": 80, "unit": "g" },
+      { "name": "Plátano", "amount": 60, "unit": "g" }
+    ],
+    "steps": [
+      "Pelar mango y plátano",
+      "Triturar juntos en crudo",
+      "Servir directamente"
+    ],
+    "description": "Puré tropical de mango y plátano, sin cocción ni azúcar"
+  },
+  {
+    "id": "bebes_021",
+    "name": "Compota de manzana con canela",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 12,
+    "difficulty": "facil",
+    "kcal": 65,
+    "protein_g": 0,
+    "carbs_g": 16,
+    "fat_g": 0,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Manzana", "amount": 150, "unit": "g" },
+      { "name": "Canela en rama", "amount": 1, "unit": "ud" }
+    ],
+    "steps": [
+      "Pelar y trocear la manzana",
+      "Cocer con la canela y un poco de agua 10 min",
+      "Retirar canela y triturar"
+    ],
+    "description": "Compota de manzana aromatizada con canela, sin azúcar"
+  },
+  {
+    "id": "bebes_022",
+    "name": "Puré de frutas del bosque",
+    "category": "bebes",
+    "mainProtein": "none",
+    "mealRole": ["cena"],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 68,
+    "protein_g": 1,
+    "carbs_g": 15,
+    "fat_g": 0,
+    "baseServings": 1,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "verano",
+    "ingredients": [
+      { "name": "Arándanos", "amount": 50, "unit": "g" },
+      { "name": "Frambuesas", "amount": 40, "unit": "g" },
+      { "name": "Plátano", "amount": 40, "unit": "g" }
+    ],
+    "steps": [
+      "Lavar bien los frutos rojos",
+      "Cocer arándanos y frambuesas 5 min a fuego suave",
+      "Añadir plátano y triturar, colar si hay semillas"
+    ],
+    "description": "Puré de arándanos y frambuesas con plátano, sin azúcar"
+  }
+]

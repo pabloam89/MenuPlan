@@ -26,6 +26,7 @@ export function filterRecipes({
   maxTime = 120,
   kitchenTools = [],
   cookLevel = "normal",
+  isBabyGroup = false,
 } = {}) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
@@ -33,6 +34,9 @@ export function filterRecipes({
   const season = currentSeason();
 
   let pool = recipeCatalog;
+
+  // 0. Baby group isolation — baby recipes only for baby groups, excluded otherwise
+  pool = pool.filter((r) => isBabyGroup ? r.category === "bebes" : r.category !== "bebes");
 
   // 1. Allergens — exclude any recipe containing a blocked allergen
   if (blockedAllergens.size > 0) {
@@ -81,16 +85,18 @@ export function filterRecipes({
 
   // Validate minimum viable pool
   const categories = new Set(pool.map((r) => r.category));
-  if (pool.length < 25) {
+  const minRecipes = isBabyGroup ? 10 : 25;
+  const minCategories = isBabyGroup ? 1 : 4;
+  if (pool.length < minRecipes) {
     return {
       recipes: pool,
-      error: `Solo quedan ${pool.length} recetas tras filtrar. Se necesitan al menos 25 para generar un menú variado.`,
+      error: `Solo quedan ${pool.length} recetas tras filtrar. Se necesitan al menos ${minRecipes} para generar un menú variado.`,
     };
   }
-  if (categories.size < 4) {
+  if (categories.size < minCategories) {
     return {
       recipes: pool,
-      error: `Solo quedan ${categories.size} categorías de recetas. Se necesitan al menos 4 para un menú equilibrado.`,
+      error: `Solo quedan ${categories.size} categorías de recetas. Se necesitan al menos ${minCategories} para un menú equilibrado.`,
     };
   }
 
