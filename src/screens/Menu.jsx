@@ -1080,12 +1080,10 @@ export const MenuScreen = memo(function MenuScreen({
                     for (const m of groupMembers) {
                       const value = data.schedule[slotKey(m.id, day, meal)] ?? "casa";
                       if (value === "cole") {
-                        result.push({
-                          kind: "school",
-                          group: g,
-                          member: m,
-                          courses: getSchoolDish(data.schoolMenus, m.id, day),
-                        });
+                        const courses = getSchoolDish(data.schoolMenus, m.id, day);
+                        if (hasAnySchoolDish(courses)) {
+                          result.push({ kind: "school", group: g, member: m, courses });
+                        }
                       }
                     }
                   }

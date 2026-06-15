@@ -247,7 +247,7 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay) {
     parts.push(`\nMenú escolar:\n${JSON.stringify(schoolMenuByDay)}`);
   }
 
-  parts.push(`\nAsigna una receta del catálogo a cada hueco.`);
+  parts.push(`\nAsigna una receta del catálogo a cada hueco. Sé variado y creativo: no elijas siempre las mismas recetas obvias o populares. Cada generación debe sentirse diferente.`);
   return parts.join("\n");
 }
 
@@ -272,7 +272,9 @@ async function generateGroupMenu(data, group, signal) {
     throw new AIPlannerError(filterError);
   }
 
-  const userMessage = buildUserMessage(filteredPool, ctx.slots, ctx.config, ctx.schoolMenuByDay);
+  // Shuffle pool before sending to LLM so it doesn't always pick the same "top" recipes
+  const shuffledPool = [...filteredPool].sort(() => Math.random() - 0.5);
+  const userMessage = buildUserMessage(shuffledPool, ctx.slots, ctx.config, ctx.schoolMenuByDay);
 
   const request = (messages, model = DEFAULT_MODEL) =>
     callModel(
