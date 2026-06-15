@@ -30,7 +30,7 @@ import {
   Wheat,
   X,
 } from "lucide-react";
-import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
+import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { resolveRecipeAllergens } from "../lib/allergens.js";
 import { BottomNav, Chip, AvatarStack } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
@@ -57,23 +57,8 @@ const ICONS_BY_TYPE = {
   chef: ChefHat,
 };
 
-const TAG_PALETTE = {
-  pescado:   { surface: "#d0e8f8", ink: "#1a4d72", accent: "#2072b8" },
-  carne:     { surface: "#f5cfc0", ink: "#7a2010", accent: "#c03818" },
-  legumbres: { surface: "#bfe8cc", ink: "#1a4a28", accent: "#2d8a48" },
-  verdura:   { surface: "#b8f0cc", ink: "#155028", accent: "#4cba6e" },
-  pasta:     { surface: "#f8ddb8", ink: "#7a4008", accent: "#c07018" },
-  arroz:     { surface: "#f8ddb8", ink: "#7a4008", accent: "#c07018" },
-  huevos:    { surface: "#f8f0a8", ink: "#6a5000", accent: "#c8a000" },
-  sopa:      { surface: "#ddc8f8", ink: "#4a1a90", accent: "#7830d0" },
-  crema:     { surface: "#ddc8f8", ink: "#4a1a90", accent: "#7830d0" },
-};
-
 function tagPalette(recipe) {
-  for (const tag of (recipe?.tags ?? [])) {
-    if (TAG_PALETTE[tag]) return TAG_PALETTE[tag];
-  }
-  return { surface: "#e8f0eb", ink: "#2d5a3d", accent: "#4cba6e" };
+  return paletteForRecipe(recipe);
 }
 
 const MEAL_META = {
@@ -120,8 +105,8 @@ function MacroPill({ label, value, tone = "#2d5a3d" }) {
   );
 }
 
-function DishIcon({ recipe, size = 44, palette }) {
-  const p = palette ?? { accent: "#2d5a3d", ink: "#fff" };
+function DishIcon({ recipe, size = 44 }) {
+  const visual = visualForRecipe(recipe);
   const Icon = ICONS_BY_TYPE[recipe.iconType] ?? Utensils;
   return (
     <span
@@ -133,7 +118,7 @@ function DishIcon({ recipe, size = 44, palette }) {
         alignItems: "center",
         justifyContent: "center",
         color: "#fff",
-        background: p.accent,
+        background: visual.accent,
         flexShrink: 0,
       }}
     >
@@ -569,7 +554,7 @@ function DishCard({ slot, onTap, courseLabel = null, showDivider = true }) {
         fontFamily: "inherit",
       }}
     >
-      <DishIcon recipe={recipe} size={44} palette={palette} />
+      <DishIcon recipe={recipe} size={44} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
           <span

@@ -1,19 +1,23 @@
-// Soft, editorial palette per category. No gradient overload, no AI vibes.
-// `surface` is the soft pastel background; `ink` is the warm tone used for
-// titles, icons, and small accents over that surface.
+// Palette per recipe family (iconType). Used for dish row icons, badges, and detail hero.
 
-const DISH_VISUALS = {
-  fish: { surface: "#e7eef3", ink: "#3b6685", accent: "#5a8fb0" },
-  meat: { surface: "#f4e3da", ink: "#8a3f25", accent: "#b85f45" },
-  egg: { surface: "#fbeec1", ink: "#9e6a14", accent: "#d39b22" },
-  legume: { surface: "#efe4cc", ink: "#7a5a23", accent: "#a88742" },
-  pasta: { surface: "#fae3c4", ink: "#a35e1f", accent: "#c9852f" },
-  rice: { surface: "#f7ecc8", ink: "#876820", accent: "#caa544" },
-  greens: { surface: "#dfecd3", ink: "#365e3d", accent: "#5a8b56" },
-  soup: { surface: "#fcdfc4", ink: "#9d4f1e", accent: "#d06d35" },
-  chef: { surface: "#e7efe6", ink: "#27442e", accent: "#3f6948" },
+export const DISH_VISUALS = {
+  fish:   { surface: "#d0e8f8", ink: "#1a4d72", accent: "#2072b8" },
+  meat:   { surface: "#f5cfc0", ink: "#7a2010", accent: "#c03818" },
+  egg:    { surface: "#f8f0a8", ink: "#6a5000", accent: "#c8a000" },
+  legume: { surface: "#bfe8cc", ink: "#1a4a28", accent: "#2d8a48" },
+  pasta:  { surface: "#f8ddb8", ink: "#7a4008", accent: "#c07018" },
+  rice:   { surface: "#f7ecc8", ink: "#876820", accent: "#caa544" },
+  greens: { surface: "#b8f0cc", ink: "#155028", accent: "#4cba6e" },
+  soup:   { surface: "#ddc8f8", ink: "#4a1a90", accent: "#7830d0" },
+  chef:   { surface: "#e7efe6", ink: "#27442e", accent: "#3f6948" },
 };
 
 export function visualForRecipe(recipe) {
-  return DISH_VISUALS[recipe?.iconType] ?? DISH_VISUALS.chef;
+  const key = recipe?.iconType;
+  return DISH_VISUALS[key] ?? DISH_VISUALS.chef;
+}
+
+export function paletteForRecipe(recipe) {
+  const v = visualForRecipe(recipe);
+  return { surface: v.surface, ink: v.ink, accent: v.accent };
 }
