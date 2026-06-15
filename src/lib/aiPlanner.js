@@ -9,6 +9,7 @@ import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/va
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { formatFixedDishesForAI } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
+import { pairGarnishes } from "../utils/pairGarnishes.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
