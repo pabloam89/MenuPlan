@@ -38,7 +38,7 @@ import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
-import { DAYS, getMeals, isLunchMeal } from "../lib/planner.js";
+import { DAYS, getMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -66,6 +66,81 @@ const MEAL_META = {
   Comida:   { label: "Comida",   Icon: Sun    },
   Cena:     { label: "Cena",     Icon: Moon   },
 };
+
+/** Structural colors — not used by recipe families in dishVisuals.js */
+const DAY_STYLE = { bg: "#f1f5f9", bar: "#64748b", text: "#334155" };
+const MEAL_STYLE = {
+  Desayuno: { color: "#a16207", bg: "#fef9c3" },
+  Comida:   { color: "#0d9488", bg: "#ccfbf1" },
+  Cena:     { color: "#6366f1", bg: "#e0e7ff" },
+};
+
+function DaySectionHeader({ day, dayNumber }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        marginBottom: 10,
+        padding: "8px 12px",
+        background: DAY_STYLE.bg,
+        borderRadius: 10,
+        borderLeft: `3px solid ${DAY_STYLE.bar}`,
+      }}
+    >
+      <span
+        style={{
+          fontSize: 13,
+          fontWeight: 900,
+          color: DAY_STYLE.text,
+          letterSpacing: 0.5,
+          textTransform: "uppercase",
+        }}
+      >
+        {dayLabel(day)}
+      </span>
+      <span
+        style={{
+          fontSize: 18,
+          fontWeight: 900,
+          color: DAY_STYLE.bar,
+          lineHeight: 1,
+          fontVariantNumeric: "tabular-nums",
+        }}
+      >
+        {dayNumber}
+      </span>
+    </div>
+  );
+}
+
+function MealSectionLabel({ meal }) {
+  const meta = MEAL_META[meal] ?? { label: meal, Icon: Utensils };
+  const accent = MEAL_STYLE[meal] ?? { color: "#64748b", bg: "#f1f5f9" };
+  const Icon = meta.Icon;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+      <span
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+          padding: "5px 12px",
+          borderRadius: 999,
+          background: accent.bg,
+          color: accent.color,
+          fontSize: 12,
+          fontWeight: 800,
+        }}
+      >
+        <Icon size={14} strokeWidth={2.4} />
+        {meta.label}
+      </span>
+      <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
+    </div>
+  );
+}
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
@@ -885,18 +960,10 @@ export const MenuScreen = memo(function MenuScreen({
               <div key={day}>
                 {/* Day header — only in semana mode */}
                 {viewMode === "semana" && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                    <span style={{
-                      width: 34, height: 34, borderRadius: 10, background: "#2d5a3d",
-                      color: "#fff", display: "inline-flex", alignItems: "center",
-                      justifyContent: "center", fontSize: 15, fontWeight: 900, flexShrink: 0,
-                    }}>
-                      {calendarDayNumber(day, weekDates)}
-                    </span>
-                    <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d", textTransform: "uppercase", letterSpacing: 1.2 }}>
-                      {day}
-                    </span>
-                  </div>
+                  <DaySectionHeader
+                    day={day}
+                    dayNumber={calendarDayNumber(day, weekDates)}
+                  />
                 )}
 
                 {meals.map((meal) => {
@@ -912,24 +979,9 @@ export const MenuScreen = memo(function MenuScreen({
                     return result;
                   });
                   if (cards.length === 0) return null;
-                  const meta = MEAL_META[meal] ?? { Icon: Utensils, label: meal };
-                  const MealIcon = meta.Icon;
                   return (
-                    <div key={meal} style={{ marginBottom: 18 }}>
-                      {/* Meal header */}
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                        <span style={{
-                          width: 30, height: 30, borderRadius: 10, background: "#2d5a3d",
-                          color: "#fff", display: "inline-flex", alignItems: "center",
-                          justifyContent: "center", flexShrink: 0,
-                        }}>
-                          <MealIcon size={15} strokeWidth={2.2} />
-                        </span>
-                        <span style={{ fontSize: 14, fontWeight: 900, color: "#142f1d", letterSpacing: ".1px" }}>
-                          {meta.label}
-                        </span>
-                        <span style={{ flex: 1, height: 1, background: "#dde8e0" }} />
-                      </div>
+                    <div key={meal} style={{ marginBottom: viewMode === "semana" ? 14 : 18 }}>
+                      <MealSectionLabel meal={meal} />
                       <div style={{ display: "flex", flexDirection: "column" }}>
                         {cards.map((card, idx) => (
                             <DishCard
