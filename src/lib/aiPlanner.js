@@ -10,6 +10,7 @@ import guarnicionesData from "../data/recipes/guarniciones.json";
 import { formatFixedDishesForAI } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
+import { guessIngredientCategory } from "./ingredientCategories.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -486,25 +487,6 @@ function catalogToFrontendRecipe(catalogRecipe, eaters) {
     ingredients,
   };
 }
-
-const INGREDIENT_CATEGORY_HINTS = [
-  [/pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|cordero/, "Carnes y pescados"],
-  [/merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado/, "Carnes y pescados"],
-  [/lentej|garbanz|alubi|judia|pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa/, "Legumbres y pasta"],
-  [/leche|nata|queso|yogur|mantequilla|huevo/, "Lácteos y huevos"],
-  [/pan |harina|avena|cereales|tostada/, "Panadería y cereales"],
-  [/aceite|vinagre|sal|pimienta|especias|pimenton|comino|oregano|ajo|tomate triturado|caldo|azucar/, "Despensa"],
-];
-
-function guessIngredientCategory(name) {
-  const lower = name.toLowerCase();
-  for (const [regex, cat] of INGREDIENT_CATEGORY_HINTS) {
-    if (regex.test(lower)) return cat;
-  }
-  return "Verduras y frutas";
-}
-
-// ── Main export ─────────────────────────────────────────────────
 
 export async function generateMenuWithAI(data, { signal } = {}) {
   if (!data?.groups?.length) {

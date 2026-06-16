@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { initialsOf } from "../lib/stages.js";
 import { BarChart3, ClipboardList, Settings, ShoppingCart } from "lucide-react";
 
@@ -61,6 +62,103 @@ export function ProgressDots({ current, total, onJump, compact = false }) {
   );
 }
 
+export const APP_SHELL_MAX_WIDTH = 420;
+export const BOTTOM_NAV_HEIGHT = 80;
+
+export function SegmentedControl({ options, value, onChange, style }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        background: "#f0f4f1",
+        borderRadius: 12,
+        padding: 3,
+        ...style,
+      }}
+    >
+      {options.map(({ id, label }) => {
+        const sel = value === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            style={{
+              flex: 1,
+              padding: "7px 0",
+              borderRadius: 9,
+              border: "none",
+              background: sel ? "#fff" : "transparent",
+              color: sel ? "#142f1d" : "#7a8a7f",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+              transition: "all .15s",
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ToggleSwitch({ checked, onChange, label }) {
+  return (
+    <label
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        cursor: "pointer",
+        userSelect: "none",
+      }}
+    >
+      {label ? (
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#142f1d" }}>{label}</span>
+      ) : null}
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        style={{
+          width: 48,
+          height: 28,
+          borderRadius: 999,
+          border: "none",
+          padding: 2,
+          background: checked ? "#2d5a3d" : "#d4e0d8",
+          cursor: "pointer",
+          flexShrink: 0,
+          transition: "background .2s",
+        }}
+      >
+        <span
+          style={{
+            display: "block",
+            width: 24,
+            height: 24,
+            borderRadius: 999,
+            background: "#fff",
+            transform: checked ? "translateX(20px)" : "translateX(0)",
+            transition: "transform .2s",
+            boxShadow: "0 1px 4px rgba(0,0,0,.12)",
+          }}
+        />
+      </button>
+    </label>
+  );
+}
+
+export function bottomNavSpacer() {
+  return `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`;
+}
+
 export function BottomNav({ active, onNav }) {
   const items = [
     { id: "menu", icon: ClipboardList, label: "Menú" },
@@ -68,41 +166,88 @@ export function BottomNav({ active, onNav }) {
     { id: "analytics", icon: BarChart3, label: "Análisis" },
     { id: "settings", icon: Settings, label: "Ajustes" },
   ];
-  return (
-    <div
+  const nav = (
+    <nav
+      aria-label="Navegación principal"
       style={{
-        display: "flex",
-        justifyContent: "space-around",
-        padding: "8px 0 12px",
-        borderTop: "1px solid #eee",
-        background: "#fff",
-        position: "sticky",
+        position: "fixed",
+        left: "50%",
         bottom: 0,
-        zIndex: 10,
+        transform: "translateX(-50%)",
+        width: "100%",
+        maxWidth: APP_SHELL_MAX_WIDTH,
+        zIndex: 100,
+        display: "flex",
+        justifyContent: "center",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        background: "linear-gradient(to top, #fff 88%, rgba(255,255,255,0))",
+        pointerEvents: "none",
+        boxSizing: "border-box",
       }}
     >
-      {items.map((it) => (
-        <div
-          key={it.id}
-          onClick={() => onNav(it.id)}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            gap: 2,
-            cursor: "pointer",
-            opacity: active === it.id ? 1 : 0.45,
-            transition: "opacity .2s",
-          }}
-        >
-          <it.icon size={18} color="#2d5a3d" />
-          <span style={{ fontSize: 10, fontWeight: 600, color: "#2d5a3d", letterSpacing: ".3px" }}>
-            {it.label}
-          </span>
-        </div>
-      ))}
-    </div>
+      <div
+        style={{
+          pointerEvents: "auto",
+          width: "100%",
+          display: "flex",
+          alignItems: "stretch",
+          gap: 4,
+          padding: "8px 6px 10px",
+          marginBottom: 4,
+          borderRadius: "18px 18px 0 0",
+          borderTop: "1px solid #e0eae3",
+          background: "#fff",
+          boxShadow: "0 -6px 24px rgba(20,47,29,.08)",
+        }}
+      >
+        {items.map((it) => {
+          const sel = active === it.id;
+          return (
+            <button
+              key={it.id}
+              type="button"
+              onClick={() => onNav(it.id)}
+              style={{
+                flex: 1,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 4,
+                padding: "4px 0",
+                border: "none",
+                borderRadius: 12,
+                background: sel ? "#f0f7f2" : "transparent",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                transition: "background .15s ease, box-shadow .15s ease",
+                boxShadow: sel ? "inset 0 0 0 1px #d4e6da" : "none",
+              }}
+            >
+              <it.icon
+                size={20}
+                color={sel ? "#2d5a3d" : "#9ab0a1"}
+                strokeWidth={sel ? 2.4 : 2}
+              />
+              <span
+                style={{
+                  fontSize: 10,
+                  fontWeight: sel ? 800 : 600,
+                  color: sel ? "#1a3a24" : "#9ab0a1",
+                  letterSpacing: ".2px",
+                  lineHeight: 1,
+                }}
+              >
+                {it.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </nav>
   );
+
+  return createPortal(nav, document.body);
 }
 
 export function SliderInput({ label, value, min, max, step, suffix, onChange, icon: Icon }) {

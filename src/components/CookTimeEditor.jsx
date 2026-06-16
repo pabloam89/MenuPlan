@@ -31,7 +31,6 @@ function CookTimeModeToggle({ mode, onChange }) {
     {
       id: "shared",
       label: "Igual para ambos",
-      desc: "Mismo tiempo en comida y cena",
       renderIcon: (sel) => (
         <span style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
           <Sun size={18} strokeWidth={2.2} color={sel ? "#2d5a3d" : "#9ab0a1"} />
@@ -42,7 +41,6 @@ function CookTimeModeToggle({ mode, onChange }) {
     {
       id: "split",
       label: "Por separado",
-      desc: "Un límite para comida, otro para cena",
       renderIcon: (sel) => (
         <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
           <Sun size={18} strokeWidth={2.2} color={sel ? "#2d5a3d" : "#9ab0a1"} />

@@ -46,6 +46,15 @@ function countFreqTags(entries) {
   return counts;
 }
 
+function cookTimeByDay(entries) {
+  const map = Object.fromEntries(DAYS.map((d) => [d, 0]));
+  for (const e of entries) {
+    const day = e.slotKey.split("-")[0];
+    if (day in map) map[day] += e.recipe.time ?? 0;
+  }
+  return DAYS.map((day) => ({ day, minutes: map[day] }));
+}
+
 export function getMenuInsights(menuPlan, groups, data) {
   const entries = getVisibleMenuSlots(menuPlan, groups);
   const mealsAtHome = entries.length;
@@ -57,31 +66,34 @@ export function getMenuInsights(menuPlan, groups, data) {
       mealsPlanned,
       freqMet: 0,
       freqTotal: FREQ_KEYS.length,
-      freqCaption: "Sin menú generado",
       cookTimeLabel: "0m",
-      cookTimeCaption: "—",
+      weekdayAvg: 0,
+      freqRows: [],
+      cookByDay: cookTimeByDay([]),
+      maxCookMinutes: 0,
     };
   }
 
   const freqs = data?.freqs ?? {};
   const tagCounts = countFreqTags(entries);
-  let freqMet = 0;
-  const missing = [];
   const freqTargets = FREQ_KEYS.filter((k) => (freqs[k] ?? 0) > 0);
-  for (const key of freqTargets) {
-    const min = freqs[key];
-    if (tagCounts[key] >= min) freqMet++;
-    else missing.push(`${FREQ_LABELS[key]} ${tagCounts[key]}/${min}`);
-  }
-  const freqCaption =
-    missing.length === 0
-      ? freqTargets.length ? `${freqMet}/${freqTargets.length} frecuencias` : "Sin mínimos"
-      : `Falta: ${missing[0]}`;
+  let freqMet = 0;
+  const freqRows = freqTargets.map((key) => {
+    const target = freqs[key];
+    const count = tagCounts[key];
+    const met = count >= target;
+    if (met) freqMet++;
+    return { key, label: FREQ_LABELS[key], count, target, met };
+  });
+
+  const cookByDay = cookTimeByDay(entries);
+  const maxCookMinutes = Math.max(...cookByDay.map((d) => d.minutes), 1);
 
   const cookTimeTotalMin = entries.reduce((sum, e) => sum + (e.recipe.time ?? 0), 0);
   const hours = Math.floor(cookTimeTotalMin / 60);
   const mins = cookTimeTotalMin % 60;
   const cookTimeLabel = hours > 0 ? `~${hours}h${mins ? ` ${mins}m` : ""}` : `${cookTimeTotalMin}m`;
+
   const weekdaySlots = entries.filter((e) => {
     const day = e.slotKey.split("-")[0];
     return day !== "Sáb" && day !== "Dom";
@@ -96,8 +108,10 @@ export function getMenuInsights(menuPlan, groups, data) {
     mealsPlanned,
     freqMet,
     freqTotal: freqTargets.length || FREQ_KEYS.length,
-    freqCaption,
     cookTimeLabel,
-    cookTimeCaption: weekdayAvg ? `media ${weekdayAvg} min laborables` : "esta semana",
+    weekdayAvg,
+    freqRows,
+    cookByDay,
+    maxCookMinutes,
   };
 }

@@ -1,6 +1,6 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
+import { categoryForIngredient, normalizeIngredientKey } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
-
 function scaleIngredient(ing, eaters, recipeServings) {
   const factor = Math.max(1, eaters) / recipeServings;
   return {
@@ -50,17 +50,19 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS) {
           if (!recipe) continue;
           for (const ing of recipe.ingredients) {
             const scaled = scaleIngredient(ing, slot.eaters, recipe.servings);
-            const key = `${ing.id}|${ing.unit}`;
+            const key = normalizeIngredientKey(ing.name, ing.unit);
+            const category = categoryForIngredient(ing.name, ing.category);
             if (!aggregate[key]) {
               aggregate[key] = {
                 id: key,
                 name: ing.name,
-                category: ing.category,
+                category,
                 unit: ing.unit,
                 qty: 0,
                 price: 0,
                 sources: [],
                 have: false,
+                atHome: false,
                 manual: false,
               };
             }
@@ -71,6 +73,8 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS) {
               meal,
               group: group.label,
               recipeName: recipe.name,
+              qty: scaled.qty,
+              unit: ing.unit,
             });
 
             dayBuckets[day].push({

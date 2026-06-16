@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BottomNav } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -11,8 +11,10 @@ import {
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { ShoppingScreen } from "./screens/Shopping.jsx";
+import { AnalyticsScreen } from "./screens/Analytics.jsx";
 import { generateMenuWithAI } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
+import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getMeals, replaceMenuSlot } from "./lib/planner.js";
 import { groupsFromModel } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
@@ -312,7 +314,21 @@ export default function App() {
       });
       setMenuPlan(plan);
       const sh = buildShoppingList(plan, groups, getMeals(working));
-      setShopping({ items: sh.byCategory.flatMap((c) => c.items) });
+      setShopping((prev) => {
+        const flags = Object.fromEntries(
+          prev.items.map((i) => [
+            normalizeIngredientKey(i.name, i.unit ?? "ud"),
+            { have: i.have, atHome: i.atHome },
+          ])
+        );
+        return {
+          items: sh.byCategory.flatMap((c) => c.items).map((it) => ({
+            ...it,
+            have: flags[it.id]?.have ?? false,
+            atHome: flags[it.id]?.atHome ?? false,
+          })),
+        };
+      });
       showToast("Menú generado con IA");
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
@@ -383,7 +399,21 @@ export default function App() {
         },
       };
       const sh = buildShoppingList(next, groups, getMeals(data));
-      setShopping({ items: sh.byCategory.flatMap((c) => c.items) });
+      setShopping((prev) => {
+        const flags = Object.fromEntries(
+          prev.items.map((i) => [
+            normalizeIngredientKey(i.name, i.unit ?? "ud"),
+            { have: i.have, atHome: i.atHome },
+          ])
+        );
+        return {
+          items: sh.byCategory.flatMap((c) => c.items).map((it) => ({
+            ...it,
+            have: flags[it.id]?.have ?? false,
+            atHome: flags[it.id]?.atHome ?? false,
+          })),
+        };
+      });
       return next;
     });
     setSelectedSlot(null);
@@ -486,7 +516,7 @@ export default function App() {
   return (
     <div
       style={{
-        maxWidth: 420,
+        maxWidth: APP_SHELL_MAX_WIDTH,
         margin: "0 auto",
         minHeight: "100vh",
         background: "#fff",
@@ -551,10 +581,17 @@ export default function App() {
         )}
 
         {screen === "shopping" && (
-          <ShoppingScreen shopping={shopping} setShopping={setShopping} onNav={handleNav} />
+          <ShoppingScreen
+            shopping={shopping}
+            setShopping={setShopping}
+            onNav={handleNav}
+            onToast={showToast}
+          />
         )}
 
-        {screen === "analytics" && <AnalyticsPlaceholder onNav={handleNav} />}
+        {screen === "analytics" && (
+          <AnalyticsScreen data={data} menuPlan={menuPlan} onNav={handleNav} />
+        )}
       </div>
 
       {selectedSlot && (
@@ -896,33 +933,6 @@ function SplashScreen({ onNext, hasSaved, onResume }) {
           {hasSaved ? "Continuar" : "Empezar ya"}
         </button>
       </div>
-    </div>
-  );
-}
-
-function AnalyticsPlaceholder({ onNav }) {
-  return (
-    <div style={{ paddingBottom: 0 }}>
-      <div style={{ padding: "16px 24px 0" }}>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1a3a24", margin: "0 0 16px" }}>
-          Análisis
-        </h2>
-        <div
-          style={{
-            padding: "40px 20px",
-            textAlign: "center",
-            color: "#888",
-            background: "#fafafa",
-            borderRadius: 14,
-          }}
-        >
-          <p style={{ fontSize: 14 }}>
-            Sección en construcción. Aquí verás tu gasto semanal y la comparativa de precios.
-          </p>
-        </div>
-      </div>
-      <div style={{ flex: 1 }} />
-      <BottomNav active="analytics" onNav={onNav} />
     </div>
   );
 }

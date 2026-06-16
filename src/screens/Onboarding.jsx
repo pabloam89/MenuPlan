@@ -4413,9 +4413,6 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 
       {/* Tiempo */}
       <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
-      <p style={{ fontSize: 12, color: "#7a9485", margin: "0 0 12px", lineHeight: 1.45 }}>
-        Elige si cocinas lo mismo en comida y cena, o un límite distinto para cada una.
-      </p>
       <CookTimeEditor data={data} setData={setData} />
     </OnboardingShell>
   );

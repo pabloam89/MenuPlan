@@ -1,37 +1,126 @@
-import { useState, useMemo } from "react";
-import { BottomNav } from "../components/ui.jsx";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Apple,
+  Bean,
+  BookOpen,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  CircleHelp,
+  Coffee,
+  Croissant,
+  Drumstick,
+  Egg,
+  Fish,
+  Home,
+  Leaf,
+  Loader2,
+  Milk,
+  Moon,
+  Package,
+  Plus,
+  Receipt,
+  Sprout,
+  Sun,
+  Trash2,
+  Undo2,
+  Wheat,
+  X,
+} from "lucide-react";
+import {
+  BottomNav,
+  SegmentedControl,
+  bottomNavSpacer,
+} from "../components/ui.jsx";
 import { INGREDIENT_CATEGORIES } from "../data/recipes.js";
-import { DAYS } from "../lib/planner.js";
+import { normalizeIngredientKey } from "../lib/ingredientCategories.js";
+import { extractReceiptProducts } from "../lib/receiptParser.js";
+import {
+  enrichItem,
+  formatDisplay,
+  isActiveItem,
+  isDoneItem,
+  itemsByAisle,
+  mergeShoppingItems,
+  matchReceiptProducts,
+} from "../lib/shoppingListUtils.js";
+import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 
-function formatDisplay(qty, unit) {
-  if (unit === "g" && qty >= 1000)
-    return `${(qty / 1000).toFixed(qty % 1000 === 0 ? 0 : 1)}kg`;
-  if (unit === "ml" && qty >= 1000)
-    return `${(qty / 1000).toFixed(qty % 1000 === 0 ? 0 : 1)}L`;
-  if (unit === "ud")
-    return Math.ceil(qty) === 1 ? "1 ud" : `${Math.ceil(qty)} uds`;
-  return `${Math.ceil(qty)}${unit}`;
-}
+const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
-export function ShoppingScreen({ shopping, setShopping, onNav }) {
-  const [view, setView] = useState("category");
-  const [editingId, setEditingId] = useState(null);
+const MEAL_BADGE = {
+  Desayuno: { Icon: Coffee, color: "#a16207" },
+  Comida: { Icon: Sun, color: "#0d9488" },
+  Cena: { Icon: Moon, color: "#6366f1" },
+};
+
+const ICON_LEGEND_HEADER = [
+  { icon: Receipt, label: "Ticket", hint: "Sube una foto y marca lo comprado." },
+  { icon: Plus, label: "Añadir", hint: "Añade un producto a mano." },
+];
+
+const ICON_LEGEND_ROW = [
+  { icon: Home, label: "En casa", hint: "Ya lo tienes. Sale de la lista." },
+  { icon: Check, label: "Comprado", hint: "Lo acabas de comprar." },
+  { icon: BookOpen, label: "Recetas", hint: "Días y platos donde entra." },
+  { icon: Trash2, label: "Quitar", hint: "Eliminar de la lista." },
+];
+
+const AISLE_UI = {
+  Verduras: { Icon: Leaf, color: "#3d9b5f" },
+  Frutas: { Icon: Apple, color: "#e07b39" },
+  Carne: { Icon: Drumstick, color: "#c45c4a" },
+  Pescado: { Icon: Fish, color: "#2072b8" },
+  Legumbres: { Icon: Bean, color: "#8b6914" },
+  "Pasta y arroz": { Icon: Wheat, color: "#c9922a" },
+  Lácteos: { Icon: Milk, color: "#4a9ec5" },
+  Huevos: { Icon: Egg, color: "#ca9a14" },
+  Panadería: { Icon: Croissant, color: "#a67c52" },
+  Especias: { Icon: Sprout, color: "#7c5cbf" },
+  Despensa: { Icon: Package, color: "#64748b" },
+};
+
+export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
+  const [listScope, setListScope] = useState("pending");
+  const [openSections, setOpenSections] = useState({});
+  const [expandedId, setExpandedId] = useState(null);
+  const [showLegend, setShowLegend] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [receiptBusy, setReceiptBusy] = useState(false);
+  const [receiptMatches, setReceiptMatches] = useState(null);
+  const fileRef = useRef(null);
 
-  const toggleHave = (id) =>
+  const weekLabel = formatWeekRangeLabel(getWeekDates());
+
+  useEffect(() => {
+    setShopping((s) => {
+      const merged = mergeShoppingItems(s.items);
+      const same =
+        merged.length === s.items.length &&
+        merged.every(
+          (it, i) => it.id === s.items[i]?.id && it.category === s.items[i]?.category
+        );
+      return same ? s : { items: merged };
+    });
+  }, [setShopping]);
+
+  const patchItem = (id, patch) =>
     setShopping((s) => ({
       ...s,
-      items: s.items.map((it) => (it.id === id ? { ...it, have: !it.have } : it)),
-    }));
-
-  const updateItem = (id, patch) =>
-    setShopping((s) => ({
-      ...s,
-      items: s.items.map((it) => (it.id === id ? { ...it, ...patch } : it)),
+      items: mergeShoppingItems(
+        s.items.map((it) =>
+          normalizeIngredientKey(it.name, it.unit ?? "ud") === id ? { ...it, ...patch } : it
+        )
+      ),
     }));
 
   const removeItem = (id) =>
-    setShopping((s) => ({ ...s, items: s.items.filter((it) => it.id !== id) }));
+    setShopping((s) => ({
+      ...s,
+      items: s.items.filter(
+        (it) => normalizeIngredientKey(it.name, it.unit ?? "ud") !== id
+      ),
+    }));
 
   const addItem = (newItem) =>
     setShopping((s) => ({
@@ -42,539 +131,704 @@ export function ShoppingScreen({ shopping, setShopping, onNav }) {
           ...newItem,
           id: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
           have: false,
+          atHome: false,
           manual: true,
           sources: [],
         },
       ],
     }));
 
-  const { byCategory, byDay, total, totalItems } = useMemo(() => {
-    const itemsPending = shopping.items.filter((it) => !it.have);
-    const total = itemsPending.reduce((s, it) => s + (it.price ?? 0), 0);
+  const markPurchased = (ids) =>
+    setShopping((s) => ({
+      ...s,
+      items: s.items.map((it) => (ids.includes(it.id) ? { ...it, have: true } : it)),
+    }));
 
-    const byCategoryMap = {};
-    for (const it of shopping.items) {
-      const cat = it.category || "Otros";
-      if (!byCategoryMap[cat]) byCategoryMap[cat] = [];
-      byCategoryMap[cat].push(it);
-    }
-    const byCategory = INGREDIENT_CATEGORIES.map((cat) => ({
-      cat,
-      items: (byCategoryMap[cat] || []).sort((a, b) => a.name.localeCompare(b.name)),
-    }))
-      .concat(
-        Object.keys(byCategoryMap)
-          .filter((c) => !INGREDIENT_CATEGORIES.includes(c))
-          .map((c) => ({
-            cat: c,
-            items: byCategoryMap[c].sort((a, b) => a.name.localeCompare(b.name)),
-          }))
-      )
-      .filter((g) => g.items.length > 0);
+  const mergedItems = useMemo(
+    () => mergeShoppingItems(shopping.items),
+    [shopping.items]
+  );
 
-    const byDayMap = Object.fromEntries(DAYS.map((d) => [d, []]));
-    for (const it of shopping.items) {
-      if (it.sources && it.sources.length > 0) {
-        const daySet = new Set(it.sources.map((s) => s.day));
-        for (const d of daySet) {
-          byDayMap[d].push(it);
-        }
-      } else {
-        byDayMap.__manual = byDayMap.__manual ?? [];
-        byDayMap.__manual.push(it);
+  const visibleItems = useMemo(() => {
+    const list = mergedItems.map(enrichItem);
+    if (listScope === "pending") return list.filter(isActiveItem);
+    if (listScope === "done") return list.filter(isDoneItem);
+    return list;
+  }, [mergedItems, listScope]);
+
+  const { sections, doneCount, totalCount, progress } = useMemo(() => {
+    const totalCount = mergedItems.length;
+    const doneCount = mergedItems.filter(isDoneItem).length;
+    const progress = totalCount > 0 ? doneCount / totalCount : 0;
+
+    const sections = itemsByAisle(visibleItems).map((g) => ({
+      key: g.aisle,
+      title: g.aisle,
+      items: g.items.map(enrichItem),
+    }));
+
+    return { sections, doneCount, totalCount, progress };
+  }, [visibleItems, mergedItems]);
+
+  const isEmpty = sections.every((s) => s.items.length === 0);
+  const hasPendingItems = mergedItems.some(isActiveItem);
+  const hasDoneItems = mergedItems.some(isDoneItem);
+
+  const handleReceiptPick = async (file) => {
+    if (!file) return;
+    setReceiptBusy(true);
+    try {
+      const products = await extractReceiptProducts(file);
+      const matches = matchReceiptProducts(products, mergedItems);
+      if (matches.length === 0) {
+        onToast?.("No coinciden productos del ticket");
+        return;
       }
+      setReceiptMatches(matches);
+    } catch {
+      onToast?.("No se pudo leer el ticket");
+    } finally {
+      setReceiptBusy(false);
+      if (fileRef.current) fileRef.current.value = "";
     }
-    const byDay = DAYS.map((day) => ({ day, items: byDayMap[day] })).filter(
-      (d) => d.items.length > 0
-    );
-    if (byDayMap.__manual && byDayMap.__manual.length > 0) {
-      byDay.push({ day: "Añadidos por ti", items: byDayMap.__manual });
-    }
-
-    return {
-      byCategory,
-      byDay,
-      total: Math.round(total * 100) / 100,
-      totalItems: itemsPending.length,
-    };
-  }, [shopping.items]);
+  };
 
   return (
-    <div style={{ paddingBottom: 0 }}>
-      <div style={{ padding: "16px 20px 0" }}>
+    <div style={{ background: "#f7f9f7", minHeight: "100vh" }}>
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        style={{ display: "none" }}
+        onChange={(e) => handleReceiptPick(e.target.files?.[0])}
+      />
+
+      <div style={{ padding: "20px 16px 0", position: "relative" }}>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "start",
-            marginBottom: 6,
+            alignItems: "center",
+            marginBottom: 4,
           }}
         >
-          <div>
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1a3a24", margin: "0 0 4px" }}>
-              Lista de la compra
-            </h2>
-            <p style={{ fontSize: 13, color: "#888", margin: 0 }}>
-              {totalItems} productos - {total.toFixed(2)}€ estimado
-            </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <h2 style={titleStyle}>Tu compra</h2>
+            <button
+              type="button"
+              onClick={() => setShowLegend((v) => !v)}
+              style={{
+                ...iconBtnStyle,
+                width: 32,
+                height: 32,
+                borderRadius: 999,
+                background: showLegend ? "#e8f0ea" : "#fff",
+              }}
+              aria-label="Ayuda iconos"
+              aria-expanded={showLegend}
+            >
+              <CircleHelp size={17} strokeWidth={2.2} />
+            </button>
           </div>
-          <span
-            onClick={() => setShowAdd(true)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 10,
-              background: "#2d5a3d",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-            }}
-          >
-            + Añadir
-          </span>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={receiptBusy}
+              style={iconBtnStyle}
+              aria-label="Subir ticket"
+            >
+              {receiptBusy ? (
+                <Loader2 size={18} className="rotating" />
+              ) : (
+                <Receipt size={18} strokeWidth={2.2} />
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              style={iconBtnStyle}
+              aria-label="Añadir"
+            >
+              <Plus size={20} strokeWidth={2.4} />
+            </button>
+          </div>
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#7a8a7f", marginBottom: 16 }}>
+          {weekLabel}
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 4,
-            background: "#f0f0f0",
-            borderRadius: 8,
-            padding: 3,
-            margin: "12px 0 16px",
-          }}
-        >
-          {[
-            ["category", "Categorías"],
-            ["day", "Por días"],
-          ].map(([id, label]) => (
-            <span
-              key={id}
-              onClick={() => setView(id)}
+        {showLegend && (
+          <IconLegendBubble onClose={() => setShowLegend(false)} />
+        )}
+
+        {totalCount > 0 && (
+          <div style={{ marginBottom: 14 }}>
+            <div
               style={{
-                flex: 1,
-                padding: "8px",
-                borderRadius: 6,
-                fontSize: 12,
-                fontWeight: 600,
-                cursor: "pointer",
-                textAlign: "center",
-                background: view === id ? "#fff" : "transparent",
-                color: view === id ? "#2d5a3d" : "#999",
-                boxShadow: view === id ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                display: "flex",
+                justifyContent: "space-between",
+                fontSize: 13,
+                fontWeight: 800,
+                color: "#142f1d",
+                marginBottom: 8,
               }}
             >
-              {label}
-            </span>
-          ))}
-        </div>
+              <span>
+                {doneCount}/{totalCount}
+              </span>
+              <span style={{ color: "#2d5a3d" }}>{Math.round(progress * 100)}%</span>
+            </div>
+            <div style={progressTrackStyle}>
+              <div style={{ ...progressFillStyle, width: `${progress * 100}%` }} />
+            </div>
+          </div>
+        )}
+
+        <SegmentedControl
+          value={listScope}
+          onChange={setListScope}
+          options={[
+            { id: "pending", label: "Por comprar" },
+            { id: "done", label: "Comprado" },
+          ]}
+          style={{ marginBottom: 12 }}
+        />
       </div>
 
-      <div style={{ padding: "0 14px" }}>
-        {view === "category" && (
-          <>
-            {byCategory.length === 0 && (
-              <EmptyList onAdd={() => setShowAdd(true)} />
-            )}
-            {byCategory.map((cat) => (
-              <CategoryBlock
-                key={cat.cat}
-                title={cat.cat}
-                items={cat.items}
-                editingId={editingId}
-                onEdit={setEditingId}
-                onToggle={toggleHave}
-                onUpdate={updateItem}
-                onRemove={removeItem}
-              />
-            ))}
-          </>
+      <div
+        style={{
+          padding: "0 16px",
+          paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
+        }}
+      >
+        {isEmpty && (
+          <EmptyList
+            onAdd={() => setShowAdd(true)}
+            scope={listScope}
+            hasPending={hasPendingItems}
+            hasDone={hasDoneItems}
+          />
         )}
-        {view === "day" && (
-          <>
-            {byDay.length === 0 && <EmptyList onAdd={() => setShowAdd(true)} />}
-            {byDay.map((d) => (
-              <CategoryBlock
-                key={d.day}
-                title={d.day}
-                items={d.items}
-                editingId={editingId}
-                onEdit={setEditingId}
-                onToggle={toggleHave}
-                onUpdate={updateItem}
-                onRemove={removeItem}
-                showRecipes
-              />
-            ))}
-          </>
-        )}
+
+        {sections.map((section) => {
+          if (section.items.length === 0) return null;
+          const open = Boolean(openSections[section.key]);
+          return (
+            <div key={section.key} style={{ marginBottom: 10 }}>
+              <button
+                type="button"
+                onClick={() =>
+                  setOpenSections((c) => ({ ...c, [section.key]: !c[section.key] }))
+                }
+                style={{
+                  ...sectionHeaderStyle,
+                  ...sectionLabelCardStyle,
+                  borderRadius: open ? "14px 14px 0 0" : 14,
+                  borderBottom: open ? "none" : sectionLabelCardStyle.border,
+                }}
+              >
+                <AisleIcon aisle={section.key} />
+                <span
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    minWidth: 0,
+                    textAlign: "left",
+                  }}
+                >
+                  {open ? (
+                    <ChevronDown size={16} color="#7a8a7f" />
+                  ) : (
+                    <ChevronRight size={16} color="#7a8a7f" />
+                  )}
+                  <span
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: "#142f1d",
+                      letterSpacing: "-.2px",
+                    }}
+                  >
+                    {section.title}
+                  </span>
+                </span>
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: "#7a8a7f",
+                    minWidth: 28,
+                    textAlign: "right",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {section.items.length}
+                </span>
+              </button>
+              {open && (
+                <div style={aisleItemsStyle}>
+                  {section.items.map((item) => (
+                    <ShoppingRow
+                      key={`${section.key}-${item.id}`}
+                      item={item}
+                      doneView={listScope === "done"}
+                      expanded={expandedId === item.id}
+                      onToggleRecipes={() =>
+                        setExpandedId(expandedId === item.id ? null : item.id)
+                      }
+                      onAtHome={() => patchItem(item.id, { atHome: true, have: false })}
+                      onPurchased={() => patchItem(item.id, { have: true })}
+                      onUndo={() => patchItem(item.id, { atHome: false, have: false })}
+                      onRemove={() => removeItem(item.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={addItem} />}
+
+      {receiptMatches && (
+        <ReceiptSheet
+          matches={receiptMatches}
+          onClose={() => setReceiptMatches(null)}
+          onConfirm={() => {
+            markPurchased(receiptMatches.map((m) => m.id));
+            onToast?.(`${receiptMatches.length} marcados`);
+            setReceiptMatches(null);
+          }}
+        />
+      )}
 
       <BottomNav active="shopping" onNav={onNav} />
     </div>
   );
 }
 
-function EmptyList({ onAdd }) {
+function AisleIcon({ aisle, size = 36 }) {
+  const meta = AISLE_UI[aisle] ?? { Icon: Package, color: "#64748b" };
+  const Icon = meta.Icon;
   return (
-    <div
+    <span
       style={{
-        padding: "40px 20px",
-        textAlign: "center",
-        color: "#888",
-        background: "#fafafa",
-        borderRadius: 14,
-        margin: "0 6px",
+        width: size,
+        height: size,
+        borderRadius: 11,
+        background: meta.color,
+        color: "#fff",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
       }}
     >
-      <p style={{ fontSize: 14, marginBottom: 14 }}>Todavía no hay productos.</p>
-      <button
-        onClick={onAdd}
-        style={{
-          background: "#2d5a3d",
-          color: "#fff",
-          border: "none",
-          borderRadius: 10,
-          padding: "10px 16px",
-          fontSize: 13,
-          fontWeight: 700,
-          cursor: "pointer",
-        }}
-      >
-        + Añadir producto
-      </button>
-    </div>
+      <Icon size={size * 0.48} strokeWidth={2.2} />
+    </span>
   );
 }
 
-function CategoryBlock({
-  title,
-  items,
-  editingId,
-  onEdit,
-  onToggle,
-  onUpdate,
+function ShoppingRow({
+  item,
+  doneView,
+  expanded,
+  onToggleRecipes,
+  onAtHome,
+  onPurchased,
+  onUndo,
   onRemove,
-  showRecipes,
 }) {
-  return (
-    <div style={{ marginBottom: 16 }}>
-      <div
-        style={{
-          fontSize: 12,
-          fontWeight: 800,
-          color: "#888",
-          textTransform: "uppercase",
-          letterSpacing: 1,
-          padding: "0 8px",
-          marginBottom: 8,
-        }}
-      >
-        {title}
-      </div>
-      {items.map((item) => (
-        <ShoppingRow
-          key={item.id}
-          item={item}
-          editing={editingId === item.id}
-          onEdit={() => onEdit(editingId === item.id ? null : item.id)}
-          onToggle={() => onToggle(item.id)}
-          onUpdate={(patch) => onUpdate(item.id, patch)}
-          onRemove={() => onRemove(item.id)}
-          showRecipes={showRecipes}
-        />
-      ))}
-    </div>
-  );
-}
+  const qty = item.displayQty ?? formatDisplay(item.qty ?? 0, item.unit ?? "ud");
+  const dimmed = !doneView && (item.have || item.atHome);
 
-function ShoppingRow({ item, editing, onEdit, onToggle, onUpdate, onRemove, showRecipes }) {
   return (
     <div
       style={{
-        background: item.have ? "#f8f8f8" : "#fff",
-        borderRadius: 12,
-        marginBottom: 4,
-        border: "1px solid #f0f0f0",
-        opacity: item.have ? 0.6 : 1,
-        transition: "all .2s",
+        borderBottom: "1px solid #dde8e1",
+        opacity: dimmed ? 0.45 : 1,
+        padding: "10px 4px 10px 4px",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: "10px 12px",
-        }}
-      >
-        <div
-          onClick={onToggle}
+      <div style={rowGridStyle}>
+        <span
           style={{
-            width: 22,
-            height: 22,
-            borderRadius: 6,
-            border: `2px solid ${item.have ? "#2d5a3d" : "#ddd"}`,
-            background: item.have ? "#2d5a3d" : "#fff",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#fff",
-            fontSize: 14,
-            flexShrink: 0,
-            cursor: "pointer",
+            minWidth: 0,
+            fontSize: 15,
+            fontWeight: 800,
+            color: "#142f1d",
+            textDecoration: !doneView && (item.have || item.atHome) ? "line-through" : "none",
+            lineHeight: 1.2,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
           }}
         >
-          {item.have ? "✓" : ""}
+          {item.name}
+        </span>
+        <span style={qtyColStyle}>{qty}</span>
+        <div style={actionsColStyle}>
+          {doneView ? (
+            <>
+              {item.atHome ? (
+                <ActionBtn icon={Home} label="En casa" active readOnly />
+              ) : (
+                <ActionBtn icon={Check} label="Comprado" active readOnly />
+              )}
+              <ActionBtn icon={Undo2} label="Deshacer" onClick={onUndo} />
+              {item.recipeCount > 0 && (
+                <ActionBtn
+                  icon={BookOpen}
+                  label="Recetas"
+                  onClick={onToggleRecipes}
+                  active={expanded}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              <ActionBtn icon={Home} label="En casa" onClick={onAtHome} active={item.atHome} />
+              <ActionBtn icon={Check} label="Comprado" onClick={onPurchased} active={item.have} />
+              {item.recipeCount > 0 && (
+                <ActionBtn
+                  icon={BookOpen}
+                  label="Recetas"
+                  onClick={onToggleRecipes}
+                  active={expanded}
+                />
+              )}
+              <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted />
+            </>
+          )}
         </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              fontSize: 14,
-              fontWeight: 600,
-              color: "#1a3a24",
-              textDecoration: item.have ? "line-through" : "none",
-            }}
-          >
-            {item.name}
-            {item.manual && (
-              <span
+      </div>
+
+      {expanded && item.recipeUsage?.length > 0 && (
+        <div style={{ paddingTop: 8 }}>
+          {item.recipeUsage
+            .flatMap((recipe) =>
+              recipe.slots.map((slot) => ({ ...slot, recipeName: recipe.recipeName }))
+            )
+            .sort((a, b) => a.sort - b.sort)
+            .map((slot, idx) => (
+              <div
+                key={`${slot.day}-${slot.meal}-${slot.recipeName}-${idx}`}
                 style={{
-                  marginLeft: 6,
-                  fontSize: 9,
-                  background: "#eef5ef",
-                  color: "#2d5a3d",
-                  padding: "1px 5px",
-                  borderRadius: 4,
-                  fontWeight: 700,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  padding: "7px 0",
+                  borderTop: idx === 0 ? "none" : "1px solid #eef2ef",
+                  minHeight: 32,
                 }}
               >
-                MANUAL
-              </span>
-            )}
-          </div>
-          <div style={{ fontSize: 11, color: "#999" }}>
-            {item.displayQty ?? formatDisplay(item.qty ?? 0, item.unit ?? "ud")}
-            {showRecipes && item.sources && item.sources.length > 0 && (
-              <>
-                {" "}
-                -{" "}
-                {Array.from(new Set(item.sources.map((s) => s.recipeName))).join(", ")}
-              </>
-            )}
-          </div>
-        </div>
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#2d5a3d", minWidth: 48, textAlign: "right" }}>
-          {(item.price ?? 0).toFixed(2)}€
-        </span>
-        <span
-          onClick={onEdit}
-          style={{
-            fontSize: 16,
-            color: editing ? "#2d5a3d" : "#bbb",
-            cursor: "pointer",
-            padding: "0 4px",
-          }}
-          title="Editar"
-        >
-          ⋯
-        </span>
-      </div>
-      {editing && (
-        <div
-          style={{
-            padding: "10px 12px 12px",
-            borderTop: "1px dashed #eee",
-            display: "grid",
-            gridTemplateColumns: "2fr 1fr 1fr",
-            gap: 8,
-          }}
-        >
-          <input
-            value={item.name}
-            onChange={(e) => onUpdate({ name: e.target.value })}
-            placeholder="Nombre"
-            style={inputStyle}
-          />
-          <input
-            value={item.qty ?? 0}
-            onChange={(e) => onUpdate({ qty: parseFloat(e.target.value) || 0 })}
-            type="number"
-            placeholder="Cant."
-            style={inputStyle}
-          />
-          <input
-            value={item.price ?? 0}
-            onChange={(e) => onUpdate({ price: parseFloat(e.target.value) || 0 })}
-            type="number"
-            step="0.01"
-            placeholder="€"
-            style={inputStyle}
-          />
-          <select
-            value={item.unit ?? "ud"}
-            onChange={(e) => onUpdate({ unit: e.target.value })}
-            style={inputStyle}
-          >
-            {["g", "ml", "ud"].map((u) => (
-              <option key={u} value={u}>
-                {u}
-              </option>
+                <DayBadge day={slot.day} />
+                <MealBadge meal={slot.meal} />
+                <span
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: "#142f1d",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {slot.recipeName}
+                </span>
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 800,
+                    color: "#64748b",
+                    flexShrink: 0,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {slot.displayQty}
+                </span>
+              </div>
             ))}
-          </select>
-          <select
-            value={item.category}
-            onChange={(e) => onUpdate({ category: e.target.value })}
-            style={{ ...inputStyle, gridColumn: "span 1" }}
-          >
-            {INGREDIENT_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <button
-            onClick={onRemove}
-            style={{
-              border: "1.5px solid #e0a0a0",
-              background: "#fff5f5",
-              color: "#c04040",
-              borderRadius: 8,
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              padding: "6px 8px",
-            }}
-          >
-            🗑 Eliminar
-          </button>
         </div>
       )}
     </div>
   );
 }
 
-const inputStyle = {
-  padding: "6px 10px",
-  borderRadius: 8,
-  border: "1px solid #ddd",
-  fontSize: 12,
-  outline: "none",
-  minWidth: 0,
-  width: "100%",
-  boxSizing: "border-box",
-};
+function DayBadge({ day }) {
+  return (
+    <span
+      style={{
+        width: 26,
+        height: 26,
+        borderRadius: 8,
+        background: "#64748b",
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: 900,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        lineHeight: 1,
+      }}
+    >
+      {DAY_LETTERS[day] ?? "?"}
+    </span>
+  );
+}
 
-function AddItemModal({ onClose, onAdd }) {
-  const [form, setForm] = useState({
-    name: "",
-    qty: 1,
-    unit: "ud",
-    price: 0,
-    category: INGREDIENT_CATEGORIES[0],
-  });
-  const disabled = !form.name.trim();
-  const submit = () => {
-    if (disabled) return;
-    onAdd({
-      ...form,
-      displayQty: formatDisplay(form.qty, form.unit),
-    });
-    onClose();
-  };
+function MealBadge({ meal }) {
+  const meta = MEAL_BADGE[meal] ?? { Icon: Sun, color: "#64748b" };
+  const Icon = meta.Icon;
+  return (
+    <span
+      style={{
+        width: 26,
+        height: 26,
+        borderRadius: 8,
+        background: meta.color,
+        color: "#fff",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      <Icon size={13} strokeWidth={2.4} />
+    </span>
+  );
+}
+
+function IconLegendBubble({ onClose }) {
   return (
     <div
       style={{
-        position: "fixed",
-        inset: 0,
-        background: "rgba(0,0,0,.5)",
-        zIndex: 100,
-        display: "flex",
-        alignItems: "flex-end",
-        justifyContent: "center",
+        marginBottom: 14,
+        padding: "14px 14px 12px",
+        borderRadius: 14,
+        background: "#fff",
+        border: "1px solid #e0eae3",
+        boxShadow: "0 8px 28px rgba(20,47,29,.1)",
       }}
-      onClick={onClose}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
         style={{
-          background: "#fff",
-          borderRadius: "24px 24px 0 0",
-          width: "100%",
-          maxWidth: 400,
-          padding: 24,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 12,
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ fontSize: 18, fontWeight: 800, color: "#1a3a24", margin: 0 }}>Añadir producto</h3>
-          <span onClick={onClose} style={{ fontSize: 22, cursor: "pointer", color: "#ccc" }}>
-            ×
-          </span>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 16 }}>
-          <input
-            autoFocus
-            value={form.name}
-            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-            placeholder="Nombre del producto"
-            style={{ ...inputStyle, fontSize: 14, padding: "10px 12px" }}
-          />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-            <input
-              type="number"
-              value={form.qty}
-              onChange={(e) => setForm((f) => ({ ...f, qty: parseFloat(e.target.value) || 0 }))}
-              placeholder="Cantidad"
-              style={{ ...inputStyle, fontSize: 14, padding: "10px 12px" }}
-            />
-            <select
-              value={form.unit}
-              onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-              style={{ ...inputStyle, fontSize: 14, padding: "10px 12px" }}
-            >
-              {["g", "ml", "ud"].map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-            <input
-              type="number"
-              step="0.01"
-              value={form.price}
-              onChange={(e) => setForm((f) => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
-              placeholder="€"
-              style={{ ...inputStyle, fontSize: 14, padding: "10px 12px" }}
-            />
-          </div>
-          <select
-            value={form.category}
-            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-            style={{ ...inputStyle, fontSize: 14, padding: "10px 12px" }}
+        <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>Iconos</span>
+        <button type="button" onClick={onClose} style={{ ...iconBtnStyle, width: 28, height: 28 }}>
+          <X size={14} />
+        </button>
+      </div>
+      <LegendGroup title="Lista" items={ICON_LEGEND_HEADER} />
+      <LegendGroup title="Producto" items={ICON_LEGEND_ROW} />
+    </div>
+  );
+}
+
+function LegendGroup({ title, items }) {
+  return (
+    <div style={{ marginTop: title === "Producto" ? 10 : 0 }}>
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          color: "#8d978f",
+          textTransform: "uppercase",
+          letterSpacing: ".04em",
+          marginBottom: 4,
+        }}
+      >
+        {title}
+      </div>
+      {items.map(({ icon: Icon, label, hint }) => (
+        <div
+          key={label}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            padding: "8px 0",
+            borderTop: "1px solid #f0f4f1",
+          }}
+        >
+          <span
+            style={{
+              width: 34,
+              height: 34,
+              borderRadius: 10,
+              border: "1px solid #e0eae3",
+              background: "#f7f9f7",
+              color: "#2d5a3d",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
           >
-            {INGREDIENT_CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            <Icon size={16} strokeWidth={2.2} />
+          </span>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>{label}</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "#8d978f", marginTop: 1 }}>
+              {hint}
+            </div>
+          </div>
         </div>
+      ))}
+    </div>
+  );
+}
+
+function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly }) {
+  const style = {
+    width: 32,
+    height: 32,
+    borderRadius: 9,
+    border: `1px solid ${active ? "#2d5a3d" : "#e0eae3"}`,
+    background: active ? "#eef4ef" : "#fff",
+    color: muted ? "#b0bab4" : "#3d5245",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    cursor: readOnly ? "default" : "pointer",
+    fontFamily: "inherit",
+    flexShrink: 0,
+    padding: 0,
+  };
+
+  if (readOnly) {
+    return (
+      <span aria-label={label} title={label} style={style}>
+        <Icon size={15} strokeWidth={2.2} />
+      </span>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      style={style}
+    >
+      <Icon size={15} strokeWidth={2.2} />
+    </button>
+  );
+}
+
+function ReceiptSheet({ matches, onClose, onConfirm }) {
+  return (
+    <div style={overlayStyle} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={sheetStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0 }}>
+            Ticket
+          </h3>
+          <button type="button" onClick={onClose} style={iconBtnStyle} aria-label="Cerrar">
+            <X size={20} />
+          </button>
+        </div>
+        <p style={{ fontSize: 13, fontWeight: 600, color: "#7a8a7f", margin: "12px 0 16px" }}>
+          {matches.length} coincidencias
+        </p>
+        <div style={{ maxHeight: "40vh", overflow: "auto", marginBottom: 16 }}>
+          {matches.map((m) => (
+            <div
+              key={m.id}
+              style={{
+                padding: "10px 0",
+                borderBottom: "1px solid #e8f0ea",
+                fontSize: 14,
+                fontWeight: 700,
+                color: "#142f1d",
+              }}
+            >
+              {m.name}
+            </div>
+          ))}
+        </div>
+        <button type="button" onClick={onConfirm} style={{ ...primaryBtnStyle, width: "100%" }}>
+          Marcar comprados
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function EmptyList({ onAdd, scope, hasPending, hasDone }) {
+  let message = "Sin productos";
+  if (scope === "pending" && hasDone) message = "Nada pendiente";
+  else if (scope === "done" && hasPending) message = "Nada comprado aún";
+
+  return (
+    <div style={{ padding: "48px 0", textAlign: "center" }}>
+      <p style={{ fontSize: 14, fontWeight: 600, color: "#7a8a7f", margin: "0 0 16px" }}>
+        {message}
+      </p>
+      <button type="button" onClick={onAdd} style={primaryBtnStyle}>
+        Añadir
+      </button>
+    </div>
+  );
+}
+
+function AddItemModal({ onClose, onAdd }) {
+  const [name, setName] = useState("");
+  const disabled = !name.trim();
+  const submit = () => {
+    if (disabled) return;
+    onAdd({
+      name: name.trim(),
+      qty: 1,
+      unit: "ud",
+      category: INGREDIENT_CATEGORIES[0],
+      displayQty: "1 ud",
+    });
+    onClose();
+  };
+
+  return (
+    <div style={overlayStyle} onClick={onClose}>
+      <div onClick={(e) => e.stopPropagation()} style={sheetStyle}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <h3 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0 }}>
+            Añadir
+          </h3>
+          <button type="button" onClick={onClose} style={iconBtnStyle} aria-label="Cerrar">
+            <X size={20} />
+          </button>
+        </div>
+        <input
+          autoFocus
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Nombre"
+          style={{ ...inputStyle, marginTop: 16, padding: "12px" }}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+        />
         <button
+          type="button"
           disabled={disabled}
           onClick={submit}
           style={{
-            marginTop: 18,
+            ...primaryBtnStyle,
             width: "100%",
-            padding: "14px",
-            borderRadius: 12,
-            border: "none",
-            background: disabled ? "#ccc" : "#2d5a3d",
-            color: "#fff",
-            fontSize: 14,
-            fontWeight: 700,
-            cursor: disabled ? "default" : "pointer",
+            marginTop: 14,
+            opacity: disabled ? 0.5 : 1,
           }}
         >
           Añadir
@@ -583,3 +837,134 @@ function AddItemModal({ onClose, onAdd }) {
     </div>
   );
 }
+
+const titleStyle = {
+  fontSize: 26,
+  fontWeight: 900,
+  color: "#142f1d",
+  margin: 0,
+  letterSpacing: "-.7px",
+};
+
+const iconBtnStyle = {
+  width: 40,
+  height: 40,
+  borderRadius: 12,
+  border: "1px solid #e0eae3",
+  background: "#fff",
+  color: "#2d5a3d",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+  fontFamily: "inherit",
+  flexShrink: 0,
+};
+
+const primaryBtnStyle = {
+  padding: "12px 20px",
+  borderRadius: 12,
+  border: "none",
+  background: "#2d5a3d",
+  color: "#fff",
+  fontSize: 14,
+  fontWeight: 800,
+  cursor: "pointer",
+  fontFamily: "inherit",
+};
+
+const rowGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "1fr 4.5rem auto",
+  alignItems: "center",
+  gap: 8,
+  minHeight: 36,
+};
+
+const qtyColStyle = {
+  fontSize: 13,
+  fontWeight: 800,
+  color: "#64748b",
+  textAlign: "right",
+  fontVariantNumeric: "tabular-nums",
+  whiteSpace: "nowrap",
+};
+
+const actionsColStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: 4,
+};
+
+const sectionLabelCardStyle = {
+  background: "#fff",
+  border: "1px solid #e8f0ea",
+  padding: "4px 12px",
+  boxShadow: "0 1px 3px rgba(20, 47, 29, 0.04)",
+};
+
+const aisleItemsStyle = {
+  background: "#eef4ef",
+  border: "1px solid #e8f0ea",
+  borderTop: "none",
+  borderRadius: "0 0 14px 14px",
+  padding: "2px 10px 6px",
+};
+
+const sectionHeaderStyle = {
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
+  gap: 12,
+  padding: "12px 2px",
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  fontFamily: "inherit",
+};
+
+const progressTrackStyle = {
+  height: 6,
+  borderRadius: 999,
+  background: "#e0eae3",
+  overflow: "hidden",
+};
+
+const progressFillStyle = {
+  height: "100%",
+  background: "#2d5a3d",
+  borderRadius: 999,
+  transition: "width .25s ease",
+};
+
+const inputStyle = {
+  padding: "8px 10px",
+  borderRadius: 10,
+  border: "1px solid #e0eae3",
+  fontSize: 14,
+  fontWeight: 600,
+  outline: "none",
+  width: "100%",
+  boxSizing: "border-box",
+  fontFamily: "inherit",
+  color: "#142f1d",
+};
+
+const overlayStyle = {
+  position: "fixed",
+  inset: 0,
+  background: "rgba(0,0,0,.45)",
+  zIndex: 150,
+  display: "flex",
+  alignItems: "flex-end",
+  justifyContent: "center",
+};
+
+const sheetStyle = {
+  background: "#fff",
+  borderRadius: "20px 20px 0 0",
+  width: "100%",
+  maxWidth: 420,
+  padding: "20px 20px calc(20px + env(safe-area-inset-bottom, 0px))",
+};

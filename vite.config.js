@@ -18,7 +18,7 @@ export default defineConfig(({ mode }) => {
               proxyReq.setHeader('anthropic-dangerous-direct-browser-access', 'true');
               proxyReq.setHeader('anthropic-version', '2023-06-01');
               proxyReq.setHeader('anthropic-beta', 'pdfs-2024-09-25');
-              const apiKey = env.VITE_ANTHROPIC_API_KEY || '';
+              const apiKey = env.VITE_ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY || '';
               if (apiKey) proxyReq.setHeader('x-api-key', apiKey);
             });
             proxy.on('error', (err) => console.error('Proxy error:', err.message));

@@ -32,7 +32,7 @@ import {
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { resolveRecipeAllergens } from "../lib/allergens.js";
-import { BottomNav, Chip, AvatarStack } from "../components/ui.jsx";
+import { BottomNav, Chip, AvatarStack, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "../lib/groups.js";
@@ -791,7 +791,7 @@ export const MenuScreen = memo(function MenuScreen({
   };
 
   return (
-    <div style={{ paddingBottom: 0, background: "#f7f9f7" }}>
+    <div style={{ background: "#f7f9f7", minHeight: "100vh" }}>
       {/* ── Top header: title + actions ── */}
       <div style={{ padding: "20px 20px 14px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, marginBottom: 14 }}>
@@ -949,7 +949,12 @@ export const MenuScreen = memo(function MenuScreen({
         )}
 
         {/* ── Content ── */}
-        <div style={{ padding: "14px 16px 24px" }}>
+        <div
+          style={{
+            padding: "14px 16px 0",
+            paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
+          }}
+        >
           {(viewMode === "dia" ? [selectedDay] : DAYS).map((day) => {
             const meals = getMeals(data);
             const dayHasContent = meals.some((meal) =>
@@ -1078,9 +1083,9 @@ function GeneratingSkeleton({ onStop }) {
 
   const skeletonRows = [0, 1, 2];
   return (
-    <div style={{ padding: "0 16px" }}>
+    <div style={{ padding: "24px 16px 0" }}>
       {/* Spinner + rotating phrase */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
         <Loader2
           size={18}
           color="#2d5a3d"
