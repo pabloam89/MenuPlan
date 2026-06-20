@@ -148,27 +148,21 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
     () => mergeShoppingItems(shopping.items),
     [shopping.items]
   );
-
-  const visibleItems = useMemo(() => {
-    const list = mergedItems.map(enrichItem);
-    if (listScope === "pending") return list.filter(isActiveItem);
-    if (listScope === "done") return list.filter(isDoneItem);
-    return list;
-  }, [mergedItems, listScope]);
-
-  const { sections, doneCount, totalCount, progress } = useMemo(() => {
+  const enrichedItems = useMemo(() => mergedItems.map(enrichItem), [mergedItems]);
+  const { doneCount, totalCount, progress } = useMemo(() => {
     const totalCount = mergedItems.length;
     const doneCount = mergedItems.filter(isDoneItem).length;
-    const progress = totalCount > 0 ? doneCount / totalCount : 0;
-
-    const sections = itemsByAisle(visibleItems).map((g) => ({
-      key: g.aisle,
-      title: g.aisle,
-      items: g.items.map(enrichItem),
-    }));
-
-    return { sections, doneCount, totalCount, progress };
-  }, [visibleItems, mergedItems]);
+    return { doneCount, totalCount, progress: totalCount > 0 ? doneCount / totalCount : 0 };
+  }, [mergedItems]);
+  const visibleItems = useMemo(() => {
+    if (listScope === "pending") return enrichedItems.filter(isActiveItem);
+    if (listScope === "done") return enrichedItems.filter(isDoneItem);
+    return enrichedItems;
+  }, [enrichedItems, listScope]);
+  const sections = useMemo(
+    () => itemsByAisle(visibleItems).map((g) => ({ key: g.aisle, title: g.aisle, items: g.items })),
+    [visibleItems]
+  );
 
   const isEmpty = sections.every((s) => s.items.length === 0);
   const hasPendingItems = mergedItems.some(isActiveItem);

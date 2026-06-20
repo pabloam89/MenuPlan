@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BottomNav, APP_SHELL_MAX_WIDTH } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -10,8 +10,8 @@ import {
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
-import { ShoppingScreen } from "./screens/Shopping.jsx";
-import { AnalyticsScreen } from "./screens/Analytics.jsx";
+const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
+const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
 import { generateMenuWithAI } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
@@ -596,12 +596,14 @@ export default function App() {
             key="shopping"
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
-            <ShoppingScreen
-              shopping={shopping}
-              setShopping={setShopping}
-              onNav={handleNav}
-              onToast={showToast}
-            />
+            <Suspense fallback={null}>
+              <ShoppingScreen
+                shopping={shopping}
+                setShopping={setShopping}
+                onNav={handleNav}
+                onToast={showToast}
+              />
+            </Suspense>
           </div>
         )}
 
@@ -610,12 +612,14 @@ export default function App() {
             key="analytics"
             className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
           >
-            <AnalyticsScreen
-              data={data}
-              menuPlan={menuPlan}
-              shopping={shopping}
-              onNav={handleNav}
-            />
+            <Suspense fallback={null}>
+              <AnalyticsScreen
+                data={data}
+                menuPlan={menuPlan}
+                shopping={shopping}
+                onNav={handleNav}
+              />
+            </Suspense>
           </div>
         )}
       </div>

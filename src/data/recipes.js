@@ -755,7 +755,11 @@ export function registerRecipes(extra) {
   for (const recipe of extra) {
     if (!recipe?.id) continue;
     const existed = Boolean(RECIPES_BY_ID[recipe.id]);
-    RECIPES_BY_ID[recipe.id] = recipe;
-    if (!existed) RECIPES.push(recipe);
+    RECIPES_BY_ID[recipe.id] = { ...recipe };
+    if (!existed) RECIPES.push(RECIPES_BY_ID[recipe.id]);
+    else {
+      const idx = RECIPES.findIndex((r) => r.id === recipe.id);
+      if (idx !== -1) RECIPES[idx] = RECIPES_BY_ID[recipe.id];
+    }
   }
 }
