@@ -3079,6 +3079,40 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const fileInputRef = useRef(null);
 
+  // Auto-set schedule to "cole" for school days when a menu is uploaded
+  useEffect(() => {
+    setData((d) => {
+      const sm = d.schoolMenus ?? {};
+      const schedule = { ...d.schedule };
+      let changed = false;
+      const kids = (d.members ?? []).filter(
+        (m) => stageForAge(memberAge(m)).id !== "adulto"
+      );
+      for (const kid of kids) {
+        for (const day of SCHOOL_DAYS) {
+          const key = `${kid.id}|${day}|Comida`;
+          const hasShared = SCHOOL_COURSES.some((c) => {
+            const v = sm.shared?.[`${day}-${c}`];
+            return typeof v === "string" && v.trim();
+          });
+          const hasOwn = SCHOOL_COURSES.some((c) => {
+            const v = sm.byMember?.[kid.id]?.[`${day}-${c}`];
+            return typeof v === "string" && v.trim();
+          });
+          const hasDish = hasShared || hasOwn;
+          if (hasDish && schedule[key] !== "cole") {
+            schedule[key] = "cole";
+            changed = true;
+          } else if (!hasDish && schedule[key] === "cole") {
+            schedule[key] = "casa";
+            changed = true;
+          }
+        }
+      }
+      return changed ? { ...d, schedule } : d;
+    });
+  }, [data.schoolMenus]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const targetMap =
     scope === "shared"
       ? data.schoolMenus?.shared ?? {}
