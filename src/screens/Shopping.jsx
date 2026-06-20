@@ -732,8 +732,8 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly }) {
 
 function ReceiptSheet({ matches, onClose, onConfirm }) {
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={sheetStyle}>
+    <div className="mp-overlay-in" style={overlayStyle} onClick={onClose}>
+      <div className="mp-sheet-up" onClick={(e) => e.stopPropagation()} style={sheetStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h3 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0 }}>
             Ticket
@@ -802,8 +802,8 @@ function AddItemModal({ onClose, onAdd }) {
   };
 
   return (
-    <div style={overlayStyle} onClick={onClose}>
-      <div onClick={(e) => e.stopPropagation()} style={sheetStyle}>
+    <div className="mp-overlay-in" style={overlayStyle} onClick={onClose}>
+      <div className="mp-sheet-up" onClick={(e) => e.stopPropagation()} style={sheetStyle}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <h3 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0 }}>
             Añadir

@@ -1,6 +1,9 @@
 import { createPortal } from "react-dom";
+import { BarChart3, Calendar, ClipboardList, Settings, ShoppingCart } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
-import { BarChart3, ClipboardList, Settings, ShoppingCart } from "lucide-react";
+import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
+
+const GROUP_ABBREV = { Adultos: "A", Niños: "N", Bebé: "B", Familia: "F" };
 
 export function Chip({ label, selected, onClick, removable }) {
   return (
@@ -65,7 +68,7 @@ export function ProgressDots({ current, total, onJump, compact = false }) {
 export const APP_SHELL_MAX_WIDTH = 420;
 export const BOTTOM_NAV_HEIGHT = 80;
 
-export function SegmentedControl({ options, value, onChange, style }) {
+export function SegmentedControl({ options, value, onChange, style, activeDark }) {
   return (
     <div
       style={{
@@ -88,13 +91,13 @@ export function SegmentedControl({ options, value, onChange, style }) {
               padding: "7px 0",
               borderRadius: 9,
               border: "none",
-              background: sel ? "#fff" : "transparent",
-              color: sel ? "#142f1d" : "#7a8a7f",
+              background: sel ? (activeDark ? "#2d5a3d" : "#fff") : "transparent",
+              color: sel ? (activeDark ? "#fff" : "#142f1d") : "#7a8a7f",
               fontSize: 13,
               fontWeight: 800,
               cursor: "pointer",
               fontFamily: "inherit",
-              boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+              boxShadow: sel && !activeDark ? "0 1px 4px rgba(0,0,0,.1)" : "none",
               transition: "all .15s",
             }}
           >
@@ -250,8 +253,9 @@ export function BottomNav({ active, onNav }) {
   return createPortal(nav, document.body);
 }
 
-export function SliderInput({ label, value, min, max, step, suffix, onChange, icon: Icon }) {
+export function SliderInput({ label, value, min, max, step, suffix, valueLabel, onChange, icon: Icon }) {
   const pct = ((value - min) / (max - min)) * 100;
+  const display = valueLabel ?? `${value}${suffix ?? ""}`;
   return (
     <div style={{ background: "#fff", border: "1px solid #eef2ef", borderRadius: 16, padding: "14px 16px 10px", marginBottom: 12 }}>
       <style>{`
@@ -265,7 +269,7 @@ export function SliderInput({ label, value, min, max, step, suffix, onChange, ic
           {Icon && <Icon size={15} color="#2d5a3d" />}
           {label}
         </span>
-        <span style={{ fontSize: 15, fontWeight: 800, color: "#2d5a3d" }}>{value}{suffix}</span>
+        <span style={{ fontSize: 15, fontWeight: 800, color: "#2d5a3d" }}>{display}</span>
       </div>
       <div style={{ position: "relative", height: 28, display: "flex", alignItems: "center" }}>
         <div style={{ position: "absolute", left: 0, right: 0, height: 4, borderRadius: 2, background: "#e5ede7", pointerEvents: "none" }} />
@@ -348,5 +352,168 @@ export function AvatarStack({ names, size = 24, max = 4, color = "#2d5a3d" }) {
         </span>
       )}
     </span>
+  );
+}
+
+export function WeekRangeBadge({ label, hideLabel = false }) {
+  const weekLabel = label ?? formatWeekRangeLabel(getWeekDates());
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        padding: hideLabel ? "7px 10px" : "7px 11px",
+        borderRadius: 12,
+        background: "#f4f8f5",
+        border: "1px solid #e0eae3",
+        flexShrink: 0,
+      }}
+    >
+      <span
+        style={{
+          width: 28,
+          height: 28,
+          borderRadius: 8,
+          background: "#2d5a3d",
+          color: "#fff",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Calendar size={14} />
+      </span>
+      {hideLabel ? (
+        <span
+          style={{
+            fontSize: 13,
+            fontWeight: 900,
+            color: "#142f1d",
+            letterSpacing: "-.2px",
+            lineHeight: 1,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {weekLabel}
+        </span>
+      ) : (
+        <div>
+          <div
+            style={{
+              fontSize: 9,
+              fontWeight: 800,
+              color: "#8d978f",
+              textTransform: "uppercase",
+              letterSpacing: 0.9,
+              lineHeight: 1,
+              marginBottom: 3,
+            }}
+          >
+            Semana
+          </div>
+          <div
+            style={{
+              fontSize: 13,
+              fontWeight: 900,
+              color: "#142f1d",
+              letterSpacing: "-.2px",
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {weekLabel}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ScopeCircle({ label, abbrev, color, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 5,
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        minWidth: 48,
+      }}
+    >
+      <span
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: 999,
+          background: active ? color : "#fff",
+          border: `2.5px solid ${color}`,
+          color: active ? "#fff" : color,
+          fontSize: 15,
+          fontWeight: 900,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: active ? `0 4px 14px ${color}55` : "none",
+          transition: "all .18s ease",
+        }}
+      >
+        {abbrev}
+      </span>
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 800,
+          color: active ? color : "#8d978f",
+          letterSpacing: "-.1px",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
+export function GroupScopePicker({ groups, scope, onChange, style }) {
+  const todosActive = scope === "all";
+
+  return (
+    <div style={{ marginBottom: 14, ...style }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 14 }}>
+        <ScopeCircle
+          label="Todos"
+          abbrev="T"
+          color="#2d5a3d"
+          active={todosActive}
+          onClick={() => onChange("all")}
+        />
+        {groups.length > 0 && (
+          <>
+            <div style={{ width: 1, height: 40, background: "#dde8e1", flexShrink: 0 }} />
+            <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+              {groups.map((g) => (
+                <ScopeCircle
+                  key={g.id}
+                  label={g.label}
+                  abbrev={GROUP_ABBREV[g.label] ?? g.label.charAt(0)}
+                  color={g.color}
+                  active={scope === g.id}
+                  onClick={() => onChange(g.id)}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

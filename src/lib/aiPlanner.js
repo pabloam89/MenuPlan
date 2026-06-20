@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { membersOfGroup } from "./groups.js";
+import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
@@ -146,11 +146,13 @@ Si usas un plato_unico en la comida, incluye solo el slot _1 con ese plato y omi
 function buildGroupContext(data, group) {
   const meals = getMeals(data);
   const groupMembers = membersOfGroup(group, data.members);
-  const hasKids = groupMembers.some((m) => {
-    const s = stageForAge(m.age).id;
-    return s === "baby" || s === "infantil" || s === "primaria";
-  });
-  const isBabyGroup = groupMembers.length > 0 && groupMembers.every((m) => stageForAge(m.age).id === "baby");
+  const isBabyGroup = isBabyMenuGroup(group, data.members);
+  const hasKids =
+    !isBabyGroup &&
+    groupMembers.some((m) => {
+      const s = stageForAge(resolveMemberAge(m)).id;
+      return s === "infantil" || s === "primaria";
+    });
   const allergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));
   const dislikes = Array.from(
     new Set([...(data.dislikes ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])]),

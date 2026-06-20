@@ -3,9 +3,9 @@ import {
   AlertTriangle,
   BookOpen,
   BookOpenCheck,
-  Calendar,
   ChefHat,
   Clock3,
+  CircleHelp,
   Coffee,
   Download,
   Drumstick,
@@ -32,13 +32,15 @@ import {
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { resolveRecipeAllergens } from "../lib/allergens.js";
-import { BottomNav, Chip, AvatarStack, bottomNavSpacer } from "../components/ui.jsx";
+import { membersOfGroup } from "../lib/groups.js";
+import { eatersForSlot } from "../lib/slotEaters.js";
+import { BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
-import { membersOfGroup } from "../lib/groups.js";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
-import { DAYS, getMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
+import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey } from "../lib/planner.js";
+import { initialsOf } from "../lib/stages.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -115,7 +117,54 @@ function DaySectionHeader({ day, dayNumber }) {
   );
 }
 
-function MealSectionLabel({ meal }) {
+const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+const MENU_VIEW_OPTIONS = [
+  { id: "dia", label: "Por día" },
+  { id: "semana", label: "Semana" },
+];
+const GROUP_ABBREV = { Adultos: "A", Niños: "N", "Bebé": "B", Familia: "F" };
+
+const menuHelpIconBtnStyle = {
+  width: 32,
+  height: 32,
+  borderRadius: 999,
+  border: "1px solid #e0eae3",
+  background: "#fff",
+  color: "#2d5a3d",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  cursor: "pointer",
+  fontFamily: "inherit",
+  flexShrink: 0,
+};
+
+function GroupMenuBadge({ group, size = 22 }) {
+  const abbrev = GROUP_ABBREV[group.label] ?? group.label.charAt(0);
+  return (
+    <span
+      title={group.label}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 999,
+        background: group.color,
+        color: "#fff",
+        fontSize: size <= 20 ? 9 : 10,
+        fontWeight: 900,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        boxShadow: `0 1px 4px ${group.color}44`,
+      }}
+    >
+      {abbrev}
+    </span>
+  );
+}
+
+function MealSectionLabel({ meal, activeGroups = null }) {
   const meta = MEAL_META[meal] ?? { label: meal, Icon: Utensils };
   const accent = MEAL_STYLE[meal] ?? { color: "#64748b", bg: "#f1f5f9" };
   const Icon = meta.Icon;
@@ -137,12 +186,308 @@ function MealSectionLabel({ meal }) {
         <Icon size={14} strokeWidth={2.4} />
         {meta.label}
       </span>
+      {activeGroups && activeGroups.length > 0 && (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+          {activeGroups.map((g) => (
+            <GroupMenuBadge key={g.id} group={g} size={20} />
+          ))}
+        </span>
+      )}
       <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
     </div>
   );
 }
 
-const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
+function MenuHelpBubble({ onClose, multiGroup }) {
+  const rows = [
+    {
+      title: "Menú",
+      text: multiGroup
+        ? "T = todos los menús. A, N y B filtran adultos, niños y bebé. Los círculos con borde son menús."
+        : "Un solo menú para la familia. Los bebés pueden tener menú aparte si lo configuraste.",
+    },
+    {
+      title: "Personas",
+      text: "Toca una inicial para ver solo sus comidas. Los círculos rellenos de color son personas.",
+    },
+    {
+      title: "En cada plato",
+      text: multiGroup
+        ? "La letra A, N o B indica a qué menú pertenece. Las iniciales junto a los alérgenos muestran quién come si no come todo el grupo."
+        : "Las iniciales junto a los alérgenos muestran quién come ese plato si no come todo el grupo.",
+    },
+    {
+      title: "Vista",
+      text: "Por día recorres un día; Semana muestra toda la semana con cabecera por día.",
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        marginBottom: 12,
+        padding: "14px 14px 12px",
+        borderRadius: 14,
+        background: "#fff",
+        border: "1px solid #e0eae3",
+        boxShadow: "0 8px 28px rgba(20,47,29,.1)",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          marginBottom: 10,
+        }}
+      >
+        <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>Cómo leer tu menú</span>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{ ...menuHelpIconBtnStyle, width: 28, height: 28 }}
+          aria-label="Cerrar ayuda"
+        >
+          <X size={14} />
+        </button>
+      </div>
+      {rows.map((row, idx) => (
+        <div
+          key={row.title}
+          style={{
+            padding: idx > 0 ? "10px 0 0" : 0,
+            borderTop: idx > 0 ? "1px solid #f0f4f1" : "none",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 800,
+              color: "#2d5a3d",
+              textTransform: "uppercase",
+              letterSpacing: ".04em",
+              marginBottom: 4,
+            }}
+          >
+            {row.title}
+          </div>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: "#5a7262", lineHeight: 1.45 }}>
+            {row.text}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function MenuViewDivider({ options, value }) {
+  const activeIdx = options.findIndex((o) => o.id === value);
+  return (
+    <div style={{ display: "flex", gap: 5, marginBottom: 12, paddingTop: 2 }}>
+      {options.map((opt, i) => {
+        const isActive = i === activeIdx;
+        const isPast = i < activeIdx;
+        return (
+          <div
+            key={opt.id}
+            style={{
+              flex: 1,
+              height: isActive ? 4 : 3,
+              borderRadius: 999,
+              background: isPast || isActive ? "#2d5a3d" : "#d6e6db",
+              opacity: isActive ? 1 : isPast ? 0.55 : 1,
+              boxShadow: isActive ? "0 0 8px rgba(45,90,61,.55)" : "none",
+              transition: "all .28s cubic-bezier(.4,0,.2,1)",
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function VerticalSectionLabel({ text, color }) {
+  return (
+    <div
+      style={{
+        width: 28,
+        flexShrink: 0,
+        alignSelf: "stretch",
+        background: color,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "12px 5px",
+      }}
+      aria-hidden
+    >
+      <span
+        style={{
+          writingMode: "vertical-rl",
+          transform: "rotate(180deg)",
+          fontSize: 10,
+          fontWeight: 900,
+          color: "#fff",
+          letterSpacing: 1.4,
+          textTransform: "uppercase",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {text}
+      </span>
+    </div>
+  );
+}
+
+function FilterSectionRow({ label, color, children }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "stretch",
+        width: "100%",
+        background: "#fff",
+        borderBottom: "1px solid #e0eae3",
+      }}
+    >
+      <VerticalSectionLabel text={label} color={color} />
+      <div
+        style={{
+          flex: 1,
+          minWidth: 0,
+          padding: "10px 14px 10px 12px",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function memberEatsSlot(member, schedule, day, meal) {
+  const status = schedule[slotKey(member.id, day, meal)] ?? "casa";
+  return status === "casa" || status === "tupper";
+}
+
+function groupForMember(memberId, groups) {
+  return groups.find((g) => g.memberIds.includes(memberId));
+}
+
+/** Filled person badge — visually distinct from menu scope circles (outline when idle). */
+function PersonInitialBadge({
+  member,
+  color,
+  size = 36,
+  active = true,
+  onClick,
+  title,
+}) {
+  const abbrev = initialsOf(member.name);
+  const shared = {
+    width: size,
+    height: size,
+    borderRadius: 999,
+    background: color,
+    color: "#fff",
+    fontSize: size <= 22 ? 8 : 11,
+    fontWeight: 900,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    opacity: active ? 1 : 0.55,
+    boxShadow: active ? `0 3px 10px ${color}55` : `0 1px 4px ${color}33`,
+    transition: "opacity .15s ease, box-shadow .15s ease",
+    border: "none",
+    padding: 0,
+    fontFamily: "inherit",
+    cursor: onClick ? "pointer" : "default",
+  };
+
+  if (onClick) {
+    return (
+      <button type="button" onClick={onClick} title={title ?? member.name} style={shared}>
+        {abbrev}
+      </button>
+    );
+  }
+
+  return (
+    <span title={title ?? member.name} style={shared}>
+      {abbrev}
+    </span>
+  );
+}
+
+function PersonScopeCircle({ member, color, active, onClick }) {
+  return (
+    <PersonInitialBadge
+      member={member}
+      color={color}
+      size={36}
+      active={active}
+      onClick={onClick}
+    />
+  );
+}
+
+function MenuFilterPanel({
+  groups,
+  scope,
+  onScopeChange,
+  members,
+  memberScope,
+  onMemberScopeChange,
+  multiGroup,
+}) {
+  return (
+    <div style={{ width: "100%" }}>
+      <FilterSectionRow label="Menú" color="#2d5a3d">
+        {multiGroup ? (
+          <GroupScopePicker
+            groups={groups}
+            scope={scope}
+            onChange={onScopeChange}
+            style={{ marginBottom: 0, width: "100%" }}
+          />
+        ) : (
+          <span style={{ fontSize: 13, fontWeight: 800, color: "#2d5a3d" }}>
+            {groups[0]?.label ?? "Familia"}
+          </span>
+        )}
+      </FilterSectionRow>
+
+      <FilterSectionRow label="Personas" color="#1a3a24">
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            flexWrap: "wrap",
+            width: "100%",
+          }}
+        >
+          {members.map((member) => {
+            const group = groupForMember(member.id, groups);
+            const color = group?.color ?? "#2d5a3d";
+            const active = memberScope === member.id;
+            return (
+              <PersonScopeCircle
+                key={member.id}
+                member={member}
+                color={color}
+                active={active}
+                onClick={() => onMemberScopeChange(active ? null : member.id)}
+              />
+            );
+          })}
+        </div>
+      </FilterSectionRow>
+    </div>
+  );
+}
 
 function formatQty(qty, unit) {
   if (unit === "ud") return `${Math.ceil(qty)} ${Math.ceil(qty) === 1 ? "ud" : "uds"}`;
@@ -597,7 +942,16 @@ function dishesFromSlot(slot, isLunch) {
   return items;
 }
 
-function DishCard({ slot, onTap, courseLabel = null, showDivider = true }) {
+function DishCard({
+  slot,
+  onTap,
+  courseLabel = null,
+  showDivider = true,
+  eaterMembers = null,
+  groups = [],
+  group = null,
+  showGroupBadge = false,
+}) {
   if (!slot) {
     return (
       <div style={{ padding: "10px 0", fontSize: 12, color: "#bbb", fontStyle: "italic" }}>
@@ -632,6 +986,7 @@ function DishCard({ slot, onTap, courseLabel = null, showDivider = true }) {
       <DishIcon recipe={recipe} size={44} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
+          {showGroupBadge && group && <GroupMenuBadge group={group} />}
           <span
             style={{
               fontSize: 15,
@@ -718,6 +1073,32 @@ function DishCard({ slot, onTap, courseLabel = null, showDivider = true }) {
               </span>
             </>
           )}
+          {eaterMembers && eaterMembers.length > 0 && (
+            <>
+              <span style={{ color: "#dde8e0", fontSize: 12 }}>·</span>
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  flexWrap: "wrap",
+                }}
+              >
+                {eaterMembers.map((member) => {
+                  const color = groupForMember(member.id, groups)?.color ?? "#2d5a3d";
+                  return (
+                    <PersonInitialBadge
+                      key={member.id}
+                      member={member}
+                      color={color}
+                      size={22}
+                      active
+                    />
+                  );
+                })}
+              </span>
+            </>
+          )}
         </div>
       </div>
     </button>
@@ -738,11 +1119,12 @@ export const MenuScreen = memo(function MenuScreen({
   onReset,
   onToast,
 }) {
-  const [activeGroupIds, setActiveGroupIds] = useState(() =>
-    data.groups.slice(0, 1).map((g) => g.id)
-  );
+  const [scope, setScope] = useState("all");
+  const [memberScope, setMemberScope] = useState(null);
+  const [showMenuHelp, setShowMenuHelp] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [viewMode, setViewMode] = useState("dia"); // "dia" | "semana"
+  const [viewAnimDir, setViewAnimDir] = useState(0);
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
     const idx = jsDay === 0 ? 6 : jsDay - 1;
@@ -752,18 +1134,12 @@ export const MenuScreen = memo(function MenuScreen({
   const weekDates = useMemo(() => getWeekDates(), []);
   const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates), [weekDates]);
   const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
+  const multiGroup = data.groups.length > 1;
 
-  const toggleGroup = (id) => {
-    setActiveGroupIds((cur) => {
-      if (cur.includes(id)) {
-        if (cur.length === 1) return cur;
-        return cur.filter((x) => x !== id);
-      }
-      return [...cur, id];
-    });
-  };
-
-  const visibleGroups = data.groups.filter((g) => activeGroupIds.includes(g.id));
+  const visibleGroups = useMemo(() => {
+    if (!multiGroup || scope === "all") return data.groups;
+    return data.groups.filter((g) => g.id === scope);
+  }, [data.groups, multiGroup, scope]);
 
   const handleShare = async () => {
     try {
@@ -790,61 +1166,86 @@ export const MenuScreen = memo(function MenuScreen({
     }
   };
 
+  const handleViewModeChange = (mode) => {
+    if (mode === viewMode) return;
+    setViewAnimDir(mode === "semana" ? 1 : -1);
+    setViewMode(mode);
+  };
+
   return (
     <div style={{ background: "#f7f9f7", minHeight: "100vh" }}>
+      <style>{`
+        @keyframes menuViewFromRight {
+          from { opacity: 0; transform: translateX(14px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes menuViewFromLeft {
+          from { opacity: 0; transform: translateX(-14px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+      `}</style>
       {/* ── Top header: title + actions ── */}
-      <div style={{ padding: "20px 20px 14px" }}>
+      <div style={{ padding: "20px 20px 0" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, marginBottom: 14 }}>
-          <h2 style={{ fontSize: 26, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.7px" }}>
-            Tu menú
-          </h2>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <h2 style={{ fontSize: 26, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.7px" }}>
+              Tu menú
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowMenuHelp((v) => !v)}
+              style={{
+                ...menuHelpIconBtnStyle,
+                background: showMenuHelp ? "#e8f0ea" : "#fff",
+              }}
+              aria-label="Ayuda del menú"
+              aria-expanded={showMenuHelp}
+            >
+              <CircleHelp size={17} strokeWidth={2.2} />
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {hasMenu && (
+              <>
+                <button type="button" onClick={handleShare} aria-label="Compartir" style={iconChipButtonStyle}>
+                  <Share2 size={16} />
+                </button>
+                <button type="button" onClick={handleDownload} aria-label="Descargar" style={iconChipButtonStyle}>
+                  <Download size={16} />
+                </button>
+              </>
+            )}
             <button type="button" onClick={onReset} style={ghostButtonStyle} disabled={isGenerating}>
               Reiniciar
             </button>
             {!isGenerating && (
-              <button type="button" onClick={onRegenerate} style={primaryMiniButtonStyle}>
-                Regenerar
+              <button
+                type="button"
+                onClick={onRegenerate}
+                aria-label="Regenerar menú"
+                title="Regenerar menú"
+                style={regenerateIconButtonStyle}
+              >
+                <RotateCw size={16} strokeWidth={2.2} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Groups + share row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <div style={{ display: "flex", gap: 6, flex: 1, minWidth: 0, flexWrap: "wrap" }}>
-            {data.groups.map((g) => {
-              const sel = activeGroupIds.includes(g.id);
-              const members = membersOfGroup(g, data.members);
-              return (
-                <button key={g.id} type="button" onClick={() => toggleGroup(g.id)}
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 8,
-                    padding: "7px 12px 7px 8px", borderRadius: 999,
-                    background: sel ? g.color : "#fff", color: sel ? "#fff" : "#526057",
-                    fontSize: 12, fontWeight: 800, cursor: "pointer", flexShrink: 0,
-                    border: `1px solid ${sel ? g.color : "#e6eee8"}`, fontFamily: "inherit",
-                  }}
-                >
-                  <AvatarStack names={members.map((m) => m.name)} size={22} max={3}
-                    color={sel ? "rgba(255,255,255,.25)" : "#c9d2cc"} />
-                  {g.label}
-                </button>
-              );
-            })}
-          </div>
-          {hasMenu && (
-            <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-              <button type="button" onClick={handleShare} aria-label="Compartir" style={iconChipButtonStyle}>
-                <Share2 size={16} />
-              </button>
-              <button type="button" onClick={handleDownload} aria-label="Descargar" style={iconChipButtonStyle}>
-                <Download size={16} />
-              </button>
-            </div>
-          )}
-        </div>
+        {showMenuHelp && (
+          <MenuHelpBubble onClose={() => setShowMenuHelp(false)} multiGroup={multiGroup} />
+        )}
       </div>
+
+      <MenuFilterPanel
+        groups={data.groups}
+        scope={scope}
+        onScopeChange={setScope}
+        members={data.members ?? []}
+        memberScope={memberScope}
+        onMemberScopeChange={setMemberScope}
+        multiGroup={multiGroup}
+      />
 
       {/* ── Divider ── */}
       <div style={{ height: 1, background: "#e0eae3" }} />
@@ -852,37 +1253,21 @@ export const MenuScreen = memo(function MenuScreen({
       {/* ── Week card: fecha + perfil + toggle ── */}
       <div style={{ background: "#fff", padding: "12px 16px 0" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
-          {/* Date card */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "7px 11px", borderRadius: 12, background: "#f4f8f5", border: "1px solid #e0eae3" }}>
-            <span style={{ width: 28, height: 28, borderRadius: 8, background: "#2d5a3d", color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Calendar size={14} />
-            </span>
-            <div>
-              <div style={{ fontSize: 9, fontWeight: 800, color: "#8d978f", textTransform: "uppercase", letterSpacing: 0.9, lineHeight: 1, marginBottom: 3 }}>Semana</div>
-              <div style={{ fontSize: 13, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px", lineHeight: 1 }}>{weekLabel}</div>
-            </div>
-          </div>
+          <WeekRangeBadge label={weekLabel} hideLabel />
           <ProfileButton onClick={() => setProfileOpen(true)} />
         </div>
 
         {/* Semana / Día toggle */}
         {hasMenu && (
-          <div style={{ display: "flex", background: "#f0f4f1", borderRadius: 12, padding: 3, marginBottom: 12 }}>
-            {["dia", "semana"].map((mode) => (
-              <button key={mode} type="button" onClick={() => setViewMode(mode)}
-                style={{
-                  flex: 1, padding: "7px 0", borderRadius: 9, border: "none",
-                  background: viewMode === mode ? "#fff" : "transparent",
-                  color: viewMode === mode ? "#142f1d" : "#7a8a7f",
-                  fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                  boxShadow: viewMode === mode ? "0 1px 4px rgba(0,0,0,.1)" : "none",
-                  transition: "all .15s",
-                }}
-              >
-                {mode === "dia" ? "Por día" : "Semana"}
-              </button>
-            ))}
-          </div>
+          <>
+            <SegmentedControl
+              value={viewMode}
+              onChange={handleViewModeChange}
+              options={MENU_VIEW_OPTIONS}
+              style={{ marginBottom: 0 }}
+            />
+            <MenuViewDivider options={MENU_VIEW_OPTIONS} value={viewMode} />
+          </>
         )}
       </div>
 
@@ -902,8 +1287,16 @@ export const MenuScreen = memo(function MenuScreen({
       {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
       <div>
         {/* ── Week strip (only in "dia" mode) ── */}
-        {viewMode === "dia" && (
-          <div style={{ background: "#fff", display: "flex", alignItems: "flex-end", padding: "4px 12px 16px", gap: 2 }}>
+        <div
+          style={{
+            overflow: "hidden",
+            maxHeight: viewMode === "dia" ? 100 : 0,
+            opacity: viewMode === "dia" ? 1 : 0,
+            transition: "max-height .3s cubic-bezier(.4,0,.2,1), opacity .24s ease",
+            background: "#fff",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "flex-end", padding: "4px 12px 16px", gap: 2 }}>
             {DAYS.map((day) => {
               const meals = getMeals(data);
               const hasDot = meals.some((meal) =>
@@ -946,16 +1339,25 @@ export const MenuScreen = memo(function MenuScreen({
               );
             })}
           </div>
-        )}
+        </div>
 
         {/* ── Content ── */}
         <div
+          key={viewMode}
           style={{
             padding: "14px 16px 0",
             paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
+            animation:
+              viewAnimDir > 0
+                ? "menuViewFromRight .28s cubic-bezier(.4,0,.2,1) both"
+                : viewAnimDir < 0
+                  ? "menuViewFromLeft .28s cubic-bezier(.4,0,.2,1) both"
+                  : "menuViewFromRight .28s cubic-bezier(.4,0,.2,1) both",
           }}
         >
           {(viewMode === "dia" ? [selectedDay] : DAYS).map((day) => {
+            const members = data.members ?? [];
+            const schedule = data.schedule ?? {};
             const meals = getMeals(data);
             const dayHasContent = meals.some((meal) =>
               visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
@@ -963,7 +1365,6 @@ export const MenuScreen = memo(function MenuScreen({
             if (!dayHasContent) return null;
             return (
               <div key={day}>
-                {/* Day header — only in semana mode */}
                 {viewMode === "semana" && (
                   <DaySectionHeader
                     day={day}
@@ -977,6 +1378,13 @@ export const MenuScreen = memo(function MenuScreen({
                     const result = [];
                     const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
                     if (slot) {
+                      if (memberScope) {
+                        const groupMembers = membersOfGroup(g, members);
+                        const eater = groupMembers.find((m) => m.id === memberScope);
+                        if (!eater || !memberEatsSlot(eater, schedule, day, meal)) {
+                          return result;
+                        }
+                      }
                       for (const dish of dishesFromSlot(slot, isLunch)) {
                         result.push({ kind: "dish", group: g, slot, dish });
                       }
@@ -984,16 +1392,34 @@ export const MenuScreen = memo(function MenuScreen({
                     return result;
                   });
                   if (cards.length === 0) return null;
+
+                  const mealGroups =
+                    multiGroup && scope === "all"
+                      ? data.groups.filter((g) => menuPlan[g.id]?.[`${day}-${meal}`])
+                      : null;
+
                   return (
                     <div key={meal} style={{ marginBottom: viewMode === "semana" ? 14 : 18 }}>
-                      <MealSectionLabel meal={meal} />
+                      <MealSectionLabel meal={meal} activeGroups={mealGroups} />
                       <div style={{ display: "flex", flexDirection: "column" }}>
-                        {cards.map((card, idx) => (
+                        {cards.map((card, idx) => {
+                          const groupMembers = membersOfGroup(card.group, members);
+                          const slotEaters = eatersForSlot(card.group, members, schedule, day, meal);
+                          const showEaters =
+                            groupMembers.length > 1 &&
+                            slotEaters.length > 0 &&
+                            slotEaters.length < groupMembers.length;
+
+                          return (
                             <DishCard
                               key={`dish-${card.group.id}-${card.dish.courseKey}-${idx}`}
                               slot={{ ...card.slot, recipeId: card.dish.recipeId }}
                               courseLabel={card.dish.course}
                               showDivider={idx < cards.length - 1}
+                              eaterMembers={showEaters ? slotEaters : null}
+                              groups={data.groups}
+                              group={card.group}
+                              showGroupBadge={multiGroup && scope === "all"}
                               onTap={() =>
                                 onDishTap({
                                   recipe: RECIPES_BY_ID[card.dish.recipeId],
@@ -1006,12 +1432,15 @@ export const MenuScreen = memo(function MenuScreen({
                                 })
                               }
                             />
-                          ))}
+                          );
+                        })}
                       </div>
                     </div>
                   );
                 })}
-                {viewMode === "semana" && <div style={{ height: 1, background: "#e8f0ea", marginBottom: 20 }} />}
+                {viewMode === "semana" && (
+                  <div style={{ height: 1, background: "#e8f0ea", marginBottom: 20 }} />
+                )}
               </div>
             );
           })}
@@ -1367,8 +1796,8 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
   }, [recipe]);
 
   return (
-    <div style={detailOverlayStyle} onClick={onClose}>
-      <div style={detailSheetStyle} onClick={(e) => e.stopPropagation()}>
+    <div className="mp-overlay-in" style={detailOverlayStyle} onClick={onClose}>
+      <div className="mp-sheet-up" style={detailSheetStyle} onClick={(e) => e.stopPropagation()}>
         <button type="button" onClick={onClose} aria-label="Cerrar detalle" style={closeButtonStyle}>
           <X size={20} />
         </button>
@@ -1569,13 +1998,6 @@ const ghostButtonStyle = {
   fontFamily: "inherit",
 };
 
-const primaryMiniButtonStyle = {
-  ...ghostButtonStyle,
-  border: "none",
-  background: "#1a3a24",
-  color: "#fff",
-};
-
 const shoppingButtonStyle = {
   flex: 1,
   padding: "14px",
@@ -1607,6 +2029,14 @@ const iconChipButtonStyle = {
   cursor: "pointer",
   flexShrink: 0,
   fontFamily: "inherit",
+};
+
+const regenerateIconButtonStyle = {
+  ...iconChipButtonStyle,
+  border: "none",
+  background: "#1a3a24",
+  color: "#fff",
+  boxShadow: "0 2px 8px rgba(26,58,36,.22)",
 };
 
 const detailOverlayStyle = {

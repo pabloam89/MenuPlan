@@ -20,3 +20,79 @@ body {
 .rotating {
   animation: rotate 1s linear infinite;
 }
+
+/* Discrete motion utilities */
+@keyframes mpFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes mpSlideFwd {
+  from { opacity: 0; transform: translateX(14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mpSlideBack {
+  from { opacity: 0; transform: translateX(-14px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mpSheetUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes mpToastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+@keyframes mpTabFwd {
+  from { opacity: 0; transform: translateX(8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes mpTabBack {
+  from { opacity: 0; transform: translateX(-8px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+
+.mp-overlay-in {
+  animation: mpFadeIn .18s ease both;
+}
+
+.mp-sheet-up {
+  animation: mpSheetUp .22s cubic-bezier(.25,.46,.45,.94) both;
+}
+
+.mp-nav-fwd {
+  animation: mpSlideFwd .22s cubic-bezier(.25,.46,.45,.94) both;
+}
+
+.mp-nav-back {
+  animation: mpSlideBack .22s cubic-bezier(.25,.46,.45,.94) both;
+}
+
+.mp-tab-fwd {
+  animation: mpTabFwd .18s ease both;
+}
+
+.mp-tab-back {
+  animation: mpTabBack .18s ease both;
+}
+
+.mp-toast-in {
+  animation: mpToastIn .2s ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mp-overlay-in,
+  .mp-sheet-up,
+  .mp-nav-fwd,
+  .mp-nav-back,
+  .mp-tab-fwd,
+  .mp-tab-back,
+  .mp-toast-in {
+    animation: mpFadeIn .12s ease both;
+  }
+}

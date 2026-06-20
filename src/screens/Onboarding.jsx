@@ -47,7 +47,15 @@ import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
-import { groupsFromModel, membersOfGroup, uid } from "../lib/groups.js";
+import {
+  canAssignMemberToGroup,
+  groupsAvailableForMember,
+  groupsFromModel,
+  hasBabyMember,
+  membersOfGroup,
+  migrateGroupsForBabies,
+  uid,
+} from "../lib/groups.js";
 import {
   ALL_DAY_MEALS,
   DAYS,
@@ -105,6 +113,7 @@ export function OnboardingShell({
   onFinish,
   nextLabel = "Afinar menú",
   finishLabel = "Generar menú",
+  nextDisabled = false,
 }) {
   const progress = useContext(OnboardingProgressContext);
   const headerBtn = {
@@ -197,18 +206,21 @@ export function OnboardingShell({
         )}
         {onNext && (
           <button
+            type="button"
             onClick={onNext}
+            disabled={nextDisabled}
             style={{
               flex: onFinish ? 1 : 2,
               padding: "14px",
               borderRadius: 12,
               border: "none",
-              background: "#2d5a3d",
+              background: nextDisabled ? "#c8d9ce" : "#2d5a3d",
               color: "#fff",
               fontSize: 14,
               fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 4px 18px rgba(45,90,61,.25)",
+              cursor: nextDisabled ? "not-allowed" : "pointer",
+              boxShadow: nextDisabled ? "none" : "0 4px 18px rgba(45,90,61,.25)",
+              opacity: nextDisabled ? 0.85 : 1,
             }}
           >
             {nextLabel}
@@ -1253,6 +1265,290 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
   );
 }
 
+const GROUP_COLUMN_ORDER = ["Adultos", "Niños", "Bebé"];
+const GROUP_COLUMN_ABBREV = { Adultos: "A", Niños: "N", "Bebé": "B" };
+
+function orderedMenuGroups(groups) {
+  return GROUP_COLUMN_ORDER.map((label) => groups.find((g) => g.label === label)).filter(Boolean);
+}
+
+function applyMemberToGroup(groups, members, memberId, targetGroupId) {
+  const member = members.find((m) => m.id === memberId);
+  const target = groups.find((g) => g.id === targetGroupId);
+  if (!member || !target || !canAssignMemberToGroup(member, target)) return groups;
+  return groups.map((g) => ({
+    ...g,
+    memberIds:
+      g.id === targetGroupId
+        ? Array.from(new Set([...g.memberIds, memberId]))
+        : g.memberIds.filter((id) => id !== memberId),
+  }));
+}
+
+function GroupAssignmentMatrix({ members, groups, onAssign }) {
+  const columns = orderedMenuGroups(groups);
+  if (columns.length === 0) return null;
+
+  const gridCols = `minmax(92px, 1.15fr) repeat(${columns.length}, minmax(0, 1fr))`;
+
+  return (
+    <div
+      style={{
+        background: "#f7f9f8",
+        borderRadius: 12,
+        padding: "12px 10px 10px",
+      }}
+    >
+      {/* Column headers — labels verticales alineados con las celdas */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: gridCols,
+          gap: 8,
+          marginBottom: 8,
+          alignItems: "end",
+        }}
+      >
+        <div />
+        {columns.map((g) => (
+          <div
+            key={g.id}
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: 4,
+            }}
+          >
+            <span
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 999,
+                border: `2px solid ${g.color}`,
+                color: g.color,
+                fontSize: 13,
+                fontWeight: 900,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#fff",
+              }}
+            >
+              {GROUP_COLUMN_ABBREV[g.label] ?? g.label.charAt(0)}
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 800,
+                color: g.color,
+                textAlign: "center",
+                lineHeight: 1.15,
+              }}
+            >
+              {g.label}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ height: 1, background: "#dde8e1", margin: "0 2px 12px" }} />
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {members.map((member) => {
+          const assignableIds = new Set(
+            groupsAvailableForMember(member, groups).map((g) => g.id)
+          );
+          return (
+            <div
+              key={member.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: gridCols,
+                gap: 8,
+                alignItems: "center",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 7,
+                  minWidth: 0,
+                }}
+              >
+                <Avatar name={member.name} size={24} />
+                <span
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color: "#1a3a24",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {member.name}
+                </span>
+              </div>
+
+              {columns.map((g) => {
+                const canAssign = assignableIds.has(g.id);
+                const selected = g.memberIds.includes(member.id);
+                const abbrev = GROUP_COLUMN_ABBREV[g.label] ?? g.label.charAt(0);
+
+                if (!canAssign) {
+                  return (
+                    <div
+                      key={g.id}
+                      style={{
+                        height: 52,
+                        borderRadius: 14,
+                        background: "#f0f4f1",
+                        opacity: 0.35,
+                      }}
+                    />
+                  );
+                }
+
+                return (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => onAssign(member.id, g.id)}
+                    style={{
+                      height: 52,
+                      borderRadius: 14,
+                      border: "none",
+                      background: selected ? g.color : "#f4f7f5",
+                      color: selected ? "#fff" : g.color,
+                      boxShadow: selected ? `0 3px 10px ${g.color}55` : "none",
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 3,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      transition: "background .15s ease, box-shadow .15s ease",
+                    }}
+                  >
+                    <span style={{ fontSize: 15, fontWeight: 900, lineHeight: 1 }}>{abbrev}</span>
+                    <span
+                      style={{
+                        fontSize: 9,
+                        fontWeight: 800,
+                        opacity: selected ? 0.92 : 0.55,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {g.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function GroupAssignmentSheet({ members, groups, showBabyHint, onAssign, onConfirm, onCancel }) {
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,.45)",
+        zIndex: 150,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px 16px",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff",
+          borderRadius: 20,
+          width: "100%",
+          maxWidth: 420,
+          padding: "14px 16px 20px",
+          maxHeight: "75vh",
+          overflowY: "auto",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 10,
+          }}
+        >
+          <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#1a3a24" }}>
+            Asigna cada persona a su menú
+          </h3>
+          <button
+            type="button"
+            onClick={onCancel}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "#aaa",
+              padding: 4,
+              display: "flex",
+            }}
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {showBabyHint && (
+          <p
+            style={{
+              fontSize: 12,
+              fontWeight: 600,
+              color: "#5a7a66",
+              margin: "0 0 12px",
+              lineHeight: 1.45,
+            }}
+          >
+            Los bebés tienen menú propio con purés y texturas adaptadas.
+          </p>
+        )}
+
+        <GroupAssignmentMatrix members={members} groups={groups} onAssign={onAssign} />
+
+        <button
+          type="button"
+          onClick={onConfirm}
+          style={{
+            width: "100%",
+            marginTop: 16,
+            background: "#1a3a24",
+            color: "#fff",
+            border: "none",
+            borderRadius: 14,
+            padding: "14px 16px",
+            fontSize: 15,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Listo
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, onReset }) {
   const models = [
     {
@@ -1265,31 +1561,55 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
       id: "separate",
       Icon: GitBranch,
       label: "Menús separados",
-      desc: "Cada grupo tiene su propio menú — ideal si hay niños con gustos distintos",
+      desc: "Un menú por grupo — adultos, niños y bebé si hace falta",
     },
   ];
 
-  const pickModel = (modelId) =>
-    setData((d) => ({
-      ...d,
-      menuModel: modelId,
-      groups: groupsFromModel(
-        d.members.map((m) => ({ ...m, age: memberAge(m) })),
+  const membersWithAge = data.members.map((m) => ({ ...m, age: memberAge(m) }));
+  const showBabyHint = hasBabyMember(membersWithAge);
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
+  const [draftGroups, setDraftGroups] = useState(null);
+
+  const buildGroups = (members, modelId) =>
+    migrateGroupsForBabies(
+      members.map((m) => ({ ...m, age: memberAge(m) })),
+      groupsFromModel(
+        members.map((m) => ({ ...m, age: memberAge(m) })),
         modelId
       ),
-    }));
+      modelId
+    );
 
-  const moveMemberToGroup = (memberId, targetGroupId) =>
-    setData((d) => {
-      const groups = d.groups.map((g) => ({
-        ...g,
-        memberIds:
-          g.id === targetGroupId
-            ? Array.from(new Set([...g.memberIds, memberId]))
-            : g.memberIds.filter((id) => id !== memberId),
-      }));
-      return { ...d, groups };
-    });
+  const needsAssignmentPopup = (groups, modelId) =>
+    modelId === "separate" && groups.length > 1;
+
+  const pickModel = (modelId) => {
+    const groups = buildGroups(data.members, modelId);
+    if (needsAssignmentPopup(groups, modelId)) {
+      setDraftGroups(groups);
+      setAssignmentOpen(true);
+      setData((d) => ({ ...d, menuModel: null }));
+      return;
+    }
+    setDraftGroups(null);
+    setAssignmentOpen(false);
+    setData((d) => ({ ...d, menuModel: modelId, groups }));
+  };
+
+  const confirmAssignment = () => {
+    if (!draftGroups) return;
+    setData((d) => ({ ...d, menuModel: "separate", groups: draftGroups }));
+    setDraftGroups(null);
+    setAssignmentOpen(false);
+  };
+
+  const cancelAssignment = () => {
+    setDraftGroups(null);
+    setAssignmentOpen(false);
+    setData((d) => ({ ...d, menuModel: null }));
+  };
+
+  const canProceed = data.menuModel === "same" || data.menuModel === "separate";
 
   return (
     <OnboardingShell
@@ -1299,6 +1619,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
+      nextDisabled={!canProceed}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 14 }}>
         {models.map((m) => {
@@ -1365,41 +1686,34 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
         })}
       </div>
 
-      {data.groups.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {data.members.map((member) => (
-            <div key={member.id} style={{ background: "#f7f9f8", borderRadius: 10, padding: "10px 12px" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <Avatar name={member.name} size={24} />
-                <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{member.name}</span>
-              </div>
-              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                {data.groups.map((g) => {
-                  const selected = g.memberIds.includes(member.id);
-                  return (
-                    <button
-                      key={`${member.id}-${g.id}`}
-                      type="button"
-                      onClick={() => moveMemberToGroup(member.id, g.id)}
-                      style={{
-                        padding: "7px 10px",
-                        borderRadius: 8,
-                        border: `1px solid ${selected ? g.color : "#d9d9d9"}`,
-                        background: selected ? `${g.color}20` : "#fff",
-                        color: selected ? g.color : "#666",
-                        fontSize: 12,
-                        fontWeight: 700,
-                        cursor: "pointer",
-                      }}
-                    >
-                      {g.label}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
+      {data.menuModel === "same" && showBabyHint && (
+        <p
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: "#5a7a66",
+            margin: "0 0 4px",
+            lineHeight: 1.45,
+            textAlign: "center",
+          }}
+        >
+          Los bebés tendrán menú adaptado automáticamente.
+        </p>
+      )}
+
+      {assignmentOpen && draftGroups && (
+        <GroupAssignmentSheet
+          members={data.members}
+          groups={draftGroups}
+          showBabyHint={showBabyHint}
+          onAssign={(memberId, targetGroupId) =>
+            setDraftGroups((groups) =>
+              applyMemberToGroup(groups, data.members, memberId, targetGroupId)
+            )
+          }
+          onConfirm={confirmAssignment}
+          onCancel={cancelAssignment}
+        />
       )}
     </OnboardingShell>
   );

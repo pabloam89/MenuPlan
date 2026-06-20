@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { BriefcaseBusiness, Moon, Sun, Sunset } from "lucide-react";
 import { SliderInput } from "./ui.jsx";
 import {
@@ -5,6 +6,10 @@ import {
   writeCookTimeMode,
   writeCookTimePeriod,
   writeCookTimeShared,
+  toDisplayCookMinutes,
+  fromDisplayCookMinutes,
+  displayCookBounds,
+  formatCookDurationLabel,
 } from "../lib/cookTime.js";
 import { getMeals } from "../lib/planner.js";
 
@@ -13,7 +18,7 @@ const PERIODS = [
   { key: "weekend", label: "Fin de semana", icon: Sunset, min: 10, max: 120 },
 ];
 
-function mealTargets(plannedMeals) {
+function plannedMealTargets(plannedMeals) {
   const hasComida = plannedMeals.includes("Comida");
   const hasCena = plannedMeals.includes("Cena");
   if (hasComida && hasCena) return ["Comida", "Cena"];
@@ -25,6 +30,52 @@ const MEAL_META = {
   Comida: { icon: Sun, label: "Comida" },
   Cena: { icon: Moon, label: "Cena" },
 };
+
+function CookTimeUnitToggle({ unit, onChange }) {
+  const options = [
+    { id: "day", label: "Día" },
+    { id: "week", label: "Semana" },
+  ];
+
+  return (
+    <div
+      style={{
+        display: "inline-flex",
+        background: "#f0f4f1",
+        borderRadius: 10,
+        padding: 3,
+        gap: 2,
+        marginBottom: 10,
+      }}
+    >
+      {options.map(({ id, label }) => {
+        const active = unit === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            style={{
+              padding: "5px 14px",
+              borderRadius: 8,
+              border: "none",
+              fontSize: 11,
+              fontWeight: 800,
+              background: active ? (id === "week" ? "#2d5a3d" : "#fff") : "transparent",
+              color: active ? (id === "week" ? "#fff" : "#1a3a24") : "#9ab0a1",
+              boxShadow: active && id === "day" ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "all .15s ease",
+            }}
+          >
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function CookTimeModeToggle({ mode, onChange }) {
   const opts = [
@@ -102,9 +153,10 @@ function CookTimeModeToggle({ mode, onChange }) {
   );
 }
 
-function CompactMealSlider({ meal, value, min, max, onChange }) {
+function CompactMealSlider({ meal, value, min, max, unit, onChange }) {
   const { icon: Icon, label } = MEAL_META[meal];
   const pct = ((value - min) / (max - min)) * 100;
+  const display = formatCookDurationLabel(value, unit);
   return (
     <div style={{ padding: "8px 0 4px" }}>
       <div
@@ -128,7 +180,7 @@ function CompactMealSlider({ meal, value, min, max, onChange }) {
           <Icon size={13} color="#2d5a3d" strokeWidth={2.2} />
           {label}
         </span>
-        <span style={{ fontSize: 13, fontWeight: 800, color: "#2d5a3d" }}>{value} min</span>
+        <span style={{ fontSize: 13, fontWeight: 800, color: "#2d5a3d" }}>{display}</span>
       </div>
       <div style={{ position: "relative", height: 22, display: "flex", alignItems: "center" }}>
         <div
@@ -168,8 +220,30 @@ function CompactMealSlider({ meal, value, min, max, onChange }) {
   );
 }
 
-function CookTimePeriodBlock({ label, icon: PeriodIcon, min, max, values, mode, dual, onPatch, onShared }) {
+function CookTimePeriodBlock({
+  periodKey,
+  label,
+  icon: PeriodIcon,
+  min,
+  max,
+  values,
+  mode,
+  dual,
+  unit,
+  mealTargets,
+  onPatch,
+  onShared,
+}) {
   const sharedValue = Math.max(values.Comida, values.Cena);
+  const sharedBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, { shared: true });
+  const sharedDisplay = toDisplayCookMinutes(
+    dual ? sharedValue : values.Comida ?? values.Cena,
+    periodKey,
+    mealTargets,
+    unit,
+    { shared: dual }
+  );
+  const soloBounds = displayCookBounds(min, max, periodKey, mealTargets, unit);
 
   return (
     <div
@@ -185,12 +259,16 @@ function CookTimePeriodBlock({ label, icon: PeriodIcon, min, max, values, mode, 
         <SliderInput
           label={label}
           icon={PeriodIcon}
-          value={dual ? sharedValue : values.Comida ?? values.Cena}
-          min={min}
-          max={max}
+          value={sharedDisplay}
+          min={dual ? sharedBounds.min : soloBounds.min}
+          max={dual ? sharedBounds.max : soloBounds.max}
           step={5}
-          suffix=" min"
-          onChange={(v) => (dual ? onShared(v) : onPatch({ Comida: v, Cena: v }))}
+          valueLabel={formatCookDurationLabel(sharedDisplay, unit)}
+          onChange={(v) => {
+            const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, { shared: dual });
+            if (dual) onShared(stored);
+            else onPatch({ Comida: stored, Cena: stored });
+          }}
         />
       ) : (
         <>
@@ -206,21 +284,26 @@ function CookTimePeriodBlock({ label, icon: PeriodIcon, min, max, values, mode, 
             <PeriodIcon size={14} color="#2d5a3d" />
             <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{label}</span>
           </div>
-          <CompactMealSlider
-            meal="Comida"
-            value={values.Comida}
-            min={min}
-            max={max}
-            onChange={(v) => onPatch({ Comida: v })}
-          />
-          <div style={{ height: 1, background: "#f0f4f1", margin: "2px 0 4px" }} />
-          <CompactMealSlider
-            meal="Cena"
-            value={values.Cena}
-            min={min}
-            max={max}
-            onChange={(v) => onPatch({ Cena: v })}
-          />
+          {mealTargets.map((meal, idx) => {
+            const mealBounds = displayCookBounds(min, max, periodKey, mealTargets, unit);
+            const displayValue = toDisplayCookMinutes(values[meal], periodKey, mealTargets, unit);
+            return (
+              <div key={meal}>
+                {idx > 0 && <div style={{ height: 1, background: "#f0f4f1", margin: "2px 0 4px" }} />}
+                <CompactMealSlider
+                  meal={meal}
+                  value={displayValue}
+                  min={mealBounds.min}
+                  max={mealBounds.max}
+                  unit={unit}
+                  onChange={(v) => {
+                    const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit);
+                    onPatch({ [meal]: stored });
+                  }}
+                />
+              </div>
+            );
+          })}
         </>
       )}
     </div>
@@ -228,8 +311,9 @@ function CookTimePeriodBlock({ label, icon: PeriodIcon, min, max, values, mode, 
 }
 
 export function CookTimeEditor({ data, setData }) {
+  const [unit, setUnit] = useState("day");
   const cookTime = migrateCookTime(data);
-  const targets = mealTargets(getMeals(data));
+  const targets = plannedMealTargets(getMeals(data));
   const dual = targets.includes("Comida") && targets.includes("Cena");
 
   const setMode = (mode) => setData((d) => writeCookTimeMode(d, mode));
@@ -244,11 +328,21 @@ export function CookTimeEditor({ data, setData }) {
         .sl-ios::-moz-range-thumb { width: 22px; height: 22px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.16); cursor: pointer; }
       `}</style>
 
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
+        <CookTimeUnitToggle unit={unit} onChange={setUnit} />
+      </div>
+      <p style={{ fontSize: 11, color: "#9ab0a1", margin: "0 0 14px", lineHeight: 1.45 }}>
+        {unit === "day"
+          ? "Tiempo máximo por comida o cena."
+          : "Tiempo total de cocina en ese tramo de la semana."}
+      </p>
+
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
       {PERIODS.map((p) => (
         <CookTimePeriodBlock
           key={p.key}
+          periodKey={p.key}
           label={p.label}
           icon={p.icon}
           min={p.min}
@@ -256,6 +350,8 @@ export function CookTimeEditor({ data, setData }) {
           values={cookTime[p.key]}
           mode={dual ? cookTime.mode : "shared"}
           dual={dual}
+          unit={unit}
+          mealTargets={targets}
           onPatch={(patch) => patchPeriod(p.key, patch)}
           onShared={(v) => setShared(p.key, v)}
         />

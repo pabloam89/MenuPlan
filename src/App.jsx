@@ -16,12 +16,13 @@ import { generateMenuWithAI } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getMeals, replaceMenuSlot } from "./lib/planner.js";
-import { groupsFromModel } from "./lib/groups.js";
+import { groupsFromModel, migrateGroupsForBabies } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
+import { navDirection } from "./lib/motion.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -108,6 +109,12 @@ function migrate(state) {
     });
   }
   d.groups = Array.isArray(d.groups) ? d.groups : [];
+  if (d.members?.length) {
+    const model = d.menuModel ?? "same";
+    const base =
+      d.groups.length > 0 ? d.groups : groupsFromModel(d.members, model);
+    d.groups = migrateGroupsForBabies(d.members, base, model);
+  }
   d.customAllergies = Array.isArray(d.customAllergies) ? d.customAllergies : [];
   d.customDislikes = Array.isArray(d.customDislikes) ? d.customDislikes : [];
   if (!d.menuModel) d.menuModel = "same";
@@ -358,6 +365,10 @@ export default function App() {
     return regenerateMenu(args.nextData);
   }, [regenerateMenu]);
 
+  const dirRef = useRef("forward");
+  const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
+  const back = (fn) => { dirRef.current = "backward"; fn(); };
+
   const goToMenu = async () => {
     ensureGroupsIfMissing();
     setScreen("menu");
@@ -366,12 +377,14 @@ export default function App() {
 
   const handleNav = useCallback((id) => {
     if (id === "settings") {
+      dirRef.current = "forward";
       setScreen("onboarding");
       setOnbStep(0);
     } else {
+      dirRef.current = navDirection(screen, id);
       setScreen(id);
     }
-  }, []);
+  }, [screen]);
 
   const handleDishTap = useCallback((selection) => setSelectedSlot(selection), []);
 
@@ -438,11 +451,6 @@ export default function App() {
     setMenuError(null);
     setScreen("splash");
   }, []);
-
-  // Navigation direction tracking for slide animations
-  const dirRef = useRef("forward");
-  const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
-  const back = (fn) => { dirRef.current = "backward"; fn(); };
 
   // Order: Members → Restrictions → Menu Model → School Menu → Schedule → Goals → Cooking.
   const ONB_STEP_COUNT = 6;
@@ -527,15 +535,15 @@ export default function App() {
     >
       <style>{`
         @keyframes slideFromRight {
-          from { opacity: 0; transform: translateX(48px); }
+          from { opacity: 0; transform: translateX(18px); }
           to   { opacity: 1; transform: translateX(0); }
         }
         @keyframes slideFromLeft {
-          from { opacity: 0; transform: translateX(-48px); }
+          from { opacity: 0; transform: translateX(-18px); }
           to   { opacity: 1; transform: translateX(0); }
         }
-        .screen-enter-fwd  { animation: slideFromRight .28s cubic-bezier(.25,.46,.45,.94) both; }
-        .screen-enter-back { animation: slideFromLeft  .28s cubic-bezier(.25,.46,.45,.94) both; }
+        .screen-enter-fwd  { animation: slideFromRight .22s cubic-bezier(.25,.46,.45,.94) both; }
+        .screen-enter-back { animation: slideFromLeft  .22s cubic-bezier(.25,.46,.45,.94) both; }
       `}</style>
       <div
         ref={containerRef}
@@ -562,7 +570,10 @@ export default function App() {
         )}
 
         {screen === "menu" && (
-          <div key={animKey} className="screen-enter-fwd">
+          <div
+            key="menu"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
             <MenuScreen
               data={data}
               setData={setData}
@@ -581,16 +592,31 @@ export default function App() {
         )}
 
         {screen === "shopping" && (
-          <ShoppingScreen
-            shopping={shopping}
-            setShopping={setShopping}
-            onNav={handleNav}
-            onToast={showToast}
-          />
+          <div
+            key="shopping"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <ShoppingScreen
+              shopping={shopping}
+              setShopping={setShopping}
+              onNav={handleNav}
+              onToast={showToast}
+            />
+          </div>
         )}
 
         {screen === "analytics" && (
-          <AnalyticsScreen data={data} menuPlan={menuPlan} onNav={handleNav} />
+          <div
+            key="analytics"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <AnalyticsScreen
+              data={data}
+              menuPlan={menuPlan}
+              shopping={shopping}
+              onNav={handleNav}
+            />
+          </div>
         )}
       </div>
 
@@ -606,16 +632,17 @@ export default function App() {
       {resetConfirmOpen && (
         <div
           onClick={() => setResetConfirmOpen(false)}
+          className="mp-overlay-in"
           style={{
             position: "fixed", inset: 0, zIndex: 300,
             background: "rgba(0,0,0,.5)",
             display: "flex", alignItems: "center", justifyContent: "center",
             padding: "0 24px",
-            animation: "fadeIn .2s ease both",
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
+            className="mp-sheet-up"
             style={{
               background: "#fff",
               borderRadius: 24,
@@ -623,7 +650,6 @@ export default function App() {
               width: "100%",
               maxWidth: 360,
               boxShadow: "0 24px 60px rgba(0,0,0,.25)",
-              animation: "fadeUp .22s ease both",
             }}
           >
             <div style={{
@@ -677,6 +703,7 @@ export default function App() {
 
       {toast && (
         <div
+          className="mp-toast-in"
           style={{
             position: "fixed",
             bottom: 80,
