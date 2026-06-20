@@ -526,7 +526,7 @@ export default function App() {
       style={{
         maxWidth: APP_SHELL_MAX_WIDTH,
         margin: "0 auto",
-        minHeight: "100vh",
+        minHeight: "100dvh",
         background: "#fff",
         fontFamily: "'DM Sans', 'Helvetica Neue', sans-serif",
         position: "relative",
@@ -547,7 +547,7 @@ export default function App() {
       `}</style>
       <div
         ref={containerRef}
-        style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}
+        style={{ minHeight: "100dvh", display: "flex", flexDirection: "column" }}
       >
         {screen === "splash" && (
           <SplashScreen
@@ -760,7 +760,7 @@ function SplashScreen({ onNext, hasSaved, onResume }) {
       onClick={handleEnter}
       style={{
         position: "relative",
-        minHeight: "100vh",
+        minHeight: "100dvh",
         width: "100%",
         cursor: "pointer",
         overflow: "hidden",

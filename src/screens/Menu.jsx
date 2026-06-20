@@ -768,7 +768,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: 420,
-          maxHeight: "82vh",
+          maxHeight: "82dvh",
           overflow: "auto",
           padding: "16px 18px calc(18px + env(safe-area-inset-bottom, 0px))",
         }}
@@ -1173,7 +1173,7 @@ export const MenuScreen = memo(function MenuScreen({
   };
 
   return (
-    <div style={{ background: "#f7f9f7", minHeight: "100vh" }}>
+    <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
       <style>{`
         @keyframes menuViewFromRight {
           from { opacity: 0; transform: translateX(14px); }
@@ -2048,7 +2048,7 @@ const detailOverlayStyle = {
   alignItems: "flex-end",
   justifyContent: "center",
   width: "100vw",
-  height: "100vh",
+  height: "100dvh",
 };
 
 const detailSheetStyle = {
@@ -2056,7 +2056,7 @@ const detailSheetStyle = {
   borderRadius: "26px 26px 0 0",
   width: "100%",
   maxWidth: 420,
-  maxHeight: "92vh",
+  maxHeight: "92dvh",
   overflow: "auto",
   padding: "14px 16px 24px",
   position: "relative",

@@ -68,7 +68,7 @@ export function AnalyticsScreen({ data, menuPlan, shopping, onNav }) {
   }, [scope, consumption, activeConsumption]);
 
   return (
-    <div style={{ background: "#f7f9f7", minHeight: "100vh" }}>
+    <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
       <div style={{ padding: "20px 16px 0" }}>
         <div
           style={{
@@ -951,7 +951,7 @@ function FamilyRecipesSheet({ family, onClose }) {
         <p style={{ fontSize: 13, fontWeight: 600, color: "#7a8a7f", margin: "12px 0 16px" }}>
           {recipes.length} {recipes.length === 1 ? "plato" : "platos"} esta semana
         </p>
-        <div style={{ maxHeight: "45vh", overflow: "auto" }}>
+        <div style={{ maxHeight: "45dvh", overflow: "auto" }}>
           {recipes.map((recipe) => (
             <div
               key={recipe.name}

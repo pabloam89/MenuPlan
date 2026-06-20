@@ -188,7 +188,7 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
   };
 
   return (
-    <div style={{ background: "#f7f9f7", minHeight: "100vh" }}>
+    <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
       <input
         ref={fileRef}
         type="file"
@@ -739,7 +739,7 @@ function ReceiptSheet({ matches, onClose, onConfirm }) {
         <p style={{ fontSize: 13, fontWeight: 600, color: "#7a8a7f", margin: "12px 0 16px" }}>
           {matches.length} coincidencias
         </p>
-        <div style={{ maxHeight: "40vh", overflow: "auto", marginBottom: 16 }}>
+        <div style={{ maxHeight: "40dvh", overflow: "auto", marginBottom: 16 }}>
           {matches.map((m) => (
             <div
               key={m.id}

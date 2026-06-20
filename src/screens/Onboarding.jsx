@@ -1478,7 +1478,7 @@ function GroupAssignmentSheet({ members, groups, showBabyHint, onAssign, onConfi
           width: "100%",
           maxWidth: 420,
           padding: "14px 16px 20px",
-          maxHeight: "75vh",
+          maxHeight: "75dvh",
           overflowY: "auto",
         }}
       >
@@ -2358,7 +2358,7 @@ function ScheduleSlotSheet({
           background: "#fff", borderRadius: 20,
           width: "100%", maxWidth: 420,
           padding: "14px 16px 20px",
-          maxHeight: "60vh", overflowY: "auto",
+          maxHeight: "60dvh", overflowY: "auto",
         }}
       >
         {/* Header */}
@@ -2772,7 +2772,7 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
           borderRadius: "22px 22px 0 0",
           width: "100%",
           maxWidth: 420,
-          height: "92vh",
+          height: "92dvh",
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
