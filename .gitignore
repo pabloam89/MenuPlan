@@ -24,3 +24,10 @@ dist-ssr
 *.sw?
 .vercel
 .env*
+
+# Image-generation pipeline — large local-only artifacts (~2.5GB)
+/output/
+/public/dishes/
+dish-gallery/node_modules/
+dish-gallery/dist/
+dish-gallery/.vercel/

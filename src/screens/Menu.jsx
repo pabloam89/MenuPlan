@@ -31,6 +31,7 @@ import {
   X,
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
+import { dishImageUrl } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens } from "../lib/allergens.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
@@ -525,15 +526,39 @@ function MacroPill({ label, value, tone = "#2d5a3d" }) {
   );
 }
 
-function DishIcon({ recipe, size = 44 }) {
+function DishIcon({ recipe, size = 44, imageUrl = null }) {
   const visual = visualForRecipe(recipe);
   const Icon = ICONS_BY_TYPE[recipe.iconType] ?? Utensils;
+  const radius = Math.round(size * 0.3);
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (imageUrl && !imgFailed) {
+    return (
+      <img
+        src={imageUrl}
+        alt={recipe.name}
+        width={size}
+        height={size}
+        loading="lazy"
+        onError={() => setImgFailed(true)}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: radius,
+          objectFit: "cover",
+          flexShrink: 0,
+          background: visual.surface,
+        }}
+      />
+    );
+  }
+
   return (
     <span
       style={{
         width: size,
         height: size,
-        borderRadius: Math.round(size * 0.3),
+        borderRadius: radius,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -547,9 +572,12 @@ function DishIcon({ recipe, size = 44 }) {
   );
 }
 
-function DishVisual({ recipe, height = 220 }) {
+function DishVisual({ recipe, height = 220, imageUrl = null }) {
   const visual = visualForRecipe(recipe);
   const Icon = ICONS_BY_TYPE[recipe.iconType] ?? Utensils;
+  const [imgFailed, setImgFailed] = useState(false);
+  const showPhoto = imageUrl && !imgFailed;
+
   return (
     <div
       style={{
@@ -560,49 +588,78 @@ function DishVisual({ recipe, height = 220 }) {
         background: visual.surface,
       }}
     >
-      <svg
-        viewBox="0 0 320 220"
-        preserveAspectRatio="xMidYMid slice"
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
-        aria-hidden="true"
-      >
-        <circle cx="252" cy="44" r="58" fill={visual.ink} fillOpacity="0.07" />
-        <circle cx="280" cy="186" r="36" fill={visual.ink} fillOpacity="0.05" />
-        <path
-          d="M-10 168 Q 80 132 170 168 T 340 168 L 340 230 L -10 230 Z"
-          fill={visual.ink}
-          fillOpacity="0.06"
+      {showPhoto ? (
+        <img
+          src={imageUrl}
+          alt={recipe.name}
+          onError={() => setImgFailed(true)}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
         />
-        <path
-          d="M-10 196 Q 80 168 170 196 T 340 196 L 340 230 L -10 230 Z"
-          fill={visual.ink}
-          fillOpacity="0.05"
+      ) : (
+        <>
+          <svg
+            viewBox="0 0 320 220"
+            preserveAspectRatio="xMidYMid slice"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+            aria-hidden="true"
+          >
+            <circle cx="252" cy="44" r="58" fill={visual.ink} fillOpacity="0.07" />
+            <circle cx="280" cy="186" r="36" fill={visual.ink} fillOpacity="0.05" />
+            <path
+              d="M-10 168 Q 80 132 170 168 T 340 168 L 340 230 L -10 230 Z"
+              fill={visual.ink}
+              fillOpacity="0.06"
+            />
+            <path
+              d="M-10 196 Q 80 168 170 196 T 340 196 L 340 230 L -10 230 Z"
+              fill={visual.ink}
+              fillOpacity="0.05"
+            />
+          </svg>
+          <span
+            style={{
+              position: "absolute",
+              top: 18,
+              left: 18,
+              width: 56,
+              height: 56,
+              borderRadius: 18,
+              background: "#fff",
+              color: visual.ink,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon size={28} strokeWidth={1.7} />
+          </span>
+        </>
+      )}
+
+      {showPhoto && (
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(to top, rgba(8,18,12,.78) 0%, rgba(8,18,12,.15) 45%, rgba(8,18,12,0) 70%)",
+          }}
         />
-      </svg>
-      <span
-        style={{
-          position: "absolute",
-          top: 18,
-          left: 18,
-          width: 56,
-          height: 56,
-          borderRadius: 18,
-          background: "#fff",
-          color: visual.ink,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Icon size={28} strokeWidth={1.7} />
-      </span>
+      )}
+
       <div
         style={{
           position: "absolute",
           left: 20,
           right: 20,
           bottom: 20,
-          color: visual.ink,
+          color: showPhoto ? "#fff" : visual.ink,
         }}
       >
         <div
@@ -611,7 +668,7 @@ function DishVisual({ recipe, height = 220 }) {
             fontWeight: 800,
             textTransform: "uppercase",
             letterSpacing: 1.5,
-            opacity: 0.62,
+            opacity: showPhoto ? 0.85 : 0.62,
             marginBottom: 4,
           }}
         >
@@ -623,6 +680,7 @@ function DishVisual({ recipe, height = 220 }) {
             fontWeight: 900,
             lineHeight: 1.05,
             letterSpacing: "-.4px",
+            textShadow: showPhoto ? "0 1px 12px rgba(0,0,0,.5)" : "none",
           }}
         >
           {recipe.name}
@@ -983,7 +1041,7 @@ function DishCard({
         fontFamily: "inherit",
       }}
     >
-      <DishIcon recipe={recipe} size={44} />
+      <DishIcon recipe={recipe} size={44} imageUrl={dishImageUrl(recipe.id, slot.garnishId)} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
           {showGroupBadge && group && <GroupMenuBadge group={group} />}
@@ -1802,7 +1860,7 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
           <X size={20} />
         </button>
 
-        <DishVisual recipe={recipe} height={220} />
+        <DishVisual recipe={recipe} height={220} imageUrl={dishImageUrl(recipe.id, slot?.garnishId)} />
 
         <div style={{ padding: "18px 2px 0" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
