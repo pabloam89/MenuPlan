@@ -548,6 +548,7 @@ function DishIcon({ recipe, size = 44, imageUrl = null }) {
           objectFit: "cover",
           flexShrink: 0,
           background: visual.surface,
+          boxShadow: `0 0 0 2px ${visual.accent}`,
         }}
       />
     );
