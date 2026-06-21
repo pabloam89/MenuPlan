@@ -543,11 +543,17 @@ export async function generateMenuWithAI(data, { signal } = {}) {
         seenRecipeIds.add(frontendId);
         const fr = catalogToFrontendRecipe(catalogRecipe, eaters);
         if (prefix) fr.id = frontendId;
+        // Keep the catalog id so the UI can resolve the dish photo even when
+        // fr.id carries a group prefix (e.g. "groupId__carnes_007").
+        fr.baseRecipeId = recipeId;
 
         // Merge garnish into the recipe: name, time, macros, ingredients
         if (garnishId) {
           const garnish = guarnicionById[garnishId];
           if (garnish) {
+            // Preserve garnishId so the photo lookup can build the combo key
+            // "<dish>+<garnish>" that the image is stored under.
+            fr.garnishId = garnishId;
             fr.name = `${fr.name} con ${garnish.shortName}`;
 
             // Time: dishes are cooked in parallel, show the longest

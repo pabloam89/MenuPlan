@@ -31,7 +31,7 @@ import {
   X,
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
-import { dishImageUrl } from "../assets/dishes/dishImages.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens } from "../lib/allergens.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
@@ -1041,7 +1041,7 @@ function DishCard({
         fontFamily: "inherit",
       }}
     >
-      <DishIcon recipe={recipe} size={44} imageUrl={dishImageUrl(recipe.id, slot.garnishId)} />
+      <DishIcon recipe={recipe} size={44} imageUrl={dishImageForRecipe(recipe)} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
           {showGroupBadge && group && <GroupMenuBadge group={group} />}
@@ -1860,7 +1860,7 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
           <X size={20} />
         </button>
 
-        <DishVisual recipe={recipe} height={220} imageUrl={dishImageUrl(recipe.id, slot?.garnishId)} />
+        <DishVisual recipe={recipe} height={220} imageUrl={dishImageForRecipe(recipe)} />
 
         <div style={{ padding: "18px 2px 0" }}>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>

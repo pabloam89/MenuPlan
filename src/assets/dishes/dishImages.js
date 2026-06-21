@@ -27,4 +27,18 @@ export function dishImageUrl(recipeId, garnishId) {
   return manifest[recipeId] ?? null;
 }
 
+/**
+ * Resolve the photo URL from a frontend recipe object. Uses `baseRecipeId`
+ * (the catalog id, prefix-free) and `garnishId` set by the AI planner when a
+ * garnish is merged in. Falls back to the recipe id for static catalog dishes.
+ *
+ * @param {{id?: string, baseRecipeId?: string, garnishId?: string}} recipe
+ * @returns {string|null}
+ */
+export function dishImageForRecipe(recipe) {
+  if (!recipe) return null;
+  const baseId = recipe.baseRecipeId ?? recipe.id;
+  return dishImageUrl(baseId, recipe.garnishId);
+}
+
 export const hasDishImages = Object.keys(manifest).length > 0;
