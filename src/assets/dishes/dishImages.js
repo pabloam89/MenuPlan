@@ -9,9 +9,21 @@
 
 import manifest from "./dishImages.json";
 
+// Precompute a fallback per dish: the first available combo photo for each base
+// dish id. Covers dishes that exist ONLY as dish+garnish combos (no standalone
+// photo) when they are served on their own — and also pre-fix saved menus whose
+// recipe objects don't carry a garnishId yet.
+const firstComboByDish = {};
+for (const key of Object.keys(manifest)) {
+  const plus = key.indexOf("+");
+  if (plus === -1) continue;
+  const base = key.slice(0, plus);
+  if (!firstComboByDish[base]) firstComboByDish[base] = manifest[key];
+}
+
 /**
  * Resolve the photo URL for a given recipe + garnish pairing.
- * Falls back to the standalone-dish photo when the exact combo has no image.
+ * Order: exact combo → standalone dish → any combo of that dish.
  * Returns null when nothing matches (caller renders the icon fallback).
  *
  * @param {string} recipeId
@@ -24,7 +36,8 @@ export function dishImageUrl(recipeId, garnishId) {
     const combo = `${recipeId}+${garnishId}`;
     if (manifest[combo]) return manifest[combo];
   }
-  return manifest[recipeId] ?? null;
+  if (manifest[recipeId]) return manifest[recipeId];
+  return firstComboByDish[recipeId] ?? null;
 }
 
 /**
