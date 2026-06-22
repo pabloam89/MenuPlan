@@ -275,6 +275,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   const [ageMode, setAgeMode] = useState("number");
   const [roleEditId, setRoleEditId] = useState(null);
   const [colorPickerId, setColorPickerId] = useState(null);
+  const [dismissedBabyHints, setDismissedBabyHints] = useState(new Set());
+  const [removingIds, setRemovingIds] = useState(new Set());
+  const [addBounce, setAddBounce] = useState(false);
   const dateInputRef = useRef(null);
 
   const trimmedName = name.trim();
@@ -293,6 +296,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
 
   const addMember = () => {
     if (!canAdd) return;
+    setAddBounce(true);
+    setTimeout(() => setAddBounce(false), 320);
     setData((d) => ({
       ...d,
       members: [
@@ -332,8 +337,13 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     setColorPickerId(null);
   };
 
-  const removeMember = (id) =>
-    setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
+  const removeMember = (id) => {
+    setRemovingIds((s) => new Set([...s, id]));
+    setTimeout(() => {
+      setData((d) => ({ ...d, members: d.members.filter((m) => m.id !== id) }));
+      setRemovingIds((s) => { const n = new Set(s); n.delete(id); return n; });
+    }, 260);
+  };
 
   const fieldH = 44;
   const ageBoxStyle = (active, readonly) => ({
@@ -354,7 +364,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   return (
     <OnboardingShell
       title="¿Quién come en casa?"
-      subtitle="Un nombre y su edad por persona — en un minuto lo tienes."
+      subtitle="Añade a cada persona. Luego revisa su categoría (Adulto, Bebé…) y toca su avatar para elegir un color."
       onReset={onReset}
       onNext={hasMembers ? onNext : undefined}
       onFinish={hasMembers ? onFinish : undefined}
@@ -484,6 +494,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
             fontSize: 13, fontWeight: 800, cursor: canAdd ? "pointer" : "not-allowed",
             display: "inline-flex", alignItems: "center", gap: 6,
             flexShrink: 0, fontFamily: "inherit",
+            transform: addBounce ? "scale(0.91)" : "scale(1)",
+            transition: "transform .15s cubic-bezier(.34,1.56,.64,1), background .2s",
           }}
         >
           <Plus size={16} />
@@ -493,10 +505,27 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
 
       <style>{`
         @keyframes memberIn {
-          from { opacity: 0; transform: translateY(-8px) scale(0.97); }
+          from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+          to   { opacity: 1; transform: translateY(0)     scale(1);    }
+        }
+        @keyframes memberOut {
+          from { opacity: 1; transform: translateX(0)   scale(1);    max-height: 120px; }
+          to   { opacity: 0; transform: translateX(12px) scale(0.95); max-height: 0;     }
+        }
+        @keyframes colorPickerIn {
+          from { opacity: 0; transform: scaleY(0.6); transform-origin: top; }
+          to   { opacity: 1; transform: scaleY(1);   transform-origin: top; }
+        }
+        @keyframes swatchPop {
+          from { opacity: 0; transform: scale(0.4); }
+          to   { opacity: 1; transform: scale(1);   }
+        }
+        @keyframes hintIn {
+          from { opacity: 0; transform: translateY(6px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0)   scale(1);    }
         }
-        .member-enter { animation: memberIn .22s cubic-bezier(.25,.46,.45,.94) both; }
+        .member-enter   { animation: memberIn .28s cubic-bezier(.34,1.3,.64,1) both; }
+        .member-leaving { animation: memberOut .26s cubic-bezier(.4,0,.2,1) both; overflow: hidden; }
       `}</style>
 
       {/* Divider */}
@@ -511,10 +540,11 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
         const RoleIcon = ROLE_ICON_MAP[role] ?? User;
         const initial = m.name.trim()[0]?.toUpperCase() ?? "?";
         const isPickingColor = colorPickerId === m.id;
+        const isLeaving = removingIds.has(m.id);
         return (
           <div
             key={m.id}
-            className="member-enter"
+            className={isLeaving ? "member-leaving" : "member-enter"}
             style={{
               display: "flex", alignItems: "center", gap: 10,
               padding: "10px 12px", background: "#f6f9f7",
@@ -540,40 +570,18 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
               >
                 {initial}
               </button>
-
-              {/* Inline colour picker */}
-              {isPickingColor && (
-                <div style={{
-                  position: "absolute",
-                  top: "calc(100% + 8px)",
-                  left: "50%",
-                  transform: "translateX(-50%)",
-                  zIndex: 20,
-                  background: "#fff",
-                  borderRadius: 14,
-                  padding: "10px",
-                  boxShadow: "0 4px 20px rgba(0,0,0,.14)",
-                  display: "flex",
-                  gap: 8,
-                  flexWrap: "wrap",
-                  width: 192,
-                }}>
-                  {AVATAR_PALETTE.map((c) => (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => updateMemberColor(m.id, c)}
-                      style={{
-                        width: 32, height: 32, borderRadius: "50%",
-                        background: c, border: avatarColor === c ? "2.5px solid #fff" : "2px solid transparent",
-                        boxShadow: avatarColor === c ? `0 0 0 2px ${c}` : "none",
-                        cursor: "pointer", padding: 0,
-                        transition: "box-shadow .12s ease",
-                      }}
-                    />
-                  ))}
-                </div>
-              )}
+              {/* Pencil badge */}
+              <span style={{
+                position: "absolute", bottom: -2, right: -2,
+                width: 16, height: 16, borderRadius: "50%",
+                background: "#fff", border: "1.5px solid #e0e8e3",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                pointerEvents: "none",
+              }}>
+                <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+                  <path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" strokeWidth="0"/>
+                </svg>
+              </span>
             </div>
             <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: 14, color: "#1a3a24",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -607,6 +615,89 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
             >
               <Trash2 size={15} />
             </button>
+
+            {/* Baby hint bubble */}
+            {stageForAge(memberAge(m)).id === "baby" && !dismissedBabyHints.has(m.id) && (
+              <div style={{
+                width: "100%",
+                marginTop: 8,
+                position: "relative",
+                animation: "hintIn .3s cubic-bezier(.34,1.56,.64,1) both",
+              }}>
+                {/* Arrow */}
+                <div style={{
+                  position: "absolute", top: -6, left: 16,
+                  width: 0, height: 0,
+                  borderLeft: "6px solid transparent",
+                  borderRight: "6px solid transparent",
+                  borderBottom: "6px solid #4cba6e",
+                }} />
+                <div style={{
+                  background: "#fff",
+                  border: "2.5px solid #4cba6e",
+                  boxShadow: "0 0 0 1px #4cba6e22",
+                  borderRadius: 12,
+                  padding: "10px 12px",
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "flex-start",
+                }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#1a3a24" }}>
+                      Menú de bebé para {m.name.split(" ")[0]}
+                    </p>
+                    <p style={{ margin: "3px 0 0", fontSize: 11, color: "#4a6b55", lineHeight: 1.45 }}>
+                      Se generará un menú diferenciado: texturas suaves, sin sal añadida y sin alérgenos comunes.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setDismissedBabyHints((s) => new Set([...s, m.id]))}
+                    style={{
+                      border: "none", background: "transparent",
+                      cursor: "pointer", color: "#4cba6e",
+                      padding: 2, flexShrink: 0, lineHeight: 1,
+                      fontSize: 14, fontWeight: 700,
+                    }}
+                    aria-label="Cerrar"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Colour picker — inline, full width, no overflow risk */}
+            {isPickingColor && (
+              <div style={{
+                width: "100%",
+                display: "flex",
+                gap: 10,
+                paddingTop: 10,
+                borderTop: "1px solid rgba(45,90,61,.1)",
+                marginTop: 4,
+                justifyContent: "center",
+                animation: "colorPickerIn .2s cubic-bezier(.4,0,.2,1) both",
+              }}>
+                {AVATAR_PALETTE.map((c, si) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => updateMemberColor(m.id, c)}
+                    style={{
+                      width: 30, height: 30, borderRadius: "50%",
+                      background: c,
+                      border: avatarColor === c ? "2.5px solid #fff" : "none",
+                      boxShadow: avatarColor === c ? `0 0 0 2.5px ${c}` : `0 2px 8px ${c}55`,
+                      cursor: "pointer", padding: 0, flexShrink: 0,
+                      transform: avatarColor === c ? "scale(1.18)" : "scale(1)",
+                      transition: "transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease",
+                      animation: `swatchPop .25s cubic-bezier(.34,1.4,.64,1) ${si * 28}ms both`,
+                    }}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         );
       })}

@@ -62,14 +62,14 @@ export function isSchoolAge(age) {
 
 /** Fixed avatar palette — one distinct colour per member slot (index-based). */
 export const AVATAR_PALETTE = [
-  "#2d5a3d", // forest green
-  "#c0392b", // ruby
-  "#1565c0", // cobalt
-  "#f57f17", // amber
-  "#6a1b9a", // plum
-  "#00838f", // teal
-  "#ad1457", // crimson rose
-  "#4e342e", // bark brown
+  "#e53935", // red
+  "#fb8c00", // orange
+  "#43a047", // green
+  "#039be5", // sky blue
+  "#3949ab", // indigo
+  "#8e24aa", // purple
+  "#d81b60", // pink
+  "#00897b", // teal
 ];
 
 /**
