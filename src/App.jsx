@@ -504,6 +504,7 @@ export default function App() {
       setData={setData}
       onNext={() => fwd(() => setOnbStep(5))}
       onBack={() => back(() => setOnbStep(3))}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingSchedule

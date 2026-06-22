@@ -41,7 +41,7 @@ import { RECIPES_BY_ID } from "../data/recipes.js";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey } from "../lib/planner.js";
-import { initialsOf } from "../lib/stages.js";
+import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -62,23 +62,6 @@ const ICONS_BY_TYPE = {
   chef: ChefHat,
 };
 
-/** Fixed avatar palette — one distinct color per member slot (index-based). */
-const AVATAR_PALETTE = [
-  "#2d5a3d", // forest green
-  "#c0392b", // ruby
-  "#1565c0", // cobalt
-  "#f57f17", // amber
-  "#6a1b9a", // plum
-  "#00838f", // teal
-  "#ad1457", // crimson rose
-  "#4e342e", // bark brown
-];
-
-/** Returns a deterministic avatar color for a member by their index in the members array. */
-function memberAvatarColor(memberId, allMembers) {
-  const idx = allMembers.findIndex((m) => m.id === memberId);
-  return AVATAR_PALETTE[(idx < 0 ? 0 : idx) % AVATAR_PALETTE.length];
-}
 
 function tagPalette(recipe) {
   return paletteForRecipe(recipe);

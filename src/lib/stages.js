@@ -60,6 +60,30 @@ export function isSchoolAge(age) {
   return a >= 3 && a <= 17;
 }
 
+/** Fixed avatar palette — one distinct colour per member slot (index-based). */
+export const AVATAR_PALETTE = [
+  "#2d5a3d", // forest green
+  "#c0392b", // ruby
+  "#1565c0", // cobalt
+  "#f57f17", // amber
+  "#6a1b9a", // plum
+  "#00838f", // teal
+  "#ad1457", // crimson rose
+  "#4e342e", // bark brown
+];
+
+/**
+ * Returns the avatar colour for a member.
+ * Uses the member's own `color` field if set, otherwise falls back to the
+ * palette slot determined by the member's index in the full members array.
+ */
+export function memberAvatarColor(memberId, allMembers) {
+  const idx = allMembers.findIndex((m) => m.id === memberId);
+  const member = allMembers[idx];
+  if (member?.color) return member.color;
+  return AVATAR_PALETTE[(idx < 0 ? 0 : idx) % AVATAR_PALETTE.length];
+}
+
 export function initialsOf(name) {
   if (!name) return "?";
   const parts = name.trim().split(/\s+/).slice(0, 2);

@@ -45,7 +45,7 @@ import {
 import { Chip, SliderInput, Avatar, AvatarStack, ProgressDots } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole } from "../lib/stages.js";
+import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import {
   canAssignMemberToGroup,
@@ -257,8 +257,6 @@ export function OnboardingShell({
 
 // ─── Members ───────────────────────────────────────────────────
 
-const MEMBER_AVATAR_COLORS = ["#2d5a3d", "#4a7c5e", "#1a3a24", "#3d6b4f", "#5a8a6a", "#2a5040"];
-
 const ROLE_ICON_MAP = {
   "Adulto":   User,
   "Papá":     User,
@@ -276,6 +274,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   const [birthDate, setBirthDate] = useState("");
   const [ageMode, setAgeMode] = useState("number");
   const [roleEditId, setRoleEditId] = useState(null);
+  const [colorPickerId, setColorPickerId] = useState(null);
   const dateInputRef = useRef(null);
 
   const trimmedName = name.trim();
@@ -323,6 +322,14 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
       members: d.members.map((m) => (m.id === id ? { ...m, homeRole } : m)),
     }));
     setRoleEditId(null);
+  };
+
+  const updateMemberColor = (id, color) => {
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => (m.id === id ? { ...m, color } : m)),
+    }));
+    setColorPickerId(null);
   };
 
   const removeMember = (id) =>
@@ -500,9 +507,10 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
       {/* Member cards */}
       {data.members.map((m, idx) => {
         const role = migrateHomeRole(m.homeRole ?? suggestHomeRole(memberAge(m)));
-        const avatarColor = MEMBER_AVATAR_COLORS[idx % MEMBER_AVATAR_COLORS.length];
+        const avatarColor = m.color ?? AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
         const RoleIcon = ROLE_ICON_MAP[role] ?? User;
         const initial = m.name.trim()[0]?.toUpperCase() ?? "?";
+        const isPickingColor = colorPickerId === m.id;
         return (
           <div
             key={m.id}
@@ -511,12 +519,61 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
               display: "flex", alignItems: "center", gap: 10,
               padding: "10px 12px", background: "#f6f9f7",
               borderRadius: 14, marginBottom: 8,
+              flexWrap: "wrap",
             }}
           >
-            <div style={{ width: 40, height: 40, borderRadius: "50%", background: avatarColor,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: 15, fontWeight: 800, color: "#fff", flexShrink: 0 }}>
-              {initial}
+            {/* Avatar — tap to pick colour */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <button
+                type="button"
+                onClick={() => setColorPickerId(isPickingColor ? null : m.id)}
+                title="Cambiar color"
+                style={{
+                  width: 40, height: 40, borderRadius: "50%", background: avatarColor,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 15, fontWeight: 800, color: "#fff",
+                  border: isPickingColor ? "2.5px solid #fff" : "none",
+                  boxShadow: isPickingColor ? `0 0 0 2.5px ${avatarColor}` : "none",
+                  cursor: "pointer", padding: 0, fontFamily: "inherit",
+                  transition: "box-shadow .15s ease",
+                }}
+              >
+                {initial}
+              </button>
+
+              {/* Inline colour picker */}
+              {isPickingColor && (
+                <div style={{
+                  position: "absolute",
+                  top: "calc(100% + 8px)",
+                  left: "50%",
+                  transform: "translateX(-50%)",
+                  zIndex: 20,
+                  background: "#fff",
+                  borderRadius: 14,
+                  padding: "10px",
+                  boxShadow: "0 4px 20px rgba(0,0,0,.14)",
+                  display: "flex",
+                  gap: 8,
+                  flexWrap: "wrap",
+                  width: 192,
+                }}>
+                  {AVATAR_PALETTE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => updateMemberColor(m.id, c)}
+                      style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: c, border: avatarColor === c ? "2.5px solid #fff" : "2px solid transparent",
+                        boxShadow: avatarColor === c ? `0 0 0 2px ${c}` : "none",
+                        cursor: "pointer", padding: 0,
+                        transition: "box-shadow .12s ease",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
             <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: 14, color: "#1a3a24",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -4768,160 +4825,224 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 
 // ── Week selector ────────────────────────────────────────────────────────────
 
-const WEEK_DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-const WEEK_DAY_FULL = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+const WEEK_DAY_SHORT = ["L", "M", "X", "J", "V", "S", "D"];
+const MONTH_NAMES_ES = [
+  "Enero","Febrero","Marzo","Abril","Mayo","Junio",
+  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre",
+];
 
 function todayMondayIdx() {
-  const d = new Date().getDay(); // 0=Sun
+  const d = new Date().getDay();
   return d === 0 ? 6 : d - 1;
 }
 
-function weekLabel(offsetWeeks) {
+function buildCalendarWeeks(count = 6) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dow = today.getDay();
   const toMonday = dow === 0 ? -6 : 1 - dow;
-  const monday = new Date(today);
-  monday.setDate(today.getDate() + toMonday + offsetWeeks * 7);
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-  const pad = (n) => String(n).padStart(2, "0");
-  return `${pad(monday.getDate())}/${pad(monday.getMonth() + 1)} – ${pad(sunday.getDate())}/${pad(sunday.getMonth() + 1)}`;
+  const thisMonday = new Date(today);
+  thisMonday.setDate(today.getDate() + toMonday);
+
+  return Array.from({ length: count }, (_, i) => {
+    const monday = new Date(thisMonday);
+    monday.setDate(thisMonday.getDate() + i * 7);
+    const days = Array.from({ length: 7 }, (__, j) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + j);
+      return d;
+    });
+    return { offset: i, monday, days };
+  });
 }
 
-export function OnboardingWeek({ data, setData, onNext, onBack, onReset }) {
-  const menuWeek = data.menuWeek ?? { offset: 0, startDayIdx: todayMondayIdx() };
-  const todayIdx = todayMondayIdx();
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+}
 
-  const setOffset = (offset) => {
+export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinish }) {
+  const todayIdx = todayMondayIdx();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const menuWeek = data.menuWeek ?? { offset: 0, startDayIdx: todayIdx };
+  const selectedOffset = menuWeek.offset ?? 0;
+
+  const selectWeek = (offset) => {
     const startDayIdx = offset === 0 ? todayIdx : 0;
     setData((d) => ({ ...d, menuWeek: { offset, startDayIdx } }));
   };
 
-  const setStartDayIdx = (idx) => {
-    setData((d) => ({ ...d, menuWeek: { ...menuWeek, startDayIdx: idx } }));
-  };
+  const weeks = buildCalendarWeeks(4);
 
-  const weeks = [
-    { offset: 0, label: "Esta semana", sub: weekLabel(0) },
-    { offset: 1, label: "Semana que viene", sub: weekLabel(1) },
-    { offset: 2, label: "En 2 semanas", sub: weekLabel(2) },
-  ];
-
-  const chipStyle = (selected) => ({
-    flex: 1,
-    padding: "14px 10px",
-    borderRadius: 14,
-    border: `2px solid ${selected ? "#2d5a3d" : "transparent"}`,
-    background: selected ? "rgba(45,90,61,.08)" : "#f5f7f5",
-    cursor: "pointer",
-    textAlign: "center",
-    transition: "all .15s ease",
-  });
-
-  const dayBtnStyle = (selected, disabled) => ({
-    padding: "10px 0",
-    borderRadius: 10,
-    border: `2px solid ${selected ? "#2d5a3d" : "transparent"}`,
-    background: selected ? "rgba(45,90,61,.08)" : disabled ? "#f0f0f0" : "#f5f7f5",
-    color: disabled ? "#bbb" : selected ? "#1a3a24" : "#444",
-    cursor: disabled ? "not-allowed" : "pointer",
-    fontSize: 13,
-    fontWeight: selected ? 700 : 500,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 2,
-    flex: 1,
-    opacity: disabled ? 0.5 : 1,
-    transition: "all .15s ease",
-  });
-
-  const activeDays = menuWeek.offset === 0
-    ? WEEK_DAY_LABELS.filter((_, i) => i >= todayIdx)
-    : WEEK_DAY_LABELS;
+  // Active days count for hint
+  const selectedWeek = weeks[selectedOffset] ?? weeks[0];
+  const activeDayCount = selectedOffset === 0
+    ? selectedWeek.days.filter((d) => d >= today).length
+    : 7;
 
   return (
     <OnboardingShell
       title="¿Para cuándo quieres el menú?"
-      subtitle="Elige la semana y el día de inicio"
+      subtitle="Toca la semana que quieres planificar"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
-      nextLabel="Continuar"
+      onFinish={onFinish}
+      finishLabel="Generar menú"
     >
-      {/* Week selector */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
-        {weeks.map(({ offset, label, sub }) => {
-          const sel = menuWeek.offset === offset;
+      {/* Day-of-week header */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(7, 1fr) 32px",
+        gap: 0,
+        padding: "0 4px",
+        marginBottom: 4,
+      }}>
+        {WEEK_DAY_SHORT.map((d) => (
+          <div key={d} style={{
+            textAlign: "center",
+            fontSize: 12,
+            fontWeight: 800,
+            color: "#4a6b55",
+            letterSpacing: ".5px",
+            padding: "6px 0",
+          }}>{d}</div>
+        ))}
+        <div />
+      </div>
+
+      {/* Calendar grid */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {weeks.map(({ offset, monday, days }, weekIdx) => {
+          const isSelected = offset === selectedOffset;
+          const showMonthLabel =
+            weekIdx === 0 ||
+            monday.getMonth() !== weeks[weekIdx - 1].monday.getMonth();
+
           return (
-            <div
-              key={offset}
-              onClick={() => setOffset(offset)}
-              style={{
-                padding: "16px 18px",
-                borderRadius: 14,
-                border: `2px solid ${sel ? "#2d5a3d" : "transparent"}`,
-                background: sel ? "rgba(45,90,61,.08)" : "#f5f7f5",
-                cursor: "pointer",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                transition: "all .15s ease",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 700, color: "#1a3a24", fontSize: 15 }}>{label}</div>
-                <div style={{ color: "#888", fontSize: 12, marginTop: 2 }}>{sub}</div>
-              </div>
-              {sel && (
-                <span style={{
-                  width: 20, height: 20, borderRadius: 999,
-                  background: "#2d5a3d", display: "inline-flex",
-                  alignItems: "center", justifyContent: "center",
+            <div key={offset}>
+              {/* Month label */}
+              {showMonthLabel && (
+                <div style={{
+                  fontSize: 11,
+                  fontWeight: 800,
+                  color: "#2d5a3d",
+                  letterSpacing: ".8px",
+                  textTransform: "uppercase",
+                  padding: "10px 4px 6px",
+                  marginTop: weekIdx === 0 ? 0 : 6,
                 }}>
-                  <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
-                    <path d="M1 4l3 3 6-6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </span>
+                  {MONTH_NAMES_ES[monday.getMonth()]} {monday.getFullYear()}
+                </div>
               )}
+
+              {/* Week row */}
+              <button
+                type="button"
+                onClick={() => selectWeek(offset)}
+                style={{
+                  width: "100%",
+                  border: "none",
+                  borderRadius: 14,
+                  background: isSelected ? "rgba(45,90,61,.07)" : "transparent",
+                  cursor: "pointer",
+                  padding: "3px 4px",
+                  fontFamily: "inherit",
+                  outline: "none",
+                  position: "relative",
+                  transition: "background .15s ease",
+                }}
+              >
+                {/* Left accent bar for selected */}
+                {isSelected && (
+                  <span style={{
+                    position: "absolute",
+                    left: 0,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    width: 3,
+                    height: "70%",
+                    borderRadius: 99,
+                    background: "#2d5a3d",
+                  }} />
+                )}
+
+                <div style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(7, 1fr) 32px",
+                  gap: 0,
+                  alignItems: "center",
+                }}>
+                  {days.map((dayDate, i) => {
+                    const isToday = isSameDay(dayDate, today);
+                    const isPast = dayDate < today && !isToday;
+                    return (
+                      <div key={i} style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        height: 38,
+                      }}>
+                        <span style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: 999,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 14,
+                          fontWeight: isToday ? 900 : isPast ? 400 : 600,
+                          background: isToday ? "#f59e0b" : "transparent",
+                          color: isToday ? "#fff" : isPast ? "#ccc" : isSelected ? "#142f1d" : "#333",
+                          boxShadow: isToday ? "0 2px 8px #f59e0b55" : "none",
+                          transition: "all .15s ease",
+                        }}>
+                          {dayDate.getDate()}
+                        </span>
+                      </div>
+                    );
+                  })}
+
+                  {/* Select indicator */}
+                  <div style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}>
+                    <span style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 999,
+                      border: `2px solid ${isSelected ? "#2d5a3d" : "#d0dbd3"}`,
+                      background: isSelected ? "#2d5a3d" : "transparent",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "all .15s ease",
+                      flexShrink: 0,
+                    }}>
+                      {isSelected && (
+                        <svg width="9" height="7" viewBox="0 0 9 7" fill="none">
+                          <path d="M1 3.5l2.5 2.5 5-5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      )}
+                    </span>
+                  </div>
+                </div>
+              </button>
             </div>
           );
         })}
       </div>
 
-      {/* Day selector — only shown for current week */}
-      {menuWeek.offset === 0 && (
-        <div>
-          <p style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", margin: "0 0 10px" }}>
-            ¿Desde qué día empezamos?
-          </p>
-          <div style={{ display: "flex", gap: 6 }}>
-            {WEEK_DAY_LABELS.map((d, i) => {
-              const disabled = i < todayIdx;
-              const selected = menuWeek.startDayIdx === i && !disabled;
-              return (
-                <button
-                  key={d}
-                  type="button"
-                  disabled={disabled}
-                  onClick={() => !disabled && setStartDayIdx(i)}
-                  style={dayBtnStyle(selected, disabled)}
-                >
-                  <span style={{ fontSize: 12, fontWeight: 700 }}>{d}</span>
-                  {i === todayIdx && (
-                    <span style={{ fontSize: 9, color: "#2d5a3d", fontWeight: 800 }}>Hoy</span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {activeDays.length < 7 && (
-            <p style={{ fontSize: 12, color: "#888", margin: "10px 0 0" }}>
-              El menú tendrá {activeDays.length} día{activeDays.length !== 1 ? "s" : ""}: {activeDays.join(", ")}
-            </p>
-          )}
-        </div>
+      {/* Hint — only when current week and fewer than 7 days */}
+      {selectedOffset === 0 && activeDayCount < 7 && (
+        <p style={{ fontSize: 12, color: "#9aaa9e", margin: "14px 0 0", textAlign: "center" }}>
+          {`Menú de ${activeDayCount} día${activeDayCount !== 1 ? "s" : ""} (desde hoy)`}
+        </p>
       )}
     </OnboardingShell>
   );
