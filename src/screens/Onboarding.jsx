@@ -4766,6 +4766,167 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
   );
 }
 
+// ── Week selector ────────────────────────────────────────────────────────────
+
+const WEEK_DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const WEEK_DAY_FULL = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"];
+
+function todayMondayIdx() {
+  const d = new Date().getDay(); // 0=Sun
+  return d === 0 ? 6 : d - 1;
+}
+
+function weekLabel(offsetWeeks) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dow = today.getDay();
+  const toMonday = dow === 0 ? -6 : 1 - dow;
+  const monday = new Date(today);
+  monday.setDate(today.getDate() + toMonday + offsetWeeks * 7);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate() + 6);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(monday.getDate())}/${pad(monday.getMonth() + 1)} – ${pad(sunday.getDate())}/${pad(sunday.getMonth() + 1)}`;
+}
+
+export function OnboardingWeek({ data, setData, onNext, onBack, onReset }) {
+  const menuWeek = data.menuWeek ?? { offset: 0, startDayIdx: todayMondayIdx() };
+  const todayIdx = todayMondayIdx();
+
+  const setOffset = (offset) => {
+    const startDayIdx = offset === 0 ? todayIdx : 0;
+    setData((d) => ({ ...d, menuWeek: { offset, startDayIdx } }));
+  };
+
+  const setStartDayIdx = (idx) => {
+    setData((d) => ({ ...d, menuWeek: { ...menuWeek, startDayIdx: idx } }));
+  };
+
+  const weeks = [
+    { offset: 0, label: "Esta semana", sub: weekLabel(0) },
+    { offset: 1, label: "Semana que viene", sub: weekLabel(1) },
+    { offset: 2, label: "En 2 semanas", sub: weekLabel(2) },
+  ];
+
+  const chipStyle = (selected) => ({
+    flex: 1,
+    padding: "14px 10px",
+    borderRadius: 14,
+    border: `2px solid ${selected ? "#2d5a3d" : "transparent"}`,
+    background: selected ? "rgba(45,90,61,.08)" : "#f5f7f5",
+    cursor: "pointer",
+    textAlign: "center",
+    transition: "all .15s ease",
+  });
+
+  const dayBtnStyle = (selected, disabled) => ({
+    padding: "10px 0",
+    borderRadius: 10,
+    border: `2px solid ${selected ? "#2d5a3d" : "transparent"}`,
+    background: selected ? "rgba(45,90,61,.08)" : disabled ? "#f0f0f0" : "#f5f7f5",
+    color: disabled ? "#bbb" : selected ? "#1a3a24" : "#444",
+    cursor: disabled ? "not-allowed" : "pointer",
+    fontSize: 13,
+    fontWeight: selected ? 700 : 500,
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: 2,
+    flex: 1,
+    opacity: disabled ? 0.5 : 1,
+    transition: "all .15s ease",
+  });
+
+  const activeDays = menuWeek.offset === 0
+    ? WEEK_DAY_LABELS.filter((_, i) => i >= todayIdx)
+    : WEEK_DAY_LABELS;
+
+  return (
+    <OnboardingShell
+      title="¿Para cuándo quieres el menú?"
+      subtitle="Elige la semana y el día de inicio"
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      nextLabel="Continuar"
+    >
+      {/* Week selector */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 28 }}>
+        {weeks.map(({ offset, label, sub }) => {
+          const sel = menuWeek.offset === offset;
+          return (
+            <div
+              key={offset}
+              onClick={() => setOffset(offset)}
+              style={{
+                padding: "16px 18px",
+                borderRadius: 14,
+                border: `2px solid ${sel ? "#2d5a3d" : "transparent"}`,
+                background: sel ? "rgba(45,90,61,.08)" : "#f5f7f5",
+                cursor: "pointer",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                transition: "all .15s ease",
+              }}
+            >
+              <div>
+                <div style={{ fontWeight: 700, color: "#1a3a24", fontSize: 15 }}>{label}</div>
+                <div style={{ color: "#888", fontSize: 12, marginTop: 2 }}>{sub}</div>
+              </div>
+              {sel && (
+                <span style={{
+                  width: 20, height: 20, borderRadius: 999,
+                  background: "#2d5a3d", display: "inline-flex",
+                  alignItems: "center", justifyContent: "center",
+                }}>
+                  <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+                    <path d="M1 4l3 3 6-6" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Day selector — only shown for current week */}
+      {menuWeek.offset === 0 && (
+        <div>
+          <p style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", margin: "0 0 10px" }}>
+            ¿Desde qué día empezamos?
+          </p>
+          <div style={{ display: "flex", gap: 6 }}>
+            {WEEK_DAY_LABELS.map((d, i) => {
+              const disabled = i < todayIdx;
+              const selected = menuWeek.startDayIdx === i && !disabled;
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => !disabled && setStartDayIdx(i)}
+                  style={dayBtnStyle(selected, disabled)}
+                >
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>{d}</span>
+                  {i === todayIdx && (
+                    <span style={{ fontSize: 9, color: "#2d5a3d", fontWeight: 800 }}>Hoy</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {activeDays.length < 7 && (
+            <p style={{ fontSize: 12, color: "#888", margin: "10px 0 0" }}>
+              El menú tendrá {activeDays.length} día{activeDays.length !== 1 ? "s" : ""}: {activeDays.join(", ")}
+            </p>
+          )}
+        </div>
+      )}
+    </OnboardingShell>
+  );
+}
+
 export function OnboardingBudget({ data, setData, onBack, onFinish, onReset }) {
   const supers = ["Mercadona", "Carrefour", "Lidl", "Dia", "Alcampo", "Otro"];
   const toggle = (s) =>

@@ -46,6 +46,8 @@ import {
   calendarDayNumber,
   formatWeekRangeLabel,
   getWeekDates,
+  getWeekDatesByMenuWeek,
+  todayDayIdx,
 } from "../lib/weekCalendar.js";
 
 const ICONS_BY_TYPE = {
@@ -59,6 +61,24 @@ const ICONS_BY_TYPE = {
   soup: Soup,
   chef: ChefHat,
 };
+
+/** Fixed avatar palette — one distinct color per member slot (index-based). */
+const AVATAR_PALETTE = [
+  "#2d5a3d", // forest green
+  "#c0392b", // ruby
+  "#1565c0", // cobalt
+  "#f57f17", // amber
+  "#6a1b9a", // plum
+  "#00838f", // teal
+  "#ad1457", // crimson rose
+  "#4e342e", // bark brown
+];
+
+/** Returns a deterministic avatar color for a member by their index in the members array. */
+function memberAvatarColor(memberId, allMembers) {
+  const idx = allMembers.findIndex((m) => m.id === memberId);
+  return AVATAR_PALETTE[(idx < 0 ? 0 : idx) % AVATAR_PALETTE.length];
+}
 
 function tagPalette(recipe) {
   return paletteForRecipe(recipe);
@@ -471,8 +491,7 @@ function MenuFilterPanel({
           }}
         >
           {members.map((member) => {
-            const group = groupForMember(member.id, groups);
-            const color = group?.color ?? "#2d5a3d";
+            const color = memberAvatarColor(member.id, members);
             const active = memberScope === member.id;
             return (
               <PersonScopeCircle
@@ -1007,6 +1026,7 @@ function DishCard({
   courseLabel = null,
   showDivider = true,
   eaterMembers = null,
+  allMembers = [],
   groups = [],
   group = null,
   showGroupBadge = false,
@@ -1144,7 +1164,7 @@ function DishCard({
                 }}
               >
                 {eaterMembers.map((member) => {
-                  const color = groupForMember(member.id, groups)?.color ?? "#2d5a3d";
+                  const color = memberAvatarColor(member.id, allMembers);
                   return (
                     <PersonInitialBadge
                       key={member.id}
@@ -1187,10 +1207,18 @@ export const MenuScreen = memo(function MenuScreen({
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
     const idx = jsDay === 0 ? 6 : jsDay - 1;
+    if (data.menuWeek?.offset === 0) {
+      return DAYS[Math.max(idx, data.menuWeek.startDayIdx ?? idx)];
+    }
     return DAYS[Math.min(idx, 6)];
   });
 
-  const weekDates = useMemo(() => getWeekDates(), []);
+  const { dates: weekDates, activeDays } = useMemo(() => {
+    if (data.menuWeek) return getWeekDatesByMenuWeek(data.menuWeek);
+    // Fallback: current week starting from today
+    const startDayIdx = todayDayIdx();
+    return getWeekDatesByMenuWeek({ offset: 0, startDayIdx });
+  }, [data.menuWeek]);
   const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates), [weekDates]);
   const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
   const multiGroup = data.groups.length > 1;
@@ -1356,7 +1384,7 @@ export const MenuScreen = memo(function MenuScreen({
           }}
         >
           <div style={{ display: "flex", alignItems: "flex-end", padding: "4px 12px 16px", gap: 2 }}>
-            {DAYS.map((day) => {
+            {activeDays.map((day) => {
               const meals = getMeals(data);
               const hasDot = meals.some((meal) =>
                 visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
@@ -1414,7 +1442,7 @@ export const MenuScreen = memo(function MenuScreen({
                   : "menuViewFromRight .28s cubic-bezier(.4,0,.2,1) both",
           }}
         >
-          {(viewMode === "dia" ? [selectedDay] : DAYS).map((day) => {
+          {(viewMode === "dia" ? [selectedDay] : activeDays).map((day) => {
             const members = data.members ?? [];
             const schedule = data.schedule ?? {};
             const meals = getMeals(data);
@@ -1476,6 +1504,7 @@ export const MenuScreen = memo(function MenuScreen({
                               courseLabel={card.dish.course}
                               showDivider={idx < cards.length - 1}
                               eaterMembers={showEaters ? slotEaters : null}
+                              allMembers={members}
                               groups={data.groups}
                               group={card.group}
                               showGroupBadge={multiGroup && scope === "all"}

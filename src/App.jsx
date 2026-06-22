@@ -7,6 +7,7 @@ import {
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
+  OnboardingWeek,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
@@ -65,6 +66,8 @@ const INITIAL_DATA = {
   hasBudget: false,
   budget: 80,
   supermarkets: [],
+  // menuWeek: { offset: 0=current/1=next/2=in2weeks, startDayIdx: 0-6 (Mon-Sun) }
+  menuWeek: null,
 };
 
 function migrate(state) {
@@ -452,8 +455,8 @@ export default function App() {
     setScreen("splash");
   }, []);
 
-  // Order: Members → Restrictions → Menu Model → School Menu → Schedule → Goals → Cooking.
-  const ONB_STEP_COUNT = 6;
+  // Order: Members → Restrictions → Menu Model → School Menu → Week → Schedule → Cooking.
+  const ONB_STEP_COUNT = 7;
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
   const onbProgressValue = useMemo(
     () => ({ current: safeOnbStep, total: ONB_STEP_COUNT, onJump: setOnbStep }),
@@ -496,18 +499,25 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingSchedule
+    <OnboardingWeek
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(5))}
       onBack={() => back(() => setOnbStep(3))}
+      onReset={handleReset}
+    />,
+    <OnboardingSchedule
+      data={data}
+      setData={setData}
+      onNext={() => fwd(() => setOnbStep(6))}
+      onBack={() => back(() => setOnbStep(4))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onBack={() => back(() => setOnbStep(4))}
+      onBack={() => back(() => setOnbStep(5))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
