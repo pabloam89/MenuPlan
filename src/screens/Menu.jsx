@@ -1,13 +1,16 @@
-import { memo, useEffect, useMemo, useState } from "react";
+import { memo, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
+  Blend,
   BookOpen,
   BookOpenCheck,
   ChefHat,
+  ChevronDown,
   Clock3,
   CircleHelp,
   Coffee,
   Download,
+  Droplets,
   Drumstick,
   Egg,
   Fish,
@@ -15,6 +18,7 @@ import {
   Gauge,
   Leaf,
   Loader2,
+  Microwave,
   Moon,
   RotateCw,
   Shell,
@@ -29,6 +33,7 @@ import {
   Wand2,
   Wheat,
   X,
+  Zap,
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -42,6 +47,12 @@ import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey } from "../lib/planner.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
+import {
+  APPLIANCE_LABELS,
+  APPLIANCE_COLORS,
+  selectMethodForRecipe,
+  methodDifficultyLabel,
+} from "../lib/applianceMethods.js";
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
@@ -60,6 +71,16 @@ const ICONS_BY_TYPE = {
   greens: Leaf,
   soup: Soup,
   chef: ChefHat,
+};
+
+/** Lucide icon per appliance method. */
+const APPLIANCE_ICONS = {
+  airfryer: Zap,
+  horno: Flame,
+  thermomix: Blend,
+  vaporera: Droplets,
+  olla_express: Gauge,
+  microondas: Microwave,
 };
 
 
@@ -1013,6 +1034,7 @@ function DishCard({
   groups = [],
   group = null,
   showGroupBadge = false,
+  kitchenTools = [],
 }) {
   if (!slot) {
     return (
@@ -1027,6 +1049,8 @@ function DishCard({
 
   const palette = tagPalette(recipe);
   const allergenItems = resolveRecipeAllergens(recipe.allergens);
+  const method = selectMethodForRecipe(recipe, kitchenTools);
+  const MethodIcon = method ? APPLIANCE_ICONS[method.appliance] : null;
 
   return (
     <button
@@ -1095,8 +1119,27 @@ function DishCard({
             }}
           >
             <Clock3 size={13} strokeWidth={2.2} />
-            {recipe.time} min
+            {method ? method.time : recipe.time} min
           </span>
+          {method && MethodIcon && (
+            <span
+              title={APPLIANCE_LABELS[method.appliance]}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
+                fontSize: 11,
+                fontWeight: 800,
+                color: APPLIANCE_COLORS[method.appliance],
+                background: `${APPLIANCE_COLORS[method.appliance]}14`,
+                padding: "2px 7px",
+                borderRadius: 999,
+              }}
+            >
+              <MethodIcon size={12} strokeWidth={2.4} />
+              {APPLIANCE_LABELS[method.appliance]}
+            </span>
+          )}
           {slot.mode === "tupper" && (
             <span
               style={{
@@ -1342,7 +1385,7 @@ export const MenuScreen = memo(function MenuScreen({
       </div>
 
       {/* ── Second divider: end of nav zone ── */}
-      <div style={{ height: 3, background: "linear-gradient(to bottom, #e0eae3, #f7f9f7)" }} />
+      <div style={{ height: 1, background: "#e8eee9" }} />
 
       {isGenerating && <GeneratingSkeleton onStop={onStop} />}
 
@@ -1491,6 +1534,7 @@ export const MenuScreen = memo(function MenuScreen({
                               groups={data.groups}
                               group={card.group}
                               showGroupBadge={multiGroup && scope === "all"}
+                              kitchenTools={data.kitchenTools ?? []}
                               onTap={() =>
                                 onDishTap({
                                   recipe: RECIPES_BY_ID[card.dish.recipeId],
@@ -1833,38 +1877,126 @@ function EmptyState({ onRegenerate }) {
   );
 }
 
-export function DishDetail({ recipe, slot, onClose, onReject }) {
+export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject }) {
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
-  // Las recetas IA llegan sin steps (se generan bajo demanda para acortar la
-  // generación del menú); las del catálogo estático ya los traen.
+  const [ingredientsOpen, setIngredientsOpen] = useState(false);
+  // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
+  // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
   const [steps, setSteps] = useState(() => recipe.steps ?? []);
   const [stepsLoading, setStepsLoading] = useState(
     () => (recipe.steps?.length ?? 0) === 0
   );
+  const stepsCacheRef = useRef({});
   const ingredients = scaledIngredients(recipe, slot.eaters);
   const macros = recipe.macros;
+  const selectedMethod = selectMethodForRecipe(recipe, kitchenTools);
+
+  // Opciones de preparación: la tradicional (base) + cada electrodoméstico.
+  // El usuario elige el método activo y solo se muestra esa receta.
+  const methodOptions = useMemo(() => {
+    const base = {
+      appliance: "base",
+      label: "Tradicional",
+      time: recipe.time,
+      difficultyLabel: recipe.difficulty,
+      prepSummary: recipe.prepSummary,
+    };
+    const others = (recipe.methods ?? []).map((m) => ({
+      appliance: m.appliance,
+      label: APPLIANCE_LABELS[m.appliance] ?? m.appliance,
+      time: m.time,
+      difficultyLabel: methodDifficultyLabel(m.difficulty),
+      prepSummary: m.prepSummary || recipe.prepSummary,
+    }));
+    return [base, ...others];
+  }, [recipe]);
+
+  const [activeAppliance, setActiveAppliance] = useState(
+    () => selectedMethod?.appliance ?? "base",
+  );
+  const activeMethod =
+    methodOptions.find((o) => o.appliance === activeAppliance) ?? methodOptions[0];
+
+  const TITLE_GREEN = "#2d5a3d";
 
   useEffect(() => {
-    if ((recipe.steps?.length ?? 0) > 0) return undefined;
     let active = true;
     const ctrl = new AbortController();
-    generateRecipeSteps(recipe, { signal: ctrl.signal })
-      .then((s) => {
-        recipe.steps = s;
+
+    const cached = stepsCacheRef.current[activeAppliance];
+    if (cached) {
+      setSteps(cached);
+      setStepsLoading(false);
+      return undefined;
+    }
+
+    // Método tradicional (base): usa los pasos del catálogo o los genera (recetas IA).
+    if (activeAppliance === "base") {
+      if ((recipe.steps?.length ?? 0) > 0) {
+        stepsCacheRef.current.base = recipe.steps;
+        setSteps(recipe.steps);
+        setStepsLoading(false);
+        return undefined;
+      }
+      setStepsLoading(true);
+      generateRecipeSteps(recipe, { signal: ctrl.signal })
+        .then((s) => {
+          recipe.steps = s;
+          stepsCacheRef.current.base = s;
+          if (active) {
+            setSteps(s);
+            setStepsLoading(false);
+          }
+        })
+        .catch(() => {
+          if (active) setStepsLoading(false);
+        });
+      return () => {
+        active = false;
+        ctrl.abort();
+      };
+    }
+
+    // Método por electrodoméstico: pasos adaptados (caché Redis en el servidor).
+    setStepsLoading(true);
+    const method = (recipe.methods ?? []).find((m) => m.appliance === activeAppliance);
+    fetch("/api/recipe-steps", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        recipeId: recipe.id,
+        appliance: activeAppliance,
+        name: recipe.name,
+        ingredients: (recipe.ingredients ?? []).map((i) => i.name),
+        baseSteps: recipe.steps ?? [],
+        prepSummary: method?.prepSummary ?? "",
+        time: method?.time,
+      }),
+      signal: ctrl.signal,
+    })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((data) => {
+        const s = Array.isArray(data?.steps) ? data.steps : [];
+        if (s.length > 0) stepsCacheRef.current[activeAppliance] = s;
         if (active) {
-          setSteps(s);
+          setSteps(s.length > 0 ? s : recipe.steps ?? []);
           setStepsLoading(false);
         }
       })
       .catch(() => {
-        if (active) setStepsLoading(false);
+        // Fallback: muestra los pasos tradicionales si la generación falla.
+        if (active) {
+          setSteps(recipe.steps ?? []);
+          setStepsLoading(false);
+        }
       });
+
     return () => {
       active = false;
       ctrl.abort();
     };
-  }, [recipe]);
+  }, [recipe, activeAppliance]);
 
   return (
     <div className="mp-overlay-in" style={detailOverlayStyle} onClick={onClose}>
@@ -1881,81 +2013,167 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
               <Users size={12} /> {slot.eaters} comensales
             </span>
             <span style={detailTagStyle}>
-              <Clock3 size={12} /> {recipe.time} min
+              <Clock3 size={12} /> {activeMethod.time} min
             </span>
             <span style={detailTagStyle}>
-              <Gauge size={12} /> {recipe.difficulty}
+              <Gauge size={12} /> {activeMethod.difficultyLabel}
             </span>
           </div>
 
-          <section style={macroCardStyle}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-              <Flame size={17} color="#c67030" />
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 900, color: "#15331c" }}>
-                  Perfil nutricional
-                </div>
-                <div style={{ fontSize: 11, color: "#8a948d" }}>{recipe.kcal} kcal por ración</div>
-              </div>
+          {recipe.allergens.length > 0 && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
+              marginBottom: 14,
+              padding: "12px 15px",
+              borderRadius: 16,
+              background: "#fff",
+              border: "2px solid #2d5a3d",
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 800, color: TITLE_GREEN, letterSpacing: ".4px", textTransform: "uppercase", marginRight: 2 }}>
+                Alérgenos
+              </span>
+              {resolveRecipeAllergens(recipe.allergens).map(({ id, Icon, label, color }) => (
+                <span key={id} style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  color, fontSize: 12, fontWeight: 700,
+                }}>
+                  <Icon size={14} strokeWidth={2.2} />
+                  {label}
+                </span>
+              ))}
             </div>
-            {[
-              ["Proteína", macros.protein, "#5a7ea8"],
-              ["Carbohidratos", macros.carbs, "#c67030"],
-              ["Grasas", macros.fat, "#8b6f35"],
-            ].map(([label, value, color]) => (
-              <div key={label} style={{ marginBottom: 10 }}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    fontSize: 11,
-                    fontWeight: 800,
-                    color: "#526057",
-                    marginBottom: 5,
-                  }}
-                >
-                  <span>{label}</span>
-                  <span>{value}g</span>
+          )}
+
+          <section style={{ ...macroCardStyle, border: "2px solid #2d5a3d" }}>
+            {/* kcal header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 16 }}>
+              <Flame size={15} color={TITLE_GREEN} />
+              <span style={{ fontSize: 13, fontWeight: 900, color: TITLE_GREEN }}>
+                {recipe.kcal} kcal
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: TITLE_GREEN }}>por ración</span>
+            </div>
+            {/* Macro circles */}
+            <div style={{ display: "flex", gap: 10, justifyContent: "space-around" }}>
+              {[
+                { label: "Proteína",      value: macros.protein, color: "#3b82f6" },
+                { label: "Carbohidratos", value: macros.carbs,   color: "#f97316" },
+                { label: "Grasas",        value: macros.fat,     color: "#eab308" },
+              ].map(({ label, value, color }) => (
+                <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
+                  <div style={{
+                    width: 66, height: 66, borderRadius: "50%",
+                    background: "#fff",
+                    border: `3.5px solid ${color}`,
+                    boxShadow: `0 2px 12px ${color}28`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <span style={{ fontSize: 16, fontWeight: 900, color: "#142f1d", lineHeight: 1 }}>
+                      {value}<span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>g</span>
+                    </span>
+                  </div>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#7a8a7f", textAlign: "center", maxWidth: 64 }}>{label}</span>
                 </div>
-                <div
-                  style={{
-                    height: 6,
-                    borderRadius: 999,
-                    background: "#edf2ee",
-                    overflow: "hidden",
-                  }}
-                >
-                  <div
-                    style={{
-                      width: `${Math.min(100, Number(value) * 1.45)}%`,
-                      height: "100%",
-                      borderRadius: 999,
-                      background: color,
-                    }}
-                  />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </section>
 
           <section style={recipeBlockStyle}>
             <div style={sectionTitleStyle}>
               <BookOpen size={16} /> Receta
             </div>
-            <p style={{ fontSize: 13, color: "#66736b", margin: "0 0 14px", lineHeight: 1.5 }}>
-              {recipe.prepSummary}
-            </p>
-            <div style={{ fontSize: 12, fontWeight: 900, color: "#15331c", marginBottom: 8 }}>
-              Ingredientes ajustados
-            </div>
-            <div style={{ display: "grid", gap: 7, marginBottom: 16 }}>
-              {ingredients.map((ing) => (
-                <div key={ing.id} style={ingredientRowStyle}>
-                  <span>{ing.name}</span>
-                  <strong>{ing.label}</strong>
+
+            {methodOptions.length > 1 && (
+              <>
+                <div style={{
+                  display: "flex", gap: 3,
+                  background: "#f0f4f1", borderRadius: 12, padding: 3,
+                  margin: "0 0 8px",
+                }}>
+                  {methodOptions.map((o) => {
+                    const isActive = o.appliance === activeAppliance;
+                    const isYours = o.appliance === selectedMethod?.appliance;
+                    const Icon = o.appliance === "base" ? ChefHat : APPLIANCE_ICONS[o.appliance];
+                    const aColor = o.appliance === "base" ? TITLE_GREEN : (APPLIANCE_COLORS[o.appliance] ?? TITLE_GREEN);
+                    return (
+                      <button
+                        key={o.appliance}
+                        type="button"
+                        onClick={() => setActiveAppliance(o.appliance)}
+                        style={{
+                          position: "relative",
+                          flex: 1, minWidth: 0,
+                          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
+                          padding: "8px 6px", borderRadius: 9, border: "none",
+                          background: isActive ? "#fff" : "transparent",
+                          color: isActive ? "#142f1d" : "#7a8a7f",
+                          fontSize: 12, fontWeight: 800,
+                          cursor: "pointer", fontFamily: "inherit",
+                          boxShadow: isActive ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                          transition: "all .15s ease",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {Icon && <Icon size={13} color={isActive ? aColor : "#9aa89f"} strokeWidth={2.4} />}
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{o.label}</span>
+                        {isYours && (
+                          <span style={{
+                            position: "absolute", top: 4, right: 5,
+                            width: 6, height: 6, borderRadius: "50%",
+                            background: aColor,
+                          }} />
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+                {selectedMethod && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: 5,
+                    fontSize: 10, fontWeight: 700, color: "#9aa89f",
+                    margin: "0 0 12px",
+                  }}>
+                    <span style={{
+                      width: 6, height: 6, borderRadius: "50%",
+                      background: APPLIANCE_COLORS[selectedMethod.appliance] ?? TITLE_GREEN,
+                    }} />
+                    Recomendado para tu cocina
+                  </div>
+                )}
+              </>
+            )}
+
+            <button
+              type="button"
+              onClick={() => setIngredientsOpen((o) => !o)}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                width: "100%", padding: 0, border: "none", background: "none",
+                cursor: "pointer", fontFamily: "inherit",
+                marginBottom: ingredientsOpen ? 8 : 16,
+              }}
+            >
+              <span style={{ fontSize: 12, fontWeight: 900, color: "#15331c" }}>
+                Ingredientes ajustados{" "}
+                <span style={{ color: "#9aa89f", fontWeight: 800 }}>({ingredients.length})</span>
+              </span>
+              <ChevronDown
+                size={16}
+                color="#15331c"
+                strokeWidth={2.4}
+                style={{ transform: ingredientsOpen ? "rotate(180deg)" : "none", transition: "transform .2s ease" }}
+              />
+            </button>
+            {ingredientsOpen && (
+              <div style={{ display: "grid", gap: 7, marginBottom: 16 }}>
+                {ingredients.map((ing) => (
+                  <div key={ing.id} style={ingredientRowStyle}>
+                    <span>{ing.name}</span>
+                    <strong>{ing.label}</strong>
+                  </div>
+                ))}
+              </div>
+            )}
             <div style={{ fontSize: 12, fontWeight: 900, color: "#15331c", marginBottom: 8 }}>
               Paso a paso
             </div>
@@ -1993,64 +2211,67 @@ export function DishDetail({ recipe, slot, onClose, onReject }) {
             )}
           </section>
 
-          {recipe.allergens.length > 0 && (
-            <div
-              style={{
-                fontSize: 12,
-                color: "#526057",
-                marginBottom: 14,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
-            >
-              {resolveRecipeAllergens(recipe.allergens).map(({ id, Icon, label, color }) => (
-                <span
-                  key={id}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    color,
-                    fontWeight: 700,
-                  }}
-                >
-                  <Icon size={14} strokeWidth={2.2} />
-                  {label}
-                </span>
-              ))}
+          {/* Swap section */}
+          <div style={{
+            borderRadius: 16,
+            border: "2px solid #2d5a3d",
+            padding: "14px 15px",
+            marginBottom: 16,
+          }}>
+            {/* Title */}
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+              <RotateCw size={15} color={TITLE_GREEN} />
+              <span style={{ fontSize: 13, fontWeight: 900, color: TITLE_GREEN }}>
+                Cambiar este plato
+              </span>
             </div>
-          )}
+            {/* 2×2 grid chips */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+              {rejectReasons.map((r) => {
+                const sel = rejected === r;
+                return (
+                  <button
+                    key={r}
+                    type="button"
+                    onClick={() => setRejected(sel ? null : r)}
+                    style={{
+                      padding: "10px 8px",
+                      borderRadius: 12,
+                      border: `1.5px solid ${sel ? "#4cba6e" : "#d6e6db"}`,
+                      background: sel ? "rgba(76,186,110,.08)" : "#fff",
+                      color: sel ? "#1a3a24" : "#7a8a7f",
+                      fontSize: 12, fontWeight: 700,
+                      cursor: "pointer", fontFamily: "inherit",
+                      textAlign: "center",
+                      transition: "all .15s ease",
+                    }}
+                  >
+                    {r}
+                  </button>
+                );
+              })}
+            </div>
 
-          <div style={{ marginBottom: 16 }}>
-            <div style={{ fontSize: 13, fontWeight: 900, color: "#1a3a24", marginBottom: 10 }}>
-              ¿No te convence?
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-              {rejectReasons.map((r) => (
-                <Chip
-                  key={r}
-                  label={r}
-                  selected={rejected === r}
-                  onClick={() => setRejected(rejected === r ? null : r)}
-                />
-              ))}
-            </div>
+            {rejected && (
+              <button
+                type="button"
+                onClick={() => { onReject(slot, rejected); onClose(); }}
+                style={{
+                  width: "100%", padding: "12px",
+                  borderRadius: 12, border: "none",
+                  background: "#2d5a3d", color: "#fff",
+                  fontSize: 13, fontWeight: 900,
+                  cursor: "pointer", fontFamily: "inherit",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  boxShadow: "0 4px 14px rgba(45,90,61,.25)",
+                  marginTop: 10,
+                }}
+              >
+                <RotateCw size={14} />
+                Sustituir plato
+              </button>
+            )}
           </div>
-
-          {rejected && (
-            <button
-              type="button"
-              onClick={() => {
-                onReject(slot, rejected);
-                onClose();
-              }}
-              style={replaceButtonStyle}
-            >
-              Sustituir plato
-            </button>
-          )}
         </div>
       </div>
     </div>
@@ -2174,7 +2395,7 @@ const recipeBlockStyle = {
   borderRadius: 16,
   padding: "14px 15px",
   background: "#fff",
-  border: "1px solid #e8eee9",
+  border: "2px solid #2d5a3d",
   marginBottom: 14,
 };
 

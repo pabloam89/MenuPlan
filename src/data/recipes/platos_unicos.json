@@ -67,7 +67,15 @@
       "Verter agua caliente con azafrán y cocer 20 min",
       "Añadir arroz, distribuir y cocer 18 min sin remover"
     ],
-    "description": "Paella valenciana de pollo con judías verdes y garrofón"
+    "description": "Paella valenciana de pollo con judías verdes y garrofón",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Comienza dorando el pollo y las verduras en una paellera sobre la encimera. Añade el tomate, pimentón y arroz, luego el caldo con azafrán. Tras un hervor, hornea a 180°C durante 20-25 minutos hasta que el arroz absorba el líquido, logrando una cocción uniforme."
+      }
+    ]
   },
   {
     "id": "platos_unicos_002",
@@ -132,7 +140,21 @@
       "Estirar la masa, cubrir con tomate y mozzarella",
       "Hornear a 230°C durante 10 min"
     ],
-    "description": "Pizza casera con masa fina, tomate y mozzarella"
+    "description": "Pizza casera con masa fina, tomate y mozzarella",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa siguiendo la receta y estírala sobre una bandeja. Hornea la pizza en un horno precalentado a 200-220°C durante 15-20 minutos, hasta que la base esté dorada y el queso burbujeante y fundido."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Amasa y forma una o varias pizzas pequeñas que quepan en la cesta de la airfryer. Cocínalas en la airfryer precalentada a 180-190°C durante 10-15 minutos, vigilando que la masa quede crujiente y el queso bien fundido."
+      }
+    ]
   },
   {
     "id": "platos_unicos_003",
@@ -207,7 +229,27 @@
       "Formar croquetas y pasar por huevo y pan rallado",
       "Freír en aceite caliente hasta dorar"
     ],
-    "description": "Croquetas cremosas de bechamel con jamón serrano"
+    "description": "Croquetas cremosas de bechamel con jamón serrano",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es ideal para la bechamel: funde la mantequilla, sofríe la harina y añade la leche progresivamente a 90°C, velocidad 4, durante unos 7-8 minutos hasta obtener una crema perfecta y sin grumos. Luego, se enfría la masa, se forman las croquetas y se fríen de forma tradi"
+      },
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Una vez formadas y empanadas las croquetas, rocíalas ligeramente con aceite de oliva y cocínalas en la airfryer precalentada a 190-200°C durante 12-15 minutos, dándoles la vuelta a mitad de cocción, hasta que estén doradas y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Para una versión más ligera, hornea las croquetas ya empanadas. Precalienta el horno a 200°C con calor arriba y abajo, rocía las croquetas con un poco de aceite y hornea durante 20-25 minutos, girándolas una vez, hasta que estén doradas."
+      }
+    ]
   },
   {
     "id": "platos_unicos_004",
@@ -277,7 +319,21 @@
       "Estirar la masa, rellenar y cerrar con otra capa",
       "Pintar con huevo y hornear a 190°C 30 min"
     ],
-    "description": "Empanada gallega de masa casera rellena de atún y pimiento"
+    "description": "Empanada gallega de masa casera rellena de atún y pimiento",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa y el relleno. Hornea la empanada a 180-190°C durante 35-40 minutos, o hasta que esté dorada y crujiente. Un truco es pintar con huevo batido para un acabado brillante."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Elabora la masa y el relleno. Forma una empanada de tamaño adecuado para tu airfryer y cocina a 170-180°C durante 20-25 minutos, volteándola a mitad, hasta que esté dorada. Asegúrate de no sobrecargar la cesta."
+      }
+    ]
   },
   {
     "id": "platos_unicos_005",
@@ -347,7 +403,21 @@
       "Rellenar las obleas y cerrar con tenedor",
       "Freír en aceite caliente u hornear a 200°C 15 min"
     ],
-    "description": "Empanadillas rellenas de atún con pimiento y huevo"
+    "description": "Empanadillas rellenas de atún con pimiento y huevo",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el sofrito en sartén. Rellena las obleas y cocina en la airfryer precalentada a 180-190°C durante 12-15 minutos, dándoles la vuelta a mitad para un dorado uniforme y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Elabora el sofrito en una sartén. Rellena las obleas, séllalas y píntalas con huevo o aceite antes de hornear a 190-200°C durante 15-20 minutos, hasta que estén doradas y crujientes."
+      }
+    ]
   },
   {
     "id": "platos_unicos_006",
@@ -412,7 +482,21 @@
       "Rellenar con jamón y queso",
       "Doblar y calentar para fundir el queso"
     ],
-    "description": "Crepes finas rellenas de jamón cocido y queso fundido"
+    "description": "Crepes finas rellenas de jamón cocido y queso fundido",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es perfecta para preparar la masa de los crepes de forma rápida y sin grumos. Mezcla todos los ingredientes (harina, huevos, leche, mantequilla derretida) durante 30 segundos a velocidad 5. Luego, cocina los crepes en una sartén tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Tras cocinar los crepes en sartén y rellenarlos con jamón y queso, colócalos en una fuente apta para horno. Gratina a 180°C durante 8-10 minutos hasta que el queso se funda y los crepes estén calientes y ligeramente dorados."
+      }
+    ]
   },
   {
     "id": "platos_unicos_007",
@@ -483,7 +567,21 @@
       "Batir huevos con nata y queso, mezclar con verduras",
       "Verter sobre la masa y hornear a 180°C 30 min"
     ],
-    "description": "Quiche de masa quebrada con calabacín, puerro y queso"
+    "description": "Quiche de masa quebrada con calabacín, puerro y queso",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 180°C. Hornea la masa quebrada unos minutos en blanco, luego añade el relleno de verduras sofritas con huevo, nata y queso. Hornea durante 45-50 minutos hasta que esté dorado y cuajado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Utiliza un molde apto para airfryer que quepa bien. Precalienta a 170°C. Cocina la masa quebrada unos 5-7 minutos, luego vierte el relleno y hornea por 30-35 minutos, vigilando que no se dore demasiado rápido por encima."
+      }
+    ]
   },
   {
     "id": "platos_unicos_008",
@@ -546,7 +644,21 @@
       "Sofreír carne con cebolla y tomate, mezclar con pulpa",
       "Rellenar, añadir queso y gratinar 10 min"
     ],
-    "description": "Patatas asadas rellenas de carne picada gratinadas con queso"
+    "description": "Patatas asadas rellenas de carne picada gratinadas con queso",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Hornea las patatas enteras a 200°C hasta que estén tiernas (aprox. 40-50 min). Vacía la pulpa, mezcla con el sofrito de carne y cebolla, rellena las patatas, cubre con queso y gratina a 180°C durante 15-20 min hasta dorar."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas en la airfryer a 190°C durante 30-40 min hasta que estén tiernas. Vacía la pulpa, mezcla con el relleno de carne previamente cocinado, rellena las patatas, espolvorea queso y cocina en la airfryer a 180°C por 10-15 min hasta que el queso esté fundido y dorado."
+      }
+    ]
   },
   {
     "id": "platos_unicos_009",
@@ -609,7 +721,21 @@
       "Mezclar yogur con un poco de limón y sal",
       "Montar los wraps y enrollar"
     ],
-    "description": "Tortilla de trigo enrollada con pollo a la plancha y verduras"
+    "description": "Tortilla de trigo enrollada con pollo a la plancha y verduras",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la pechuga en tiras, rocía con aceite y cocina en la airfryer a 190°C durante 12-15 minutos, volteando a mitad, hasta que esté dorada y jugosa. Calienta las tortillas brevemente al final para que queden flexibles."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Hornea la pechuga de pollo cortada en tiras a 200°C durante 15-20 minutos, dándole la vuelta para que se dore uniformemente y quede cocida. Puedes calentar las tortillas en el horno durante los últimos minutos para ablandarlas."
+      }
+    ]
   },
   {
     "id": "platos_unicos_010",
@@ -685,7 +811,27 @@
       "Formar croquetas y empanar con huevo y pan rallado",
       "Freír en aceite caliente hasta dorar"
     ],
-    "description": "Croquetas cremosas de bechamel con bacalao desmigado"
+    "description": "Croquetas cremosas de bechamel con bacalao desmigado",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Una vez formadas y empanadas, las croquetas se cocinan en la airfryer a 195°C durante 12-15 minutos, rociadas ligeramente con aceite, hasta que estén doradas y crujientes, volteándolas a mitad de cocción."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Tras formar y empanar las croquetas, se hornean a 200°C durante 18-22 minutos en una bandeja con papel de horno y un poco de aceite, hasta que estén doradas y crujientes, volteándolas a mitad de cocción."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es ideal para cocer el bacalao y elaborar la bechamel de forma rápida y sin grumos. Una vez lista la masa de croquetas, se enfría, se forman y se fríen de la manera tradicional o se cocinan en airfryer/horno para el acabado final."
+      }
+    ]
   },
   {
     "id": "platos_unicos_011",
@@ -752,7 +898,15 @@
       "Añadir pimentón y el pan húmedo",
       "Remover a fuego medio hasta que las migas queden sueltas"
     ],
-    "description": "Migas de pan con chorizo, panceta y uvas"
+    "description": "Migas de pan con chorizo, panceta y uvas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe el chorizo y la panceta en el vaso, luego añade el ajo y pimentón. Incorpora el pan troceado y cocina a 120°C, velocidad cuchara, giro inverso, removiendo constantemente hasta que las migas estén sueltas y doradas."
+      }
+    ]
   },
   {
     "id": "platos_unicos_012",
@@ -818,7 +972,21 @@
       "Rellenar con el arroz y cubrir con tomate",
       "Hornear a 190°C 25 min"
     ],
-    "description": "Pimientos rojos rellenos de arroz con champiñones"
+    "description": "Pimientos rojos rellenos de arroz con champiñones",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito con cebolla, ajo, champiñones, arroz y tomate triturado. Rellena los pimientos partidos por la mitad y hornea a 180-190°C durante unos 45-50 minutos, hasta que los pimientos estén tiernos y el relleno ligeramente gratinado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el relleno en una sartén. Rellena los pimientos y colócalos en la cesta de la airfryer. Cocina a 170-180°C durante 30-35 minutos, girando a mitad de cocción y añadiendo un poco de agua en la base si es necesario para mantener la humedad y evitar que se sequen."
+      }
+    ]
   },
   {
     "id": "platos_unicos_013",
@@ -883,7 +1051,21 @@
       "Doblar y sellar los bordes con tenedor",
       "Hornear a 220°C 15 min hasta dorar"
     ],
-    "description": "Pizza cerrada rellena de tomate, mozzarella y jamón"
+    "description": "Pizza cerrada rellena de tomate, mozzarella y jamón",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 190-200°C. Hornea el calzone durante 35-40 minutos o hasta que esté bien dorado y el queso burbujee."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta la airfryer a 175-185°C. Cocina el calzone (o calzones pequeños) durante 25-30 minutos, volteándolo a mitad del tiempo para un dorado uniforme."
+      }
+    ]
   },
   {
     "id": "platos_unicos_014",
@@ -946,7 +1128,21 @@
       "Hacer los huevos a la plancha o poché",
       "Montar las tostas con aguacate, huevo y tomates cherry"
     ],
-    "description": "Tostadas de pan con aguacate machacado y huevo"
+    "description": "Tostadas de pan con aguacate machacado y huevo",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan a 190°C durante 4-5 minutos hasta que esté dorado. Para el huevo, fríelo en un molde apto para airfryer a 160°C durante 8-10 minutos, logrando una yema jugosa."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Tuesta las rebanadas de pan directamente en la rejilla durante 5-7 minutos. Para los huevos, hornéalos en cuencos individuales ligeramente engrasados durante 10-12 minutos hasta que la clara esté cuajada y la yema líquida."
+      }
+    ]
   },
   {
     "id": "platos_unicos_015",
@@ -1009,7 +1205,21 @@
       "Freír los huevos con la yema líquida",
       "Servir patatas con salsa y huevo encima"
     ],
-    "description": "Patatas fritas en dados con salsa brava y huevo frito"
+    "description": "Patatas fritas en dados con salsa brava y huevo frito",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Para las patatas, córtalas en dados, rocía con aceite y pimentón, y cocínalas en la airfryer a 190°C durante 20-25 minutos, agitándolas a mitad para un dorado uniforme. La salsa y el huevo se preparan aparte en sartén mientras las patatas se cocinan."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Asa las patatas cortadas en dados con aceite y pimentón en el horno precalentado a 200°C durante 35-40 minutos, volteándolas para que doren por todos lados. Prepara la salsa brava y el huevo frito en la sartén mientras las patatas se hornean."
+      }
+    ]
   },
   {
     "id": "platos_unicos_016",
@@ -1067,7 +1277,33 @@
       "Abrir el pan y rellenar con la tortilla",
       "Presionar ligeramente y servir"
     ],
-    "description": "Bocadillo de pan crujiente con tortilla de patata jugosa"
+    "description": "Bocadillo de pan crujiente con tortilla de patata jugosa",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las patatas y cebolla en la airfryer a 180°C durante 15-20 minutos hasta que estén tiernas y doradas. Luego, mezcla con el huevo batido y cocina la tortilla en un molde apto para airfryer a 170°C durante 15-20 minutos, volteándola a mitad para un dorado uniforme."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Asa las patatas y cebolla cortadas en el horno a 190°C con un chorrito de aceite durante 20-25 minutos hasta que estén tiernas. Mezcla con el huevo batido y hornea en un molde a 180°C durante 20-25 minutos, hasta que cuaje y se dore ligeramente por encima."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las patatas y cebolla en el vaso con aceite. Luego, mezcla con los huevos batidos y cuaja la tortilla en el recipiente Varoma, usando un molde adecuado, durante 20-25 minutos a temperatura Varoma, velocidad 2, para una versión más ligera."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Cuece al vapor las patatas y cebolla troceadas hasta que estén tiernas (unos 20-25 minutos). Mezcla con los huevos batidos y cocina la mezcla en un molde apto para vaporera durante 20-25 minutos, hasta que esté completamente cuajada, obteniendo una tortilla más saludable."
+      }
+    ]
   },
   {
     "id": "platos_unicos_017",
@@ -1131,7 +1367,27 @@
       "Rellenar con pollo, arroz y queso",
       "Enrollar cerrando los extremos"
     ],
-    "description": "Burritos de tortilla de trigo con pollo, arroz y queso"
+    "description": "Burritos de tortilla de trigo con pollo, arroz y queso",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el pollo troceado y el pimiento a 180°C durante 15-18 min. Luego, rellena las tortillas y calienta los burritos montados en la airfryer a 180°C por 5-7 min para que se doren y el queso se funda."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Asa el pollo troceado y el pimiento en una bandeja a 200°C por 20-25 min. Rellena las tortillas y hornea los burritos a 180°C durante 10-12 min hasta que el queso se derrita y las tortillas estén ligeramente doradas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito de pimiento y cocina el pollo troceado en el vaso. Añade el arroz cocido para integrarlo y calentarlo, obteniendo un relleno jugoso. Las tortillas se calientan aparte."
+      }
+    ]
   },
   {
     "id": "platos_unicos_018",
@@ -1205,7 +1461,15 @@
       "Incorporar arroz, repartir y cocer 12 min",
       "Añadir gambas y mejillones, cocer 6 min más"
     ],
-    "description": "Paella de arroz con gambas, mejillones y sepia"
+    "description": "Paella de arroz con gambas, mejillones y sepia",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito y saltea el marisco en una paellera apta para horno en la encimera. Añade el arroz y el caldo caliente, luego hornea a 200°C durante 20-25 minutos para una cocción uniforme y un socarrat perfecto."
+      }
+    ]
   },
   {
     "id": "platos_unicos_019",
@@ -1263,7 +1527,21 @@
       "Doblar por la mitad y cocinar 2 min por lado",
       "Cortar en triángulos y servir"
     ],
-    "description": "Tortilla de trigo doblada con queso fundido, jamón y pimiento"
+    "description": "Tortilla de trigo doblada con queso fundido, jamón y pimiento",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina la quesadilla montada durante 10-12 minutos, dándole la vuelta a mitad de cocción, hasta que el queso se derrita y la tortilla esté dorada y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Hornea la quesadilla montada sobre papel de horno durante 10-12 minutos, hasta que el queso esté fundido y la tortilla ligeramente dorada y crujiente."
+      }
+    ]
   },
   {
     "id": "platos_unicos_020",
@@ -1331,6 +1609,20 @@
       "Hacer huecos en la salsa y cascar los huevos",
       "Tapar y cocer 5 min hasta que la clara cuaje"
     ],
-    "description": "Huevos escalfados en salsa de tomate con chorizo y pimiento"
+    "description": "Huevos escalfados en salsa de tomate con chorizo y pimiento",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, ajo y chorizo en una cazuela apta para horno. Incorpora el pimiento choricero y el tomate, cocina unos minutos. Haz huecos, casca los huevos y hornea a 180°C durante 10-15 minutos hasta que las claras estén cuajadas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Trocea y sofríe la cebolla y el ajo. Añade el chorizo, pimiento choricero y tomate triturado, y cocina la salsa a temperatura Varoma. Haz huecos en la salsa, casca los huevos y cocina a baja velocidad y temperatura suave hasta que cuajen."
+      }
+    ]
   }
 ]

@@ -51,7 +51,27 @@
       "Escurrir, mezclar con huevo batido y salpimentar",
       "Cuajar en sartén 3 min por cada lado"
     ],
-    "description": "Tortilla de patata con cebolla, jugosa por dentro"
+    "description": "Tortilla de patata con cebolla, jugosa por dentro",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las patatas y cebolla en la airfryer a 180°C durante 15-20 minutos hasta que estén tiernas. Luego, mezcla con el huevo batido y cuaja en un molde apto para airfryer a 180°C durante otros 15-20 minutos, dándole la vuelta a mitad para dorar ambos lados."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las patatas y cebolla en una sartén hasta que estén blandas. Mezcla con el huevo batido, vierte en un molde engrasado y hornea a 180°C durante 25-30 minutos hasta que esté cuajada y ligeramente dorada."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Pocha las patatas y cebolla en la Thermomix con aceite. Mezcla con los huevos batidos y cuaja la mezcla en un molde apto para Varoma, cocinándolo a temperatura Varoma durante 20-25 minutos para una tortilla jugosa y sin freír."
+      }
+    ]
   },
   {
     "id": "huevos_002",
@@ -93,7 +113,8 @@
       "Verter el huevo y cuajar 1 min por cada lado",
       "Doblar por la mitad y servir"
     ],
-    "description": "Tortilla francesa sencilla, cuajada por fuera y jugosa"
+    "description": "Tortilla francesa sencilla, cuajada por fuera y jugosa",
+    "methods": []
   },
   {
     "id": "huevos_003",
@@ -147,7 +168,21 @@
       "Colocar las patatas en plato, los huevos encima",
       "Romper las yemas y añadir el jamón en virutas"
     ],
-    "description": "Huevos fritos con yema líquida sobre patatas fritas y jamón"
+    "description": "Huevos fritos con yema líquida sobre patatas fritas y jamón",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en dados finos, rocíalas con un poco de aceite y sal, y cocínalas en la airfryer a 190°C durante 18-20 minutos, agitando a mitad. Fríe los huevos en una sartén aparte hasta que la clara cuaje y la yema quede líquida. Sirve las patatas con los huevos rotos y el j"
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en dados, mézclalas con aceite de oliva y sal, y extiéndelas en una bandeja de horno. Hornea a 200°C durante 25-30 minutos, hasta que estén tiernas y doradas. Retira, haz huecos y casca los huevos, horneando 5-8 minutos más hasta que la clara cuaje y la yema est"
+      }
+    ]
   },
   {
     "id": "huevos_004",
@@ -205,7 +240,15 @@
       "Remover suavemente hasta que cuajen cremosos",
       "Servir con perejil picado"
     ],
-    "description": "Revuelto cremoso de huevos con champiñones y ajo"
+    "description": "Revuelto cremoso de huevos con champiñones y ajo",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y los champiñones con el aceite a 120°C durante unos minutos. Luego, añade los huevos y cocina a 90°C con la mariposa o giro inverso hasta lograr una textura cremosa y jugosa."
+      }
+    ]
   },
   {
     "id": "huevos_005",
@@ -258,7 +301,15 @@
       "Verter los huevos batidos",
       "Remover a fuego suave hasta cuajar cremoso"
     ],
-    "description": "Revuelto cremoso de ajetes tiernos con gambas"
+    "description": "Revuelto cremoso de ajetes tiernos con gambas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe los ajetes y las gambas con el aceite a temperatura Varoma. Luego añade los huevos batidos y cocina a 90°C, velocidad cuchara, hasta obtener un revuelto cremoso y jugoso."
+      }
+    ]
   },
   {
     "id": "huevos_006",
@@ -311,7 +362,39 @@
       "Escurrir, mezclar con huevo batido y salpimentar",
       "Cuajar en sartén 3 min por cada lado"
     ],
-    "description": "Tortilla de calabacín y cebolla pochada"
+    "description": "Tortilla de calabacín y cebolla pochada",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras en una sartén o en la airfryer hasta que estén tiernas. Mezcla con el huevo batido y cocina en un molde apto para airfryer a 180°C durante 20-25 minutos, hasta que cuaje y dore."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofreír las verduras en una sartén apta para horno. Añadir los huevos batidos y hornear a 180°C durante 20-25 minutos hasta que la tortilla esté cuajada y ligeramente dorada."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Pochar la cebolla y el calabacín en el vaso con aceite. Mezclar con los huevos batidos y cocinar al vapor en el Varoma, en un molde engrasado, durante 20-25 minutos a temperatura Varoma."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cocer al vapor el calabacín y la cebolla hasta que estén tiernos. Mezclar con los huevos batidos y verter en un molde. Cocinar al vapor durante 20-25 minutos hasta que la tortilla esté cuajada."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocinar el calabacín y la cebolla en el microondas hasta que estén tiernos. Mezclar con los huevos batidos y cocinar en un recipiente apto para microondas a máxima potencia durante 8-10 minutos, parando y removiendo si es necesario, hasta que cuaje."
+      }
+    ]
   },
   {
     "id": "huevos_007",
@@ -354,7 +437,8 @@
       "Bañar la clara con aceite para que haga puntillas",
       "Retirar con la yema aún líquida"
     ],
-    "description": "Huevos fritos en abundante aceite con bordes crujientes"
+    "description": "Huevos fritos en abundante aceite con bordes crujientes",
+    "methods": []
   },
   {
     "id": "huevos_008",
@@ -407,7 +491,15 @@
       "Añadir huevos batidos",
       "Remover a fuego suave hasta cuajar cremoso"
     ],
-    "description": "Revuelto cremoso de huevos con espárragos trigueros"
+    "description": "Revuelto cremoso de huevos con espárragos trigueros",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Pica el ajo, sofríe con los espárragos y el aceite. Añade los huevos batidos y cocina a temperatura controlada con la mariposa para un revuelto cremoso."
+      }
+    ]
   },
   {
     "id": "huevos_009",
@@ -470,7 +562,21 @@
       "Cascar dos huevos en cada cazuelita",
       "Hornear a 200°C 10 min hasta que la clara cuaje"
     ],
-    "description": "Huevos horneados en cazuelita con tomate, jamón y guisantes"
+    "description": "Huevos horneados en cazuelita con tomate, jamón y guisantes",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. En cazuelitas individuales, vierte el tomate, guisantes, jamón y chorizo. Haz un hueco y casca el huevo. Hornea 15-20 minutos hasta que la clara esté cuajada y la yema líquida."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 170°C. En una cazuelita apta para airfryer, distribuye el tomate, guisantes, jamón y chorizo, y casca el huevo. Cocina durante 12-15 minutos hasta que la clara esté firme y la yema a tu gusto."
+      }
+    ]
   },
   {
     "id": "huevos_010",
@@ -528,7 +634,27 @@
       "Mezclar yemas con atún, mayonesa y pimiento picado",
       "Rellenar las claras y napar con tomate"
     ],
-    "description": "Huevos cocidos rellenos de atún y mayonesa con tomate"
+    "description": "Huevos cocidos rellenos de atún y mayonesa con tomate",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los huevos en el vaso con agua (13-15 min, Varoma/100°C, vel 1). Pela, retira las yemas y mézclalas con el atún y la mayonesa en el vaso (unos segundos, vel 4) para un relleno homogéneo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Cuece los huevos al vapor durante 12-15 minutos para que queden perfectos y fáciles de pelar. Luego, solo tienes que preparar el relleno manualmente y montar los huevos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los huevos en la olla express con un poco de agua durante 5-7 minutos a presión alta. Enfría rápidamente para facilitar el pelado y luego procede con el relleno manual."
+      }
+    ]
   },
   {
     "id": "huevos_011",
@@ -587,7 +713,15 @@
       "Remover suavemente a fuego medio-bajo",
       "Retirar cuando estén cremosos y servir con perejil"
     ],
-    "description": "Revuelto cremoso de huevos con gambas al ajillo"
+    "description": "Revuelto cremoso de huevos con gambas al ajillo",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y las gambas con aceite a temperatura Varoma. Luego, añade los huevos y cocina a 90°C con la mariposa y velocidad cuchara hasta obtener la textura cremosa deseada."
+      }
+    ]
   },
   {
     "id": "huevos_012",
@@ -640,7 +774,39 @@
       "Mezclar con los huevos batidos y salpimentar",
       "Cuajar en sartén con aceite 3 min por lado"
     ],
-    "description": "Tortilla jugosa de espinacas salteadas con ajo"
+    "description": "Tortilla jugosa de espinacas salteadas con ajo",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las espinacas y el ajo aparte. Mezcla con los huevos y vierte en un molde apto para airfryer. Cocina a 180°C durante 12-15 minutos hasta que esté dorada y cuajada."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Pocha las espinacas y el ajo aparte. Mezcla con los huevos y hornea en un molde a 190°C durante 15-20 minutos hasta que cuaje y dore."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe el ajo y las espinacas en el vaso. Vierte la mezcla de huevo en un molde apto para Varoma y cocina al vapor (Varoma, Vel. 2) durante 15-20 minutos hasta que esté cuajada."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Pocha las espinacas y el ajo aparte. Mezcla con los huevos y cocina al vapor en un molde durante 15-20 minutos hasta que la tortilla esté completamente cuajada."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las espinacas y el ajo en el microondas. Mezcla con los huevos y cocina en un recipiente apto para microondas a máxima potencia durante 5-7 minutos, removiendo a mitad, hasta que cuaje."
+      }
+    ]
   },
   {
     "id": "huevos_013",
@@ -714,7 +880,27 @@
       "Cascar dos huevos en cada cazuelita",
       "Hornear a 200°C 10 min"
     ],
-    "description": "Huevos al horno sobre sofrito con pimiento, jamón y chorizo"
+    "description": "Huevos al horno sobre sofrito con pimiento, jamón y chorizo",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Prepara un sofrito con la cebolla, pimiento y tomate. Distribúyelo en cazuelitas individuales con los guisantes, jamón y chorizo. Haz un hueco, casca los huevos y hornea a 180°C durante 15-20 minutos hasta que las claras estén cuajadas y las yemas a tu gusto."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el sofrito en una sartén o microondas. Distribúyelo en ramequines aptos para airfryer con el resto de ingredientes, casca los huevos y cocina a 160-170°C durante 10-12 minutos. Vigila para que las yemas queden a tu gusto."
+      },
+      {
+        "appliance": "microondas",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito en un bol apto para microondas. Distribúyelo en tazas o ramequines individuales con el resto de ingredientes. Casca los huevos, pincha ligeramente las yemas y cocina a media potencia (500W) en intervalos de 1 minuto hasta que las claras cuajen, vigilando para n"
+      }
+    ]
   },
   {
     "id": "huevos_014",
@@ -782,7 +968,33 @@
       "Montar la ensalada con lechuga, tomate, pepino y aceitunas",
       "Aliñar con aceite y vinagre"
     ],
-    "description": "Huevos cocidos en cuartos sobre ensalada mixta aliñada"
+    "description": "Huevos cocidos en cuartos sobre ensalada mixta aliñada",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los huevos directamente en la cesta de la airfryer. Cocina a 135°C durante 14-16 minutos para huevos duros perfectos, luego enfría en agua helada para un pelado fácil."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Pon 500g de agua en el vaso y coloca los huevos en el cestillo. Programa 15-18 minutos/Varoma/velocidad 1 para huevos duros, luego enfría rápidamente para parar la cocción."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Calienta agua en la base de la vaporera hasta que hierva. Coloca los huevos en la cesta y cocina al vapor durante 12-15 minutos para huevos duros fáciles de pelar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los huevos en la rejilla de la olla express con 1 vaso de agua. Cocina 5-7 minutos a alta presión, luego libera la presión y enfría los huevos para un resultado perfecto."
+      }
+    ]
   },
   {
     "id": "huevos_015",
@@ -840,6 +1052,14 @@
       "Añadir los huevos batidos y remover suavemente",
       "Retirar cuando estén cremosos y añadir perejil"
     ],
-    "description": "Revuelto cremoso de setas de temporada con ajo y perejil"
+    "description": "Revuelto cremoso de setas de temporada con ajo y perejil",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Pica el ajo y sofríe las setas con el aceite a temperatura Varoma. Luego, añade los huevos batidos con la mariposa y programa a 90°C, velocidad 2-3, hasta obtener la textura deseada del revuelto, unos 5-7 minutos."
+      }
+    ]
   }
 ]

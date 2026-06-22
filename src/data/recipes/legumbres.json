@@ -68,7 +68,21 @@
       "Añadir tomate y pimentón, rehogar 2 min",
       "Incorporar lentejas y patata, cubrir con agua y cocer 35 min"
     ],
-    "description": "Lentejas guisadas con zanahoria, patata y pimiento"
+    "description": "Lentejas guisadas con zanahoria, patata y pimiento",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras y sofríelas con aceite. Añade las lentejas, tomate, pimentón y agua (o caldo), y cocina a 100°C o Varoma, giro inverso y velocidad cuchara durante 35-45 minutos, hasta que las lentejas estén tiernas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras picadas en la olla. Incorpora las lentejas, tomate, pimentón y agua (o caldo). Cierra la olla y cocina a presión durante 15-20 minutos desde que sube la válvula, luego deja despresurizar."
+      }
+    ]
   },
   {
     "id": "legumbres_002",
@@ -138,7 +152,21 @@
       "Incorporar lentejas y patata con agua",
       "Cocer 40 min a fuego lento"
     ],
-    "description": "Lentejas tradicionales guisadas con chorizo y patata"
+    "description": "Lentejas tradicionales guisadas con chorizo y patata",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, zanahoria y chorizo. Añade el tomate, pimentón, lentejas, patata y agua. Programa 30-35 min a 100°C, velocidad cuchara, giro inverso. Quedarán unas lentejas cremosas y con todo el sabor."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Prepara un sofrito con cebolla, zanahoria y chorizo en la olla. Incorpora el tomate, pimentón, lentejas, patata y agua. Cierra y cocina a presión durante 20-25 minutos. El resultado son unas lentejas tiernas y sabrosas en mucho menos tiempo."
+      }
+    ]
   },
   {
     "id": "legumbres_003",
@@ -211,7 +239,27 @@
       "Añadir los garbanzos y la majada",
       "Cocer 10 min hasta que espese"
     ],
-    "description": "Garbanzos con espinacas y majada de pan frito al estilo andaluz"
+    "description": "Garbanzos con espinacas y majada de pan frito al estilo andaluz",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y las espinacas en una sartén. Traslada a una cazuela de horno con los garbanzos, tomate, especias y el pan tostado. Hornea a 180°C durante unos 30-35 minutos para que los sabores se integren bien, cubierto para mantener la humedad."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el ajo y sofríelo con aceite. Añade el tomate y cocina unos minutos. Incorpora las espinacas, garbanzos, especias y el pan desmenuzado, cocinando a 100°C, velocidad cuchara, giro inverso, durante 15-20 minutos para que los sabores se fundan."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo en la olla abierta con aceite. Añade el tomate, las espinacas, los garbanzos, especias y el pan. Cierra la olla y cocina a presión durante 5-7 minutos. Despresuriza y remueve para integrar los sabores."
+      }
+    ]
   },
   {
     "id": "legumbres_004",
@@ -281,7 +329,27 @@
       "Incorporar patata y cocer 40 min más",
       "Servir caldo, garbanzos y carnes por separado"
     ],
-    "description": "Cocido tradicional de garbanzos con carnes y verduras en tres vuelcos"
+    "description": "Cocido tradicional de garbanzos con carnes y verduras en tres vuelcos",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 210,
+        "difficulty": "elaborada",
+        "prepSummary": "Cocinar en una olla de hierro fundido o cazuela apta para horno a 150°C durante 3.5 a 4 horas. Este método asegura una cocción lenta y uniforme, logrando carnes y garbanzos extremadamente tiernos y un caldo profundo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Permite cocer los garbanzos y las carnes en el vaso, y las verduras en el Varoma, optimizando tiempos. Cocinar a 100°C, velocidad cuchara, durante 90-120 minutos, añadiendo los ingredientes en fases para una cocción perfecta y controlada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Ideal para acortar drásticamente los tiempos de cocción. Cocinar los garbanzos y carnes a presión durante 45-60 minutos, añadiendo las verduras (repollo, patata, zanahoria) al final para que no se deshagan, logrando una ternura excepcional en menos tiempo."
+      }
+    ]
   },
   {
     "id": "legumbres_005",
@@ -353,7 +421,27 @@
       "Incorporar garbanzos y bacalao desmigado",
       "Cocer 15 min a fuego suave"
     ],
-    "description": "Potaje de vigilia con garbanzos, bacalao y espinacas"
+    "description": "Potaje de vigilia con garbanzos, bacalao y espinacas",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Comienza el sofrito de cebolla y ajo en una cazuela apta para horno. Incorpora el resto de ingredientes y cocina a 180°C durante 60 minutos, permitiendo que los sabores se integren lentamente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Pica y sofríe la cebolla y el ajo. Añade el tomate, garbanzos, bacalao y espinacas, y cocina a 100°C, velocidad cuchara, giro inverso durante 45 minutos para una cocción homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla. Incorpora el resto de ingredientes, cierra la olla y cocina a presión durante 10-12 minutos desde que sube la válvula para un potaje rápido y sabroso."
+      }
+    ]
   },
   {
     "id": "legumbres_006",
@@ -423,7 +511,27 @@
       "Cocer a fuego muy lento 2 h asustando con agua fría",
       "Reposar 10 min y servir"
     ],
-    "description": "Alubias blancas guisadas con chorizo, morcilla, panceta y lacón"
+    "description": "Alubias blancas guisadas con chorizo, morcilla, panceta y lacón",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 180,
+        "difficulty": "elaborada",
+        "prepSummary": "Tras un remojo previo de las fabes, sofríe la cebolla y los embutidos en una cazuela apta para horno. Añade las fabes, el azafrán y agua, y cocina a fuego lento en el horno a 160°C durante 3 horas, hasta que las fabes estén muy tiernas y los sabores bien integrados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 135,
+        "difficulty": "elaborada",
+        "prepSummary": "Remoja las fabes la noche anterior. Sofríe la cebolla y los embutidos en el vaso. Incorpora las fabes remojadas, azafrán y agua, y cocina a 100°C, velocidad cuchara, giro inverso, durante 120-150 minutos, ajustando el tiempo hasta que las fabes estén en su punto."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Imprescindible remojar las fabes. Sofríe la cebolla y los embutidos en la olla. Añade las fabes, azafrán y agua, cierra la olla y cocina a presión alta durante 25-35 minutos. Deja despresurizar de forma natural para un resultado óptimo."
+      }
+    ]
   },
   {
     "id": "legumbres_007",
@@ -494,7 +602,27 @@
       "Hacer sofrito de ajo, tomate y pimentón",
       "Juntar todo y cocer 15 min más"
     ],
-    "description": "Alubias rojas guisadas con puerro, zanahoria y pimiento"
+    "description": "Alubias rojas guisadas con puerro, zanahoria y pimiento",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 80,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el sofrito en una olla apta para horno en la encimera. Luego, añade las alubias, tomate, pimentón y agua, cubre y hornea a 160°C durante unos 80 minutos para un guiso tierno y homogéneo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras en el vaso, sofríelas con aceite. Añade las alubias, tomate, pimentón y agua, y cocina a 100°C, velocidad cuchara, giro inverso, durante 55 minutos hasta que estén tiernas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras en la olla. Incorpora las alubias, tomate, pimentón y agua, cierra la olla y cocina a presión durante 15-20 minutos desde que sube la válvula para un guiso rápido y sabroso."
+      }
+    ]
   },
   {
     "id": "legumbres_008",
@@ -564,7 +692,27 @@
       "Incorporar tomate y pimentón",
       "Agregar garbanzos y cocer 15 min"
     ],
-    "description": "Garbanzos guisados con chorizo y pimiento en sofrito de tomate"
+    "description": "Garbanzos guisados con chorizo y pimiento en sofrito de tomate",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras y el chorizo en una cazuela apta para horno. Añade los garbanzos, tomate y pimentón. Cubre y hornea a 180°C durante 20-25 minutos para que los sabores se integren."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras y sofríelas con el chorizo y aceite. Incorpora los garbanzos, tomate y pimentón, y cocina a 100°C, velocidad cuchara, giro inverso, durante 15-20 minutos hasta que espese y los sabores se mezclen."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras y el chorizo en la olla. Agrega los garbanzos, tomate y pimentón con un poco de líquido. Cierra y cocina a presión durante 5-7 minutos, permitiendo que despresurice naturalmente para una mejor integración de sabores."
+      }
+    ]
   },
   {
     "id": "legumbres_009",
@@ -635,7 +783,21 @@
       "Incorporar lentejas con agua y laurel, cocer 25 min",
       "Añadir el arroz y cocer 15 min más"
     ],
-    "description": "Lentejas guisadas con arroz, plato completo y económico"
+    "description": "Lentejas guisadas con arroz, plato completo y económico",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras, sofríelas con aceite y pimentón. Añade las lentejas, arroz, tomate y agua, y cocina a temperatura Varoma, giro inverso, velocidad cuchara durante 35-40 minutos hasta que estén tiernas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y zanahoria en la olla. Incorpora el tomate, pimentón, lentejas, arroz y agua. Cierra y cocina a presión durante 12-15 minutos desde que sube la válvula, para unas lentejas perfectas y rápidas."
+      }
+    ]
   },
   {
     "id": "legumbres_010",
@@ -703,7 +865,15 @@
       "Añadir aceite y agua hasta textura cremosa",
       "Servir con pimentón y un chorro de aceite"
     ],
-    "description": "Crema de garbanzos con tahini, limón y comino"
+    "description": "Crema de garbanzos con tahini, limón y comino",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes en el vaso de la Thermomix y tritura a velocidad progresiva 5-10 durante 2-3 minutos, o hasta obtener una crema homogénea. Para un hummus extra suave, puedes añadir un chorrito de agua fría o hielo durante el triturado si la textura es muy densa."
+      }
+    ]
   },
   {
     "id": "legumbres_011",
@@ -773,7 +943,27 @@
       "Añadir chorizo y morcilla, cocer 20 min más",
       "Dejar reposar 10 min antes de servir"
     ],
-    "description": "Judiones blancos grandes guisados con chorizo, morcilla y oreja"
+    "description": "Judiones blancos grandes guisados con chorizo, morcilla y oreja",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Tras un sofrito inicial en cazuela, incorpora los judiones remojados y las carnes con caldo. Cocina en el horno precalentado a 160°C durante 90-120 minutos, cubierto, para una cocción lenta y uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Realiza el sofrito de cebolla y ajo, añade las carnes y los judiones remojados con el caldo. Cocina a 95°C, velocidad cuchara inversa, durante 75-90 minutos hasta que los judiones estén tiernos y el guiso ligado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara un sofrito rápido con cebolla y ajo, añade las carnes y los judiones (previamente remojados) con el caldo. Cierra la olla y cocina a presión durante 25-35 minutos para una cocción rápida y judiones perfectamente tiernos."
+      }
+    ]
   },
   {
     "id": "legumbres_012",
@@ -838,7 +1028,15 @@
       "Mezclar todo con aceite y vinagre",
       "Dejar reposar 10 min en nevera antes de servir"
     ],
-    "description": "Ensalada fría de lentejas con verduras de temporada"
+    "description": "Ensalada fría de lentejas con verduras de temporada",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras (tomate, cebolla, pimiento, pepino) en el vaso del Thermomix durante unos segundos a velocidad 4. Añade las lentejas cocidas, el aceite y el vinagre, y mezcla suavemente a velocidad cuchara para integrar todos los ingredientes sin triturar."
+      }
+    ]
   },
   {
     "id": "legumbres_013",
@@ -909,7 +1107,27 @@
       "Incorporar tomate, comino y pimentón",
       "Añadir garbanzos con un poco de agua, cocer 15 min"
     ],
-    "description": "Garbanzos guisados con calabaza y comino"
+    "description": "Garbanzos guisados con calabaza y comino",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo. Mezcla con el resto de ingredientes en una fuente apta para horno y hornea a 180°C durante 30-35 minutos hasta que la calabaza esté tierna y los sabores se integren."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Trocea y sofríe la cebolla y el ajo. Añade la calabaza, garbanzos, tomate y especias, y cocina a temperatura Varoma/100°C, velocidad cuchara, durante 20-25 minutos hasta que la calabaza esté cocida."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara un sofrito con cebolla y ajo en la olla abierta. Incorpora el resto de ingredientes, cierra la olla y cocina a presión durante 5-7 minutos desde que sube la válvula. Despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "legumbres_014",
@@ -980,7 +1198,27 @@
       "Añadir arroz al guiso y cocer 15 min",
       "Dejar reposar 5 min"
     ],
-    "description": "Judías pintas guisadas con arroz y verduras"
+    "description": "Judías pintas guisadas con arroz y verduras",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras en una cazuela apta para horno, añade las judías (previamente cocidas), el arroz, el pimentón, laurel y caldo o agua. Cubre y hornea a 180°C durante 45-50 minutos hasta que el arroz esté tierno."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras picadas en el vaso con aceite. Incorpora las judías (previamente cocidas), el arroz, pimentón, laurel y agua/caldo. Cocina a 100°C, giro inverso, velocidad cuchara durante 30-35 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras en la olla express. Añade las judías (previamente cocidas), el arroz, pimentón, laurel y agua/caldo. Cierra la olla y cocina a presión durante 15-20 minutos desde que suba la válvula."
+      }
+    ]
   },
   {
     "id": "legumbres_015",
@@ -1045,7 +1283,15 @@
       "Mezclar todo con aceitunas",
       "Aliñar con aceite y vinagre de Jerez"
     ],
-    "description": "Ensalada fría de garbanzos con verduras y aceitunas"
+    "description": "Ensalada fría de garbanzos con verduras y aceitunas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la Thermomix para picar el tomate, pepino y cebolla morada en el vaso (unos segundos a velocidad 4-5). Luego, añade los garbanzos, aceitunas, aceite y vinagre, y mezcla suavemente a velocidad cuchara durante unos segundos para integrar todos los ingredientes."
+      }
+    ]
   },
   {
     "id": "legumbres_016",
@@ -1115,7 +1361,27 @@
       "Hacer sofrito de cebolla, ajo y tomate",
       "Incorporar el sofrito y dejar ligar 5 min"
     ],
-    "description": "Potaje sencillo de alubias blancas con patata y verduras"
+    "description": "Potaje sencillo de alubias blancas con patata y verduras",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Prepara un sofrito inicial con cebolla, ajo, zanahoria y tomate en una olla apta para horno. Añade las alubias, patata, laurel y caldo/agua. Cocina tapado en el horno a 180°C durante unos 50-60 minutos, o hasta que las alubias estén tiernas, removiendo ocasionalmente y ajustando "
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras en el vaso, sofríe con aceite. Añade las alubias (previamente remojadas o cocidas), patata, laurel y caldo/agua. Programa 45-50 minutos, 100°C, giro inverso, velocidad cuchara, hasta que el potaje esté en su punto."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Realiza un sofrito con la cebolla, ajo, zanahoria y tomate en la olla a presión. Incorpora las alubias (remojadas), patata, laurel y suficiente agua/caldo. Cierra la olla y cocina a fuego medio-alto durante 20-25 minutos desde que sube la válvula, dejando despresurizar de forma n"
+      }
+    ]
   },
   {
     "id": "legumbres_017",
@@ -1185,7 +1451,27 @@
       "Incorporar lentejas y patata con agua",
       "Cocer 35 min a fuego lento"
     ],
-    "description": "Lentejas guisadas con trozos de pollo y verduras"
+    "description": "Lentejas guisadas con trozos de pollo y verduras",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "facil",
+        "prepSummary": "Prepara un sofrito con las verduras y el pollo en una olla apta para horno. Añade las lentejas, tomate, pimentón y caldo. Hornea tapado a 180°C durante unos 60-70 minutos, removiendo ocasionalmente, hasta que las lentejas estén tiernas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras y sofríelas en el vaso. Incorpora el pollo, lentejas, tomate, pimentón y agua/caldo. Cocina a 100°C, giro inverso, velocidad cuchara, durante unos 50-55 minutos o hasta que las lentejas estén tiernas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras y el pollo en la olla. Incorpora las lentejas, tomate, pimentón y agua/caldo. Cierra la olla y cocina a presión durante 15-20 minutos desde que sube la válvula. Despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "legumbres_018",
@@ -1251,7 +1537,27 @@
       "Incorporar los garbanzos",
       "Guisar 10 min hasta que ligue"
     ],
-    "description": "Garbanzos en salsa de tomate casera con comino"
+    "description": "Garbanzos en salsa de tomate casera con comino",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el sofrito en una sartén, luego transfiere todo a una cazuela apta para horno. Hornea a 180°C durante 25 minutos para que los sabores se integren y el guiso espese ligeramente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras en el vaso, sofríelas con aceite. Añade el tomate, garbanzos y comino, y cocina a 100°C, velocidad cuchara, giro inverso durante 14 minutos para un guiso perfecto."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, ajo y pimiento en la olla abierta. Incorpora el tomate, garbanzos y comino, cierra la olla y cocina 5 minutos desde que sube la válvula para potenciar los sabores."
+      }
+    ]
   },
   {
     "id": "legumbres_019",
@@ -1323,7 +1629,21 @@
       "Incorporar caldo de las almejas y las alubias",
       "Añadir las almejas y perejil, calentar 3 min"
     ],
-    "description": "Alubias blancas guisadas con almejas en salsa de vino blanco"
+    "description": "Alubias blancas guisadas con almejas en salsa de vino blanco",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Pica la cebolla y el ajo, sofríelos con aceite. Añade la harina, el vino, las alubias y las almejas. Cocina a temperatura y velocidad suaves (giro inverso) hasta que las almejas se abran y la salsa espese, unos 20-25 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta. Incorpora la harina, el vino y las alubias. Añade las almejas, cierra la olla y cocina a presión baja solo 2-3 minutos desde que sube la válvula, para que las almejas se abran sin sobrecocer."
+      }
+    ]
   },
   {
     "id": "legumbres_020",
@@ -1388,6 +1708,26 @@
       "Preparar vinagreta con aceite, vinagre y mostaza",
       "Aliñar y servir templada con cebolla morada cruda"
     ],
-    "description": "Lentejas pardinas templadas con verduras salteadas y vinagreta"
+    "description": "Lentejas pardinas templadas con verduras salteadas y vinagreta",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Corta el pimiento, calabacín y cebolla en trozos. Mézclalos con aceite de oliva, sal y pimienta. Cocínalos en la airfryer a 190°C durante 15-18 minutos, agitando la cesta a mitad del tiempo, hasta que estén tiernos y ligeramente dorados. Mezcla con las lentejas y el aliño."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Trocea el pimiento, calabacín y cebolla, mézclalos con aceite de oliva, sal y pimienta. Extiéndelos en una bandeja y ásalos durante 15-20 minutos hasta que estén tiernos y ligeramente caramelizados. Combina con las lentejas cocidas y el aliño."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Trocea la cebolla, pimiento y calabacín. Sofríelos en el vaso de la Thermomix con aceite a 120°C, velocidad cuchara, durante 10-12 minutos hasta que estén tiernos. Prepara el aliño en el vaso y luego mezcla todo con las lentejas cocidas."
+      }
+    ]
   }
 ]

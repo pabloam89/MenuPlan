@@ -50,7 +50,21 @@
       "Tostar en sandwichera o sartén",
       "Cortar en diagonal y servir"
     ],
-    "description": "Sándwich tostado de jamón cocido y queso fundido"
+    "description": "Sándwich tostado de jamón cocido y queso fundido",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 9,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Unta el pan con mantequilla, monta el sándwich y cocina durante 8-10 minutos, dándole la vuelta a mitad para un dorado uniforme y queso bien fundido."
+      },
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Unta el pan con mantequilla, monta el sándwich y hornea sobre papel de horno durante 10-12 minutos, o hasta que esté dorado y el queso fundido."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_002",
@@ -102,7 +116,21 @@
       "Añadir un chorrito de aceite y sal",
       "Colocar el jamón encima"
     ],
-    "description": "Pan tostado con tomate rallado, aceite y jamón serrano"
+    "description": "Pan tostado con tomate rallado, aceite y jamón serrano",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta las rebanadas de pan en la airfryer a 180°C durante 4-6 minutos, hasta que estén doradas y crujientes. Después, unta el tomate maduro sobre el pan tostado, añade el jamón serrano y finaliza con un chorrito de aceite de oliva virgen extra."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C, preferiblemente con función grill. Tuesta las rebanadas de pan durante 5-8 minutos hasta que estén bien doradas. Una vez tostadas, unta el tomate maduro, coloca el jamón serrano y rocía con aceite de oliva."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_003",
@@ -162,7 +190,33 @@
       "Mezclar todo con la quinoa",
       "Aliñar con aceite, limón y sal"
     ],
-    "description": "Ensalada fría de quinoa con aguacate, pepino y tomate"
+    "description": "Ensalada fría de quinoa con aguacate, pepino y tomate",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la quinoa con agua en el vaso del Thermomix (15-20 min, 100°C, velocidad cuchara). Mientras, pica los vegetales y mezcla todo con el aderezo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Coloca la quinoa con el doble de agua en un recipiente apto para vaporera y cocina al vapor durante 20-25 minutos hasta que esté tierna. Luego, mezcla con los vegetales frescos y el aderezo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la quinoa con el doble de agua en la olla express durante 5-7 minutos desde que sube la válvula. Deja despresurizar y luego mezcla con los ingredientes frescos y el aliño."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Combina la quinoa con el doble de agua en un recipiente apto para microondas, tapa y cocina a máxima potencia durante 10-12 minutos, o hasta que el agua se absorba. Mezcla con el resto de ingredientes."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_004",
@@ -214,7 +268,21 @@
       "Aliñar con aceite y una pizca de sal",
       "Acompañar con fuet en rodajas"
     ],
-    "description": "Pan catalán con tomate rallado, aceite y fuet"
+    "description": "Pan catalán con tomate rallado, aceite y fuet",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan de payés en la airfryer a 180-200°C durante 3-5 minutos hasta que esté dorado y crujiente. Mientras, ralla el tomate y corta el fuet. Monta el pan con tomate, aceite y fuet."
+      },
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Tuesta las rebanadas de pan durante 4-6 minutos hasta que estén doradas. Ralla el tomate, aliña con aceite y monta sobre el pan tostado con el fuet."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_005",
@@ -271,7 +339,21 @@
       "Untar sobre el pan",
       "Decorar con tomates cherry cortados por la mitad"
     ],
-    "description": "Tostada de pan con aguacate machacado y tomate cherry"
+    "description": "Tostada de pan con aguacate machacado y tomate cherry",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Tuesta el pan durante 5-7 minutos, volteándolo a mitad, hasta que esté crujiente y dorado. Un truco es rociar un poco de aceite de oliva antes de tostar para un extra de sabor."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C, preferiblemente con función grill. Tuesta el pan directamente sobre la rejilla durante 5-7 minutos, vigilando que no se queme, para un tostado uniforme. Monta la tostada con el resto de ingredientes."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_006",
@@ -328,7 +410,27 @@
       "Dorar por todos los lados 8 min",
       "Servir sobre el puré"
     ],
-    "description": "Salchichas frescas a la plancha con puré de patata casero"
+    "description": "Salchichas frescas a la plancha con puré de patata casero",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Para las salchichas, precalienta la airfryer a 190°C y cocínalas durante 15-20 minutos, volteándolas a mitad de cocción para que queden doradas y crujientes por fuera."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las salchichas en una bandeja de horno precalentado a 200°C durante 20-25 minutos, dándoles la vuelta una vez para un dorado uniforme y un interior jugoso."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara un puré de patatas perfecto cociendo las patatas troceadas al vapor en el Varoma (20-25 min) y luego triturándolas en el vaso con la leche y mantequilla hasta lograr una textura cremosa."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_007",
@@ -388,7 +490,27 @@
       "Salpimentar el guacamole",
       "Servir con los nachos para mojar"
     ],
-    "description": "Nachos de maíz con guacamole casero de aguacate"
+    "description": "Nachos de maíz con guacamole casero de aguacate",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Para los nachos, precalienta la airfryer a 180°C y caliéntalos durante 2-3 minutos para que queden extra crujientes. Mientras, prepara el guacamole de forma tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C y extiende los nachos en una bandeja. Caliéntalos durante 4-5 minutos hasta que estén ligeramente tostados y crujientes. El guacamole se prepara aparte de forma tradicional."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la Thermomix para picar finamente la cebolla, el tomate y el cilantro (unos segundos a velocidad 5). Luego, añade el aguacate y el zumo de limón, y mezcla a velocidad 3-4 hasta obtener la consistencia deseada para el guacamole. Los nachos se sirven directamente."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_008",
@@ -445,7 +567,21 @@
       "Cubrir con tomate en dados pequeños",
       "Aliñar con aceite, albahaca y sal en escamas"
     ],
-    "description": "Tostadas de pan con tomate fresco, ajo y albahaca"
+    "description": "Tostadas de pan con tomate fresco, ajo y albahaca",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Tuesta las rebanadas de pan durante 5-7 minutos hasta que estén doradas y crujientes, dándoles la vuelta a mitad de cocción. Esto asegura un tostado uniforme y rápido."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca las rebanadas de pan en una bandeja y tuéstalas durante 7-10 minutos, o hasta que estén doradas y crujientes. Vigila para que no se quemen."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_009",
@@ -492,7 +628,21 @@
       "Enrollar bien apretado",
       "Servir fríos como picoteo o cena ligera"
     ],
-    "description": "Lonchas de jamón cocido enrolladas con queso y pepinillo"
+    "description": "Lonchas de jamón cocido enrolladas con queso y pepinillo",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Coloca los rollitos y cocina durante 8-10 minutos, dándoles la vuelta a mitad, hasta que estén dorados y el queso fundido. Para un acabado más crujiente, pincela con un poco de mantequilla derretida."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca los rollitos en una bandeja con papel de horno y hornea durante 10-12 minutos, o hasta que estén dorados y el queso se haya fundido. Un truco es añadir un toque de orégano o pimienta negra antes de hornear."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_010",
@@ -549,7 +699,8 @@
       "Colocar aceitunas en un bol",
       "Acompañar con pan cortado"
     ],
-    "description": "Tabla para compartir con queso curado, chorizo y jamón"
+    "description": "Tabla para compartir con queso curado, chorizo y jamón",
+    "methods": []
   },
   {
     "id": "cenas_rapidas_011",
@@ -601,7 +752,8 @@
       "Añadir hojas de albahaca fresca",
       "Aliñar con aceite y sal en escamas"
     ],
-    "description": "Ensalada italiana de tomate y mozzarella fresca con albahaca"
+    "description": "Ensalada italiana de tomate y mozzarella fresca con albahaca",
+    "methods": []
   },
   {
     "id": "cenas_rapidas_012",
@@ -668,7 +820,15 @@
       "Colar y enfriar en nevera",
       "Servir con dados de pan tostado"
     ],
-    "description": "Gazpacho frío servido con picatostes crujientes"
+    "description": "Gazpacho frío servido con picatostes crujientes",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce los tomates, pepino, pimiento, ajo, aceite y vinagre en el vaso de la Thermomix. Tritura a velocidad progresiva 5-10 durante 1-2 minutos hasta lograr una textura fina y homogénea. Sirve muy frío con los picatostes."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_013",
@@ -721,7 +881,21 @@
       "Tostar las rebanadas de pan",
       "Servir el revuelto sobre las tostadas con tomate"
     ],
-    "description": "Huevos revueltos cremosos sobre pan tostado con tomate"
+    "description": "Huevos revueltos cremosos sobre pan tostado con tomate",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Para los huevos revueltos, bate los huevos con un chorrito de aceite y sal en el vaso. Cocina con la mariposa a 90°C, velocidad 2-3, durante 5-7 minutos, ajustando al gusto para una textura cremosa. Las tostadas se prepararían por separado."
+      },
+      {
+        "appliance": "microondas",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Para los huevos revueltos, bate los huevos con sal y aceite en un bol apto para microondas. Cocina a máxima potencia (aprox. 800W) durante 1-2 minutos, removiendo a mitad de cocción para asegurar una textura uniforme y jugosa. Las tostadas se prepararían por separado."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_014",
@@ -784,7 +958,15 @@
       "Añadir atún y maíz",
       "Enrollar bien apretado"
     ],
-    "description": "Wrap de tortilla de trigo con atún, lechuga y maíz"
+    "description": "Wrap de tortilla de trigo con atún, lechuga y maíz",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Para darle un toque crujiente y caliente, rellena las tortillas con los ingredientes y dóblalas. Precalienta la airfryer a 180°C y cocina los wraps durante 5-7 minutos, volteándolos a mitad, hasta que estén dorados y crujientes."
+      }
+    ]
   },
   {
     "id": "cenas_rapidas_015",
@@ -839,6 +1021,14 @@
       "Enfriar en nevera al menos 30 min",
       "Servir con virutas de jamón por encima"
     ],
-    "description": "Sopa fría de melón con yogur, menta y jamón serrano"
+    "description": "Sopa fría de melón con yogur, menta y jamón serrano",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce el melón troceado, el yogur, la menta y el aceite de oliva en el vaso. Tritura a velocidad progresiva 5-10 hasta obtener una crema fina y homogénea. Sirve muy frío, decorado con el jamón serrano."
+      }
+    ]
   }
 ]

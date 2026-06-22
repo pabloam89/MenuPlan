@@ -64,7 +64,21 @@
       "Disponer el pollo encima, rociar con limón",
       "Hornear a 200°C durante 45 min"
     ],
-    "description": "Contramuslos de pollo asados al horno sobre cama de patatas"
+    "description": "Contramuslos de pollo asados al horno sobre cama de patatas",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "facil",
+        "prepSummary": "Marinar el pollo y las patatas con el resto de ingredientes. Hornear a 190-200°C durante 60 minutos, volteando el pollo y las patatas a mitad de cocción para asegurar un dorado uniforme y una cocción perfecta."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cortar las patatas en cubos pequeños y marinar junto al pollo. Cocinar en la airfryer a 190°C durante 25-30 minutos, agitando la cesta o volteando los ingredientes a mitad para un acabado crujiente y bien cocido."
+      }
+    ]
   },
   {
     "id": "carnes_002",
@@ -120,7 +134,21 @@
       "Cocinar a la plancha con aceite 5 min por cada lado",
       "Servir con un chorrito de limón"
     ],
-    "description": "Pechugas de pollo a la plancha con ajo y orégano"
+    "description": "Pechugas de pollo a la plancha con ajo y orégano",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Marina las pechugas con aceite, ajo y orégano. Cocínalas en la airfryer precalentada a 200°C durante 15-18 minutos, volteándolas a mitad del tiempo para un dorado uniforme y que queden jugosas."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Tras marinar las pechugas, hornéalas a 200-220°C durante unos 20 minutos. Para un acabado más 'a la plancha', puedes usar la función grill los últimos 5 minutos y conseguir un exterior dorado."
+      }
+    ]
   },
   {
     "id": "carnes_003",
@@ -194,7 +222,27 @@
       "Freír en aceite y reservar",
       "Hacer salsa con cebolla y tomate, añadir albóndigas y cocer 20 min"
     ],
-    "description": "Albóndigas caseras de cerdo en salsa de tomate"
+    "description": "Albóndigas caseras de cerdo en salsa de tomate",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Hornea las albóndigas en una bandeja a 200°C durante 15-20 minutos hasta que doren. Prepara el sofrito y la salsa en una cazuela apta para horno, añade las albóndigas y termina de cocinar a 180°C durante 20-25 minutos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito de cebolla y ajo, luego la salsa de tomate. Incorpora las albóndigas y cocínalas directamente en la salsa a 100°C, velocidad cuchara invertida, durante 20-25 minutos para que se integren bien los sabores."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Dora las albóndigas en la olla abierta, retira. Haz el sofrito y la salsa en la misma olla, reincorpora las albóndigas y cocina a presión durante 10-12 minutos para un resultado tierno y rápido."
+      }
+    ]
   },
   {
     "id": "carnes_004",
@@ -252,7 +300,21 @@
       "Freír en abundante aceite caliente",
       "Escurrir sobre papel absorbente"
     ],
-    "description": "Filetes de lomo de cerdo empanados y fritos"
+    "description": "Filetes de lomo de cerdo empanados y fritos",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para unos filetes crujientes y con menos aceite, precalienta la airfryer a 190-200°C. Rocía los filetes empanados con un poco de aceite y cocina durante 12-15 minutos, dándoles la vuelta a mitad de cocción para un dorado uniforme."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Hornea los filetes para una versión más ligera. Precalienta el horno a 200°C con calor arriba y abajo. Coloca los filetes sobre una rejilla en una bandeja y hornea durante 20-25 minutos, volteándolos a mitad para que queden dorados por ambos lados."
+      }
+    ]
   },
   {
     "id": "carnes_005",
@@ -323,7 +385,27 @@
       "Incorporar la carne, vino y laurel, cubrir con agua",
       "Cocer a fuego lento 1 h, añadir patatas y cocer 20 min más"
     ],
-    "description": "Ternera guisada a fuego lento con patata, zanahoria y vino tinto"
+    "description": "Ternera guisada a fuego lento con patata, zanahoria y vino tinto",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Tras dorar la carne y pochar las verduras en una olla apta para horno, añade el resto de ingredientes y cocina tapado en el horno precalentado a 160°C durante 90-100 minutos hasta que la carne esté muy tierna."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras y dora la carne (con mariposa o giro inverso). Añade el resto de ingredientes y cocina a 90-100°C, velocidad cuchara y giro inverso, durante 60-70 minutos hasta que la carne esté tierna y la salsa ligada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Dora la carne y sofríe las verduras en la olla. Incorpora los líquidos y el laurel, cierra la olla y cocina a presión (nivel 2) durante 25-30 minutos. Deja despresurizar naturalmente para una carne más tierna y jugosa."
+      }
+    ]
   },
   {
     "id": "carnes_006",
@@ -383,7 +465,27 @@
       "Verter vino blanco y laurel",
       "Tapar y cocer 20 min a fuego medio"
     ],
-    "description": "Pollo troceado frito con abundante ajo y vino blanco"
+    "description": "Pollo troceado frito con abundante ajo y vino blanco",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Dora el pollo y el ajo en una sartén apta para horno o cazuela. Añade el vino y el laurel, luego hornea a 180°C durante 20-25 minutos hasta que el pollo esté tierno y la salsa reducida."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Dora el pollo y el ajo en la olla express abierta con un poco de aceite. Incorpora el vino y el laurel, cierra la olla y cocina a presión durante 10-12 minutos. Despresuriza y sirve."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y luego el pollo en el vaso a temperatura Varoma con giro inverso. Añade el vino y el laurel, y cocina 15-20 minutos a 100°C, velocidad cuchara, giro inverso, hasta que el pollo esté tierno."
+      }
+    ]
   },
   {
     "id": "carnes_007",
@@ -444,7 +546,21 @@
       "Freír los filetes 2 min por lado",
       "Servir con el jugo de la sartén"
     ],
-    "description": "Filetes de cinta de lomo adobados con pimentón y ajo"
+    "description": "Filetes de cinta de lomo adobados con pimentón y ajo",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Marinar la cinta de lomo. Precalienta la airfryer a 190-200°C y cocina durante 15-20 minutos, dándole la vuelta a mitad para un dorado uniforme y una textura jugosa."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Tras marinar, hornea la cinta de lomo a 190-200°C (con ventilador si es posible) durante 20-25 minutos. Voltéala una vez para asegurar una cocción pareja y un exterior ligeramente dorado."
+      }
+    ]
   },
   {
     "id": "carnes_008",
@@ -514,7 +630,27 @@
       "Incorporar vino y agua, cocer 50 min",
       "Añadir patatas y guisantes, cocer 20 min más"
     ],
-    "description": "Ternera guisada con patatas, guisantes y zanahoria"
+    "description": "Ternera guisada con patatas, guisantes y zanahoria",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "normal",
+        "prepSummary": "Se sella la carne y se sofríen las verduras en una olla apta para horno. Se añade el resto de ingredientes y se cocina tapado en el horno a 160°C durante 100-120 minutos, hasta que la carne esté muy tierna. El truco es el cocinado lento y uniforme para una ternera melosa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Pica las verduras y sofríelas. Incorpora la carne para sellarla ligeramente, luego añade el resto de ingredientes y programa a 90-100°C, giro inverso, velocidad cuchara, durante 70-90 minutos. El truco es usar el giro inverso para no deshacer la carne y que quede jugosa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carne y sofríe las verduras en la olla. Añade el resto de ingredientes (excepto guisantes) y cocina a presión durante 35-45 minutos. Despresuriza, añade los guisantes y cocina unos minutos más. El secreto es el tiempo reducido y la carne excepcionalmente tierna."
+      }
+    ]
   },
   {
     "id": "carnes_009",
@@ -588,7 +724,21 @@
       "Cocinar a la plancha 4 min por lado",
       "Montar en pan con tomate y lechuga"
     ],
-    "description": "Hamburguesas de ternera caseras con pan, tomate y lechuga"
+    "description": "Hamburguesas de ternera caseras con pan, tomate y lechuga",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Forma las hamburguesas y cocínalas en la airfryer precalentada a 190°C durante 12-15 minutos, volteándolas a mitad de cocción para un dorado uniforme. Quedan jugosas por dentro y con una capa exterior ligeramente crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las hamburguesas y hornéalas en una bandeja con papel de horno a 200°C durante 15-20 minutos, volteándolas una vez. Es una opción práctica para cocinar varias a la vez, manteniendo la carne tierna y jugosa."
+      }
+    ]
   },
   {
     "id": "carnes_010",
@@ -654,7 +804,27 @@
       "Añadir tomate y devolver el pollo",
       "Tapar y cocer 25 min a fuego medio"
     ],
-    "description": "Pollo guisado con pimientos rojos y verdes en salsa de tomate"
+    "description": "Pollo guisado con pimientos rojos y verdes en salsa de tomate",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo, dora el pollo en una sartén. Coloca todo en una fuente de horno con los pimientos y el tomate triturado. Hornea a 180°C durante unos 45-50 minutos, removiendo a mitad para una cocción uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras y sofríelas en el vaso. Añade el pollo y sofríe brevemente. Incorpora el tomate y cocina todo a temperatura Varoma, giro inverso, velocidad cuchara durante unos 30-35 minutos hasta que el pollo esté tierno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta, dora el pollo y añade los pimientos y el tomate. Cierra la olla y cocina a presión durante 10-12 minutos desde que sube la válvula, luego despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "carnes_011",
@@ -720,7 +890,21 @@
       "Hornear a 180°C tapadas con papel de aluminio 45 min",
       "Destapar y gratinar 15 min hasta dorar"
     ],
-    "description": "Costillas de cerdo al horno con miel, limón y pimentón"
+    "description": "Costillas de cerdo al horno con miel, limón y pimentón",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las costillas con ajo, miel, limón, aceite, pimentón y romero. Hornear a 180°C durante 75 minutos, volteando a mitad para asegurar un glaseado uniforme y una cocción perfecta."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las costillas con la mezcla de especias y miel. Cocinar en la airfryer a 190°C durante 35 minutos, volteando y pincelando con la marinada a mitad para un acabado dorado y jugoso."
+      }
+    ]
   },
   {
     "id": "carnes_012",
@@ -790,7 +974,21 @@
       "Freír en aceite caliente hasta dorar",
       "Escurrir sobre papel absorbente"
     ],
-    "description": "Filetes de lomo rellenos de jamón y queso, empanados y fritos"
+    "description": "Filetes de lomo rellenos de jamón y queso, empanados y fritos",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rocía ligeramente los San Jacobos empanados con aceite y cocínalos durante 15-18 minutos, dándoles la vuelta a mitad del tiempo, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Coloca los San Jacobos empanados en una bandeja con papel de horno, rociándolos con un poco de aceite. Hornea durante 20-25 minutos, volteándolos a mitad, hasta que estén dorados y bien cocidos."
+      }
+    ]
   },
   {
     "id": "carnes_013",
@@ -851,7 +1049,27 @@
       "Regar con aceite y vino, espolvorear tomillo",
       "Hornear a 190°C durante 40 min"
     ],
-    "description": "Muslos de pollo asados al horno con cebolla y tomillo"
+    "description": "Muslos de pollo asados al horno con cebolla y tomillo",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "facil",
+        "prepSummary": "Precalentar el horno a 190°C. Dorar los muslos en una fuente apta, añadir la cebolla, ajo, vino blanco y tomillo. Hornear durante 40-50 minutos, volteando a mitad, hasta que estén tiernos, dorados y la salsa ligeramente reducida."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalentar la airfryer a 180°C. Cocinar los muslos con aceite, sal y tomillo durante 20 minutos. Luego, añadir la cebolla, ajo y vino blanco en la cesta o en un recipiente apto, y cocinar 10-15 minutos más hasta que el pollo esté crujiente y las verduras tiernas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Dorar los muslos en la olla express con aceite. Añadir la cebolla, ajo, vino blanco y tomillo. Cerrar la olla y cocinar a presión durante 12-15 minutos. Dejar despresurizar, obteniendo un pollo muy tierno con una salsa concentrada."
+      }
+    ]
   },
   {
     "id": "carnes_014",
@@ -920,7 +1138,21 @@
       "Cocinar a la plancha con aceite 4 min por lado",
       "Servir con guarnición"
     ],
-    "description": "Filetes rusos de ternera con cebolla y perejil a la plancha"
+    "description": "Filetes rusos de ternera con cebolla y perejil a la plancha",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los ingredientes, forma los filetes y rocíalos ligeramente con aceite. Cocina en la airfryer precalentada a 190°C durante 18-20 minutos, dándoles la vuelta a mitad de cocción para un dorado uniforme y una textura jugosa."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la mezcla y forma los filetes. Colócalos en una bandeja de horno con papel de hornear y un chorrito de aceite. Hornea a 200°C durante 25-30 minutos, hasta que estén dorados por fuera y bien cocidos por dentro."
+      }
+    ]
   },
   {
     "id": "carnes_015",
@@ -991,7 +1223,27 @@
       "Devolver la carne, añadir vino y laurel",
       "Cocer 50 min, añadir zanahoria y cocer 20 min más"
     ],
-    "description": "Ternera guisada a fuego lento con abundante zanahoria"
+    "description": "Ternera guisada a fuego lento con abundante zanahoria",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Dora la ternera y sofríe las verduras en una cazuela apta para horno. Añade el resto de ingredientes, cubre y cocina a 160°C durante 80-90 minutos hasta que la carne esté tierna y la salsa reducida."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo, luego dora la ternera en el vaso. Incorpora el resto de ingredientes y cocina a 100°C, velocidad cuchara, giro inverso, durante 70-80 minutos, o hasta que la carne esté muy tierna."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Dora la ternera y sofríe las verduras en la olla. Añade el vino, tomate y laurel. Cierra la olla y cocina a presión media-alta durante unos 35-40 minutos, dejando que se despresurice sola para una ternera muy tierna."
+      }
+    ]
   },
   {
     "id": "carnes_016",
@@ -1065,7 +1317,27 @@
       "Devolver el pollo con vino y caldo",
       "Cocer 25 min, añadir la majada y espesar"
     ],
-    "description": "Pollo guisado en salsa de almendras, azafrán y huevo cocido"
+    "description": "Pollo guisado en salsa de almendras, azafrán y huevo cocido",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Dora el pollo y sofríe la cebolla y el ajo en una cazuela apta para horno. Añade el vino, azafrán y líquido, luego cocina tapado en el horno a 170°C durante 45-50 min. Prepara la picada de almendras y huevo cocido aparte y añádela al final para espesar la salsa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo, luego dora el pollo en el vaso. Incorpora el vino, azafrán y líquido, y cocina a temperatura Varoma, giro inverso, velocidad cuchara durante 30-35 min. Tritura las almendras y el huevo cocido con parte de la salsa y reincorpora para espesar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Dora el pollo y sofríe la cebolla y el ajo en la olla abierta. Añade el vino, azafrán y líquido, cierra y cocina a presión durante 15-20 min. Libera la presión, prepara la picada de almendras y huevo cocido aparte y mézclala con la salsa para espesarla."
+      }
+    ]
   },
   {
     "id": "carnes_017",
@@ -1125,7 +1397,27 @@
       "Incorporar tomate triturado",
       "Cocer a fuego lento 15 min"
     ],
-    "description": "Taquitos de magro de cerdo guisados en salsa de tomate"
+    "description": "Taquitos de magro de cerdo guisados en salsa de tomate",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, pimiento y ajo en una cazuela apta para horno. Añade el magro y dora. Incorpora el tomate triturado, tapa y hornea a 180°C durante 30 minutos hasta que la carne esté tierna y la salsa reducida."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras y sofríelas. Añade el magro y dora. Incorpora el tomate triturado y cocina a fuego lento (Varoma, giro inverso, velocidad cuchara) durante 20 minutos hasta que la carne esté tierna y la salsa ligada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Dora el magro en la olla express. Retira y sofríe las verduras. Vuelve a añadir el magro con el tomate triturado, cierra la olla y cocina 10-12 minutos desde que sube la válvula. Despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "carnes_018",
@@ -1175,7 +1467,21 @@
       "Cocinar a la plancha muy caliente 3 min por lado",
       "Dejar reposar 3 min tapada antes de cortar"
     ],
-    "description": "Secreto ibérico a la plancha, jugoso y rosado por dentro"
+    "description": "Secreto ibérico a la plancha, jugoso y rosado por dentro",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Marina el secreto con aceite, ajo y romero. Precalienta la airfryer a 190-200°C y cocina durante 16-18 minutos, dándole la vuelta a mitad para un dorado uniforme y jugosidad."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200-220°C. Marina el secreto y colócalo en una bandeja. Hornea durante 20-25 minutos, girándolo a mitad de cocción para un resultado tierno y ligeramente dorado."
+      }
+    ]
   },
   {
     "id": "carnes_019",
@@ -1237,7 +1543,21 @@
       "Hornear a 200°C durante 35 min dando la vuelta a mitad",
       "Servir con el jugo de la bandeja"
     ],
-    "description": "Alitas de pollo al horno con miel, limón y pimentón"
+    "description": "Alitas de pollo al horno con miel, limón y pimentón",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las alitas con los ingredientes. Hornear a 200°C durante 45 minutos, dándoles la vuelta a mitad de cocción para un dorado uniforme y una piel crujiente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Tras marinar, cocinar las alitas en la airfryer a 190-200°C durante 20-25 minutos, agitándolas o dándoles la vuelta varias veces para una cocción y dorado homogéneos."
+      }
+    ]
   },
   {
     "id": "carnes_020",
@@ -1297,7 +1617,33 @@
       "Añadir Pedro Ximénez y reducir a la mitad",
       "Devolver el solomillo, añadir nata y cocer 10 min"
     ],
-    "description": "Solomillo de cerdo en salsa de Pedro Ximénez con champiñones"
+    "description": "Solomillo de cerdo en salsa de Pedro Ximénez con champiñones",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en la airfryer a 190°C durante 15-20 minutos, dándole la vuelta a mitad. Mientras, sofríe la cebolla y los champiñones en una sartén, añade el Pedro Ximénez y la nata, y reduce la salsa hasta que espese."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en una sartén apta para horno, luego añade la cebolla y champiñones y hornea a 180°C durante 25-30 minutos. Retira el solomillo, deglasea la bandeja con Pedro Ximénez y nata para la salsa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y champiñones en el vaso, luego añade el solomillo troceado y el Pedro Ximénez, cocinando a temperatura Varoma o 100°C. Incorpora la nata al final y programa unos minutos más para espesar la salsa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en la olla abierta, retira y sofríe la cebolla y champiñones. Vuelve a añadir el solomillo, el Pedro Ximénez, cierra la olla y cocina a presión 5-7 minutos. Abre, añade la nata y reduce la salsa a fuego vivo."
+      }
+    ]
   },
   {
     "id": "carnes_021",
@@ -1368,7 +1714,27 @@
       "Devolver la carne con agua, cocer 50 min",
       "Añadir verduras y cocer 15 min más"
     ],
-    "description": "Ternera guisada con zanahoria, judías verdes y guisantes"
+    "description": "Ternera guisada con zanahoria, judías verdes y guisantes",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la carne y las verduras en una cazuela apta para horno. Añade el resto de ingredientes, tapa y cocina a 160-170°C durante unos 90-100 minutos hasta que la carne esté muy tierna."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Trocea las verduras y sofríelas. Incorpora la carne para sellarla y luego añade el resto de ingredientes. Cocina a 100°C, giro inverso y velocidad cuchara durante unos 80-85 minutos hasta que la carne esté tierna."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carne y sofríe las verduras en la olla. Añade el resto de ingredientes, cierra la olla y cocina a presión durante 25-30 minutos. Deja despresurizar de forma natural para una carne muy tierna."
+      }
+    ]
   },
   {
     "id": "carnes_022",
@@ -1433,7 +1799,27 @@
       "Verter vino y laurel, cocer 5 min",
       "Devolver los filetes y cocer 10 min a fuego lento"
     ],
-    "description": "Filetes de lomo de cerdo en salsa de tomate y vino blanco"
+    "description": "Filetes de lomo de cerdo en salsa de tomate y vino blanco",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Sella el lomo en una sartén y sofríe la cebolla y el ajo. Mezcla con el resto de ingredientes en una fuente apta para horno y hornea a 180°C durante 25-30 minutos, hasta que la carne esté tierna y la salsa reducida."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Trocea la cebolla y el ajo, sofríe con aceite. Sella el lomo, añade el resto de ingredientes y cocina a temperatura Varoma, velocidad cuchara, giro inverso durante 25-30 minutos, hasta que la carne esté hecha y la salsa ligada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sella el lomo y sofríe la cebolla y el ajo en la olla. Añade el resto de ingredientes, cierra la olla y cocina a presión durante 8-10 minutos. Despresuriza y si es necesario, reduce la salsa sin tapa."
+      }
+    ]
   },
   {
     "id": "carnes_023",
@@ -1495,7 +1881,21 @@
       "Retirar y hacer salsa con zumo de limón en la sartén",
       "Verter la salsa sobre la carne y espolvorear perejil"
     ],
-    "description": "Escalopines finos de ternera en salsa de limón y mantequilla"
+    "description": "Escalopines finos de ternera en salsa de limón y mantequilla",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Enharina los escalopines y rocíalos ligeramente con aceite de oliva. Cocina durante 10-12 minutos, dándoles la vuelta a mitad de cocción, hasta que estén dorados y tiernos. La salsa de limón y mantequilla se prepara aparte en una sartén."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Enharina los escalopines y colócalos en una bandeja de horno ligeramente engrasada. Hornea durante 15-20 minutos, volteándolos una vez, hasta que estén dorados y cocidos. Prepara la salsa de limón y mantequilla en una sartén y viértela sobre los esca"
+      }
+    ]
   },
   {
     "id": "carnes_024",
@@ -1551,7 +1951,21 @@
       "Cocinar a la plancha con aceite 3 min por lado",
       "Servir con limón"
     ],
-    "description": "Filetes de pechuga de pavo a la plancha con hierbas"
+    "description": "Filetes de pechuga de pavo a la plancha con hierbas",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Marinar el pavo con aceite y especias. Cocinar en la airfryer precalentada a 190-200°C durante 15-18 minutos, dándole la vuelta a mitad para un dorado uniforme y un interior jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalentar el horno a 200°C. Colocar el pavo marinado en una bandeja y hornear durante 20-25 minutos, hasta que esté cocido y ligeramente dorado. Se puede usar la función grill al final para un mejor acabado."
+      }
+    ]
   },
   {
     "id": "carnes_025",
@@ -1619,7 +2033,27 @@
       "Incorporar tomate y cocer 10 min",
       "Añadir nata y el pollo, cocer 10 min más"
     ],
-    "description": "Pollo en salsa de curry suave con tomate y nata"
+    "description": "Pollo en salsa de curry suave con tomate y nata",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en una olla apta para horno. Incorpora el pollo y dora ligeramente. Añade el tomate triturado y el curry, y hornea a 180°C durante 25-30 minutos. Termina con la nata fuera del horno para una salsa cremosa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y el ajo, sofríe. Añade el pollo troceado y dora. Incorpora el tomate triturado y el curry, y cocina a 100°C, giro inverso, velocidad cuchara durante 20-25 minutos. Añade la nata al final y mezcla suavemente."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo, dora el pollo en la olla. Añade el tomate triturado y el curry, cierra la olla y cocina a presión durante 8-10 minutos. Despresuriza, incorpora la nata y cocina unos minutos más sin tapa para espesar la salsa."
+      }
+    ]
   },
   {
     "id": "carnes_026",
@@ -1692,7 +2126,33 @@
       "Hacer salsa con cebolla, zanahoria y tomate",
       "Incorporar las albóndigas y cocer 20 min"
     ],
-    "description": "Albóndigas de pollo en salsa de tomate con zanahoria"
+    "description": "Albóndigas de pollo en salsa de tomate con zanahoria",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Forma las albóndigas y cocínalas en la airfryer a 190°C durante 15-20 minutos, girándolas a mitad, hasta que estén doradas. Mientras, prepara la salsa en una sartén y luego incorpora las albóndigas para que se impregnen bien."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Hornea las albóndigas a 180°C durante 15 minutos para dorarlas. Luego, transfiérelas a una fuente con la salsa ya preparada (o con los ingredientes de la salsa) y hornea todo junto 20-25 minutos más a 170°C para que los sabores se integren."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Pica las verduras en el vaso. Prepara la salsa sofriendo las verduras y añadiendo el tomate. Luego, incorpora las albóndigas (previamente formadas) al vaso y cocina a temperatura Varoma, velocidad cuchara, giro inverso, durante 20-25 minutos para que se hagan en la salsa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Dora las albóndigas en la olla express con un poco de aceite. Retira, sofríe la cebolla, zanahoria y ajo. Añade el tomate, reincorpora las albóndigas y un poco de agua si es necesario. Cierra la olla y cocina 10-12 minutos desde que sube la válvula."
+      }
+    ]
   },
   {
     "id": "carnes_027",
@@ -1742,7 +2202,21 @@
       "Cocinar 4 min por cada lado",
       "Dejar reposar 2 min antes de servir"
     ],
-    "description": "Chuletas de cerdo a la plancha con ajo y romero"
+    "description": "Chuletas de cerdo a la plancha con ajo y romero",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las chuletas con aceite, ajo y romero. Precalentar la airfryer a 190-200°C y cocinar durante 15-18 minutos, dándoles la vuelta a mitad para un dorado uniforme y jugosidad."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las chuletas. Precalentar el horno a 200-220°C con función grill si es posible. Colocar en una bandeja con rejilla y cocinar unos 20-25 minutos, volteándolas a mitad para que se doren por ambos lados."
+      }
+    ]
   },
   {
     "id": "carnes_028",
@@ -1807,7 +2281,33 @@
       "Añadir vino blanco y dejar reducir",
       "Devolver el pollo y cocer 5 min con perejil"
     ],
-    "description": "Pechugas de pollo con champiñones salteados al vino blanco"
+    "description": "Pechugas de pollo con champiñones salteados al vino blanco",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el pollo y los champiñones en la airfryer a 190°C por 15-20 minutos, dándoles la vuelta. Prepara la cebolla, ajo y vino en una sartén aparte y mezcla todo al final para integrar los sabores."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Combina el pollo, champiñones, cebolla, ajo y aceite en una fuente apta para horno. Hornea a 180°C durante 25-30 minutos, añadiendo el vino blanco a mitad de cocción para que los sabores se integren."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Trocea la cebolla y el ajo, sofríelos. Añade el pollo y los champiñones, cocina con el vino blanco a temperatura Varoma/100°C hasta que el pollo esté tierno y la salsa reducida."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla. Incorpora el pollo y los champiñones, añade el vino y cocina a presión durante 8-10 minutos. Deja despresurizar y sirve."
+      }
+    ]
   },
   {
     "id": "carnes_029",
@@ -1878,7 +2378,27 @@
       "Añadir vino, tomate, laurel y agua, tapar",
       "Cocer a fuego lento 1 h 15 min, cortar en rodajas"
     ],
-    "description": "Redondo de ternera guisado entero con verduras y vino tinto"
+    "description": "Redondo de ternera guisado entero con verduras y vino tinto",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Sella la ternera en una cazuela apta para horno. Rehoga las verduras, añade el vino, tomate y laurel. Tapa y hornea a 160-170°C durante 80-90 minutos hasta que la carne esté tierna y la salsa reducida."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sella la ternera (en Thermomix o aparte). Sofreír las verduras. Incorpora la carne, el vino, tomate y laurel. Cocina a 100°C, giro inverso, velocidad cuchara, durante 60-70 minutos hasta que la carne esté tierna."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Sella la ternera en la olla express. Sofreír las verduras. Añade el vino, tomate y laurel. Cierra y cocina a presión durante 35-40 minutos. Deja despresurizar naturalmente para una carne más jugosa."
+      }
+    ]
   },
   {
     "id": "carnes_030",
@@ -1944,7 +2464,21 @@
       "Aliñar con aceite, orégano y limón",
       "Cocinar a la plancha 10 min girando"
     ],
-    "description": "Brochetas de pollo con pimientos y cebolla a la plancha"
+    "description": "Brochetas de pollo con pimientos y cebolla a la plancha",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina las brochetas durante 18-22 minutos, volteándolas a mitad de cocción, hasta que el pollo esté dorado y las verduras tiernas y ligeramente caramelizadas."
+      },
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Coloca las brochetas en una bandeja con papel de horno y ásalas durante 25-30 minutos, dándoles la vuelta una vez para una cocción uniforme y un buen dorado."
+      }
+    ]
   },
   {
     "id": "carnes_031",
@@ -2016,7 +2550,27 @@
       "Añadir vino, laurel y las setas",
       "Devolver la carne y cocer 40 min a fuego lento"
     ],
-    "description": "Filetes finos de ternera guisados con setas al estilo catalán"
+    "description": "Filetes finos de ternera guisados con setas al estilo catalán",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Dora los filetes y sofríe la cebolla y setas en una olla apta para horno. Añade el vino, tomate, harina y laurel. Cubre y hornea a 160°C durante 60-70 minutos hasta que la ternera esté muy tierna y la salsa ligada."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y setas. Incorpora la ternera en trozos para dorar ligeramente. Añade el vino, tomate, harina y laurel. Cocina a 100°C, velocidad cuchara, giro inverso, durante 50-60 minutos hasta que la carne esté tierna y la salsa espesa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Dora la ternera y sofríe la cebolla y setas en la olla. Añade el vino, tomate, harina y laurel. Cierra la olla y cocina a presión durante 20-25 minutos. Despresuriza y si es necesario, reduce la salsa a fuego vivo."
+      }
+    ]
   },
   {
     "id": "carnes_032",
@@ -2080,7 +2634,21 @@
       "Freír en aceite caliente 3 min por lado",
       "Escurrir y servir con limón"
     ],
-    "description": "Pechuga de pollo aplastada, empanada y frita"
+    "description": "Pechuga de pollo aplastada, empanada y frita",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rocía los escalopes empanados con un poco de aceite en spray y cocina durante 12-15 minutos, volteando a mitad, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Coloca los escalopes empanados en una bandeja con papel de horno, rocía con un poco de aceite y hornea 20-25 minutos, volteando una vez, hasta que estén cocidos y ligeramente dorados."
+      }
+    ]
   },
   {
     "id": "carnes_033",
@@ -2150,7 +2718,27 @@
       "Añadir tomate, vino y laurel",
       "Cocer tapado a fuego lento 1 h 15 min"
     ],
-    "description": "Ragú espeso de ternera con sofrito de verduras y vino tinto"
+    "description": "Ragú espeso de ternera con sofrito de verduras y vino tinto",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Primero, sella la carne y sofríe las verduras en una olla apta para horno. Luego, añade el resto de ingredientes, cubre y hornea a 160°C durante 1 hora y 45 minutos, removiendo ocasionalmente, para un ragú tierno y lleno de sabor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Pica las verduras y sofríelas en el vaso con aceite. Añade la carne (previamente sellada para mejor resultado), el vino y el resto de ingredientes. Cocina 70 minutos a 95°C, giro inverso, velocidad cuchara, para un ragú meloso y bien integrado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carne y sofríe las verduras en la olla. Incorpora el resto de ingredientes, cierra la olla y cocina a presión (segundo anillo) durante 35 minutos desde que sube la válvula, para un ragú con carne muy tierna en tiempo récord."
+      }
+    ]
   },
   {
     "id": "carnes_034",
@@ -2213,7 +2801,27 @@
       "Verter la cerveza y añadir laurel",
       "Tapar y cocer a fuego lento 30 min"
     ],
-    "description": "Pollo troceado guisado en salsa de cerveza con cebolla"
+    "description": "Pollo troceado guisado en salsa de cerveza con cebolla",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Dora el pollo y las verduras en una cazuela apta para horno. Añade la cerveza y el laurel, tapa y cocina a 180°C durante 40-45 minutos. Destapa los últimos 10 minutos para que la salsa espese."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo, luego dora ligeramente el pollo en el vaso. Incorpora la cerveza y el laurel, y cocina a 100°C, giro inverso, velocidad cuchara, durante 35-40 minutos hasta que el pollo esté tierno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Dora el pollo y sofríe la cebolla y el ajo en la olla. Vierte la cerveza y el laurel, cierra la olla y cocina a presión durante 15-20 minutos. Si la salsa está muy líquida, redúcela unos minutos sin tapa."
+      }
+    ]
   },
   {
     "id": "carnes_035",
@@ -2277,6 +2885,20 @@
       "Pasar por harina, huevo y pan rallado",
       "Freír en aceite caliente hasta dorar"
     ],
-    "description": "Rollitos de lomo rellenos de jamón serrano, empanados y fritos"
+    "description": "Rollitos de lomo rellenos de jamón serrano, empanados y fritos",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Rocía ligeramente los flamenquines con aceite de oliva y cocina durante unos 15-20 minutos, dándoles la vuelta a mitad de cocción, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca los flamenquines en una bandeja con papel de horno, rocíalos con un poco de aceite y hornea durante 25-30 minutos, volteándolos a mitad de cocción, hasta que estén dorados."
+      }
+    ]
   }
 ]

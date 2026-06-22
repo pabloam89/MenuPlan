@@ -65,7 +65,21 @@
       "Colocar la merluza y los guisantes",
       "Cocer 10 min a fuego suave moviendo la cazuela para ligar"
     ],
-    "description": "Merluza en salsa verde con ajo, perejil y guisantes"
+    "description": "Merluza en salsa verde con ajo, perejil y guisantes",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la salsa verde en una cazuela apta para horno, sofriendo el ajo y añadiendo el resto de ingredientes. Incorpora las rodajas de merluza y los guisantes, y hornea a 190°C durante 20-25 minutos. Cubre con papel de aluminio los primeros 15 minutos para mantener la humedad y q"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo en el vaso, añade la harina, el vino y el caldo para la salsa, cocinando a 100°C. Luego, incorpora la merluza y los guisantes, y cocina a 100°C, giro inverso, velocidad cuchara durante 8-10 minutos, asegurando que el pescado se cocine suavemente sin deshacerse."
+      }
+    ]
   },
   {
     "id": "pescados_002",
@@ -129,7 +143,21 @@
       "Colocar el salmón encima, rociar con limón y eneldo",
       "Hornear 15 min más"
     ],
-    "description": "Lomos de salmón asados al horno sobre cama de patatas"
+    "description": "Lomos de salmón asados al horno sobre cama de patatas",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Cocina las patatas y cebolla en rodajas finas con aceite y sal durante 20 minutos, luego añade el salmón con limón y eneldo y hornea todo junto 15-20 minutos más hasta que el salmón esté tierno y las patatas doradas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en rodajas finas y la cebolla en juliana. Cocínalas en la airfryer a 180°C durante 15-20 minutos, agitando a mitad. Añade el salmón con limón y eneldo, y cocina todo junto 10-12 minutos más a 190°C para un acabado crujiente y jugoso."
+      }
+    ]
   },
   {
     "id": "pescados_003",
@@ -191,7 +219,27 @@
       "Colocar el bacalao sobre la salsa",
       "Tapar y cocer 12 min a fuego suave"
     ],
-    "description": "Bacalao desalado guisado en salsa de tomate casera"
+    "description": "Bacalao desalado guisado en salsa de tomate casera",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara un sofrito con las verduras en sartén, añade el tomate y el bacalao en una fuente de horno. Hornea a 180°C durante 20-25 minutos hasta que el bacalao esté tierno y la salsa reducida. Un truco es cubrir con papel de aluminio al principio para que el pescado no se seque."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras picadas en el vaso con aceite (10-12 min, Varoma, vel 1). Añade el tomate y cocina unos minutos. Incorpora el bacalao y programa 15-18 min, 100°C, giro inverso, vel cuchara. Asegúrate de que el bacalao quede jugoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Haz un sofrito con las verduras en la olla abierta. Añade el tomate y el bacalao. Cierra la olla y cocina a presión durante 3-5 minutos desde que sube la válvula, dependiendo del grosor del bacalao. Despresuriza y sirve. El truco es no sobrecocer el pescado para que no se deshaga"
+      }
+    ]
   },
   {
     "id": "pescados_004",
@@ -249,7 +297,21 @@
       "Cocinar 3 min por cada lado",
       "Servir con aceite, ajo picado, perejil y limón"
     ],
-    "description": "Sardinas frescas a la plancha con ajo y limón"
+    "description": "Sardinas frescas a la plancha con ajo y limón",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina las sardinas previamente salpimentadas y untadas en aceite durante 10-12 minutos, volteándolas a mitad para un dorado uniforme y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con función grill si es posible. Coloca las sardinas en una bandeja con papel de horno y cocina 10-12 minutos, dándoles un golpe de grill al final para un exterior dorado."
+      }
+    ]
   },
   {
     "id": "pescados_005",
@@ -312,7 +374,21 @@
       "Colocar la lubina encima con limón y perejil",
       "Hornear 18 min más"
     ],
-    "description": "Lubina entera al horno sobre cama de patata y cebolla"
+    "description": "Lubina entera al horno sobre cama de patata y cebolla",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Dispón la lubina sobre una cama de patatas y cebolla laminadas, riega con aceite y limón, y hornea hasta que esté tierna y dorada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Coloca la lubina y las verduras cortadas finas en la cesta, rocía con aceite y cocina unos 25 minutos, volteando las verduras a mitad para una cocción uniforme."
+      }
+    ]
   },
   {
     "id": "pescados_006",
@@ -365,7 +441,21 @@
       "Cocinar 2 min por cada lado dejando el centro rosado",
       "Servir con ajo picado y limón"
     ],
-    "description": "Rodajas de atún fresco a la plancha, rosadas por dentro"
+    "description": "Rodajas de atún fresco a la plancha, rosadas por dentro",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Marinar el atún con aceite de oliva, ajo picado, sal y pimienta. Precalentar la airfryer a 190-200°C. Cocinar el atún unos 8-12 minutos, volteando a mitad, para lograr un exterior dorado y un interior jugoso, sirviendo con limón."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Marinar el atún con aceite de oliva, ajo picado, sal y pimienta. Precalentar el horno a 200-220°C, preferiblemente con función grill. Colocar el atún en una bandeja y cocinar 8-12 minutos, según el grosor, hasta que esté sellado por fuera y tierno por dentro, sirviendo con limón."
+      }
+    ]
   },
   {
     "id": "pescados_007",
@@ -425,7 +515,21 @@
       "Freír en aceite caliente hasta dorar",
       "Escurrir y servir con limón"
     ],
-    "description": "Rodajas de merluza rebozadas en huevo y harina"
+    "description": "Rodajas de merluza rebozadas en huevo y harina",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Reboza la merluza como de costumbre. Rocía ligeramente con aceite de oliva y cocina en la airfryer precalentada a 190-200°C durante 15-18 minutos, dándole la vuelta a mitad de cocción para un dorado uniforme y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200-220°C. Reboza la merluza, rocíala con un poco de aceite y colócala en una bandeja con papel de horno. Hornea durante 20-25 minutos, volteando a mitad, hasta que esté dorada y crujiente."
+      }
+    ]
   },
   {
     "id": "pescados_008",
@@ -488,7 +592,21 @@
       "Colocar la dorada con limón dentro",
       "Hornear 18 min más"
     ],
-    "description": "Dorada entera al horno con patata, tomate y cebolla"
+    "description": "Dorada entera al horno con patata, tomate y cebolla",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca la dorada con las patatas y verduras cortadas en una bandeja, riega con aceite y limón. Hornea durante 35-40 minutos hasta que esté tierna y dorada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Corta las patatas muy finas y las verduras en juliana. Cocina la dorada con las verduras y un chorrito de aceite durante 20-25 minutos, volteando a mitad para una cocción uniforme y piel crujiente."
+      }
+    ]
   },
   {
     "id": "pescados_009",
@@ -541,7 +659,21 @@
       "Dar la vuelta y cocinar 2 min más",
       "Servir con limón y eneldo"
     ],
-    "description": "Lomos de salmón a la plancha con la piel crujiente"
+    "description": "Lomos de salmón a la plancha con la piel crujiente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Unta el salmón con aceite de oliva, eneldo y un poco de sal. Cocina durante 10-12 minutos, volteando a mitad, hasta que esté dorado y jugoso. Sirve con limón."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Coloca el salmón untado con aceite de oliva y eneldo en una bandeja. Hornea durante 12-15 minutos hasta que esté cocido y ligeramente dorado. Sirve con un chorrito de limón."
+      }
+    ]
   },
   {
     "id": "pescados_010",
@@ -593,7 +725,15 @@
       "Cocer a fuego muy suave 10 min",
       "Mover la cazuela en vaivén para que ligue la salsa"
     ],
-    "description": "Bacalao confitado en aceite de oliva ligado con su gelatina"
+    "description": "Bacalao confitado en aceite de oliva ligado con su gelatina",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Confitar el bacalao a baja temperatura (aprox. 80°C) con el aceite, ajo y guindilla durante unos 15 minutos. Retirar el bacalao y emulsionar el aceite restante a velocidad progresiva (3-4) hasta obtener la salsa pil-pil, unos 5 minutos."
+      }
+    ]
   },
   {
     "id": "pescados_011",
@@ -653,7 +793,21 @@
       "Freír en aceite muy caliente 2 min",
       "Escurrir y servir con limón"
     ],
-    "description": "Anillas de calamar rebozadas en harina y huevo, fritas"
+    "description": "Anillas de calamar rebozadas en harina y huevo, fritas",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Rocía los calamares rebozados con un poco de aceite y cocínalos en tandas durante 12-15 minutos, dándoles la vuelta a mitad, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con ventilador. Coloca los calamares rebozados en una bandeja con papel de horno, rocía con aceite y hornea 15-20 minutos, volteándolos a mitad, hasta que estén dorados."
+      }
+    ]
   },
   {
     "id": "pescados_012",
@@ -711,7 +865,21 @@
       "Saltear 2 min a fuego fuerte",
       "Retirar del fuego y añadir perejil"
     ],
-    "description": "Gambas salteadas en aceite de oliva con ajo y guindilla"
+    "description": "Gambas salteadas en aceite de oliva con ajo y guindilla",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Combina las gambas, ajo laminado, guindilla y aceite en una cazuela de barro o fuente apta para horno. Hornea a 200°C durante 10-12 minutos hasta que las gambas estén rosadas y el ajo ligeramente dorado. Sirve espolvoreado con perejil."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 13,
+        "difficulty": "facil",
+        "prepSummary": "En un recipiente pequeño apto para airfryer (tipo ramekin o cazuelita), mezcla las gambas, ajo laminado, guindilla y aceite. Cocina en la airfryer precalentada a 190°C durante 8-10 minutos, agitando a mitad, hasta que las gambas estén hechas y el ajo fragante. Añade perejil al se"
+      }
+    ]
   },
   {
     "id": "pescados_013",
@@ -780,7 +948,21 @@
       "Poner la merluza encima con limón",
       "Hornear 15 min más"
     ],
-    "description": "Lomos de merluza al horno sobre verduras asadas"
+    "description": "Lomos de merluza al horno sobre verduras asadas",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180-200°C. Dispón las patatas y verduras cortadas en una bandeja con aceite, hornea unos 15-20 min, luego añade la merluza y hornea 15-20 min más hasta que el pescado esté tierno y las verduras doradas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas y verduras muy finas para asegurar una cocción uniforme. Precalienta la airfryer a 180°C, cocina las verduras con un poco de aceite durante 10-15 min, luego añade la merluza y cocina 8-10 min más hasta que esté cocida y ligeramente dorada."
+      }
+    ]
   },
   {
     "id": "pescados_014",
@@ -840,7 +1022,21 @@
       "Freír en aceite caliente hasta dorar",
       "Escurrir y servir con limón"
     ],
-    "description": "Trozos de bacalao desalado rebozados en harina y huevo"
+    "description": "Trozos de bacalao desalado rebozados en harina y huevo",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Rocía ligeramente el bacalao rebozado con aceite y cocina durante 15-18 minutos, dándole la vuelta a mitad de cocción, hasta que esté dorado y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca el bacalao rebozado en una bandeja con papel de horno y hornea durante 20-25 minutos, o hasta que esté dorado y cocido por dentro. Un chorrito de aceite sobre el rebozado ayuda a que quede más crujiente."
+      }
+    ]
   },
   {
     "id": "pescados_015",
@@ -903,7 +1099,21 @@
       "Freír en aceite con ajo 5 min por lado",
       "Servir con limón"
     ],
-    "description": "Trucha entera rellena de jamón serrano, enharinada y frita"
+    "description": "Trucha entera rellena de jamón serrano, enharinada y frita",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rellena la trucha enharinada con el jamón, pincela con aceite y cocina 18 minutos, volteando a mitad, hasta que esté dorada. El truco es un ligero pincelado de aceite para el crujiente exterior."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Rellena la trucha con el jamón, sazona, rocía con aceite y hornea 20 minutos hasta que esté hecha y ligeramente dorada. El truco es un refrito de ajo en sartén para verter por encima al servir."
+      }
+    ]
   },
   {
     "id": "pescados_016",
@@ -977,7 +1187,21 @@
       "Añadir el rape troceado y cocer 10 min",
       "Incorporar las almejas y cocer hasta que se abran"
     ],
-    "description": "Rape guisado en salsa marinera con almejas y vino blanco"
+    "description": "Rape guisado en salsa marinera con almejas y vino blanco",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo en una cazuela apta para horno. Añade la harina, el vino y un poco de caldo, integra el rape y las almejas. Hornea a 180°C durante 15-20 minutos hasta que el pescado esté tierno y las almejas se abran. Un truco es cubrir con papel de aluminio para que n"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Trocea cebolla y ajo, sofríe en el vaso con aceite. Añade la harina, el vino y un poco de agua o caldo, y cocina la salsa. Incorpora el rape y las almejas, cocinando a temperatura Varoma o a 90°C, velocidad cuchara, hasta que el pescado esté en su punto y las almejas abiertas. El"
+      }
+    ]
   },
   {
     "id": "pescados_017",
@@ -1037,7 +1261,21 @@
       "Freír en aceite caliente hasta dorar",
       "Escurrir sobre papel absorbente"
     ],
-    "description": "Bastones de merluza empanados caseros, ideal para niños"
+    "description": "Bastones de merluza empanados caseros, ideal para niños",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C y cocina los palitos de merluza durante 12-15 minutos, volteándolos a mitad de cocción para un dorado uniforme y una textura crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Hornea los palitos a 200°C con calor arriba y abajo durante 15-20 minutos, o hasta que estén bien dorados y crujientes, dándoles la vuelta una vez a mitad de cocción."
+      }
+    ]
   },
   {
     "id": "pescados_018",
@@ -1105,7 +1343,39 @@
       "Aliñar con aceite, limón y eneldo, cerrar el paquete",
       "Hornear a 200°C durante 18 min"
     ],
-    "description": "Salmón cocinado al vapor en papillote con verduras en juliana"
+    "description": "Salmón cocinado al vapor en papillote con verduras en juliana",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180-200°C. Envuelve el salmón y las verduras con aceite, limón y eneldo en papel de horno o aluminio, sellando bien. Hornea durante 20-25 minutos para un resultado jugoso."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Prepara los papillotes en papel de aluminio bien sellado para evitar que se abran. Cocina durante 15-20 minutos, comprobando que el pescado esté en su punto."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Vierte 500-700ml de agua en el vaso. Coloca los papillotes (en papel de horno o aluminio) en el recipiente Varoma. Cocina 20-25 minutos, Varoma, velocidad 1, asegurando una cocción uniforme al vapor."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Prepara los papillotes con todos los ingredientes bien sellados. Llena la base de la vaporera con agua y coloca los paquetes en la cesta. Cocina al vapor durante 20-25 minutos hasta que el salmón esté tierno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Añade 250ml de agua a la olla y coloca una rejilla. Pon los papillotes bien cerrados sobre la rejilla. Cocina a presión alta durante 5-7 minutos y libera la presión rápidamente para evitar que el salmón se seque."
+      }
+    ]
   },
   {
     "id": "pescados_019",
@@ -1167,7 +1437,27 @@
       "Colocar el atún sobre la cebolla",
       "Tapar y cocer 8 min a fuego suave"
     ],
-    "description": "Atún fresco guisado sobre cama de cebolla pochada al vino"
+    "description": "Atún fresco guisado sobre cama de cebolla pochada al vino",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla en una cazuela apta para horno hasta que esté tierna. Añade el resto de ingredientes, cubre y hornea a 180°C durante 25-30 minutos, o hasta que el atún esté cocido y la salsa reducida, para una cocción uniforme y sabores concentrados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Trocea la cebolla y sofríela con aceite a 120°C, velocidad cuchara, durante 10 min. Incorpora el resto de ingredientes (excepto el atún), programa 10 min, 100°C, velocidad cuchara. Añade el atún en trozos y cocina 5-7 min más, 100°C, giro inverso, velocidad cuchara, para un guiso"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla en la olla abierta con aceite. Añade el tomate, vino y laurel, cierra y cocina a presión durante 5 minutos. Abre, incorpora el atún en trozos y cocina sin tapa a fuego medio otros 5-7 minutos hasta que el atún esté hecho y la salsa reducida, logrando un guiso rá"
+      }
+    ]
   },
   {
     "id": "pescados_020",
@@ -1225,7 +1515,21 @@
       "Hacer salsa rápida con ajo, perejil y limón",
       "Verter sobre el pescado al servir"
     ],
-    "description": "Rodajas de pez espada a la plancha con ajo y perejil"
+    "description": "Rodajas de pez espada a la plancha con ajo y perejil",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Marina el emperador con el aceite, ajo y perejil. Precalienta la airfryer a 190°C y cocina el pescado durante 12-15 minutos, dándole la vuelta a mitad para un dorado uniforme y una textura jugosa."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con función grill o calor arriba y abajo. Coloca el emperador marinado con aceite, ajo y perejil en una bandeja y hornea/gratina durante 10-15 minutos hasta que esté cocido y ligeramente dorado."
+      }
+    ]
   },
   {
     "id": "pescados_021",
@@ -1300,7 +1604,15 @@
       "Añadir pimentón y caldo caliente",
       "Cocer 10 min, incorporar el marisco y dejar reposar"
     ],
-    "description": "Fideos tostados con gambas y sepia en caldo de pescado"
+    "description": "Fideos tostados con gambas y sepia en caldo de pescado",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Sella las gambas y la sepia, y sofríe el ajo y tomate en una paellera o cazuela apta para horno. Añade los fideos y tuéstalos ligeramente antes de incorporar el caldo caliente. Termina la cocción en el horno precalentado a 200°C durante unos 15-20 minutos, hasta que los fideos ab"
+      }
+    ]
   },
   {
     "id": "pescados_022",
@@ -1363,7 +1675,21 @@
       "Hornear a 190°C durante 18 min",
       "Espolvorear perejil al servir"
     ],
-    "description": "Lomos de rosada al horno con limón, ajo y vino blanco"
+    "description": "Lomos de rosada al horno con limón, ajo y vino blanco",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca la rosada en una bandeja de horno junto con el limón en rodajas, ajo picado, perejil, un chorrito de aceite y el vino blanco. Hornea durante 20-25 minutos hasta que el pescado esté tierno y jugoso, evitando el sobrecocinado para mantener su te"
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Dispón la rosada en la cesta con el resto de ingredientes, asegurándote de que el limón y el ajo estén bien distribuidos. Cocina por 12-15 minutos, revisando el punto de cocción para que quede jugosa por dentro y ligeramente dorada por fuera."
+      }
+    ]
   },
   {
     "id": "pescados_023",
@@ -1421,7 +1747,15 @@
       "Escurrir bien y aliñar con ajo, perejil y aceite",
       "Servir fríos"
     ],
-    "description": "Boquerones marinados en vinagre con ajo y perejil"
+    "description": "Boquerones marinados en vinagre con ajo y perejil",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la Thermomix para picar finamente el ajo y el perejil (unos segundos a velocidad 7). Luego, añade el aceite de oliva y emulsiona a velocidad 4-5 para crear un aliño homogéneo y aromático para los boquerones ya limpios y marinados."
+      }
+    ]
   },
   {
     "id": "pescados_024",
@@ -1484,7 +1818,21 @@
       "Colocar la pescadilla encima con limón y aceite",
       "Hornear 12 min más y servir con perejil"
     ],
-    "description": "Lomos de pescadilla al horno con patata y cebolla"
+    "description": "Lomos de pescadilla al horno con patata y cebolla",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalentar el horno a 190°C. Extender las patatas y cebolla en rodajas finas con aceite en una bandeja y hornear 15-20 min. Añadir la pescadilla, salpimentar, rociar con limón y aceite, y hornear 10-12 min más hasta que el pescado esté en su punto."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalentar la airfryer a 180°C. Cocinar las patatas y cebolla en rodajas finas con un poco de aceite durante 15-18 minutos, removiendo a mitad. Incorporar la pescadilla, salpimentar y rociar con limón, cocinando 7-9 minutos adicionales hasta que el pescado esté tierno y dorado."
+      }
+    ]
   },
   {
     "id": "pescados_025",
@@ -1552,6 +1900,26 @@
       "Verter el vino y añadir laurel",
       "Tapar y cocer 15 min a fuego suave"
     ],
-    "description": "Calamares en anillas guisados con abundante cebolla pochada"
+    "description": "Calamares en anillas guisados con abundante cebolla pochada",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Pocha la cebolla y el ajo en una cazuela apta para horno. Añade los calamares, el vino, el laurel y un poco de agua si es necesario. Tapa y cocina en el horno precalentado a 180°C durante 30-35 minutos, hasta que los calamares estén tiernos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y el ajo, sofríe con aceite. Incorpora los calamares troceados, el vino blanco y el laurel. Cocina a temperatura Varoma, giro inverso, velocidad cuchara durante 25-30 minutos, hasta que los calamares estén tiernos y la salsa reducida."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla a presión. Añade los calamares, el vino, el laurel y un chorrito de agua. Cierra la olla y cocina durante 8-10 minutos desde que sube la válvula. Despresuriza y, si es necesario, reduce la salsa a fuego vivo sin tapa."
+      }
+    ]
   }
 ]

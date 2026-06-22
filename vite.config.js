@@ -1,11 +1,59 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 
+function readJsonBody(req) {
+  return new Promise((resolve) => {
+    let data = ''
+    req.on('data', (chunk) => { data += chunk })
+    req.on('end', () => {
+      try { resolve(data ? JSON.parse(data) : {}) } catch { resolve({}) }
+    })
+  })
+}
+
+// Local dev only: `vite` no ejecuta las funciones de /api/, así que montamos
+// el handler de /api/recipe-steps como middleware para poder probar los pasos
+// por electrodoméstico con `npm run dev` (sin necesidad de `vercel dev`).
+function devRecipeStepsApi(env) {
+  return {
+    name: 'dev-recipe-steps-api',
+    configureServer(server) {
+      process.env.ANTHROPIC_API_KEY =
+        process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY || env.VITE_ANTHROPIC_API_KEY || ''
+      for (const k of [
+        'KV_REST_API_URL', 'KV_REST_API_TOKEN',
+        'UPSTASH_REDIS_REST_URL', 'UPSTASH_REDIS_REST_TOKEN',
+      ]) {
+        if (!process.env[k] && env[k]) process.env[k] = env[k]
+      }
+
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url || !req.url.startsWith('/api/recipe-steps')) return next()
+        if (req.method !== 'POST') return next()
+        try {
+          const { default: handler } = await import('./api/recipe-steps.js')
+          req.body = await readJsonBody(req)
+          res.status = (code) => { res.statusCode = code; return res }
+          res.json = (obj) => {
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(obj))
+          }
+          await handler(req, res)
+        } catch (err) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: err?.message || 'dev handler error' }))
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [react()],
+    plugins: [react(), devRecipeStepsApi(env)],
     server: {
       port: 5175,
       host: true,

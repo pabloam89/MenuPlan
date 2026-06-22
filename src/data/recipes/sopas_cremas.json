@@ -56,7 +56,21 @@
       "Cocer 15 min hasta que estén tiernos",
       "Triturar con el quesito hasta textura fina"
     ],
-    "description": "Crema suave de calabacín con patata y quesito"
+    "description": "Crema suave de calabacín con patata y quesito",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, añade el resto de verduras troceadas con agua o caldo y cocina a temperatura Varoma durante 20 minutos. Tritura a velocidad progresiva hasta obtener una crema fina, incorporando el quesito al final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla en la olla, añade el resto de verduras troceadas con agua o caldo. Cierra y cocina a presión durante 5-7 minutos. Una vez despresurizada, tritura hasta obtener una crema fina y añade el quesito."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_002",
@@ -113,7 +127,21 @@
       "Cocer 5 min a fuego medio",
       "Servir con un chorrito de aceite y perejil"
     ],
-    "description": "Sopa caliente de fideos finos en caldo de pollo"
+    "description": "Sopa caliente de fideos finos en caldo de pollo",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Pica la zanahoria 3 seg/vel 5. Sofríe con aceite 3 min/120°C/vel 1. Añade el caldo y los fideos, cocina 12 min/100°C/giro inverso/vel cuchara. Sirve con perejil."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la zanahoria en la olla con aceite. Añade el caldo y los fideos, cierra la olla y cocina 3-4 minutos desde que sube la válvula. Despresuriza y sirve con perejil."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_003",
@@ -175,7 +203,33 @@
       "Cubrir con agua y cocer 20 min",
       "Triturar con nuez moscada hasta textura cremosa"
     ],
-    "description": "Crema de calabaza con zanahoria y un toque de nuez moscada"
+    "description": "Crema de calabaza con zanahoria y un toque de nuez moscada",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Asa las verduras troceadas con un chorrito de aceite de oliva en el horno precalentado a 200°C durante 30-40 minutos, hasta que estén muy tiernas y ligeramente doradas. Luego, tritura con caldo caliente hasta obtener una crema suave y con un sabor más profundo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras en la Thermomix y sofríelas con aceite. Añade agua o caldo y cocina a 100°C, velocidad cuchara, durante 20-25 minutos. Finalmente, tritura a velocidad progresiva hasta obtener una crema fina y homogénea."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las verduras troceadas en la vaporera hasta que estén muy tiernas (aproximadamente 25-30 minutos). Después, tritura con un poco del agua de cocción o caldo caliente y un chorrito de aceite de oliva para una crema ligera y nutritiva."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras en la olla express con aceite. Añade agua o caldo, cierra la olla y cocina a presión durante 5-7 minutos desde que sube la válvula. Libera la presión y tritura hasta obtener una crema homogénea en tiempo récord."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_004",
@@ -244,7 +298,15 @@
       "Añadir aceite y vinagre emulsionando",
       "Colar si se desea, servir muy frío"
     ],
-    "description": "Sopa fría de tomate, pepino y pimiento al estilo andaluz"
+    "description": "Sopa fría de tomate, pepino y pimiento al estilo andaluz",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es perfecta para el gazpacho. Introduce todos los ingredientes troceados y tritura a velocidad progresiva 1-10 durante 2-3 minutos hasta obtener una textura muy fina. Sirve bien frío."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_005",
@@ -313,7 +375,15 @@
       "Enfriar en nevera al menos 1 h",
       "Servir con picatostes de jamón y huevo cocido picado"
     ],
-    "description": "Crema fría espesa de tomate y pan con jamón y huevo"
+    "description": "Crema fría espesa de tomate y pan con jamón y huevo",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce los tomates, pan, ajo, vinagre y sal en el vaso y tritura a velocidad progresiva hasta obtener una crema muy fina. Añade el aceite en hilo mientras sigues batiendo a velocidad media para emulsionar perfectamente."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_006",
@@ -370,7 +440,33 @@
       "Cubrir con agua y cocer 20 min",
       "Triturar hasta textura cremosa"
     ],
-    "description": "Crema suave de zanahoria con un toque de jengibre"
+    "description": "Crema suave de zanahoria con un toque de jengibre",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Asa las zanahorias, patatas y cebolla con el aceite y jengibre a 200°C durante 25-30 minutos para intensificar su sabor. Luego, hierve brevemente con agua o caldo y tritura hasta obtener una crema suave."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el jengibre con el aceite, añade las zanahorias y patatas, cubre con agua o caldo y cocina a 100°C, velocidad cuchara, durante 20-25 minutos. Finalmente, tritura a velocidad progresiva hasta obtener una crema fina."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cocina al vapor las zanahorias, patatas, cebolla y jengibre hasta que estén muy tiernas, unos 25-30 minutos. Luego, tritura los vegetales con el aceite de oliva y un poco de agua o caldo hasta conseguir la textura deseada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el jengibre en la olla, añade las zanahorias y patatas, cubre con agua o caldo. Cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza y tritura hasta obtener una crema homogénea."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_007",
@@ -439,7 +535,27 @@
       "Cocer 10 min a fuego suave",
       "Cascar los huevos encima y hornear 5 min a 200°C"
     ],
-    "description": "Sopa de ajo con pan, jamón y huevo escalfado"
+    "description": "Sopa de ajo con pan, jamón y huevo escalfado",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "En una cazuela apta para horno, sofríe el ajo y el jamón. Añade el pimentón y el caldo, luego hornea a 180°C durante 20 minutos para que los sabores se integren, añadiendo los huevos al final para que se escalfen con el calor residual."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y el jamón en el vaso a 120°C, velocidad cuchara. Incorpora el pimentón, el caldo y el pan, cocinando a 100°C, velocidad cuchara, durante 15 minutos. Añade los huevos al final y cocina 2-3 minutos más."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y el jamón en la olla abierta. Añade el pimentón, el pan y el caldo, cierra la olla y cocina 5 minutos desde que suba la válvula. Despresuriza, abre y escalfa los huevos con el calor residual."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_008",
@@ -498,7 +614,21 @@
       "Cocer 20 min y triturar fino",
       "Añadir nata, enfriar en nevera y servir fría"
     ],
-    "description": "Crema fría de puerro y patata con nata"
+    "description": "Crema fría de puerro y patata con nata",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es perfecta para la Vichyssoise, ya que sofríe, cocina y tritura en un solo recipiente. Sofríe las verduras 5 min a 120°C, luego añade patatas y agua, cocina 15 min a 100°C y tritura progresivamente hasta obtener una crema fina con la nata."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "La olla express reduce drásticamente el tiempo de cocción de las verduras. Sofríe los puerros y cebolla en la olla, añade las patatas y agua, cierra y cocina 7-10 minutos a presión, luego tritura con la nata hasta lograr una crema suave."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_009",
@@ -550,7 +680,21 @@
       "Añadir patata y agua, cocer 20 min",
       "Triturar hasta textura cremosa"
     ],
-    "description": "Crema caliente de puerros con patata"
+    "description": "Crema caliente de puerros con patata",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras picadas con aceite 5 min/120°C/vel 1. Añade agua o caldo y cocina 15 min/100°C/vel 1. Tritura progresivamente 1 min/vel 5-10 hasta obtener una crema fina y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras en la olla con aceite. Añade agua o caldo hasta cubrir, cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza y tritura hasta obtener una crema suave."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_010",
@@ -614,7 +758,27 @@
       "Incorporar el caldo y cocer 15 min",
       "Servir con pan tostado y gratinar con queso"
     ],
-    "description": "Sopa de cebolla caramelizada gratinada con queso"
+    "description": "Sopa de cebolla caramelizada gratinada con queso",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Comienza caramelizando las cebollas lentamente en una olla a fuego medio-bajo. Luego, añade el vino y el caldo, y cocina a fuego suave. Sirve la sopa en cuencos individuales aptos para horno, cubre con el pan y el queso, y gratina a 200°C durante 5-10 minutos hasta que el queso e"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Pica las cebollas y sofríelas con la mantequilla a 120°C, velocidad cuchara, durante 20 minutos. Añade el vino y el caldo, y cocina a 100°C, velocidad cuchara, durante 15 minutos. Sirve la sopa en cuencos aptos para horno, cubre con pan y queso, y gratina en el horno precalentado"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las cebollas con la mantequilla en la olla express abierta a fuego medio hasta que estén bien caramelizadas (aprox. 15-20 min). Añade el vino y el caldo, cierra la olla y cocina a presión durante 10-12 minutos. Sirve la sopa en cuencos individuales, cubre con pan y queso, "
+      }
+    ]
   },
   {
     "id": "sopas_cremas_011",
@@ -676,7 +840,33 @@
       "Cubrir con agua y cocer 20 min",
       "Triturar hasta textura fina"
     ],
-    "description": "Crema suave de verduras variadas con patata"
+    "description": "Crema suave de verduras variadas con patata",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras, sofríelas con el aceite, añade agua o caldo y cocina a 100°C durante 15-20 minutos. Luego, tritura a velocidad progresiva hasta obtener una crema fina."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras y cocínalas al vapor hasta que estén muy tiernas (aprox. 15-20 min). Luego, tritura con un poco de agua o caldo y el aceite de oliva hasta obtener una crema suave."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el puerro en la olla. Añade el resto de verduras, agua o caldo y cocina a presión alta durante 5-7 minutos. Libera la presión y tritura con el aceite de oliva."
+      },
+      {
+        "appliance": "microondas",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras y cocínalas en un recipiente apto para microondas con un poco de agua durante 10-15 minutos a máxima potencia hasta que estén tiernas. Luego, tritura con el aceite de oliva y un poco de líquido de cocción."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_012",
@@ -740,7 +930,21 @@
       "Cocer 15 min hasta que esté tierno",
       "Triturar y añadir nata caliente"
     ],
-    "description": "Crema de champiñones con nata y un toque de ajo"
+    "description": "Crema de champiñones con nata y un toque de ajo",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y el ajo, sofríe con aceite. Añade los champiñones y la patata, cubre con agua/caldo y cocina 15-20 min a 100°C. Tritura a velocidad progresiva hasta obtener una crema fina, incorporando la nata al final."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla con aceite. Añade los champiñones y la patata, cubre con agua/caldo y cocina a presión alta durante 5-7 minutos. Libera la presión, añade la nata y tritura con una batidora de mano."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_013",
@@ -792,7 +996,39 @@
       "Escurrir y aplastar con tenedor o pasapurés",
       "Añadir leche caliente, mantequilla y nuez moscada"
     ],
-    "description": "Puré de patatas cremoso con mantequilla y nuez moscada"
+    "description": "Puré de patatas cremoso con mantequilla y nuez moscada",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Asa las patatas enteras a 200°C durante unos 45-55 minutos hasta que estén muy tiernas. Luego pélalas, machácalas y mezcla con la leche, mantequilla y nuez moscada para un puré más seco y con sabor concentrado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas troceadas en el cestillo o varoma durante 20-25 minutos a temperatura Varoma, velocidad 1. Luego, tritúralas con la leche, mantequilla y nuez moscada a velocidad 4-5 hasta obtener la textura deseada."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en trozos y cuécelas al vapor durante 25-30 minutos hasta que estén muy tiernas. Machácalas bien y luego incorpora la leche caliente, la mantequilla y la nuez moscada para un puré ligero y sabroso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas troceadas con un poco de agua en la olla express durante 6-8 minutos desde que sube la válvula. Despresuriza, escurre y machaca, añadiendo luego la leche, mantequilla y nuez moscada para un puré muy rápido y cremoso."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Pincha las patatas enteras o trocéalas y cocínalas en el microondas a máxima potencia durante 10-12 minutos, volteando a mitad, hasta que estén muy tiernas. Luego machaca y mezcla con el resto de ingredientes para un puré exprés."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_014",
@@ -849,7 +1085,33 @@
       "Añadir espárragos y patata, cubrir con agua",
       "Cocer 15 min y triturar fino"
     ],
-    "description": "Crema de espárragos trigueros con patata"
+    "description": "Crema de espárragos trigueros con patata",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y el ajo, sofríe con aceite. Añade los espárragos y patata troceados con agua o caldo. Cocina 12-15 minutos a 100°C, velocidad cuchara, luego tritura a velocidad progresiva hasta obtener una crema fina y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla. Incorpora los espárragos, patata y líquido. Cierra y cocina a presión alta 5-7 minutos. Despresuriza y tritura con una batidora de mano hasta lograr una crema suave."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los espárragos, patata, cebolla y ajo al vapor hasta que estén muy tiernos (aprox. 20-25 minutos). Transfiere a una batidora, añade el aceite de oliva y un poco de agua o caldo de la cocción, y tritura hasta obtener una crema suave."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras y cocínalas en un recipiente apto para microondas con un poco de agua durante 10-12 minutos a máxima potencia, hasta que estén tiernas. Luego, tritura con el aceite de oliva y un poco de líquido hasta obtener una crema fina."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_015",
@@ -914,7 +1176,15 @@
       "Ajustar consistencia con agua fría",
       "Servir muy frío con uvas peladas"
     ],
-    "description": "Sopa fría de almendras y ajo con uvas, típica de Málaga"
+    "description": "Sopa fría de almendras y ajo con uvas, típica de Málaga",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es perfecta para el ajoblanco. Tritura todos los ingredientes (almendras, pan, ajo, agua, aceite, vinagre y sal) a velocidad progresiva hasta lograr una crema muy fina y emulsionada. Sirve bien frío con las uvas."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_016",
@@ -971,7 +1241,33 @@
       "Cocer 15 min a fuego lento",
       "Triturar y servir caliente"
     ],
-    "description": "Sopa caliente de tomate natural con orégano"
+    "description": "Sopa caliente de tomate natural con orégano",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Asa los tomates, cebolla y ajo en la airfryer a 190°C durante 15-20 minutos hasta que estén tiernos y ligeramente caramelizados. Luego, tritúralos con un poco de agua o caldo y el orégano hasta obtener una sopa cremosa."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Asa los tomates, cebolla y ajo en el horno a 180°C durante 30-40 minutos hasta que estén bien tiernos y con un ligero tostado. Después, tritúralos con el aceite de oliva, orégano y un poco de agua o caldo hasta conseguir una sopa suave."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo con el aceite. Añade los tomates troceados y el orégano, cocina a temperatura Varoma durante 15 minutos y finalmente tritura a velocidad progresiva hasta obtener una crema fina y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla express. Incorpora los tomates y el orégano, cierra la olla y cocina a presión durante 5-7 minutos. Una vez despresurizada, tritura todo hasta lograr una sopa cremosa."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_017",
@@ -1028,7 +1324,33 @@
       "Cubrir con agua y cocer 12 min",
       "Triturar hasta textura fina y cremosa"
     ],
-    "description": "Crema de brócoli con patata, suave y nutritiva"
+    "description": "Crema de brócoli con patata, suave y nutritiva",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo, añade el resto de ingredientes y agua, cocina 18 min a 100°C, velocidad cuchara. Luego tritura 1 min a velocidad progresiva 5-10 hasta obtener una crema fina."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el brócoli, la patata, cebolla y ajo al vapor durante 15-18 minutos hasta que estén tiernos. Luego, tritura los vegetales con el aceite de oliva y un poco del agua de cocción hasta lograr una crema suave."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla. Añade el brócoli, la patata y un poco de agua, cierra y cocina 5 minutos desde que sube la válvula. Libera la presión y tritura directamente en la olla hasta obtener una crema homogénea."
+      },
+      {
+        "appliance": "microondas",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Coloca todos los vegetales troceados con un chorrito de agua en un recipiente apto para microondas. Cocina a máxima potencia durante 12-15 minutos hasta que estén muy tiernos. Luego, tritura con el aceite de oliva hasta obtener una crema suave."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_018",
@@ -1091,7 +1413,15 @@
       "Verter caldo caliente y cocer 10 min",
       "Cascar los huevos encima y dejar cuajar 3 min"
     ],
-    "description": "Sopa de ajo tradicional con pan, pimentón y huevo"
+    "description": "Sopa de ajo tradicional con pan, pimentón y huevo",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo con aceite, incorpora el pan y el pimentón brevemente. Añade el caldo y cocina a 100°C. Al final, escalfa los huevos directamente en el vaso hasta que estén a tu gusto."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_019",
@@ -1156,7 +1486,21 @@
       "Añadir caldo caliente",
       "Cocer 15 min hasta que las verduras estén tiernas"
     ],
-    "description": "Sopa ligera de verduras cortadas en juliana fina"
+    "description": "Sopa ligera de verduras cortadas en juliana fina",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras en el vaso, sofríelas con el aceite y luego añade el caldo. Cocina a 100°C durante 20 minutos a velocidad cuchara con giro inverso, logrando una sopa perfectamente cocida y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras en la olla con el aceite, añade el caldo y cierra la tapa. Cocina a presión durante 6 minutos desde que sube la válvula, obteniendo una sopa rápida y con verduras perfectamente tiernas."
+      }
+    ]
   },
   {
     "id": "sopas_cremas_020",
@@ -1218,6 +1562,20 @@
       "Cubrir con agua y cocer 20 min",
       "Triturar hasta textura cremosa"
     ],
-    "description": "Crema espesa de lentejas rojas con zanahoria y comino"
+    "description": "Crema espesa de lentejas rojas con zanahoria y comino",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras y sofríelas con aceite. Añade las lentejas, tomate triturado, comino y agua. Cocina a temperatura Varoma/100°C y velocidad cuchara durante 25-30 minutos. Finalmente, tritura a velocidad progresiva hasta obtener una crema fina y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe las verduras picadas en la olla con aceite. Incorpora las lentejas, tomate triturado, comino y agua. Cierra la olla y cocina a presión durante 8-10 minutos desde que sube la válvula. Despresuriza, y tritura directamente en la olla con una batidora de mano hasta conseguir u"
+      }
+    ]
   }
 ]

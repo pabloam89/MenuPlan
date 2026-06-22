@@ -637,8 +637,10 @@ export default function App() {
 
       {selectedSlot && (
         <DishDetail
+          key={selectedSlot.recipe.id}
           recipe={selectedSlot.recipe}
           slot={selectedSlot.slot}
+          kitchenTools={data.kitchenTools ?? []}
           onClose={() => setSelectedSlot(null)}
           onReject={() => handleReplaceSlot(selectedSlot)}
         />

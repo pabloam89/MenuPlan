@@ -487,6 +487,9 @@ function catalogToFrontendRecipe(catalogRecipe, eaters) {
     steps: r.steps ?? [],
     image: `/dishes/${r.id}.webp`,
     ingredients,
+    // Appliance variants (airfryer, horno, thermomix…) — used to show the
+    // best-fit method for the user's kitchen tools in the menu + dish detail.
+    methods: r.methods ?? [],
   };
 }
 

@@ -57,7 +57,15 @@
       "Añadir aceitunas",
       "Aliñar con aceite, vinagre y sal"
     ],
-    "description": "Ensalada básica de lechuga, tomate, cebolla y aceitunas"
+    "description": "Ensalada básica de lechuga, tomate, cebolla y aceitunas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la Thermomix para picar finamente la cebolla (3-5 seg, vel 5) y emulsionar el aliño de aceite y vinagre. Luego, combina todos los ingredientes cortados en un bol, mezclando con cuidado para no dañar la lechuga."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_002",
@@ -122,7 +130,33 @@
       "Incorporar calabacín y cocer 10 min",
       "Añadir tomate pelado y cocer 15 min más a fuego lento"
     ],
-    "description": "Fritada de verduras al estilo manchego con calabacín y pimientos"
+    "description": "Fritada de verduras al estilo manchego con calabacín y pimientos",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras en trozos similares. Rocía con aceite de oliva y cocina en la airfryer a 180-190°C durante 20-25 minutos, removiendo a mitad, hasta que estén tiernas y ligeramente doradas. Añade el tomate al final para que se integre."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla todas las verduras picadas con aceite de oliva, sal y pimienta en una bandeja de horno. Hornea a 190-200°C durante 40-45 minutos, removiendo ocasionalmente, hasta que estén muy tiernas y caramelizadas, añadiendo el tomate a mitad de cocción."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras en el vaso. Sofríe la cebolla y el ajo con aceite, luego añade los pimientos y el calabacín, y cocina. Incorpora el tomate y programa 20-25 minutos a temperatura Varoma, velocidad cuchara, giro inverso, hasta obtener un pisto tierno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla con aceite. Añade los pimientos, calabacín y tomate, cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza y remueve hasta espesar ligeramente."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_003",
@@ -194,7 +228,33 @@
       "Incorporar un poco de caldo de cocción y las verduras",
       "Cocer todo junto 5 min para que ligue"
     ],
-    "description": "Menestra de verduras de temporada rehogadas con jamón"
+    "description": "Menestra de verduras de temporada rehogadas con jamón",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el jamón en una sartén. Mezcla con las verduras en una fuente apta para horno, añade un poco de caldo y hornea a 180-200°C hasta que estén tiernas, unos 20-25 minutos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Trocea y sofríe la cebolla y el jamón. Añade las verduras y un poco de caldo, cocinando a temperatura Varoma o 100°C, velocidad cuchara, hasta que estén tiernas, unos 20-25 minutos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las verduras al vapor hasta que estén tiernas pero firmes. En una sartén aparte, sofríe la cebolla y el jamón. Mezcla todo con las verduras al vapor y un chorrito de aceite de oliva, añadiendo la harina disuelta en un poco de caldo para ligar si se desea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el jamón en la olla. Añade las verduras más duras con un poco de caldo y cocina a presión 5-7 minutos. Libera la presión, añade los guisantes y la harina disuelta en caldo para espesar, cocinando unos minutos más sin presión."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_004",
@@ -256,7 +316,33 @@
       "Rellenar las barquitas y cubrir con tomate",
       "Hornear a 190°C durante 25 min"
     ],
-    "description": "Calabacines rellenos de carne picada gratinados con tomate"
+    "description": "Calabacines rellenos de carne picada gratinados con tomate",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el relleno salteando la carne con cebolla, ajo y tomate. Rellena los calabacines ahuecados y hornea a 180-200°C durante 25-30 minutos hasta que el calabacín esté tierno y el relleno bien integrado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Tras preparar el relleno en sartén, rellena los calabacines y cocina en la airfryer a 180°C durante 20-25 minutos. Vigila que el calabacín quede tierno y el relleno bien caliente, logrando un exterior ligeramente crujiente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito y la carne picada en el vaso de la Thermomix. Cocina los calabacines ahuecados al vapor en el Varoma mientras se hace el relleno. Luego, rellena y sirve, obteniendo un plato jugoso y cocinado de forma eficiente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el relleno de carne picada con cebolla, ajo y tomate en una sartén. Ahueca los calabacines y cuécelos al vapor durante 20-25 minutos hasta que estén tiernos. Rellena los calabacines con la carne y sirve un plato ligero y saludable."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_005",
@@ -313,7 +399,27 @@
       "Saltear hasta que reduzcan",
       "Añadir pasas y piñones, salpimentar"
     ],
-    "description": "Espinacas salteadas con pasas y piñones al estilo catalán"
+    "description": "Espinacas salteadas con pasas y piñones al estilo catalán",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Combina las espinacas, ajo picado, pasas, piñones y aceite de oliva en una fuente apta para horno. Hornea a 180-200°C durante 15-20 minutos, removiendo a mitad, hasta que las espinacas estén tiernas y los piñones dorados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Pica el ajo, luego sofríelo con el aceite y los piñones. Añade las espinacas y las pasas, y cocina a 100°C, giro inverso, velocidad cuchara, hasta que las espinacas estén a tu gusto (aprox. 10-12 minutos)."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las espinacas al vapor hasta que estén tiernas (unos 5-7 minutos). Mientras, saltea el ajo picado, los piñones y las pasas en una sartén con aceite de oliva hasta dorar. Mezcla las espinacas cocidas con el sofrito."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_006",
@@ -375,7 +481,27 @@
       "Rellenar los pimientos y colocar en bandeja con tomate",
       "Hornear a 180°C durante 35 min"
     ],
-    "description": "Pimientos rojos rellenos de carne picada al horno con tomate"
+    "description": "Pimientos rojos rellenos de carne picada al horno con tomate",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Sofreír la cebolla, ajo, carne y tomate para el relleno en una sartén. Rellenar los pimientos y hornear a 180-200°C durante 40-50 minutos, hasta que estén tiernos y ligeramente dorados."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Preparar el relleno sofriéndolo previamente en una sartén. Rellenar los pimientos cortados por la mitad y cocinar en la airfryer a 185°C durante 25-35 minutos, hasta que los pimientos estén tiernos y el relleno caliente. Un truco es rociar con un poco de aceite para un mejor dora"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Preparar el relleno en el vaso de la Thermomix (picar cebolla/ajo, sofreír, añadir carne y tomate, cocinar). Rellenar los pimientos y cocinarlos al vapor en el Varoma durante 25-35 minutos, velocidad Varoma, hasta que estén tiernos. El truco es asegurarse de que los pimientos no "
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_007",
@@ -444,7 +570,27 @@
       "Sofreír cebolla, ajo, carne y pulpa con tomate",
       "Rellenar, añadir queso y gratinar 15 min"
     ],
-    "description": "Berenjenas rellenas de carne picada gratinadas con queso"
+    "description": "Berenjenas rellenas de carne picada gratinadas con queso",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Vacía las berenjenas y hornéalas a 180°C unos 30-35 min hasta que estén tiernas. Prepara el sofrito con la carne y rellena. Gratina a 200°C o con función grill durante 10-15 min hasta dorar. El truco es no pasarse con la cocción inicial de la berenjena para que mantenga su forma."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Corta las berenjenas por la mitad, vacía y cocínalas en la airfryer a 180°C durante 20-25 min. Mientras, prepara el sofrito de carne y verduras en una sartén. Rellena las berenjenas y gratina en la airfryer a 190°C por 8-10 min. Un truco es pincelar las berenjenas con aceite para"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito de carne y verduras en la Thermomix (velocidad cuchara, 120°C, 15 min). Cocina las berenjenas cortadas por la mitad al vapor en el Varoma (25-30 min, Varoma, vel 1). Luego, rellena y gratina en el horno o airfryer. El truco es usar el Varoma para una cocción un"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_008",
@@ -499,7 +645,21 @@
       "Cocinar cada verdura 3 min por lado",
       "Aliñar con aceite y sal en escamas"
     ],
-    "description": "Verduras de temporada asadas a la plancha con aceite"
+    "description": "Verduras de temporada asadas a la plancha con aceite",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras en trozos similares, mézclalas con el aceite de oliva y sazona. Cocina en la airfryer precalentada a 190°C durante 15-18 minutos, agitando la cesta a mitad para un dorado uniforme y una textura tierna por dentro."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Corta las verduras, úntalas con aceite de oliva y sazona. Extiéndelas en una bandeja de horno y ásalas durante 20-25 minutos, dándoles la vuelta a mitad, hasta que estén tiernas y ligeramente caramelizadas."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_009",
@@ -555,7 +715,21 @@
       "Cortar en tiras y disponer en fuente",
       "Aliñar generosamente con aceite y sal"
     ],
-    "description": "Verduras asadas al horno, peladas y aliñadas al estilo catalán"
+    "description": "Verduras asadas al horno, peladas y aliñadas al estilo catalán",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Asa las verduras enteras o en trozos grandes a 180-200°C durante 45-50 minutos, hasta que estén muy tiernas y ligeramente chamuscadas. Pela y aliña con aceite de oliva."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras en trozos grandes, úntalas con aceite y cocínalas en la airfryer a 190°C durante 30-35 minutos, volteando a mitad de cocción, hasta que estén tiernas y doradas."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_010",
@@ -605,7 +779,39 @@
       "Saltear con ajo laminado y jamón en taquitos",
       "Servir con un chorrito de aceite"
     ],
-    "description": "Judías verdes cocidas y rehogadas con ajo y jamón"
+    "description": "Judías verdes cocidas y rehogadas con ajo y jamón",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina las judías verdes con un poco de aceite durante 10-12 minutos, removiendo. Añade el ajo picado y el jamón serrano y cocina 3-5 minutos más hasta que estén tiernas y ligeramente doradas."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Asa las judías verdes con aceite, ajo picado y el jamón serrano en una bandeja de horno. Hornea a 190°C durante 20-25 minutos, removiendo ocasionalmente, hasta que estén tiernas y ligeramente doradas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las judías verdes al vapor en el Varoma durante 18-20 minutos. Mientras, sofríe el ajo picado y el jamón serrano en el vaso con aceite de oliva a 120°C, 5 min, Vel. Cuchara. Incorpora las judías cocidas y mezcla."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las judías verdes al vapor hasta que estén tiernas (15-20 min). En una sartén aparte, sofríe el ajo picado y el jamón serrano con el aceite de oliva hasta que el jamón esté crujiente. Mezcla las judías con el sofrito."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las judías verdes en la olla express con un poco de agua durante 3-5 minutos desde que sube la válvula. Escurre bien. En la misma olla abierta o en una sartén, sofríe el ajo y el jamón con el aceite hasta dorar, luego añade las judías y saltea brevemente."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_011",
@@ -659,7 +865,21 @@
       "Cubrir con bechamel y queso rallado",
       "Gratinar a 220°C 10 min hasta dorar"
     ],
-    "description": "Brócoli al vapor gratinado con bechamel y queso"
+    "description": "Brócoli al vapor gratinado con bechamel y queso",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el brócoli al vapor o hervido hasta que esté tierno. Mézclalo con la bechamel en una fuente apta para horno, cubre con el queso rallado y gratina a 190-200°C durante 15-20 minutos, hasta que esté dorado y burbujeante."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cuece el brócoli al vapor. En un recipiente pequeño apto para airfryer, mezcla el brócoli con la bechamel, cubre con el queso rallado y cocina a 180°C durante 10-15 minutos, hasta que el queso esté fundido y dorado."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_012",
@@ -712,7 +932,21 @@
       "Pasar por harina y huevo batido",
       "Freír en aceite caliente hasta dorar"
     ],
-    "description": "Ramilletes de coliflor cocidos, rebozados y fritos"
+    "description": "Ramilletes de coliflor cocidos, rebozados y fritos",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precocina la coliflor al vapor hasta que esté tierna. Reboza los floretes, rocíalos con aceite y cocínalos en la airfryer a 190°C durante 18-20 minutos, volteando a mitad, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Hierve o cuece la coliflor hasta que esté tierna. Reboza los trozos, colócalos en una bandeja de horno con papel y rocía con aceite. Hornea a 200°C durante 25-30 minutos, volteando a mitad, hasta que estén bien dorados."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_013",
@@ -777,7 +1011,39 @@
       "Añadir tomate, pimiento, cebolla y aceitunas",
       "Aliñar con aceite y vinagre templada"
     ],
-    "description": "Ensalada templada de patata con verduras y aceitunas"
+    "description": "Ensalada templada de patata con verduras y aceitunas",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en dados, rocíalas con un poco de aceite y sal. Cocínalas en la airfryer a 190°C durante 20-22 minutos, agitándolas a mitad de cocción, hasta que estén tiernas y ligeramente doradas."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en dados, mézclalas con un chorrito de aceite y sal. Hornea a 200°C durante 30-35 minutos, removiendo ocasionalmente, hasta que estén tiernas y ligeramente doradas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las patatas y cuécelas al vapor en el Varoma durante 20-25 minutos. Mientras, pica el resto de las verduras con la Thermomix para un montaje rápido."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en dados y cuécelas al vapor durante 20-25 minutos hasta que estén tiernas. Este método conserva mejor sus nutrientes y textura para la ensalada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Corta las patatas en dados, añade un vaso de agua a la olla y cuécelas al vapor o sumergidas durante 5-7 minutos desde que sube la válvula, para una cocción ultrarrápida."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_014",
@@ -832,7 +1098,27 @@
       "Añadir champiñones a fuego fuerte",
       "Saltear 5 min y servir con perejil"
     ],
-    "description": "Champiñones laminados salteados con ajo y perejil"
+    "description": "Champiñones laminados salteados con ajo y perejil",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los champiñones con el ajo, aceite, perejil y guindilla. Cocina en la airfryer precalentada a 190°C durante 15-18 minutos, agitando la cesta a mitad para un dorado uniforme y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Extiende los champiñones mezclados con ajo, aceite, perejil y guindilla en una bandeja de horno. Asa a 200°C durante 15-20 minutos, removiendo a mitad, hasta que estén tiernos y ligeramente dorados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el ajo y la guindilla, sofríe con el aceite. Añade los champiñones y el perejil, y cocina a temperatura Varoma, velocidad cuchara, giro inverso, hasta que estén tiernos y hayan soltado y reabsorbido su líquido."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_015",
@@ -899,7 +1185,27 @@
       "Mezclar con atún, aceitunas y huevo picado",
       "Añadir mayonesa y refrigerar 1 h antes de servir"
     ],
-    "description": "Ensaladilla rusa con patata, zanahoria, atún y mayonesa"
+    "description": "Ensaladilla rusa con patata, zanahoria, atún y mayonesa",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas, zanahorias y guisantes al vapor en el Varoma durante 20-25 minutos a temperatura Varoma, mientras hierves el huevo en el vaso. Luego trocea y mezcla con el resto de ingredientes."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cuece al vapor las patatas y zanahorias troceadas junto con los guisantes y el huevo durante 20-25 minutos hasta que estén tiernos. Enfría, trocea y mezcla con la mayonesa y el resto de ingredientes."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas, zanahorias, guisantes y el huevo en la olla express con un poco de agua durante 6-8 minutos desde que sube la válvula. Despresuriza, enfría, trocea y mezcla con el resto."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_016",
@@ -959,7 +1265,21 @@
       "Saltear con ajo y jamón en taquitos",
       "Servir con perejil"
     ],
-    "description": "Corazones de alcachofa salteados con ajo y jamón"
+    "description": "Corazones de alcachofa salteados con ajo y jamón",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las alcachofas limpias y troceadas. Mézclalas con aceite, ajo picado, sal y pimienta. Cocina en la airfryer precalentada a 190°C durante 15-18 minutos, removiendo a mitad. Añade el jamón serrano los últimos 3-4 minutos para que quede crujiente y sirve con limón y perejil."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Limpia y trocea las alcachofas, mézclalas con aceite de oliva, ajo picado, sal y pimienta. Extiéndelas en una bandeja de horno y asa a 200°C durante 25-30 minutos, hasta que estén tiernas y doradas. Incorpora el jamón serrano los últimos 5 minutos para que se dore y termina con l"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_017",
@@ -1020,7 +1340,21 @@
       "Montar en capas: patata, berenjena, pimiento",
       "Cubrir con la salsa y hornear 10 min a 180°C"
     ],
-    "description": "Capas de verduras fritas con salsa de tomate al estilo balear"
+    "description": "Capas de verduras fritas con salsa de tomate al estilo balear",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Corta las verduras y ásalas en el horno a 200°C con aceite de oliva durante unos 30-40 minutos, hasta que estén tiernas y ligeramente doradas. Luego, monta las capas de verduras con la salsa de tomate y hornea 15-20 minutos más para que los sabores se integren bien."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Prepara las verduras cortadas y cocínalas en la airfryer a 190°C en varias tandas (unos 10-15 min por tanda) hasta que estén tiernas y con un toque dorado. Haz la salsa de tomate aparte y luego monta el tumbet en capas para servir."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_018",
@@ -1070,7 +1404,21 @@
       "Cocinar con aceite 4 min girando",
       "Servir con ajo picado y sal en escamas"
     ],
-    "description": "Espárragos trigueros a la plancha con aceite y ajo"
+    "description": "Espárragos trigueros a la plancha con aceite y ajo",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los espárragos con el aceite de oliva, ajo picado y sal. Cocina en la airfryer precalentada a 190°C durante 10-12 minutos, agitando la cesta a mitad del tiempo, hasta que estén tiernos y ligeramente dorados."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. En una bandeja, extiende los espárragos mezclados con aceite de oliva, ajo picado y sal. Asa durante 15-20 minutos, volteándolos a mitad, hasta que estén tiernos y con puntas ligeramente crujientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_019",
@@ -1115,7 +1463,21 @@
       "Escurrir sobre papel absorbente",
       "Salar con sal gorda y servir"
     ],
-    "description": "Pimientos de padrón fritos con sal gorda"
+    "description": "Pimientos de padrón fritos con sal gorda",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Rocía los pimientos con aceite de oliva y sal gorda. Cocina en la airfryer precalentada a 190°C durante 12-15 minutos, agitando la cesta a mitad para un dorado uniforme y que queden tiernos."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los pimientos con aceite de oliva y sal gorda. Extiéndelos en una bandeja y ásalos en el horno precalentado a 200°C durante 15-20 minutos, volteando a mitad para que se doren y ablanden por igual."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_020",
@@ -1170,7 +1532,21 @@
       "Escurrir bien",
       "Rehogar con ajo y pimentón en aceite"
     ],
-    "description": "Acelgas cocidas rehogadas con ajo, patata y pimentón"
+    "description": "Acelgas cocidas rehogadas con ajo, patata y pimentón",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas y acelgas al vapor en el Varoma. Luego, sofríe el ajo y pimentón en el vaso con aceite, añade las verduras cocidas y mezcla a velocidad cuchara hasta integrar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y pimentón en la olla con aceite. Añade las patatas y acelgas con un poco de agua, cierra la olla y cocina a presión durante 3-5 minutos. Libera la presión y mezcla bien."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_021",
@@ -1220,7 +1596,15 @@
       "Aliñar con aceite, sal y orégano",
       "Dejar reposar 5 min antes de servir"
     ],
-    "description": "Ensalada simple de tomate maduro con cebolla y orégano"
+    "description": "Ensalada simple de tomate maduro con cebolla y orégano",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 3,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y el tomate en el vaso a velocidad 4-5 durante unos segundos. Luego añade el aceite y el orégano y mezcla a velocidad cuchara para combinar, manteniendo la frescura de la ensalada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_022",
@@ -1275,7 +1659,33 @@
       "Incorporar manzana en dados",
       "Cocer tapado 25 min a fuego lento"
     ],
-    "description": "Lombarda estofada con manzana y vinagre"
+    "description": "Lombarda estofada con manzana y vinagre",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta la lombarda, manzana y cebolla. Mezcla con aceite y sal, y cocina en la airfryer a 185°C durante 20-25 minutos, removiendo a mitad. Añade el vinagre al final para un toque brillante."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Mezcla la lombarda, manzana y cebolla troceadas con aceite, sal y vinagre. Extiende en una bandeja y hornea durante 35-40 minutos, removiendo ocasionalmente hasta que esté tierna y ligeramente caramelizada."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Trocea la cebolla y sofríe con aceite. Añade la lombarda y manzana troceadas, el vinagre y cocina a temperatura Varoma, giro inverso, velocidad cuchara durante 20-25 minutos hasta que esté tierna."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla con aceite en la olla abierta. Incorpora la lombarda, manzana y vinagre, cierra la olla y cocina a presión durante 8-10 minutos. Despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_023",
@@ -1325,7 +1735,21 @@
       "Saltear con ajo y panceta en taquitos",
       "Dorar a fuego fuerte hasta que caramelicen"
     ],
-    "description": "Coles de Bruselas salteadas con panceta crujiente"
+    "description": "Coles de Bruselas salteadas con panceta crujiente",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Mezcla las coles de Bruselas cortadas, la panceta, el ajo y el aceite. Cocina durante 15-20 minutos, agitando la cesta a mitad del tiempo para un acabado crujiente y dorado."
+      },
+      {
+        "appliance": "horno",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Extiende las coles de Bruselas, la panceta y el ajo con el aceite en una bandeja de horno. Hornea durante 25-30 minutos, removiendo a mitad, hasta que estén tiernas y bien doradas."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_024",
@@ -1401,7 +1825,21 @@
       "Mezclar mayonesa con limón y parmesano para la salsa",
       "Montar la lechuga con pollo, picatostes y salsa"
     ],
-    "description": "Ensalada de lechuga romana con pollo, picatostes y salsa César"
+    "description": "Ensalada de lechuga romana con pollo, picatostes y salsa César",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el pollo cortado en tiras o dados a 180°C durante 15-18 minutos, dándole la vuelta. Luego, tuesta los dados de pan con un poco de aceite y ajo a 180°C durante 5-8 minutos hasta que estén crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Hornea el pollo a 200°C durante 20-25 minutos hasta que esté dorado y cocido. Al mismo tiempo, tuesta los dados de pan con aceite y ajo a 180°C durante 10-15 minutos hasta obtener unos picatostes crujientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_025",
@@ -1456,6 +1894,32 @@
       "Aliñar con aceite y sal",
       "Servir como acompañamiento o plato ligero"
     ],
-    "description": "Mix de verduras cocidas al vapor, ligeras y nutritivas"
+    "description": "Mix de verduras cocidas al vapor, ligeras y nutritivas",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras en trozos uniformes. Añade 500ml de agua al vaso, coloca las verduras en el recipiente Varoma y cocina 20 minutos, Varoma, velocidad 1. Aliña con el aceite de oliva al servir."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras en trozos de tamaño similar. Coloca agua en la base de la vaporera y las verduras en la cesta. Cocina al vapor durante 18 minutos hasta que estén tiernas. Aliña con el aceite de oliva."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Vierte 200ml de agua en la base de la olla y coloca las verduras en una cesta de vapor. Cierra la olla y cocina a fuego medio-alto durante 3-4 minutos desde que sube la válvula. Despresuriza y aliña con el aceite."
+      },
+      {
+        "appliance": "microondas",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras y colócalas en un recipiente apto para microondas con un par de cucharadas de agua. Tapa y cocina a máxima potencia durante 7-8 minutos, removiendo a mitad de cocción, hasta que estén tiernas. Aliña con el aceite de oliva."
+      }
+    ]
   }
 ]
