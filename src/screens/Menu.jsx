@@ -52,6 +52,7 @@ import {
   APPLIANCE_COLORS,
   selectMethodForRecipe,
   methodDifficultyLabel,
+  userApplianceSlugs,
 } from "../lib/applianceMethods.js";
 import {
   calendarDayNumber,
@@ -1892,8 +1893,8 @@ export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject 
   const macros = recipe.macros;
   const selectedMethod = selectMethodForRecipe(recipe, kitchenTools);
 
-  // Opciones de preparación: la tradicional (base) + cada electrodoméstico.
-  // El usuario elige el método activo y solo se muestra esa receta.
+  // Opciones de preparación: la tradicional (base) + solo los electrodomésticos
+  // que el usuario tiene declarados en kitchenTools.
   const methodOptions = useMemo(() => {
     const base = {
       appliance: "base",
@@ -1902,15 +1903,18 @@ export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject 
       difficultyLabel: recipe.difficulty,
       prepSummary: recipe.prepSummary,
     };
-    const others = (recipe.methods ?? []).map((m) => ({
-      appliance: m.appliance,
-      label: APPLIANCE_LABELS[m.appliance] ?? m.appliance,
-      time: m.time,
-      difficultyLabel: methodDifficultyLabel(m.difficulty),
-      prepSummary: m.prepSummary || recipe.prepSummary,
-    }));
+    const userSlugs = userApplianceSlugs(kitchenTools);
+    const others = (recipe.methods ?? [])
+      .filter((m) => userSlugs.has(m.appliance))
+      .map((m) => ({
+        appliance: m.appliance,
+        label: APPLIANCE_LABELS[m.appliance] ?? m.appliance,
+        time: m.time,
+        difficultyLabel: methodDifficultyLabel(m.difficulty),
+        prepSummary: m.prepSummary || recipe.prepSummary,
+      }));
     return [base, ...others];
-  }, [recipe]);
+  }, [recipe, kitchenTools]);
 
   const [activeAppliance, setActiveAppliance] = useState(
     () => selectedMethod?.appliance ?? "base",
@@ -2084,63 +2088,49 @@ export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject 
             </div>
 
             {methodOptions.length > 1 && (
-              <>
-                <div style={{
-                  display: "flex", gap: 3,
-                  background: "#f0f4f1", borderRadius: 12, padding: 3,
-                  margin: "0 0 8px",
-                }}>
-                  {methodOptions.map((o) => {
-                    const isActive = o.appliance === activeAppliance;
-                    const isYours = o.appliance === selectedMethod?.appliance;
-                    const Icon = o.appliance === "base" ? ChefHat : APPLIANCE_ICONS[o.appliance];
-                    const aColor = o.appliance === "base" ? TITLE_GREEN : (APPLIANCE_COLORS[o.appliance] ?? TITLE_GREEN);
-                    return (
-                      <button
-                        key={o.appliance}
-                        type="button"
-                        onClick={() => setActiveAppliance(o.appliance)}
-                        style={{
-                          position: "relative",
-                          flex: 1, minWidth: 0,
-                          display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 5,
-                          padding: "8px 6px", borderRadius: 9, border: "none",
-                          background: isActive ? "#fff" : "transparent",
-                          color: isActive ? "#142f1d" : "#7a8a7f",
-                          fontSize: 12, fontWeight: 800,
-                          cursor: "pointer", fontFamily: "inherit",
-                          boxShadow: isActive ? "0 1px 4px rgba(0,0,0,.1)" : "none",
-                          transition: "all .15s ease",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {Icon && <Icon size={13} color={isActive ? aColor : "#9aa89f"} strokeWidth={2.4} />}
-                        <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{o.label}</span>
-                        {isYours && (
-                          <span style={{
-                            position: "absolute", top: 4, right: 5,
-                            width: 6, height: 6, borderRadius: "50%",
-                            background: aColor,
-                          }} />
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-                {selectedMethod && (
-                  <div style={{
-                    display: "flex", alignItems: "center", gap: 5,
-                    fontSize: 10, fontWeight: 700, color: "#9aa89f",
-                    margin: "0 0 12px",
-                  }}>
-                    <span style={{
-                      width: 6, height: 6, borderRadius: "50%",
-                      background: APPLIANCE_COLORS[selectedMethod.appliance] ?? TITLE_GREEN,
-                    }} />
-                    Recomendado para tu cocina
-                  </div>
-                )}
-              </>
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: `repeat(${Math.min(methodOptions.length, 3)}, 1fr)`,
+                gap: 7,
+                margin: "0 0 14px",
+              }}>
+                {methodOptions.map((o) => {
+                  const isActive = o.appliance === activeAppliance;
+                  const isYours = o.appliance === selectedMethod?.appliance;
+                  const Icon = o.appliance === "base" ? ChefHat : APPLIANCE_ICONS[o.appliance];
+                  const aColor = o.appliance === "base" ? TITLE_GREEN : (APPLIANCE_COLORS[o.appliance] ?? TITLE_GREEN);
+                  return (
+                    <button
+                      key={o.appliance}
+                      type="button"
+                      onClick={() => setActiveAppliance(o.appliance)}
+                      style={{
+                        position: "relative",
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center", gap: 5,
+                        padding: "10px 6px 8px",
+                        borderRadius: 12,
+                        border: `1.5px solid ${isActive ? aColor : "#e5ede7"}`,
+                        background: isActive ? `${aColor}12` : "#fff",
+                        color: isActive ? "#142f1d" : "#7a8a7f",
+                        fontSize: 11, fontWeight: 800,
+                        cursor: "pointer", fontFamily: "inherit",
+                        transition: "all .15s ease",
+                      }}
+                    >
+                      {Icon && <Icon size={18} color={isActive ? aColor : "#b0bdb4"} strokeWidth={2.2} />}
+                      <span style={{ lineHeight: 1.2, textAlign: "center" }}>{o.label}</span>
+                      {isYours && (
+                        <span style={{
+                          position: "absolute", top: 5, right: 6,
+                          width: 6, height: 6, borderRadius: "50%",
+                          background: aColor,
+                        }} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             )}
 
             <button

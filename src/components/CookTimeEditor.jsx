@@ -245,67 +245,61 @@ function CookTimePeriodBlock({
   );
   const soloBounds = displayCookBounds(min, max, periodKey, mealTargets, unit);
 
+  // Shared / single-meal: SliderInput already has its own bordered container.
+  if (mode === "shared" || !dual) {
+    return (
+      <SliderInput
+        label={label}
+        icon={PeriodIcon}
+        value={sharedDisplay}
+        min={dual ? sharedBounds.min : soloBounds.min}
+        max={dual ? sharedBounds.max : soloBounds.max}
+        step={5}
+        valueLabel={formatCookDurationLabel(sharedDisplay, unit)}
+        onChange={(v) => {
+          const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, { shared: dual });
+          if (dual) onShared(stored);
+          else onPatch({ Comida: stored, Cena: stored });
+        }}
+      />
+    );
+  }
+
+  // Split mode: wrap the per-meal sliders in a single bordered container.
   return (
     <div
       style={{
         background: "#fff",
         border: "1px solid #eef2ef",
         borderRadius: 14,
-        padding: mode === "split" && dual ? "10px 14px 6px" : "0",
-        marginBottom: 10,
+        padding: "10px 14px 6px",
+        marginBottom: 12,
       }}
     >
-      {mode === "shared" || !dual ? (
-        <SliderInput
-          label={label}
-          icon={PeriodIcon}
-          value={sharedDisplay}
-          min={dual ? sharedBounds.min : soloBounds.min}
-          max={dual ? sharedBounds.max : soloBounds.max}
-          step={5}
-          valueLabel={formatCookDurationLabel(sharedDisplay, unit)}
-          onChange={(v) => {
-            const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, { shared: dual });
-            if (dual) onShared(stored);
-            else onPatch({ Comida: stored, Cena: stored });
-          }}
-        />
-      ) : (
-        <>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 6,
-              marginBottom: 4,
-              paddingTop: 2,
-            }}
-          >
-            <PeriodIcon size={14} color="#2d5a3d" />
-            <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{label}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, paddingTop: 2 }}>
+        <PeriodIcon size={14} color="#2d5a3d" />
+        <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{label}</span>
+      </div>
+      {mealTargets.map((meal, idx) => {
+        const mealBounds = displayCookBounds(min, max, periodKey, mealTargets, unit);
+        const displayValue = toDisplayCookMinutes(values[meal], periodKey, mealTargets, unit);
+        return (
+          <div key={meal}>
+            {idx > 0 && <div style={{ height: 1, background: "#f0f4f1", margin: "2px 0 4px" }} />}
+            <CompactMealSlider
+              meal={meal}
+              value={displayValue}
+              min={mealBounds.min}
+              max={mealBounds.max}
+              unit={unit}
+              onChange={(v) => {
+                const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit);
+                onPatch({ [meal]: stored });
+              }}
+            />
           </div>
-          {mealTargets.map((meal, idx) => {
-            const mealBounds = displayCookBounds(min, max, periodKey, mealTargets, unit);
-            const displayValue = toDisplayCookMinutes(values[meal], periodKey, mealTargets, unit);
-            return (
-              <div key={meal}>
-                {idx > 0 && <div style={{ height: 1, background: "#f0f4f1", margin: "2px 0 4px" }} />}
-                <CompactMealSlider
-                  meal={meal}
-                  value={displayValue}
-                  min={mealBounds.min}
-                  max={mealBounds.max}
-                  unit={unit}
-                  onChange={(v) => {
-                    const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit);
-                    onPatch({ [meal]: stored });
-                  }}
-                />
-              </div>
-            );
-          })}
-        </>
-      )}
+        );
+      })}
     </div>
   );
 }
@@ -323,8 +317,10 @@ export function CookTimeEditor({ data, setData }) {
   return (
     <>
       <style>{`
-        .sl-ios { -webkit-appearance: none; appearance: none; width: 100%; height: 3px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; }
-        .sl-ios::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.16), 0 0 0 1px rgba(0,0,0,.06); cursor: pointer; }
+        .sl-ios { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; }
+        .sl-ios::-webkit-slider-runnable-track { background: transparent; height: 3px; }
+        .sl-ios::-moz-range-track { background: transparent; height: 3px; border: none; }
+        .sl-ios::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.16), 0 0 0 1px rgba(0,0,0,.06); cursor: pointer; margin-top: -9.5px; }
         .sl-ios::-moz-range-thumb { width: 22px; height: 22px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.16); cursor: pointer; }
       `}</style>
 

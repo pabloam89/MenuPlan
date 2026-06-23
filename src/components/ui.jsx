@@ -259,8 +259,10 @@ export function SliderInput({ label, value, min, max, step, suffix, valueLabel, 
   return (
     <div style={{ background: "#fff", border: "1px solid #eef2ef", borderRadius: 16, padding: "14px 16px 10px", marginBottom: 12 }}>
       <style>{`
-        .sl-ios { -webkit-appearance: none; appearance: none; width: 100%; height: 4px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; }
-        .sl-ios::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.18), 0 0 0 1.5px rgba(0,0,0,.07); cursor: pointer; transition: box-shadow .1s; }
+        .sl-ios { -webkit-appearance: none; appearance: none; width: 100%; height: 28px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; }
+        .sl-ios::-webkit-slider-runnable-track { background: transparent; height: 4px; }
+        .sl-ios::-moz-range-track { background: transparent; height: 4px; border: none; }
+        .sl-ios::-webkit-slider-thumb { -webkit-appearance: none; width: 28px; height: 28px; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.18), 0 0 0 1.5px rgba(0,0,0,.07); cursor: pointer; transition: box-shadow .1s; margin-top: -12px; }
         .sl-ios:active::-webkit-slider-thumb { box-shadow: 0 3px 14px rgba(0,0,0,.24), 0 0 0 1.5px rgba(0,0,0,.09); }
         .sl-ios::-moz-range-thumb { width: 28px; height: 28px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,.18); cursor: pointer; }
       `}</style>
