@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BottomNav, APP_SHELL_MAX_WIDTH } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -13,6 +13,8 @@ import { OnboardingProgressContext } from "./screens/onboardingProgressContext.j
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
+const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
+const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 import { generateMenuWithAI, pickCatalogReplacement } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
@@ -24,6 +26,7 @@ import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
+import { useAuth } from "./lib/useAuth.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -274,6 +277,8 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
+  const { user, signInWithGoogle, signOut } = useAuth();
+
   // Debounced: serializar todo el estado a localStorage en cada pulsación de
   // tecla del onboarding es perceptible en móviles modestos.
   useEffect(() => {
@@ -323,6 +328,10 @@ export default function App() {
         return Array.from(byId.values());
       });
       setMenuPlan(plan);
+      setData((d) => ({
+        ...d,
+        menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
+      }));
       const sh = buildShoppingList(plan, groups, getMeals(working));
       setShopping((prev) => {
         const flags = Object.fromEntries(
@@ -379,15 +388,15 @@ export default function App() {
   };
 
   const handleNav = useCallback((id) => {
-    if (id === "settings") {
-      dirRef.current = "forward";
-      setScreen("onboarding");
-      setOnbStep(0);
-    } else {
-      dirRef.current = navDirection(screen, id);
-      setScreen(id);
-    }
+    dirRef.current = navDirection(screen, id);
+    setScreen(id);
   }, [screen]);
+
+  const goToOnboardingStep = useCallback((step) => {
+    dirRef.current = "forward";
+    setOnbStep(step);
+    setScreen("onboarding");
+  }, []);
 
   const handleDishTap = useCallback((selection) => setSelectedSlot(selection), []);
 
@@ -581,6 +590,8 @@ export default function App() {
             onNext={() => fwd(() => setScreen("onboarding"))}
             hasSaved={data.members.length > 0}
             onResume={() => fwd(() => (Object.keys(menuPlan).length > 0 ? setScreen("menu") : setScreen("onboarding")))}
+            isAuthed={Boolean(user)}
+            onGoogle={signInWithGoogle}
           />
         )}
 
@@ -645,6 +656,50 @@ export default function App() {
                 menuPlan={menuPlan}
                 shopping={shopping}
                 onNav={handleNav}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "settings" && (
+          <div
+            key="settings"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <SettingsScreen
+                user={user}
+                data={data}
+                setData={setData}
+                onNav={handleNav}
+                onOpenAccount={() => fwd(() => setScreen("account"))}
+                onEditPreferences={() => goToOnboardingStep(1)}
+                onSignIn={signInWithGoogle}
+                onReset={handleReset}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "account" && (
+          <div
+            key="account"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <AccountScreen
+                user={user}
+                data={data}
+                setData={setData}
+                menuPlan={menuPlan}
+                setMenuPlan={setMenuPlan}
+                onNav={handleNav}
+                onBack={() => back(() => setScreen("settings"))}
+                onEditMembers={() => goToOnboardingStep(0)}
+                onEditPreferences={() => goToOnboardingStep(1)}
+                onSignIn={signInWithGoogle}
+                onSignOut={signOut}
+                onToast={showToast}
               />
             </Suspense>
           </div>
@@ -759,7 +814,7 @@ export default function App() {
   );
 }
 
-function SplashScreen({ onNext, hasSaved, onResume }) {
+function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
   const handleEnter = () => (hasSaved ? onResume() : onNext());
   const phrases = [
     "qué te gusta comer",
@@ -969,29 +1024,52 @@ function SplashScreen({ onNext, hasSaved, onResume }) {
           zIndex: 2,
           padding: "0 28px 40px",
           animation: "fadeUp .8s ease-out .5s both",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
         }}
+        onClick={(e) => e.stopPropagation()}
       >
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            handleEnter();
-          }}
-          style={{
-            flex: 1,
-            background: "#fff",
-            color: "#1a3a24",
-            border: "none",
-            borderRadius: 14,
-            padding: "16px 24px",
-            fontSize: 16,
-            fontWeight: 800,
-            cursor: "pointer",
-            boxShadow: "0 10px 28px rgba(0,0,0,.35)",
-            width: "100%",
-          }}
-        >
-          {hasSaved ? "Continuar" : "Empezar ya"}
-        </button>
+        {hasSaved || isAuthed ? (
+          <button
+            onClick={handleEnter}
+            style={{
+              background: "#fff",
+              color: "#1a3a24",
+              border: "none",
+              borderRadius: 14,
+              padding: "16px 24px",
+              fontSize: 16,
+              fontWeight: 800,
+              cursor: "pointer",
+              boxShadow: "0 10px 28px rgba(0,0,0,.35)",
+              width: "100%",
+            }}
+          >
+            {hasSaved ? "Continuar" : "Empezar ya"}
+          </button>
+        ) : (
+          <>
+            <GoogleButton onClick={onGoogle} variant="dark" />
+            <button
+              onClick={handleEnter}
+              style={{
+                background: "transparent",
+                color: "rgba(255,255,255,.85)",
+                border: "none",
+                padding: "6px",
+                fontSize: 14,
+                fontWeight: 700,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textDecoration: "underline",
+                textUnderlineOffset: 3,
+              }}
+            >
+              Entrar sin cuenta
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

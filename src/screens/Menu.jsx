@@ -842,17 +842,81 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const dislikes = [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])];
   const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
 
+  // Track if user changed anything to prompt regeneration
+  const snapshotRef = useRef(JSON.stringify({ cookLevel: data.cookLevel, kitchenTools: data.kitchenTools }));
+  const [confirmRegen, setConfirmRegen] = useState(false);
+
+  const wrappedSetData = (updater) => {
+    setData(updater);
+    snapshotRef.current = "__dirty__";
+  };
+
   const toggleTool = (tool) =>
-    setData((d) => ({
+    wrappedSetData((d) => ({
       ...d,
       kitchenTools: (d.kitchenTools ?? []).includes(tool)
         ? (d.kitchenTools ?? []).filter((v) => v !== tool)
         : [...(d.kitchenTools ?? []), tool],
     }));
 
+  const handleClose = () => {
+    if (snapshotRef.current === "__dirty__") {
+      setConfirmRegen(true);
+    } else {
+      onClose();
+    }
+  };
+
+  if (confirmRegen) {
+    return (
+      <div
+        style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
+          zIndex: 160, display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "0 24px",
+        }}
+      >
+        <div style={{
+          background: "#fff", borderRadius: 20, padding: "28px 22px 22px",
+          width: "100%", maxWidth: 340, textAlign: "center",
+        }}>
+          <p style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 900, color: "#142f1d" }}>
+            ¿Generar nuevo menú?
+          </p>
+          <p style={{ margin: "0 0 22px", fontSize: 13, color: "#526057", lineHeight: 1.5 }}>
+            Has cambiado tu perfil. ¿Quieres que generemos un menú nuevo con estas condiciones?
+          </p>
+          <button
+            type="button"
+            onClick={() => { setConfirmRegen(false); onClose(); onRegenerate(); }}
+            style={{
+              width: "100%", padding: "13px", borderRadius: 12, border: "none",
+              background: "#2d5a3d", color: "#fff", fontSize: 14, fontWeight: 800,
+              cursor: "pointer", fontFamily: "inherit", marginBottom: 10,
+            }}
+          >
+            Sí, generar nuevo menú
+          </button>
+          <button
+            type="button"
+            onClick={() => { setConfirmRegen(false); onClose(); }}
+            style={{
+              width: "100%", padding: "13px", borderRadius: 12,
+              border: "1.5px solid #dde8e0", background: "#fff",
+              color: "#526057", fontSize: 14, fontWeight: 700,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            No, solo guardar cambios
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
-      onClick={onClose}
+      onClick={handleClose}
       style={{
         position: "fixed",
         inset: 0,
@@ -873,6 +937,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           maxHeight: "88dvh",
           display: "flex",
           flexDirection: "column",
+          overflow: "hidden",
         }}
       >
         {/* sticky header */}
@@ -881,7 +946,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Tu perfil</h3>
             <button
               type="button"
-              onClick={onClose}
+              onClick={handleClose}
               aria-label="Cerrar"
               style={{
                 border: "none", background: "#f0f4f1", borderRadius: 999,
@@ -903,22 +968,23 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           }}
         >
         {/* ── Evitar / alergias ── */}
-        {(allergies.length > 0 || dislikes.length > 0) && (
-          <AccordionSection title="Evitar" icon={UtensilsCrossed} defaultOpen>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {allergies.map((a) => (
-                <span key={a} style={{ padding: "4px 10px", borderRadius: 20, background: "#fef3f0", fontSize: 12, fontWeight: 600, color: "#a83a1f" }}>
-                  {a}
-                </span>
-              ))}
-              {dislikes.map((d) => (
-                <span key={d} style={{ padding: "4px 10px", borderRadius: 20, background: "#f5f0e8", fontSize: 12, fontWeight: 600, color: "#8a6d3b" }}>
-                  {d}
-                </span>
-              ))}
-            </div>
-          </AccordionSection>
-        )}
+        <AccordionSection title="Evitar" icon={UtensilsCrossed}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {allergies.length === 0 && dislikes.length === 0 && (
+              <span style={{ fontSize: 12, color: "#9ab0a1" }}>—</span>
+            )}
+            {allergies.map((a) => (
+              <span key={a} style={{ padding: "4px 10px", borderRadius: 20, background: "#fef3f0", fontSize: 12, fontWeight: 600, color: "#a83a1f" }}>
+                {a}
+              </span>
+            ))}
+            {dislikes.map((d) => (
+              <span key={d} style={{ padding: "4px 10px", borderRadius: 20, background: "#f5f0e8", fontSize: 12, fontWeight: 600, color: "#8a6d3b" }}>
+                {d}
+              </span>
+            ))}
+          </div>
+        </AccordionSection>
 
         {/* ── Nivel de cocina ── */}
         <AccordionSection title="Nivel de cocina" icon={ChefHat}>
@@ -929,7 +995,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                 <button
                   key={l.id}
                   type="button"
-                  onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+                  onClick={() => wrappedSetData((d) => ({ ...d, cookLevel: l.id }))}
                   style={{
                     flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
                     gap: 6, padding: "12px 8px 10px", borderRadius: 14, cursor: "pointer",
@@ -976,7 +1042,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
 
         {/* ── Tiempo disponible ── */}
         <AccordionSection title="Tiempo disponible" icon={Clock}>
-          <CookTimeEditor data={data} setData={setData} />
+          <CookTimeEditor data={data} setData={wrappedSetData} />
         </AccordionSection>
 
         {/* ── CTA ── */}
