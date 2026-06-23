@@ -13,10 +13,10 @@ import { OnboardingProgressContext } from "./screens/onboardingProgressContext.j
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
-import { generateMenuWithAI } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement } from "./lib/aiPlanner.js";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getMeals, replaceMenuSlot } from "./lib/planner.js";
+import { getMeals } from "./lib/planner.js";
 import { groupsFromModel, migrateGroupsForBabies } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
@@ -392,26 +392,42 @@ export default function App() {
   const handleDishTap = useCallback((selection) => setSelectedSlot(selection), []);
 
   const handleReplaceSlot = useCallback((selection) => {
-    const { groupId, day, meal, recipe } = selection;
-    const result = replaceMenuSlot(data, menuPlan, {
-      groupId,
-      day,
-      meal,
-      excludeRecipeId: recipe.id,
-      course: selection.course ?? "main",
-    });
+    const { groupId, day, meal } = selection;
+    const course = selection.course ?? "main";
+    // Pick the replacement from the SAME rich catalog the AI planner uses, so the
+    // swapped dish is identical in shape (photo, methods, macros, scaled
+    // ingredients) to the rest of the menu instead of a legacy-catalog mismatch.
+    const result = pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course });
     if (!result) {
       showToast("No hay otra receta compatible para este hueco");
       return;
     }
+    const { frontendRecipe, recipeId } = result;
+
+    // Register it exactly like AI-generated dishes (runtime catalog + persisted
+    // aiRecipes) so DishCard/DishDetail resolve it through the same path.
+    registerRecipes([frontendRecipe]);
+    setAiRecipes((cur) => {
+      const byId = new Map(cur.map((r) => [r.id, r]));
+      byId.set(frontendRecipe.id, frontendRecipe);
+      return Array.from(byId.values());
+    });
+
     const groups =
       data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
     setMenuPlan((plan) => {
+      const slotKey = `${day}-${meal}`;
+      const prevSlot = plan[groupId]?.[slotKey] ?? {};
+      const nextSlot = {
+        ...prevSlot,
+        ...(course === "first" ? { firstRecipeId: recipeId } : { recipeId }),
+        warnings: [],
+      };
       const next = {
         ...plan,
         [groupId]: {
           ...(plan[groupId] ?? {}),
-          [`${day}-${meal}`]: result.slot,
+          [slotKey]: nextSlot,
         },
       };
       const sh = buildShoppingList(next, groups, getMeals(data));
@@ -433,7 +449,7 @@ export default function App() {
       return next;
     });
     setSelectedSlot(null);
-    showToast(`Sustituido por «${result.recipe.name}»`);
+    showToast(`Sustituido por «${frontendRecipe.name}»`);
   }, [data, menuPlan, showToast]);
 
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);

@@ -432,7 +432,7 @@ const CATEGORY_ICON = {
   cenas_rapidas: "chef",
 };
 
-function catalogToFrontendRecipe(catalogRecipe, eaters) {
+export function catalogToFrontendRecipe(catalogRecipe, eaters) {
   const r = catalogRecipe;
   const servings = Math.max(1, eaters);
   const factor = servings / r.baseServings;
@@ -553,52 +553,7 @@ export async function generateMenuWithAI(data, { signal } = {}) {
         // Merge garnish into the recipe: name, time, macros, ingredients
         if (garnishId) {
           const garnish = guarnicionById[garnishId];
-          if (garnish) {
-            // Preserve garnishId so the photo lookup can build the combo key
-            // "<dish>+<garnish>" that the image is stored under.
-            fr.garnishId = garnishId;
-            fr.name = `${fr.name} con ${garnish.shortName}`;
-
-            // Time: dishes are cooked in parallel, show the longest
-            fr.time = Math.max(fr.time, garnish.time);
-
-            // Macros: garnish values are stored per baseServings
-            const gPerServing = garnish.baseServings ?? 1;
-            fr.kcal = fr.kcal + Math.round(garnish.kcal / gPerServing);
-            fr.macros = {
-              protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g / gPerServing),
-              carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g / gPerServing),
-              fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g / gPerServing),
-            };
-
-            // Ingredients: scale garnish to actual number of eaters
-            const gFactor = eaters / gPerServing;
-            const gIngredients = garnish.ingredients.map((ing) => {
-              let scaledQty = ing.amount * gFactor;
-              if (ing.unit === "g" || ing.unit === "ml") {
-                scaledQty = Math.round(scaledQty / 5) * 5;
-                if (scaledQty < 5) scaledQty = 5;
-              } else {
-                scaledQty = Math.ceil(scaledQty);
-              }
-              return {
-                id: `garnish-${ing.name.toLowerCase().replace(/\s+/g, "-")}`,
-                name: ing.name,
-                category: guessIngredientCategory(ing.name),
-                qty: scaledQty,
-                unit: ing.unit,
-              };
-            });
-            fr.ingredients = [...fr.ingredients, ...gIngredients];
-
-            // Description and steps
-            if (garnish.description) {
-              fr.prepSummary = `${fr.prepSummary}. ${garnish.description}`;
-            }
-            if (garnish.steps?.length) {
-              fr.steps = [...(fr.steps ?? []), ...garnish.steps];
-            }
-          }
+          if (garnish) applyGarnishToRecipe(fr, garnish, eaters);
         }
 
         allRecipes.push(fr);
@@ -655,6 +610,189 @@ export async function generateMenuWithAI(data, { signal } = {}) {
   }
 
   return { plan, recipes: allRecipes };
+}
+
+// ── Slot replacement (deterministic, from the rich catalog) ──────────────
+//
+// When the user swaps a dish, we pick an alternative from the SAME catalog the
+// AI planner uses (recipeCatalog) and run it through catalogToFrontendRecipe,
+// so the replaced dish is byte-for-byte identical in shape to the rest of the
+// menu (photo, methods, macros, scaled ingredients, etc.). The clean catalog id
+// is kept in baseRecipeId so the photo resolves; the slot id gets the same
+// group prefix the generator uses for multi-group menus.
+
+const stripGroupPrefix = (id) => (id ? String(id).split("__").pop() : null);
+
+/**
+ * Merge a garnish into a frontend recipe in place: name, time, macros, scaled
+ * ingredients, prepSummary and steps. Shared by the generator and the swap flow
+ * so a paired dish looks identical regardless of how it entered the menu.
+ */
+export function applyGarnishToRecipe(fr, garnish, eaters) {
+  if (!fr || !garnish) return fr;
+
+  // Preserve garnishId so the photo lookup can build the combo key
+  // "<dish>+<garnish>" that the image is stored under.
+  fr.garnishId = garnish.id;
+  fr.name = `${fr.name} con ${garnish.shortName}`;
+
+  // Time: dishes are cooked in parallel, show the longest
+  fr.time = Math.max(fr.time, garnish.time);
+
+  // Macros: garnish values are stored per baseServings
+  const gPerServing = garnish.baseServings ?? 1;
+  fr.kcal = fr.kcal + Math.round(garnish.kcal / gPerServing);
+  fr.macros = {
+    protein: (fr.macros.protein ?? 0) + Math.round(garnish.protein_g / gPerServing),
+    carbs: (fr.macros.carbs ?? 0) + Math.round(garnish.carbs_g / gPerServing),
+    fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g / gPerServing),
+  };
+
+  // Ingredients: scale garnish to actual number of eaters
+  const gFactor = eaters / gPerServing;
+  const gIngredients = garnish.ingredients.map((ing) => {
+    let scaledQty = ing.amount * gFactor;
+    if (ing.unit === "g" || ing.unit === "ml") {
+      scaledQty = Math.round(scaledQty / 5) * 5;
+      if (scaledQty < 5) scaledQty = 5;
+    } else {
+      scaledQty = Math.ceil(scaledQty);
+    }
+    return {
+      id: `garnish-${ing.name.toLowerCase().replace(/\s+/g, "-")}`,
+      name: ing.name,
+      category: guessIngredientCategory(ing.name),
+      qty: scaledQty,
+      unit: ing.unit,
+    };
+  });
+  fr.ingredients = [...fr.ingredients, ...gIngredients];
+
+  if (garnish.description) {
+    fr.prepSummary = `${fr.prepSummary}. ${garnish.description}`;
+  }
+  if (garnish.steps?.length) {
+    fr.steps = [...(fr.steps ?? []), ...garnish.steps];
+  }
+  return fr;
+}
+
+/**
+ * Pick a replacement recipe for a slot from the rich catalog.
+ *
+ * @returns {{ frontendRecipe: object, recipeId: string, course: string } | null}
+ */
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main" }) {
+  const group = (data?.groups ?? []).find((g) => g.id === groupId);
+  if (!group) return null;
+
+  const slotKeyStr = `${day}-${meal}`;
+  const currentSlot = menuPlan?.[groupId]?.[slotKeyStr];
+  if (!currentSlot) return null;
+
+  const currentRecipeId =
+    course === "first" ? currentSlot.firstRecipeId : currentSlot.recipeId;
+  const currentBaseId = stripGroupPrefix(currentRecipeId);
+  const currentCatalog = currentBaseId ? recipeCatalogById[currentBaseId] : null;
+
+  // Target meal roles: mirror the dish being replaced; otherwise infer from the
+  // slot shape (a comida with a first course → segundo; plato único; cena).
+  let targetRoles;
+  if (currentCatalog?.mealRole?.length) {
+    targetRoles = new Set(currentCatalog.mealRole);
+  } else if (course === "first") {
+    targetRoles = new Set(["primero"]);
+  } else if (String(meal).toLowerCase() === "cena") {
+    targetRoles = new Set(["cena", "plato_unico"]);
+  } else {
+    targetRoles = new Set(currentSlot.firstRecipeId ? ["segundo"] : ["plato_unico"]);
+  }
+
+  // Same constrained pool the AI planner would see for this group.
+  const ctx = buildGroupContext(data, group);
+  const { recipes: pool } = filterRecipes(ctx.filterOpts);
+
+  const isWeekend = day === "Sáb" || day === "Dom";
+  const slotMaxTime = maxCookTime(data, { isWeekend, meal });
+
+  // Exclude dishes already used anywhere in this group's menu (+ the current one).
+  const usedBaseIds = new Set();
+  for (const slot of Object.values(menuPlan[groupId] ?? {})) {
+    const a = stripGroupPrefix(slot?.recipeId);
+    const b = stripGroupPrefix(slot?.firstRecipeId);
+    if (a) usedBaseIds.add(a);
+    if (b) usedBaseIds.add(b);
+  }
+
+  const roleMatch = (r) => r.mealRole?.some((role) => targetRoles.has(role));
+  let candidates = pool.filter(
+    (r) => roleMatch(r) && r.time <= slotMaxTime && !usedBaseIds.has(r.id),
+  );
+  // Relax the "not already used" rule if nothing else fits (never the same dish).
+  if (candidates.length === 0) {
+    candidates = pool.filter(
+      (r) => roleMatch(r) && r.time <= slotMaxTime && r.id !== currentBaseId,
+    );
+  }
+  if (candidates.length === 0) return null;
+
+  const picked = candidates[Math.floor(Math.random() * candidates.length)];
+
+  // Match the generator's prefixing: only prefix when several groups are active.
+  const activeGroups = (data.groups ?? []).filter(
+    (g) => membersOfGroup(g, data.members).length > 0,
+  );
+  const prefix = activeGroups.length > 1 ? `${groupId}__` : "";
+
+  const eaters = currentSlot.eaters ?? 2;
+  const fr = catalogToFrontendRecipe(picked, eaters);
+  fr.id = prefix + picked.id;
+  fr.baseRecipeId = picked.id;
+
+  // Pair a garnish exactly like the generator does. Many "principal" dishes only
+  // have dish+garnish combo photos, so without this the photo would show a side
+  // (e.g. rice) that isn't in the recipe.
+  const daySlug = DAY_SLUG[day];
+  const targetMealType = String(meal).toLowerCase() === "cena" ? "cena" : "comida";
+  const targetSlotId =
+    targetMealType === "cena"
+      ? `${daySlug}_cena`
+      : course === "first"
+        ? `${daySlug}_comida_1`
+        : `${daySlug}_comida_2`;
+
+  // Reconstruct this day's assignments (catalog ids) so carb dedup is correct.
+  const dayAssignments = [];
+  for (const m of getMeals(data)) {
+    const s = menuPlan[groupId]?.[`${day}-${m}`];
+    if (!s?.recipeId) continue;
+    const mt = String(m).toLowerCase() === "cena" ? "cena" : "comida";
+    if (mt === "comida") {
+      if (s.firstRecipeId) {
+        dayAssignments.push({ slotId: `${daySlug}_comida_1`, recipeId: stripGroupPrefix(s.firstRecipeId) });
+      }
+      dayAssignments.push({ slotId: `${daySlug}_comida_2`, recipeId: stripGroupPrefix(s.recipeId) });
+    } else {
+      dayAssignments.push({ slotId: `${daySlug}_cena`, recipeId: stripGroupPrefix(s.recipeId) });
+    }
+  }
+  let swapped = false;
+  for (const a of dayAssignments) {
+    if (a.slotId === targetSlotId) {
+      a.recipeId = picked.id;
+      swapped = true;
+    }
+  }
+  if (!swapped) dayAssignments.push({ slotId: targetSlotId, recipeId: picked.id });
+
+  const paired = pairGarnishes(dayAssignments, recipeCatalogById);
+  const targetGarnishId = paired.find((a) => a.slotId === targetSlotId)?.garnishId;
+  if (targetGarnishId) {
+    const garnish = guarnicionesData.find((g) => g.id === targetGarnishId);
+    if (garnish) applyGarnishToRecipe(fr, garnish, eaters);
+  }
+
+  return { frontendRecipe: fr, recipeId: fr.id, course };
 }
 
 // ── Recipe steps (on-demand, for catalog recipes without steps) ──
