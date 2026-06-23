@@ -50,7 +50,11 @@ export function dishImageUrl(recipeId, garnishId) {
  */
 export function dishImageForRecipe(recipe) {
   if (!recipe) return null;
-  const baseId = recipe.baseRecipeId ?? recipe.id;
+  let baseId = recipe.baseRecipeId ?? recipe.id;
+  // Strip group prefix (e.g. "groupA__carnes_001" → "carnes_001") for recipes
+  // persisted before baseRecipeId was introduced.
+  const dunder = baseId.indexOf("__");
+  if (dunder !== -1) baseId = baseId.slice(dunder + 2);
   return dishImageUrl(baseId, recipe.garnishId);
 }
 
