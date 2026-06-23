@@ -6,6 +6,7 @@ import {
   BookOpenCheck,
   ChefHat,
   ChevronDown,
+  Clock,
   Clock3,
   CircleHelp,
   Coffee,
@@ -20,8 +21,10 @@ import {
   Loader2,
   Microwave,
   Moon,
+  RotateCcw,
   RotateCw,
   Shell,
+  SlidersHorizontal,
   StopCircle,
   Share2,
   ShoppingCart,
@@ -30,8 +33,10 @@ import {
   Sun,
   Users,
   Utensils,
+  UtensilsCrossed,
   Wand2,
   Wheat,
+  Wrench,
   X,
   Zap,
 } from "lucide-react";
@@ -40,7 +45,7 @@ import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens } from "../lib/allergens.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
-import { BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
@@ -724,7 +729,7 @@ function ProfileButton({ onClick }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 8,
-        padding: "7px 11px",
+        padding: "7px 14px 7px 10px",
         borderRadius: 12,
         border: "1px solid #2d5a3d",
         background: "#2d5a3d",
@@ -733,21 +738,7 @@ function ProfileButton({ onClick }) {
         flexShrink: 0,
       }}
     >
-      <span
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
-          background: "rgba(255,255,255,.18)",
-          color: "#fff",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
-      >
-        <Users size={14} />
-      </span>
+      <SlidersHorizontal size={15} color="#fff" />
       <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "-.2px", lineHeight: 1 }}>
         Tu perfil
       </div>
@@ -815,6 +806,36 @@ function FreqStepper({ label, value, onChange }) {
   );
 }
 
+function AccordionSection({ title, icon: Icon, children, defaultOpen = false }) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderBottom: "1px solid #e8f0ea" }}>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "12px 0", border: "none", background: "transparent", cursor: "pointer",
+          fontFamily: "inherit",
+        }}
+      >
+        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {Icon && <Icon size={15} color="#2d5a3d" />}
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#142f1d" }}>
+            {title}
+          </span>
+        </span>
+        <ChevronDown
+          size={16}
+          color="#9ab0a1"
+          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}
+        />
+      </button>
+      {open && <div style={{ paddingBottom: 14 }}>{children}</div>}
+    </div>
+  );
+}
+
 function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const members = data.members ?? [];
   const allergies = [...new Set(members.flatMap((m) => m.allergies ?? []))];
@@ -828,8 +849,6 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
         ? (d.kitchenTools ?? []).filter((v) => v !== tool)
         : [...(d.kitchenTools ?? []), tool],
     }));
-
-  const divider = <div style={{ height: 1, background: "#e8f0ea", margin: "12px 0" }} />;
 
   return (
     <div
@@ -851,108 +870,86 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: 420,
-          maxHeight: "82dvh",
-          overflow: "auto",
-          padding: "16px 18px calc(18px + env(safe-area-inset-bottom, 0px))",
+          maxHeight: "88dvh",
+          display: "flex",
+          flexDirection: "column",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
-          <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Tu perfil</h3>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Cerrar"
-            style={{
-              border: "none", background: "#f0f4f1", borderRadius: 999,
-              width: 32, height: 32, cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {/* Familia */}
-        {members.length > 0 && (
-          <div style={{ marginBottom: 0 }}>
-            <div style={profileLabelStyle}>Familia</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {members.map((m) => (
-                <span
-                  key={m.id}
-                  style={{
-                    padding: "4px 10px", borderRadius: 8, background: "#f0f5f1",
-                    fontSize: 12, fontWeight: 600, color: "#1a3a24",
-                  }}
-                >
-                  {m.name}
-                </span>
-              ))}
-            </div>
+        {/* sticky header */}
+        <div style={{ padding: "16px 18px 0", flexShrink: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Tu perfil</h3>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Cerrar"
+              style={{
+                border: "none", background: "#f0f4f1", borderRadius: 999,
+                width: 32, height: 32, cursor: "pointer",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <X size={18} />
+            </button>
           </div>
-        )}
-
+        </div>
+        {/* scrollable body */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            WebkitOverflowScrolling: "touch",
+            padding: "0 18px calc(18px + env(safe-area-inset-bottom, 0px))",
+          }}
+        >
+        {/* ── Evitar / alergias ── */}
         {(allergies.length > 0 || dislikes.length > 0) && (
-          <>
-            {divider}
-            <div style={profileLabelStyle}>Evitar</div>
+          <AccordionSection title="Evitar" icon={UtensilsCrossed} defaultOpen>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
               {allergies.map((a) => (
-                <span key={a} style={{ padding: "4px 10px", borderRadius: 8, background: "#fef3f0", fontSize: 12, fontWeight: 600, color: "#a83a1f" }}>
+                <span key={a} style={{ padding: "4px 10px", borderRadius: 20, background: "#fef3f0", fontSize: 12, fontWeight: 600, color: "#a83a1f" }}>
                   {a}
                 </span>
               ))}
               {dislikes.map((d) => (
-                <span key={d} style={{ padding: "4px 10px", borderRadius: 8, background: "#f5f0e8", fontSize: 12, fontWeight: 600, color: "#8a6d3b" }}>
+                <span key={d} style={{ padding: "4px 10px", borderRadius: 20, background: "#f5f0e8", fontSize: 12, fontWeight: 600, color: "#8a6d3b" }}>
                   {d}
                 </span>
               ))}
             </div>
-          </>
+          </AccordionSection>
         )}
 
-        {divider}
+        {/* ── Nivel de cocina ── */}
+        <AccordionSection title="Nivel de cocina" icon={ChefHat}>
+          <div style={{ display: "flex", gap: 8 }}>
+            {COOK_LEVELS.map((l) => {
+              const sel = data.cookLevel === l.id;
+              return (
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+                  style={{
+                    flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
+                    gap: 6, padding: "12px 8px 10px", borderRadius: 14, cursor: "pointer",
+                    background: sel ? "#2d5a3d" : "#f4f7f5",
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                    color: sel ? "#fff" : "#9ab0a1",
+                    transition: "all .15s ease", fontFamily: "inherit",
+                    fontSize: 12, fontWeight: 700,
+                  }}
+                >
+                  {l.icon}
+                  {l.label}
+                </button>
+              );
+            })}
+          </div>
+        </AccordionSection>
 
-        {/* Nivel de cocina — tarjetas con icono */}
-        <div style={profileLabelStyle}>Nivel de cocina</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          {COOK_LEVELS.map((l) => {
-            const sel = data.cookLevel === l.id;
-            return (
-              <button
-                key={l.id}
-                type="button"
-                onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "14px 8px 12px",
-                  borderRadius: 14,
-                  cursor: "pointer",
-                  background: sel ? "#2d5a3d" : "#f4f7f5",
-                  border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                  color: sel ? "#fff" : "#9ab0a1",
-                  transition: "all .15s ease",
-                  fontFamily: "inherit",
-                  fontSize: 12,
-                  fontWeight: 700,
-                }}
-              >
-                {l.icon}
-                {l.label}
-              </button>
-            );
-          })}
-        </div>
-
-        {divider}
-
-        {/* Herramientas — grid 3 columnas */}
-        <div style={profileLabelStyle}>Herramientas</div>
-        <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px" }}>
+        {/* ── Herramientas ── */}
+        <AccordionSection title="Herramientas" icon={Wrench}>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 6 }}>
             {allTools.map((t) => {
               const sel = (data.kitchenTools ?? []).includes(t);
@@ -962,18 +959,12 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                   type="button"
                   onClick={() => toggleTool(t)}
                   style={{
-                    height: 30,
-                    borderRadius: 7,
+                    height: 30, borderRadius: 7,
                     border: `1.5px solid ${sel ? "#2d5a3d" : "#dde8e0"}`,
                     background: sel ? "#2d5a3d" : "#fff",
                     color: sel ? "#fff" : "#526057",
-                    fontSize: 11,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                    fontSize: 11, fontWeight: 700, cursor: "pointer", fontFamily: "inherit",
+                    display: "flex", alignItems: "center", justifyContent: "center",
                   }}
                 >
                   {t}
@@ -981,15 +972,15 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
               );
             })}
           </div>
-        </div>
+        </AccordionSection>
 
-        {divider}
+        {/* ── Tiempo disponible ── */}
+        <AccordionSection title="Tiempo disponible" icon={Clock}>
+          <CookTimeEditor data={data} setData={setData} />
+        </AccordionSection>
 
-        {/* Tiempo disponible */}
-        <div style={{ ...profileLabelStyle, marginBottom: 8 }}>Tiempo disponible</div>
-        <CookTimeEditor data={data} setData={setData} />
-
-        <div style={{ marginTop: 16 }}>
+        {/* ── CTA ── */}
+        <div style={{ paddingTop: 16 }}>
           <button
             type="button"
             onClick={() => { onClose(); onRegenerate(); }}
@@ -1002,6 +993,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             Regenerar menú
           </button>
         </div>
+        </div>{/* end scrollable body */}
       </div>
     </div>
   );
