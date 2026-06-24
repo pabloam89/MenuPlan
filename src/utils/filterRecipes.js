@@ -108,15 +108,25 @@ export function filterRecipes({
  * This is what gets sent to the LLM.
  */
 export function decisionCatalog(filteredRecipes) {
-  return filteredRecipes.map((r) => ({
-    id: r.id,
-    name: r.name,
-    category: r.category,
-    mainProtein: r.mainProtein,
-    mealRole: r.mealRole,
-    time: r.time,
-    kcal: r.kcal,
-    kidFriendly: r.kidFriendly,
-    tupperFriendly: r.tupperFriendly,
-  }));
+  return filteredRecipes.map((r) => {
+    const entry = {
+      id: r.id,
+      name: r.name,
+      category: r.category,
+      mainProtein: r.mainProtein,
+      mealRole: r.mealRole,
+      time: r.time,
+      kcal: r.kcal,
+      kidFriendly: r.kidFriendly,
+      tupperFriendly: r.tupperFriendly,
+    };
+    if (r.category === "bebes") {
+      entry.protein_g = r.protein_g ?? 0;
+      const base = r.ingredients?.find((i) =>
+        /patata|boniato|calabac|zanahoria|calabaza|espinaca|brócoli|puerro|arroz|guisante|lenteja|garbanzo/i.test(i.name)
+      );
+      if (base) entry.mainBase = base.name.toLowerCase();
+    }
+    return entry;
+  });
 }

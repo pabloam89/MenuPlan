@@ -141,6 +141,16 @@ FORMATO DE RESPUESTA - SOLO esto, JSON compacto, sin texto:
 {"slots":[{"slotId":"lun_comida_1","recipeId":"sopas_003"},{"slotId":"lun_comida_2","recipeId":"carnes_012"},{"slotId":"lun_cena","recipeId":"huevos_004"}, ...]}
 Si usas un plato_unico en la comida, incluye solo el slot _1 con ese plato y omite el _2. Nada más.`;
 
+const BABY_SYSTEM_ADDENDUM = `
+
+MENÚ DE BEBÉ (aplica porque este grupo es de bebé):
+- Cada comida es un ÚNICO plato (plato_unico). Solo un slot por comida, solo un slot por cena.
+- VARIEDAD DE BASE: la comida y la cena del mismo día NUNCA deben compartir la misma mainBase (patata, calabacín, zanahoria…). Consulta el campo "mainBase" del catálogo.
+- PROTEÍNA DIARIA: cada día debe incluir AL MENOS un plato con protein_g ≥ 6. Nunca dos platos sin proteína el mismo día.
+- COMPOTAS DE FRUTA (mainProtein "none" y sin mainBase vegetal): máximo 2–3 por semana como cena. El resto de cenas deben ser purés con proteína o verdura sustanciosa.
+- No repetir la misma receta en la misma semana.
+- Alterna fuentes de proteína a lo largo de la semana: pollo, pescado, ternera, legumbre, huevo.`;
+
 // ── Context builders ────────────────────────────────────────────
 
 function buildGroupContext(data, group) {
@@ -203,10 +213,13 @@ function buildGroupContext(data, group) {
       const maxTime = maxCookTime(data, { isWeekend, meal });
 
       if (mealType === "comida") {
-        // primero gets ~40% of the budget (min 20 min to keep enough recipe variety)
-        const primeroMaxTime = Math.max(20, Math.round(maxTime * 0.4));
-        slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" });
-        slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" });
+        if (isBabyGroup) {
+          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico" });
+        } else {
+          const primeroMaxTime = Math.max(20, Math.round(maxTime * 0.4));
+          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" });
+          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" });
+        }
       } else {
         const slot = {
           day, daySlug, mealType, eaters, mode: mode.mode, maxTime,
@@ -224,6 +237,7 @@ function buildGroupContext(data, group) {
     group: { label: group.label, hasKids, allergies, dislikes },
     slots,
     schoolMenuByDay,
+    isBabyGroup,
     filterOpts: {
       allergies,
       dislikes,
@@ -299,9 +313,13 @@ async function generateGroupMenu(data, group, signal) {
     data.fixedDishes,
   );
 
+  const systemPrompt = ctx.isBabyGroup
+    ? SYSTEM_PROMPT + BABY_SYSTEM_ADDENDUM
+    : SYSTEM_PROMPT;
+
   const request = (messages, model = DEFAULT_MODEL) =>
     callModel(
-      { model, max_tokens: DEFAULT_MAX_TOKENS, system: SYSTEM_PROMPT, messages },
+      { model, max_tokens: DEFAULT_MAX_TOKENS, system: systemPrompt, messages },
       signal,
     );
 
