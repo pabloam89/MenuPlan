@@ -277,19 +277,14 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
 
 // ── Deterministic baby planner ──────────────────────────────────
 
-const BASE_RE = /patata|boniato|calabac|zanahoria|calabaza|espinaca|brócoli|puerro|arroz|guisante|lenteja|garbanzo/i;
-
 function extractMainBase(recipe) {
+  if (recipe.mainBase) return recipe.mainBase;
+  const BASE_RE = /patata|boniato|calabac|zanahoria|calabaza|espinaca|brócoli|puerro|arroz|guisante|lenteja|garbanzo|cuscús|fideos|quinoa|sémola|coliflor|remolacha|pasta/i;
   const ing = recipe.ingredients?.find((i) => BASE_RE.test(i.name));
   return ing ? ing.name.toLowerCase().split(" ")[0] : null;
 }
 
 function generateBabyMenuDeterministic(pool, slots) {
-  const protein = pool.filter((r) => (r.protein_g ?? 0) >= 6);
-  const light = pool.filter((r) => (r.protein_g ?? 0) < 6);
-  const fruitOnly = light.filter((r) => r.mainProtein === "none" && !extractMainBase(r));
-  const veggieLight = light.filter((r) => r.mainProtein === "none" && extractMainBase(r));
-
   const slotsByDay = {};
   for (const s of slots) {
     const day = s.daySlug;
@@ -300,11 +295,24 @@ function generateBabyMenuDeterministic(pool, slots) {
   const days = Object.keys(slotsByDay);
   const assignments = [];
   const usedThisWeek = new Set();
-  let fruitCount = 0;
-  const maxFruit = Math.min(2, fruitOnly.length);
+  const recentBases = [];
 
-  const proteinTypes = ["pollo", "pescado_blanco", "ternera", "legumbre", "huevo"];
+  const proteinTypes = ["pollo", "pescado_blanco", "ternera", "legumbre", "huevo", "pavo", "pescado_azul"];
   let proteinTypeIdx = 0;
+
+  const pick = (avoid) => {
+    const avoidSet = new Set(avoid);
+    return pool.find((r) => !usedThisWeek.has(r.id) && !avoidSet.has(extractMainBase(r)))
+      ?? pool.find((r) => !usedThisWeek.has(r.id))
+      ?? pool[0];
+  };
+
+  const pickByProtein = (targetType, avoid) => {
+    const avoidSet = new Set(avoid);
+    return pool.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id) && !avoidSet.has(extractMainBase(r)))
+      ?? pool.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id))
+      ?? pick(avoid);
+  };
 
   for (const day of days) {
     const daySlots = slotsByDay[day];
@@ -315,42 +323,19 @@ function generateBabyMenuDeterministic(pool, slots) {
     if (comidaSlot) {
       const targetType = proteinTypes[proteinTypeIdx % proteinTypes.length];
       proteinTypeIdx++;
-      const candidate = protein.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id))
-        ?? protein.find((r) => !usedThisWeek.has(r.id));
-      if (candidate) {
-        assignments.push({ slotId: comidaSlot.slotId, recipeId: candidate.id });
-        usedThisWeek.add(candidate.id);
-        comidaBase = extractMainBase(candidate);
-      }
+      const candidate = pickByProtein(targetType, recentBases.slice(-2));
+      assignments.push({ slotId: comidaSlot.slotId, recipeId: candidate.id });
+      usedThisWeek.add(candidate.id);
+      comidaBase = extractMainBase(candidate);
+      recentBases.push(comidaBase);
     }
 
     if (cenaSlot) {
-      const cenaProtein = protein.find((r) =>
-        !usedThisWeek.has(r.id) && extractMainBase(r) !== comidaBase
-      );
-      if (cenaProtein) {
-        assignments.push({ slotId: cenaSlot.slotId, recipeId: cenaProtein.id });
-        usedThisWeek.add(cenaProtein.id);
-      } else if (fruitCount < maxFruit && fruitOnly.length > 0) {
-        const fruit = fruitOnly.find((r) => !usedThisWeek.has(r.id)) ?? fruitOnly[0];
-        assignments.push({ slotId: cenaSlot.slotId, recipeId: fruit.id });
-        usedThisWeek.add(fruit.id);
-        fruitCount++;
-      } else {
-        const veggie = veggieLight.find((r) =>
-          !usedThisWeek.has(r.id) && extractMainBase(r) !== comidaBase
-        ) ?? veggieLight.find((r) => !usedThisWeek.has(r.id));
-        if (veggie) {
-          assignments.push({ slotId: cenaSlot.slotId, recipeId: veggie.id });
-          usedThisWeek.add(veggie.id);
-        } else {
-          const any = pool.find((r) => !usedThisWeek.has(r.id) && extractMainBase(r) !== comidaBase)
-            ?? pool.find((r) => !usedThisWeek.has(r.id))
-            ?? pool[0];
-          assignments.push({ slotId: cenaSlot.slotId, recipeId: any.id });
-          usedThisWeek.add(any.id);
-        }
-      }
+      const avoidBases = [comidaBase, ...recentBases.slice(-2)].filter(Boolean);
+      const candidate = pick(avoidBases);
+      assignments.push({ slotId: cenaSlot.slotId, recipeId: candidate.id });
+      usedThisWeek.add(candidate.id);
+      recentBases.push(extractMainBase(candidate));
     }
   }
 

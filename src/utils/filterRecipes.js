@@ -122,10 +122,9 @@ export function decisionCatalog(filteredRecipes) {
     };
     if (r.category === "bebes") {
       entry.protein_g = r.protein_g ?? 0;
-      const base = r.ingredients?.find((i) =>
-        /patata|boniato|calabac|zanahoria|calabaza|espinaca|brócoli|puerro|arroz|guisante|lenteja|garbanzo/i.test(i.name)
-      );
-      if (base) entry.mainBase = base.name.toLowerCase();
+      if (r.mainBase) {
+        entry.mainBase = r.mainBase;
+      }
     }
     return entry;
   });
