@@ -141,15 +141,6 @@ FORMATO DE RESPUESTA - SOLO esto, JSON compacto, sin texto:
 {"slots":[{"slotId":"lun_comida_1","recipeId":"sopas_003"},{"slotId":"lun_comida_2","recipeId":"carnes_012"},{"slotId":"lun_cena","recipeId":"huevos_004"}, ...]}
 Si usas un plato_unico en la comida, incluye solo el slot _1 con ese plato y omite el _2. Nada más.`;
 
-const BABY_SYSTEM_ADDENDUM = `
-
-MENÚ DE BEBÉ (aplica porque este grupo es de bebé):
-- Cada comida es un ÚNICO plato (plato_unico). Solo un slot por comida, solo un slot por cena.
-- VARIEDAD DE BASE: la comida y la cena del mismo día NUNCA deben compartir la misma mainBase (patata, calabacín, zanahoria…). Consulta el campo "mainBase" del catálogo.
-- PROTEÍNA DIARIA: cada día debe incluir AL MENOS un plato con protein_g ≥ 6. Nunca dos platos sin proteína el mismo día.
-- COMPOTAS DE FRUTA (mainProtein "none" y sin mainBase vegetal): máximo 2–3 por semana como cena. El resto de cenas deben ser purés con proteína o verdura sustanciosa.
-- No repetir la misma receta en la misma semana.
-- Alterna fuentes de proteína a lo largo de la semana: pollo, pescado, ternera, legumbre, huevo.`;
 
 // ── Context builders ────────────────────────────────────────────
 
@@ -284,6 +275,88 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
   return parts.join("\n");
 }
 
+// ── Deterministic baby planner ──────────────────────────────────
+
+const BASE_RE = /patata|boniato|calabac|zanahoria|calabaza|espinaca|brócoli|puerro|arroz|guisante|lenteja|garbanzo/i;
+
+function extractMainBase(recipe) {
+  const ing = recipe.ingredients?.find((i) => BASE_RE.test(i.name));
+  return ing ? ing.name.toLowerCase().split(" ")[0] : null;
+}
+
+function generateBabyMenuDeterministic(pool, slots) {
+  const protein = pool.filter((r) => (r.protein_g ?? 0) >= 6);
+  const light = pool.filter((r) => (r.protein_g ?? 0) < 6);
+  const fruitOnly = light.filter((r) => r.mainProtein === "none" && !extractMainBase(r));
+  const veggieLight = light.filter((r) => r.mainProtein === "none" && extractMainBase(r));
+
+  const slotsByDay = {};
+  for (const s of slots) {
+    const day = s.daySlug;
+    if (!slotsByDay[day]) slotsByDay[day] = [];
+    slotsByDay[day].push(s);
+  }
+
+  const days = Object.keys(slotsByDay);
+  const assignments = [];
+  const usedThisWeek = new Set();
+  let fruitCount = 0;
+  const maxFruit = Math.min(2, fruitOnly.length);
+
+  const proteinTypes = ["pollo", "pescado_blanco", "ternera", "legumbre", "huevo"];
+  let proteinTypeIdx = 0;
+
+  for (const day of days) {
+    const daySlots = slotsByDay[day];
+    const comidaSlot = daySlots.find((s) => s.mealType === "comida");
+    const cenaSlot = daySlots.find((s) => s.mealType === "cena");
+    let comidaBase = null;
+
+    if (comidaSlot) {
+      const targetType = proteinTypes[proteinTypeIdx % proteinTypes.length];
+      proteinTypeIdx++;
+      const candidate = protein.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id))
+        ?? protein.find((r) => !usedThisWeek.has(r.id));
+      if (candidate) {
+        assignments.push({ slotId: comidaSlot.slotId, recipeId: candidate.id });
+        usedThisWeek.add(candidate.id);
+        comidaBase = extractMainBase(candidate);
+      }
+    }
+
+    if (cenaSlot) {
+      const cenaProtein = protein.find((r) =>
+        !usedThisWeek.has(r.id) && extractMainBase(r) !== comidaBase
+      );
+      if (cenaProtein) {
+        assignments.push({ slotId: cenaSlot.slotId, recipeId: cenaProtein.id });
+        usedThisWeek.add(cenaProtein.id);
+      } else if (fruitCount < maxFruit && fruitOnly.length > 0) {
+        const fruit = fruitOnly.find((r) => !usedThisWeek.has(r.id)) ?? fruitOnly[0];
+        assignments.push({ slotId: cenaSlot.slotId, recipeId: fruit.id });
+        usedThisWeek.add(fruit.id);
+        fruitCount++;
+      } else {
+        const veggie = veggieLight.find((r) =>
+          !usedThisWeek.has(r.id) && extractMainBase(r) !== comidaBase
+        ) ?? veggieLight.find((r) => !usedThisWeek.has(r.id));
+        if (veggie) {
+          assignments.push({ slotId: cenaSlot.slotId, recipeId: veggie.id });
+          usedThisWeek.add(veggie.id);
+        } else {
+          const any = pool.find((r) => !usedThisWeek.has(r.id) && extractMainBase(r) !== comidaBase)
+            ?? pool.find((r) => !usedThisWeek.has(r.id))
+            ?? pool[0];
+          assignments.push({ slotId: cenaSlot.slotId, recipeId: any.id });
+          usedThisWeek.add(any.id);
+        }
+      }
+    }
+  }
+
+  return assignments;
+}
+
 // ── Response schema ─────────────────────────────────────────────
 
 const SlotAssignmentSchema = z.object({
@@ -305,6 +378,13 @@ async function generateGroupMenu(data, group, signal) {
     throw new AIPlannerError(filterError);
   }
 
+  // Baby groups use a deterministic planner — no LLM call needed
+  if (ctx.isBabyGroup) {
+    const slotAssignments = generateBabyMenuDeterministic(filteredPool, ctx.slots);
+    const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
+    return { group, slotAssignments, filteredPool, slotsContext: ctx.slots };
+  }
+
   const userMessage = buildUserMessage(
     filteredPool,
     ctx.slots,
@@ -313,13 +393,9 @@ async function generateGroupMenu(data, group, signal) {
     data.fixedDishes,
   );
 
-  const systemPrompt = ctx.isBabyGroup
-    ? SYSTEM_PROMPT + BABY_SYSTEM_ADDENDUM
-    : SYSTEM_PROMPT;
-
   const request = (messages, model = DEFAULT_MODEL) =>
     callModel(
-      { model, max_tokens: DEFAULT_MAX_TOKENS, system: systemPrompt, messages },
+      { model, max_tokens: DEFAULT_MAX_TOKENS, system: SYSTEM_PROMPT, messages },
       signal,
     );
 
