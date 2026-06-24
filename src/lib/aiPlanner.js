@@ -279,7 +279,7 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
 
 function extractMainBase(recipe) {
   if (recipe.mainBase) return recipe.mainBase;
-  const BASE_RE = /patata|boniato|calabac|zanahoria|calabaza|espinaca|brócoli|puerro|arroz|guisante|lenteja|garbanzo|cuscús|fideos|quinoa|sémola|coliflor|remolacha|pasta/i;
+  const BASE_RE = /patata|boniato|calabac|zanahoria|calabaza|espinaca|brócoli|puerro|arroz|guisante|lenteja|garbanzo|cuscús|fideos|avena|sémola|coliflor|remolacha|pasta/i;
   const ing = recipe.ingredients?.find((i) => BASE_RE.test(i.name));
   return ing ? ing.name.toLowerCase().split(" ")[0] : null;
 }

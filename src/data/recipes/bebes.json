@@ -417,13 +417,13 @@
   },
   {
     "id": "bebes_014",
-    "name": "Puré de espinacas con ternera y quinoa",
+    "name": "Papilla de avena con ternera y espinacas",
     "category": "bebes",
     "mainProtein": "ternera",
-    "mainBase": "quinoa",
+    "mainBase": "avena",
     "mealRole": ["plato_unico"],
     "type": "completo",
-    "time": 18,
+    "time": 15,
     "difficulty": "facil",
     "kcal": 175,
     "protein_g": 12,
@@ -432,20 +432,20 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": ["gluten"],
     "season": "all",
     "ingredients": [
-      { "name": "Espinacas frescas", "amount": 60, "unit": "g" },
+      { "name": "Copos de avena", "amount": 20, "unit": "g" },
       { "name": "Ternera magra", "amount": 30, "unit": "g" },
-      { "name": "Quinoa", "amount": 20, "unit": "g" },
+      { "name": "Espinacas frescas", "amount": 60, "unit": "g" },
       { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
     ],
     "steps": [
-      "Cocer quinoa con ternera picada 12 min",
+      "Cocer avena con ternera picada en caldo 10 min",
       "Añadir espinacas los últimos 2 min",
       "Triturar todo con aceite hasta textura suave"
     ],
-    "description": "Puré de espinacas y quinoa con ternera, rico en hierro, sin sal"
+    "description": "Papilla de avena con ternera y espinacas, rica en hierro, sin sal"
   },
   {
     "id": "bebes_015",
@@ -545,10 +545,10 @@
   },
   {
     "id": "bebes_018",
-    "name": "Puré de remolacha con pavo y quinoa",
+    "name": "Puré de remolacha con pavo y patata",
     "category": "bebes",
     "mainProtein": "pavo",
-    "mainBase": "quinoa",
+    "mainBase": "patata",
     "mealRole": ["plato_unico"],
     "type": "completo",
     "time": 20,
@@ -565,15 +565,15 @@
     "ingredients": [
       { "name": "Remolacha cocida", "amount": 60, "unit": "g" },
       { "name": "Pechuga de pavo", "amount": 30, "unit": "g" },
-      { "name": "Quinoa", "amount": 20, "unit": "g" },
+      { "name": "Patata", "amount": 60, "unit": "g" },
       { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
     ],
     "steps": [
-      "Cocer quinoa con pavo picado 15 min",
+      "Cocer patata troceada con pavo picado 15 min",
       "Añadir remolacha cocida troceada y calentar 3 min",
       "Triturar todo con aceite hasta textura suave"
     ],
-    "description": "Puré de remolacha, quinoa y pavo, sin sal"
+    "description": "Puré de remolacha y patata con pavo, sin sal"
   },
   {
     "id": "bebes_019",
