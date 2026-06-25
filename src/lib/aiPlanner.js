@@ -297,21 +297,26 @@ function generateBabyMenuDeterministic(pool, slots) {
   const usedThisWeek = new Set();
   const recentBases = [];
 
+  // comida → complete dishes (not tagged for cena); cena → lighter dishes tagged "cena"
+  const comidaPool = pool.filter((r) => !r.mealRole?.includes("cena"));
+  const cenaPool = pool.filter((r) => r.mealRole?.includes("cena"));
+
   const proteinTypes = ["pollo", "pescado_blanco", "ternera", "legumbre", "huevo", "pavo", "pescado_azul"];
   let proteinTypeIdx = 0;
 
-  const pick = (avoid) => {
+  const pickFrom = (subpool, avoid) => {
     const avoidSet = new Set(avoid);
-    return pool.find((r) => !usedThisWeek.has(r.id) && !avoidSet.has(extractMainBase(r)))
+    return subpool.find((r) => !usedThisWeek.has(r.id) && !avoidSet.has(extractMainBase(r)))
+      ?? subpool.find((r) => !usedThisWeek.has(r.id))
       ?? pool.find((r) => !usedThisWeek.has(r.id))
       ?? pool[0];
   };
 
-  const pickByProtein = (targetType, avoid) => {
+  const pickByProteinFrom = (subpool, targetType, avoid) => {
     const avoidSet = new Set(avoid);
-    return pool.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id) && !avoidSet.has(extractMainBase(r)))
-      ?? pool.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id))
-      ?? pick(avoid);
+    return subpool.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id) && !avoidSet.has(extractMainBase(r)))
+      ?? subpool.find((r) => r.mainProtein === targetType && !usedThisWeek.has(r.id))
+      ?? pickFrom(subpool, avoid);
   };
 
   for (const day of days) {
@@ -323,7 +328,7 @@ function generateBabyMenuDeterministic(pool, slots) {
     if (comidaSlot) {
       const targetType = proteinTypes[proteinTypeIdx % proteinTypes.length];
       proteinTypeIdx++;
-      const candidate = pickByProtein(targetType, recentBases.slice(-2));
+      const candidate = pickByProteinFrom(comidaPool, targetType, recentBases.slice(-2));
       assignments.push({ slotId: comidaSlot.slotId, recipeId: candidate.id });
       usedThisWeek.add(candidate.id);
       comidaBase = extractMainBase(candidate);
@@ -332,7 +337,7 @@ function generateBabyMenuDeterministic(pool, slots) {
 
     if (cenaSlot) {
       const avoidBases = [comidaBase, ...recentBases.slice(-2)].filter(Boolean);
-      const candidate = pick(avoidBases);
+      const candidate = pickFrom(cenaPool, avoidBases);
       assignments.push({ slotId: cenaSlot.slotId, recipeId: candidate.id });
       usedThisWeek.add(candidate.id);
       recentBases.push(extractMainBase(candidate));
