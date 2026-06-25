@@ -27,6 +27,7 @@ import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
+import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -787,6 +788,10 @@ export default function App() {
             </div>
           </div>
         </div>
+      )}
+
+      {screen !== "splash" && screen !== "onboarding" && (
+        <FeedbackFAB user={user} screen={screen} onToast={showToast} />
       )}
 
       {toast && (

@@ -11,6 +11,7 @@ export function useAuth() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!supabase) { setLoading(false); return; }
     let mounted = true;
 
     supabase.auth
@@ -35,6 +36,7 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
+    if (!supabase) return { error: new Error("Supabase not configured") };
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },
@@ -47,6 +49,7 @@ export function useAuth() {
   }, []);
 
   const signOut = useCallback(async () => {
+    if (!supabase) return { error: null };
     const { error } = await supabase.auth.signOut();
     if (error) console.error("[auth] sign-out failed", error);
     return { error };
