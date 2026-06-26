@@ -790,9 +790,7 @@ export default function App() {
         </div>
       )}
 
-      {screen !== "splash" && screen !== "onboarding" && (
-        <FeedbackFAB user={user} screen={screen} onToast={showToast} />
-      )}
+      <FeedbackFAB user={user} screen={screen} onToast={showToast} />
 
       {toast && (
         <div
