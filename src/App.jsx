@@ -790,7 +790,11 @@ export default function App() {
         </div>
       )}
 
-      <FeedbackFAB user={user} screen={screen} onToast={showToast} />
+      <FeedbackFAB
+        user={user}
+        screen={screen === "onboarding" ? `onboarding-step-${safeOnbStep + 1}` : screen}
+        onToast={showToast}
+      />
 
       {toast && (
         <div

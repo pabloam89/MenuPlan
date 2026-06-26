@@ -188,11 +188,6 @@ export function FeedbackFAB({ user, screen, onToast }) {
               onBlur={(e) => { e.target.style.borderColor = "#e0e5e2"; e.target.style.background = "#f7f9f8"; }}
             />
 
-            {/* Pantalla indicator */}
-            <div style={{ fontSize: 11, color: "#a0a8a2", marginTop: 8, marginBottom: 14 }}>
-              Pantalla: {screen}
-            </div>
-
             {/* Submit */}
             <button
               type="button"
