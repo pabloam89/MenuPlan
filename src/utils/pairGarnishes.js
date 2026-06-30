@@ -54,11 +54,16 @@ function carbOfRecipe(recipe) {
  * - No repeated garnish across the week
  * - Cena slots: garnish time must be ≤ 15 min
  *
+ * A user can pin a specific garnish to a dish (picked from the catalog) via
+ * `pinnedByRecipeId`. A pinned garnish always wins over the automatic rules
+ * (carb repetition / cena time limit) — the user's choice takes priority.
+ *
  * @param {Array<{slotId: string, recipeId: string}>} slotAssignments
  * @param {Object} poolById - { [recipeId]: catalogRecipe }
+ * @param {Object<string,string>} [pinnedByRecipeId] - { [recipeId]: garnishId }
  * @returns {Array<{slotId: string, recipeId: string, garnishId?: string}>}
  */
-export function pairGarnishes(slotAssignments, poolById) {
+export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}) {
   // Collect carbs already used by main recipes, per day
   const dayUsedCarbs = {};
   for (const { slotId, recipeId } of slotAssignments) {
@@ -91,13 +96,21 @@ export function pairGarnishes(slotAssignments, poolById) {
     const isCena = mealType === "cena";
     const dayCarbs = dayUsedCarbs[daySlug] ?? new Set();
 
-    const garnish = guarniciones.find((g) => {
-      if (usedGarnishIds.has(g.id)) return false;
-      if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
-      const gCarb = carbOfGarnish(g);
-      if (gCarb && dayCarbs.has(gCarb)) return false;
-      return true;
-    });
+    // Pinned garnish (user picked it for this exact dish) wins over auto rules.
+    let garnish = null;
+    const pinnedId = pinnedByRecipeId[recipeId];
+    if (pinnedId) {
+      garnish = guarniciones.find((g) => g.id === pinnedId) ?? null;
+    }
+    if (!garnish) {
+      garnish = guarniciones.find((g) => {
+        if (usedGarnishIds.has(g.id)) return false;
+        if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
+        const gCarb = carbOfGarnish(g);
+        if (gCarb && dayCarbs.has(gCarb)) return false;
+        return true;
+      });
+    }
 
     if (!garnish) return slot;
 

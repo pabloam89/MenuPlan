@@ -7,7 +7,7 @@ import { filterRecipes, decisionCatalog } from "../utils/filterRecipes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
-import { formatFixedDishesForAI } from "./fixedDishes.js";
+import { formatFixedDishesForAI, pinnedGarnishMap } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
@@ -486,9 +486,10 @@ async function generateGroupMenu(data, group, signal) {
     slotAssignments = applyFallback(slotAssignments, finalCheck.violations, filteredPool, ctx.slots);
   }
 
-  // 4. Pair "principal" recipes with garnishes (deterministic, no LLM)
+  // 4. Pair "principal" recipes with garnishes (deterministic, no LLM).
+  //    User-pinned combos (dish chosen from the catalog) take priority.
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
-  slotAssignments = pairGarnishes(slotAssignments, poolById);
+  slotAssignments = pairGarnishes(slotAssignments, poolById, pinnedGarnishMap(data.fixedDishes));
 
   return {
     group,

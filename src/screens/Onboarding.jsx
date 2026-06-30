@@ -30,6 +30,7 @@ import {
   Dumbbell,
   Heart,
   RotateCcw,
+  Search,
   Shuffle,
   Sparkles,
   Tag,
@@ -47,6 +48,10 @@ import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
+import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
+import guarnicionesData from "../data/recipes/guarniciones.json";
+
+const GARNISH_NAME_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g.name]));
 import {
   canAssignMemberToGroup,
   groupsAvailableForMember,
@@ -1069,6 +1074,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
   const [showAddAllergy, setShowAddAllergy] = useState(false);
   const [showAddDislike, setShowAddDislike] = useState(false);
   const [showMatrix, setShowMatrix] = useState(false);
+  const [showCatalog, setShowCatalog] = useState(false);
   const [dish, setDish] = useState("");
   const [newDishTimes, setNewDishTimes] = useState(1);
   const [newDishMeals, setNewDishMeals] = useState(() => {
@@ -1182,7 +1188,58 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
       fixedDishes: migrateFixedDishes(d.fixedDishes ?? []).filter((_, i) => i !== idx),
     }));
 
+  const addCatalogDish = (recipe) => {
+    const comida = mealOptions.find((m) => m.toLowerCase() === "comida") ?? mealOptions[0] ?? "Comida";
+    setData((d) => {
+      const list = migrateFixedDishes(d.fixedDishes ?? []);
+      if (list.some((fd) => fd.catalogId === recipe.id)) return d;
+      const entry = normalizeFixedDish({
+        name: recipe.name,
+        catalogId: recipe.id,
+        timesPerWeek: 1,
+        meals: [comida],
+      });
+      if (!entry) return d;
+      return { ...d, fixedDishes: [...list, entry] };
+    });
+  };
+
+  const removeCatalogDish = (catalogId) =>
+    setData((d) => ({
+      ...d,
+      fixedDishes: migrateFixedDishes(d.fixedDishes ?? []).filter((fd) => fd.catalogId !== catalogId),
+    }));
+
+  const setCatalogGarnish = (recipe, garnishId) => {
+    const comida = mealOptions.find((m) => m.toLowerCase() === "comida") ?? mealOptions[0] ?? "Comida";
+    setData((d) => {
+      const list = migrateFixedDishes(d.fixedDishes ?? []);
+      const exists = list.some((fd) => fd.catalogId === recipe.id);
+      if (!exists) {
+        const entry = normalizeFixedDish({
+          name: recipe.name,
+          catalogId: recipe.id,
+          timesPerWeek: 1,
+          meals: [comida],
+          garnishId: garnishId ?? undefined,
+        });
+        if (!entry) return d;
+        return { ...d, fixedDishes: [...list, entry] };
+      }
+      const next = list.map((fd) =>
+        fd.catalogId === recipe.id
+          ? normalizeFixedDish({ ...fd, garnishId: garnishId ?? undefined })
+          : fd
+      );
+      return { ...d, fixedDishes: next };
+    });
+  };
+
   const fixedList = migrateFixedDishes(data.fixedDishes ?? []);
+  const addedCatalogIds = new Set(fixedList.filter((fd) => fd.catalogId).map((fd) => fd.catalogId));
+  const addedGarnishByCatalogId = Object.fromEntries(
+    fixedList.filter((fd) => fd.catalogId && fd.garnishId).map((fd) => [fd.catalogId, fd.garnishId])
+  );
   const canAddDish = Boolean(normalizeTextValue(dish)) && validNewDishMeals.length > 0;
 
   const matrixItems = useMemo(() => {
@@ -1346,14 +1403,66 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
       {tab === "repeat" && (
         <>
           <p style={{ fontSize: 12, color: "#7a9485", margin: "0 0 10px", lineHeight: 1.45 }}>
-            Buscamos coincidencias en el catálogo por nombre. Si no hay match, intentamos lo más parecido; te avisamos abajo.
+            Elige platos que ya sabes cocinar para que el menú no te obligue a aprender recetas nuevas.
           </p>
+
+          {/* Explorar catálogo — vía principal */}
+          <button
+            type="button"
+            onClick={() => setShowCatalog(true)}
+            style={{
+              width: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              padding: "12px 14px",
+              borderRadius: 14,
+              border: "1.5px solid #2d5a3d",
+              background: "#2d5a3d",
+              color: "#fff",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              marginBottom: 12,
+            }}
+          >
+            <span
+              style={{
+                width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+                background: "rgba(255,255,255,.16)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <Search size={17} />
+            </span>
+            <span style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+              <span style={{ display: "block", fontSize: 13.5, fontWeight: 900, lineHeight: 1.2 }}>
+                Explorar catálogo
+              </span>
+              <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, opacity: 0.85, marginTop: 2 }}>
+                Busca y filtra entre nuestras recetas
+              </span>
+            </span>
+            <ChevronRight size={18} />
+          </button>
+
+          {/* Escribir a mano — vía secundaria */}
+          <div
+            style={{
+              display: "flex", alignItems: "center", gap: 10,
+              margin: "0 0 10px",
+            }}
+          >
+            <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1" }}>o escríbelo tú</span>
+            <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
+          </div>
+
           <div
             style={{
               background: "#f6f9f7",
               borderRadius: 10,
               padding: "10px",
-              marginBottom: 8,
+              marginBottom: 4,
             }}
           >
             <FixedDishRow
@@ -1367,22 +1476,44 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
               onSubmit={addFixedDish}
               canSubmit={canAddDish}
             />
+            <p style={{ fontSize: 10.5, color: "#9ab0a1", margin: "6px 2px 0", lineHeight: 1.4 }}>
+              Si no está en el catálogo, lo dejamos apuntado y buscamos lo más parecido.
+            </p>
           </div>
 
+          <style>{`
+            @keyframes fixedDishIn {
+              from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+              to   { opacity: 1; transform: translateY(0)    scale(1);    }
+            }
+          `}</style>
+
+          {fixedList.length > 0 && (
+            <div style={{ height: 1, background: "#eef3f0", margin: "12px 0 10px" }} />
+          )}
+
           {fixedList.map((fd, idx) => {
-            const matches = catalogMatchesForFixedDish(fd);
+            const fromCatalog = Boolean(fd.catalogId);
+            const matches = fromCatalog ? [] : catalogMatchesForFixedDish(fd);
+            const garnishLabel = fd.garnishId ? GARNISH_NAME_BY_ID[fd.garnishId] : null;
+            // Build display name: append garnish inline so the row stays clean
+            const displayName = garnishLabel ? `${fd.name} + ${garnishLabel}` : fd.name;
+            const statusNote = !fromCatalog && matches.length === 0
+              ? { color: "#b45309", text: "Sin match exacto en catálogo" }
+              : null;
             return (
             <div
-              key={`${fd.name}-${idx}`}
+              key={`${fd.catalogId ?? fd.name}-${idx}`}
               style={{
                 background: "#f6f9f7",
                 borderRadius: 10,
                 padding: "8px 10px",
                 marginBottom: 6,
+                animation: "fixedDishIn .18s ease-out",
               }}
             >
               <FixedDishRow
-                name={fd.name}
+                name={displayName}
                 times={fd.timesPerWeek}
                 meals={fd.meals}
                 mealOptions={mealOptions}
@@ -1390,24 +1521,26 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
                 onMealsChange={(meals) => updateFixedDish(idx, { meals })}
                 onRemove={() => removeFixedDish(idx)}
               />
-              {matches.length === 0 ? (
-                <p style={{ fontSize: 11, color: "#b45309", margin: "6px 2px 0", lineHeight: 1.4 }}>
-                  No hay receta con ese nombre en el catálogo. El planificador elegirá la más parecida o lo omitirá.
-                </p>
-              ) : matches.length === 1 ? (
-                <p style={{ fontSize: 11, color: "#5a7a66", margin: "6px 2px 0", lineHeight: 1.4 }}>
-                  Coincide con: {matches[0].name}
-                </p>
-              ) : (
-                <p style={{ fontSize: 11, color: "#5a7a66", margin: "6px 2px 0", lineHeight: 1.4 }}>
-                  Varias coincidencias: {matches.slice(0, 3).map((r) => r.name).join(", ")}
-                  {matches.length > 3 ? "…" : ""}
+              {statusNote && (
+                <p style={{ fontSize: 10.5, color: statusNote.color, margin: "4px 2px 0", lineHeight: 1.4 }}>
+                  {statusNote.text}
                 </p>
               )}
             </div>
           );
           })}
         </>
+      )}
+
+      {showCatalog && (
+        <CatalogBrowserSheet
+          onClose={() => setShowCatalog(false)}
+          addedIds={addedCatalogIds}
+          garnishByCatalogId={addedGarnishByCatalogId}
+          onAdd={addCatalogDish}
+          onRemove={removeCatalogDish}
+          onSetGarnish={setCatalogGarnish}
+        />
       )}
     </OnboardingShell>
   );
