@@ -814,11 +814,7 @@ export default function App() {
         </div>
       )}
 
-      <FeedbackFAB
-        user={user}
-        screen={screen === "onboarding" ? `onboarding-step-${safeOnbStep + 1}` : screen}
-        onToast={showToast}
-      />
+      {/* FeedbackFAB hidden */}
 
       {toast && (
         <div
