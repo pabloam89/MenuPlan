@@ -1288,6 +1288,8 @@ export const MenuScreen = memo(function MenuScreen({
   const [profileOpen, setProfileOpen] = useState(false);
   const [viewMode, setViewMode] = useState("dia"); // "dia" | "semana"
   const [viewAnimDir, setViewAnimDir] = useState(0);
+  const [filterPanelOpen, setFilterPanelOpen] = useState(true);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
     const idx = jsDay === 0 ? 6 : jsDay - 1;
@@ -1356,6 +1358,10 @@ export const MenuScreen = memo(function MenuScreen({
           from { opacity: 0; transform: translateX(-14px); }
           to { opacity: 1; transform: translateX(0); }
         }
+        @keyframes shareDropIn {
+          from { opacity: 0; transform: translateY(-6px) scale(.96); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
       `}</style>
       {/* ── Top header: title + actions ── */}
       <div style={{ padding: "20px 20px 0" }}>
@@ -1379,14 +1385,71 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {hasMenu && (
-              <>
-                <button type="button" onClick={handleShare} aria-label="Compartir" style={iconChipButtonStyle}>
+              <div style={{ position: "relative" }}>
+                <button
+                  type="button"
+                  onClick={() => setShowShareDropdown((v) => !v)}
+                  aria-label="Compartir o descargar"
+                  style={{
+                    ...iconChipButtonStyle,
+                    background: showShareDropdown ? "#e8f0ea" : "#fff",
+                  }}
+                >
                   <Share2 size={16} />
                 </button>
-                <button type="button" onClick={handleDownload} aria-label="Descargar" style={iconChipButtonStyle}>
-                  <Download size={16} />
-                </button>
-              </>
+                {showShareDropdown && (
+                  <>
+                    <div
+                      style={{ position: "fixed", inset: 0, zIndex: 49 }}
+                      onClick={() => setShowShareDropdown(false)}
+                    />
+                    <div
+                      style={{
+                        position: "absolute",
+                        right: 0,
+                        top: "calc(100% + 8px)",
+                        zIndex: 50,
+                        background: "#fff",
+                        borderRadius: 12,
+                        boxShadow: "0 4px 20px rgba(0,0,0,.14)",
+                        border: "1px solid #e6eee8",
+                        overflow: "hidden",
+                        minWidth: 164,
+                        animation: "shareDropIn .18s ease-out",
+                      }}
+                    >
+                      {[
+                        { label: "Compartir", icon: <Share2 size={14} />, action: () => { handleShare(); setShowShareDropdown(false); } },
+                        { label: "Descargar PDF", icon: <Download size={14} />, action: () => { handleDownload(); setShowShareDropdown(false); } },
+                      ].map(({ label, icon, action }) => (
+                        <button
+                          key={label}
+                          type="button"
+                          onClick={action}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            width: "100%",
+                            padding: "12px 16px",
+                            background: "none",
+                            border: "none",
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            fontSize: 13,
+                            fontWeight: 700,
+                            color: "#142f1d",
+                            textAlign: "left",
+                          }}
+                        >
+                          {icon}
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             )}
             <button type="button" onClick={onReset} style={ghostButtonStyle} disabled={isGenerating}>
               Reiniciar
@@ -1410,24 +1473,64 @@ export const MenuScreen = memo(function MenuScreen({
         )}
       </div>
 
-      <MenuFilterPanel
-        groups={data.groups}
-        scope={scope}
-        onScopeChange={setScope}
-        members={data.members ?? []}
-        memberScope={memberScope}
-        onMemberScopeChange={setMemberScope}
-        multiGroup={multiGroup}
-      />
+      {/* ── Filter panel: collapsible con animación ── */}
+      <div
+        style={{
+          overflow: "hidden",
+          maxHeight: filterPanelOpen ? 300 : 0,
+          opacity: filterPanelOpen ? 1 : 0,
+          transition: "max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease",
+        }}
+      >
+        <MenuFilterPanel
+          groups={data.groups}
+          scope={scope}
+          onScopeChange={setScope}
+          members={data.members ?? []}
+          memberScope={memberScope}
+          onMemberScopeChange={setMemberScope}
+          multiGroup={multiGroup}
+        />
+        <div style={{ height: 1, background: "#e0eae3" }} />
+      </div>
 
-      {/* ── Divider ── */}
-      <div style={{ height: 1, background: "#e0eae3" }} />
-
-      {/* ── Week card: fecha + perfil + toggle ── */}
+      {/* ── Week card: fecha + perfil (centrado) + chevron colapso ── */}
       <div style={{ background: "#fff", padding: "12px 16px 0" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <WeekRangeBadge label={weekLabel} hideLabel />
-          <ProfileButton onClick={() => setProfileOpen(true)} />
+          <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
+            <ProfileButton onClick={() => setProfileOpen(true)} />
+          </div>
+          <button
+            type="button"
+            onClick={() => setFilterPanelOpen((v) => !v)}
+            aria-label={filterPanelOpen ? "Colapsar filtros" : "Expandir filtros"}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              width: 32,
+              height: 32,
+              borderRadius: 999,
+              border: "1px solid #e6eee8",
+              background: filterPanelOpen ? "#f0f5f1" : "#fff",
+              cursor: "pointer",
+              flexShrink: 0,
+              fontFamily: "inherit",
+              padding: 0,
+            }}
+          >
+            <ChevronDown
+              size={17}
+              strokeWidth={2.5}
+              color="#2d5a3d"
+              style={{
+                transform: filterPanelOpen ? "rotate(180deg)" : "rotate(0deg)",
+                transition: "transform 0.3s cubic-bezier(.4,0,.2,1)",
+                display: "block",
+              }}
+            />
+          </button>
         </div>
 
         {/* Semana / Día toggle */}
