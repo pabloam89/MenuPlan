@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "./supabase.js";
+import { upsertUserProfile } from "./analytics.js";
 
 /**
  * Tracks the Supabase auth session and exposes Google sign-in / sign-out.
@@ -25,8 +26,11 @@ export function useAuth() {
         if (mounted) setLoading(false);
       });
 
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
+      if (event === "SIGNED_IN" && next?.user) {
+        upsertUserProfile(next.user);
+      }
     });
 
     return () => {

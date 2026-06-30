@@ -21,7 +21,7 @@ import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getMeals } from "./lib/planner.js";
-import { groupsFromModel, migrateGroupsForBabies } from "./lib/groups.js";
+import { groupsFromModel, migrateGroupsForBabies, memberIsBaby } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
@@ -30,6 +30,7 @@ import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
+import { trackEvent, upsertUserProfile } from "./lib/analytics.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -331,6 +332,7 @@ export default function App() {
         return Array.from(byId.values());
       });
       setMenuPlan(plan);
+      trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length });
       setData((d) => ({
         ...d,
         menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
@@ -355,6 +357,7 @@ export default function App() {
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
+      trackEvent(user, "generation_failed", "menu", { error: err?.message });
       setMenuError({
         message: err?.message || "No se pudo generar el menú.",
         cause: err?.cause,
@@ -387,13 +390,22 @@ export default function App() {
   const goToMenu = async () => {
     ensureGroupsIfMissing();
     setScreen("menu");
+    if (user) {
+      upsertUserProfile(user, {
+        onboarding_completed: true,
+        family_size: data.members.length || null,
+        has_babies: data.members.some((m) => memberIsBaby(m)),
+        onboarding_step_max: onbStep,
+      });
+    }
     await regenerateMenu();
   };
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
     setScreen(id);
-  }, [screen]);
+    if (id === "shopping") trackEvent(user, "shopping_opened", "shopping");
+  }, [screen, user]);
 
   const goToOnboardingStep = useCallback((step) => {
     dirRef.current = "forward";
@@ -462,7 +474,8 @@ export default function App() {
     });
     setSelectedSlot(null);
     showToast(`Sustituido por «${frontendRecipe.name}»`);
-  }, [data, menuPlan, showToast]);
+    trackEvent(user, "dish_replaced", "menu", { day, meal, newRecipeId: recipeId });
+  }, [data, menuPlan, showToast, user]);
 
   const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
 
