@@ -1170,7 +1170,7 @@ function AllergenRow({ Icon, color, label, checked, checkColor, onToggle, last }
       >
         <Icon size={13} strokeWidth={2.2} />
       </span>
-      <span style={{ flex: 1, minWidth: 0, fontSize: 12, lineHeight: 1.2, fontWeight: checked ? 800 : 700, color: checked ? "#142f1d" : "#3a4a42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 12, lineHeight: 1.25, fontWeight: checked ? 800 : 700, color: checked ? "#142f1d" : "#3a4a42", overflow: "hidden" }}>{label}</span>
       <span
         className="filter-check"
         style={{
