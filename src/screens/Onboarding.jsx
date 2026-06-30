@@ -731,6 +731,24 @@ const BASE_DISLIKE_OPTIONS = [
   "Picante",
 ];
 
+function gridChipStyle(selected) {
+  return {
+    height: 26,
+    padding: "0 4px",
+    borderRadius: 7,
+    border: `1.5px solid ${selected ? "#2d5a3d" : "#e5ebe7"}`,
+    background: selected ? "#4cba6e" : "#fff",
+    color: selected ? "#fff" : "#777",
+    fontSize: 10,
+    fontWeight: selected ? 800 : 500,
+    cursor: "pointer",
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    fontFamily: "inherit",
+  };
+}
+
 const fixedRowH = 36;
 const fixedTimesInputStyle = {
   width: 36,
@@ -1122,22 +1140,22 @@ function AllergenRow({ Icon, color, label, checked, checkColor, onToggle, last }
       aria-pressed={checked}
       className="avoid-row"
       style={{
-        width: "100%", display: "flex", alignItems: "center", gap: 11,
-        padding: "9px 8px", border: "none", background: "transparent",
+        width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 10,
+        padding: "9px 6px", border: "none", background: "transparent",
         cursor: "pointer", fontFamily: "inherit", textAlign: "left",
         borderBottom: last ? "none" : "1px solid #eef3f0", borderRadius: 8,
       }}
     >
       <span
         style={{
-          width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+          width: 28, height: 28, borderRadius: 9, flexShrink: 0,
           background: `${color}1a`, color,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
-        <Icon size={16} strokeWidth={2.2} />
+        <Icon size={15} strokeWidth={2.2} />
       </span>
-      <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: checked ? 800 : 700, color: checked ? "#142f1d" : "#3a4a42" }}>{label}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.2, fontWeight: checked ? 800 : 700, color: checked ? "#142f1d" : "#3a4a42", wordBreak: "break-word" }}>{label}</span>
       <span
         className="filter-check"
         style={{
@@ -1314,7 +1332,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
             }
           >
             <div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 18 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
                 {visibleAllergenIds.map((id) => {
                   const meta = EU_ALLERGENS[id];
                   return (
