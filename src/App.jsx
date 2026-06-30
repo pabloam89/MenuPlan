@@ -3,6 +3,7 @@ import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton } from "./components/ui.js
 import {
   OnboardingMembers,
   OnboardingRestrictions,
+  OnboardingRepeat,
   OnboardingMenuModel,
   OnboardingSchedule,
   OnboardingSchoolMenu,
@@ -16,6 +17,7 @@ const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => (
 const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 import { generateMenuWithAI, pickCatalogReplacement } from "./lib/aiPlanner.js";
+import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getMeals } from "./lib/planner.js";
@@ -481,8 +483,8 @@ export default function App() {
     setScreen("splash");
   }, []);
 
-  // Order: Members → Restrictions → Menu Model → School Menu → Week → Schedule → Cooking.
-  const ONB_STEP_COUNT = 7;
+  // Order: Members → Menu Model → School Menu → Week → Schedule → Restrictions → Repeat → Cooking.
+  const ONB_STEP_COUNT = 8;
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
   const onbProgressValue = useMemo(
     () => ({ current: safeOnbStep, total: ONB_STEP_COUNT, onJump: setOnbStep }),
@@ -501,7 +503,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingRestrictions
+    <OnboardingMenuModel
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(2))}
@@ -509,7 +511,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingMenuModel
+    <OnboardingSchoolMenu
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(3))}
@@ -517,7 +519,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingSchoolMenu
+    <OnboardingWeek
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(4))}
@@ -525,7 +527,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingWeek
+    <OnboardingSchedule
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(5))}
@@ -533,7 +535,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingSchedule
+    <OnboardingRestrictions
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(6))}
@@ -541,10 +543,18 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
+    <OnboardingRepeat
+      data={data}
+      setData={setData}
+      onNext={() => fwd(() => setOnbStep(7))}
+      onBack={() => back(() => setOnbStep(5))}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleReset}
+    />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onBack={() => back(() => setOnbStep(5))}
+      onBack={() => back(() => setOnbStep(6))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
@@ -623,7 +633,6 @@ export default function App() {
               onNav={handleNav}
               onRegenerate={handleRegenerate}
               onRetry={retryGenerateMenu}
-              onStop={stopGeneration}
               onReset={handleReset}
               onToast={showToast}
             />
@@ -674,7 +683,7 @@ export default function App() {
                 setData={setData}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("account"))}
-                onEditPreferences={() => goToOnboardingStep(1)}
+                onEditPreferences={() => goToOnboardingStep(5)}
                 onSignIn={signInWithGoogle}
                 onReset={handleReset}
               />
@@ -697,7 +706,7 @@ export default function App() {
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("settings"))}
                 onEditMembers={() => goToOnboardingStep(0)}
-                onEditPreferences={() => goToOnboardingStep(1)}
+                onEditPreferences={() => goToOnboardingStep(5)}
                 onSignIn={signInWithGoogle}
                 onSignOut={signOut}
                 onToast={showToast}
@@ -706,6 +715,8 @@ export default function App() {
           </div>
         )}
       </div>
+
+      {isGeneratingMenu && <GeneratingScreen onStop={stopGeneration} />}
 
       {selectedSlot && (
         <DishDetail

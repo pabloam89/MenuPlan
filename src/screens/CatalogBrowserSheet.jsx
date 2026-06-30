@@ -45,7 +45,7 @@ const CATEGORY_META = {
 };
 
 const DEFAULT_COLOR = "#5a7066";
-function categoryColor(cat) {
+export function categoryColor(cat) {
   return CATEGORY_META[cat]?.color ?? DEFAULT_COLOR;
 }
 
@@ -78,7 +78,7 @@ function isRealProtein(p) {
   return Boolean(n) && n !== "none" && n !== "null" && n !== "ninguna" && n !== "ninguno";
 }
 
-function categoryLabel(cat) {
+export function categoryLabel(cat) {
   return CATEGORY_META[cat]?.label ?? titleCase(cat);
 }
 

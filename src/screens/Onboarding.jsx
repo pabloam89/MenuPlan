@@ -16,10 +16,10 @@ import {
   Moon,
   ChevronDown,
   ChevronUp,
+  CircleDot,
   Drumstick,
   Expand,
   FileText,
-  Grid2X2,
   House,
   Layers2,
   Loader2,
@@ -29,6 +29,7 @@ import {
   Coins,
   Dumbbell,
   Heart,
+  HeartPulse,
   RotateCcw,
   Search,
   Shuffle,
@@ -46,9 +47,12 @@ import {
 import { Chip, SliderInput, Avatar, AvatarStack, ProgressDots } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE } from "../lib/stages.js";
+import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
-import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
+import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
+import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { dishImageUrl } from "../assets/dishes/dishImages.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 
 const GARNISH_NAME_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g.name]));
@@ -119,6 +123,7 @@ export function OnboardingShell({
   nextLabel = "Afinar menú",
   finishLabel = "Generar menú",
   nextDisabled = false,
+  bg,
 }) {
   const progress = useContext(OnboardingProgressContext);
   const headerBtn = {
@@ -142,6 +147,7 @@ export function OnboardingShell({
         minHeight: "100%",
         display: "flex",
         flexDirection: "column",
+        background: bg ?? "transparent",
       }}
     >
       <div
@@ -725,48 +731,6 @@ const BASE_DISLIKE_OPTIONS = [
   "Picante",
 ];
 
-/** Exactly 5 presets in the 2×3 grid; F2C3 is «Otro». */
-const GRID_ALLERGY_SLOTS = ["Gluten", "Lactosa", "Frutos secos", "Marisco", "Huevo"];
-const GRID_DISLIKE_SLOTS = ["Hígado", "Coliflor", "Cebolla", "Pimiento", "Aceitunas"];
-
-function restrictionTabStyle(active) {
-  return {
-    flex: 1,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 6,
-    padding: "14px 8px 12px",
-    borderRadius: 14,
-    border: `1.5px solid ${active ? "#2d5a3d" : "#e3ebe6"}`,
-    background: active ? "#2d5a3d" : "#f4f7f5",
-    color: active ? "#fff" : "#9ab0a1",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    fontFamily: "inherit",
-    transition: "all .15s ease",
-  };
-}
-
-function gridChipStyle(selected) {
-  return {
-    height: 26,
-    padding: "0 4px",
-    borderRadius: 7,
-    border: `1.5px solid ${selected ? "#2d5a3d" : "#e5ebe7"}`,
-    background: selected ? "#4cba6e" : "#fff",
-    color: selected ? "#fff" : "#777",
-    fontSize: 10,
-    fontWeight: selected ? 800 : 500,
-    cursor: "pointer",
-    whiteSpace: "nowrap",
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-    fontFamily: "inherit",
-  };
-}
-
 const fixedRowH = 36;
 const fixedTimesInputStyle = {
   width: 36,
@@ -784,22 +748,6 @@ const fixedTimesInputStyle = {
   background: "#fff",
 };
 
-const fixedMealSelectStyle = {
-  height: fixedRowH,
-  padding: "0 8px",
-  borderRadius: 8,
-  border: "1px solid #ddd",
-  fontSize: 11,
-  fontWeight: 600,
-  color: "#1a3a24",
-  background: "#fff",
-  outline: "none",
-  flexShrink: 0,
-  minWidth: 0,
-  maxWidth: 118,
-  fontFamily: "inherit",
-};
-
 const fieldLbl = {
   fontSize: 10,
   fontWeight: 700,
@@ -815,20 +763,57 @@ function mealToSelectValue(meals, mealOptions) {
   return mealOptions.find((x) => x.toLowerCase() === "comida") ?? mealOptions[0];
 }
 
-function MealSelect({ meals, mealOptions, onChange }) {
-  const comida = mealOptions.find((m) => m.toLowerCase() === "comida") ?? mealOptions[0];
-  const cena = mealOptions.find((m) => m.toLowerCase() === "cena") ?? mealOptions[1];
+const MEAL_ICON = { Desayuno: Coffee, Comida: Sun, Cena: Moon };
+
+function mealColWidthFor(mealOptions) {
+  const n = Math.max(1, mealOptions.length);
+  return n * 28 + (n - 1) * 4 + 6;
+}
+
+function MealIconToggle({ meals, mealOptions, onChange }) {
   const value = mealToSelectValue(meals, mealOptions);
   return (
-    <select
-      value={value}
-      onChange={(e) => onChange([e.target.value])}
-      style={{ ...fixedMealSelectStyle, width: "100%", maxWidth: "none" }}
+    <div
+      style={{
+        display: "inline-flex",
+        gap: 4,
+        background: "#eef3f0",
+        borderRadius: 9,
+        padding: 3,
+      }}
+      role="group"
       aria-label="Cuándo"
     >
-      {comida && <option value={comida}>Comida</option>}
-      {cena && cena !== comida && <option value={cena}>Cena</option>}
-    </select>
+      {mealOptions.map((m) => {
+        const active = m === value;
+        const Icon = MEAL_ICON[m] ?? Utensils;
+        return (
+          <button
+            key={m}
+            type="button"
+            onClick={() => onChange([m])}
+            title={m}
+            aria-label={m}
+            aria-pressed={active}
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 7,
+              border: "none",
+              cursor: "pointer",
+              background: active ? "#2d5a3d" : "transparent",
+              color: active ? "#fff" : "#7a9485",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background .15s ease, color .15s ease",
+            }}
+          >
+            <Icon size={15} />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -885,10 +870,12 @@ function FixedTimesInput({ value, onChange }) {
   );
 }
 
-function FixedDishRow({ name, garnish, nameValue, onNameChange, times, meals, mealOptions, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
+function FixedDishRow({ name, garnish, catLabel, catColor, leading, nameValue, onNameChange, times, meals, mealOptions, mealColWidth, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
   const isNew = onNameChange != null;
+  const mealColW = mealColWidth ?? mealColWidthFor(mealOptions);
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: isNew ? "flex-end" : "center" }}>
+    <div style={{ display: "flex", gap: 8, alignItems: isNew ? "flex-end" : "center" }}>
+      {leading}
       <div style={{ flex: 1, minWidth: 0 }}>
         {isNew && <p style={fieldLbl}>Nombre</p>}
         {isNew ? (
@@ -926,32 +913,34 @@ function FixedDishRow({ name, garnish, nameValue, onNameChange, times, meals, me
             >
               {name}
             </p>
-            {garnish && (
+            {(catLabel || garnish) && (
               <p
                 style={{
                   margin: "2px 0 0",
                   fontSize: 11,
-                  fontWeight: 600,
-                  color: "#5a7a66",
+                  fontWeight: 700,
+                  color: catColor ?? "#5a7a66",
                   display: "-webkit-box",
                   WebkitLineClamp: 1,
                   WebkitBoxOrient: "vertical",
                   overflow: "hidden",
                 }}
               >
-                con {garnish}
+                {catLabel}
+                {catLabel && garnish ? <span style={{ fontWeight: 600, color: "#5a7a66" }}> · con {garnish}</span> : null}
+                {!catLabel && garnish ? <span style={{ fontWeight: 600, color: "#5a7a66" }}>con {garnish}</span> : null}
               </p>
             )}
           </div>
         )}
       </div>
       <div style={{ flexShrink: 0 }}>
-        <p style={fieldLbl}>Veces</p>
+        {isNew && <p style={fieldLbl}>Veces</p>}
         <FixedTimesInput value={times} onChange={onTimesChange} />
       </div>
-      <div style={{ flex: "0 1 108px", minWidth: 88 }}>
-        <p style={fieldLbl}>Cuándo</p>
-        <MealSelect meals={meals} mealOptions={mealOptions} onChange={onMealsChange} />
+      <div style={{ flexShrink: 0, width: mealColW }}>
+        {isNew && <p style={fieldLbl}>Cuándo</p>}
+        <MealIconToggle meals={meals} mealOptions={mealOptions} onChange={onMealsChange} />
       </div>
       {isNew ? (
         <button
@@ -1002,96 +991,459 @@ function FixedDishRow({ name, garnish, nameValue, onNameChange, times, meals, me
   );
 }
 
-function AvoidOptionGrid({ slotLabels, selectedSet, onToggle, onAddClick, addOpen, addValue, onAddValueChange, onAddConfirm, addPlaceholder }) {
-  const gridRowH = 26;
-  const gridGap = 6;
+function FixedDishLeading({ fd }) {
+  const fromCatalog = Boolean(fd.catalogId);
+  const recipe = fromCatalog ? recipeCatalogById[fd.catalogId] : null;
+  const photo = fromCatalog ? dishImageUrl(fd.catalogId, fd.garnishId ?? undefined) : null;
+  const color = recipe ? categoryColor(recipe.category) : null;
 
-  return (
-    <div>
+  if (fromCatalog) {
+    return (
       <div
         style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-          gridTemplateRows: `repeat(2, ${gridRowH}px)`,
-          gap: gridGap,
+          width: 46, height: 46, borderRadius: 11, flexShrink: 0, overflow: "hidden",
+          boxSizing: "border-box", border: `2.5px solid ${color ?? "#cdd8d0"}`,
+          background: `${color ?? "#cdd8d0"}14`,
+          display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
-        {slotLabels.slice(0, 5).map((label) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => onToggle(label)}
-            title={label}
-            style={{
-              ...gridChipStyle(selectedSet.has(label)),
-              width: "100%",
-              height: gridRowH,
-              display: "block",
-            }}
-          >
-            {label}
-          </button>
-        ))}
-        <button
-          type="button"
-          onClick={onAddClick}
-          style={{
-            ...gridChipStyle(addOpen),
-            width: "100%",
-            height: gridRowH,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 0,
-            fontSize: 10,
-            fontWeight: 600,
-          }}
-        >
-          Otro
-        </button>
+        {photo ? (
+          <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          <Utensils size={18} color={color ?? "#9ab0a1"} />
+        )}
       </div>
-      {addOpen && (
-        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-          <input
-            value={addValue}
-            onChange={(e) => onAddValueChange(e.target.value)}
-            placeholder={addPlaceholder}
-            style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid #ddd", fontSize: 12 }}
-            onKeyDown={(e) => e.key === "Enter" && onAddConfirm()}
-            autoFocus
-          />
-          <button
-            type="button"
-            onClick={onAddConfirm}
-            style={{
-              width: 34,
-              borderRadius: 8,
-              border: "none",
-              background: "#2d5a3d",
-              color: "#fff",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Check size={14} />
-          </button>
-        </div>
-      )}
+    );
+  }
+  return (
+    <div
+      style={{
+        width: 46, height: 46, borderRadius: 11, flexShrink: 0, boxSizing: "border-box",
+        border: "1.5px dashed #cdd8d0", background: "#fff",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}
+    >
+      <ChefHat size={18} color="#b6c4bb" />
     </div>
   );
 }
 
+function FixedDishTable({ items, mealOptions, onTimesChange, onMealsChange, onRemove }) {
+  const mealColW = mealColWidthFor(mealOptions);
+  const headerLbl = { ...fieldLbl, color: "#2d5a3d", margin: 0 };
+  return (
+    <div style={{ background: "#f6f9f7", border: "1px solid #dfe9e2", borderRadius: 12, overflow: "hidden" }}>
+      {/* header */}
+      <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "9px 10px", background: "#dcebe1", borderBottom: "1px solid #c9ddd0" }}>
+        <span style={{ width: 46, flexShrink: 0 }} />
+        <span style={{ flex: 1, minWidth: 0, ...headerLbl }}>Plato</span>
+        <span style={{ width: 36, flexShrink: 0, textAlign: "center", ...headerLbl }}>Veces</span>
+        <span style={{ width: mealColW, flexShrink: 0, ...headerLbl }}>Cuándo</span>
+        <span style={{ width: fixedRowH, flexShrink: 0 }} />
+      </div>
+
+      {items.map((fd, idx) => {
+        const fromCatalog = Boolean(fd.catalogId);
+        const garnishLabel = fd.garnishId ? GARNISH_NAME_BY_ID[fd.garnishId] : null;
+        const matches = fromCatalog ? [] : catalogMatchesForFixedDish(fd);
+        const statusNote = !fromCatalog && matches.length === 0 ? "Sin match exacto en catálogo" : null;
+        return (
+          <div
+            key={`${fd.catalogId ?? fd.name}-${idx}`}
+            style={{
+              padding: "8px 10px",
+              borderBottom: idx < items.length - 1 ? "1px solid #e6eee8" : "none",
+              animation: "fixedDishIn .18s ease-out",
+            }}
+          >
+            <FixedDishRow
+              leading={<FixedDishLeading fd={fd} />}
+              name={fd.name}
+              garnish={garnishLabel}
+              times={fd.timesPerWeek}
+              meals={fd.meals}
+              mealOptions={mealOptions}
+              mealColWidth={mealColW}
+              onTimesChange={(n) => onTimesChange(idx, n)}
+              onMealsChange={(meals) => onMealsChange(idx, meals)}
+              onRemove={() => onRemove(idx)}
+            />
+            {statusNote && (
+              <p style={{ fontSize: 10.5, color: "#b45309", margin: "4px 2px 0 54px", lineHeight: 1.4 }}>
+                {statusNote}
+              </p>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MemberAvatarSelector({ members, selectedId, onSelect }) {
+  const single = members.length <= 1;
+  return (
+    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+      {members.map((m) => {
+        const sel = single || m.id === selectedId;
+        const color = memberAvatarColor(m.id, members);
+        return (
+          <button
+            key={m.id}
+            type="button"
+            title={m.name}
+            aria-pressed={sel}
+            onClick={() => onSelect(m.id)}
+            className="avoid-avatar"
+            style={{
+              border: sel ? `2px solid ${color}` : "2px solid transparent",
+              borderRadius: "50%",
+              padding: 1,
+              background: "transparent",
+              cursor: single ? "default" : "pointer",
+              lineHeight: 0,
+              opacity: sel ? 1 : 0.45,
+              filter: sel ? "none" : "grayscale(0.4)",
+            }}
+          >
+            <Avatar name={m.name} size={26} color={color} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function AllergenRow({ Icon, color, label, checked, checkColor, onToggle, last }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-pressed={checked}
+      className="avoid-row"
+      style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 11,
+        padding: "9px 8px", border: "none", background: "transparent",
+        cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+        borderBottom: last ? "none" : "1px solid #eef3f0", borderRadius: 8,
+      }}
+    >
+      <span
+        style={{
+          width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+          background: `${color}1a`, color,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <Icon size={16} strokeWidth={2.2} />
+      </span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: checked ? 800 : 700, color: checked ? "#142f1d" : "#3a4a42" }}>{label}</span>
+      <span
+        className="filter-check"
+        style={{
+          width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+          border: `1.5px solid ${checked ? checkColor : "#cdd8d0"}`,
+          background: checked ? checkColor : "#fff", color: "#fff",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "background .15s ease, border-color .15s ease",
+        }}
+      >
+        {checked && <Check className="avoid-pill-check" size={14} strokeWidth={3} />}
+      </span>
+    </button>
+  );
+}
+
+function AvoidSection({ icon: Icon, accent, title, subtitle, right, children }) {
+  return (
+    <div
+      style={{
+        background: "#fff",
+        border: "1px solid #ebf0ed",
+        borderRadius: 16,
+        marginBottom: 12,
+        boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: "10px 14px",
+          background: "#dcebe1",
+          borderBottom: "1px solid #c9ddd0",
+        }}
+      >
+        <span
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 10,
+            background: "#2d5a3d",
+            color: "#fff",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+            boxShadow: "0 2px 6px rgba(45,90,61,.3)",
+          }}
+        >
+          <Icon size={17} strokeWidth={2.2} />
+        </span>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 14.5, fontWeight: 800, color: "#1a3a24", lineHeight: 1.2 }}>{title}</p>
+          {subtitle && <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "#5e7a68", fontWeight: 600 }}>{subtitle}</p>}
+        </div>
+        {right}
+      </div>
+      <div style={{ padding: "13px 14px" }}>{children}</div>
+    </div>
+  );
+}
+
+const COMMON_ALLERGEN_IDS = ["gluten", "leche", "huevos", "frutos_cascara", "crustaceos", "pescado"];
+const EXTRA_ALLERGEN_IDS = Object.keys(EU_ALLERGENS).filter((id) => !COMMON_ALLERGEN_IDS.includes(id));
+// visibleAllergenIds = todos, sin colapso
+const EU_ALLERGEN_IDS = new Set(Object.keys(EU_ALLERGENS));
+
 export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset }) {
-  const mealOptions = getMeals(data);
-  const [tab, setTab] = useState("avoid");
-  const [allergyMemberId, setAllergyMemberId] = useState(data.members[0]?.id ?? null);
   const [customAllergy, setCustomAllergy] = useState("");
-  const [customDislike, setCustomDislike] = useState("");
   const [showAddAllergy, setShowAddAllergy] = useState(false);
-  const [showAddDislike, setShowAddDislike] = useState(false);
-  const [showMatrix, setShowMatrix] = useState(false);
+  const [allergyMemberId, setAllergyMemberId] = useState(data.members[0]?.id ?? null);
+
+  // Miembro al que aplican las alergias marcadas (cae al primero si el actual ya no existe).
+  const activeAllergyMemberId = data.members.some((m) => m.id === allergyMemberId)
+    ? allergyMemberId
+    : data.members[0]?.id ?? null;
+  const activeMemberColor = activeAllergyMemberId
+    ? memberAvatarColor(activeAllergyMemberId, data.members)
+    : "#2d5a3d";
+
+  const memberHasKey = (m, key) =>
+    (m.allergies ?? []).some((a) => normalizeAllergenId(a) === key);
+
+  const activeHasKey = (key) => {
+    const m = data.members.find((x) => x.id === activeAllergyMemberId);
+    return m ? memberHasKey(m, key) : false;
+  };
+
+  const toggleRegimen = (id) =>
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => (m.id === id ? { ...m, regimen: !m.regimen } : m)),
+    }));
+
+  const toggleMemberAllergen = (memberId, key, label) =>
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => {
+        if (m.id !== memberId) return m;
+        const has = (m.allergies ?? []).some((a) => normalizeAllergenId(a) === key);
+        const allergies = has
+          ? (m.allergies ?? []).filter((a) => normalizeAllergenId(a) !== key)
+          : [...(m.allergies ?? []), label];
+        return { ...m, allergies };
+      }),
+    }));
+
+  const addCustomAllergy = () => {
+    const label = titleCase(customAllergy);
+    if (!label) return;
+    setData((d) => ({
+      ...d,
+      customAllergies: (d.customAllergies ?? []).includes(label)
+        ? d.customAllergies
+        : [...(d.customAllergies ?? []), label],
+    }));
+    setCustomAllergy("");
+    setShowAddAllergy(false);
+  };
+
+  // Alérgenos personalizados: los añadidos a mano + cualquier alergia guardada
+  // que no encaje en los 14 oficiales (datos antiguos o intolerancias propias).
+  const customAllergenLabels = Array.from(
+    new Set([
+      ...(data.customAllergies ?? []),
+      ...data.members.flatMap((m) => m.allergies ?? []).filter((a) => !EU_ALLERGEN_IDS.has(normalizeAllergenId(a))),
+    ])
+  );
+
+  const visibleAllergenIds = [...COMMON_ALLERGEN_IDS, ...EXTRA_ALLERGEN_IDS];
+
+
+  return (
+    <OnboardingShell
+      title="¿Qué evitamos?"
+      subtitle="Alergias y quién necesita un menú más cuidado"
+      bg="#f5f9f6"
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+    >
+      <>
+          <style>{`
+            @keyframes avoidCheckPop {
+              0%   { transform: scale(0.4); opacity: 0; }
+              55%  { transform: scale(1.25); opacity: 1; }
+              100% { transform: scale(1); }
+            }
+            .avoid-pill { transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .12s ease; }
+            .avoid-pill:hover { transform: translateY(-1px); }
+            .avoid-pill:active { transform: translateY(0) scale(.97); }
+            .avoid-pill-check { animation: avoidCheckPop .22s cubic-bezier(.34,1.5,.6,1) both; }
+            .avoid-row { transition: background .15s ease; }
+            .avoid-row:hover { background: #f3f7f4; }
+            .avoid-avatar { transition: opacity .15s ease, filter .15s ease, transform .12s ease; }
+            .avoid-avatar:hover { transform: translateY(-1px); }
+            .avoid-avatar:active { transform: scale(.92); }
+          `}</style>
+
+          <AvoidSection
+            icon={Zap}
+            accent="#dd8a2c"
+            title="Alergias"
+            right={
+              <MemberAvatarSelector
+                members={data.members}
+                selectedId={activeAllergyMemberId}
+                onSelect={setAllergyMemberId}
+              />
+            }
+          >
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", columnGap: 18 }}>
+                {visibleAllergenIds.map((id) => {
+                  const meta = EU_ALLERGENS[id];
+                  return (
+                    <AllergenRow
+                      key={id}
+                      Icon={meta.Icon}
+                      color={meta.color}
+                      label={meta.label}
+                      checked={activeHasKey(id)}
+                      checkColor={activeMemberColor}
+                      onToggle={() => activeAllergyMemberId && toggleMemberAllergen(activeAllergyMemberId, id, meta.label)}
+                    />
+                  );
+                })}
+
+                {customAllergenLabels.map((label) => {
+                  const key = normalizeAllergenId(label);
+                  return (
+                    <AllergenRow
+                      key={`custom-${label}`}
+                      Icon={CircleDot}
+                      color="#5a7066"
+                      label={label}
+                      checked={activeHasKey(key)}
+                      checkColor={activeMemberColor}
+                      onToggle={() => activeAllergyMemberId && toggleMemberAllergen(activeAllergyMemberId, key, label)}
+                    />
+                  );
+                })}
+              </div>
+
+              <div style={{ display: "flex", marginTop: 12 }}>
+                <button
+                  type="button"
+                  onClick={() => setShowAddAllergy((v) => !v)}
+                  className="avoid-pill"
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 6, height: 36,
+                    padding: "0 15px 0 12px", borderRadius: 10, border: "none",
+                    background: showAddAllergy ? "#234a31" : "#2d5a3d", color: "#fff",
+                    fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                    boxShadow: "0 2px 8px rgba(45,90,61,.3)",
+                  }}
+                >
+                  <Plus size={15} strokeWidth={2.6} /> Añadir otra
+                </button>
+              </div>
+
+              {showAddAllergy && (
+                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                  <input
+                    value={customAllergy}
+                    onChange={(e) => setCustomAllergy(e.target.value)}
+                    placeholder="Otra alergia o intolerancia"
+                    style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 12.5, outline: "none", fontFamily: "inherit" }}
+                    onKeyDown={(e) => e.key === "Enter" && addCustomAllergy()}
+                    autoFocus
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomAllergy}
+                    aria-label="Añadir alergia"
+                    style={{ width: 40, borderRadius: 10, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+                  >
+                    <Check size={16} strokeWidth={3} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </AvoidSection>
+
+          <AvoidSection
+            icon={HeartPulse}
+            accent="#3f87b0"
+            title="¿Alguien a régimen?"
+          >
+            <div>
+              {data.members.map((m, i) => {
+                const on = !!m.regimen;
+                const memberColor = memberAvatarColor(m.id, data.members);
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => toggleRegimen(m.id)}
+                    className="avoid-row"
+                    style={{
+                      width: "100%", display: "flex", alignItems: "center", gap: 11,
+                      padding: "9px 6px", border: "none", background: "transparent",
+                      cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                      borderBottom: i === data.members.length - 1 ? "none" : "1px solid #eef3f0",
+                      borderRadius: 8,
+                    }}
+                  >
+                    <span style={{ opacity: on ? 1 : 0.5, filter: on ? "none" : "grayscale(0.4)", lineHeight: 0, transition: "opacity .15s ease, filter .15s ease" }}>
+                      <Avatar name={m.name} size={28} color={memberColor} />
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: on ? 800 : 600, color: on ? "#142f1d" : "#41524a", transition: "color .15s ease" }}>
+                      {m.name}
+                    </span>
+                    <span
+                      aria-hidden
+                      style={{
+                        width: 40, height: 23, borderRadius: 999, flexShrink: 0,
+                        background: on ? "#2d5a3d" : "#d4ddd7", position: "relative",
+                        transition: "background .18s ease",
+                      }}
+                    >
+                      <span
+                        style={{
+                          position: "absolute", top: 2.5, left: on ? 19.5 : 2.5,
+                          width: 18, height: 18, borderRadius: "50%", background: "#fff",
+                          boxShadow: "0 1px 2px rgba(20,47,29,.3)", transition: "left .18s ease",
+                        }}
+                      />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </AvoidSection>
+
+      </>
+    </OnboardingShell>
+  );
+}
+
+export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onReset }) {
+  const mealOptions = getMeals(data);
   const [showCatalog, setShowCatalog] = useState(false);
   const [dish, setDish] = useState("");
   const [newDishTimes, setNewDishTimes] = useState(1);
@@ -1101,78 +1453,12 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
     return [comida ?? meals[0] ?? "Comida"];
   });
 
-  // Valores derivados en render (sin efectos con setState): si el miembro o
-  // las comidas seleccionadas dejan de existir, recae en el primer valor válido.
-  const validAllergyMemberId = data.members.some((m) => m.id === allergyMemberId)
-    ? allergyMemberId
-    : data.members[0]?.id ?? null;
-
   const validNewDishMeals = (() => {
     const valid = newDishMeals.filter((m) => mealOptions.includes(m));
     if (valid.length > 0) return valid;
     const comida = mealOptions.find((x) => x.toLowerCase() === "comida");
     return [comida ?? mealOptions[0]].filter(Boolean);
   })();
-
-  const toggleMember = (id, field, val) =>
-    setData((d) => ({
-      ...d,
-      members: d.members.map((m) =>
-        m.id !== id
-          ? m
-          : {
-              ...m,
-              [field]: (m[field] ?? []).includes(val)
-                ? m[field].filter((v) => v !== val)
-                : [...(m[field] ?? []), val],
-            }
-      ),
-    }));
-
-  const toggleHouse = (val) =>
-    setData((d) => ({
-      ...d,
-      dislikes: (d.dislikes ?? []).includes(val)
-        ? d.dislikes.filter((v) => v !== val)
-        : [...(d.dislikes ?? []), val],
-    }));
-
-  const addCustomAllergy = () => {
-    const label = titleCase(customAllergy);
-    if (!label || !validAllergyMemberId) return;
-    setData((d) => ({
-      ...d,
-      customAllergies: (d.customAllergies ?? []).includes(label)
-        ? d.customAllergies
-        : [...(d.customAllergies ?? []), label],
-    }));
-    toggleMember(validAllergyMemberId, "allergies", label);
-    setCustomAllergy("");
-    setShowAddAllergy(false);
-  };
-
-  const addCustomDislike = () => {
-    const label = titleCase(customDislike);
-    if (!label) return;
-    setData((d) => ({
-      ...d,
-      customDislikes: (d.customDislikes ?? []).includes(label)
-        ? d.customDislikes
-        : [...(d.customDislikes ?? []), label],
-    }));
-    toggleHouse(label);
-    setCustomDislike("");
-    setShowAddDislike(false);
-  };
-
-  const allergySelected = new Set(
-    data.members.find((m) => m.id === validAllergyMemberId)?.allergies ?? []
-  );
-  const houseDislikeSelected = new Set(data.dislikes ?? []);
-
-  const hasAnyMarks =
-    (data.dislikes ?? []).length > 0 ||
-    data.members.some((m) => (m.allergies?.length ?? 0) > 0 || (m.dislikes?.length ?? 0) > 0);
 
   const addFixedDish = () => {
     const label = normalizeTextValue(dish);
@@ -1260,289 +1546,110 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
   );
   const canAddDish = Boolean(normalizeTextValue(dish)) && validNewDishMeals.length > 0;
 
-  const matrixItems = useMemo(() => {
-    const items = new Set();
-    for (const m of data.members) {
-      for (const a of m.allergies ?? []) items.add(a);
-      for (const d of m.dislikes ?? []) items.add(d);
-    }
-    for (const d of data.dislikes ?? []) items.add(d);
-    return Array.from(items);
-  }, [data.members, data.dislikes]);
-
   return (
     <OnboardingShell
-      title="¿Qué tenemos en cuenta?"
-      subtitle="Lo que evitamos y lo que quieres repetir cada semana"
+      title="¿Qué repetimos?"
+      subtitle="Platos que ya cocináis y queréis ver cada semana"
+      bg="#f5f9f6"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-        <button type="button" onClick={() => setTab("avoid")} style={restrictionTabStyle(tab === "avoid")}>
-          <UtensilsCrossed size={20} />
-          Evitar
-        </button>
-        <button type="button" onClick={() => setTab("repeat")} style={restrictionTabStyle(tab === "repeat")}>
-          <Heart size={20} />
-          Repetir
-        </button>
+      {/* Explorar catálogo — vía principal */}
+      <button
+        type="button"
+        onClick={() => setShowCatalog(true)}
+        style={{
+          width: "100%",
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "12px 14px",
+          borderRadius: 14,
+          border: "1.5px solid #2d5a3d",
+          background: "#2d5a3d",
+          color: "#fff",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          marginBottom: 12,
+        }}
+      >
+        <span
+          style={{
+            width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+            background: "rgba(255,255,255,.16)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Search size={17} />
+        </span>
+        <span style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: 13.5, fontWeight: 900, lineHeight: 1.2 }}>
+            Explorar catálogo
+          </span>
+          <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, opacity: 0.85, marginTop: 2 }}>
+            Busca y filtra entre nuestras recetas
+          </span>
+        </span>
+        <ChevronRight size={18} />
+      </button>
+
+      {/* Escribir a mano — vía secundaria */}
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: 10,
+          margin: "0 0 10px",
+        }}
+      >
+        <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
+        <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1" }}>o escríbelo tú</span>
+        <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
       </div>
 
-      {tab === "avoid" && (
-        <>
-          <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 10 }}>
-              <p style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24", margin: 0 }}>Alergias</p>
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-                {data.members.map((m) => {
-                  const sel = m.id === validAllergyMemberId;
-                  return (
-                    <button
-                      key={m.id}
-                      type="button"
-                      onClick={() => setAllergyMemberId(m.id)}
-                      title={m.name}
-                      style={{
-                        border: sel ? "2px solid #2d5a3d" : "2px solid transparent",
-                        borderRadius: "50%",
-                        padding: 0,
-                        background: "transparent",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <Avatar name={m.name} size={28} color={sel ? "#2d5a3d" : "#bbb"} />
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-            <AvoidOptionGrid
-              slotLabels={GRID_ALLERGY_SLOTS}
-              selectedSet={allergySelected}
-              onToggle={(label) => validAllergyMemberId && toggleMember(validAllergyMemberId, "allergies", label)}
-              onAddClick={() => setShowAddAllergy((v) => !v)}
-              addOpen={showAddAllergy}
-              addValue={customAllergy}
-              onAddValueChange={setCustomAllergy}
-              onAddConfirm={addCustomAllergy}
-              addPlaceholder="Otra alergia"
-            />
-          </div>
+      <div
+        style={{
+          background: "#f6f9f7",
+          borderRadius: 10,
+          padding: "10px",
+          marginBottom: 4,
+        }}
+      >
+        <FixedDishRow
+          nameValue={dish}
+          onNameChange={setDish}
+          times={newDishTimes}
+          meals={validNewDishMeals}
+          mealOptions={mealOptions}
+          onTimesChange={setNewDishTimes}
+          onMealsChange={setNewDishMeals}
+          onSubmit={addFixedDish}
+          canSubmit={canAddDish}
+        />
+        <p style={{ fontSize: 10.5, color: "#9ab0a1", margin: "6px 2px 0", lineHeight: 1.4 }}>
+          Si no está en el catálogo, lo dejamos apuntado y buscamos lo más parecido.
+        </p>
+      </div>
 
-          <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 12px" }} />
+      <style>{`
+        @keyframes fixedDishIn {
+          from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+          to   { opacity: 1; transform: translateY(0)    scale(1);    }
+        }
+      `}</style>
 
-          <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 12 }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24", margin: "0 0 8px" }}>
-              No come nadie en casa
-            </p>
-            <AvoidOptionGrid
-              slotLabels={GRID_DISLIKE_SLOTS}
-              selectedSet={houseDislikeSelected}
-              onToggle={toggleHouse}
-              onAddClick={() => setShowAddDislike((v) => !v)}
-              addOpen={showAddDislike}
-              addValue={customDislike}
-              onAddValueChange={setCustomDislike}
-              onAddConfirm={addCustomDislike}
-              addPlaceholder="Otro alimento"
-            />
-          </div>
-
-          {hasAnyMarks && (
-            <button
-              type="button"
-              onClick={() => setShowMatrix((v) => !v)}
-              style={{
-                width: "100%",
-                padding: "10px 12px",
-                borderRadius: 10,
-                border: "1px solid #d7e1db",
-                background: "#f6f9f7",
-                color: "#2d5a3d",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                fontWeight: 700,
-                fontSize: 12,
-                cursor: "pointer",
-                marginBottom: showMatrix ? 10 : 0,
-              }}
-            >
-              Ver tabla completa
-              <Grid2X2 size={14} />
-            </button>
-          )}
-
-          {hasAnyMarks && showMatrix && (
-            <div style={{ border: "1px solid #e3ebe6", borderRadius: 10, background: "#fff", overflow: "hidden" }}>
-              {matrixItems.map((item, idx) => {
-                const withAllergy = data.members.filter((m) => (m.allergies ?? []).includes(item));
-                return (
-                  <div
-                    key={item}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: 10,
-                      padding: "9px 12px",
-                      borderTop: idx > 0 ? "1px solid #f0f3f1" : "none",
-                    }}
-                  >
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "#1a3a24", minWidth: 0 }}>{item}</span>
-                    {withAllergy.length > 0 ? (
-                      <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                        {withAllergy.map((m) => (
-                          <Avatar key={m.id} name={m.name} size={22} title={m.name} />
-                        ))}
-                      </div>
-                    ) : (
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: "#2d5a3d",
-                          flexShrink: 0,
-                        }}
-                      >
-                        Todos
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </>
+      {fixedList.length > 0 && (
+        <div style={{ height: 1, background: "#eef3f0", margin: "12px 0 10px" }} />
       )}
 
-      {tab === "repeat" && (
-        <>
-          {/* Explorar catálogo — vía principal */}
-          <button
-            type="button"
-            onClick={() => setShowCatalog(true)}
-            style={{
-              width: "100%",
-              display: "flex",
-              alignItems: "center",
-              gap: 12,
-              padding: "12px 14px",
-              borderRadius: 14,
-              border: "1.5px solid #2d5a3d",
-              background: "#2d5a3d",
-              color: "#fff",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              marginBottom: 12,
-            }}
-          >
-            <span
-              style={{
-                width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-                background: "rgba(255,255,255,.16)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              <Search size={17} />
-            </span>
-            <span style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
-              <span style={{ display: "block", fontSize: 13.5, fontWeight: 900, lineHeight: 1.2 }}>
-                Explorar catálogo
-              </span>
-              <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, opacity: 0.85, marginTop: 2 }}>
-                Busca y filtra entre nuestras recetas
-              </span>
-            </span>
-            <ChevronRight size={18} />
-          </button>
-
-          {/* Escribir a mano — vía secundaria */}
-          <div
-            style={{
-              display: "flex", alignItems: "center", gap: 10,
-              margin: "0 0 10px",
-            }}
-          >
-            <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
-            <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1" }}>o escríbelo tú</span>
-            <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
-          </div>
-
-          <div
-            style={{
-              background: "#f6f9f7",
-              borderRadius: 10,
-              padding: "10px",
-              marginBottom: 4,
-            }}
-          >
-            <FixedDishRow
-              nameValue={dish}
-              onNameChange={setDish}
-              times={newDishTimes}
-              meals={validNewDishMeals}
-              mealOptions={mealOptions}
-              onTimesChange={setNewDishTimes}
-              onMealsChange={setNewDishMeals}
-              onSubmit={addFixedDish}
-              canSubmit={canAddDish}
-            />
-            <p style={{ fontSize: 10.5, color: "#9ab0a1", margin: "6px 2px 0", lineHeight: 1.4 }}>
-              Si no está en el catálogo, lo dejamos apuntado y buscamos lo más parecido.
-            </p>
-          </div>
-
-          <style>{`
-            @keyframes fixedDishIn {
-              from { opacity: 0; transform: translateY(-6px) scale(0.97); }
-              to   { opacity: 1; transform: translateY(0)    scale(1);    }
-            }
-          `}</style>
-
-          {fixedList.length > 0 && (
-            <div style={{ height: 1, background: "#eef3f0", margin: "12px 0 10px" }} />
-          )}
-
-          {fixedList.map((fd, idx) => {
-            const fromCatalog = Boolean(fd.catalogId);
-            const matches = fromCatalog ? [] : catalogMatchesForFixedDish(fd);
-            const garnishLabel = fd.garnishId ? GARNISH_NAME_BY_ID[fd.garnishId] : null;
-            const statusNote = !fromCatalog && matches.length === 0
-              ? { color: "#b45309", text: "Sin match exacto en catálogo" }
-              : null;
-            return (
-            <div
-              key={`${fd.catalogId ?? fd.name}-${idx}`}
-              style={{
-                background: "#f6f9f7",
-                borderRadius: 10,
-                padding: "8px 10px",
-                marginBottom: 6,
-                animation: "fixedDishIn .18s ease-out",
-              }}
-            >
-              <FixedDishRow
-                name={fd.name}
-                garnish={garnishLabel}
-                times={fd.timesPerWeek}
-                meals={fd.meals}
-                mealOptions={mealOptions}
-                onTimesChange={(n) => updateFixedDish(idx, { timesPerWeek: n })}
-                onMealsChange={(meals) => updateFixedDish(idx, { meals })}
-                onRemove={() => removeFixedDish(idx)}
-              />
-              {statusNote && (
-                <p style={{ fontSize: 10.5, color: statusNote.color, margin: "4px 2px 0", lineHeight: 1.4 }}>
-                  {statusNote.text}
-                </p>
-              )}
-            </div>
-          );
-          })}
-        </>
+      {fixedList.length > 0 && (
+        <FixedDishTable
+          items={fixedList}
+          mealOptions={mealOptions}
+          onTimesChange={(idx, n) => updateFixedDish(idx, { timesPerWeek: n })}
+          onMealsChange={(idx, meals) => updateFixedDish(idx, { meals })}
+          onRemove={(idx) => removeFixedDish(idx)}
+        />
       )}
 
       {showCatalog && (
