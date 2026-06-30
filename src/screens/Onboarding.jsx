@@ -885,10 +885,10 @@ function FixedTimesInput({ value, onChange }) {
   );
 }
 
-function FixedDishRow({ name, nameValue, onNameChange, times, meals, mealOptions, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
+function FixedDishRow({ name, garnish, nameValue, onNameChange, times, meals, mealOptions, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
   const isNew = onNameChange != null;
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "flex-end" }}>
+    <div style={{ display: "flex", gap: 6, alignItems: isNew ? "flex-end" : "center" }}>
       <div style={{ flex: 1, minWidth: 0 }}>
         {isNew && <p style={fieldLbl}>Nombre</p>}
         {isNew ? (
@@ -910,21 +910,39 @@ function FixedDishRow({ name, nameValue, onNameChange, times, meals, mealOptions
             }}
           />
         ) : (
-          <p
-            style={{
-              margin: 0,
-              height: fixedRowH,
-              lineHeight: `${fixedRowH}px`,
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#1a3a24",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {name}
-          </p>
+          <div style={{ minWidth: 0 }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 12.5,
+                fontWeight: 700,
+                color: "#1a3a24",
+                lineHeight: 1.25,
+                display: "-webkit-box",
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {name}
+            </p>
+            {garnish && (
+              <p
+                style={{
+                  margin: "2px 0 0",
+                  fontSize: 11,
+                  fontWeight: 600,
+                  color: "#5a7a66",
+                  display: "-webkit-box",
+                  WebkitLineClamp: 1,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                con {garnish}
+              </p>
+            )}
+          </div>
         )}
       </div>
       <div style={{ flexShrink: 0 }}>
@@ -1402,10 +1420,6 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
 
       {tab === "repeat" && (
         <>
-          <p style={{ fontSize: 12, color: "#7a9485", margin: "0 0 10px", lineHeight: 1.45 }}>
-            Elige platos que ya sabes cocinar para que el menú no te obligue a aprender recetas nuevas.
-          </p>
-
           {/* Explorar catálogo — vía principal */}
           <button
             type="button"
@@ -1496,8 +1510,6 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
             const fromCatalog = Boolean(fd.catalogId);
             const matches = fromCatalog ? [] : catalogMatchesForFixedDish(fd);
             const garnishLabel = fd.garnishId ? GARNISH_NAME_BY_ID[fd.garnishId] : null;
-            // Build display name: append garnish inline so the row stays clean
-            const displayName = garnishLabel ? `${fd.name} + ${garnishLabel}` : fd.name;
             const statusNote = !fromCatalog && matches.length === 0
               ? { color: "#b45309", text: "Sin match exacto en catálogo" }
               : null;
@@ -1513,7 +1525,8 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
               }}
             >
               <FixedDishRow
-                name={displayName}
+                name={fd.name}
+                garnish={garnishLabel}
                 times={fd.timesPerWeek}
                 meals={fd.meals}
                 mealOptions={mealOptions}

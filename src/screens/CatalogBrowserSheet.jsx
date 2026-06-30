@@ -51,7 +51,8 @@ function categoryColor(cat) {
   return CATEGORY_META[cat]?.color ?? DEFAULT_COLOR;
 }
 
-const PAGE_SIZE = 40;
+const PAGE_SIZES = [10, 20, 50];
+const DEFAULT_PAGE_SIZE = 20;
 
 const DIFFICULTY_LABEL = { facil: "Fácil", media: "Media", dificil: "Difícil" };
 const TIME_OPTIONS = [
@@ -103,7 +104,9 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
   const [difficulties, setDifficulties] = useState(() => new Set());
   const [kidOnly, setKidOnly] = useState(false);
   const [tupperOnly, setTupperOnly] = useState(false);
-  const [limit, setLimit] = useState(PAGE_SIZE);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
+  const [garnishFor, setGarnishFor] = useState(null);
 
   const { allCats, allProteins } = useMemo(() => {
     const c = new Set();
@@ -151,10 +154,10 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
     return filtered;
   }, [query, cats, proteins, maxTime, difficulties, kidOnly, tupperOnly]);
 
-  // Reset pagination whenever the result set changes.
+  // Reset pagination whenever the result set or page size changes.
   useEffect(() => {
-    setLimit(PAGE_SIZE);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, tupperOnly]);
+    setLimit(pageSize);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, tupperOnly, pageSize]);
 
   const visible = results.slice(0, limit);
   const hasMore = results.length > visible.length;
@@ -298,15 +301,37 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
           </div>
         </div>
 
-        {/* ── Results count ── */}
-        <div style={{ padding: "10px 18px 6px", flexShrink: 0 }}>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#7a9485" }}>
+        {/* ── Results count + page size ── */}
+        <div style={{ padding: "10px 18px 6px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#7a9485", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {results.length === 0
               ? "Sin resultados — prueba a quitar filtros"
-              : `${results.length} ${results.length === 1 ? "plato" : "platos"}${
-                  hasMore ? ` · mostrando ${visible.length}` : ""
-                }`}
+              : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
           </p>
+          {results.length > PAGE_SIZES[0] && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#f0f4f1", borderRadius: 9, padding: 2, flexShrink: 0 }}>
+              {PAGE_SIZES.map((size) => {
+                const active = pageSize === size;
+                return (
+                  <button
+                    key={size}
+                    type="button"
+                    onClick={() => setPageSize(size)}
+                    style={{
+                      border: "none", cursor: "pointer", fontFamily: "inherit",
+                      borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 800,
+                      background: active ? "#fff" : "transparent",
+                      color: active ? GREEN : "#8aa093",
+                      boxShadow: active ? "0 1px 2px rgba(0,0,0,.08)" : "none",
+                      transition: "color .15s ease, background .15s ease",
+                    }}
+                  >
+                    {size}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
 
         {/* ── Results list ── */}
@@ -329,7 +354,7 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
               garnishId={garnishByCatalogId[r.id] ?? null}
               onAdd={() => onAdd(r)}
               onRemove={() => onRemove(r.id)}
-              onSetGarnish={(gid) => onSetGarnish?.(r, gid)}
+              onOpenGarnish={() => setGarnishFor(r)}
               animDelay={i < 12 ? i * 18 : 0}
             />
           ))}
@@ -346,18 +371,27 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
           <div style={{ padding: "8px 18px calc(10px + env(safe-area-inset-bottom, 0px))", borderTop: "1px solid #eef3f0", flexShrink: 0 }}>
             <button
               type="button"
-              onClick={() => setLimit((n) => n + PAGE_SIZE)}
+              onClick={() => setLimit((n) => n + pageSize)}
               style={{
                 width: "100%", height: 44, borderRadius: 12,
                 border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN,
                 fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
               }}
             >
-              Ver más · {results.length - visible.length} platos restantes
+              Ver más
             </button>
           </div>
         )}
       </div>
+
+      {garnishFor && (
+        <GarnishPickerSheet
+          recipe={garnishFor}
+          currentGarnishId={garnishByCatalogId[garnishFor.id] ?? null}
+          onSelect={(gid) => { onSetGarnish?.(garnishFor, gid); setGarnishFor(null); }}
+          onClose={() => setGarnishFor(null)}
+        />
+      )}
 
       {showFilters && (
         <FiltersSheet
@@ -618,8 +652,7 @@ const iconBtnStyle = {
   display: "flex", alignItems: "center", justifyContent: "center",
 };
 
-function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onSetGarnish, animDelay = 0 }) {
-  const [pickOpen, setPickOpen] = useState(false);
+function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onOpenGarnish, animDelay = 0 }) {
   const color = categoryColor(recipe.category);
   const isPrincipal = recipe.type === "principal";
   const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
@@ -691,7 +724,7 @@ function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onSetGarnish, a
         {isPrincipal && added && (
           <button
             type="button"
-            onClick={() => setPickOpen(true)}
+            onClick={onOpenGarnish}
             aria-label={garnish ? `Cambiar guarnición de ${recipe.name}` : `Añadir guarnición a ${recipe.name}`}
             title={garnish ? "Cambiar guarnición" : "Añadir guarnición"}
             style={{
@@ -725,15 +758,6 @@ function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onSetGarnish, a
           {added ? <Check size={18} /> : <Plus size={18} />}
         </button>
       </div>
-
-      {pickOpen && (
-        <GarnishPickerSheet
-          recipe={recipe}
-          currentGarnishId={garnishId}
-          onSelect={(gid) => { onSetGarnish(gid); setPickOpen(false); }}
-          onClose={() => setPickOpen(false)}
-        />
-      )}
     </div>
   );
 }
@@ -741,7 +765,7 @@ function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onSetGarnish, a
 function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose }) {
   return (
     <div
-      onClick={onClose}
+      onClick={(e) => { e.stopPropagation(); onClose(); }}
       style={{
         position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 220,
         display: "flex", alignItems: "flex-end", justifyContent: "center",
@@ -749,6 +773,7 @@ function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose }) {
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="catalog-sheet-inner"
         style={{
           background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420,
           maxHeight: "82dvh", display: "flex", flexDirection: "column", overflow: "hidden",
