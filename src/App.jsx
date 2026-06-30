@@ -30,7 +30,7 @@ import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
-import { trackEvent, upsertUserProfile } from "./lib/analytics.js";
+import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -332,7 +332,9 @@ export default function App() {
         return Array.from(byId.values());
       });
       setMenuPlan(plan);
+      const isFirstMenu = (data.menuHistory ?? []).length === 0;
       trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length });
+      if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
       setData((d) => ({
         ...d,
         menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
@@ -413,7 +415,10 @@ export default function App() {
     setScreen("onboarding");
   }, []);
 
-  const handleDishTap = useCallback((selection) => setSelectedSlot(selection), []);
+  const handleDishTap = useCallback((selection) => {
+    setSelectedSlot(selection);
+    trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
+  }, [user]);
 
   const handleReplaceSlot = useCallback((selection) => {
     const { groupId, day, meal } = selection;
@@ -648,6 +653,8 @@ export default function App() {
               onRetry={retryGenerateMenu}
               onReset={handleReset}
               onToast={showToast}
+              user={user}
+              onTrackEvent={(event, metadata) => trackEvent(user, event, "menu", metadata)}
             />
           </div>
         )}

@@ -3,6 +3,8 @@ import { supabase } from "./supabase.js";
 const deviceType = () =>
   /Mobi|Android/i.test(navigator.userAgent) ? "mobile" : "desktop";
 
+export const APP_VERSION = import.meta.env.VITE_APP_VERSION ?? "mvp-2026";
+
 export async function upsertUserProfile(user, extra = {}) {
   if (!supabase || !user) return;
   const { error } = await supabase.from("user_profiles").upsert(

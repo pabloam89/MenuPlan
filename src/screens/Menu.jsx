@@ -1279,6 +1279,8 @@ export const MenuScreen = memo(function MenuScreen({
   onRetry,
   onReset,
   onToast,
+  user,
+  onTrackEvent,
 }) {
   const [scope, setScope] = useState("all");
   const [memberScope, setMemberScope] = useState(null);
@@ -1321,6 +1323,7 @@ export const MenuScreen = memo(function MenuScreen({
             ? "Menú copiado al portapapeles"
             : "Menú descargado";
       onToast?.(msg);
+      onTrackEvent?.("menu_exported", { method: result.method });
     } catch {
       onToast?.("No se pudo compartir el menú");
     }
@@ -1330,6 +1333,7 @@ export const MenuScreen = memo(function MenuScreen({
     try {
       await downloadMenu(data, menuPlan, data.groups);
       onToast?.("Menú descargado");
+      onTrackEvent?.("menu_exported", { method: "download" });
     } catch {
       onToast?.("No se pudo descargar el menú");
     }
