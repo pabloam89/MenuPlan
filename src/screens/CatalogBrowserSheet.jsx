@@ -8,7 +8,6 @@ import {
   Clock,
   Flame,
   Baby,
-  Boxes,
   Drumstick,
   Fish,
   Egg,
@@ -70,8 +69,13 @@ function norm(s) {
 }
 
 function titleCase(s) {
-  const t = String(s ?? "").trim();
+  const t = String(s ?? "").trim().replace(/_/g, " ");
   return t ? t.charAt(0).toUpperCase() + t.slice(1) : t;
+}
+
+function isRealProtein(p) {
+  const n = norm(p);
+  return Boolean(n) && n !== "none" && n !== "null" && n !== "ninguna" && n !== "ninguno";
 }
 
 function categoryLabel(cat) {
@@ -102,7 +106,6 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
   const [maxTime, setMaxTime] = useState(0);
   const [difficulties, setDifficulties] = useState(() => new Set());
   const [kidOnly, setKidOnly] = useState(false);
-  const [tupperOnly, setTupperOnly] = useState(false);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [garnishFor, setGarnishFor] = useState(null);
@@ -112,11 +115,11 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
     const p = new Set();
     for (const r of recipeCatalog) {
       if (r.category) c.add(r.category);
-      if (r.mainProtein) p.add(r.mainProtein);
+      if (isRealProtein(r.mainProtein)) p.add(r.mainProtein);
     }
     return {
       allCats: [...c].sort((a, b) => categoryLabel(a).localeCompare(categoryLabel(b))),
-      allProteins: [...p].sort((a, b) => a.localeCompare(b)),
+      allProteins: [...p].sort((a, b) => titleCase(a).localeCompare(titleCase(b))),
     };
   }, []);
 
@@ -125,8 +128,7 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
     proteins.size +
     difficulties.size +
     (maxTime ? 1 : 0) +
-    (kidOnly ? 1 : 0) +
-    (tupperOnly ? 1 : 0);
+    (kidOnly ? 1 : 0);
 
   const results = useMemo(() => {
     const q = norm(query);
@@ -137,7 +139,6 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
       if (maxTime && (r.time ?? 999) > maxTime) return false;
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
-      if (tupperOnly && !r.tupperFriendly) return false;
       return true;
     });
     if (q) {
@@ -151,12 +152,12 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
       filtered.sort((a, b) => a.name.localeCompare(b.name));
     }
     return filtered;
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, tupperOnly]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly]);
 
   // Reset pagination whenever the result set or page size changes.
   useEffect(() => {
     setLimit(pageSize);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, tupperOnly, pageSize]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize]);
 
   const visible = results.slice(0, limit);
   const hasMore = results.length > visible.length;
@@ -167,7 +168,6 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
     setMaxTime(0);
     setDifficulties(new Set());
     setKidOnly(false);
-    setTupperOnly(false);
   };
 
   return (
@@ -408,8 +408,6 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
           setDifficulties={setDifficulties}
           kidOnly={kidOnly}
           setKidOnly={setKidOnly}
-          tupperOnly={tupperOnly}
-          setTupperOnly={setTupperOnly}
           activeFilterCount={activeFilterCount}
           onClear={clearFilters}
         />
@@ -431,7 +429,7 @@ function FiltersSheet({
   allCats, allProteins,
   cats, setCats, proteins, setProteins,
   maxTime, setMaxTime, difficulties, setDifficulties,
-  kidOnly, setKidOnly, tupperOnly, setTupperOnly,
+  kidOnly, setKidOnly,
   activeFilterCount, onClear,
 }) {
   const [view, setView] = useState("list");
@@ -451,8 +449,7 @@ function FiltersSheet({
       difficulties.size === 0
         ? "Cualquiera"
         : [...difficulties].map((d) => DIFFICULTY_LABEL[d]).join(", "),
-    extras:
-      [kidOnly && "Niños", tupperOnly && "Tupper"].filter(Boolean).join(", ") || "Ninguno",
+    extras: kidOnly ? "Niños" : "Ninguno",
   };
 
   const current = FILTER_ROWS.find((r) => r.key === view);
@@ -481,17 +478,30 @@ function FiltersSheet({
     >
       <div
         onClick={(e) => e.stopPropagation()}
+        className="catalog-sheet-inner"
         style={{
-          background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420,
+          background: "#f5f9f6", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420,
           maxHeight: "82dvh", display: "flex", flexDirection: "column", overflow: "hidden",
         }}
       >
         <style>{`
-          .filter-opt-row {
-            transition: background .13s ease;
+          @keyframes checkPop {
+            0%   { transform: scale(0.5); opacity: .4; }
+            55%  { transform: scale(1.18); opacity: 1; }
+            100% { transform: scale(1); }
           }
-          .filter-opt-row:hover { background: #f4f7f5; }
-          .filter-opt-row:active { background: #eaf1ec; }
+          .filter-opt-row {
+            transition: background .16s ease;
+          }
+          .filter-opt-row:hover { background: rgba(45,90,61,.06); }
+          .filter-opt-row:active { background: rgba(45,90,61,.11); }
+          .filter-check {
+            transition: background .18s cubic-bezier(.34,1.4,.6,1),
+                        border-color .18s ease,
+                        transform .18s cubic-bezier(.34,1.4,.6,1);
+          }
+          .filter-opt-row:active .filter-check { transform: scale(.88); }
+          .filter-check-icon { animation: checkPop .22s cubic-bezier(.34,1.5,.6,1) both; }
         `}</style>
 
         {/* grabber */}
@@ -554,7 +564,7 @@ function FiltersSheet({
                   <span
                     style={{
                       fontSize: 12.5, fontWeight: 700,
-                      color: summaryActive(row.key, { cats, proteins, maxTime, difficulties, kidOnly, tupperOnly }) ? GREEN : "#9ab0a1",
+                      color: summaryActive(row.key, { cats, proteins, maxTime, difficulties, kidOnly }) ? GREEN : "#9ab0a1",
                       maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                     }}
                   >
@@ -573,13 +583,14 @@ function FiltersSheet({
                 checked={cats.size === 0}
                 onToggle={() => setCats(new Set())}
               />
-              {allCats.map((c) => (
+              {allCats.map((c, i) => (
                 <CheckRow
                   key={c}
                   icon={CATEGORY_META[c]?.icon ?? Utensils}
                   iconColor={categoryColor(c)}
                   label={categoryLabel(c)}
                   checked={cats.has(c)}
+                  last={i === allCats.length - 1}
                   onToggle={() => toggleIn(setCats)(c)}
                 />
               ))}
@@ -592,11 +603,12 @@ function FiltersSheet({
                 checked={proteins.size === 0}
                 onToggle={() => setProteins(new Set())}
               />
-              {allProteins.map((p) => (
+              {allProteins.map((p, i) => (
                 <CheckRow
                   key={p}
                   label={titleCase(p)}
                   checked={proteins.has(p)}
+                  last={i === allProteins.length - 1}
                   onToggle={() => toggleIn(setProteins)(p)}
                 />
               ))}
@@ -604,13 +616,14 @@ function FiltersSheet({
           )}
           {view === "time" && (
             <div style={{ paddingTop: 4 }}>
-              {TIME_OPTIONS.map((t) => (
+              {TIME_OPTIONS.map((t, i) => (
                 <CheckRow
                   key={t.value}
                   icon={t.value === 0 ? null : Clock}
                   label={t.label}
                   checked={maxTime === t.value}
                   single
+                  last={i === TIME_OPTIONS.length - 1}
                   onToggle={() => setMaxTime(t.value)}
                 />
               ))}
@@ -623,11 +636,12 @@ function FiltersSheet({
                 checked={difficulties.size === 0}
                 onToggle={() => setDifficulties(new Set())}
               />
-              {Object.keys(DIFFICULTY_LABEL).map((d) => (
+              {Object.keys(DIFFICULTY_LABEL).map((d, i, arr) => (
                 <CheckRow
                   key={d}
                   label={DIFFICULTY_LABEL[d]}
                   checked={difficulties.has(d)}
+                  last={i === arr.length - 1}
                   onToggle={() => toggleIn(setDifficulties)(d)}
                 />
               ))}
@@ -639,13 +653,8 @@ function FiltersSheet({
                 icon={Baby}
                 label="Apto para niños"
                 checked={kidOnly}
+                last
                 onToggle={() => setKidOnly((v) => !v)}
-              />
-              <CheckRow
-                icon={Boxes}
-                label="Para tupper"
-                checked={tupperOnly}
-                onToggle={() => setTupperOnly((v) => !v)}
               />
             </div>
           )}
@@ -665,16 +674,16 @@ function FiltersSheet({
   );
 }
 
-function summaryActive(key, { cats, proteins, maxTime, difficulties, kidOnly, tupperOnly }) {
+function summaryActive(key, { cats, proteins, maxTime, difficulties, kidOnly }) {
   if (key === "cats") return cats.size > 0;
   if (key === "proteins") return proteins.size > 0;
   if (key === "time") return maxTime > 0;
   if (key === "difficulty") return difficulties.size > 0;
-  if (key === "extras") return kidOnly || tupperOnly;
+  if (key === "extras") return kidOnly;
   return false;
 }
 
-function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle }) {
+function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle, last }) {
   return (
     <button
       type="button"
@@ -682,8 +691,9 @@ function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle }) {
       className="filter-opt-row"
       style={{
         width: "100%", display: "flex", alignItems: "center", gap: 12,
-        padding: "12px 10px", border: "none", background: "transparent",
+        padding: "13px 10px", border: "none", background: "transparent",
         cursor: "pointer", fontFamily: "inherit", borderRadius: 10, textAlign: "left",
+        borderBottom: last ? "none" : "1px solid rgba(45,90,61,.1)",
       }}
     >
       {Icon && (
@@ -695,22 +705,23 @@ function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle }) {
         style={{
           flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: checked ? 800 : 600,
           color: checked ? GREEN : "#142f1d",
+          transition: "color .16s ease",
           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
         }}
       >
         {label}
       </span>
       <span
+        className="filter-check"
         style={{
           width: 22, height: 22, flexShrink: 0,
           borderRadius: single ? 999 : 6,
           border: `1.5px solid ${checked ? GREEN : "#cdd8d0"}`,
           background: checked ? GREEN : "#fff",
           color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
-          transition: "background .13s ease, border-color .13s ease",
         }}
       >
-        {checked && <Check size={14} strokeWidth={3} />}
+        {checked && <Check className="filter-check-icon" size={14} strokeWidth={3} />}
       </span>
     </button>
   );
