@@ -1155,33 +1155,33 @@ function AllergenRow({ Icon, color, label, checked, checkColor, onToggle, last }
       aria-pressed={checked}
       className="avoid-row"
       style={{
-        width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 10,
-        padding: "9px 6px", border: "none", background: "transparent",
+        width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 8,
+        padding: "8px 6px", border: "none", background: "transparent",
         cursor: "pointer", fontFamily: "inherit", textAlign: "left",
         borderBottom: last ? "none" : "1px solid #eef3f0", borderRadius: 8,
       }}
     >
       <span
         style={{
-          width: 28, height: 28, borderRadius: 9, flexShrink: 0,
+          width: 24, height: 24, borderRadius: 7, flexShrink: 0,
           background: `${color}1a`, color,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
-        <Icon size={15} strokeWidth={2.2} />
+        <Icon size={13} strokeWidth={2.2} />
       </span>
-      <span style={{ flex: 1, minWidth: 0, fontSize: 13, lineHeight: 1.2, fontWeight: checked ? 800 : 700, color: checked ? "#142f1d" : "#3a4a42", wordBreak: "break-word" }}>{label}</span>
+      <span style={{ flex: 1, minWidth: 0, fontSize: 12, lineHeight: 1.2, fontWeight: checked ? 800 : 700, color: checked ? "#142f1d" : "#3a4a42", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
       <span
         className="filter-check"
         style={{
-          width: 22, height: 22, borderRadius: 6, flexShrink: 0,
+          width: 20, height: 20, borderRadius: 5, flexShrink: 0,
           border: `1.5px solid ${checked ? checkColor : "#cdd8d0"}`,
           background: checked ? checkColor : "#fff", color: "#fff",
           display: "flex", alignItems: "center", justifyContent: "center",
           transition: "background .15s ease, border-color .15s ease",
         }}
       >
-        {checked && <Check className="avoid-pill-check" size={14} strokeWidth={3} />}
+        {checked && <Check className="avoid-pill-check" size={12} strokeWidth={3} />}
       </span>
     </button>
   );
