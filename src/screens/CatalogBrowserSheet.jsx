@@ -31,7 +31,6 @@ const GARNISHES = guarnicionesData;
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
 
 const GREEN = "#2d5a3d";
-const GREEN_SEL = "#4cba6e";
 
 const CATEGORY_META = {
   legumbres: { label: "Legumbres", icon: Bean, color: "#b9770e" },
@@ -487,6 +486,14 @@ function FiltersSheet({
           maxHeight: "82dvh", display: "flex", flexDirection: "column", overflow: "hidden",
         }}
       >
+        <style>{`
+          .filter-opt-row {
+            transition: background .13s ease;
+          }
+          .filter-opt-row:hover { background: #f4f7f5; }
+          .filter-opt-row:active { background: #eaf1ec; }
+        `}</style>
+
         {/* grabber */}
         <div style={{ display: "flex", justifyContent: "center", paddingTop: 8, flexShrink: 0 }}>
           <span style={{ width: 38, height: 4, borderRadius: 999, background: "#dde7e0" }} />
@@ -560,41 +567,86 @@ function FiltersSheet({
           )}
 
           {view === "cats" && (
-            <ChipPicker
-              options={allCats.map((c) => ({ value: c, label: categoryLabel(c) }))}
-              isSelected={(v) => cats.has(v)}
-              onToggle={toggleIn(setCats)}
-            />
+            <div style={{ paddingTop: 4 }}>
+              <CheckRow
+                label="Todas las categorías"
+                checked={cats.size === 0}
+                onToggle={() => setCats(new Set())}
+              />
+              {allCats.map((c) => (
+                <CheckRow
+                  key={c}
+                  icon={CATEGORY_META[c]?.icon ?? Utensils}
+                  iconColor={categoryColor(c)}
+                  label={categoryLabel(c)}
+                  checked={cats.has(c)}
+                  onToggle={() => toggleIn(setCats)(c)}
+                />
+              ))}
+            </div>
           )}
           {view === "proteins" && (
-            <ChipPicker
-              options={allProteins.map((p) => ({ value: p, label: titleCase(p) }))}
-              isSelected={(v) => proteins.has(v)}
-              onToggle={toggleIn(setProteins)}
-            />
+            <div style={{ paddingTop: 4 }}>
+              <CheckRow
+                label="Todas las proteínas"
+                checked={proteins.size === 0}
+                onToggle={() => setProteins(new Set())}
+              />
+              {allProteins.map((p) => (
+                <CheckRow
+                  key={p}
+                  label={titleCase(p)}
+                  checked={proteins.has(p)}
+                  onToggle={() => toggleIn(setProteins)(p)}
+                />
+              ))}
+            </div>
           )}
           {view === "time" && (
-            <ChipPicker
-              options={TIME_OPTIONS.map((t) => ({ value: t.value, label: t.label }))}
-              isSelected={(v) => maxTime === v}
-              onToggle={(v) => setMaxTime(v)}
-            />
+            <div style={{ paddingTop: 4 }}>
+              {TIME_OPTIONS.map((t) => (
+                <CheckRow
+                  key={t.value}
+                  icon={t.value === 0 ? null : Clock}
+                  label={t.label}
+                  checked={maxTime === t.value}
+                  single
+                  onToggle={() => setMaxTime(t.value)}
+                />
+              ))}
+            </div>
           )}
           {view === "difficulty" && (
-            <ChipPicker
-              options={Object.keys(DIFFICULTY_LABEL).map((d) => ({ value: d, label: DIFFICULTY_LABEL[d] }))}
-              isSelected={(v) => difficulties.has(v)}
-              onToggle={toggleIn(setDifficulties)}
-            />
+            <div style={{ paddingTop: 4 }}>
+              <CheckRow
+                label="Cualquier dificultad"
+                checked={difficulties.size === 0}
+                onToggle={() => setDifficulties(new Set())}
+              />
+              {Object.keys(DIFFICULTY_LABEL).map((d) => (
+                <CheckRow
+                  key={d}
+                  label={DIFFICULTY_LABEL[d]}
+                  checked={difficulties.has(d)}
+                  onToggle={() => toggleIn(setDifficulties)(d)}
+                />
+              ))}
+            </div>
           )}
           {view === "extras" && (
-            <div style={{ paddingTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
-              <button type="button" onClick={() => setKidOnly((v) => !v)} style={pickerChipStyle(kidOnly)}>
-                <Baby size={15} /> Apto para niños
-              </button>
-              <button type="button" onClick={() => setTupperOnly((v) => !v)} style={pickerChipStyle(tupperOnly)}>
-                <Boxes size={15} /> Para tupper
-              </button>
+            <div style={{ paddingTop: 4 }}>
+              <CheckRow
+                icon={Baby}
+                label="Apto para niños"
+                checked={kidOnly}
+                onToggle={() => setKidOnly((v) => !v)}
+              />
+              <CheckRow
+                icon={Boxes}
+                label="Para tupper"
+                checked={tupperOnly}
+                onToggle={() => setTupperOnly((v) => !v)}
+              />
             </div>
           )}
         </div>
@@ -622,28 +674,46 @@ function summaryActive(key, { cats, proteins, maxTime, difficulties, kidOnly, tu
   return false;
 }
 
-function ChipPicker({ options, isSelected, onToggle }) {
+function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle }) {
   return (
-    <div style={{ paddingTop: 14, display: "flex", flexWrap: "wrap", gap: 8 }}>
-      {options.map((o) => (
-        <button key={String(o.value)} type="button" onClick={() => onToggle(o.value)} style={pickerChipStyle(isSelected(o.value))}>
-          {o.label}
-        </button>
-      ))}
-    </div>
+    <button
+      type="button"
+      onClick={onToggle}
+      className="filter-opt-row"
+      style={{
+        width: "100%", display: "flex", alignItems: "center", gap: 12,
+        padding: "12px 10px", border: "none", background: "transparent",
+        cursor: "pointer", fontFamily: "inherit", borderRadius: 10, textAlign: "left",
+      }}
+    >
+      {Icon && (
+        <span style={{ flexShrink: 0, display: "flex", width: 20, justifyContent: "center" }}>
+          <Icon size={18} color={iconColor || GREEN} strokeWidth={2} />
+        </span>
+      )}
+      <span
+        style={{
+          flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: checked ? 800 : 600,
+          color: checked ? GREEN : "#142f1d",
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+        }}
+      >
+        {label}
+      </span>
+      <span
+        style={{
+          width: 22, height: 22, flexShrink: 0,
+          borderRadius: single ? 999 : 6,
+          border: `1.5px solid ${checked ? GREEN : "#cdd8d0"}`,
+          background: checked ? GREEN : "#fff",
+          color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "background .13s ease, border-color .13s ease",
+        }}
+      >
+        {checked && <Check size={14} strokeWidth={3} />}
+      </span>
+    </button>
   );
-}
-
-function pickerChipStyle(selected) {
-  return {
-    display: "inline-flex", alignItems: "center", gap: 6,
-    height: 38, padding: "0 16px", borderRadius: 999,
-    border: `1.5px solid ${selected ? GREEN : "#e5ebe7"}`,
-    background: selected ? GREEN_SEL : "#fff",
-    color: selected ? "#fff" : "#5a7066",
-    fontSize: 13, fontWeight: selected ? 800 : 600,
-    cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
-  };
 }
 
 const iconBtnStyle = {
