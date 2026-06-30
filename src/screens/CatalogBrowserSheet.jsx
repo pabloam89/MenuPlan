@@ -187,7 +187,7 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
         onClick={(e) => e.stopPropagation()}
         className="catalog-sheet-inner"
         style={{
-          background: "#fff",
+          background: "#f5f9f6",
           borderRadius: "20px 20px 0 0",
           width: "100%",
           maxWidth: 420,
