@@ -144,31 +144,6 @@ export function GeneratingScreen({ onStop }) {
         {GENERATING_PHRASES[phraseIdx]}
       </p>
 
-      {/* Cancelar */}
-      {onStop && (
-        <button
-          type="button"
-          onClick={onStop}
-          style={{
-            position: "absolute",
-            bottom: 40,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 1,
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,.25)",
-            color: "rgba(255,255,255,.8)",
-            padding: "10px 22px",
-            borderRadius: 999,
-            fontSize: 13,
-            fontWeight: 600,
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
-        >
-          Cancelar
-        </button>
-      )}
     </div>
   );
 }

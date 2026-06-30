@@ -149,8 +149,9 @@ export function OnboardingShell({
   return (
     <div
       style={{
-        padding: "12px 20px 24px",
-        minHeight: "100%",
+        padding: "12px 20px 0",
+        height: "100dvh",
+        boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
         background: bg ?? "transparent",
@@ -200,9 +201,36 @@ export function OnboardingShell({
         <p style={{ color: "#888", fontSize: 13, margin: "0 0 16px" }}>{subtitle}</p>
       )}
 
-      <div style={{ flex: 1 }}>{children}</div>
+      <div
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: "auto",
+          marginLeft: -20,
+          marginRight: -20,
+          paddingLeft: 20,
+          paddingRight: 20,
+          paddingBottom: 16,
+        }}
+      >
+        {children}
+      </div>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 24 }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          flexShrink: 0,
+          marginLeft: -20,
+          marginRight: -20,
+          paddingLeft: 20,
+          paddingRight: 20,
+          paddingTop: 12,
+          paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
+          background: bg ?? "#fff",
+          boxShadow: "0 -10px 16px -10px rgba(0,0,0,0.14)",
+        }}
+      >
         {onFinish && onNext && (
           <button
             onClick={onFinish}
