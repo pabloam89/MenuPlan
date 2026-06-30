@@ -32,7 +32,7 @@ export function GeneratingScreen({ onStop }) {
         position: "fixed",
         inset: 0,
         zIndex: 200,
-        background: "#0a160e",
+        background: "#0d1f13",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -43,10 +43,6 @@ export function GeneratingScreen({ onStop }) {
     >
       <style>{`
         @keyframes genFade { from { opacity: 0 } to { opacity: 1 } }
-        @keyframes genGlow {
-          0%, 100% { opacity: .5; transform: translateX(-50%) scale(1); }
-          50%      { opacity: .85; transform: translateX(-50%) scale(1.12); }
-        }
         @keyframes genBarWave {
           0%, 100% { transform: scaleY(.32); }
           50%      { transform: scaleY(1); }
@@ -56,22 +52,6 @@ export function GeneratingScreen({ onStop }) {
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-
-      {/* Glow verde detrás del logo */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: "30%",
-          left: "50%",
-          width: 320,
-          height: 320,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(61,122,82,.42) 0%, transparent 70%)",
-          animation: "genGlow 4s ease-in-out infinite",
-          pointerEvents: "none",
-        }}
-      />
 
       {/* MenuPlan arriba del todo */}
       <div
@@ -133,7 +113,6 @@ export function GeneratingScreen({ onStop }) {
               borderRadius: 7,
               background: "linear-gradient(180deg, #7ecb96, #3d7a52)",
               transformOrigin: "bottom",
-              boxShadow: "0 4px 16px rgba(61,122,82,.45)",
               animation: `genBarWave 1s ease-in-out ${i * 0.15}s infinite`,
             }}
           />

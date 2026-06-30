@@ -750,7 +750,7 @@ const COOK_LEVELS = [
   { id: "pro",    label: "Me gusta cocinar",  icon: <Sparkles size={20} /> },
 ];
 
-const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Robot/Thermomix", "Olla rápida", "Batidora"];
+const KITCHEN_TOOLS = ["Airfryer", "Horno", "Microondas", "Thermomix", "Olla rápida", "Vaporera"];
 
 const FREQ_OPTIONS = [
   { id: "verdura", label: "Verdura" },

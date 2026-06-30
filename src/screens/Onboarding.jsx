@@ -30,6 +30,12 @@ import {
   Dumbbell,
   Heart,
   HeartPulse,
+  Microwave,
+  Flame,
+  CookingPot,
+  Wind,
+  Bot,
+  Wrench,
   RotateCcw,
   Search,
   Shuffle,
@@ -782,6 +788,15 @@ function mealToSelectValue(meals, mealOptions) {
 }
 
 const MEAL_ICON = { Desayuno: Coffee, Comida: Sun, Cena: Moon };
+
+const TOOL_ICON = {
+  Airfryer: Wind,
+  Horno: Flame,
+  Microondas: Microwave,
+  Thermomix: Bot,
+  "Olla rápida": CookingPot,
+  Vaporera: Layers2,
+};
 
 function mealColWidthFor(mealOptions) {
   const n = Math.max(1, mealOptions.length);
@@ -5023,8 +5038,9 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
     "Airfryer",
     "Horno",
     "Microondas",
-    "Robot/Thermomix",
+    "Thermomix",
     "Olla rápida",
+    "Vaporera",
   ];
   const availableTools = [...tools, ...(data.customKitchenTools ?? [])];
   const [addingTool, setAddingTool] = useState(false);
@@ -5101,80 +5117,83 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 
       <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 20px" }} />
 
-      {/* Herramientas — grid estilo alergias */}
-      <SectionTitle>Herramientas disponibles</SectionTitle>
-      <div style={{ background: "#f6f9f7", borderRadius: 10, padding: "10px 12px", marginBottom: 4 }}>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
-            gap: 6,
-          }}
-        >
-          {availableTools.map((tool) => {
-            const isCustom = (data.customKitchenTools ?? []).includes(tool);
-            const sel = (data.kitchenTools ?? []).includes(tool);
-            return (
-              <button
-                key={tool}
-                type="button"
-                onClick={() => (isCustom && sel ? removeCustomTool(tool) : toggleTool(tool))}
-                style={{
-                  ...gridChipStyle(sel),
-                  height: 30,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 4,
-                }}
-              >
-                {isCustom && sel && <X size={9} />}
-                {tool}
-              </button>
-            );
-          })}
-          {addingTool ? (
-            <input
-              autoFocus
-              value={draftTool}
-              onChange={(e) => setDraftTool(e.target.value)}
-              onBlur={addCustomTool}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") e.currentTarget.blur();
-                if (e.key === "Escape") { setDraftTool(""); setAddingTool(false); }
-              }}
-              placeholder="Otra…"
-              style={{
-                height: 30,
-                padding: "0 8px",
-                borderRadius: 7,
-                border: "1.5px solid #2d5a3d",
-                fontSize: 11,
-                outline: "none",
-                fontFamily: "inherit",
-              }}
-            />
-          ) : (
+      {/* Herramientas — modelo tipo alergias */}
+      <style>{`
+        @keyframes avoidCheckPop {
+          0%   { transform: scale(0.4); opacity: 0; }
+          55%  { transform: scale(1.25); opacity: 1; }
+          100% { transform: scale(1); }
+        }
+        .avoid-pill { transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .12s ease; }
+        .avoid-pill:hover { transform: translateY(-1px); }
+        .avoid-pill:active { transform: translateY(0) scale(.97); }
+        .avoid-pill-check { animation: avoidCheckPop .22s cubic-bezier(.34,1.5,.6,1) both; }
+        .avoid-row { transition: background .15s ease; }
+        .avoid-row:hover { background: #f3f7f4; }
+      `}</style>
+
+      <AvoidSection icon={Utensils} accent="#2d5a3d" title="Herramientas disponibles">
+        <div>
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
+            {availableTools.map((tool) => {
+              const isCustom = (data.customKitchenTools ?? []).includes(tool);
+              const sel = (data.kitchenTools ?? []).includes(tool);
+              return (
+                <AllergenRow
+                  key={tool}
+                  Icon={TOOL_ICON[tool] ?? Wrench}
+                  color="#2d5a3d"
+                  label={tool}
+                  checked={sel}
+                  checkColor="#2d5a3d"
+                  onToggle={() => (isCustom && sel ? removeCustomTool(tool) : toggleTool(tool))}
+                />
+              );
+            })}
+          </div>
+
+          <div style={{ display: "flex", marginTop: 12 }}>
             <button
               type="button"
-              onClick={() => setAddingTool(true)}
+              onClick={() => setAddingTool((v) => !v)}
+              className="avoid-pill"
               style={{
-                ...gridChipStyle(false),
-                height: 30,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-                border: "1px dashed #aacbb5",
-                color: "#2d5a3d",
-                fontWeight: 700,
+                display: "inline-flex", alignItems: "center", gap: 6, height: 36,
+                padding: "0 15px 0 12px", borderRadius: 10, border: "none",
+                background: addingTool ? "#234a31" : "#2d5a3d", color: "#fff",
+                fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                boxShadow: "0 2px 8px rgba(45,90,61,.3)",
               }}
             >
-              <Plus size={11} /> Añadir
+              <Plus size={15} strokeWidth={2.6} /> Añadir otra
             </button>
+          </div>
+
+          {addingTool && (
+            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+              <input
+                autoFocus
+                value={draftTool}
+                onChange={(e) => setDraftTool(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") addCustomTool();
+                  if (e.key === "Escape") { setDraftTool(""); setAddingTool(false); }
+                }}
+                placeholder="Otra herramienta"
+                style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 12.5, outline: "none", fontFamily: "inherit" }}
+              />
+              <button
+                type="button"
+                onClick={addCustomTool}
+                aria-label="Añadir herramienta"
+                style={{ width: 40, borderRadius: 10, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+              >
+                <Check size={16} strokeWidth={3} />
+              </button>
+            </div>
           )}
         </div>
-      </div>
+      </AvoidSection>
 
       <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
 
