@@ -7,7 +7,7 @@ import { filterRecipes, decisionCatalog } from "../utils/filterRecipes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
-import { formatFixedDishesForAI, pinnedGarnishMap } from "./fixedDishes.js";
+import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
@@ -31,6 +31,10 @@ function proteinFromText(text) {
   }
   return null;
 }
+
+// Balanced weekly quotas used when the user hasn't set a meal style — includes
+// carbs, meat and eggs so the default menu isn't skewed all-healthy.
+const DEFAULT_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
 
 const DAY_SLUG = {
   Lun: "lun", Mar: "mar", Mié: "mie", Jue: "jue",
@@ -129,11 +133,24 @@ CRITERIO DE VARIEDAD (lo importante de tu trabajo):
 - Distribuir a lo largo de la semana: pescado, legumbres, carne, huevo, pasta - sin amontonar.
 - Coherencia estacional: aprovecha platos frescos en verano, de cuchara en invierno.
 
+OBJETIVOS SEMANALES (config.freqs) — cuotas orientativas por semana:
+- Cada clave de config.freqs indica cuántas veces por semana debería aparecer ese tipo de plato principal en el menú. Acércate lo máximo posible a esas cantidades SIN romper la estructura, la variedad ni las restricciones de arriba.
+- Mapeo de cada clave al catálogo (usa category y mainProtein de cada receta):
+  - carne: category "carnes" o mainProtein pollo/pavo/cerdo/ternera
+  - pescado: category "pescados" o mainProtein pescado_blanco/pescado_azul/marisco
+  - legumbres: category "legumbres" o mainProtein legumbre
+  - huevos: category "huevos" o mainProtein huevo
+  - pasta_arroz: category "pasta_arroces"
+  - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida)
+- Son objetivos, no límites rígidos: intenta cumplirlos, pero la coherencia gastronómica y las reglas anteriores mandan siempre.
+
 RESTRICCIONES POR SLOT:
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
 - Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
-- Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente timesPerWeek veces a lo largo de la semana, en slots del tipo indicado en meals (comida o cena). Si timesPerWeek es 2, ponlo en 2 días distintos; si es 3, en 3 días, etc. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
+- Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
+- Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido.
+- Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente timesPerWeek veces a lo largo de la semana, en slots del tipo indicado en meals (comida o cena) y REPARTIDO en días distintos (no días seguidos). Colócalo en la posición que le corresponda por su mealRole: si es "primero" va en comida_1, si es "segundo" va en comida_2, si es "cena" en el hueco de cena. NUNCA pongas una verdura/primero como segundo (plato principal): el día debe conservar su proteína. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
 
 IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.
 
@@ -202,20 +219,28 @@ function buildGroupContext(data, group) {
 
       const mealType = meal.toLowerCase() === "cena" ? "cena" : "comida";
       const maxTime = maxCookTime(data, { isWeekend, meal });
+      // User-marked exception for this exact day+meal ("unico" | "rapida").
+      const slotTypeSel = data.slotType?.[`${day}|${meal}`];
 
       if (mealType === "comida") {
         if (isBabyGroup) {
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico" });
+        } else if (slotTypeSel === "unico") {
+          // Single complete dish: only one slot, no primero+segundo.
+          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico", preferType: "plato_unico" });
         } else {
           const primeroMaxTime = Math.max(20, Math.round(maxTime * 0.4));
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" });
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" });
         }
       } else {
+        const isQuick = slotTypeSel === "rapida";
         const slot = {
-          day, daySlug, mealType, eaters, mode: mode.mode, maxTime,
+          day, daySlug, mealType, eaters, mode: mode.mode,
+          maxTime: isQuick ? Math.min(maxTime, 20) : maxTime,
           slotId: `${daySlug}_cena`,
         };
+        if (isQuick) slot.preferType = "cena_rapida";
         if (schoolProteins.size > 0) {
           slot.schoolProteinsToAvoid = Array.from(schoolProteins);
         }
@@ -240,7 +265,7 @@ function buildGroupContext(data, group) {
     },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
-      freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? {},
+      freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS,
       cookLevel: data.cookLevel ?? "normal",
       cookTime,
     },
@@ -252,6 +277,7 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
     if (s.position) out.position = s.position;
+    if (s.preferType) out.preferType = s.preferType;
     if (s.schoolProteinsToAvoid) out.schoolProteinsToAvoid = s.schoolProteinsToAvoid;
     return out;
   });
@@ -273,6 +299,54 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
 
   parts.push(`\nAsigna una receta del catálogo a cada hueco.`);
   return parts.join("\n");
+}
+
+// ── Slot-type exceptions (user-marked "plato único" / "cena rápida") ──────
+
+function recipeMatchesPreferType(recipe, preferType) {
+  if (!recipe) return false;
+  if (preferType === "plato_unico") return (recipe.mealRole ?? []).includes("plato_unico");
+  if (preferType === "cena_rapida") return recipe.category === "cenas_rapidas";
+  return true;
+}
+
+/**
+ * Deterministically forces slots the user flagged (preferType) to carry a
+ * recipe of the right kind — a single dish for a "plato único" comida, a quick
+ * recipe for a "cena rápida". The LLM is asked to do this; this guarantees it.
+ * Mutates `poolById` so downstream steps can resolve any forced recipe.
+ */
+function enforceSlotTypes(slotAssignments, slotsContext, poolById) {
+  const ctxBySlot = Object.fromEntries(slotsContext.map((s) => [s.slotId, s]));
+  const bySlot = new Map(slotAssignments.map((s) => [s.slotId, { ...s }]));
+  const used = new Set(slotAssignments.map((s) => s.recipeId));
+
+  for (const [slotId, a] of bySlot) {
+    const ctx = ctxBySlot[slotId];
+    const preferType = ctx?.preferType;
+    if (!preferType) continue;
+    if (recipeMatchesPreferType(poolById[a.recipeId], preferType)) continue;
+
+    const fits = (r) => {
+      if (!recipeMatchesPreferType(r, preferType)) return false;
+      if (ctx.maxTime && r.time > ctx.maxTime) return false;
+      if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
+      return true;
+    };
+
+    const candidate =
+      Object.values(poolById).find((r) => fits(r) && !used.has(r.id)) ??
+      Object.values(poolById).find(fits) ??
+      Object.values(recipeCatalogById).find(fits);
+    if (!candidate) continue;
+
+    if (!poolById[candidate.id]) poolById[candidate.id] = candidate;
+    used.delete(a.recipeId);
+    used.add(candidate.id);
+    bySlot.set(slotId, { slotId, recipeId: candidate.id });
+  }
+
+  return slotAssignments.map((s) => bySlot.get(s.slotId) ?? s);
 }
 
 // ── Deterministic baby planner ──────────────────────────────────
@@ -486,9 +560,17 @@ async function generateGroupMenu(data, group, signal) {
     slotAssignments = applyFallback(slotAssignments, finalCheck.violations, filteredPool, ctx.slots);
   }
 
-  // 4. Pair "principal" recipes with garnishes (deterministic, no LLM).
-  //    User-pinned combos (dish chosen from the catalog) take priority.
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
+
+  // 4. Force fixed dishes to appear exactly timesPerWeek times (hard rule).
+  //    The LLM is asked to do this but isn't reliable, so we guarantee it here.
+  slotAssignments = enforceFixedDishes(slotAssignments, data.fixedDishes, poolById);
+
+  // 4b. Force user-marked slot exceptions (plato único / cena rápida).
+  slotAssignments = enforceSlotTypes(slotAssignments, ctx.slots, poolById);
+
+  // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
+  //    User-pinned combos (dish chosen from the catalog) take priority.
   slotAssignments = pairGarnishes(slotAssignments, poolById, pinnedGarnishMap(data.fixedDishes));
 
   return {

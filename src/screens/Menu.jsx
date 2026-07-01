@@ -1,4 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertTriangle,
   Blend,
@@ -40,7 +41,9 @@ import {
 } from "lucide-react";
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
-import { resolveRecipeAllergens } from "../lib/allergens.js";
+import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
+import { migrateFixedDishes } from "../lib/fixedDishes.js";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
@@ -836,9 +839,12 @@ function AccordionSection({ title, icon: Icon, children, defaultOpen = false }) 
 
 function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const members = data.members ?? [];
-  const allergies = [...new Set(members.flatMap((m) => m.allergies ?? []))];
   const dislikes = [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])];
   const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
+  const fixedDishes = migrateFixedDishes(data.fixedDishes ?? []);
+  // members with allergies or regimen
+  const membersWithAllergies = members.filter((m) => (m.allergies ?? []).length > 0);
+  const membersWithRegimen = members.filter((m) => m.regimen);
 
   // Track if user changed anything to prompt regeneration
   const snapshotRef = useRef(JSON.stringify({ cookLevel: data.cookLevel, kitchenTools: data.kitchenTools }));
@@ -866,7 +872,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   };
 
   if (confirmRegen) {
-    return (
+    return createPortal(
       <div
         style={{
           position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
@@ -908,11 +914,12 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             No, solo guardar cambios
           </button>
         </div>
-      </div>
+      </div>,
+      document.body
     );
   }
 
-  return (
+  return createPortal(
     <div
       onClick={handleClose}
       style={{
@@ -965,23 +972,117 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             padding: "0 18px calc(18px + env(safe-area-inset-bottom, 0px))",
           }}
         >
-        {/* ── Evitar / alergias ── */}
-        <AccordionSection title="Evitar" icon={UtensilsCrossed}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {allergies.length === 0 && dislikes.length === 0 && (
-              <span style={{ fontSize: 12, color: "#9ab0a1" }}>—</span>
-            )}
-            {allergies.map((a) => (
-              <span key={a} style={{ padding: "4px 10px", borderRadius: 20, background: "#fef3f0", fontSize: 12, fontWeight: 600, color: "#a83a1f" }}>
-                {a}
-              </span>
-            ))}
-            {dislikes.map((d) => (
-              <span key={d} style={{ padding: "4px 10px", borderRadius: 20, background: "#f5f0e8", fontSize: 12, fontWeight: 600, color: "#8a6d3b" }}>
-                {d}
-              </span>
-            ))}
-          </div>
+        {/* ── Qué evitamos ── */}
+        <AccordionSection title="Qué evitamos" icon={UtensilsCrossed}>
+          {membersWithAllergies.length === 0 && membersWithRegimen.length === 0 && dislikes.length === 0 ? (
+            <span style={{ fontSize: 12, color: "#9ab0a1" }}>—</span>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {membersWithAllergies.map((m) => {
+                const memberColor = memberAvatarColor(m.id, members);
+                return (
+                  <div key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                    <div style={{
+                      width: 26, height: 26, borderRadius: 999, flexShrink: 0,
+                      background: memberColor, display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 11, fontWeight: 900, color: "#fff",
+                    }}>
+                      {(m.name ?? "?")[0].toUpperCase()}
+                    </div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 5, paddingTop: 3 }}>
+                      {(m.allergies ?? []).map((a) => {
+                        const meta = EU_ALLERGENS[a];
+                        return (
+                          <span key={a} style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            padding: "3px 8px", borderRadius: 20,
+                            background: "#fef3f0", fontSize: 11, fontWeight: 600, color: "#a83a1f",
+                          }}>
+                            {meta ? <meta.Icon size={11} /> : null}
+                            {meta ? meta.label : a}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+              {membersWithRegimen.length > 0 && (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#526057" }}>Régimen:</span>
+                  {membersWithRegimen.map((m) => {
+                    const memberColor = memberAvatarColor(m.id, members);
+                    return (
+                      <div key={m.id} style={{
+                        display: "flex", alignItems: "center", gap: 5,
+                        padding: "3px 8px 3px 5px", borderRadius: 20,
+                        background: "#f0f7f2", border: "1px solid #c8dece",
+                        fontSize: 11, fontWeight: 700, color: "#2d5a3d",
+                      }}>
+                        <div style={{
+                          width: 18, height: 18, borderRadius: 999,
+                          background: memberColor, display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 9, fontWeight: 900, color: "#fff",
+                        }}>
+                          {(m.name ?? "?")[0].toUpperCase()}
+                        </div>
+                        {m.name}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {dislikes.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                  {dislikes.map((d) => (
+                    <span key={d} style={{ padding: "3px 8px", borderRadius: 20, background: "#f5f0e8", fontSize: 11, fontWeight: 600, color: "#8a6d3b" }}>
+                      {d}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </AccordionSection>
+
+        {/* ── Qué repetimos ── */}
+        <AccordionSection title="Qué repetimos" icon={RotateCcw}>
+          {fixedDishes.length === 0 ? (
+            <span style={{ fontSize: 12, color: "#9ab0a1" }}>—</span>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {fixedDishes.map((fd, i) => {
+                const recipe = fd.catalogId ? recipeCatalogById[fd.catalogId] : null;
+                const name = recipe ? recipe.name : fd.name;
+                const meal = (fd.meals ?? ["Comida"])[0];
+                return (
+                  <div key={i} style={{
+                    display: "flex", alignItems: "center", justifyContent: "space-between",
+                    padding: "8px 10px", borderRadius: 10,
+                    background: "#f5f9f6", border: "1px solid #ddeee3",
+                  }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "#142f1d", flex: 1, marginRight: 8 }}>
+                      {name}
+                    </span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                      <span style={{
+                        fontSize: 11, fontWeight: 800, color: "#2d5a3d",
+                        background: "#d9eedf", borderRadius: 20, padding: "2px 7px",
+                      }}>
+                        {fd.timesPerWeek}× sem
+                      </span>
+                      <span style={{
+                        fontSize: 11, fontWeight: 600, color: "#526057",
+                        background: "#eef3f0", borderRadius: 20, padding: "2px 7px",
+                      }}>
+                        {meal}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </AccordionSection>
 
         {/* ── Nivel de cocina ── */}
@@ -1059,7 +1160,8 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
         </div>
         </div>{/* end scrollable body */}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 

@@ -2,12 +2,17 @@ import React, { Fragment, useContext, useEffect, useMemo, useRef, useState } fro
 import {
   ArrowUpDown,
   Baby,
+  Bean,
+  Beef,
   BookOpenCheck,
+  Egg,
+  Fish,
   GitBranch,
   BriefcaseBusiness,
   CalendarDays,
   Check,
   ChefHat,
+  Wheat,
   ChevronLeft,
   ChevronRight,
   Coffee,
@@ -36,9 +41,10 @@ import {
   Wind,
   Bot,
   Wrench,
-  RotateCcw,
   Search,
   Shuffle,
+  Pizza,
+  Salad,
   Sparkles,
   Tag,
   Trash2,
@@ -76,6 +82,7 @@ import {
   DAYS,
   dayLabel,
   getMeals,
+  modeForGroupSlot,
   primaryDayMeal,
 } from "../lib/planner.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
@@ -4254,7 +4261,7 @@ function goalsManualKey(subjectId) {
 }
 
 const BASE_KCAL = 2000;
-const BASE_FREQS = { legumbres: 2, verdura: 3, pescado: 2 };
+const BASE_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
 
 function combinedGoalProfile(goalIds, goalDefs) {
   const ids = new Set(goalIds);
@@ -4412,6 +4419,730 @@ function slugifyGoalLabel(label) {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-|-$/g, "");
+}
+
+// Meal styles = friendly presets. Each maps to a weekly freqs profile the
+// planner reads. Users think in "styles", never in raw numbers.
+// Icon + color per food group, for the weekly-variety breakdown under each style.
+const FOOD_META = {
+  carne: { label: "Carne", Icon: Beef, color: "#c0562f" },
+  pescado: { label: "Pescado", Icon: Fish, color: "#2f7dc0" },
+  pasta_arroz: { label: "Pasta y arroz", Icon: Wheat, color: "#ca8a04" },
+  legumbres: { label: "Legumbres", Icon: Bean, color: "#a06b2f" },
+  huevos: { label: "Huevos", Icon: Egg, color: "#d6a01f" },
+  verdura: { label: "Verdura", Icon: Salad, color: "#3f8f5b" },
+};
+
+const FOOD_ORDER = ["carne", "pescado", "pasta_arroz", "legumbres", "huevos", "verdura"];
+
+const MEAL_STYLES = [
+  {
+    id: "de_todo",
+    label: "De todo",
+    desc: "Pasta, arroz y carne al frente. Familiar y del gusto de los peques.",
+    Icon: Pizza,
+    freqs: { pasta_arroz: 4, carne: 4, huevos: 2, verdura: 2, pescado: 1, legumbres: 1 },
+  },
+  {
+    id: "equilibrado",
+    label: "Equilibrado",
+    desc: "Un poco de todo, sin que destaque nada. El punto medio.",
+    Icon: HeartPulse,
+    freqs: { carne: 3, pescado: 3, verdura: 3, legumbres: 2, pasta_arroz: 2, huevos: 2 },
+  },
+  {
+    id: "ligero",
+    label: "Ligero y saludable",
+    desc: "Mucha verdura, pescado y legumbre; poca pasta y carne roja.",
+    Icon: Salad,
+    freqs: { verdura: 6, pescado: 4, legumbres: 3, huevos: 2, carne: 1, pasta_arroz: 1 },
+  },
+];
+
+const DEFAULT_MEAL_STYLE = "equilibrado";
+
+/**
+ * Scales a preset's freqs (weights, not absolute counts) to fit exactly the
+ * number of "platos principales" slots actually available that week, so the
+ * menu never runs out of — or overflows — real cooking slots.
+ */
+function scaleFreqsToSlots(freqs, totalSlots) {
+  const entries = Object.entries(freqs);
+  const weightSum = entries.reduce((acc, [, v]) => acc + v, 0) || 1;
+  const scaled = {};
+  entries.forEach(([key, weight]) => {
+    scaled[key] = Math.max(0, Math.round((weight / weightSum) * totalSlots));
+  });
+  // Fix rounding drift against the heaviest categories first, so totals add up exactly.
+  let diff = totalSlots - Object.values(scaled).reduce((a, b) => a + b, 0);
+  const byWeight = [...entries].sort((a, b) => b[1] - a[1]).map(([k]) => k);
+  let guard = 0;
+  while (diff !== 0 && byWeight.length > 0 && guard < 100) {
+    const key = byWeight[guard % byWeight.length];
+    if (diff > 0) {
+      scaled[key] += 1;
+      diff -= 1;
+    } else if (scaled[key] > 0) {
+      scaled[key] -= 1;
+      diff += 1;
+    }
+    guard += 1;
+  }
+  return scaled;
+}
+
+function freqsShallowEqual(a, b) {
+  const ak = Object.keys(a ?? {});
+  const bk = Object.keys(b ?? {});
+  if (ak.length !== bk.length) return false;
+  return ak.every((k) => a[k] === b[k]);
+}
+
+/**
+ * Counts real cooking slots for a group this week, from the household
+ * schedule: 2 per comida day (primero + segundo) plus 1 per cena day, minus
+ * 1 per "plato único" comida (which merges primero+segundo into one dish).
+ * This is what config.freqs should sum to, so the LLM never gets asked for
+ * more (or fewer) dishes than the week actually has room for.
+ */
+function useGroupSlotBudget(data, group) {
+  return useMemo(() => {
+    const meals = getMeals(data);
+    const members = data.members ?? [];
+    const schedule = data.schedule ?? {};
+    const slotType = data.slotType ?? {};
+    const effectiveGroup = group ?? { memberIds: members.map((m) => m.id) };
+    let comidaDays = 0;
+    let cenaDays = 0;
+    let platoUnicoDays = 0;
+    DAYS.forEach((day) => {
+      if (meals.includes("Comida")) {
+        const mode = modeForGroupSlot(effectiveGroup, members, schedule, day, "Comida");
+        if (mode.cook) {
+          comidaDays += 1;
+          if (slotType[`${day}|Comida`] === "unico") platoUnicoDays += 1;
+        }
+      }
+      if (meals.includes("Cena")) {
+        const mode = modeForGroupSlot(effectiveGroup, members, schedule, day, "Cena");
+        if (mode.cook) cenaDays += 1;
+      }
+    });
+    const total = Math.max(1, comidaDays * 2 + cenaDays - platoUnicoDays);
+    return { comidaDays, cenaDays, platoUnicoDays, total };
+  }, [data.meals, data.members, data.schedule, data.slotType, group]);
+}
+
+function mealStyleCardStyle(selected) {
+  return {
+    display: "flex",
+    alignItems: "center",
+    gap: 12,
+    width: "100%",
+    padding: "14px",
+    borderRadius: 16,
+    border: `1.5px solid ${selected ? "#2d5a3d" : "#e0eae3"}`,
+    background: selected ? "#2d5a3d" : "#fff",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    transition: "all .16s ease",
+    boxShadow: selected ? "0 6px 18px rgba(45,90,61,.22)" : "0 1px 2px rgba(0,0,0,.04)",
+  };
+}
+
+function mealStyleIconStyle(selected) {
+  return {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    flexShrink: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    background: selected ? "rgba(255,255,255,.18)" : "#eef5f0",
+    color: selected ? "#fff" : "#2d5a3d",
+  };
+}
+
+export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, onReset }) {
+  // Seed groups if the user skipped MenuModel, so per-menu tabs have anchors.
+  useEffect(() => {
+    if (!Array.isArray(data.groups) || data.groups.length === 0) {
+      const seeded = groupsFromModel(data.members ?? [], data.menuModel ?? "same");
+      if (seeded.length > 0) setData((d) => ({ ...d, groups: seeded }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const groups = useMemo(
+    () => (Array.isArray(data.groups) ? data.groups : []),
+    [data.groups],
+  );
+  const hasMultipleGroups = groups.length > 1;
+
+  const [activeGroupId, setActiveGroupId] = useState(groups[0]?.id ?? null);
+  useEffect(() => {
+    if (activeGroupId == null && groups.length > 0) {
+      setActiveGroupId(groups[0].id);
+    } else if (activeGroupId != null && !groups.some((g) => g.id === activeGroupId)) {
+      setActiveGroupId(groups[0]?.id ?? null);
+    }
+  }, [groups, activeGroupId]);
+
+  const subjectId = activeGroupId;
+  const styleKey = subjectId ?? "__global__";
+  const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
+
+  // Real cooking slots this week for the active menu, from the schedule grid —
+  // freqs get scaled to this so the plan never asks for more dishes than fit.
+  const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
+  const slotBudget = useGroupSlotBudget(data, activeGroup);
+
+  // Keep the saved freqs in sync with the slot budget: if the user goes back
+  // and changes the schedule (or a plato único), rescale automatically so the
+  // menu stays coherent with the chosen style's proportions.
+  useEffect(() => {
+    const preset = MEAL_STYLES.find((s) => s.id === activeStyle);
+    if (!preset) return;
+    const scaled = scaleFreqsToSlots(preset.freqs, slotBudget.total);
+    setData((d) => {
+      const current = subjectId ? d.freqsByGroup?.[subjectId] : d.freqs;
+      if (freqsShallowEqual(current, scaled)) return d;
+      if (subjectId) {
+        return { ...d, freqsByGroup: { ...(d.freqsByGroup ?? {}), [subjectId]: scaled } };
+      }
+      return { ...d, freqs: scaled };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeStyle, slotBudget.total, subjectId]);
+
+  // ── Cenas rápidas (weekly exceptions) ──
+  // Live on the household week (data.slotType), independent of the menu tab.
+  // Edited from a dedicated pop-up so the main screen stays focused on styles.
+  const slotTypeMap = data.slotType ?? {};
+  const hasCena = getMeals(data).includes("Cena");
+  const rapidaDays = DAYS.filter((d) => slotTypeMap[`${d}|Cena`] === "rapida");
+  const anyRapida = rapidaDays.length > 0;
+  const [cenasSheetOpen, setCenasSheetOpen] = useState(false);
+
+  const toggleCenaRapida = (day) => {
+    setData((d) => {
+      const key = `${day}|Cena`;
+      const next = { ...(d.slotType ?? {}) };
+      if (next[key]) delete next[key];
+      else next[key] = "rapida";
+      return { ...d, slotType: next };
+    });
+  };
+
+  const WEEKEND_DAYS = ["Vie", "Sáb", "Dom"];
+  const weekendActive =
+    WEEKEND_DAYS.every((d) => slotTypeMap[`${d}|Cena`] === "rapida") &&
+    rapidaDays.length === WEEKEND_DAYS.length;
+
+  const setWeekendRapidas = () => {
+    setData((d) => {
+      const next = { ...(d.slotType ?? {}) };
+      DAYS.forEach((day) => {
+        if (next[`${day}|Cena`] === "rapida") delete next[`${day}|Cena`];
+      });
+      if (!weekendActive) WEEKEND_DAYS.forEach((day) => (next[`${day}|Cena`] = "rapida"));
+      return { ...d, slotType: next };
+    });
+  };
+
+  const selectStyle = (styleId) => {
+    const preset = MEAL_STYLES.find((s) => s.id === styleId);
+    if (!preset) return;
+    const scaled = scaleFreqsToSlots(preset.freqs, slotBudget.total);
+    setData((d) => {
+      const nextStyleMap = { ...(d.mealStyleByGroup ?? {}), [styleKey]: styleId };
+      if (subjectId) {
+        return {
+          ...d,
+          mealStyleByGroup: nextStyleMap,
+          freqsByGroup: {
+            ...(d.freqsByGroup ?? {}),
+            [subjectId]: scaled,
+          },
+        };
+      }
+      return { ...d, mealStyleByGroup: nextStyleMap, freqs: scaled };
+    });
+  };
+
+  const activeGroupLabel = groups.find((g) => g.id === activeGroupId)?.label ?? "todos";
+
+  return (
+    <OnboardingShell
+      title="¿Cómo os gusta comer?"
+      subtitle="Elige el estilo de cada menú. Podrás cambiarlo cuando quieras."
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      bg="#f5f9f6"
+    >
+      {hasMultipleGroups && (
+        <div style={{ marginBottom: 18 }}>
+          <SectionTitle>Menú</SectionTitle>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {groups.map((g) => {
+              const sel = g.id === activeGroupId;
+              const memberCount = membersOfGroup(g, data.members ?? []).length;
+              return (
+                <button
+                  key={g.id}
+                  type="button"
+                  onClick={() => setActiveGroupId(g.id)}
+                  style={subjectPillStyle(sel, g.color)}
+                >
+                  <Users size={12} /> {g.label}
+                  <span style={{ opacity: 0.7, fontWeight: 500 }}>· {memberCount}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <SectionTitle>
+        {hasMultipleGroups ? `Estilo · ${activeGroupLabel}` : "Estilo de comida"}
+      </SectionTitle>
+      <style>{`
+        @keyframes mealFreqIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes cenasFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes cenasSlideUp {
+          from { opacity: 0; transform: translateY(16px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {MEAL_STYLES.map((s) => {
+          const sel = activeStyle === s.id;
+          const displayFreqs = scaleFreqsToSlots(s.freqs, slotBudget.total);
+          const maxN = Math.max(1, ...Object.values(displayFreqs));
+          return (
+            <Fragment key={s.id}>
+              <button
+                type="button"
+                onClick={() => selectStyle(s.id)}
+                style={mealStyleCardStyle(sel)}
+              >
+                <div style={mealStyleIconStyle(sel)}>
+                  <s.Icon size={20} />
+                </div>
+                <div style={{ flex: 1, textAlign: "left" }}>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: sel ? "#fff" : "#142f1d" }}>
+                    {s.label}
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: sel ? "rgba(255,255,255,.85)" : "#6b7d70",
+                      marginTop: 2,
+                      lineHeight: 1.35,
+                    }}
+                  >
+                    {s.desc}
+                  </div>
+                </div>
+                {sel && <Check size={18} color="#fff" />}
+              </button>
+
+              {sel && (
+                <div
+                  style={{
+                    animation: "mealFreqIn .24s cubic-bezier(.32,1,.28,1) both",
+                    background: "#fff",
+                    border: "1px solid #e2ede6",
+                    borderRadius: 14,
+                    padding: "12px 14px",
+                    marginTop: -2,
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      paddingBottom: 8,
+                      marginBottom: 4,
+                      borderBottom: "1px solid #dbe7df",
+                    }}
+                  >
+                    <span style={{ width: 26, flexShrink: 0 }} />
+                    <span
+                      style={{
+                        flex: 1,
+                        fontSize: 10,
+                        fontWeight: 800,
+                        color: "#8aa294",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      Alimento
+                    </span>
+                    <span
+                      style={{
+                        width: 62,
+                        flexShrink: 0,
+                        textAlign: "center",
+                        fontSize: 10,
+                        fontWeight: 800,
+                        color: "#8aa294",
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                      }}
+                    >
+                      Veces
+                    </span>
+                  </div>
+                  <div>
+                    {FOOD_ORDER.map((key, i) => {
+                      const n = displayFreqs[key] ?? 0;
+                      const meta = FOOD_META[key];
+                      const pct = Math.round((n / maxN) * 100);
+                      return (
+                        <div
+                          key={key}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: "9px 0",
+                            borderBottom:
+                              i < FOOD_ORDER.length - 1 ? "1px solid #e4ede7" : "none",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 26,
+                              height: 26,
+                              borderRadius: 8,
+                              background: `${meta.color}1a`,
+                              color: meta.color,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
+                            }}
+                          >
+                            <meta.Icon size={15} />
+                          </span>
+                          <span
+                            style={{
+                              width: 84,
+                              flexShrink: 0,
+                              fontSize: 12,
+                              fontWeight: 700,
+                              color: "#3a4a40",
+                              lineHeight: 1.2,
+                            }}
+                          >
+                            {meta.label}
+                          </span>
+                          <span
+                            style={{
+                              flex: 1,
+                              height: 7,
+                              borderRadius: 4,
+                              background: "#e4ede7",
+                              overflow: "hidden",
+                            }}
+                          >
+                            <span
+                              style={{
+                                display: "block",
+                                height: "100%",
+                                width: `${pct}%`,
+                                background: meta.color,
+                                borderRadius: 4,
+                                transition: "width .3s ease",
+                              }}
+                            />
+                          </span>
+                          <span
+                            style={{
+                              width: 62,
+                              flexShrink: 0,
+                              display: "flex",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <span
+                              style={{
+                                fontSize: 11,
+                                fontWeight: 800,
+                                color: "#3a4a40",
+                                background: "#f3f8f4",
+                                border: `1px solid ${meta.color}`,
+                                borderRadius: 8,
+                                padding: "3px 8px",
+                              }}
+                            >
+                              {n}/sem
+                            </span>
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </Fragment>
+          );
+        })}
+      </div>
+
+      {hasCena && (
+        <div style={{ marginTop: 26 }}>
+          <SectionTitle>Otras opciones</SectionTitle>
+          <button
+            type="button"
+            onClick={() => setCenasSheetOpen(true)}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+              width: "100%",
+              padding: "12px 14px",
+              borderRadius: 16,
+              border: "1.5px solid #e0eae3",
+              background: "#fff",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "all .15s ease",
+              boxShadow: "0 1px 2px rgba(0,0,0,.04)",
+            }}
+          >
+            <div
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                flexShrink: 0,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                background: anyRapida ? "#2f7dc0" : "#eef5f0",
+                color: anyRapida ? "#fff" : "#2d5a3d",
+              }}
+            >
+              <Zap size={20} />
+            </div>
+            <div style={{ flex: 1, textAlign: "left" }}>
+              <div style={{ fontSize: 14, fontWeight: 800, color: "#142f1d" }}>
+                Cenas rápidas
+              </div>
+              <div style={{ fontSize: 12, color: "#6b7d70", marginTop: 2, lineHeight: 1.35 }}>
+                {anyRapida
+                  ? `${rapidaDays.length} ${rapidaDays.length === 1 ? "noche marcada" : "noches marcadas"} · algo ligero`
+                  : "Marca noches ligeras y sin complicaciones"}
+              </div>
+            </div>
+            <ChevronRight size={18} color="#b6c4bb" />
+          </button>
+        </div>
+      )}
+
+      {cenasSheetOpen && (
+        <div
+          onClick={() => setCenasSheetOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,.45)",
+            zIndex: 150,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px 16px",
+            animation: "cenasFadeIn .2s ease both",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: "#fff",
+              borderRadius: 20,
+              width: "100%",
+              maxWidth: 420,
+              padding: "14px 16px 18px",
+              maxHeight: "70dvh",
+              overflowY: "auto",
+              animation: "cenasSlideUp .28s cubic-bezier(.32,1,.28,1) both",
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 6,
+              }}
+            >
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#1a3a24" }}>
+                Cenas rápidas
+              </h3>
+              <button
+                type="button"
+                onClick={() => setCenasSheetOpen(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "#aaa",
+                  padding: 4,
+                  display: "flex",
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+            <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 14px", lineHeight: 1.45 }}>
+              Toca las noches que quieras <b>ligeras y sin complicaciones</b>.
+            </p>
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
+              <button
+                type="button"
+                onClick={setWeekendRapidas}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "7px 11px",
+                  borderRadius: 9,
+                  border: `1px solid ${weekendActive ? "#2d5a3d" : "#d7e1db"}`,
+                  background: weekendActive ? "#2d5a3d" : "#fff",
+                  color: weekendActive ? "#fff" : "#2d5a3d",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  transition: "all .15s ease",
+                }}
+              >
+                <CalendarDays size={13} /> Solo findes
+              </button>
+            </div>
+
+            <div
+              style={{
+                background: "#fafcfb",
+                border: "1px solid #e8efe9",
+                borderRadius: 18,
+                padding: 12,
+              }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto repeat(7, 1fr)",
+                  gap: 5,
+                  alignItems: "center",
+                }}
+              >
+                <div />
+                {DAYS.map((d) => {
+                  const isWeekend = d === "Sáb" || d === "Dom";
+                  return (
+                    <div
+                      key={`h-${d}`}
+                      style={{ display: "flex", justifyContent: "center", paddingBottom: 6 }}
+                    >
+                      <span
+                        style={{
+                          width: 28,
+                          height: 28,
+                          borderRadius: "50%",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: 10,
+                          fontWeight: 800,
+                          background: isWeekend ? "#2d5a3d" : "rgba(45,90,61,.1)",
+                          color: isWeekend ? "#a8d5b5" : "#2d5a3d",
+                        }}
+                      >
+                        {d.slice(0, 2)}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    paddingRight: 7,
+                    color: "#7a9080",
+                  }}
+                  title="Cena"
+                >
+                  <Moon size={15} />
+                </div>
+                {DAYS.map((d) => {
+                  const active = slotTypeMap[`${d}|Cena`] === "rapida";
+                  return (
+                    <button
+                      key={d}
+                      type="button"
+                      onClick={() => toggleCenaRapida(d)}
+                      title={`Cena del ${dayLabel(d).toLowerCase()}`}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        width: "100%",
+                        minHeight: 44,
+                        borderRadius: 12,
+                        border: active ? "none" : "1.5px solid #e6efe9",
+                        background: active ? "#2f7dc0" : "#fff",
+                        color: active ? "#fff" : "#c0ccc4",
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                        transition: "all .15s ease",
+                        boxShadow: active ? "0 3px 10px rgba(47,125,192,.32)" : "none",
+                      }}
+                    >
+                      {active ? <Zap size={17} /> : <Moon size={14} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setCenasSheetOpen(false)}
+              style={{
+                marginTop: 16,
+                width: "100%",
+                height: 46,
+                borderRadius: 12,
+                border: "none",
+                background: "#2d5a3d",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              Listo
+            </button>
+          </div>
+        </div>
+      )}
+    </OnboardingShell>
+  );
 }
 
 export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onReset }) {

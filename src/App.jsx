@@ -5,6 +5,7 @@ import {
   OnboardingRestrictions,
   OnboardingRepeat,
   OnboardingMenuModel,
+  OnboardingMealStyle,
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
@@ -501,8 +502,8 @@ export default function App() {
     setScreen("splash");
   }, []);
 
-  // Order: Members → Menu Model → School Menu → Week → Schedule → Restrictions → Repeat → Cooking.
-  const ONB_STEP_COUNT = 8;
+  // Order: Members → Menu Model → School Menu → Week → Schedule → Meal Style → Restrictions → Repeat → Cooking.
+  const ONB_STEP_COUNT = 9;
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
   const onbProgressValue = useMemo(
     () => ({ current: safeOnbStep, total: ONB_STEP_COUNT, onJump: setOnbStep }),
@@ -553,7 +554,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingRestrictions
+    <OnboardingMealStyle
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(6))}
@@ -561,7 +562,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
-    <OnboardingRepeat
+    <OnboardingRestrictions
       data={data}
       setData={setData}
       onNext={() => fwd(() => setOnbStep(7))}
@@ -569,10 +570,18 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
+    <OnboardingRepeat
+      data={data}
+      setData={setData}
+      onNext={() => fwd(() => setOnbStep(8))}
+      onBack={() => back(() => setOnbStep(6))}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleReset}
+    />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onBack={() => back(() => setOnbStep(6))}
+      onBack={() => back(() => setOnbStep(7))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
@@ -703,7 +712,7 @@ export default function App() {
                 setData={setData}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("account"))}
-                onEditPreferences={() => goToOnboardingStep(5)}
+                onEditPreferences={() => goToOnboardingStep(6)}
                 onSignIn={signInWithGoogle}
                 onReset={handleReset}
               />
@@ -726,7 +735,7 @@ export default function App() {
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("settings"))}
                 onEditMembers={() => goToOnboardingStep(0)}
-                onEditPreferences={() => goToOnboardingStep(5)}
+                onEditPreferences={() => goToOnboardingStep(6)}
                 onSignIn={signInWithGoogle}
                 onSignOut={signOut}
                 onToast={showToast}
