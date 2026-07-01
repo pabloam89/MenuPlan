@@ -1,4 +1,4 @@
-import { stageForAge } from "./stages.js";
+import { migrateHomeRole, stageForAge, suggestHomeRole } from "./stages.js";
 
 const GROUP_COLORS = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e", "#7e5aa8", "#5aa87e"];
 const BABY_GROUP_LABEL = "Bebé";
@@ -22,15 +22,30 @@ export function resolveMemberAge(member) {
   return Number.isFinite(member.age) ? member.age : parseInt(member.age, 10) || 30;
 }
 
+/**
+ * Which menu tier ("Adultos" / "Niños" / "Bebé") a member belongs to by
+ * default. Age decides the baby cutoff (nutrition-critical), but "child vs
+ * adult" is decided by household role, not age: a 15-year-old with role
+ * "Hijo/a" should still default into "Niños", while an "Adulto" role always
+ * goes to "Adultos" regardless of age. This keeps teens assignable to the
+ * kids' menu instead of being silently bucketed as adults.
+ */
+export function tierForMember(member) {
+  const age = resolveMemberAge(member);
+  if (stageForAge(age).id === "baby") return "baby";
+  const role = migrateHomeRole(member.homeRole ?? suggestHomeRole(age));
+  if (role === "Hijo/a" || role === "Amigo/a") return "child";
+  return "adult"; // Adulto, Papá, Mamá, Abuelo/a, Otro
+}
+
 export function splitMembersByStage(members) {
   const adults = [];
   const children = [];
   const babies = [];
   for (const m of members) {
-    const s = stageForAge(resolveMemberAge(m)).id;
-    if (s === "adulto" || s === "secundaria") adults.push(m);
-    else if (s === "baby") babies.push(m);
-    else if (s === "infantil" || s === "primaria") children.push(m);
+    const tier = tierForMember(m);
+    if (tier === "baby") babies.push(m);
+    else if (tier === "child") children.push(m);
     else adults.push(m);
   }
   return { adults, children, babies };

@@ -56,7 +56,14 @@ import {
   UtensilsCrossed,
   X,
 } from "lucide-react";
-import { Chip, SliderInput, Avatar, AvatarStack, ProgressDots } from "../components/ui.jsx";
+import {
+  Chip,
+  SliderInput,
+  Avatar,
+  AvatarStack,
+  ProgressDots,
+  GroupScopePicker,
+} from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
@@ -73,6 +80,7 @@ import {
   groupsAvailableForMember,
   groupsFromModel,
   hasBabyMember,
+  isBabyMenuGroup,
   membersOfGroup,
   migrateGroupsForBabies,
   uid,
@@ -2053,16 +2061,29 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
     modelId === "separate" && groups.length > 1;
 
   const pickModel = (modelId) => {
-    const groups = buildGroups(data.members, modelId);
-    if (needsAssignmentPopup(groups, modelId)) {
+    if (modelId === "same") {
+      setDraftGroups(null);
+      setAssignmentOpen(false);
+      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same") }));
+      return;
+    }
+
+    // Reuse the already-confirmed assignment when it exists, so reopening
+    // this screen (or clicking the card again to review it) never discards
+    // manual reassignments — it always lands back on the same menu split.
+    const reuseExisting =
+      data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
+    const groups = reuseExisting ? data.groups : buildGroups(data.members, "separate");
+
+    if (needsAssignmentPopup(groups, "separate")) {
       setDraftGroups(groups);
       setAssignmentOpen(true);
-      setData((d) => ({ ...d, menuModel: null }));
+      if (!reuseExisting) setData((d) => ({ ...d, menuModel: null }));
       return;
     }
     setDraftGroups(null);
     setAssignmentOpen(false);
-    setData((d) => ({ ...d, menuModel: modelId, groups }));
+    setData((d) => ({ ...d, menuModel: "separate", groups }));
   };
 
   const confirmAssignment = () => {
@@ -2073,9 +2094,11 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
   };
 
   const cancelAssignment = () => {
+    // Don't touch menuModel/groups: if there was already a confirmed
+    // "separate" assignment it stays untouched; if this was a first-time
+    // pick, pickModel already cleared menuModel to keep "Siguiente" disabled.
     setDraftGroups(null);
     setAssignmentOpen(false);
-    setData((d) => ({ ...d, menuModel: null }));
   };
 
   const canProceed = data.menuModel === "same" || data.menuModel === "separate";
@@ -2168,6 +2191,30 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
         >
           Los bebés tendrán menú adaptado automáticamente.
         </p>
+      )}
+
+      {data.menuModel === "separate" && !assignmentOpen && (
+        <div style={{ display: "flex", justifyContent: "center" }}>
+          <button
+            type="button"
+            onClick={() => pickModel("separate")}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              background: "none",
+              border: "none",
+              color: "#2d5a3d",
+              fontSize: 12.5,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              padding: "6px 4px",
+            }}
+          >
+            <GitBranch size={13} /> Editar quién va en cada menú
+          </button>
+        </div>
       )}
 
       {assignmentOpen && draftGroups && (
@@ -4581,16 +4628,25 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
     () => (Array.isArray(data.groups) ? data.groups : []),
     [data.groups],
   );
-  const hasMultipleGroups = groups.length > 1;
+  // The baby menu doesn't vary by food-group style, so it never gets a tab here.
+  const styleableGroups = useMemo(
+    () => groups.filter((g) => !isBabyMenuGroup(g, data.members ?? [])),
+    [groups, data.members],
+  );
+  const hasMultipleGroups = styleableGroups.length > 1;
 
-  const [activeGroupId, setActiveGroupId] = useState(groups[0]?.id ?? null);
+  const [activeGroupId, setActiveGroupId] = useState(null);
+  const autoSelectedGroupRef = useRef(false);
   useEffect(() => {
-    if (activeGroupId == null && groups.length > 0) {
-      setActiveGroupId(groups[0].id);
-    } else if (activeGroupId != null && !groups.some((g) => g.id === activeGroupId)) {
-      setActiveGroupId(groups[0]?.id ?? null);
+    if (!autoSelectedGroupRef.current && styleableGroups.length > 0) {
+      autoSelectedGroupRef.current = true;
+      setActiveGroupId(styleableGroups[0].id);
+      return;
     }
-  }, [groups, activeGroupId]);
+    if (activeGroupId != null && !styleableGroups.some((g) => g.id === activeGroupId)) {
+      setActiveGroupId(styleableGroups[0]?.id ?? null);
+    }
+  }, [styleableGroups, activeGroupId]);
 
   const subjectId = activeGroupId;
   const styleKey = subjectId ?? "__global__";
@@ -4598,7 +4654,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
 
   // Real cooking slots this week for the active menu, from the schedule grid —
   // freqs get scaled to this so the plan never asks for more dishes than fit.
-  const activeGroup = groups.find((g) => g.id === activeGroupId) ?? null;
+  const activeGroup = styleableGroups.find((g) => g.id === activeGroupId) ?? null;
   const slotBudget = useGroupSlotBudget(data, activeGroup);
 
   // Keep the saved freqs in sync with the slot budget: if the user goes back
@@ -4674,8 +4730,6 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
     });
   };
 
-  const activeGroupLabel = groups.find((g) => g.id === activeGroupId)?.label ?? "todos";
-
   return (
     <OnboardingShell
       title="¿Cómo os gusta comer?"
@@ -4687,31 +4741,17 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
       bg="#f5f9f6"
     >
       {hasMultipleGroups && (
-        <div style={{ marginBottom: 18 }}>
+        <div style={{ marginBottom: 20 }}>
           <SectionTitle>Menú</SectionTitle>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-            {groups.map((g) => {
-              const sel = g.id === activeGroupId;
-              const memberCount = membersOfGroup(g, data.members ?? []).length;
-              return (
-                <button
-                  key={g.id}
-                  type="button"
-                  onClick={() => setActiveGroupId(g.id)}
-                  style={subjectPillStyle(sel, g.color)}
-                >
-                  <Users size={12} /> {g.label}
-                  <span style={{ opacity: 0.7, fontWeight: 500 }}>· {memberCount}</span>
-                </button>
-              );
-            })}
-          </div>
+          <GroupScopePicker
+            groups={styleableGroups}
+            scope={activeGroupId ?? "all"}
+            onChange={(scopeId) => setActiveGroupId(scopeId === "all" ? null : scopeId)}
+          />
         </div>
       )}
 
-      <SectionTitle>
-        {hasMultipleGroups ? `Estilo · ${activeGroupLabel}` : "Estilo de comida"}
-      </SectionTitle>
+      <div style={{ height: 1, background: "#dfe9e2", margin: "0 0 16px" }} />
       <style>{`
         @keyframes mealFreqIn {
           from { opacity: 0; transform: translateY(-6px); }
