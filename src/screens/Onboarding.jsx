@@ -4535,11 +4535,14 @@ function useGroupSlotBudget(data, group) {
 
 function mealStyleCardStyle(selected) {
   return {
+    position: "relative",
+    flex: 1,
     display: "flex",
+    flexDirection: "column",
     alignItems: "center",
-    gap: 12,
-    width: "100%",
-    padding: "14px",
+    justifyContent: "center",
+    gap: 8,
+    padding: "16px 6px 14px",
     borderRadius: 16,
     border: `1.5px solid ${selected ? "#2d5a3d" : "#e0eae3"}`,
     background: selected ? "#2d5a3d" : "#fff",
@@ -4552,8 +4555,8 @@ function mealStyleCardStyle(selected) {
 
 function mealStyleIconStyle(selected) {
   return {
-    width: 40,
-    height: 40,
+    width: 38,
+    height: 38,
     borderRadius: 12,
     flexShrink: 0,
     display: "flex",
@@ -4720,51 +4723,64 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", gap: 8 }}>
         {MEAL_STYLES.map((s) => {
           const sel = activeStyle === s.id;
-          const displayFreqs = scaleFreqsToSlots(s.freqs, slotBudget.total);
-          const maxN = Math.max(1, ...Object.values(displayFreqs));
           return (
-            <Fragment key={s.id}>
-              <button
-                type="button"
-                onClick={() => selectStyle(s.id)}
-                style={mealStyleCardStyle(sel)}
-              >
-                <div style={mealStyleIconStyle(sel)}>
-                  <s.Icon size={20} />
-                </div>
-                <div style={{ flex: 1, textAlign: "left" }}>
-                  <div style={{ fontSize: 14, fontWeight: 800, color: sel ? "#fff" : "#142f1d" }}>
-                    {s.label}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: sel ? "rgba(255,255,255,.85)" : "#6b7d70",
-                      marginTop: 2,
-                      lineHeight: 1.35,
-                    }}
-                  >
-                    {s.desc}
-                  </div>
-                </div>
-                {sel && <Check size={18} color="#fff" />}
-              </button>
-
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => selectStyle(s.id)}
+              style={mealStyleCardStyle(sel)}
+            >
               {sel && (
-                <div
-                  style={{
-                    animation: "mealFreqIn .24s cubic-bezier(.32,1,.28,1) both",
-                    background: "#fff",
-                    border: "1px solid #e2ede6",
-                    borderRadius: 14,
-                    padding: "12px 14px",
-                    marginTop: -2,
-                  }}
-                >
-                  <div
+                <span style={{ position: "absolute", top: 8, right: 8, display: "flex" }}>
+                  <Check size={13} color="#fff" />
+                </span>
+              )}
+              <div style={mealStyleIconStyle(sel)}>
+                <s.Icon size={18} />
+              </div>
+              <div
+                style={{
+                  fontSize: 12.5,
+                  fontWeight: 800,
+                  color: sel ? "#fff" : "#142f1d",
+                  textAlign: "center",
+                  lineHeight: 1.25,
+                }}
+              >
+                {s.label}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {(() => {
+        const activeStyleObj = MEAL_STYLES.find((s) => s.id === activeStyle);
+        if (!activeStyleObj) return null;
+        const displayFreqs = scaleFreqsToSlots(activeStyleObj.freqs, slotBudget.total);
+        const maxN = Math.max(1, ...Object.values(displayFreqs));
+        return (
+          <div
+            style={{
+              marginTop: 12,
+              animation: "mealFreqIn .22s cubic-bezier(.32,1,.28,1) both",
+            }}
+          >
+            <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.45 }}>
+              {activeStyleObj.desc}
+            </p>
+            <div
+              style={{
+                background: "#fff",
+                border: "1px solid #e2ede6",
+                borderRadius: 14,
+                padding: "12px 14px",
+              }}
+            >
+              <div
                     style={{
                       display: "flex",
                       alignItems: "center",
@@ -4892,12 +4908,10 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                       );
                     })}
                   </div>
-                </div>
-              )}
-            </Fragment>
-          );
-        })}
-      </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {hasCena && (
         <div style={{ marginTop: 26 }}>
