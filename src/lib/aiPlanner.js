@@ -133,7 +133,7 @@ RESTRICCIONES POR SLOT:
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
 - Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
-- Si hay platos a repetir (fixedDishes), colócalos en los huecos indicados usando SOLO recipeIds del catálogo. Si catalogMatches trae ids, usa uno de esos. Si catalogMatches está vacío, elige la receta más parecida por nombre del catálogo; NUNCA inventes ids.
+- Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente `timesPerWeek` veces a lo largo de la semana, en slots del tipo indicado en `meals` (comida o cena). Si timesPerWeek es 2, ponlo en 2 días distintos; si es 3, en 3 días, etc. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
 
 IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.
 
