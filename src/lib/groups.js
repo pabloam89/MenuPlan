@@ -59,6 +59,21 @@ export function hasBabyMember(members) {
   return members.some((m) => memberIsBaby(m));
 }
 
+/** True when a member is younger than adult (baby or child by age), i.e. the
+ * household has someone a school/daycare menu could apply to. */
+export function hasUnderageMember(members) {
+  return members.some((m) => stageForAge(resolveMemberAge(m)).id !== "adulto");
+}
+
+/** True when "Menús separados" would actually produce more than one menu —
+ * i.e. members span at least two tiers (adults/children/babies). If
+ * everyone falls into the same tier there's nothing to split. */
+export function canSplitMenus(members) {
+  const { adults, children, babies } = splitMembersByStage(members);
+  const nonEmptyTiers = [adults, children, babies].filter((g) => g.length > 0).length;
+  return nonEmptyTiers > 1;
+}
+
 /** True when this group's menu must use only baby recipes. */
 export function isBabyMenuGroup(group, members) {
   if (group?.label === BABY_GROUP_LABEL) return true;

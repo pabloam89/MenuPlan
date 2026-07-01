@@ -22,7 +22,13 @@ import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getMeals } from "./lib/planner.js";
-import { groupsFromModel, migrateGroupsForBabies, memberIsBaby } from "./lib/groups.js";
+import {
+  groupsFromModel,
+  migrateGroupsForBabies,
+  memberIsBaby,
+  canSplitMenus,
+  hasUnderageMember,
+} from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes } from "./data/recipes.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
@@ -503,85 +509,120 @@ export default function App() {
   }, []);
 
   // Order: Members → Menu Model → School Menu → Week → Schedule → Meal Style → Restrictions → Repeat → Cooking.
+  // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
+  // real choice: no split possible if everyone's an adult, nothing to upload
+  // if nobody in the house is underage (baby or child).
   const ONB_STEP_COUNT = 9;
+  const skipMenuModel = !canSplitMenus(data.members);
+  const skipSchoolMenu = !hasUnderageMember(data.members);
+  const isStepHidden = useCallback(
+    (i) => (i === 1 && skipMenuModel) || (i === 2 && skipSchoolMenu),
+    [skipMenuModel, skipSchoolMenu]
+  );
+  const stepNeighbor = useCallback(
+    (from, dir) => {
+      let i = from + dir;
+      while (i >= 0 && i <= ONB_STEP_COUNT - 1 && isStepHidden(i)) i += dir;
+      return Math.max(0, Math.min(ONB_STEP_COUNT - 1, i));
+    },
+    [isStepHidden]
+  );
+  const visibleSteps = useMemo(
+    () => Array.from({ length: ONB_STEP_COUNT }, (_, i) => i).filter((i) => !isStepHidden(i)),
+    [isStepHidden]
+  );
+
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
+  const progressIndex = Math.max(0, visibleSteps.indexOf(safeOnbStep));
   const onbProgressValue = useMemo(
-    () => ({ current: safeOnbStep, total: ONB_STEP_COUNT, onJump: setOnbStep }),
-    [safeOnbStep, ONB_STEP_COUNT]
+    () => ({
+      current: progressIndex,
+      total: visibleSteps.length,
+      onJump: (i) => setOnbStep(visibleSteps[i] ?? 0),
+    }),
+    [progressIndex, visibleSteps]
   );
 
   useEffect(() => {
-    if (onbStep >= ONB_STEP_COUNT) setOnbStep(ONB_STEP_COUNT - 1);
-  }, [onbStep]);
+    if (onbStep >= ONB_STEP_COUNT) {
+      setOnbStep(ONB_STEP_COUNT - 1);
+      return;
+    }
+    // Data changed mid-flow (e.g. the last child was removed) and left us on
+    // a step that should now be hidden — hop to the next visible one.
+    if (isStepHidden(onbStep)) {
+      setOnbStep((s) => stepNeighbor(s, s >= ONB_STEP_COUNT - 1 ? -1 : 1));
+    }
+  }, [onbStep, isStepHidden, stepNeighbor]);
 
   const onbScreens = [
     <OnboardingMembers
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(1))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(0, 1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingMenuModel
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(2))}
-      onBack={() => back(() => setOnbStep(0))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(1, 1)))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(1, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingSchoolMenu
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(3))}
-      onBack={() => back(() => setOnbStep(1))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(2, 1)))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(2, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingWeek
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(4))}
-      onBack={() => back(() => setOnbStep(2))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(3, 1)))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(3, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingSchedule
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(5))}
-      onBack={() => back(() => setOnbStep(3))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(4, 1)))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(4, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingMealStyle
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(6))}
-      onBack={() => back(() => setOnbStep(4))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(5, 1)))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(5, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(7))}
-      onBack={() => back(() => setOnbStep(5))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(6, 1)))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(6, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingRepeat
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(8))}
-      onBack={() => back(() => setOnbStep(6))}
+      onNext={() => fwd(() => setOnbStep(stepNeighbor(7, 1)))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(7, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onBack={() => back(() => setOnbStep(7))}
+      onBack={() => back(() => setOnbStep(stepNeighbor(8, -1)))}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
@@ -1074,23 +1115,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
         onClick={(e) => e.stopPropagation()}
       >
         {hasSaved || isAuthed ? (
-          <button
-            onClick={handleEnter}
-            style={{
-              background: "#fff",
-              color: "#1a3a24",
-              border: "none",
-              borderRadius: 999,
-              padding: "16px 24px",
-              fontSize: 16,
-              fontWeight: 800,
-              cursor: "pointer",
-              boxShadow: "0 10px 28px rgba(0,0,0,.35)",
-              width: "100%",
-            }}
-          >
+          <GhostPillButton onClick={handleEnter} tone="light">
             {hasSaved ? "Continuar" : "Empezar ya"}
-          </button>
+          </GhostPillButton>
         ) : (
           <>
             <GoogleButton onClick={onGoogle} variant="dark" />

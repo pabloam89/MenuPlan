@@ -144,7 +144,8 @@ export function OnboardingShell({
   nextLabel = "Afinar menú",
   finishLabel = "Generar menú",
   nextDisabled = false,
-  bg,
+  finishDisabled = false,
+  bg = "#f5f9f6",
 }) {
   const progress = useContext(OnboardingProgressContext);
   const headerBtn = {
@@ -169,7 +170,7 @@ export function OnboardingShell({
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
-        background: bg ?? "transparent",
+        background: bg,
       }}
     >
       <div
@@ -242,23 +243,24 @@ export function OnboardingShell({
           paddingRight: 20,
           paddingTop: 12,
           paddingBottom: "calc(10px + env(safe-area-inset-bottom))",
-          background: bg ?? "#fff",
+          background: bg,
           boxShadow: "0 -10px 16px -10px rgba(0,0,0,0.14)",
         }}
       >
         {onFinish && onNext && (
           <button
-            onClick={onFinish}
+            onClick={finishDisabled ? undefined : onFinish}
+            disabled={finishDisabled}
             style={{
               flex: 1,
               padding: "14px",
               borderRadius: 12,
-              border: "1.5px solid #c8ddd0",
-              background: "#fff",
-              color: "#2d5a3d",
+              border: `1.5px solid ${finishDisabled ? "#e0e8e3" : "#c8ddd0"}`,
+              background: finishDisabled ? "#f1f5f2" : "#fff",
+              color: finishDisabled ? "#aebcb2" : "#2d5a3d",
               fontSize: 14,
               fontWeight: 700,
-              cursor: "pointer",
+              cursor: finishDisabled ? "not-allowed" : "pointer",
             }}
           >
             {finishLabel}
@@ -288,18 +290,22 @@ export function OnboardingShell({
         )}
         {onFinish && !onNext && (
           <button
-            onClick={onFinish}
+            onClick={finishDisabled ? undefined : onFinish}
+            disabled={finishDisabled}
             style={{
               flex: 2,
               padding: "14px",
               borderRadius: 12,
               border: "none",
-              background: "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
+              background: finishDisabled
+                ? "#c8d9ce"
+                : "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
               color: "#fff",
               fontSize: 14,
               fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 4px 18px rgba(76,186,110,.35)",
+              cursor: finishDisabled ? "not-allowed" : "pointer",
+              boxShadow: finishDisabled ? "none" : "0 4px 18px rgba(76,186,110,.35)",
+              opacity: finishDisabled ? 0.85 : 1,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -426,8 +432,10 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
       title="¿Quién come en casa?"
       subtitle="Añade a cada persona. Luego revisa su categoría (Adulto, Bebé…) y toca su avatar para elegir un color."
       onReset={onReset}
-      onNext={hasMembers ? onNext : undefined}
-      onFinish={hasMembers ? onFinish : undefined}
+      onNext={onNext}
+      onFinish={onFinish}
+      nextDisabled={!hasMembers}
+      finishDisabled={!hasMembers}
     >
       {/* Role picker overlay */}
       {roleEditId && (
@@ -607,7 +615,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
             className={isLeaving ? "member-leaving" : "member-enter"}
             style={{
               display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 12px", background: "#f6f9f7",
+              padding: "10px 12px", background: "#fff",
+              border: "1.5px solid #dfe9e2",
+              boxShadow: "0 1px 5px rgba(45,90,61,.07)",
               borderRadius: 14, marginBottom: 8,
               flexWrap: "wrap",
             }}
@@ -843,7 +853,7 @@ const TOOL_ICON = {
 
 function mealColWidthFor(mealOptions) {
   const n = Math.max(1, mealOptions.length);
-  return n * 28 + (n - 1) * 4 + 6;
+  return n * 28 + (n - 1) * 4 + 8;
 }
 
 function MealIconToggle({ meals, mealOptions, onChange }) {
@@ -855,7 +865,7 @@ function MealIconToggle({ meals, mealOptions, onChange }) {
         gap: 4,
         background: "#eef3f0",
         borderRadius: 9,
-        padding: 3,
+        padding: 4,
       }}
       role="group"
       aria-label="Cuándo"
@@ -1010,12 +1020,12 @@ function FixedDishRow({ name, garnish, catLabel, catColor, leading, nameValue, o
           </div>
         )}
       </div>
-      <div style={{ flexShrink: 0 }}>
-        {isNew && <p style={fieldLbl}>Veces</p>}
+      <div style={{ flexShrink: 0, width: 36 }}>
+        {isNew && <p style={{ ...fieldLbl, textAlign: "center" }}>Veces</p>}
         <FixedTimesInput value={times} onChange={onTimesChange} />
       </div>
       <div style={{ flexShrink: 0, width: mealColW }}>
-        {isNew && <p style={fieldLbl}>Cuándo</p>}
+        {isNew && <p style={{ ...fieldLbl, textAlign: "center" }}>Cuándo</p>}
         <MealIconToggle meals={meals} mealOptions={mealOptions} onChange={onMealsChange} />
       </div>
       {isNew ? (
@@ -1113,8 +1123,8 @@ function FixedDishTable({ items, mealOptions, onTimesChange, onMealsChange, onRe
       <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "9px 10px", background: "#dcebe1", borderBottom: "1px solid #c9ddd0" }}>
         <span style={{ width: 46, flexShrink: 0 }} />
         <span style={{ flex: 1, minWidth: 0, ...headerLbl }}>Plato</span>
-        <span style={{ width: 36, flexShrink: 0, textAlign: "center", ...headerLbl }}>Veces</span>
-        <span style={{ width: mealColW, flexShrink: 0, ...headerLbl }}>Cuándo</span>
+        <span style={{ width: 36, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", ...headerLbl }}>Veces</span>
+        <span style={{ width: mealColW, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", ...headerLbl }}>Cuándo</span>
         <span style={{ width: fixedRowH, flexShrink: 0 }} />
       </div>
 
