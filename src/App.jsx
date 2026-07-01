@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -1080,7 +1080,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
               background: "#fff",
               color: "#1a3a24",
               border: "none",
-              borderRadius: 14,
+              borderRadius: 999,
               padding: "16px 24px",
               fontSize: 16,
               fontWeight: 800,
@@ -1094,23 +1094,9 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
         ) : (
           <>
             <GoogleButton onClick={onGoogle} variant="dark" />
-            <button
-              onClick={handleEnter}
-              style={{
-                background: "transparent",
-                color: "rgba(255,255,255,.85)",
-                border: "none",
-                padding: "6px",
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                textDecoration: "underline",
-                textUnderlineOffset: 3,
-              }}
-            >
+            <GhostPillButton onClick={handleEnter} tone="light">
               Entrar sin cuenta
-            </button>
+            </GhostPillButton>
           </>
         )}
       </div>

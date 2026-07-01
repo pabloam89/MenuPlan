@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { createPortal } from "react-dom";
 import { BarChart3, Calendar, ClipboardList, Settings, ShoppingCart } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
@@ -303,18 +304,24 @@ function GoogleGlyph({ size = 18 }) {
 
 export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
   const dark = variant === "dark";
+  const [pressed, setPressed] = useState(false);
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
       style={{
         width: "100%",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         gap: 10,
-        padding: "14px 18px",
-        borderRadius: 14,
+        padding: "15px 20px",
+        borderRadius: 999,
         border: dark ? "1.5px solid rgba(255,255,255,.25)" : "1.5px solid #dbe5de",
         background: "#fff",
         color: "#1a3a24",
@@ -323,10 +330,53 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
         cursor: "pointer",
         fontFamily: "inherit",
         boxShadow: dark ? "0 10px 28px rgba(0,0,0,.35)" : "0 2px 10px rgba(20,47,29,.08)",
+        transform: pressed ? "scale(.97)" : "scale(1)",
+        transition: "transform .15s ease",
       }}
     >
       <GoogleGlyph size={18} />
       {label}
+    </button>
+  );
+}
+
+export function GhostPillButton({ onClick, children, tone = "light" }) {
+  const [pressed, setPressed] = useState(false);
+  const light = tone === "light";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      onMouseDown={() => setPressed(true)}
+      onMouseUp={() => setPressed(false)}
+      onMouseLeave={() => setPressed(false)}
+      onTouchStart={() => setPressed(true)}
+      onTouchEnd={() => setPressed(false)}
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "13px 20px",
+        borderRadius: 999,
+        border: light ? "1.5px solid rgba(255,255,255,.4)" : "1.5px solid #dbe5de",
+        background: pressed
+          ? light
+            ? "rgba(255,255,255,.22)"
+            : "#eef4f0"
+          : light
+            ? "rgba(255,255,255,.08)"
+            : "transparent",
+        color: light ? "#fff" : "#1a3a24",
+        fontSize: 14.5,
+        fontWeight: 700,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        transform: pressed ? "scale(.97)" : "scale(1)",
+        transition: "transform .15s ease, background .15s ease",
+      }}
+    >
+      {children}
     </button>
   );
 }
