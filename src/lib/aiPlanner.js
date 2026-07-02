@@ -11,6 +11,7 @@ import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes } from "./
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory } from "./ingredientCategories.js";
+import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -66,8 +67,8 @@ export class AIPlannerError extends Error {
 
 // ── API call ────────────────────────────────────────────────────
 
-const DEFAULT_MODEL = "claude-sonnet-4-6";
-const RETRY_MODEL = "claude-haiku-4-5-20251001";
+const DEFAULT_MODEL = PLANNER_MODEL;
+const RETRY_MODEL = FAST_MODEL;
 const DEFAULT_MAX_TOKENS = 1024;
 
 async function callModel(body, signal) {
@@ -283,7 +284,6 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
   });
 
   const parts = [
-    `Catálogo:\n${JSON.stringify(catalog)}`,
     `\nHuecos a rellenar (con sus restricciones):\n${JSON.stringify(slotsForLLM)}`,
     `\nConfig:\n${JSON.stringify(config)}`,
   ];
@@ -298,7 +298,19 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
   }
 
   parts.push(`\nAsigna una receta del catálogo a cada hueco.`);
-  return parts.join("\n");
+
+  // Content blocks with a cache breakpoint after the catalog: Anthropic caches
+  // the system prompt + catalog prefix, so format/correction retries and
+  // regenerations within the TTL read it at ~10% of input cost. The same array
+  // reference is reused across retries to keep the prefix byte-identical.
+  return [
+    {
+      type: "text",
+      text: `Catálogo:\n${JSON.stringify(catalog)}`,
+      cache_control: { type: "ephemeral" },
+    },
+    { type: "text", text: parts.join("\n") },
+  ];
 }
 
 // ── Slot-type exceptions (user-marked "plato único" / "cena rápida") ──────
@@ -445,7 +457,6 @@ async function generateGroupMenu(data, group, signal) {
   // Baby groups use a deterministic planner — no LLM call needed
   if (ctx.isBabyGroup) {
     const slotAssignments = generateBabyMenuDeterministic(filteredPool, ctx.slots);
-    const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
     return { group, slotAssignments, filteredPool, slotsContext: ctx.slots };
   }
 

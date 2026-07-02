@@ -1,5 +1,6 @@
 import { z } from "zod";
 import Papa from "papaparse";
+import { PARSER_MODEL } from "./aiModels.js";
 
 // ---------------------------------------------------------------------------
 // Schema (matches the API prompt's output format)
@@ -119,7 +120,7 @@ function extractJson(text) {
 
 async function callClaude(messages, { system } = {}) {
   const body = {
-    model: "claude-sonnet-4-5-20250929",
+    model: PARSER_MODEL,
     max_tokens: 32000,
     system,
     messages,

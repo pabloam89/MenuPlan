@@ -28,6 +28,14 @@ export default async function handler(req, res) {
       return res.status(response.status).json(data);
     }
 
+    // Structured usage log — searchable in Vercel logs ("llm_usage") to track
+    // real token spend per model (input/output/cache read+write).
+    if (data?.usage) {
+      console.log(
+        JSON.stringify({ tag: "llm_usage", endpoint: "generate", model, ...data.usage })
+      );
+    }
+
     return res.status(200).json(data);
   } catch (err) {
     return res.status(500).json({ error: err.message });

@@ -1,3 +1,5 @@
+import { FAST_MODEL } from "./aiModels.js";
+
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -32,7 +34,7 @@ export async function extractReceiptProducts(file, { signal } = {}) {
   const mediaType = file.type?.startsWith("image/") ? file.type : "image/jpeg";
 
   const body = {
-    model: "claude-haiku-4-5-20251001",
+    model: FAST_MODEL,
     max_tokens: 1024,
     messages: [
       {

@@ -7,6 +7,10 @@ import { upsertUserProfile } from "./analytics.js";
  * Local-only for now: the OAuth redirect is configured for localhost in the
  * Supabase dashboard. Falls back gracefully if Supabase env vars are missing.
  */
+// Supabase re-fires SIGNED_IN on token refresh / tab focus; upsert the
+// profile only once per user per page load.
+let lastUpsertedUserId = null;
+
 export function useAuth() {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -28,7 +32,8 @@ export function useAuth() {
 
     const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
       setSession(next);
-      if (event === "SIGNED_IN" && next?.user) {
+      if (event === "SIGNED_IN" && next?.user && next.user.id !== lastUpsertedUserId) {
+        lastUpsertedUserId = next.user.id;
         upsertUserProfile(next.user);
       }
     });

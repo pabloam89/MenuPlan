@@ -33,15 +33,3 @@ export const recipeCatalog = ALL_RECIPES;
 export const recipeCatalogById = Object.fromEntries(
   ALL_RECIPES.map((r) => [r.id, r]),
 );
-
-export const CATALOG_DECISION_FIELDS = ALL_RECIPES.map((r) => ({
-  id: r.id,
-  name: r.name,
-  category: r.category,
-  mainProtein: r.mainProtein,
-  mealRole: r.mealRole,
-  time: r.time,
-  kcal: r.kcal,
-  kidFriendly: r.kidFriendly,
-  tupperFriendly: r.tupperFriendly,
-}));

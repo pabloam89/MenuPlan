@@ -120,6 +120,11 @@ async function generateSteps({ name, applianceLabel, prepSummary, ingredients, b
   if (!response.ok) {
     throw new Error(data?.error?.message || `Anthropic HTTP ${response.status}`);
   }
+  if (data?.usage) {
+    console.log(
+      JSON.stringify({ tag: "llm_usage", endpoint: "recipe-steps", model: ANTHROPIC_MODEL, ...data.usage })
+    );
+  }
   const text = data?.content?.[0]?.text ?? "";
   const parsed = extractJson(text);
   const steps = sanitizeSteps(parsed?.steps);
