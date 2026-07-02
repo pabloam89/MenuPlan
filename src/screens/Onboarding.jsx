@@ -4492,7 +4492,7 @@ const FOOD_META = {
 
 const FOOD_ORDER = ["carne", "pescado", "pasta_arroz", "legumbres", "huevos", "verdura"];
 
-const MEAL_STYLES = [
+export const MEAL_STYLES = [
   {
     id: "de_todo",
     label: "De todo",
@@ -4516,14 +4516,14 @@ const MEAL_STYLES = [
   },
 ];
 
-const DEFAULT_MEAL_STYLE = "equilibrado";
+export const DEFAULT_MEAL_STYLE = "equilibrado";
 
 /**
  * Scales a preset's freqs (weights, not absolute counts) to fit exactly the
  * number of "platos principales" slots actually available that week, so the
  * menu never runs out of — or overflows — real cooking slots.
  */
-function scaleFreqsToSlots(freqs, totalSlots) {
+export function scaleFreqsToSlots(freqs, totalSlots) {
   const entries = Object.entries(freqs);
   const weightSum = entries.reduce((acc, [, v]) => acc + v, 0) || 1;
   const scaled = {};
@@ -4562,7 +4562,7 @@ function freqsShallowEqual(a, b) {
  * This is what config.freqs should sum to, so the LLM never gets asked for
  * more (or fewer) dishes than the week actually has room for.
  */
-function useGroupSlotBudget(data, group) {
+export function useGroupSlotBudget(data, group) {
   return useMemo(() => {
     const meals = getMeals(data);
     const members = data.members ?? [];
@@ -4590,7 +4590,7 @@ function useGroupSlotBudget(data, group) {
   }, [data.meals, data.members, data.schedule, data.slotType, group]);
 }
 
-function mealStyleCardStyle(selected) {
+export function mealStyleCardStyle(selected) {
   return {
     position: "relative",
     flex: 1,
@@ -4610,7 +4610,7 @@ function mealStyleCardStyle(selected) {
   };
 }
 
-function mealStyleIconStyle(selected) {
+export function mealStyleIconStyle(selected) {
   return {
     width: 38,
     height: 38,

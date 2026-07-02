@@ -5,6 +5,7 @@ import {
   Blend,
   BookOpen,
   BookOpenCheck,
+  Check,
   ChefHat,
   ChevronDown,
   Clock,
@@ -18,11 +19,14 @@ import {
   Fish,
   Flame,
   Gauge,
+  HeartPulse,
   Leaf,
   Microwave,
   Moon,
+  Pizza,
   RotateCcw,
   RotateCw,
+  Salad,
   Shell,
   SlidersHorizontal,
   Share2,
@@ -44,15 +48,23 @@ import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
-import { membersOfGroup } from "../lib/groups.js";
+import { membersOfGroup, isBabyMenuGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
-import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey } from "../lib/planner.js";
+import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey, modeForGroupSlot } from "../lib/planner.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
+import {
+  MEAL_STYLES,
+  DEFAULT_MEAL_STYLE,
+  scaleFreqsToSlots,
+  mealStyleCardStyle,
+  mealStyleIconStyle,
+  useGroupSlotBudget,
+} from "./Onboarding.jsx";
 import {
   APPLIANCE_LABELS,
   APPLIANCE_COLORS,
@@ -723,27 +735,58 @@ function DishVisual({ recipe, height = 220, imageUrl = null }) {
 
 function ProfileButton({ onClick }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 8,
-        padding: "7px 14px 7px 10px",
-        borderRadius: 12,
-        border: "1px solid #2d5a3d",
-        background: "#2d5a3d",
-        cursor: "pointer",
-        fontFamily: "inherit",
-        flexShrink: 0,
-      }}
-    >
-      <SlidersHorizontal size={15} color="#fff" />
-      <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "-.2px", lineHeight: 1 }}>
-        Tu perfil
-      </div>
-    </button>
+    <>
+      <style>{`
+        .profile-pill-btn {
+          position: relative;
+          overflow: hidden;
+          transition: transform .13s ease, box-shadow .13s ease;
+        }
+        .profile-pill-btn:active {
+          transform: scale(.92);
+          box-shadow: 0 1px 4px rgba(45,90,61,.18);
+        }
+        .profile-pill-btn::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: 12px;
+          background: rgba(255,255,255,.25);
+          transform: scale(0);
+          opacity: 0;
+          pointer-events: none;
+        }
+        .profile-pill-btn:active::after {
+          animation: profileRipple .35s ease-out;
+        }
+        @keyframes profileRipple {
+          0%   { transform: scale(0); opacity: 1; }
+          100% { transform: scale(2.5); opacity: 0; }
+        }
+      `}</style>
+      <button
+        type="button"
+        onClick={onClick}
+        className="profile-pill-btn"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "7px 14px 7px 10px",
+          borderRadius: 12,
+          border: "1px solid #2d5a3d",
+          background: "#2d5a3d",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          flexShrink: 0,
+        }}
+      >
+        <SlidersHorizontal size={15} color="#fff" />
+        <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "-.2px", lineHeight: 1 }}>
+          Tu perfil
+        </div>
+      </button>
+    </>
   );
 }
 
@@ -846,6 +889,20 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const membersWithAllergies = members.filter((m) => (m.allergies ?? []).length > 0);
   const membersWithRegimen = members.filter((m) => m.regimen);
 
+  // ── Meal style ──
+  const styleableGroups = useMemo(
+    () => (data.groups ?? []).filter((g) => !isBabyMenuGroup(g, members)),
+    [data.groups, members],
+  );
+  const hasMultipleStyleGroups = styleableGroups.length > 1;
+  const [activeStyleGroupId, setActiveStyleGroupId] = useState(
+    () => styleableGroups[0]?.id ?? null,
+  );
+  const styleKey = activeStyleGroupId ?? "__global__";
+  const activeStyleGroup = styleableGroups.find((g) => g.id === activeStyleGroupId) ?? null;
+  const slotBudget = useGroupSlotBudget(data, activeStyleGroup);
+  const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
+
   // Track if user changed anything to prompt regeneration
   const snapshotRef = useRef(JSON.stringify({ cookLevel: data.cookLevel, kitchenTools: data.kitchenTools }));
   const [confirmRegen, setConfirmRegen] = useState(false);
@@ -853,6 +910,19 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const wrappedSetData = (updater) => {
     setData(updater);
     snapshotRef.current = "__dirty__";
+  };
+
+  const selectStyle = (styleId) => {
+    const preset = MEAL_STYLES.find((s) => s.id === styleId);
+    if (!preset) return;
+    const scaled = scaleFreqsToSlots(preset.freqs, slotBudget.total);
+    wrappedSetData((d) => {
+      const nextStyleMap = { ...(d.mealStyleByGroup ?? {}), [styleKey]: styleId };
+      if (activeStyleGroupId) {
+        return { ...d, mealStyleByGroup: nextStyleMap, freqsByGroup: { ...(d.freqsByGroup ?? {}), [activeStyleGroupId]: scaled } };
+      }
+      return { ...d, mealStyleByGroup: nextStyleMap, freqs: scaled };
+    });
   };
 
   const toggleTool = (tool) =>
@@ -1083,6 +1153,53 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
               })}
             </div>
           )}
+        </AccordionSection>
+
+        {/* ── Estilo de cocina ── */}
+        <AccordionSection title="Estilo de cocina" icon={Sparkles}>
+          {hasMultipleStyleGroups && (
+            <div style={{ marginBottom: 12 }}>
+              <GroupScopePicker
+                groups={styleableGroups}
+                scope={activeStyleGroupId ?? "all"}
+                onChange={(id) => setActiveStyleGroupId(id === "all" ? (styleableGroups[0]?.id ?? null) : id)}
+              />
+            </div>
+          )}
+          <div style={{ display: "flex", gap: 7 }}>
+            {MEAL_STYLES.map((s) => {
+              const sel = activeStyle === s.id;
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => selectStyle(s.id)}
+                  style={mealStyleCardStyle(sel)}
+                >
+                  {sel && (
+                    <span style={{ position: "absolute", top: 7, right: 7, display: "flex" }}>
+                      <Check size={12} color="#fff" />
+                    </span>
+                  )}
+                  <div style={mealStyleIconStyle(sel)}>
+                    <s.Icon size={16} />
+                  </div>
+                  <div style={{ fontSize: 11.5, fontWeight: 800, color: sel ? "#fff" : "#142f1d", textAlign: "center", lineHeight: 1.25 }}>
+                    {s.label}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          {(() => {
+            const styleObj = MEAL_STYLES.find((s) => s.id === activeStyle);
+            if (!styleObj) return null;
+            return (
+              <p style={{ margin: "10px 0 0", fontSize: 12, color: "#6b7d70", lineHeight: 1.45 }}>
+                {styleObj.desc}
+              </p>
+            );
+          })()}
         </AccordionSection>
 
         {/* ── Nivel de cocina ── */}
@@ -1464,6 +1581,46 @@ export const MenuScreen = memo(function MenuScreen({
           from { opacity: 0; transform: translateY(-6px) scale(.96); }
           to   { opacity: 1; transform: translateY(0) scale(1); }
         }
+        @keyframes shareRipple {
+          0%   { transform: scale(0); opacity: .3; }
+          100% { transform: scale(3.5); opacity: 0; }
+        }
+        .share-chip-btn { position: relative; overflow: hidden; }
+        .share-chip-btn::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          border-radius: 999px;
+          background: #2d5a3d;
+          transform: scale(0);
+          opacity: 0;
+          pointer-events: none;
+        }
+        .share-chip-btn:active::after { animation: shareRipple .4s ease-out; }
+        .share-chip-icon {
+          display: flex;
+          transition: transform .4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .share-chip-icon.open { transform: rotate(180deg) scale(1.1); }
+        .share-drop-row { transition: background .15s ease !important; }
+        .share-drop-row:hover { background: #f3f8f4 !important; }
+        .share-drop-row-icon {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 28px;
+          height: 28px;
+          border-radius: 50%;
+          background: #e8f0ea;
+          color: #2d5a3d;
+          flex-shrink: 0;
+          transition: background .22s ease, transform .3s cubic-bezier(0.68, -0.55, 0.265, 1.55), color .22s ease;
+        }
+        .share-drop-row:hover .share-drop-row-icon {
+          background: #1a3a24;
+          color: #fff;
+          transform: scale(1.12);
+        }
       `}</style>
       {/* ── Top header: title + actions ── */}
       <div style={{ padding: "20px 20px 0" }}>
@@ -1492,12 +1649,15 @@ export const MenuScreen = memo(function MenuScreen({
                   type="button"
                   onClick={() => setShowShareDropdown((v) => !v)}
                   aria-label="Compartir o descargar"
+                  className="share-chip-btn"
                   style={{
                     ...iconChipButtonStyle,
                     background: showShareDropdown ? "#e8f0ea" : "#fff",
                   }}
                 >
-                  <Share2 size={16} />
+                  <span className={`share-chip-icon${showShareDropdown ? " open" : ""}`}>
+                    <Share2 size={16} />
+                  </span>
                 </button>
                 {showShareDropdown && (
                   <>
@@ -1517,7 +1677,7 @@ export const MenuScreen = memo(function MenuScreen({
                         border: "1px solid #e6eee8",
                         overflow: "hidden",
                         minWidth: 164,
-                        animation: "shareDropIn .18s ease-out",
+                        animation: "shareDropIn .25s cubic-bezier(0.68,-0.55,0.265,1.55)",
                       }}
                     >
                       {[
@@ -1528,6 +1688,7 @@ export const MenuScreen = memo(function MenuScreen({
                           key={label}
                           type="button"
                           onClick={action}
+                          className="share-drop-row"
                           style={{
                             display: "flex",
                             alignItems: "center",
@@ -1544,7 +1705,7 @@ export const MenuScreen = memo(function MenuScreen({
                             textAlign: "left",
                           }}
                         >
-                          {icon}
+                          <span className="share-drop-row-icon">{icon}</span>
                           {label}
                         </button>
                       ))}
