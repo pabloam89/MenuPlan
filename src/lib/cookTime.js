@@ -4,37 +4,50 @@ export const COOK_TIME_DEFAULTS = {
   weekend: { Comida: 60, Cena: 60 },
 };
 
+// Fallback day counts when the real schedule isn't available (5 weekdays,
+// 2 weekend days). The editor passes the real per-meal counts derived from the
+// schedule so weekly totals match what the family actually cooks.
 export const COOK_PERIOD_DAYS = { weekday: 5, weekend: 2 };
 
 export function daysInCookPeriod(period) {
   return COOK_PERIOD_DAYS[period] ?? 5;
 }
 
-/** Weekly total scale for one meal slot type (e.g. all weekday comidas). */
-export function weekScaleForMeal(period) {
+/** Days that a given meal is cooked in a period (real schedule → fallback). */
+function daysForMeal(period, meal, dayCounts) {
+  const real = dayCounts?.[period]?.[meal];
+  if (typeof real === "number") return real;
   return daysInCookPeriod(period);
 }
 
-/** Weekly total scale when one slider covers every slot in the period. */
-export function weekScaleForPeriod(period, mealTargets) {
-  return daysInCookPeriod(period) * Math.max(mealTargets.length, 1);
+/**
+ * Weekly scale for a per-slot cook time:
+ *  - shared: one slider covers every planned meal in the period → sum of the
+ *    days each of those meals is cooked.
+ *  - per-meal: just the days that specific meal is cooked.
+ */
+export function weekCookScale(period, mealTargets, { shared = false, meal, dayCounts } = {}) {
+  const targets = mealTargets && mealTargets.length ? mealTargets : ["Comida"];
+  if (shared) {
+    return targets.reduce((sum, m) => sum + daysForMeal(period, m, dayCounts), 0);
+  }
+  return daysForMeal(period, meal ?? targets[0], dayCounts);
 }
 
-export function toDisplayCookMinutes(perSlotMinutes, period, mealTargets, unit, { shared = false } = {}) {
+export function toDisplayCookMinutes(perSlotMinutes, period, mealTargets, unit, opts = {}) {
   if (unit !== "week") return perSlotMinutes;
-  const scale = shared ? weekScaleForPeriod(period, mealTargets) : weekScaleForMeal(period);
-  return perSlotMinutes * scale;
+  return perSlotMinutes * weekCookScale(period, mealTargets, opts);
 }
 
-export function fromDisplayCookMinutes(displayMinutes, period, mealTargets, unit, { shared = false } = {}) {
+export function fromDisplayCookMinutes(displayMinutes, period, mealTargets, unit, opts = {}) {
   if (unit !== "week") return displayMinutes;
-  const scale = shared ? weekScaleForPeriod(period, mealTargets) : weekScaleForMeal(period);
+  const scale = weekCookScale(period, mealTargets, opts) || 1;
   return Math.round(displayMinutes / scale);
 }
 
-export function displayCookBounds(min, max, period, mealTargets, unit, { shared = false } = {}) {
+export function displayCookBounds(min, max, period, mealTargets, unit, opts = {}) {
   if (unit !== "week") return { min, max };
-  const scale = shared ? weekScaleForPeriod(period, mealTargets) : weekScaleForMeal(period);
+  const scale = weekCookScale(period, mealTargets, opts);
   return { min: min * scale, max: max * scale };
 }
 

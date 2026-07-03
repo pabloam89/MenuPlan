@@ -1167,7 +1167,9 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             </div>
           )}
           <div style={{ display: "flex", gap: 7 }}>
-            {MEAL_STYLES.map((s) => {
+            {/* "Personalizado" is an onboarding-only advanced mode (needs the
+                stepper editor); here we only offer the quick presets. */}
+            {MEAL_STYLES.filter((s) => s.id !== "personalizado").map((s) => {
               const sel = activeStyle === s.id;
               return (
                 <button

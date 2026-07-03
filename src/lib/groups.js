@@ -32,7 +32,7 @@ export function resolveMemberAge(member) {
  */
 export function tierForMember(member) {
   const age = resolveMemberAge(member);
-  if (stageForAge(age).id === "baby") return "baby";
+  if (memberIsBaby(member)) return "baby";
   const role = migrateHomeRole(member.homeRole ?? suggestHomeRole(age));
   if (role === "Hijo/a" || role === "Amigo/a") return "child";
   return "adult"; // Adulto, Papá, Mamá, Abuelo/a, Otro
@@ -52,6 +52,9 @@ export function splitMembersByStage(members) {
 }
 
 export function memberIsBaby(member) {
+  // Age decides the baby cutoff, but the user can override it ("ya come como
+  // un niño") via `notBaby`, which promotes the member out of the baby menu.
+  if (member?.notBaby) return false;
   return stageForAge(resolveMemberAge(member)).id === "baby";
 }
 

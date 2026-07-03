@@ -1,5 +1,6 @@
 import React, { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
+  AlertTriangle,
   ArrowUpDown,
   Baby,
   Bean,
@@ -46,6 +47,7 @@ import {
   Pizza,
   Repeat,
   Salad,
+  SlidersHorizontal,
   Sparkles,
   Tag,
   Trash2,
@@ -82,6 +84,7 @@ import {
   groupsFromModel,
   hasBabyMember,
   isBabyMenuGroup,
+  memberIsBaby,
   membersOfGroup,
   migrateGroupsForBabies,
   uid,
@@ -351,6 +354,10 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   const canAdd = trimmedName.length > 0 && ageProvided;
   const hasMembers = data.members.length > 0;
 
+  const pendingBabyMember = data.members.find(
+    (m) => memberIsBaby(m) && !dismissedBabyHints.has(m.id)
+  );
+
   const addMember = () => {
     if (!canAdd) return;
     setAddBounce(true);
@@ -400,6 +407,19 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     }, 260);
   };
 
+  const dismissBabyHint = (id) =>
+    setDismissedBabyHints((s) => new Set([...s, id]));
+
+  const promoteBabyToChild = (id) => {
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) =>
+        m.id === id ? { ...m, notBaby: true, homeRole: "Hijo/a" } : m
+      ),
+    }));
+    dismissBabyHint(id);
+  };
+
   const fieldH = 44;
   const ageBoxStyle = {
     width: fieldH,
@@ -426,6 +446,13 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
       nextDisabled={!hasMembers}
       finishDisabled={!hasMembers}
     >
+      {/* Baby menu modal — explains the baby menu and lets the user promote */}
+      <BabyMenuBubble
+        member={pendingBabyMember}
+        onKeep={() => pendingBabyMember && dismissBabyHint(pendingBabyMember.id)}
+        onPromote={() => pendingBabyMember && promoteBabyToChild(pendingBabyMember.id)}
+      />
+
       {/* Role picker overlay */}
       {roleEditId && (
         <div
@@ -653,57 +680,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
               <Trash2 size={15} />
             </button>
 
-            {/* Baby hint bubble */}
-            {stageForAge(memberAge(m)).id === "baby" && !dismissedBabyHints.has(m.id) && (
-              <div style={{
-                width: "100%",
-                marginTop: 8,
-                position: "relative",
-                animation: "hintIn .3s cubic-bezier(.34,1.56,.64,1) both",
-              }}>
-                {/* Arrow */}
-                <div style={{
-                  position: "absolute", top: -6, left: 16,
-                  width: 0, height: 0,
-                  borderLeft: "6px solid transparent",
-                  borderRight: "6px solid transparent",
-                  borderBottom: "6px solid #4cba6e",
-                }} />
-                <div style={{
-                  background: "#fff",
-                  border: "2.5px solid #4cba6e",
-                  boxShadow: "0 0 0 1px #4cba6e22",
-                  borderRadius: 12,
-                  padding: "10px 12px",
-                  display: "flex",
-                  gap: 10,
-                  alignItems: "flex-start",
-                }}>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontSize: 12, fontWeight: 800, color: "#1a3a24" }}>
-                      Menú de bebé para {m.name.split(" ")[0]}
-                    </p>
-                    <p style={{ margin: "3px 0 0", fontSize: 11, color: "#4a6b55", lineHeight: 1.45 }}>
-                      Se generará un menú diferenciado: texturas suaves, sin sal añadida y sin alérgenos comunes.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setDismissedBabyHints((s) => new Set([...s, m.id]))}
-                    style={{
-                      border: "none", background: "transparent",
-                      cursor: "pointer", color: "#4cba6e",
-                      padding: 2, flexShrink: 0, lineHeight: 1,
-                      fontSize: 14, fontWeight: 700,
-                    }}
-                    aria-label="Cerrar"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            )}
-
             {/* Colour picker — inline, full width, no overflow risk */}
             {isPickingColor && (
               <div style={{
@@ -875,7 +851,7 @@ function clampTimesPerWeek(n) {
 }
 
 /** Veces/semana: edita como texto y valida al salir del campo (evita saltar a 7 al teclear). */
-function FixedTimesInput({ value, onChange }) {
+function FixedTimesInput({ value, onChange, maxAllowed = 7 }) {
   const [draft, setDraft] = useState(() => String(value));
   const [lastValue, setLastValue] = useState(value);
 
@@ -897,7 +873,8 @@ function FixedTimesInput({ value, onChange }) {
       setDraft("1");
       return;
     }
-    const clamped = clampTimesPerWeek(n);
+    // Clamp both to the per-dish max (7) and the remaining weekly capacity.
+    const clamped = Math.min(clampTimesPerWeek(n), Math.max(1, maxAllowed));
     onChange(clamped);
     setDraft(String(clamped));
   };
@@ -923,7 +900,7 @@ function FixedTimesInput({ value, onChange }) {
   );
 }
 
-function FixedDishRow({ name, garnish, catLabel, catColor, leading, nameValue, onNameChange, times, meals, mealOptions, mealColWidth, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
+function FixedDishRow({ name, garnish, catLabel, catColor, leading, nameValue, onNameChange, times, maxTimes = 7, meals, mealOptions, mealColWidth, onTimesChange, onMealsChange, onSubmit, onRemove, canSubmit }) {
   const isNew = onNameChange != null;
   const mealColW = mealColWidth ?? mealColWidthFor(mealOptions);
   return (
@@ -989,7 +966,7 @@ function FixedDishRow({ name, garnish, catLabel, catColor, leading, nameValue, o
       </div>
       <div style={{ flexShrink: 0, width: 36 }}>
         {isNew && <p style={{ ...fieldLbl, textAlign: "center" }}>Veces</p>}
-        <FixedTimesInput value={times} onChange={onTimesChange} />
+        <FixedTimesInput value={times} maxAllowed={maxTimes} onChange={onTimesChange} />
       </div>
       <div style={{ flexShrink: 0, width: mealColW }}>
         {isNew && <p style={{ ...fieldLbl, textAlign: "center" }}>Cuándo</p>}
@@ -1099,7 +1076,7 @@ function FixedDishTable({ items, mealOptions, onTimesChange, onMealsChange, onRe
         const fromCatalog = Boolean(fd.catalogId);
         const garnishLabel = fd.garnishId ? GARNISH_NAME_BY_ID[fd.garnishId] : null;
         const matches = fromCatalog ? [] : catalogMatchesForFixedDish(fd);
-        const statusNote = !fromCatalog && matches.length === 0 ? "Sin match exacto en catálogo" : null;
+        const noMatchNote = !fromCatalog && matches.length === 0 ? "Sin match exacto en catálogo" : null;
         return (
           <div
             key={`${fd.catalogId ?? fd.name}-${idx}`}
@@ -1121,9 +1098,9 @@ function FixedDishTable({ items, mealOptions, onTimesChange, onMealsChange, onRe
               onMealsChange={(meals) => onMealsChange(idx, meals)}
               onRemove={() => onRemove(idx)}
             />
-            {statusNote && (
+            {noMatchNote && (
               <p style={{ fontSize: 10.5, color: "#b45309", margin: "4px 2px 0 54px", lineHeight: 1.4 }}>
-                {statusNote}
+                {noMatchNote}
               </p>
             )}
           </div>
@@ -1559,6 +1536,7 @@ export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onRe
   };
 
   const fixedList = migrateFixedDishes(data.fixedDishes ?? []);
+
   const addedCatalogIds = new Set(fixedList.filter((fd) => fd.catalogId).map((fd) => fd.catalogId));
   const addedGarnishByCatalogId = Object.fromEntries(
     fixedList.filter((fd) => fd.catalogId && fd.garnishId).map((fd) => [fd.catalogId, fd.garnishId])
@@ -2025,6 +2003,187 @@ export function AfinarWizardBubble({ onClose, visibleSteps }) {
               </span>
             </div>
           ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Full-screen modal (same look & feel as AfinarWizardBubble) that appears when
+// a member is detected as a baby, explaining the baby menu and offering to
+// promote them to "Hijo/a" if they already eat like a kid.
+export function BabyMenuBubble({ member, onKeep, onPromote }) {
+  if (!member) return null;
+  const firstName = (member.name || "").trim().split(/\s+/)[0] || "tu peque";
+  const points = [
+    {
+      Icon: Baby,
+      text: (
+        <>
+          Has marcado a <strong>{firstName}</strong> como <strong>Bebé</strong>.
+        </>
+      ),
+    },
+    {
+      Icon: UtensilsCrossed,
+      text: (
+        <>
+          Por eso le prepararemos un <strong>menú de bebé</strong>: purés,
+          texturas suaves, sin sal añadida ni alérgenos comunes.
+        </>
+      ),
+    },
+    {
+      Icon: Repeat,
+      text: (
+        <>
+          Si ya come como un niño, cámbialo a <strong>Hijo/a</strong> y comerá
+          lo mismo que el resto de la familia.
+        </>
+      ),
+    },
+  ];
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 210,
+        background: "rgba(20,47,29,.32)",
+        backdropFilter: "blur(2px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 16px",
+        animation: "afinarFadeIn .2s ease",
+      }}
+      onClick={onKeep}
+    >
+      <style>{`
+        @keyframes afinarFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes afinarPop {
+          0%   { opacity: 0; transform: translateY(18px) scale(.94); }
+          60%  { transform: translateY(-3px) scale(1.01); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes afinarBob {
+          0%, 100% { transform: translateY(0) rotate(-4deg); }
+          50%      { transform: translateY(-4px) rotate(-4deg); }
+        }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: 380,
+          background: "#fff",
+          borderRadius: 24,
+          padding: "22px 20px 18px",
+          boxShadow: "0 18px 50px rgba(20,47,29,.32)",
+          animation: "afinarPop .38s cubic-bezier(.34,1.56,.5,1) both",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            top: -26,
+            left: 22,
+            width: 52,
+            height: 52,
+            borderRadius: "50% 50% 50% 8px",
+            background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 6px 16px rgba(45,90,61,.4)",
+            animation: "afinarBob 2.4s ease-in-out infinite",
+          }}
+        >
+          <Baby size={24} color="#fff" />
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          <h3 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.4px" }}>
+            Menú de bebé para {firstName}
+          </h3>
+          <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5a7a66", lineHeight: 1.45 }}>
+            Lo hemos asignado por defecto según su edad. Para que no haya
+            sorpresas, esto es lo que implica:
+          </p>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+          {points.map((p, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "9px 11px",
+                borderRadius: 12,
+                background: "#f4f9f5",
+              }}
+            >
+              <span
+                style={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: 9,
+                  flexShrink: 0,
+                  background: "#e4efe7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <p.Icon size={16} color="#2d5a3d" />
+              </span>
+              <span style={{ fontSize: 12.5, color: "#33513e", lineHeight: 1.4 }}>
+                {p.text}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <button
+            type="button"
+            onClick={onKeep}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: 13,
+              border: "none",
+              background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+              color: "#fff",
+              fontSize: 14.5,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Sí, es un bebé
+          </button>
+          <button
+            type="button"
+            onClick={onPromote}
+            style={{
+              width: "100%",
+              padding: "11px 16px",
+              borderRadius: 13,
+              border: "1.5px solid #cfe0d4",
+              background: "#fff",
+              color: "#2d5a3d",
+              fontSize: 13.5,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            Ya come como un niño/a
+          </button>
         </div>
       </div>
     </div>
@@ -4492,6 +4651,13 @@ export const MEAL_STYLES = [
     Icon: Salad,
     freqs: { verdura: 6, pescado: 4, legumbres: 3, huevos: 2, carne: 1, pasta_arroz: 1 },
   },
+  {
+    id: "personalizado",
+    label: "A tu gusto",
+    desc: "Reparte tú mismo los platos de la semana.",
+    Icon: SlidersHorizontal,
+    freqs: { carne: 3, pescado: 3, verdura: 3, legumbres: 2, pasta_arroz: 2, huevos: 2 },
+  },
 ];
 
 export const DEFAULT_MEAL_STYLE = "equilibrado";
@@ -4540,45 +4706,105 @@ function freqsShallowEqual(a, b) {
  * This is what config.freqs should sum to, so the LLM never gets asked for
  * more (or fewer) dishes than the week actually has room for.
  */
+function computeGroupSlotBudget(data, group) {
+  const meals = getMeals(data);
+  const members = data.members ?? [];
+  const schedule = data.schedule ?? {};
+  const slotType = data.slotType ?? {};
+  const effectiveGroup = group ?? { memberIds: members.map((m) => m.id) };
+  let comidaDays = 0;
+  let cenaDays = 0;
+  let platoUnicoDays = 0;
+  DAYS.forEach((day) => {
+    if (meals.includes("Comida")) {
+      const mode = modeForGroupSlot(effectiveGroup, members, schedule, day, "Comida");
+      if (mode.cook) {
+        comidaDays += 1;
+        if (slotType[`${day}|Comida`] === "unico") platoUnicoDays += 1;
+      }
+    }
+    if (meals.includes("Cena")) {
+      const mode = modeForGroupSlot(effectiveGroup, members, schedule, day, "Cena");
+      if (mode.cook) cenaDays += 1;
+    }
+  });
+  const total = Math.max(1, comidaDays * 2 + cenaDays - platoUnicoDays);
+  return { comidaDays, cenaDays, platoUnicoDays, total };
+}
+
 export function useGroupSlotBudget(data, group) {
-  return useMemo(() => {
-    const meals = getMeals(data);
-    const members = data.members ?? [];
-    const schedule = data.schedule ?? {};
-    const slotType = data.slotType ?? {};
-    const effectiveGroup = group ?? { memberIds: members.map((m) => m.id) };
-    let comidaDays = 0;
-    let cenaDays = 0;
-    let platoUnicoDays = 0;
-    DAYS.forEach((day) => {
-      if (meals.includes("Comida")) {
-        const mode = modeForGroupSlot(effectiveGroup, members, schedule, day, "Comida");
-        if (mode.cook) {
-          comidaDays += 1;
-          if (slotType[`${day}|Comida`] === "unico") platoUnicoDays += 1;
+  return useMemo(
+    () => computeGroupSlotBudget(data, group),
+    [data.meals, data.members, data.schedule, data.slotType, group],
+  );
+}
+
+/** Editable "veces/semana" number for the "Personalizado" style rows — typed
+ * directly (like a text field), clamped on blur by the caller's onChange. */
+function FreqNumberInput({ value, color, onChange }) {
+  const [draft, setDraft] = useState(() => String(value));
+  const [lastValue, setLastValue] = useState(value);
+
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(String(value));
+  }
+
+  const commit = () => {
+    const trimmed = draft.trim();
+    const n = trimmed === "" ? 0 : parseInt(trimmed, 10);
+    const next = Number.isNaN(n) ? value : n;
+    onChange(next);
+    setDraft(String(next));
+  };
+
+  return (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value.replace(/\D/g, "").slice(0, 2))}
+      onFocus={(e) => e.target.select()}
+      onBlur={commit}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+        if (e.key === "Escape") {
+          setDraft(String(value));
+          e.currentTarget.blur();
         }
-      }
-      if (meals.includes("Cena")) {
-        const mode = modeForGroupSlot(effectiveGroup, members, schedule, day, "Cena");
-        if (mode.cook) cenaDays += 1;
-      }
-    });
-    const total = Math.max(1, comidaDays * 2 + cenaDays - platoUnicoDays);
-    return { comidaDays, cenaDays, platoUnicoDays, total };
-  }, [data.meals, data.members, data.schedule, data.slotType, group]);
+      }}
+      aria-label="Veces por semana"
+      style={{
+        width: 34,
+        height: 26,
+        borderRadius: 8,
+        border: `1.5px solid ${color}`,
+        background: "#fff",
+        color: "#1a3a24",
+        fontSize: 12.5,
+        fontWeight: 800,
+        fontFamily: "inherit",
+        textAlign: "center",
+        outline: "none",
+        padding: 0,
+      }}
+    />
+  );
 }
 
 export function mealStyleCardStyle(selected) {
   return {
     position: "relative",
     flex: 1,
+    minWidth: 0,
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    padding: "16px 6px 14px",
-    borderRadius: 16,
+    gap: 6,
+    padding: "12px 4px 10px",
+    borderRadius: 15,
     border: `1.5px solid ${selected ? "#2d5a3d" : "#e0eae3"}`,
     background: selected ? "#2d5a3d" : "#fff",
     cursor: "pointer",
@@ -4590,9 +4816,9 @@ export function mealStyleCardStyle(selected) {
 
 export function mealStyleIconStyle(selected) {
   return {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+    width: 32,
+    height: 32,
+    borderRadius: 10,
     flexShrink: 0,
     display: "flex",
     alignItems: "center",
@@ -4639,6 +4865,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   const subjectId = activeGroupId;
   const styleKey = subjectId ?? "__global__";
   const activeStyle = data.mealStyleByGroup?.[styleKey] ?? DEFAULT_MEAL_STYLE;
+  const isCustom = activeStyle === "personalizado";
 
   // Real cooking slots this week for the active menu, from the schedule grid —
   // freqs get scaled to this so the plan never asks for more dishes than fit.
@@ -4649,6 +4876,8 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   // and changes the schedule (or a plato único), rescale automatically so the
   // menu stays coherent with the chosen style's proportions.
   useEffect(() => {
+    // "Personalizado" keeps the user's manual freqs — never auto-rescale it.
+    if (isCustom) return;
     const preset = MEAL_STYLES.find((s) => s.id === activeStyle);
     if (!preset) return;
     const scaled = scaleFreqsToSlots(preset.freqs, slotBudget.total);
@@ -4661,7 +4890,45 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
       return { ...d, freqs: scaled };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeStyle, slotBudget.total, subjectId]);
+  }, [activeStyle, slotBudget.total, subjectId, isCustom]);
+
+  // Manual editing of a single food category in "Personalizado" mode.
+  // Clamped to ≥0. If bumping this category would push the week's total past
+  // the real slot budget, randomly trims other categories to compensate so
+  // the total never exceeds it — no need to manually free up room first.
+  const setCustomFreq = (key, next) => {
+    setData((d) => {
+      const cur = (subjectId ? d.freqsByGroup?.[subjectId] : d.freqs) ?? {};
+      const base = {};
+      FOOD_ORDER.forEach((k) => {
+        base[k] = Math.max(0, cur[k] ?? 0);
+      });
+      base[key] = Math.max(0, Math.min(99, Math.round(next)));
+
+      let over = FOOD_ORDER.reduce((s, k) => s + base[k], 0) - slotBudget.total;
+      if (over > 0) {
+        const others = FOOD_ORDER.filter((k) => k !== key);
+        let guard = 0;
+        while (over > 0 && guard < 200) {
+          const shuffled = [...others].sort(() => Math.random() - 0.5);
+          const trimmable = shuffled.filter((k) => base[k] > 0);
+          if (trimmable.length === 0) break;
+          const pick = trimmable[0];
+          base[pick] -= 1;
+          over -= 1;
+          guard += 1;
+        }
+        // Nothing left to trim elsewhere (all other categories at 0) — cap
+        // this one instead so the total still never exceeds the budget.
+        if (over > 0) base[key] = Math.max(0, base[key] - over);
+      }
+
+      if (subjectId) {
+        return { ...d, freqsByGroup: { ...(d.freqsByGroup ?? {}), [subjectId]: base } };
+      }
+      return { ...d, freqs: base };
+    });
+  };
 
   // ── Cenas rápidas (weekly exceptions) ──
   // Live on the household week (data.slotType), independent of the menu tab.
@@ -4671,6 +4938,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   const rapidaDays = DAYS.filter((d) => slotTypeMap[`${d}|Cena`] === "rapida");
   const anyRapida = rapidaDays.length > 0;
   const [cenasSheetOpen, setCenasSheetOpen] = useState(false);
+  const [overBudgetInfoOpen, setOverBudgetInfoOpen] = useState(false);
 
   const toggleCenaRapida = (day) => {
     setData((d) => {
@@ -4701,9 +4969,23 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
   const selectStyle = (styleId) => {
     const preset = MEAL_STYLES.find((s) => s.id === styleId);
     if (!preset) return;
-    const scaled = scaleFreqsToSlots(preset.freqs, slotBudget.total);
     setData((d) => {
       const nextStyleMap = { ...(d.mealStyleByGroup ?? {}), [styleKey]: styleId };
+      // Personalizado starts from whatever freqs are already in effect (the
+      // previous style, scaled), so the user tweaks a real base — not from zero.
+      let scaled;
+      if (styleId === "personalizado") {
+        const cur = subjectId ? d.freqsByGroup?.[subjectId] : d.freqs;
+        const seed = cur && Object.keys(cur).length
+          ? cur
+          : scaleFreqsToSlots(preset.freqs, slotBudget.total);
+        scaled = {};
+        FOOD_ORDER.forEach((k) => {
+          scaled[k] = Math.max(0, seed[k] ?? 0);
+        });
+      } else {
+        scaled = scaleFreqsToSlots(preset.freqs, slotBudget.total);
+      }
       if (subjectId) {
         return {
           ...d,
@@ -4718,10 +5000,28 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
     });
   };
 
+  // Block progressing while any "Personalizado" menu asks for more dishes
+  // than the week actually has slots for — the plan couldn't honor it anyway.
+  const customOverBudget = useMemo(() => {
+    const subjects = styleableGroups.length > 0
+      ? styleableGroups.map((g) => ({ key: g.id, group: g }))
+      : [{ key: "__global__", group: null }];
+    return subjects.some(({ key, group }) => {
+      const style = data.mealStyleByGroup?.[key] ?? DEFAULT_MEAL_STYLE;
+      if (style !== "personalizado") return false;
+      const freqs = (key === "__global__" ? data.freqs : data.freqsByGroup?.[key]) ?? {};
+      const used = FOOD_ORDER.reduce((s, k) => s + Math.max(0, freqs[k] ?? 0), 0);
+      const budget = computeGroupSlotBudget(data, group);
+      return used > budget.total;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [styleableGroups, data.mealStyleByGroup, data.freqsByGroup, data.freqs, data.meals, data.members, data.schedule, data.slotType]);
+
   return (
     <OnboardingShell
       title="¿Cómo os gusta comer?"
       subtitle="Elige el estilo de cada menú. Podrás cambiarlo cuando quieras."
+      nextDisabled={customOverBudget}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -4751,7 +5051,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
           to   { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-      <div style={{ display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 6 }}>
         {MEAL_STYLES.map((s) => {
           const sel = activeStyle === s.id;
           return (
@@ -4762,20 +5062,20 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
               style={mealStyleCardStyle(sel)}
             >
               {sel && (
-                <span style={{ position: "absolute", top: 8, right: 8, display: "flex" }}>
-                  <Check size={13} color="#fff" />
+                <span style={{ position: "absolute", top: 6, right: 6, display: "flex" }}>
+                  <Check size={11} color="#fff" />
                 </span>
               )}
               <div style={mealStyleIconStyle(sel)}>
-                <s.Icon size={18} />
+                <s.Icon size={16} />
               </div>
               <div
                 style={{
-                  fontSize: 12.5,
+                  fontSize: 10.5,
                   fontWeight: 800,
                   color: sel ? "#fff" : "#142f1d",
                   textAlign: "center",
-                  lineHeight: 1.25,
+                  lineHeight: 1.2,
                 }}
               >
                 {s.label}
@@ -4788,8 +5088,14 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
       {(() => {
         const activeStyleObj = MEAL_STYLES.find((s) => s.id === activeStyle);
         if (!activeStyleObj) return null;
-        const displayFreqs = scaleFreqsToSlots(activeStyleObj.freqs, slotBudget.total);
+        const storedFreqs = (subjectId ? data.freqsByGroup?.[subjectId] : data.freqs) ?? {};
+        const displayFreqs = isCustom
+          ? FOOD_ORDER.reduce((acc, k) => ({ ...acc, [k]: Math.max(0, storedFreqs[k] ?? 0) }), {})
+          : scaleFreqsToSlots(activeStyleObj.freqs, slotBudget.total);
         const maxN = Math.max(1, ...Object.values(displayFreqs));
+        const allocated = FOOD_ORDER.reduce((s, k) => s + (displayFreqs[k] ?? 0), 0);
+        const remainingSlots = slotBudget.total - allocated;
+        const over = remainingSlots < 0;
         return (
           <div
             style={{
@@ -4800,6 +5106,125 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
             <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.45 }}>
               {activeStyleObj.desc}
             </p>
+            {isCustom && (() => {
+              const comidaSlots = Math.max(0, slotBudget.comidaDays * 2 - slotBudget.platoUnicoDays);
+              const cenaSlots = Math.max(0, slotBudget.cenaDays);
+              const showComida = getMeals(data).includes("Comida");
+              const showCena = hasCena;
+              const slotCard = (Icon, value, label) => (
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    background: "#fff",
+                    border: "1.5px solid #bcdcc7",
+                    borderRadius: 10,
+                    padding: "5px 9px",
+                    flex: "0 0 auto",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 6,
+                      flexShrink: 0,
+                      background: "#eef5f0",
+                      color: "#2d5a3d",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Icon size={11} />
+                  </span>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: "#142f1d", whiteSpace: "nowrap" }}>
+                    {value} {label}
+                  </span>
+                </div>
+              );
+              return (
+                <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
+                  {showComida && slotCard(Sun, comidaSlots, "comidas")}
+                  {showCena && slotCard(Moon, cenaSlots, "cenas")}
+                </div>
+              );
+            })()}
+
+            {overBudgetInfoOpen && (
+              <div
+                onClick={() => setOverBudgetInfoOpen(false)}
+                style={{
+                  position: "fixed",
+                  inset: 0,
+                  zIndex: 200,
+                  background: "rgba(20,47,29,.32)",
+                  backdropFilter: "blur(2px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "0 20px",
+                }}
+              >
+                <div
+                  onClick={(e) => e.stopPropagation()}
+                  style={{
+                    width: "100%",
+                    maxWidth: 340,
+                    background: "#fff",
+                    borderRadius: 20,
+                    padding: "20px 20px 18px",
+                    boxShadow: "0 18px 50px rgba(20,47,29,.32)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <span
+                      style={{
+                        width: 34,
+                        height: 34,
+                        borderRadius: 10,
+                        flexShrink: 0,
+                        background: "#fbe4de",
+                        color: "#c0392b",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <AlertTriangle size={18} />
+                    </span>
+                    <h3 style={{ margin: 0, fontSize: 15.5, fontWeight: 900, color: "#142f1d" }}>
+                      Te has pasado de sitio
+                    </h3>
+                  </div>
+                  <p style={{ margin: "0 0 16px", fontSize: 12.5, color: "#5a7262", lineHeight: 1.5 }}>
+                    La semana solo tiene {slotBudget.total} platos disponibles y
+                    ahora mismo tienes {allocated} repartidos. Puedes generar el
+                    menú igualmente, pero no podrás seguir afinándolo hasta que
+                    bajes alguna categoría para que cuadre.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setOverBudgetInfoOpen(false)}
+                    style={{
+                      width: "100%",
+                      padding: "11px 16px",
+                      borderRadius: 13,
+                      border: "none",
+                      background: "#2d5a3d",
+                      color: "#fff",
+                      fontSize: 13.5,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    Entendido
+                  </button>
+                </div>
+              </div>
+            )}
             <div
               style={{
                 background: "#fff",
@@ -4918,25 +5343,103 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                               justifyContent: "center",
                             }}
                           >
-                            <span
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 800,
-                                color: "#3a4a40",
-                                background: "#f3f8f4",
-                                border: `1px solid ${meta.color}`,
-                                borderRadius: 8,
-                                padding: "3px 8px",
-                              }}
-                            >
-                              {n}/sem
-                            </span>
+                            {isCustom ? (
+                              <FreqNumberInput
+                                value={n}
+                                color={meta.color}
+                                onChange={(v) => setCustomFreq(key, v)}
+                              />
+                            ) : (
+                              <span
+                                style={{
+                                  fontSize: 11,
+                                  fontWeight: 800,
+                                  color: "#3a4a40",
+                                  background: "#f3f8f4",
+                                  border: `1px solid ${meta.color}`,
+                                  borderRadius: 8,
+                                  padding: "3px 8px",
+                                }}
+                              >
+                                {n}/sem
+                              </span>
+                            )}
                           </span>
                         </div>
                       );
                     })}
                   </div>
             </div>
+
+            {isCustom && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  background: "#fff",
+                  border: `2.5px solid ${over ? "#e8a999" : "#bcdcc7"}`,
+                  borderRadius: 14,
+                  padding: "13px 14px",
+                  marginTop: 8,
+                }}
+              >
+                <span style={{ width: 26, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontSize: 14, fontWeight: 900, color: "#142f1d" }}>
+                  Total
+                </span>
+                {over && (
+                  <button
+                    type="button"
+                    onClick={() => setOverBudgetInfoOpen(true)}
+                    aria-label="Por qué no puedo afinar el menú"
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: 20,
+                      height: 20,
+                      borderRadius: "50%",
+                      border: "none",
+                      background: "#fbe4de",
+                      color: "#c0392b",
+                      cursor: "pointer",
+                      padding: 0,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <AlertTriangle size={12} />
+                  </button>
+                )}
+                <span
+                  style={{
+                    width: 62,
+                    flexShrink: 0,
+                    display: "flex",
+                    justifyContent: "center",
+                  }}
+                >
+                  <span
+                    style={{
+                      minWidth: 36,
+                      height: 30,
+                      borderRadius: 9,
+                      border: `2.5px solid ${over ? "#c0392b" : "#2d5a3d"}`,
+                      background: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 7px",
+                      fontSize: 13.5,
+                      fontWeight: 900,
+                      color: over ? "#c0392b" : "#1a3a24",
+                    }}
+                  >
+                    {allocated}
+                  </span>
+                </span>
+              </div>
+            )}
           </div>
         );
       })()}

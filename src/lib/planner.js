@@ -88,6 +88,33 @@ export function modeForGroupSlot(group, members, schedule, day, meal) {
   return { cook: false, reason: "nadie en casa" };
 }
 
+/** Family-level: does anyone still need a cooked dish for this slot? */
+function familyCooksSlot(members, schedule, day, meal) {
+  if (!members || members.length === 0) return true;
+  const statuses = members.map((m) => schedule?.[slotKey(m.id, day, meal)] ?? "casa");
+  return !statuses.every((s) => s === "fuera" || s === "cole" || s === "off");
+}
+
+/**
+ * Number of days in each period (weekday / weekend) that actually require
+ * cooking, per meal. Used to scale per-slot cook times into weekly totals so
+ * the "Semana" view matches the real schedule instead of a fixed 5/2 split.
+ */
+export function cookDayCounts(data) {
+  const members = data?.members ?? [];
+  const schedule = data?.schedule ?? {};
+  const meals = getMeals(data);
+  const counts = { weekday: { Comida: 0, Cena: 0 }, weekend: { Comida: 0, Cena: 0 } };
+  for (const day of DAYS) {
+    const period = day === "Sáb" || day === "Dom" ? "weekend" : "weekday";
+    for (const meal of meals) {
+      if (meal !== "Comida" && meal !== "Cena") continue;
+      if (familyCooksSlot(members, schedule, day, meal)) counts[period][meal] += 1;
+    }
+  }
+  return counts;
+}
+
 function recipeMealType(meal) {
   // Map any user-defined meal label to a recipe mealType. Only "cena"
   // requires the cena tag; everything else (Comida, Desayuno, Almuerzo,

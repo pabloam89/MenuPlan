@@ -10,11 +10,16 @@ import {
   fromDisplayCookMinutes,
   displayCookBounds,
   formatCookDurationLabel,
+  weekCookScale,
 } from "../lib/cookTime.js";
-import { getMeals } from "../lib/planner.js";
+import { cookDayCounts, getMeals } from "../lib/planner.js";
 
+// Both periods share the same min/max so the slider fill % always maps to the
+// same minutes — otherwise two thumbs at "the same spot" would show different
+// times just because their ranges differed (weekday used to cap at 90, weekend
+// at 120), which looked like a bug even though the math was correct.
 const PERIODS = [
-  { key: "weekday", label: "Entre semana", icon: BriefcaseBusiness, min: 10, max: 90 },
+  { key: "weekday", label: "Entre semana", icon: BriefcaseBusiness, min: 10, max: 120 },
   { key: "weekend", label: "Fin de semana", icon: Sunset, min: 10, max: 120 },
 ];
 
@@ -153,7 +158,7 @@ function CookTimeModeToggle({ mode, onChange }) {
   );
 }
 
-function CompactMealSlider({ meal, value, min, max, unit, onChange }) {
+function CompactMealSlider({ meal, value, min, max, step = 5, unit, onChange }) {
   const { icon: Icon, label } = MEAL_META[meal];
   const pct = ((value - min) / (max - min)) * 100;
   const display = formatCookDurationLabel(value, unit);
@@ -210,7 +215,7 @@ function CompactMealSlider({ meal, value, min, max, unit, onChange }) {
           type="range"
           min={min}
           max={max}
-          step={5}
+          step={step}
           value={value}
           onChange={(e) => onChange(+e.target.value)}
           style={{ width: "100%" }}
@@ -231,19 +236,30 @@ function CookTimePeriodBlock({
   dual,
   unit,
   mealTargets,
+  dayCounts,
   onPatch,
   onShared,
 }) {
+  // In "week" mode the slider step scales with the number of cooked slots so
+  // dragging one notch always maps cleanly to a 5-min change per slot (avoids
+  // the rounding jumpiness that made weekday/weekend feel inconsistent).
+  const stepFor = (opts) =>
+    unit === "week"
+      ? Math.max(5, 5 * weekCookScale(periodKey, mealTargets, opts))
+      : 5;
+
   const sharedValue = Math.max(values.Comida, values.Cena);
-  const sharedBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, { shared: true });
+  const sharedOpts = { shared: true, dayCounts };
+  const soloOpts = { dayCounts };
+  const sharedBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, sharedOpts);
   const sharedDisplay = toDisplayCookMinutes(
     dual ? sharedValue : values.Comida ?? values.Cena,
     periodKey,
     mealTargets,
     unit,
-    { shared: dual }
+    dual ? sharedOpts : soloOpts
   );
-  const soloBounds = displayCookBounds(min, max, periodKey, mealTargets, unit);
+  const soloBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, soloOpts);
 
   // Shared / single-meal: SliderInput already has its own bordered container.
   if (mode === "shared" || !dual) {
@@ -254,10 +270,10 @@ function CookTimePeriodBlock({
         value={sharedDisplay}
         min={dual ? sharedBounds.min : soloBounds.min}
         max={dual ? sharedBounds.max : soloBounds.max}
-        step={5}
+        step={stepFor(dual ? sharedOpts : soloOpts)}
         valueLabel={formatCookDurationLabel(sharedDisplay, unit)}
         onChange={(v) => {
-          const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, { shared: dual });
+          const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, dual ? sharedOpts : soloOpts);
           if (dual) onShared(stored);
           else onPatch({ Comida: stored, Cena: stored });
         }}
@@ -281,8 +297,9 @@ function CookTimePeriodBlock({
         <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{label}</span>
       </div>
       {mealTargets.map((meal, idx) => {
-        const mealBounds = displayCookBounds(min, max, periodKey, mealTargets, unit);
-        const displayValue = toDisplayCookMinutes(values[meal], periodKey, mealTargets, unit);
+        const mealOpts = { meal, dayCounts };
+        const mealBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, mealOpts);
+        const displayValue = toDisplayCookMinutes(values[meal], periodKey, mealTargets, unit, mealOpts);
         return (
           <div key={meal}>
             {idx > 0 && <div style={{ height: 1, background: "#f0f4f1", margin: "2px 0 4px" }} />}
@@ -291,9 +308,10 @@ function CookTimePeriodBlock({
               value={displayValue}
               min={mealBounds.min}
               max={mealBounds.max}
+              step={stepFor(mealOpts)}
               unit={unit}
               onChange={(v) => {
-                const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit);
+                const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, mealOpts);
                 onPatch({ [meal]: stored });
               }}
             />
@@ -309,6 +327,12 @@ export function CookTimeEditor({ data, setData }) {
   const cookTime = migrateCookTime(data);
   const targets = plannedMealTargets(getMeals(data));
   const dual = targets.includes("Comida") && targets.includes("Cena");
+  const dayCounts = cookDayCounts(data);
+
+  // Only show a period that actually requires cooking in the real schedule.
+  const activePeriods = PERIODS.filter((p) =>
+    targets.some((m) => (dayCounts[p.key]?.[m] ?? 0) > 0)
+  );
 
   const setMode = (mode) => setData((d) => writeCookTimeMode(d, mode));
   const patchPeriod = (period, patch) => setData((d) => writeCookTimePeriod(d, period, patch));
@@ -335,7 +359,7 @@ export function CookTimeEditor({ data, setData }) {
 
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
-      {PERIODS.map((p) => (
+      {activePeriods.map((p) => (
         <CookTimePeriodBlock
           key={p.key}
           periodKey={p.key}
@@ -348,6 +372,7 @@ export function CookTimeEditor({ data, setData }) {
           dual={dual}
           unit={unit}
           mealTargets={targets}
+          dayCounts={dayCounts}
           onPatch={(patch) => patchPeriod(p.key, patch)}
           onShared={(v) => setShared(p.key, v)}
         />

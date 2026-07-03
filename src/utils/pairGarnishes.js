@@ -46,8 +46,10 @@ function carbOfRecipe(recipe) {
 }
 
 /**
- * For each "principal" recipe in a comida_2 or cena slot, deterministically
- * selects a garnish from guarniciones.json.
+ * For each "principal" recipe in a comida_2 or cena slot, picks a garnish
+ * from guarniciones.json at random among every candidate that satisfies the
+ * rules below (never just the first match in the JSON's fixed order — that
+ * used to make e.g. "pasta al ajillo" win almost every cena, every week).
  *
  * Rules:
  * - No repeated carb type within the same day (main recipes + garnishes combined)
@@ -103,13 +105,31 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}) 
       garnish = guarniciones.find((g) => g.id === pinnedId) ?? null;
     }
     if (!garnish) {
-      garnish = guarniciones.find((g) => {
+      const fitsRules = (g) => {
         if (usedGarnishIds.has(g.id)) return false;
         if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
         const gCarb = carbOfGarnish(g);
         if (gCarb && dayCarbs.has(gCarb)) return false;
         return true;
-      });
+      };
+      // Every garnish meeting the rules is an equally valid pick — choosing
+      // randomly among them (instead of always the first match in the JSON's
+      // fixed order) is what actually gives week-to-week variety.
+      let candidates = guarniciones.filter(fitsRules);
+      // Relax "not used yet this week" before giving up entirely, so a slot
+      // never goes without a side just because the week is running low on
+      // fresh garnishes (still respects the cena time cap and day carb rule).
+      if (candidates.length === 0) {
+        candidates = guarniciones.filter((g) => {
+          if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
+          const gCarb = carbOfGarnish(g);
+          if (gCarb && dayCarbs.has(gCarb)) return false;
+          return true;
+        });
+      }
+      if (candidates.length > 0) {
+        garnish = candidates[Math.floor(Math.random() * candidates.length)];
+      }
     }
 
     if (!garnish) return slot;
