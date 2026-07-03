@@ -1524,7 +1524,7 @@ export const MenuScreen = memo(function MenuScreen({
     const startDayIdx = todayDayIdx();
     return getWeekDatesByMenuWeek({ offset: 0, startDayIdx });
   }, [data.menuWeek]);
-  const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates), [weekDates]);
+  const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates, activeDays), [weekDates, activeDays]);
   const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
   const multiGroup = data.groups.length > 1;
 

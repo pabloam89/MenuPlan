@@ -98,7 +98,7 @@ function CategoryIcon({ category, size = 22 }) {
  * @param {(catalogId: string) => void} onRemove
  * @param {(recipe: object, garnishId: string|null) => void} onSetGarnish
  */
-export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}, onAdd, onRemove, onSetGarnish }) {
+export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnishByCatalogId = {}, onAdd, onRemove, onSetGarnish }) {
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [cats, setCats] = useState(() => new Set());
@@ -170,6 +170,212 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
     setKidOnly(false);
   };
 
+  const px = inline ? 0 : 18;
+
+  const styleBlock = (
+    <style>{`
+      @keyframes sheetUp {
+        from { transform: translateY(28px); opacity: 0; }
+        to   { transform: translateY(0);    opacity: 1; }
+      }
+      @keyframes cardIn {
+        from { opacity: 0; transform: translateY(6px) scale(0.98); }
+        to   { opacity: 1; transform: translateY(0)   scale(1);    }
+      }
+      @keyframes checkPop {
+        0%   { transform: scale(1); }
+        45%  { transform: scale(1.2); }
+        100% { transform: scale(1); }
+      }
+      .catalog-sheet-inner { animation: sheetUp .22s cubic-bezier(.25,.9,.4,1) both; }
+      .catalog-card-enter  { animation: cardIn .16s ease-out both; }
+      .catalog-added-pop   { animation: checkPop .18s ease-out both; }
+    `}</style>
+  );
+
+  const searchRow = (
+    <div style={{ display: "flex", gap: 8, marginBottom: 12, padding: `0 ${px}px`, flexShrink: 0 }}>
+      <div
+        style={{
+          flex: 1, display: "flex", alignItems: "center", gap: 8,
+          height: 42, padding: "0 12px", borderRadius: 12,
+          background: "#f4f7f5", border: "1.5px solid #e8efe9",
+        }}
+      >
+        <Search size={16} color="#9ab0a1" />
+        <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Buscar plato…"
+          style={{
+            flex: 1, border: "none", background: "transparent", outline: "none",
+            fontSize: 14, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
+          }}
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            aria-label="Limpiar búsqueda"
+            style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex" }}
+          >
+            <X size={15} color="#9ab0a1" />
+          </button>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={() => setShowFilters((v) => !v)}
+        style={{
+          position: "relative", display: "inline-flex", alignItems: "center", gap: 7,
+          height: 42, padding: "0 14px", borderRadius: 12, cursor: "pointer",
+          border: `1.5px solid ${showFilters || activeFilterCount ? GREEN : "#e8efe9"}`,
+          background: showFilters || activeFilterCount ? GREEN : "#fff",
+          color: showFilters || activeFilterCount ? "#fff" : "#5a7066",
+          fontSize: 13, fontWeight: 800, fontFamily: "inherit", flexShrink: 0,
+        }}
+      >
+        <SlidersHorizontal size={16} />
+        Filtros
+        {activeFilterCount > 0 && (
+          <span
+            style={{
+              minWidth: 18, height: 18, borderRadius: 999, padding: "0 5px",
+              background: "#fff", color: GREEN, fontSize: 11, fontWeight: 900,
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {activeFilterCount}
+          </span>
+        )}
+      </button>
+    </div>
+  );
+
+  const countRow = (
+    <div style={{ padding: `10px ${px}px 6px`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+      <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#7a9485", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {results.length === 0
+          ? "Sin resultados — prueba a quitar filtros"
+          : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
+      </p>
+      {results.length > PAGE_SIZES[0] && (
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#f0f4f1", borderRadius: 9, padding: 2, flexShrink: 0 }}>
+          {PAGE_SIZES.map((size) => {
+            const active = pageSize === size;
+            return (
+              <button
+                key={size}
+                type="button"
+                onClick={() => setPageSize(size)}
+                style={{
+                  border: "none", cursor: "pointer", fontFamily: "inherit",
+                  borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 800,
+                  background: active ? "#fff" : "transparent",
+                  color: active ? GREEN : "#8aa093",
+                  boxShadow: active ? "0 1px 2px rgba(0,0,0,.08)" : "none",
+                  transition: "color .15s ease, background .15s ease",
+                }}
+              >
+                {size}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  const cards = (
+    <>
+      {visible.map((r, i) => (
+        <RecipeCard
+          key={r.id}
+          recipe={r}
+          added={addedIds.has(r.id)}
+          garnishId={garnishByCatalogId[r.id] ?? null}
+          onAdd={() => onAdd(r)}
+          onRemove={() => onRemove(r.id)}
+          onOpenGarnish={() => setGarnishFor(r)}
+          animDelay={i < 12 ? i * 18 : 0}
+        />
+      ))}
+      {results.length === 0 && (
+        <div style={{ textAlign: "center", padding: "40px 20px", color: "#9ab0a1" }}>
+          <Search size={32} color="#cdd8d0" />
+          <p style={{ margin: "10px 0 0", fontSize: 13 }}>No encontramos platos con esos filtros.</p>
+        </div>
+      )}
+    </>
+  );
+
+  const pager = hasMore ? (
+    <div style={{ padding: `8px ${px}px calc(10px + env(safe-area-inset-bottom, 0px))`, borderTop: inline ? "none" : "1px solid #eef3f0", flexShrink: 0 }}>
+      <button
+        type="button"
+        onClick={() => setLimit((n) => n + pageSize)}
+        style={{
+          width: "100%", height: 44, borderRadius: 12,
+          border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN,
+          fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+        }}
+      >
+        Ver más
+      </button>
+    </div>
+  ) : null;
+
+  const overlays = (
+    <>
+      {garnishFor && (
+        <GarnishPickerSheet
+          recipe={garnishFor}
+          currentGarnishId={garnishByCatalogId[garnishFor.id] ?? null}
+          onSelect={(gid) => { onSetGarnish?.(garnishFor, gid); setGarnishFor(null); }}
+          onClose={() => setGarnishFor(null)}
+        />
+      )}
+      {showFilters && (
+        <FiltersSheet
+          onClose={() => setShowFilters(false)}
+          resultCount={results.length}
+          allCats={allCats}
+          allProteins={allProteins}
+          cats={cats}
+          setCats={setCats}
+          proteins={proteins}
+          setProteins={setProteins}
+          maxTime={maxTime}
+          setMaxTime={setMaxTime}
+          difficulties={difficulties}
+          setDifficulties={setDifficulties}
+          kidOnly={kidOnly}
+          setKidOnly={setKidOnly}
+          activeFilterCount={activeFilterCount}
+          onClear={clearFilters}
+        />
+      )}
+    </>
+  );
+
+  // Inline mode — embedded straight into a screen (no bottom-sheet chrome).
+  if (inline) {
+    return (
+      <div>
+        {styleBlock}
+        <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#f5f9f6", paddingTop: 4 }}>
+          {searchRow}
+          {countRow}
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 2 }}>
+          {cards}
+        </div>
+        {pager}
+        {overlays}
+      </div>
+    );
+  }
+
   return (
     <div
       onClick={onClose}
@@ -197,24 +403,7 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
           overflow: "hidden",
         }}
       >
-        <style>{`
-          @keyframes sheetUp {
-            from { transform: translateY(28px); opacity: 0; }
-            to   { transform: translateY(0);    opacity: 1; }
-          }
-          @keyframes cardIn {
-            from { opacity: 0; transform: translateY(6px) scale(0.98); }
-            to   { opacity: 1; transform: translateY(0)   scale(1);    }
-          }
-          @keyframes checkPop {
-            0%   { transform: scale(1); }
-            45%  { transform: scale(1.2); }
-            100% { transform: scale(1); }
-          }
-          .catalog-sheet-inner { animation: sheetUp .22s cubic-bezier(.25,.9,.4,1) both; }
-          .catalog-card-enter  { animation: cardIn .16s ease-out both; }
-          .catalog-added-pop   { animation: checkPop .18s ease-out both; }
-        `}</style>
+        {styleBlock}
 
         {/* ── Header ── */}
         <div style={{ padding: "16px 18px 0", flexShrink: 0 }}>
@@ -240,100 +429,11 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
               <X size={18} />
             </button>
           </div>
-
-          {/* Search + Filtros */}
-          <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-            <div
-              style={{
-                flex: 1, display: "flex", alignItems: "center", gap: 8,
-                height: 42, padding: "0 12px", borderRadius: 12,
-                background: "#f4f7f5", border: "1.5px solid #e8efe9",
-              }}
-            >
-              <Search size={16} color="#9ab0a1" />
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="Buscar plato…"
-                style={{
-                  flex: 1, border: "none", background: "transparent", outline: "none",
-                  fontSize: 14, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
-                }}
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery("")}
-                  aria-label="Limpiar búsqueda"
-                  style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex" }}
-                >
-                  <X size={15} color="#9ab0a1" />
-                </button>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowFilters((v) => !v)}
-              style={{
-                position: "relative", display: "inline-flex", alignItems: "center", gap: 7,
-                height: 42, padding: "0 14px", borderRadius: 12, cursor: "pointer",
-                border: `1.5px solid ${showFilters || activeFilterCount ? GREEN : "#e8efe9"}`,
-                background: showFilters || activeFilterCount ? GREEN : "#fff",
-                color: showFilters || activeFilterCount ? "#fff" : "#5a7066",
-                fontSize: 13, fontWeight: 800, fontFamily: "inherit", flexShrink: 0,
-              }}
-            >
-              <SlidersHorizontal size={16} />
-              Filtros
-              {activeFilterCount > 0 && (
-                <span
-                  style={{
-                    minWidth: 18, height: 18, borderRadius: 999, padding: "0 5px",
-                    background: "#fff", color: GREEN, fontSize: 11, fontWeight: 900,
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  {activeFilterCount}
-                </span>
-              )}
-            </button>
-          </div>
         </div>
 
-        {/* ── Results count + page size ── */}
-        <div style={{ padding: "10px 18px 6px", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#7a9485", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {results.length === 0
-              ? "Sin resultados — prueba a quitar filtros"
-              : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
-          </p>
-          {results.length > PAGE_SIZES[0] && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#f0f4f1", borderRadius: 9, padding: 2, flexShrink: 0 }}>
-              {PAGE_SIZES.map((size) => {
-                const active = pageSize === size;
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    onClick={() => setPageSize(size)}
-                    style={{
-                      border: "none", cursor: "pointer", fontFamily: "inherit",
-                      borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 800,
-                      background: active ? "#fff" : "transparent",
-                      color: active ? GREEN : "#8aa093",
-                      boxShadow: active ? "0 1px 2px rgba(0,0,0,.08)" : "none",
-                      transition: "color .15s ease, background .15s ease",
-                    }}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {searchRow}
+        {countRow}
 
-        {/* ── Results list ── */}
         <div
           style={{
             flex: 1,
@@ -345,73 +445,13 @@ export function CatalogBrowserSheet({ onClose, addedIds, garnishByCatalogId = {}
             gap: 8,
           }}
         >
-          {visible.map((r, i) => (
-            <RecipeCard
-              key={r.id}
-              recipe={r}
-              added={addedIds.has(r.id)}
-              garnishId={garnishByCatalogId[r.id] ?? null}
-              onAdd={() => onAdd(r)}
-              onRemove={() => onRemove(r.id)}
-              onOpenGarnish={() => setGarnishFor(r)}
-              animDelay={i < 12 ? i * 18 : 0}
-            />
-          ))}
-          {results.length === 0 && (
-            <div style={{ textAlign: "center", padding: "40px 20px", color: "#9ab0a1" }}>
-              <Search size={32} color="#cdd8d0" />
-              <p style={{ margin: "10px 0 0", fontSize: 13 }}>No encontramos platos con esos filtros.</p>
-            </div>
-          )}
+          {cards}
         </div>
 
-        {/* ── Sticky pager ── */}
-        {hasMore && (
-          <div style={{ padding: "8px 18px calc(10px + env(safe-area-inset-bottom, 0px))", borderTop: "1px solid #eef3f0", flexShrink: 0 }}>
-            <button
-              type="button"
-              onClick={() => setLimit((n) => n + pageSize)}
-              style={{
-                width: "100%", height: 44, borderRadius: 12,
-                border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN,
-                fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-              }}
-            >
-              Ver más
-            </button>
-          </div>
-        )}
+        {pager}
       </div>
 
-      {garnishFor && (
-        <GarnishPickerSheet
-          recipe={garnishFor}
-          currentGarnishId={garnishByCatalogId[garnishFor.id] ?? null}
-          onSelect={(gid) => { onSetGarnish?.(garnishFor, gid); setGarnishFor(null); }}
-          onClose={() => setGarnishFor(null)}
-        />
-      )}
-
-      {showFilters && (
-        <FiltersSheet
-          onClose={() => setShowFilters(false)}
-          resultCount={results.length}
-          allCats={allCats}
-          allProteins={allProteins}
-          cats={cats}
-          setCats={setCats}
-          proteins={proteins}
-          setProteins={setProteins}
-          maxTime={maxTime}
-          setMaxTime={setMaxTime}
-          difficulties={difficulties}
-          setDifficulties={setDifficulties}
-          kidOnly={kidOnly}
-          setKidOnly={setKidOnly}
-          activeFilterCount={activeFilterCount}
-          onClear={clearFilters}
-        />
-      )}
+      {overlays}
     </div>
   );
 }

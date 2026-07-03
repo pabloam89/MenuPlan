@@ -47,11 +47,16 @@ function pad2(n) {
   return String(n).padStart(2, "0");
 }
 
-export function formatWeekRangeLabel(dates) {
-  const start = dates[DAYS[0]];
-  const end = dates[DAYS[6]];
+export function formatWeekRangeLabel(dates, activeDays) {
+  // Reflect exactly the days being covered — if only a few days are active
+  // (e.g. current week from today), span from the first to the last of those.
+  const days = Array.isArray(activeDays) && activeDays.length > 0 ? activeDays : DAYS;
+  const start = dates[days[0]];
+  const end = dates[days[days.length - 1]];
   if (!start || !end) return "";
-  return `${pad2(start.getDate())}/${pad2(start.getMonth() + 1)} – ${pad2(end.getDate())}/${pad2(end.getMonth() + 1)}`;
+  const startLabel = `${pad2(start.getDate())}/${pad2(start.getMonth() + 1)}`;
+  const endLabel = `${pad2(end.getDate())}/${pad2(end.getMonth() + 1)}`;
+  return startLabel === endLabel ? startLabel : `${startLabel} – ${endLabel}`;
 }
 
 export function calendarDayNumber(day, dates) {

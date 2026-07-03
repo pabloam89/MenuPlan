@@ -10,6 +10,7 @@ import {
   OnboardingSchoolMenu,
   OnboardingCooking,
   OnboardingWeek,
+  AfinarWizardBubble,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
@@ -270,6 +271,23 @@ export default function App() {
     DEV_DEMO_MENU ? (persisted?.screen ?? "menu") : "splash"
   );
   const [onbStep, setOnbStep] = useState(persisted?.onbStep ?? 0);
+  // "Afinar o generar ya" bubble — shown once on the first onboarding screen
+  // after Members (whichever is visible), remembered locally so it never nags.
+  const [afinarBubbleSeen, setAfinarBubbleSeen] = useState(() => {
+    try {
+      return Boolean(localStorage.getItem("mp_onb_afinar_seen"));
+    } catch {
+      return false;
+    }
+  });
+  const dismissAfinarBubble = useCallback(() => {
+    try {
+      localStorage.setItem("mp_onb_afinar_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setAfinarBubbleSeen(true);
+  }, []);
   const [data, setData] = useState(persisted?.data ?? INITIAL_DATA);
   const [menuPlan, setMenuPlan] = useState(persisted?.menuPlan ?? {});
   const [shopping, setShopping] = useState(persisted?.shopping ?? { items: [] });
@@ -683,6 +701,12 @@ export default function App() {
             >
               <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
             </div>
+            {!afinarBubbleSeen && safeOnbStep === visibleSteps[1] && (
+              <AfinarWizardBubble
+                visibleSteps={visibleSteps}
+                onClose={dismissAfinarBubble}
+              />
+            )}
           </OnboardingProgressContext.Provider>
         )}
 

@@ -40,10 +40,11 @@ import {
   CookingPot,
   Wind,
   Bot,
+  Wand2,
   Wrench,
-  Search,
   Shuffle,
   Pizza,
+  Repeat,
   Salad,
   Sparkles,
   Tag,
@@ -337,27 +338,17 @@ const ROLE_ICON_MAP = {
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
-  const [birthDate, setBirthDate] = useState("");
-  const [ageMode, setAgeMode] = useState("number");
   const [roleEditId, setRoleEditId] = useState(null);
   const [colorPickerId, setColorPickerId] = useState(null);
   const [dismissedBabyHints, setDismissedBabyHints] = useState(new Set());
   const [removingIds, setRemovingIds] = useState(new Set());
   const [addBounce, setAddBounce] = useState(false);
-  const dateInputRef = useRef(null);
 
   const trimmedName = name.trim();
   const parsedAge = parseInt(ageStr, 10);
-  const ageFromDob = ageFromBirthDate(birthDate);
-  const computedAge =
-    ageMode === "date" && birthDate
-      ? ageFromDob
-      : Number.isFinite(parsedAge)
-        ? parsedAge
-        : NaN;
+  const computedAge = Number.isFinite(parsedAge) ? parsedAge : NaN;
   const ageProvided = Number.isFinite(computedAge) && computedAge >= 0;
   const canAdd = trimmedName.length > 0 && ageProvided;
-  const showCalculatedAge = ageMode === "date" && Boolean(birthDate);
   const hasMembers = data.members.length > 0;
 
   const addMember = () => {
@@ -372,8 +363,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
           id: uid(),
           name: trimmedName,
           age: computedAge,
-          useBirthDate: ageMode === "date" && Boolean(birthDate),
-          birthDate: ageMode === "date" ? birthDate : "",
+          useBirthDate: false,
+          birthDate: "",
           homeRole: suggestHomeRole(computedAge),
           stageDetail: "",
           allergies: [],
@@ -383,8 +374,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     }));
     setName("");
     setAgeStr("");
-    setBirthDate("");
-    setAgeMode("number");
   };
 
   const updateMemberHomeRole = (id, homeRole) => {
@@ -412,12 +401,12 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
   };
 
   const fieldH = 44;
-  const ageBoxStyle = (active, readonly) => ({
+  const ageBoxStyle = {
     width: fieldH,
     height: fieldH,
     borderRadius: 10,
-    border: `1.5px solid ${active ? "#2d5a3d" : "#ddd"}`,
-    background: readonly ? "rgba(45,90,61,.06)" : "#fff",
+    border: "1.5px solid #ddd",
+    background: "#fff",
     fontSize: 15,
     fontWeight: 800,
     textAlign: "center",
@@ -425,7 +414,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
     outline: "none",
     flexShrink: 0,
     fontFamily: "inherit",
-  });
+  };
 
   return (
     <OnboardingShell
@@ -521,33 +510,11 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
             <input
               type="text"
               inputMode="numeric"
-              readOnly={showCalculatedAge}
-              value={showCalculatedAge ? String(ageFromDob) : ageStr}
-              onChange={(e) => { setAgeStr(e.target.value.replace(/\D/g, "")); setBirthDate(""); setAgeMode("number"); }}
-              onFocus={() => { if (showCalculatedAge) { setBirthDate(""); setAgeMode("number"); setAgeStr(""); } }}
-              style={ageBoxStyle(ageMode === "number" || showCalculatedAge, showCalculatedAge)}
+              value={ageStr}
+              onChange={(e) => setAgeStr(e.target.value.replace(/\D/g, ""))}
+              style={ageBoxStyle}
               onKeyDown={(e) => e.key === "Enter" && addMember()}
             />
-            <button
-              type="button"
-              onClick={() => { try { dateInputRef.current?.showPicker?.(); } catch { dateInputRef.current?.click(); } }}
-              style={{
-                ...ageBoxStyle(ageMode === "date", false),
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", background: ageMode === "date" ? "rgba(45,90,61,.08)" : "#fff",
-                position: "relative",
-              }}
-            >
-              <CalendarDays size={20} color="#2d5a3d" />
-              <input
-                ref={dateInputRef}
-                type="date"
-                value={birthDate}
-                onChange={(e) => { setBirthDate(e.target.value); setAgeMode("date"); }}
-                style={{ position: "absolute", opacity: 0, width: 1, height: 1, pointerEvents: "none" }}
-                tabIndex={-1}
-              />
-            </button>
           </div>
         </div>
 
@@ -1530,40 +1497,6 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
 
 export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onReset }) {
   const mealOptions = getMeals(data);
-  const [showCatalog, setShowCatalog] = useState(false);
-  const [dish, setDish] = useState("");
-  const [newDishTimes, setNewDishTimes] = useState(1);
-  const [newDishMeals, setNewDishMeals] = useState(() => {
-    const meals = getMeals(data);
-    const comida = meals.find((m) => m.toLowerCase() === "comida");
-    return [comida ?? meals[0] ?? "Comida"];
-  });
-
-  const validNewDishMeals = (() => {
-    const valid = newDishMeals.filter((m) => mealOptions.includes(m));
-    if (valid.length > 0) return valid;
-    const comida = mealOptions.find((x) => x.toLowerCase() === "comida");
-    return [comida ?? mealOptions[0]].filter(Boolean);
-  })();
-
-  const addFixedDish = () => {
-    const label = normalizeTextValue(dish);
-    if (!label || validNewDishMeals.length === 0) return;
-    const entry = normalizeFixedDish({
-      name: label,
-      timesPerWeek: newDishTimes,
-      meals: validNewDishMeals,
-    });
-    if (!entry) return;
-    setData((d) => ({
-      ...d,
-      fixedDishes: [...migrateFixedDishes(d.fixedDishes ?? []), entry],
-    }));
-    setDish("");
-    setNewDishTimes(1);
-    const comida = mealOptions.find((m) => m.toLowerCase() === "comida");
-    setNewDishMeals([comida ?? mealOptions[0]]);
-  };
 
   const updateFixedDish = (idx, patch) =>
     setData((d) => {
@@ -1630,7 +1563,6 @@ export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onRe
   const addedGarnishByCatalogId = Object.fromEntries(
     fixedList.filter((fd) => fd.catalogId && fd.garnishId).map((fd) => [fd.catalogId, fd.garnishId])
   );
-  const canAddDish = Boolean(normalizeTextValue(dish)) && validNewDishMeals.length > 0;
 
   return (
     <OnboardingShell
@@ -1642,81 +1574,6 @@ export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onRe
       onNext={onNext}
       onFinish={onFinish}
     >
-      {/* Explorar catálogo — vía principal */}
-      <button
-        type="button"
-        onClick={() => setShowCatalog(true)}
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          padding: "12px 14px",
-          borderRadius: 14,
-          border: "1.5px solid #2d5a3d",
-          background: "#2d5a3d",
-          color: "#fff",
-          cursor: "pointer",
-          fontFamily: "inherit",
-          marginBottom: 12,
-        }}
-      >
-        <span
-          style={{
-            width: 34, height: 34, borderRadius: 10, flexShrink: 0,
-            background: "rgba(255,255,255,.16)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <Search size={17} />
-        </span>
-        <span style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
-          <span style={{ display: "block", fontSize: 13.5, fontWeight: 900, lineHeight: 1.2 }}>
-            Explorar catálogo
-          </span>
-          <span style={{ display: "block", fontSize: 11.5, fontWeight: 600, opacity: 0.85, marginTop: 2 }}>
-            Busca y filtra entre nuestras recetas
-          </span>
-        </span>
-        <ChevronRight size={18} />
-      </button>
-
-      {/* Escribir a mano — vía secundaria */}
-      <div
-        style={{
-          display: "flex", alignItems: "center", gap: 10,
-          margin: "0 0 10px",
-        }}
-      >
-        <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: "#9ab0a1" }}>o escríbelo tú</span>
-        <div style={{ flex: 1, height: 1, background: "#e3ebe6" }} />
-      </div>
-
-      <div
-        style={{
-          background: "#f6f9f7",
-          borderRadius: 10,
-          padding: "10px",
-          marginBottom: 4,
-        }}
-      >
-        <FixedDishRow
-          nameValue={dish}
-          onNameChange={setDish}
-          times={newDishTimes}
-          meals={validNewDishMeals}
-          mealOptions={mealOptions}
-          onTimesChange={setNewDishTimes}
-          onMealsChange={setNewDishMeals}
-          onSubmit={addFixedDish}
-          canSubmit={canAddDish}
-        />
-        <p style={{ fontSize: 10.5, color: "#9ab0a1", margin: "6px 2px 0", lineHeight: 1.4 }}>
-          Si no está en el catálogo, lo dejamos apuntado y buscamos lo más parecido.
-        </p>
-      </div>
-
       <style>{`
         @keyframes fixedDishIn {
           from { opacity: 0; transform: translateY(-6px) scale(0.97); }
@@ -1724,30 +1581,29 @@ export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onRe
         }
       `}</style>
 
+      {/* Platos ya elegidos — resumen editable arriba */}
       {fixedList.length > 0 && (
-        <div style={{ height: 1, background: "#eef3f0", margin: "12px 0 10px" }} />
+        <>
+          <FixedDishTable
+            items={fixedList}
+            mealOptions={mealOptions}
+            onTimesChange={(idx, n) => updateFixedDish(idx, { timesPerWeek: n })}
+            onMealsChange={(idx, meals) => updateFixedDish(idx, { meals })}
+            onRemove={(idx) => removeFixedDish(idx)}
+          />
+          <div style={{ height: 1, background: "#eef3f0", margin: "14px 0 6px" }} />
+        </>
       )}
 
-      {fixedList.length > 0 && (
-        <FixedDishTable
-          items={fixedList}
-          mealOptions={mealOptions}
-          onTimesChange={(idx, n) => updateFixedDish(idx, { timesPerWeek: n })}
-          onMealsChange={(idx, meals) => updateFixedDish(idx, { meals })}
-          onRemove={(idx) => removeFixedDish(idx)}
-        />
-      )}
-
-      {showCatalog && (
-        <CatalogBrowserSheet
-          onClose={() => setShowCatalog(false)}
-          addedIds={addedCatalogIds}
-          garnishByCatalogId={addedGarnishByCatalogId}
-          onAdd={addCatalogDish}
-          onRemove={removeCatalogDish}
-          onSetGarnish={setCatalogGarnish}
-        />
-      )}
+      {/* Catálogo embebido — search, filtros y recetas siempre visibles */}
+      <CatalogBrowserSheet
+        inline
+        addedIds={addedCatalogIds}
+        garnishByCatalogId={addedGarnishByCatalogId}
+        onAdd={addCatalogDish}
+        onRemove={removeCatalogDish}
+        onSetGarnish={setCatalogGarnish}
+      />
     </OnboardingShell>
   );
 }
@@ -2036,6 +1892,145 @@ function GroupAssignmentSheet({ members, groups, showBabyHint, onAssign, onConfi
   );
 }
 
+// Each entry maps to its onboarding step index so the bubble can list only the
+// screens the user will actually see (e.g. "Menú del cole" is hidden when there
+// are no kids/babies in the house).
+const AFINAR_WIZARD_STEPS = [
+  { step: 2, Icon: School, label: "Menú del cole", desc: "Sube el PDF o foto del comedor" },
+  { step: 3, Icon: CalendarDays, label: "Semana", desc: "Elige qué semana planificar" },
+  { step: 4, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
+  { step: 5, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
+  { step: 6, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
+  { step: 7, Icon: Repeat, label: "Platos fijos", desc: "Los que no pueden faltar" },
+  { step: 8, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
+];
+
+export function AfinarWizardBubble({ onClose, visibleSteps }) {
+  const steps = visibleSteps
+    ? AFINAR_WIZARD_STEPS.filter((s) => visibleSteps.includes(s.step))
+    : AFINAR_WIZARD_STEPS;
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 200,
+        background: "rgba(20,47,29,.32)",
+        backdropFilter: "blur(2px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 16px",
+        animation: "afinarFadeIn .2s ease",
+      }}
+      onClick={onClose}
+    >
+      <style>{`
+        @keyframes afinarFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes afinarPop {
+          0%   { opacity: 0; transform: translateY(18px) scale(.94); }
+          60%  { transform: translateY(-3px) scale(1.01); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes afinarBob {
+          0%, 100% { transform: translateY(0) rotate(-4deg); }
+          50%      { transform: translateY(-4px) rotate(-4deg); }
+        }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative",
+          width: "100%",
+          maxWidth: 380,
+          background: "#fff",
+          borderRadius: 24,
+          padding: "22px 20px 18px",
+          boxShadow: "0 18px 50px rgba(20,47,29,.32)",
+          animation: "afinarPop .38s cubic-bezier(.34,1.56,.5,1) both",
+        }}
+      >
+        {/* cartoon mascot bubble */}
+        <div
+          style={{
+            position: "absolute",
+            top: -26,
+            left: 22,
+            width: 52,
+            height: 52,
+            borderRadius: "50% 50% 50% 8px",
+            background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 6px 16px rgba(45,90,61,.4)",
+            animation: "afinarBob 2.4s ease-in-out infinite",
+          }}
+        >
+          <Wand2 size={24} color="#fff" />
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          <h3 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.4px" }}>
+            Afinamos tu menú a tu gusto
+          </h3>
+          <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5a7a66", lineHeight: 1.45 }}>
+            Puedes generar el menú ya mismo o afinarlo antes: afinar es totalmente
+            opcional, pero cuanto más nos cuentes, más acertaremos con vuestros
+            gustos. Esto es lo que puedes afinar:
+          </p>
+        </div>
+
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 8,
+            marginBottom: 4,
+          }}
+        >
+          {steps.map((s) => (
+            <div
+              key={s.label}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "7px 9px",
+                borderRadius: 11,
+                background: "#f4f9f5",
+              }}
+            >
+              <span
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  flexShrink: 0,
+                  background: "#e4efe7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <s.Icon size={15} color="#2d5a3d" />
+              </span>
+              <span style={{ minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 11.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.15 }}>
+                  {s.label}
+                </span>
+                <span style={{ display: "block", fontSize: 9.5, color: "#7a9080", lineHeight: 1.2, marginTop: 1 }}>
+                  {s.desc}
+                </span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, onReset }) {
   const models = [
     {
@@ -2256,45 +2251,29 @@ const SLOT_CONFIG = {
 
 const MIXED_COLOR = "#aaa";
 
-/** Guess quick-fill segment values from the current schedule (main meal only). */
-function inferQuickFillPatterns(data, memberIds, members) {
-  const main = primaryDayMeal(data);
-  const weekdayDays = DAYS.filter((d) => !["Sáb", "Dom"].includes(d));
-  const weekendDays = DAYS.filter((d) => ["Sáb", "Dom"].includes(d));
+const QF_WEEKDAYS = DAYS.filter((d) => !["Sáb", "Dom"].includes(d));
+const QF_WEEKEND = DAYS.filter((d) => ["Sáb", "Dom"].includes(d));
+const QF_BLOCKS = [
+  { key: "weekday", label: "Entre semana", days: QF_WEEKDAYS },
+  { key: "weekend", label: "El finde", days: QF_WEEKEND },
+];
 
-  const slotValue = (id, day) => data.schedule[`${id}|${day}|${main}`] ?? "casa";
-
-  const inferBlock = (days, { kidsOnlyCole = false } = {}) => {
-    const values = [];
-    for (const day of days) {
-      for (const id of memberIds) {
-        const member = members.find((m) => m.id === id);
-        const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
-        const v = slotValue(id, day);
-        if (kidsOnlyCole && !isKid && v === "cole") values.push("casa");
-        else values.push(v);
-      }
+/** Guess the quick-fill value for a block + meal from the current schedule. */
+function inferQuickFillValue(schedule, memberIds, members, days, meal) {
+  const values = [];
+  for (const day of days) {
+    for (const id of memberIds) {
+      const member = members.find((m) => m.id === id);
+      const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
+      let v = schedule[`${id}|${day}|${meal}`] ?? "casa";
+      if (!isKid && v === "cole") v = "casa";
+      values.push(v);
     }
-    if (values.length === 0) return "casa";
-    if (values.every((v) => v === "cole")) return "cole";
-    if (values.every((v) => v === "fuera")) return "fuera";
-    if (values.every((v) => v === "casa")) return "casa";
-    return null;
-  };
-
-  return {
-    weekday: inferBlock(weekdayDays, { kidsOnlyCole: true }) ?? "casa",
-    weekend: inferBlock(weekendDays) ?? "casa",
-  };
-}
-
-function quickFillValueForDay({ isWeekend, isMain, isKid, qfWeekday, qfFinde }) {
-  if (!isWeekend) {
-    if (qfWeekday === "cole") return isMain ? (isKid ? "cole" : "casa") : "casa";
-    if (qfWeekday === "fuera") return isMain ? "fuera" : "casa";
-    return "casa";
   }
-  return qfFinde === "fuera" && isMain ? "fuera" : "casa";
+  if (values.length === 0) return "casa";
+  if (values.every((v) => v === "cole")) return "cole";
+  if (values.every((v) => v === "fuera")) return "fuera";
+  return "casa";
 }
 
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
@@ -2302,8 +2281,10 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   const memberList = useMemo(() => data.members ?? [], [data.members]);
   const [sheetSlot, setSheetSlot] = useState(null);
   const [quickFillOpen, setQuickFillOpen] = useState(false);
-  const [qfWeekday, setQfWeekday] = useState("casa");
-  const [qfFinde, setQfFinde] = useState("casa");
+  // Quick-fill answers keyed by `${blockKey}|${meal}` (e.g. "weekday|Comida").
+  const [qf, setQf] = useState({});
+  // Which meal the quick-fill sheet is currently editing (Comida / Cena tab).
+  const [qfMeal, setQfMeal] = useState("Comida");
   const [dayViewOpen, setDayViewOpen] = useState(false);
   const [dayViewIdx, setDayViewIdx] = useState(0);
 
@@ -2404,40 +2385,43 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     }
   };
 
-  const applyQuickFill = (scope = "all") => {
+  const applyQuickFill = () => {
     setData((d) => {
       const next = { ...d.schedule };
       const dayMeals = getMeals(d);
-      const main = primaryDayMeal(d);
       for (const id of subjectMemberIds) {
         const member = d.members.find((m) => m.id === id);
         const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
-        for (const day of DAYS) {
-          const isWeekend = day === "Sáb" || day === "Dom";
-          if (scope === "weekday" && isWeekend) continue;
-          if (scope === "weekend" && !isWeekend) continue;
-          for (const meal of dayMeals) {
-            const isMain = meal === main;
-            const value = quickFillValueForDay({
-              isWeekend,
-              isMain,
-              isKid,
-              qfWeekday,
-              qfFinde,
-            });
-            next[`${id}|${day}|${meal}`] = value;
+        for (const block of QF_BLOCKS) {
+          for (const day of block.days) {
+            for (const meal of dayMeals) {
+              const chosen = qf[`${block.key}|${meal}`] ?? "casa";
+              const value = chosen === "cole" ? (isKid ? "cole" : "casa") : chosen;
+              next[`${id}|${day}|${meal}`] = value;
+            }
           }
         }
       }
       return { ...d, schedule: next };
     });
-    if (scope === "all") setQuickFillOpen(false);
+    setQuickFillOpen(false);
   };
 
   const openQuickFill = () => {
-    const inferred = inferQuickFillPatterns(data, subjectMemberIds, subjectMembers);
-    setQfWeekday(inferred.weekday);
-    setQfFinde(inferred.weekend);
+    const next = {};
+    for (const block of QF_BLOCKS) {
+      for (const meal of meals) {
+        next[`${block.key}|${meal}`] = inferQuickFillValue(
+          data.schedule,
+          subjectMemberIds,
+          subjectMembers,
+          block.days,
+          meal
+        );
+      }
+    }
+    setQf(next);
+    setQfMeal(meals[0] ?? "Comida");
     setQuickFillOpen(true);
   };
 
@@ -2480,10 +2464,9 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
       <SectionTitle>¿Qué comidas quieres organizar?</SectionTitle>
       <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
-        {ALL_DAY_MEALS.map((meal) => {
+        {ALL_DAY_MEALS.filter((meal) => meal !== "Desayuno").map((meal) => {
           const sel = meals.includes(meal);
-          const MealIcon =
-            meal === "Desayuno" ? Coffee : meal === "Comida" ? Sun : Moon;
+          const MealIcon = meal === "Comida" ? Sun : Moon;
           return (
             <button
               key={meal}
@@ -2646,41 +2629,75 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
             </div>
 
             <p style={{ fontSize: 13, color: "#999", margin: "0 0 22px", lineHeight: 1.5 }}>
-              Elige un patrón para entre semana y otro para el finde. Puedes aplicarlos juntos o por separado sin pisar el otro bloque.
+              Dinos dónde coméis en cada momento y rellenamos la semana entera de golpe. Luego puedes retocar días sueltos.
             </p>
 
-            <div style={{ marginBottom: 22 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
-                Entre semana, ¿dónde coméis?
+            {meals.length > 1 && (
+              <div style={{ display: "flex", background: "#f0f4f1", borderRadius: 12, padding: 4, gap: 3, marginBottom: 20 }}>
+                {meals.map((meal) => {
+                  const active = qfMeal === meal;
+                  const MealIcon = meal === "Comida" ? Sun : Moon;
+                  return (
+                    <button
+                      key={meal}
+                      type="button"
+                      onClick={() => setQfMeal(meal)}
+                      style={{
+                        flex: 1,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        padding: "9px 8px",
+                        borderRadius: 9,
+                        border: "none",
+                        fontSize: 13,
+                        fontWeight: 800,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                        background: active ? "#2d5a3d" : "transparent",
+                        color: active ? "#fff" : "#9ab0a1",
+                        boxShadow: active ? "0 2px 8px rgba(45,90,61,.35)" : "none",
+                        transition: "all .15s ease",
+                      }}
+                    >
+                      <MealIcon size={14} />
+                      {meal}
+                    </button>
+                  );
+                })}
               </div>
-              <QuickFillSegment
-                value={qfWeekday}
-                onChange={setQfWeekday}
-                options={[
-                  { value: "casa",  icon: <House size={15} />,           label: "En casa" },
-                  ...(allowCole ? [{ value: "cole", icon: <School size={15} />, label: "Niños al cole" }] : []),
-                  { value: "fuera", icon: <UtensilsCrossed size={15} />, label: "Fuera" },
-                ]}
-              />
-            </div>
+            )}
 
-            <div style={{ marginBottom: 28 }}>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
-                El fin de semana, ¿qué hacéis?
-              </div>
-              <QuickFillSegment
-                value={qfFinde}
-                onChange={setQfFinde}
-                options={[
-                  { value: "casa",  icon: <House size={15} />,           label: "En casa" },
-                  { value: "fuera", icon: <UtensilsCrossed size={15} />, label: "Salís a comer" },
-                ]}
-              />
-            </div>
+            {QF_BLOCKS.map((block, i) => {
+              const isLunch = qfMeal === "Comida";
+              const qKey = `${block.key}|${qfMeal}`;
+              const verb = qfMeal === "Cena" ? "cenáis" : "coméis";
+              const blockText = block.key === "weekday" ? "entre semana" : "el finde";
+              const options = [
+                { value: "casa", icon: <House size={15} />, label: "En casa" },
+                ...(block.key === "weekday" && allowCole && isLunch
+                  ? [{ value: "cole", icon: <School size={15} />, label: "Al cole" }]
+                  : []),
+                { value: "fuera", icon: <UtensilsCrossed size={15} />, label: "Fuera" },
+              ];
+              return (
+                <div key={block.key} style={{ marginBottom: i === QF_BLOCKS.length - 1 ? 26 : 18 }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
+                    ¿Dónde {verb} {blockText}?
+                  </div>
+                  <QuickFillSegment
+                    value={qf[qKey] ?? "casa"}
+                    onChange={(v) => setQf((prev) => ({ ...prev, [qKey]: v }))}
+                    options={options}
+                  />
+                </div>
+              );
+            })}
 
             <button
               type="button"
-              onClick={() => applyQuickFill("all")}
+              onClick={applyQuickFill}
               style={{
                 width: "100%",
                 background: "#1a3a24",
@@ -2692,49 +2709,10 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
                 fontWeight: 800,
                 cursor: "pointer",
                 fontFamily: "inherit",
-                marginBottom: 10,
               }}
             >
-              Aplicar entre semana y finde
+              Aplicar a la semana
             </button>
-            <div style={{ display: "flex", gap: 8 }}>
-              <button
-                type="button"
-                onClick={() => applyQuickFill("weekday")}
-                style={{
-                  flex: 1,
-                  background: "#f0f7f2",
-                  color: "#2d5a3d",
-                  border: "1.5px solid #d4e6da",
-                  borderRadius: 12,
-                  padding: "12px 8px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                Solo entre semana
-              </button>
-              <button
-                type="button"
-                onClick={() => applyQuickFill("weekend")}
-                style={{
-                  flex: 1,
-                  background: "#f0f7f2",
-                  color: "#2d5a3d",
-                  border: "1.5px solid #d4e6da",
-                  borderRadius: 12,
-                  padding: "12px 8px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                Solo fin de semana
-              </button>
-            </div>
           </div>
         </div>
       )}
