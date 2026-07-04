@@ -53,6 +53,7 @@ import { eatersForSlot } from "../lib/slotEaters.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
+import { OnboardingRestrictions } from "./Onboarding.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey, modeForGroupSlot } from "../lib/planner.js";
@@ -850,31 +851,34 @@ function FreqStepper({ label, value, onChange }) {
   );
 }
 
-function AccordionSection({ title, icon: Icon, children, defaultOpen = false }) {
+function AccordionSection({ title, icon: Icon, children, defaultOpen = false, action }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{ borderBottom: "1px solid #e8f0ea" }}>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "12px 0", border: "none", background: "transparent", cursor: "pointer",
-          fontFamily: "inherit",
-        }}
-      >
-        <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {Icon && <Icon size={15} color="#2d5a3d" />}
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#142f1d" }}>
-            {title}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0" }}>
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          style={{
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between",
+            border: "none", background: "transparent", cursor: "pointer", padding: 0,
+            fontFamily: "inherit",
+          }}
+        >
+          <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {Icon && <Icon size={15} color="#2d5a3d" />}
+            <span style={{ fontSize: 13, fontWeight: 700, color: "#142f1d" }}>
+              {title}
+            </span>
           </span>
-        </span>
-        <ChevronDown
-          size={16}
-          color="#9ab0a1"
-          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}
-        />
-      </button>
+          <ChevronDown
+            size={16}
+            color="#9ab0a1"
+            style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}
+          />
+        </button>
+        {action}
+      </div>
       {open && <div style={{ paddingBottom: 14 }}>{children}</div>}
     </div>
   );
@@ -906,6 +910,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   // Track if user changed anything to prompt regeneration
   const snapshotRef = useRef(JSON.stringify({ cookLevel: data.cookLevel, kitchenTools: data.kitchenTools }));
   const [confirmRegen, setConfirmRegen] = useState(false);
+  const [editingAvoid, setEditingAvoid] = useState(false);
 
   const wrappedSetData = (updater) => {
     setData(updater);
@@ -940,6 +945,23 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
       onClose();
     }
   };
+
+  // "Qué evitamos" reuses the same allergy/dislike editor from onboarding
+  // instead of duplicating member-scoped allergen logic here — editing marks
+  // the profile dirty so closing this sheet prompts regeneration as usual.
+  if (editingAvoid) {
+    return createPortal(
+      <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "#f5f9f6" }}>
+        <OnboardingRestrictions
+          data={data}
+          setData={wrappedSetData}
+          onNext={() => setEditingAvoid(false)}
+          nextLabel="Guardar"
+        />
+      </div>,
+      document.body
+    );
+  }
 
   if (confirmRegen) {
     return createPortal(
@@ -1043,7 +1065,23 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           }}
         >
         {/* ── Qué evitamos ── */}
-        <AccordionSection title="Qué evitamos" icon={UtensilsCrossed}>
+        <AccordionSection
+          title="Qué evitamos"
+          icon={UtensilsCrossed}
+          action={
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setEditingAvoid(true); }}
+              style={{
+                flexShrink: 0, border: "1.5px solid #c8ddd0", background: "#fff",
+                color: "#2d5a3d", fontSize: 12, fontWeight: 700, borderRadius: 20,
+                padding: "5px 12px", cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              Editar
+            </button>
+          }
+        >
           {membersWithAllergies.length === 0 && membersWithRegimen.length === 0 && dislikes.length === 0 ? (
             <span style={{ fontSize: 12, color: "#9ab0a1" }}>—</span>
           ) : (

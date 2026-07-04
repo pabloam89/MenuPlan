@@ -1238,7 +1238,7 @@ const EXTRA_ALLERGEN_IDS = Object.keys(EU_ALLERGENS).filter((id) => !COMMON_ALLE
 // visibleAllergenIds = todos, sin colapso
 const EU_ALLERGEN_IDS = new Set(Object.keys(EU_ALLERGENS));
 
-export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset }) {
+export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
   const [customAllergy, setCustomAllergy] = useState("");
   const [showAddAllergy, setShowAddAllergy] = useState(false);
   const [allergyMemberId, setAllergyMemberId] = useState(data.members[0]?.id ?? null);
@@ -1312,6 +1312,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
+      {...(nextLabel ? { nextLabel } : {})}
     >
       <>
           <style>{`
