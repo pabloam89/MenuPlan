@@ -18,6 +18,7 @@ const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ 
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
 const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
+const PantryScreen = lazy(() => import("./screens/Pantry.jsx").then(m => ({ default: m.PantryScreen })));
 import { generateMenuWithAI, pickCatalogReplacement } from "./lib/aiPlanner.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
@@ -804,6 +805,22 @@ export default function App() {
                 onSignIn={signInWithGoogle}
                 onSignOut={signOut}
                 onToast={showToast}
+                onOpenPantry={() => fwd(() => setScreen("pantry"))}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "pantry" && (
+          <div
+            key="pantry"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <PantryScreen
+                user={user}
+                onBack={() => back(() => setScreen("account"))}
+                onSignIn={signInWithGoogle}
               />
             </Suspense>
           </div>

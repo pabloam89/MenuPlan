@@ -15,6 +15,7 @@ import {
   Ban,
   Wrench,
   Pencil,
+  ShoppingBasket,
 } from "lucide-react";
 import {
   BottomNav,
@@ -381,6 +382,7 @@ export function AccountScreen({
   onSignIn,
   onSignOut,
   onToast,
+  onOpenPantry,
 }) {
   const g = googleInfo(user);
   const fileInputRef = useRef(null);
@@ -641,6 +643,34 @@ export function AccountScreen({
               </div>
               <Chips items={kitchenTools} empty="Sin herramientas seleccionadas" />
             </div>
+          </Card>
+        </div>
+
+        {/* Tu despensa */}
+        <div style={{ marginBottom: 22 }}>
+          <SectionTitle icon={ShoppingBasket}>Tu despensa</SectionTitle>
+          <Card style={{ padding: 0 }}>
+            <button
+              type="button"
+              onClick={onOpenPantry}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                width: "100%",
+                padding: 14,
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textAlign: "left",
+              }}
+            >
+              <span style={{ flex: 1, fontSize: 13.5, color: "#7a8a7f", lineHeight: 1.4 }}>
+                Ingredientes que ya tienes en casa, para aprovecharlos en el menú.
+              </span>
+              <ChevronRight size={18} color="#9ab0a1" />
+            </button>
           </Card>
         </div>
 

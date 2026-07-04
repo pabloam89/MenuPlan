@@ -68,6 +68,7 @@ import {
   GroupScopePicker,
 } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
+import { PantryInput } from "../components/PantryInput.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
@@ -6613,6 +6614,11 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       {/* Tiempo */}
       <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
       <CookTimeEditor data={data} setData={setData} />
+
+      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
+
+      {/* Despensa — opcional; el menú se genera igual si se deja vacío */}
+      <PantryInput />
     </OnboardingShell>
   );
 }
