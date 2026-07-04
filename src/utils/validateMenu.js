@@ -101,6 +101,19 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
     }
   }
 
+  // 2b. "cenas_rapidas" only allowed in slots the user explicitly marked cena_rapida
+  for (const { slotId, recipeId } of slotAssignments) {
+    const recipe = poolById[recipeId];
+    if (!recipe || recipe.category !== "cenas_rapidas") continue;
+    const ctx = contextBySlot[slotId];
+    if (ctx?.preferType === "cena_rapida") continue;
+    violations.push({
+      rule: "cena_rapida_no_solicitada",
+      slotId,
+      message: `"${recipe.name}" es de category "cenas_rapidas" pero el slot no fue marcado como cena rápida`,
+    });
+  }
+
   // 3. No repeated mainProtein in consecutive meals
   const mainMeals = mealOrder.filter(
     (m) => !(m.mealType === "comida" && m.position === "1"),
@@ -274,6 +287,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (usedIds.has(r.id)) return false;
       if (ctx.maxTime && r.time > ctx.maxTime) return false;
       if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
+      if (ctx.preferType !== "cena_rapida" && r.category === "cenas_rapidas") return false;
       const carb = getCarbType(r);
       if (carb && dayCarbsUsed.has(carb)) return false;
 
@@ -317,6 +331,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (ctx?.maxTime && r.time > ctx.maxTime) return false;
       if (v.rule === "legumbres_en_cena" && r.category === "legumbres") return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
+      if (ctx?.preferType !== "cena_rapida" && r.category === "cenas_rapidas") return false;
 
       if (mealType === "cena" && !r.mealRole.includes("cena")) return false;
       if (mealType === "comida") {

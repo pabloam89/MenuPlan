@@ -33,6 +33,18 @@ function proteinFromText(text) {
   return null;
 }
 
+// Groups catalog mainProtein enums into the same buckets validateMenu.js uses
+// for its consecutive-protein rule. Returns null for "vegetal"/"none"/unmapped
+// values, i.e. dishes that don't carry a protein course.
+const PROTEIN_GROUP_MAP = {
+  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
+  legumbre: "legumbres", huevo: "huevos",
+};
+function proteinGroupOf(recipe) {
+  return recipe ? (PROTEIN_GROUP_MAP[recipe.mainProtein] ?? null) : null;
+}
+
 // Balanced weekly quotas used when the user hasn't set a meal style — includes
 // carbs, meat and eggs so the default menu isn't skewed all-healthy.
 const DEFAULT_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
@@ -151,6 +163,7 @@ RESTRICCIONES POR SLOT:
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
 - Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
 - Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido.
+- NUNCA uses una receta de category "cenas_rapidas" en un slot que NO tenga preferType "cena_rapida". Esa categoría es solo para el hueco marcado explícitamente por el usuario como cena rápida.
 - Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente timesPerWeek veces a lo largo de la semana, en slots del tipo indicado en meals (comida o cena) y REPARTIDO en días distintos (no días seguidos). Colócalo en la posición que le corresponda por su mealRole: si es "primero" va en comida_1, si es "segundo" va en comida_2, si es "cena" en el hueco de cena. NUNCA pongas una verdura/primero como segundo (plato principal): el día debe conservar su proteína. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
 
 IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.
@@ -902,17 +915,72 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     if (b) usedBaseIds.add(b);
   }
 
+  // "cenas_rapidas" (nachos, sándwiches...) is only appropriate for the exact
+  // slot the user flagged as "cena rápida" — otherwise it can replace a normal
+  // dinner with something that doesn't match what the user actually asked for.
+  const isCenaRapida = data.slotType?.[`${day}|${meal}`] === "rapida";
+
   const roleMatch = (r) => r.mealRole?.some((role) => targetRoles.has(role));
   let candidates = pool.filter(
-    (r) => roleMatch(r) && r.time <= slotMaxTime && !usedBaseIds.has(r.id),
+    (r) =>
+      roleMatch(r) &&
+      r.time <= slotMaxTime &&
+      !usedBaseIds.has(r.id) &&
+      (isCenaRapida || r.category !== "cenas_rapidas"),
   );
   // Relax the "not already used" rule if nothing else fits (never the same dish).
   if (candidates.length === 0) {
     candidates = pool.filter(
-      (r) => roleMatch(r) && r.time <= slotMaxTime && r.id !== currentBaseId,
+      (r) =>
+        roleMatch(r) &&
+        r.time <= slotMaxTime &&
+        r.id !== currentBaseId &&
+        (isCenaRapida || r.category !== "cenas_rapidas"),
     );
   }
   if (candidates.length === 0) return null;
+
+  // Diversity guardrails: this swap path picks from a much smaller pool than
+  // the full generator and previously ignored validateMenu.js's rules
+  // entirely, which let a single-dish replacement reintroduce a repeated
+  // protein/legume next to itself (e.g. garbanzos two days running, or a
+  // primero with protein when the segundo already carries one).
+  const siblingRecipeId = course === "first" ? currentSlot.recipeId : currentSlot.firstRecipeId;
+  const siblingHasProtein = Boolean(
+    proteinGroupOf(recipeCatalogById[stripGroupPrefix(siblingRecipeId)]),
+  );
+
+  const nearbyProteinGroups = new Set();
+  const dayIdx = DAYS.indexOf(day);
+  const neighborDays = [DAYS[dayIdx - 1], DAYS[dayIdx + 1]].filter(Boolean);
+  for (const d of neighborDays) {
+    for (const m of getMeals(data)) {
+      const s = menuPlan[groupId]?.[`${d}-${m}`];
+      if (!s) continue;
+      for (const rid of [s.firstRecipeId, s.recipeId]) {
+        const grp = proteinGroupOf(recipeCatalogById[stripGroupPrefix(rid)]);
+        if (grp) nearbyProteinGroups.add(grp);
+      }
+    }
+  }
+  // Same day, other meal (comida <-> cena) — the slot being replaced is excluded.
+  for (const m of getMeals(data)) {
+    if (m === meal) continue;
+    const s = menuPlan[groupId]?.[`${day}-${m}`];
+    if (!s) continue;
+    for (const rid of [s.firstRecipeId, s.recipeId]) {
+      const grp = proteinGroupOf(recipeCatalogById[stripGroupPrefix(rid)]);
+      if (grp) nearbyProteinGroups.add(grp);
+    }
+  }
+
+  const diverse = candidates.filter((r) => {
+    const grp = proteinGroupOf(r);
+    if (!grp) return true;
+    if (siblingHasProtein) return false; // same comida already has a protein course
+    return !nearbyProteinGroups.has(grp);
+  });
+  if (diverse.length > 0) candidates = diverse;
 
   const picked = candidates[Math.floor(Math.random() * candidates.length)];
 
