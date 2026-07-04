@@ -3766,7 +3766,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   const AI_PARSE_MESSAGES = [
     "Casi listo, dando los últimos toques…",
     "Organizando los platos de la semana…",
-    "Revisando que no se cuele ningún despiste…",
+    "Terminando de procesar el menú…",
   ];
   const aiParseElapsed = aiParsing
     ? Math.max(0, importElapsedSec - aiParseStartSecRef.current)
