@@ -5284,15 +5284,13 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                     {FOOD_ORDER.map((key, i) => {
                       const n = displayFreqs[key] ?? 0;
                       const meta = FOOD_META[key];
-                      // Fill % stays relative to the tallest category, matching the
-                      // preset tabs' bar look. The slider's draggable range is a
-                      // separate, stable ceiling (the week's slot budget) — if it used
-                      // maxN too, dragging could never exceed whatever the current
-                      // tallest category happens to be, even though the number box
-                      // allows it (and rebalances). maxN re-tracks n on every render,
-                      // so the fill still reaches 100% once a drag makes it the new max.
+                      // Fill % and the slider's own max share the same scale (maxN,
+                      // the tallest category right now) so the thumb always lands
+                      // exactly where the fill ends — a mismatch here reads as a
+                      // broken slider. maxN recomputes from live state on every
+                      // render, so dragging a category past the current tallest one
+                      // raises maxN with it in real time; nothing is ever unreachable.
                       const pct = Math.round((n / maxN) * 100);
-                      const sliderMax = Math.max(slotBudget.total, 1);
                       return (
                         <div
                           key={key}
@@ -5361,7 +5359,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                                 className="sl-freq"
                                 type="range"
                                 min={0}
-                                max={sliderMax}
+                                max={maxN}
                                 step={1}
                                 value={n}
                                 onChange={(e) => setCustomFreq(key, +e.target.value)}
