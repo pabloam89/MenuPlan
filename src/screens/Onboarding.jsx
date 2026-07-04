@@ -5225,6 +5225,15 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                 </div>
               </div>
             )}
+            {isCustom && (
+              <style>{`
+                .sl-freq { -webkit-appearance: none; appearance: none; width: 100%; height: 16px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; padding: 0; }
+                .sl-freq::-webkit-slider-runnable-track { background: transparent; height: 7px; }
+                .sl-freq::-moz-range-track { background: transparent; height: 7px; border: none; }
+                .sl-freq::-webkit-slider-thumb { -webkit-appearance: none; width: 13px; height: 13px; border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25), 0 0 0 1.5px var(--thumb-color, #2d5a3d); cursor: pointer; margin-top: -3px; }
+                .sl-freq::-moz-range-thumb { width: 13px; height: 13px; border: 1.5px solid var(--thumb-color, #2d5a3d); border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: pointer; }
+              `}</style>
+            )}
             <div
               style={{
                 background: "#fff",
@@ -5275,7 +5284,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                     {FOOD_ORDER.map((key, i) => {
                       const n = displayFreqs[key] ?? 0;
                       const meta = FOOD_META[key];
-                      const pct = Math.round((n / maxN) * 100);
+                      const sliderMax = Math.max(slotBudget.total, 1);
+                      // The slider's thumb position is scaled against the whole week's
+                      // slot budget, so the fill behind it must use the same scale
+                      // (not the cross-category relative maxN) or they'd disagree.
+                      const pct = Math.round((n / (isCustom ? sliderMax : maxN)) * 100);
                       return (
                         <div
                           key={key}
@@ -5315,26 +5328,65 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                           >
                             {meta.label}
                           </span>
-                          <span
-                            style={{
-                              flex: 1,
-                              height: 7,
-                              borderRadius: 4,
-                              background: "#e4ede7",
-                              overflow: "hidden",
-                            }}
-                          >
+                          {isCustom ? (
+                            <span style={{ flex: 1, position: "relative", height: 16, display: "flex", alignItems: "center" }}>
+                              <span
+                                style={{
+                                  position: "absolute",
+                                  left: 0,
+                                  right: 0,
+                                  height: 7,
+                                  borderRadius: 4,
+                                  background: "#e4ede7",
+                                  overflow: "hidden",
+                                  pointerEvents: "none",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    display: "block",
+                                    height: "100%",
+                                    width: `${pct}%`,
+                                    background: meta.color,
+                                    borderRadius: 4,
+                                    transition: "width .3s ease",
+                                  }}
+                                />
+                              </span>
+                              <input
+                                className="sl-freq"
+                                type="range"
+                                min={0}
+                                max={sliderMax}
+                                step={1}
+                                value={n}
+                                onChange={(e) => setCustomFreq(key, +e.target.value)}
+                                aria-label={`${meta.label}: veces por semana`}
+                                style={{ "--thumb-color": meta.color }}
+                              />
+                            </span>
+                          ) : (
                             <span
                               style={{
-                                display: "block",
-                                height: "100%",
-                                width: `${pct}%`,
-                                background: meta.color,
+                                flex: 1,
+                                height: 7,
                                 borderRadius: 4,
-                                transition: "width .3s ease",
+                                background: "#e4ede7",
+                                overflow: "hidden",
                               }}
-                            />
-                          </span>
+                            >
+                              <span
+                                style={{
+                                  display: "block",
+                                  height: "100%",
+                                  width: `${pct}%`,
+                                  background: meta.color,
+                                  borderRadius: 4,
+                                  transition: "width .3s ease",
+                                }}
+                              />
+                            </span>
+                          )}
                           <span
                             style={{
                               width: 62,
