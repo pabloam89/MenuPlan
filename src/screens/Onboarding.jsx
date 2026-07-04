@@ -5284,11 +5284,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                     {FOOD_ORDER.map((key, i) => {
                       const n = displayFreqs[key] ?? 0;
                       const meta = FOOD_META[key];
-                      const sliderMax = Math.max(slotBudget.total, 1);
-                      // The slider's thumb position is scaled against the whole week's
-                      // slot budget, so the fill behind it must use the same scale
-                      // (not the cross-category relative maxN) or they'd disagree.
-                      const pct = Math.round((n / (isCustom ? sliderMax : maxN)) * 100);
+                      // Same relative-to-tallest-category scale the preset tabs use, so
+                      // "A tu gusto" bars look consistent with "Ligero y saludable" etc.
+                      // The slider's own max must match, or its thumb position and the
+                      // fill behind it would disagree.
+                      const pct = Math.round((n / maxN) * 100);
                       return (
                         <div
                           key={key}
@@ -5357,7 +5357,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                                 className="sl-freq"
                                 type="range"
                                 min={0}
-                                max={sliderMax}
+                                max={maxN}
                                 step={1}
                                 value={n}
                                 onChange={(e) => setCustomFreq(key, +e.target.value)}
