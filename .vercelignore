@@ -1,4 +1,11 @@
 output/
 public/dishes/
 dish-gallery/
-scripts/
+# scripts/ (not scripts) so the negation below can still re-include one file —
+# gitignore/vercelignore semantics don't let you un-ignore a file whose parent
+# directory itself is excluded, only its contents via a glob.
+scripts/*
+# Needed at build time: package.json's "prebuild" runs this to gate `vite
+# build` on catalog validity (vite build only bundles, never executes app
+# code, so this is the only thing that actually fails the build on bad data).
+!scripts/validate-catalog.mjs
