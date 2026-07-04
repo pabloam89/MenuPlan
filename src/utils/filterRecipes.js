@@ -1,11 +1,37 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { normalizeAllergenId } from "../lib/allergens.js";
+import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 
 function currentSeason() {
   const month = new Date().getMonth() + 1;
   if (month >= 6 && month <= 9) return "verano";
   if (month === 12 || month <= 2) return "invierno";
   return null;
+}
+
+/**
+ * Proportion (0–1) of a recipe's ingredients the user already has at home.
+ * Soft signal only — never excludes a recipe, just ranks it. Matches on
+ * whole words (via normalizePantryInput's helpers), not raw substrings: a
+ * naive `.includes("pollo")` would also match "Repollo" (cabbage).
+ *
+ * @param {Object} recipe
+ * @param {string[]} pantryNormalized - normalized keys from user_pantry,
+ *   e.g. ["pollo", "tomate", "pechuga_pollo"]
+ */
+export function scorePantryMatch(recipe, pantryNormalized) {
+  if (!pantryNormalized || pantryNormalized.length === 0) return 0;
+  if (!recipe.ingredients?.length) return 0;
+
+  const recipeIngredientWords = recipe.ingredients.map((ing) => ingredientWords(ing.name));
+  let matches = 0;
+  for (const pantryKey of pantryNormalized) {
+    const pantryWords = pantryKey.split("_");
+    if (recipeIngredientWords.some((words) => wordsOverlapEither(pantryWords, words))) {
+      matches++;
+    }
+  }
+  return matches / recipe.ingredients.length;
 }
 
 /**
@@ -17,6 +43,8 @@ function currentSeason() {
  * @param {boolean}  opts.hasKids    - if true, only kidFriendly recipes
  * @param {number}   opts.maxTime    - max cooking time in minutes (weekday or weekend)
  * @param {string[]} opts.kitchenTools - available tools ["Horno", "Batidora", ...]
+ * @param {string[]} [opts.pantryIngredients] - normalized user_pantry keys (e.g. ["pollo", "tomate"]);
+ *   never excludes recipes, only annotates each with a `pantryScore` (see scorePantryMatch)
  * @returns {{ recipes: Object[], error: string|null }}
  */
 export function filterRecipes({
@@ -27,6 +55,7 @@ export function filterRecipes({
   kitchenTools = [],
   cookLevel = "normal",
   isBabyGroup = false,
+  pantryIngredients = [],
 } = {}) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
@@ -83,6 +112,13 @@ export function filterRecipes({
   }
   // "pro" → all difficulties allowed
 
+  // 8. Pantry score — soft ranking signal only, computed after every hard
+  // filter above so it never changes which recipes survive, only how the
+  // LLM (Phase 5) can prioritize among them.
+  if (pantryIngredients.length > 0) {
+    pool = pool.map((r) => ({ ...r, pantryScore: scorePantryMatch(r, pantryIngredients) }));
+  }
+
   // Validate minimum viable pool
   const categories = new Set(pool.map((r) => r.category));
   const minRecipes = isBabyGroup ? 10 : 25;
@@ -125,6 +161,11 @@ export function decisionCatalog(filteredRecipes) {
       if (r.mainBase) {
         entry.mainBase = r.mainBase;
       }
+    }
+    // Omit when zero/absent rather than sending "pantryScore": 0 on every
+    // recipe — only meaningful (and only present) once the user has a pantry.
+    if (r.pantryScore > 0) {
+      entry.pantryScore = Math.round(r.pantryScore * 100) / 100;
     }
     return entry;
   });

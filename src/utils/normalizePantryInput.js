@@ -47,6 +47,21 @@ function toKey(words) {
   return words.join("_");
 }
 
+/**
+ * Stopword-filtered significant words for an arbitrary ingredient name.
+ * Exported so other matching needs (e.g. scoring recipes against a saved
+ * pantry in filterRecipes.js) reuse this instead of a raw substring check,
+ * which would wrongly match "pollo" inside "Repollo".
+ */
+export function ingredientWords(name) {
+  return significantWords(name);
+}
+
+/** True if either word list is a whole-word subset of the other. */
+export function wordsOverlapEither(a, b) {
+  return isWordSubset(a, b) || isWordSubset(b, a);
+}
+
 let catalogIndexCache = null;
 
 /** Unique ingredient names across the whole catalog, pre-split into words. */
