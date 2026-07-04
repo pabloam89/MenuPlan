@@ -83,25 +83,11 @@ export const RecipeSchema = z
           message: `"${id}": type "guarnicion" requiere mealRole === ["guarnicion"], recibido [${mealRole.join(", ")}]`,
         });
       }
-    } else {
-      if (mealRole.includes("guarnicion")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `"${id}": mealRole "guarnicion" solo es válido con type "guarnicion"`,
-        });
-      }
-      if (type === "principal" && mealRole.includes("primero")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `"${id}": type "principal" no puede tener mealRole "primero" (los platos con proteína van de segundo, no de primero)`,
-        });
-      }
-      if (type === "principal" && !mealRole.includes("segundo")) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: `"${id}": type "principal" requiere mealRole incluya "segundo"`,
-        });
-      }
+    } else if (mealRole.includes("guarnicion")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": mealRole "guarnicion" solo es válido con type "guarnicion"`,
+      });
     }
 
     if (recipe.baseDishId === id) {

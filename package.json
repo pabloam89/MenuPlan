@@ -6,10 +6,13 @@
   "scripts": {
     "dev": "vite",
     "dev:menu": "node scripts/gen-demo-state.mjs && vite --open \"/?demo=1\"",
+    "prebuild": "node scripts/validate-catalog.mjs",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
+    "pretest": "node scripts/validate-catalog.mjs",
     "test": "vitest run",
+    "check:catalog": "node scripts/validate-catalog.mjs",
     "check:duplicates": "node scripts/detect-duplicate-dishes.mjs"
   },
   "dependencies": {
