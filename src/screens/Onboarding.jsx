@@ -3743,6 +3743,41 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
   const fileInputRef = useRef(null);
 
+  // The AI-parsing step has no real progress signal (it's one request), so a
+  // bar frozen at 85% for several seconds reads as stuck. Elapsed-time ticks
+  // and rotating copy keep it feeling alive; the bar creeps slowly toward
+  // 97% instead of sitting still, and never claims to be done before it is.
+  const [importElapsedSec, setImportElapsedSec] = useState(0);
+  const [aiParsing, setAiParsing] = useState(false);
+  const aiParseStartSecRef = useRef(0);
+  // Mirrors importElapsedSec but readable synchronously from the onProgress
+  // callback below, which closes over stale state from when handleFile
+  // started (it isn't recreated as the interval ticks).
+  const importElapsedRef = useRef(0);
+  useEffect(() => {
+    if (!importing) return undefined;
+    const id = setInterval(() => {
+      importElapsedRef.current += 1;
+      setImportElapsedSec(importElapsedRef.current);
+    }, 1000);
+    return () => clearInterval(id);
+  }, [importing]);
+
+  const AI_PARSE_MESSAGES = [
+    "Casi listo, dando los últimos toques…",
+    "Organizando los platos de la semana…",
+    "Revisando que no se cuele ningún despiste…",
+  ];
+  const aiParseElapsed = aiParsing
+    ? Math.max(0, importElapsedSec - aiParseStartSecRef.current)
+    : 0;
+  const displayProgress = aiParsing
+    ? Math.min(0.97, 0.85 + aiParseElapsed * 0.015)
+    : importProgress;
+  const displayStatus = aiParsing
+    ? AI_PARSE_MESSAGES[Math.floor(aiParseElapsed / 3) % AI_PARSE_MESSAGES.length]
+    : importStatus;
+
   // Auto-set schedule to "cole" for school days when a menu is uploaded
   useEffect(() => {
     setData((d) => {
@@ -3862,6 +3897,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     setImportProgress(0.05);
     setImportError(null);
     setImportStatus("Leyendo archivo…");
+    setImportElapsedSec(0);
+    importElapsedRef.current = 0;
+    setAiParsing(false);
     try {
       const { weeks, entries } = await importSchoolMenuFile(file, {
         onProgress: (p) => {
@@ -3881,6 +3919,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           } else if (p.stage === "ai-parse") {
             setImportProgress(0.85);
             setImportStatus("Interpretando con IA…");
+            aiParseStartSecRef.current = importElapsedRef.current;
+            setAiParsing(true);
           }
         },
       });
@@ -3920,6 +3960,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     } finally {
       setImporting(false);
       setImportProgress(0);
+      setAiParsing(false);
     }
   };
 
@@ -4083,23 +4124,36 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                   <div
                     style={{
                       height: "100%",
-                      width: `${Math.round(importProgress * 100)}%`,
+                      width: `${Math.round(displayProgress * 100)}%`,
                       background: "#2d5a3d",
                       borderRadius: 3,
-                      transition: "width .4s ease",
+                      transition: "width .8s ease",
                     }}
                   />
                 </div>
                 <div
                   style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
                     fontSize: 11,
                     color: "#8d978f",
-                    whiteSpace: "nowrap",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
                   }}
                 >
-                  {importStatus || "…"}
+                  <span
+                    style={{
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      flex: 1,
+                      minWidth: 0,
+                    }}
+                  >
+                    {displayStatus || "…"}
+                  </span>
+                  <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
+                    {importElapsedSec}s
+                  </span>
                 </div>
               </>
             ) : (
