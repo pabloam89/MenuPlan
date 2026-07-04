@@ -75,19 +75,44 @@ export function _resetCatalogIndexCache() {
 
 // A match requires every word on the shorter side to appear on the longer
 // side ("pollo" ⊆ "pechuga de pollo", or "pechuga de pollo" ⊇ "pechuga").
-// Among ties, prefers the catalog name whose word count is closest to the
-// token's, so a bare "pollo" prefers the plain "Pollo" entry over a specific
-// cut when both would otherwise match equally well.
-function findBestCatalogMatch(tokenWords, catalogIndex) {
-  if (tokenWords.length === 0) return null;
-  let best = null;
+// Returns every catalog entry tied at the best score (word-count distance
+// from the token) rather than picking one — a bare "pechuga" matches both
+// "Pechuga de pollo" and "Pechuga de pavo" equally well, and there's no way
+// to guess which the user meant, so the caller must ask them.
+function findCatalogMatches(tokenWords, catalogIndex) {
+  if (tokenWords.length === 0) return [];
+  let bestScore = Infinity;
+  let matches = [];
   for (const entry of catalogIndex) {
-    const matches = isWordSubset(tokenWords, entry.words) || isWordSubset(entry.words, tokenWords);
-    if (!matches) continue;
+    const isMatch = isWordSubset(tokenWords, entry.words) || isWordSubset(entry.words, tokenWords);
+    if (!isMatch) continue;
     const score = Math.abs(entry.words.length - tokenWords.length);
-    if (!best || score < best.score) best = { entry, score };
+    if (score < bestScore) {
+      bestScore = score;
+      matches = [entry];
+    } else if (score === bestScore) {
+      matches.push(entry);
+    }
   }
-  return best?.entry ?? null;
+  // Dedupe entries that are the same ingredient under singular/plural
+  // variance (catalog data has both "Contramuslo de pollo" and "Contramuslos
+  // de pollo") — those shouldn't look like two different candidates to
+  // choose between. Uses a looser singularized key than the stored
+  // `normalized` value just to detect this; genuinely different words
+  // ("pollo" vs "pavo") are untouched and still surface as real choices.
+  const seen = new Set();
+  return matches.filter((m) => {
+    const key = m.words.map(singularize).join("_");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function singularize(word) {
+  if (word.endsWith("es") && word.length > 4) return word.slice(0, -2);
+  if (word.endsWith("s") && word.length > 3) return word.slice(0, -1);
+  return word;
 }
 
 function splitIntoTokens(input) {
@@ -99,7 +124,11 @@ function splitIntoTokens(input) {
 
 /**
  * @param {string} input Free text, e.g. "tengo pollo, tomates y cebolla"
- * @returns {{ raw: string, normalized: string, matched: boolean }[]}
+ * @returns {Array<
+ *   | { raw: string, normalized: string, matched: true, ambiguous: false }
+ *   | { raw: string, matched: true, ambiguous: true, candidates: { normalized: string, label: string }[] }
+ *   | { raw: string, normalized: string, matched: false, ambiguous: false }
+ * >}
  */
 export function normalizePantryInput(input) {
   const text = String(input ?? "").trim();
@@ -109,13 +138,25 @@ export function normalizePantryInput(input) {
 
   return splitIntoTokens(text).map((raw) => {
     const words = significantWords(raw);
-    const match = findBestCatalogMatch(words, catalogIndex);
-    if (match) {
-      return { raw, normalized: toKey(match.words), matched: true };
+    const matches = findCatalogMatches(words, catalogIndex);
+
+    if (matches.length === 1) {
+      return { raw, normalized: toKey(matches[0].words), matched: true, ambiguous: false };
+    }
+    if (matches.length > 1) {
+      // Several equally-good catalog ingredients (e.g. "pechuga" matches both
+      // "Pechuga de pollo" and "Pechuga de pavo") — let the user pick instead
+      // of guessing.
+      return {
+        raw,
+        matched: true,
+        ambiguous: true,
+        candidates: matches.map((m) => ({ normalized: toKey(m.words), label: m.name })),
+      };
     }
     // No catalog match: still return a normalized key (for display/storage)
     // built from the user's own words, since ingredient_normalized is
     // NOT NULL in user_pantry regardless of whether it matched anything.
-    return { raw, normalized: toKey(words) || raw.toLowerCase(), matched: false };
+    return { raw, normalized: toKey(words) || raw.toLowerCase(), matched: false, ambiguous: false };
   });
 }

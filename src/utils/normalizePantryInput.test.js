@@ -5,10 +5,10 @@ describe("normalizePantryInput", () => {
   it("matches plain generic terms against the catalog", () => {
     const result = normalizePantryInput("pollo, arroz, tomates y cebolla");
     expect(result).toEqual([
-      { raw: "pollo", normalized: "pollo", matched: true },
-      { raw: "arroz", normalized: "arroz", matched: true },
-      { raw: "tomates", normalized: "tomate", matched: true },
-      { raw: "cebolla", normalized: "cebolla", matched: true },
+      { raw: "pollo", normalized: "pollo", matched: true, ambiguous: false },
+      { raw: "arroz", normalized: "arroz", matched: true, ambiguous: false },
+      { raw: "tomates", normalized: "tomate", matched: true, ambiguous: false },
+      { raw: "cebolla", normalized: "cebolla", matched: true, ambiguous: false },
     ]);
   });
 
@@ -16,15 +16,37 @@ describe("normalizePantryInput", () => {
     const result = normalizePantryInput("tengo pechuga y un poco de queso");
     expect(result).toHaveLength(2);
     expect(result[0].raw).toBe("tengo pechuga");
-    expect(result[0].matched).toBe(true);
-    // "Pechuga" alone is genuinely ambiguous — the catalog has both "Pechuga
-    // de pollo" and "Pechuga de pavo" — so just assert it resolved to one of
-    // them deterministically, not which one.
-    expect(result[0].normalized.startsWith("pechuga_")).toBe(true);
-    expect(result[1].matched).toBe(true);
     expect(result[1].raw).toBe("un poco de queso");
-    // Several "Queso ..." catalog variants tie for a bare "queso" — same idea.
-    expect(result[1].normalized.startsWith("queso_")).toBe(true);
+  });
+
+  it("asks the user to disambiguate instead of guessing a tied match", () => {
+    const [pechuga, queso] = normalizePantryInput("pechuga, queso");
+
+    // "Pechuga" matches both "Pechuga de pollo" and "Pechuga de pavo" equally
+    // well — the caller must let the user pick, not silently assume one.
+    expect(pechuga.matched).toBe(true);
+    expect(pechuga.ambiguous).toBe(true);
+    expect(pechuga.normalized).toBeUndefined();
+    expect(pechuga.candidates.map((c) => c.normalized).sort()).toEqual([
+      "pechuga_pavo",
+      "pechuga_pollo",
+    ]);
+    expect(pechuga.candidates.every((c) => typeof c.label === "string")).toBe(true);
+
+    // Same story for "queso" — several "Queso ..." catalog variants tie.
+    expect(queso.matched).toBe(true);
+    expect(queso.ambiguous).toBe(true);
+    expect(queso.candidates.length).toBeGreaterThan(1);
+    expect(queso.candidates.every((c) => c.normalized.startsWith("queso_"))).toBe(true);
+  });
+
+  it("does not treat singular/plural catalog duplicates as separate candidates", () => {
+    // Catalog has both "Contramuslo de pollo" and "Contramuslos de pollo" —
+    // same ingredient. A bare "contramuslo" shouldn't present that as a
+    // 2-way choice.
+    const [result] = normalizePantryInput("contramuslo");
+    expect(result.matched).toBe(true);
+    expect(result.ambiguous).toBe(false);
   });
 
   it("flags ingredients not in the catalog as unmatched", () => {
@@ -34,7 +56,7 @@ describe("normalizePantryInput", () => {
     expect(result.find((r) => r.raw === "aguacate")?.matched).toBe(true);
     expect(result.find((r) => r.raw === "quinoa")?.matched).toBe(true);
     const kale = result.find((r) => r.raw === "kale");
-    expect(kale).toEqual({ raw: "kale", normalized: "kale", matched: false });
+    expect(kale).toEqual({ raw: "kale", normalized: "kale", matched: false, ambiguous: false });
   });
 
   it("returns an empty array for empty input", () => {
@@ -47,7 +69,7 @@ describe("normalizePantryInput", () => {
   it("does not false-positive match 'pollo' inside 'Repollo'", () => {
     const result = normalizePantryInput("repollo");
     expect(result[0].raw).toBe("repollo");
-    if (result[0].matched) {
+    if (result[0].matched && !result[0].ambiguous) {
       expect(result[0].normalized).not.toBe("pollo");
     }
   });
