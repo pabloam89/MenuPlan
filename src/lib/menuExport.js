@@ -1,6 +1,12 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { DAYS, getMeals } from "./planner.js";
 import { formatWeekRangeLabel, getWeekDates } from "./weekCalendar.js";
+import {
+  enrichItem,
+  isPantryItem,
+  itemsByAisle,
+  mergeShoppingItems,
+} from "./shoppingListUtils.js";
 
 const MONTH_NAMES = [
   "enero", "febrero", "marzo", "abril", "mayo", "junio",
@@ -71,14 +77,21 @@ export function formatMenuText(data, menuPlan, groups) {
 }
 
 export function formatShoppingText(shopping) {
-  if (!shopping?.items?.length) return "La lista de la compra está vacía.";
+  const rawItems = shopping?.items ?? [];
+  if (!rawItems.length) return "La lista de la compra está vacía.";
 
-  const { byCategory = [], pantryItems = [] } = shopping;
+  const merged = mergeShoppingItems(rawItems);
+  const shoppingItems = merged.filter((it) => !isPantryItem(it)).map(enrichItem);
+  const pantryItems = merged
+    .filter(isPantryItem)
+    .sort((a, b) => a.name.localeCompare(b.name));
+  const groups = itemsByAisle(shoppingItems);
+
   const lines = ["LISTA DE LA COMPRA", ""];
 
-  for (const { cat, items } of byCategory) {
+  for (const { aisle, items } of groups) {
     if (!items?.length) continue;
-    lines.push(cat.toUpperCase());
+    lines.push(aisle.toUpperCase());
     for (const it of items) {
       const check = it.have || it.atHome ? "✓" : "·";
       lines.push(`  ${check} ${it.name} — ${it.displayQty ?? it.qty}`);
