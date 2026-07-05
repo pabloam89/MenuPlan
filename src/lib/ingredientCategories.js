@@ -12,7 +12,7 @@ export const SHOPPING_AISLES = [
   "Huevos",
   "Panadería",
   "Especias",
-  "Despensa",
+  "Aceites y conservas",
 ];
 
 export function normalizeName(name) {
