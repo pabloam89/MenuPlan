@@ -20,6 +20,7 @@ import {
   Package,
   Plus,
   Receipt,
+  ShoppingCart,
   Sprout,
   Sun,
   Trash2,
@@ -461,13 +462,12 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
                     <ShoppingRow
                       key={`pantry-${item.id}`}
                       item={item}
-                      doneView
                       expanded={expandedId === item.id}
                       onToggleRecipes={() =>
                         setExpandedId(expandedId === item.id ? null : item.id)
                       }
-                      // "Undo" here means "actually I need to buy this" — it
-                      // rejoins the normal aisle-grouped list.
+                      // "No lo tengo" — the user disagrees with the pantry
+                      // match, so it rejoins the normal aisle-grouped list.
                       onUndo={() => patchItem(item.id, { fromPantry: false })}
                       onRemove={() => removeItem(item.id)}
                     />
@@ -562,11 +562,25 @@ function ShoppingRow({
         </span>
         <span style={qtyColStyle}>{qty}</span>
         <div style={actionsColStyle}>
-          {doneView ? (
+          {item.fromPantry ? (
+            // No purchase-status badge here — being in the pantry already
+            // means "I'm not buying this", so "Comprado"/"En casa" would be
+            // redundant. Just the two actions that actually apply.
             <>
-              {item.fromPantry ? (
-                <ActionBtn icon={Home} label="Tu despensa" active readOnly />
-              ) : item.atHome ? (
+              <ActionBtn icon={ShoppingCart} label="No lo tengo" onClick={onUndo} />
+              {item.recipeCount > 0 && (
+                <ActionBtn
+                  icon={BookOpen}
+                  label="Recetas"
+                  onClick={onToggleRecipes}
+                  active={expanded}
+                />
+              )}
+              <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted />
+            </>
+          ) : doneView ? (
+            <>
+              {item.atHome ? (
                 <ActionBtn icon={Home} label="En casa" active readOnly />
               ) : (
                 <ActionBtn icon={Check} label="Comprado" active readOnly />

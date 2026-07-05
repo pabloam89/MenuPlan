@@ -28,6 +28,7 @@ import {
   RotateCw,
   Salad,
   Shell,
+  ShoppingBasket,
   SlidersHorizontal,
   Share2,
   ShoppingCart,
@@ -54,6 +55,7 @@ import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeB
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { OnboardingRestrictions } from "./Onboarding.jsx";
+import { PantryInput } from "../components/PantryInput.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey, modeForGroupSlot } from "../lib/planner.js";
@@ -1151,6 +1153,15 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
               )}
             </div>
           )}
+        </AccordionSection>
+
+        {/* ── Tu despensa ── */}
+        <AccordionSection title="Tu despensa" icon={ShoppingBasket}>
+          <p style={{ margin: "0 0 10px", fontSize: 12, color: "#9ab0a1", lineHeight: 1.4 }}>
+            Lo que añadas aquí se tiene en cuenta la próxima vez que generes el menú
+            y se descuenta de la lista de la compra.
+          </p>
+          <PantryInput onSaved={() => { snapshotRef.current = "__dirty__"; }} />
         </AccordionSection>
 
         {/* ── Qué repetimos ── */}
