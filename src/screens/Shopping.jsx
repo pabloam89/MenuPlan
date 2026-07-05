@@ -40,6 +40,7 @@ import {
   formatDisplay,
   isActiveItem,
   isDoneItem,
+  isPantryItem,
   itemsByAisle,
   mergeShoppingItems,
   matchReceiptProducts,
@@ -78,6 +79,9 @@ const AISLE_UI = {
   Panadería: { Icon: Croissant, color: "#a67c52" },
   Especias: { Icon: Sprout, color: "#7c5cbf" },
   Despensa: { Icon: Package, color: "#64748b" },
+  // Not a real store aisle — the "Ya lo tienes" section (ingredients matched
+  // against the user's saved pantry, see src/lib/pantry.js).
+  __pantry: { Icon: Home, color: "#8a6d1f" },
 };
 
 export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
@@ -148,12 +152,23 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
     () => mergeShoppingItems(shopping.items),
     [shopping.items]
   );
-  const enrichedItems = useMemo(() => mergedItems.map(enrichItem), [mergedItems]);
+  // Pantry matches get their own "Ya lo tienes" section (always shown,
+  // regardless of the pending/done toggle below) instead of being mixed into
+  // the aisle groups or the manual "en casa"/"comprado" bookkeeping.
+  const shoppingOnlyItems = useMemo(
+    () => mergedItems.filter((it) => !isPantryItem(it)),
+    [mergedItems]
+  );
+  const pantryItems = useMemo(
+    () => mergedItems.filter(isPantryItem).map(enrichItem).sort((a, b) => a.name.localeCompare(b.name)),
+    [mergedItems]
+  );
+  const enrichedItems = useMemo(() => shoppingOnlyItems.map(enrichItem), [shoppingOnlyItems]);
   const { doneCount, totalCount, progress } = useMemo(() => {
-    const totalCount = mergedItems.length;
-    const doneCount = mergedItems.filter(isDoneItem).length;
+    const totalCount = shoppingOnlyItems.length;
+    const doneCount = shoppingOnlyItems.filter(isDoneItem).length;
     return { doneCount, totalCount, progress: totalCount > 0 ? doneCount / totalCount : 0 };
-  }, [mergedItems]);
+  }, [shoppingOnlyItems]);
   const visibleItems = useMemo(() => {
     if (listScope === "pending") return enrichedItems.filter(isActiveItem);
     if (listScope === "done") return enrichedItems.filter(isDoneItem);
@@ -164,9 +179,9 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
     [visibleItems]
   );
 
-  const isEmpty = sections.every((s) => s.items.length === 0);
-  const hasPendingItems = mergedItems.some(isActiveItem);
-  const hasDoneItems = mergedItems.some(isDoneItem);
+  const isEmpty = sections.every((s) => s.items.length === 0) && pantryItems.length === 0;
+  const hasPendingItems = shoppingOnlyItems.some(isActiveItem);
+  const hasDoneItems = shoppingOnlyItems.some(isDoneItem);
 
   const handleReceiptPick = async (file) => {
     if (!file) return;
@@ -385,6 +400,83 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
             </div>
           );
         })}
+
+        {pantryItems.length > 0 && (() => {
+          const open = Boolean(openSections.__pantry);
+          return (
+            <div style={{ marginBottom: 10 }}>
+              <button
+                type="button"
+                onClick={() => setOpenSections((c) => ({ ...c, __pantry: !c.__pantry }))}
+                style={{
+                  ...sectionHeaderStyle,
+                  ...sectionLabelCardStyle,
+                  borderRadius: open ? "14px 14px 0 0" : 14,
+                  borderBottom: open ? "none" : sectionLabelCardStyle.border,
+                }}
+              >
+                <AisleIcon aisle="__pantry" />
+                <span
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    minWidth: 0,
+                    textAlign: "left",
+                  }}
+                >
+                  {open ? (
+                    <ChevronDown size={16} color="#7a8a7f" />
+                  ) : (
+                    <ChevronRight size={16} color="#7a8a7f" />
+                  )}
+                  <span
+                    style={{
+                      fontSize: 15,
+                      fontWeight: 800,
+                      color: "#142f1d",
+                      letterSpacing: "-.2px",
+                    }}
+                  >
+                    Ya lo tienes
+                  </span>
+                </span>
+                <span
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: "#7a8a7f",
+                    minWidth: 28,
+                    textAlign: "right",
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {pantryItems.length}
+                </span>
+              </button>
+              {open && (
+                <div style={aisleItemsStyle}>
+                  {pantryItems.map((item) => (
+                    <ShoppingRow
+                      key={`pantry-${item.id}`}
+                      item={item}
+                      doneView
+                      expanded={expandedId === item.id}
+                      onToggleRecipes={() =>
+                        setExpandedId(expandedId === item.id ? null : item.id)
+                      }
+                      // "Undo" here means "actually I need to buy this" — it
+                      // rejoins the normal aisle-grouped list.
+                      onUndo={() => patchItem(item.id, { fromPantry: false })}
+                      onRemove={() => removeItem(item.id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={addItem} />}
@@ -439,7 +531,10 @@ function ShoppingRow({
   onRemove,
 }) {
   const qty = item.displayQty ?? formatDisplay(item.qty ?? 0, item.unit ?? "ud");
-  const dimmed = !doneView && (item.have || item.atHome);
+  // Pantry-matched rows are always struck through (the whole "Ya lo tienes"
+  // section is inherently "done"), independent of the doneView convention
+  // used elsewhere, which only dims within the mixed "all" scope.
+  const dimmed = item.fromPantry || (!doneView && (item.have || item.atHome));
 
   return (
     <div
@@ -456,7 +551,7 @@ function ShoppingRow({
             fontSize: 15,
             fontWeight: 800,
             color: "#142f1d",
-            textDecoration: !doneView && (item.have || item.atHome) ? "line-through" : "none",
+            textDecoration: dimmed ? "line-through" : "none",
             lineHeight: 1.2,
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -469,7 +564,9 @@ function ShoppingRow({
         <div style={actionsColStyle}>
           {doneView ? (
             <>
-              {item.atHome ? (
+              {item.fromPantry ? (
+                <ActionBtn icon={Home} label="Tu despensa" active readOnly />
+              ) : item.atHome ? (
                 <ActionBtn icon={Home} label="En casa" active readOnly />
               ) : (
                 <ActionBtn icon={Check} label="Comprado" active readOnly />

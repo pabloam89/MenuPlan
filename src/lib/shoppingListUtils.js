@@ -72,11 +72,17 @@ export function recipeUsageFromSources(sources = []) {
 }
 
 export function isActiveItem(item) {
-  return !item.have && !item.atHome;
+  return !item.have && !item.atHome && !item.fromPantry;
 }
 
 export function isDoneItem(item) {
-  return Boolean(item.have || item.atHome);
+  return Boolean(item.have || item.atHome || item.fromPantry);
+}
+
+/** Auto-detected from the user's saved pantry — shown in its own "Ya lo
+ * tienes" section rather than mixed into either the pending or done view. */
+export function isPantryItem(item) {
+  return Boolean(item.fromPantry);
 }
 
 /** Merge duplicate rows (legacy ids, garnish prefixes, accent variants). */
@@ -96,6 +102,7 @@ export function mergeShoppingItems(items) {
         sources: [...(it.sources ?? [])],
         have: Boolean(it.have),
         atHome: Boolean(it.atHome),
+        fromPantry: Boolean(it.fromPantry),
       });
       continue;
     }
@@ -104,6 +111,7 @@ export function mergeShoppingItems(items) {
     row.sources.push(...(it.sources ?? []));
     row.have = row.have || Boolean(it.have);
     row.atHome = row.atHome || Boolean(it.atHome);
+    row.fromPantry = row.fromPantry || Boolean(it.fromPantry);
   }
   return Array.from(map.values()).map((it) => ({
     ...it,
@@ -202,6 +210,7 @@ export function enrichItem(item) {
     ...item,
     atHome: Boolean(item.atHome),
     have: Boolean(item.have),
+    fromPantry: Boolean(item.fromPantry),
     recipeLines,
     recipeUsage,
     recipeCount: recipeLines.length,

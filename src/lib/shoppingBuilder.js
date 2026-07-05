@@ -1,6 +1,19 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { categoryForIngredient, normalizeIngredientKey } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
+import { ingredientWords, wordsOverlapEither } from "../utils/normalizePantryInput.js";
+
+// Whole-word match (not raw substring — see normalizePantryInput.js's
+// "Repollo" note) between a shopping-list ingredient name and the user's
+// saved pantry. Quantities are ignored entirely: if the recipe needs
+// tomatoes and the user has tomatoes, the whole line is discounted — no
+// partial-amount tracking (per the feature spec, deliberately out of scope).
+function matchesPantry(ingredientName, pantryNormalized) {
+  if (!pantryNormalized || pantryNormalized.length === 0) return false;
+  const words = ingredientWords(ingredientName);
+  return pantryNormalized.some((key) => wordsOverlapEither(key.split("_"), words));
+}
+
 function scaleIngredient(ing, eaters, recipeServings) {
   const factor = Math.max(1, eaters) / recipeServings;
   return {
@@ -23,14 +36,22 @@ function formatQty(qty, unit) {
 /**
  * Build the shopping list from the generated menu plan.
  *
+ * @param {{ ingredientName: string, ingredientNormalized: string }[]} [pantryIngredients]
+ *   The signed-in user's saved pantry (see src/lib/pantry.js#loadPantry).
+ *   Matched items are pulled out of `byCategory` into `pantryItems` ("Ya lo
+ *   tienes") instead of being removed — the user may still want to check
+ *   them off — and are excluded from `total`. No partial-quantity handling:
+ *   a match discounts the whole line (see matchesPantry above).
+ *
  * Returns:
  *   {
- *     byCategory: [{ cat, items: [{ id, name, qty, unit, price, displayQty, have, sources: [{day, meal, group, recipeName}] }] }],
- *     byDay:      [{ day, items: [...] }],
- *     total:      number,
+ *     byCategory:  [{ cat, items: [{ id, name, qty, unit, price, displayQty, have, sources: [{day, meal, group, recipeName}] }] }],
+ *     pantryItems: [{ ...same shape, fromPantry: true }],
+ *     byDay:       [{ day, items: [...] }],
+ *     total:       number,
  *   }
  */
-export function buildShoppingList(menuPlan, groups, meals = MEALS) {
+export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredients = []) {
   const groupById = Object.fromEntries(groups.map((g) => [g.id, g]));
   /** @type {Record<string, {id:string,name:string,category:string,unit:string,qty:number,price:number,sources:Array<{day:string,meal:string,group:string,recipeName:string}>}>} */
   const aggregate = {};
@@ -95,14 +116,24 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS) {
     }
   }
 
+  const pantryNormalized = pantryIngredients.map((p) => p.ingredientNormalized);
   const items = Object.values(aggregate).map((it) => ({
     ...it,
     displayQty: formatQty(it.qty, it.unit),
     price: Math.round(it.price * 100) / 100,
+    fromPantry: matchesPantry(it.name, pantryNormalized),
   }));
 
+  // Pantry matches move to their own "Ya lo tienes" bucket instead of sitting
+  // in their normal aisle group — they still need checking off, per the
+  // spec, so they aren't dropped entirely.
+  const shoppingItems = items.filter((it) => !it.fromPantry);
+  const pantryItems = items
+    .filter((it) => it.fromPantry)
+    .sort((a, b) => a.name.localeCompare(b.name));
+
   const byCategoryMap = {};
-  for (const it of items) {
+  for (const it of shoppingItems) {
     if (!byCategoryMap[it.category]) byCategoryMap[it.category] = [];
     byCategoryMap[it.category].push(it);
   }
@@ -135,7 +166,9 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS) {
     };
   });
 
-  const total = items.reduce((s, it) => s + it.price, 0);
+  // Excludes pantry matches — the whole point is not paying for what's
+  // already at home.
+  const total = shoppingItems.reduce((s, it) => s + it.price, 0);
 
-  return { byCategory, byDay, total: Math.round(total * 100) / 100 };
+  return { byCategory, pantryItems, byDay, total: Math.round(total * 100) / 100 };
 }

@@ -370,7 +370,7 @@ export default function App() {
         ...d,
         menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
       }));
-      const sh = buildShoppingList(plan, groups, getMeals(working));
+      const sh = buildShoppingList(plan, groups, getMeals(working), pantryIngredients);
       setShopping((prev) => {
         const flags = Object.fromEntries(
           prev.items.map((i) => [
@@ -379,7 +379,7 @@ export default function App() {
           ])
         );
         return {
-          items: sh.byCategory.flatMap((c) => c.items).map((it) => ({
+          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
             ...it,
             have: flags[it.id]?.have ?? false,
             atHome: flags[it.id]?.atHome ?? false,
@@ -451,7 +451,7 @@ export default function App() {
     trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
   }, [user]);
 
-  const handleReplaceSlot = useCallback((selection) => {
+  const handleReplaceSlot = useCallback(async (selection) => {
     const { groupId, day, meal } = selection;
     const course = selection.course ?? "main";
     // Pick the replacement from the SAME rich catalog the AI planner uses, so the
@@ -475,6 +475,9 @@ export default function App() {
 
     const groups =
       data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    // Fetched before the state updater (which must stay synchronous) so the
+    // rebuilt shopping list still discounts pantry ingredients after a swap.
+    const pantryIngredients = user ? await loadPantry(user.id) : [];
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
@@ -490,7 +493,7 @@ export default function App() {
           [slotKey]: nextSlot,
         },
       };
-      const sh = buildShoppingList(next, groups, getMeals(data));
+      const sh = buildShoppingList(next, groups, getMeals(data), pantryIngredients);
       setShopping((prev) => {
         const flags = Object.fromEntries(
           prev.items.map((i) => [
@@ -499,7 +502,7 @@ export default function App() {
           ])
         );
         return {
-          items: sh.byCategory.flatMap((c) => c.items).map((it) => ({
+          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
             ...it,
             have: flags[it.id]?.have ?? false,
             atHome: flags[it.id]?.atHome ?? false,
