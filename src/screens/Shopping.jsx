@@ -294,7 +294,7 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
                         },
                       },
                       {
-                        label: "Descargar PDF",
+                        label: "Descargar",
                         icon: <Download size={14} />,
                         action: () => {
                           downloadShoppingList(shopping).then(() => onToast?.("Lista descargada"));

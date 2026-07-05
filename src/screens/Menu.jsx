@@ -1722,7 +1722,7 @@ export const MenuScreen = memo(function MenuScreen({
                     >
                       {[
                         { label: "Compartir", icon: <Share2 size={14} />, action: () => { handleShare(); setShowShareDropdown(false); } },
-                        { label: "Descargar PDF", icon: <Download size={14} />, action: () => { handleDownload(); setShowShareDropdown(false); } },
+                        { label: "Descargar", icon: <Download size={14} />, action: () => { handleDownload(); setShowShareDropdown(false); } },
                       ].map(({ label, icon, action }) => (
                         <button
                           key={label}
