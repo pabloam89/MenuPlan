@@ -10,6 +10,30 @@ function scaleIngredient(ing, eaters, recipeServings) {
   };
 }
 
+// Typical supermarket pack sizes keyed by ingredient name pattern.
+// Each entry: [regex, unit, packSize].
+// Applied after full-week aggregation so the rounding reflects total need.
+const PACK_SIZES = [
+  [/huevo/, "ud", 6],          // half-dozen / dozen
+  [/yogur/, "ud", 4],          // standard 4-pack
+  [/leche/, "ml", 1000],       // 1 L carton
+  [/nata/, "ml", 200],         // standard 200 ml brick
+  [/harina/, "g", 1000],       // 1 kg bag
+  [/arroz/, "g", 1000],        // 1 kg bag
+  [/pasta|espagueti|macarron|fideo|lasana/, "g", 500],  // 500 g packet
+  [/pan rallado|panko/, "g", 400],  // standard breadcrumb pack
+];
+
+function snapToPackSize(name, unit, qty) {
+  const lower = String(name ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  for (const [regex, packUnit, packSize] of PACK_SIZES) {
+    if (unit === packUnit && regex.test(lower)) {
+      return Math.ceil(qty / packSize) * packSize;
+    }
+  }
+  return qty;
+}
+
 function formatQty(qty, unit) {
   if (unit === "g" && qty >= 1000) return `${(qty / 1000).toFixed(qty % 1000 === 0 ? 0 : 1)}kg`;
   if (unit === "ml" && qty >= 1000) return `${(qty / 1000).toFixed(qty % 1000 === 0 ? 0 : 1)}L`;
@@ -95,11 +119,15 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS) {
     }
   }
 
-  const items = Object.values(aggregate).map((it) => ({
-    ...it,
-    displayQty: formatQty(it.qty, it.unit),
-    price: Math.round(it.price * 100) / 100,
-  }));
+  const items = Object.values(aggregate).map((it) => {
+    const snappedQty = snapToPackSize(it.name, it.unit, it.qty);
+    return {
+      ...it,
+      qty: snappedQty,
+      displayQty: formatQty(snappedQty, it.unit),
+      price: Math.round(it.price * 100) / 100,
+    };
+  });
 
   const byCategoryMap = {};
   for (const it of items) {
