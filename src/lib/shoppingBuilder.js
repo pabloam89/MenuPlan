@@ -38,8 +38,8 @@ function formatQty(qty, unit) {
  *
  * @param {{ ingredientName: string, ingredientNormalized: string }[]} [pantryIngredients]
  *   The signed-in user's saved pantry (see src/lib/pantry.js#loadPantry).
- *   Matched items are pulled out of `byCategory` into `pantryItems` ("Ya lo
- *   tienes") instead of being removed — the user may still want to check
+ *   Matched items are pulled out of `byCategory` into `pantryItems`
+ *   ("Despensa") instead of being removed — the user may still want to check
  *   them off — and are excluded from `total`. No partial-quantity handling:
  *   a match discounts the whole line (see matchesPantry above).
  *
@@ -124,9 +124,9 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
     fromPantry: matchesPantry(it.name, pantryNormalized),
   }));
 
-  // Pantry matches move to their own "Ya lo tienes" bucket instead of sitting
-  // in their normal aisle group — they still need checking off, per the
-  // spec, so they aren't dropped entirely.
+  // Pantry matches move to their own "Despensa" bucket instead of sitting in
+  // their normal aisle group — they still need checking off, per the spec,
+  // so they aren't dropped entirely.
   const shoppingItems = items.filter((it) => !it.fromPantry);
   const pantryItems = items
     .filter((it) => it.fromPantry)

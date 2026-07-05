@@ -79,9 +79,11 @@ const AISLE_UI = {
   Huevos: { Icon: Egg, color: "#ca9a14" },
   Panadería: { Icon: Croissant, color: "#a67c52" },
   Especias: { Icon: Sprout, color: "#7c5cbf" },
-  Despensa: { Icon: Package, color: "#64748b" },
-  // Not a real store aisle — the "Ya lo tienes" section (ingredients matched
-  // against the user's saved pantry, see src/lib/pantry.js).
+  "Aceites y conservas": { Icon: Package, color: "#64748b" },
+  // Not a real store aisle — the "Despensa" section (ingredients matched
+  // against the user's saved pantry, see src/lib/pantry.js). Named "Despensa"
+  // to match "Tu despensa" in Tu perfil, now that the supermarket aisle above
+  // has its own distinct name and doesn't collide with it.
   __pantry: { Icon: Home, color: "#8a6d1f" },
 };
 
@@ -153,9 +155,9 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
     () => mergeShoppingItems(shopping.items),
     [shopping.items]
   );
-  // Pantry matches get their own "Ya lo tienes" section (always shown,
-  // regardless of the pending/done toggle below) instead of being mixed into
-  // the aisle groups or the manual "en casa"/"comprado" bookkeeping.
+  // Pantry matches get their own "Despensa" section (always shown, regardless
+  // of the pending/done toggle below) instead of being mixed into the aisle
+  // groups or the manual "en casa"/"comprado" bookkeeping.
   const shoppingOnlyItems = useMemo(
     () => mergedItems.filter((it) => !isPantryItem(it)),
     [mergedItems]
@@ -440,7 +442,7 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
                       letterSpacing: "-.2px",
                     }}
                   >
-                    Ya lo tienes
+                    Despensa
                   </span>
                 </span>
                 <span
@@ -531,7 +533,7 @@ function ShoppingRow({
   onRemove,
 }) {
   const qty = item.displayQty ?? formatDisplay(item.qty ?? 0, item.unit ?? "ud");
-  // Pantry-matched rows are always struck through (the whole "Ya lo tienes"
+  // Pantry-matched rows are always struck through (the whole "Despensa"
   // section is inherently "done"), independent of the doneView convention
   // used elsewhere, which only dims within the mixed "all" scope.
   const dimmed = item.fromPantry || (!doneView && (item.have || item.atHome));

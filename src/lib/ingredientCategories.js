@@ -12,7 +12,10 @@ export const SHOPPING_AISLES = [
   "Huevos",
   "Panadería",
   "Especias",
-  "Despensa",
+  // Was "Despensa" — freed up that name for the "already have at home"
+  // pantry-match section (Shopping.jsx), which would otherwise read as the
+  // same thing as this supermarket aisle for oil/vinegar/canned goods.
+  "Aceites y conservas",
 ];
 
 export function normalizeName(name) {
@@ -75,7 +78,7 @@ const SHOPPING_AISLE_HINTS = [
   ],
   [
     /aceite|vinagre|sal|caldo|azucar|vino|tomate triturado|miel|mostaza|salsa|soja|levadura|maicena|almendra|nuez|aceituna|oliva|conserva/,
-    "Despensa",
+    "Aceites y conservas",
   ],
 ];
 

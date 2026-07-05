@@ -6531,6 +6531,13 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 
       <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 20px" }} />
 
+      {/* Despensa — surfaced early (not buried after tools/time) since it's
+          easy to miss otherwise; opcional, el menú se genera igual si se
+          deja vacío. */}
+      <PantryInput />
+
+      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
+
       {/* Herramientas — modelo tipo alergias */}
       <style>{`
         @keyframes avoidCheckPop {
@@ -6614,11 +6621,6 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       {/* Tiempo */}
       <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
       <CookTimeEditor data={data} setData={setData} />
-
-      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
-
-      {/* Despensa — opcional; el menú se genera igual si se deja vacío */}
-      <PantryInput />
     </OnboardingShell>
   );
 }
