@@ -144,8 +144,13 @@ export async function shareShoppingList(shopping) {
   const text = formatShoppingText(shopping);
   const result = await shareText("Lista de la compra", text);
   if (result.method !== "none") return result;
-  const filename = `lista-compra.txt`;
-  downloadText(text, filename);
+  downloadText(text, "lista-compra.txt");
+  return { method: "download" };
+}
+
+export async function downloadShoppingList(shopping) {
+  const text = formatShoppingText(shopping);
+  downloadText(text, "lista-compra.txt");
   return { method: "download" };
 }
 

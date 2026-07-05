@@ -17,6 +17,7 @@ import {
   Loader2,
   Milk,
   Moon,
+  Download,
   Package,
   Plus,
   Receipt,
@@ -46,7 +47,7 @@ import {
   matchReceiptProducts,
 } from "../lib/shoppingListUtils.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
-import { shareShoppingList } from "../lib/menuExport.js";
+import { downloadShoppingList, shareShoppingList } from "../lib/menuExport.js";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
@@ -91,6 +92,7 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
   const [receiptBusy, setReceiptBusy] = useState(false);
   const [receiptMatches, setReceiptMatches] = useState(null);
   const [editingQtyId, setEditingQtyId] = useState(null);
+  const [showShareDropdown, setShowShareDropdown] = useState(false);
   const fileRef = useRef(null);
 
   const weekLabel = formatWeekRangeLabel(getWeekDates());
@@ -243,18 +245,91 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
             </button>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            <button
-              type="button"
-              onClick={() => shareShoppingList(shopping).then((r) => {
-                if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
-                else if (r.method === "download") onToast?.("Lista descargada");
-              })}
-              style={iconBtnStyle}
-              aria-label="Compartir lista"
-              title="Compartir lista"
-            >
-              <Share2 size={18} strokeWidth={2.2} />
-            </button>
+            <div style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={() => setShowShareDropdown((v) => !v)}
+                aria-label="Compartir o descargar lista"
+                className="share-chip-btn"
+                style={{
+                  ...iconBtnStyle,
+                  background: showShareDropdown ? "#e8f0ea" : "#fff",
+                }}
+              >
+                <span className={`share-chip-icon${showShareDropdown ? " open" : ""}`}>
+                  <Share2 size={18} strokeWidth={2.2} />
+                </span>
+              </button>
+              {showShareDropdown && (
+                <>
+                  <div
+                    style={{ position: "fixed", inset: 0, zIndex: 49 }}
+                    onClick={() => setShowShareDropdown(false)}
+                  />
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "calc(100% + 8px)",
+                      zIndex: 50,
+                      background: "#fff",
+                      borderRadius: 12,
+                      boxShadow: "0 4px 20px rgba(0,0,0,.14)",
+                      border: "1px solid #e6eee8",
+                      overflow: "hidden",
+                      minWidth: 164,
+                      animation: "shareDropIn .25s cubic-bezier(0.68,-0.55,0.265,1.55)",
+                    }}
+                  >
+                    {[
+                      {
+                        label: "Compartir",
+                        icon: <Share2 size={14} />,
+                        action: () => {
+                          shareShoppingList(shopping).then((r) => {
+                            if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
+                            else if (r.method === "download") onToast?.("Lista descargada");
+                          });
+                          setShowShareDropdown(false);
+                        },
+                      },
+                      {
+                        label: "Descargar PDF",
+                        icon: <Download size={14} />,
+                        action: () => {
+                          downloadShoppingList(shopping).then(() => onToast?.("Lista descargada"));
+                          setShowShareDropdown(false);
+                        },
+                      },
+                    ].map(({ label, icon, action }) => (
+                      <button
+                        key={label}
+                        type="button"
+                        onClick={action}
+                        className="share-drop-row"
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 10,
+                          width: "100%",
+                          padding: "12px 16px",
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          fontSize: 14,
+                          fontWeight: 500,
+                          color: "#1a2e22",
+                          textAlign: "left",
+                        }}
+                      >
+                        {icon}
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </>
+              )}
+            </div>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
