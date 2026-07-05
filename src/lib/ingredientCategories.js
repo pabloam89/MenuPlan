@@ -63,13 +63,15 @@ const SHOPPING_AISLE_HINTS = [
     /manzana|platano|naranja|limon|lima|pera|melon|sandia|fresa|frambuesa|arandano|uvas|mandarina|kiwi|mango|pina|granada|ciruela|melocoton|albaricoque|higo|chirimoya/,
     "Frutas",
   ],
-  [
-    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|beicon|panceta|tocino|cordero|solomillo|chuleta|morcilla|picada|costilla|entrecot|hamburgues|albondig|butifarra|fuet|mortadela|fiambre/,
-    "Carne",
-  ],
+  // Pescado antes que Carne: "lomos de salmón" contiene "lomo" (Carne) y
+  // "salmón" (Pescado); la primera coincidencia gana, así que el pez va primero.
   [
     /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina/,
     "Pescado",
+  ],
+  [
+    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|beicon|panceta|tocino|cordero|solomillo|chuleta|morcilla|picada|costilla|entrecot|hamburgues|albondig|butifarra|fuet|mortadela|fiambre/,
+    "Carne",
   ],
   [/lentej|garbanz|alubi|judia verde|habas|soja|tofu/, "Legumbres"],
   [/pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa|noodle|lasaña/, "Pasta y arroz"],
