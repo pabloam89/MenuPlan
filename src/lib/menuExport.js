@@ -3,7 +3,6 @@ import { DAYS, getMeals } from "./planner.js";
 import { formatWeekRangeLabel, getWeekDates } from "./weekCalendar.js";
 import {
   enrichItem,
-  isPantryItem,
   itemsByAisle,
   mergeShoppingItems,
 } from "./shoppingListUtils.js";
@@ -81,10 +80,7 @@ export function formatShoppingText(shopping) {
   if (!rawItems.length) return "La lista de la compra está vacía.";
 
   const merged = mergeShoppingItems(rawItems);
-  const shoppingItems = merged.filter((it) => !isPantryItem(it)).map(enrichItem);
-  const pantryItems = merged
-    .filter(isPantryItem)
-    .sort((a, b) => a.name.localeCompare(b.name));
+  const shoppingItems = merged.map(enrichItem);
   const groups = itemsByAisle(shoppingItems);
 
   const lines = ["LISTA DE LA COMPRA", ""];
@@ -95,14 +91,6 @@ export function formatShoppingText(shopping) {
     for (const it of items) {
       const check = it.have || it.atHome ? "✓" : "·";
       lines.push(`  ${check} ${it.name} — ${it.displayQty ?? it.qty}`);
-    }
-    lines.push("");
-  }
-
-  if (pantryItems.length > 0) {
-    lines.push("YA LO TIENES EN CASA");
-    for (const it of pantryItems) {
-      lines.push(`  · ${it.name} — ${it.displayQty ?? it.qty}`);
     }
     lines.push("");
   }
