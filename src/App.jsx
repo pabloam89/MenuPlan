@@ -40,6 +40,7 @@ import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
+import { loadPantry } from "./lib/pantry.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -350,7 +351,11 @@ export default function App() {
     setIsGeneratingMenu(true);
     setMenuError(null);
     try {
-      const { plan, recipes } = await generateMenuWithAI({ ...working, groups }, { signal: ctrl.signal });
+      const pantryIngredients = user ? await loadPantry(user.id) : [];
+      const { plan, recipes } = await generateMenuWithAI(
+        { ...working, groups },
+        { signal: ctrl.signal, pantryIngredients },
+      );
       registerRecipes(recipes);
       setAiRecipes((cur) => {
         const byId = new Map(cur.map((r) => [r.id, r]));

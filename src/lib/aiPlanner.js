@@ -286,7 +286,8 @@ function buildGroupContext(data, group) {
   };
 }
 
-function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = []) {
+// Exported for tests only — not used elsewhere outside this module.
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = []) {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
@@ -308,6 +309,13 @@ function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixed
   const fixedForAI = formatFixedDishesForAI(fixedDishes);
   if (fixedForAI.length > 0) {
     parts.push(`\nPlatos a repetir:\n${JSON.stringify(fixedForAI)}`);
+  }
+
+  if (pantryNames.length > 0) {
+    parts.push(
+      `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
+        `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`,
+    );
   }
 
   parts.push(`\nAsigna una receta del catálogo a cada hueco.`);
@@ -459,10 +467,16 @@ const LLMResponseSchema = z.object({
 
 // ── Generation ──────────────────────────────────────────────────
 
-async function generateGroupMenu(data, group, signal) {
+async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
   const ctx = buildGroupContext(data, group);
+  // Pantry is family-wide (not per-group), so it's merged into filterOpts
+  // here rather than inside buildGroupContext.
+  const filterOpts = {
+    ...ctx.filterOpts,
+    pantryIngredients: pantryIngredients.map((p) => p.ingredientNormalized),
+  };
 
-  const { recipes: filteredPool, error: filterError } = filterRecipes(ctx.filterOpts);
+  const { recipes: filteredPool, error: filterError } = filterRecipes(filterOpts);
   if (filterError) {
     throw new AIPlannerError(filterError);
   }
@@ -479,6 +493,7 @@ async function generateGroupMenu(data, group, signal) {
     ctx.config,
     ctx.schoolMenuByDay,
     data.fixedDishes,
+    pantryIngredients.map((p) => p.ingredientName),
   );
 
   const request = (messages, model = DEFAULT_MODEL) =>
@@ -684,7 +699,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters) {
   };
 }
 
-export async function generateMenuWithAI(data, { signal } = {}) {
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [] } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -697,7 +712,7 @@ export async function generateMenuWithAI(data, { signal } = {}) {
   }
 
   const results = await Promise.all(
-    activeGroups.map((group) => generateGroupMenu(data, group, signal)),
+    activeGroups.map((group) => generateGroupMenu(data, group, signal, pantryIngredients)),
   );
 
   const multi = results.length > 1;
