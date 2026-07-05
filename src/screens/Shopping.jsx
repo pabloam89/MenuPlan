@@ -20,6 +20,7 @@ import {
   Package,
   Plus,
   Receipt,
+  Share2,
   ShoppingCart,
   Sprout,
   Sun,
@@ -47,6 +48,7 @@ import {
   matchReceiptProducts,
 } from "../lib/shoppingListUtils.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
+import { shareShoppingList } from "../lib/menuExport.js";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
@@ -95,6 +97,7 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
   const [showAdd, setShowAdd] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   const [receiptMatches, setReceiptMatches] = useState(null);
+  const [editingQtyId, setEditingQtyId] = useState(null);
   const fileRef = useRef(null);
 
   const weekLabel = formatWeekRangeLabel(getWeekDates());
@@ -150,6 +153,20 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
       ...s,
       items: s.items.map((it) => (ids.includes(it.id) ? { ...it, have: true } : it)),
     }));
+
+  const saveItemQty = (id, rawValue) => {
+    const parsed = parseFloat(String(rawValue).replace(",", "."));
+    if (!isNaN(parsed) && parsed > 0) {
+      const item = mergedItems.find((it) => it.id === id);
+      if (item) {
+        patchItem(id, {
+          qty: parsed,
+          displayQty: formatDisplay(parsed, item.unit ?? "ud"),
+        });
+      }
+    }
+    setEditingQtyId(null);
+  };
 
   const mergedItems = useMemo(
     () => mergeShoppingItems(shopping.items),
@@ -244,6 +261,18 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
             </button>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => shareShoppingList(shopping).then((r) => {
+                if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
+                else if (r.method === "download") onToast?.("Lista descargada");
+              })}
+              style={iconBtnStyle}
+              aria-label="Compartir lista"
+              title="Compartir lista"
+            >
+              <Share2 size={18} strokeWidth={2.2} />
+            </button>
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
@@ -389,9 +418,13 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
                       item={item}
                       doneView={listScope === "done"}
                       expanded={expandedId === item.id}
+                      isEditingQty={editingQtyId === item.id}
                       onToggleRecipes={() =>
                         setExpandedId(expandedId === item.id ? null : item.id)
                       }
+                      onEditQty={() => setEditingQtyId(item.id)}
+                      onSaveQty={(val) => saveItemQty(item.id, val)}
+                      onCancelQty={() => setEditingQtyId(null)}
                       onAtHome={() => patchItem(item.id, { atHome: true, have: false })}
                       onPurchased={() => patchItem(item.id, { have: true })}
                       onUndo={() => patchItem(item.id, { atHome: false, have: false })}
@@ -522,11 +555,62 @@ function AisleIcon({ aisle, size = 36 }) {
   );
 }
 
+function QtyInput({ item, onSave, onCancel }) {
+  const [val, setVal] = useState(String(item.qty ?? 1));
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current?.select();
+  }, []);
+
+  const commit = () => onSave(val);
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 3, justifyContent: "flex-end" }}>
+      <input
+        ref={inputRef}
+        type="number"
+        inputMode="decimal"
+        min="0"
+        step="any"
+        value={val}
+        onChange={(e) => setVal(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === "Enter") { e.preventDefault(); commit(); }
+          if (e.key === "Escape") { e.preventDefault(); onCancel(); }
+        }}
+        style={{
+          width: "2.8rem",
+          textAlign: "right",
+          border: "1.5px solid #2d5a3d",
+          borderRadius: 7,
+          padding: "3px 5px",
+          fontSize: 13,
+          fontWeight: 800,
+          fontVariantNumeric: "tabular-nums",
+          fontFamily: "inherit",
+          color: "#142f1d",
+          background: "#fff",
+          outline: "none",
+        }}
+      />
+      <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", flexShrink: 0 }}>
+        {item.unit !== "ud" ? item.unit : "uds"}
+      </span>
+    </div>
+  );
+}
+
 function ShoppingRow({
   item,
   doneView,
   expanded,
+  isEditingQty,
   onToggleRecipes,
+  onEditQty,
+  onSaveQty,
+  onCancelQty,
   onAtHome,
   onPurchased,
   onUndo,
@@ -537,6 +621,7 @@ function ShoppingRow({
   // section is inherently "done"), independent of the doneView convention
   // used elsewhere, which only dims within the mixed "all" scope.
   const dimmed = item.fromPantry || (!doneView && (item.have || item.atHome));
+  const canEditQty = !item.fromPantry && !dimmed;
 
   return (
     <div
@@ -562,7 +647,26 @@ function ShoppingRow({
         >
           {item.name}
         </span>
-        <span style={qtyColStyle}>{qty}</span>
+        {isEditingQty ? (
+          <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
+        ) : (
+          <button
+            type="button"
+            onClick={canEditQty ? onEditQty : undefined}
+            style={{
+              ...qtyColStyle,
+              background: "transparent",
+              border: canEditQty ? "1px dashed #c0cfc5" : "none",
+              borderRadius: 6,
+              cursor: canEditQty ? "pointer" : "default",
+              padding: "2px 4px",
+              fontFamily: "inherit",
+            }}
+            title={canEditQty ? "Tocar para editar cantidad" : undefined}
+          >
+            {qty}
+          </button>
+        )}
         <div style={actionsColStyle}>
           {item.fromPantry ? (
             // No purchase-status badge here — being in the pantry already

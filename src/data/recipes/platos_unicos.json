@@ -165,7 +165,7 @@
       "cena",
       "plato_unico"
     ],
-    "type": "completo",
+    "type": "principal",
     "time": 45,
     "difficulty": "normal",
     "kcal": 428,
@@ -746,7 +746,7 @@
       "cena",
       "plato_unico"
     ],
-    "type": "completo",
+    "type": "principal",
     "time": 45,
     "difficulty": "normal",
     "kcal": 418,

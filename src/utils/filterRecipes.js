@@ -90,6 +90,19 @@ export function filterRecipes({
     pool = pool.filter((r) => r.kidFriendly);
   }
 
+  // 3b. Alcohol — block recipes whose ingredient list contains alcohol, even
+  // when the recipe is otherwise marked kidFriendly (wine "cooks off" in theory
+  // but parents rightly expect a kids menu to have zero alcohol ingredients).
+  if (hasKids) {
+    const ALCOHOL_RE =
+      /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan|jerez|oporto|vermut|ginebra|cointreau|amaretto)\b/;
+    const normalizeForFilter = (s) =>
+      s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+    pool = pool.filter(
+      (r) => !r.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForFilter(ing.name))),
+    );
+  }
+
   // 4. Season — keep "all" + current season, drop opposite
   if (season) {
     pool = pool.filter((r) => r.season === "all" || r.season === season);

@@ -28,7 +28,11 @@ export function normalizeName(name) {
 
 /** Stable shopping-list key: same product + unit merges into one row. */
 export function normalizeIngredientKey(name, unit = "ud") {
-  return `${normalizeName(name)}|${unit}`;
+  const n = normalizeName(name);
+  // Strip trailing plural 's' so "huevo"/"huevos", "tomate"/"tomates" merge
+  // into one row. Only strip when > 3 chars to preserve "sal", "pan", etc.
+  const stem = n.length > 3 && n.endsWith("s") ? n.slice(0, -1) : n;
+  return `${stem}|${unit}`;
 }
 
 const INGREDIENT_CATEGORY_HINTS = [
@@ -60,11 +64,11 @@ const SHOPPING_AISLE_HINTS = [
     "Frutas",
   ],
   [
-    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|cordero|solomillo|chuleta|morcilla|picada|costilla|entrecot|hamburgues/,
+    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|beicon|panceta|tocino|cordero|solomillo|chuleta|morcilla|picada|costilla|entrecot|hamburgues|albondig|butifarra|fuet|mortadela|fiambre/,
     "Carne",
   ],
   [
-    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito/,
+    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina/,
     "Pescado",
   ],
   [/lentej|garbanz|alubi|judia verde|habas|soja|tofu/, "Legumbres"],
@@ -77,7 +81,7 @@ const SHOPPING_AISLE_HINTS = [
     "Especias",
   ],
   [
-    /aceite|vinagre|sal|caldo|azucar|vino|tomate triturado|miel|mostaza|salsa|soja|levadura|maicena|almendra|nuez|aceituna|oliva|conserva/,
+    /aceite|vinagre|sal|caldo|azucar|vino|tomate triturado|pasta de tomate|concentrado de tomate|miel|mostaza|mayonesa|ketchup|salsa|soja|levadura|maicena|almendra|nuez|aceituna|oliva|conserva|tahini/,
     "Aceites y conservas",
   ],
 ];
