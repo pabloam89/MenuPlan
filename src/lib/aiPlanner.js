@@ -236,10 +236,12 @@ function buildGroupContext(data, group) {
       // User-marked exception for this exact day+meal ("unico" | "rapida").
       const slotTypeSel = data.slotType?.[`${day}|${meal}`];
 
+      const mealStructure = data.mealStructureByGroup?.[group.id] ?? "primero_segundo";
+
       if (mealType === "comida") {
         if (isBabyGroup) {
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico" });
-        } else if (slotTypeSel === "unico") {
+        } else if (slotTypeSel === "unico" || mealStructure === "1_plato") {
           // Single complete dish: only one slot, no primero+segundo.
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico", preferType: "plato_unico" });
         } else {

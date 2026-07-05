@@ -5141,6 +5141,50 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
         })}
       </div>
 
+      {/* ── Estructura de la comida ── */}
+      {!!subjectId && (
+        <div style={{ margin: "16px 0 4px" }}>
+          <p style={{ fontSize: 12, fontWeight: 700, color: "#7a9080", letterSpacing: ".04em", textTransform: "uppercase", margin: "0 0 8px" }}>
+            Estructura de la comida
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { id: "primero_segundo", label: "Primero y segundo", sub: "Dos platos" },
+              { id: "1_plato",        label: "Un solo plato",      sub: "Plato completo" },
+            ].map(({ id, label, sub }) => {
+              const sel = (data.mealStructureByGroup?.[subjectId] ?? "primero_segundo") === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() =>
+                    setData((d) => ({
+                      ...d,
+                      mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: id },
+                    }))
+                  }
+                  style={{
+                    flex: 1,
+                    padding: "10px 8px",
+                    borderRadius: 12,
+                    border: sel ? "2px solid #2d5a3d" : "1.5px solid #dde8e1",
+                    background: sel ? "#2d5a3d" : "#fff",
+                    color: sel ? "#fff" : "#142f1d",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    textAlign: "center",
+                    transition: "all .15s ease",
+                  }}
+                >
+                  <div style={{ fontSize: 12.5, fontWeight: 800, lineHeight: 1.2 }}>{label}</div>
+                  <div style={{ fontSize: 10.5, opacity: sel ? .75 : .55, marginTop: 2 }}>{sub}</div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {(() => {
         const activeStyleObj = MEAL_STYLES.find((s) => s.id === activeStyle);
         if (!activeStyleObj) return null;
