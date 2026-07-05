@@ -23,28 +23,52 @@ function scaleIngredient(ing, eaters, recipeServings) {
   };
 }
 
-// Typical supermarket pack sizes keyed by ingredient name pattern.
-// Each entry: [regex, unit, packSize].
-// Applied after full-week aggregation so the rounding reflects total need.
+// Supermarket pack snapping. Each entry: [regex, inUnit, outUnit, packSize].
+// Same inUnit/outUnit → round up to nearest multiple (e.g. 7 huevos → 12).
+// Different units (g → ud) → convert to piece count (e.g. 300 g cebolla → 2 uds).
+// First match wins — put more-specific patterns before general ones.
+// Applied after full-week aggregation so rounding reflects the total need.
 const PACK_SIZES = [
-  [/huevo/, "ud", 6],          // half-dozen / dozen
-  [/yogur/, "ud", 4],          // standard 4-pack
-  [/leche/, "ml", 1000],       // 1 L carton
-  [/nata/, "ml", 200],         // standard 200 ml brick
-  [/harina/, "g", 1000],       // 1 kg bag
-  [/arroz/, "g", 1000],        // 1 kg bag
-  [/pasta|espagueti|macarron|fideo|lasana/, "g", 500],  // 500 g packet
-  [/pan rallado|panko/, "g", 400],  // standard breadcrumb pack
+  // ud → ud
+  [/huevo/, "ud", "ud", 6],           // half-dozen / dozen
+  [/yogur/, "ud", "ud", 4],           // standard 4-pack
+  // ml → ml
+  [/leche/, "ml", "ml", 1000],        // 1 L carton
+  [/nata/, "ml", "ml", 200],          // 200 ml brick
+  // g → g
+  [/harina/, "g", "g", 1000],         // 1 kg bag
+  [/arroz/, "g", "g", 1000],          // 1 kg bag
+  [/pasta|espagueti|macarron|fideo|lasana/, "g", "g", 500],  // 500 g packet
+  [/pan rallado|panko/, "g", "g", 400],  // standard breadcrumb pack
+  [/cocid/, "g", "g", 400],           // legumbres cocidas → bote 400 g
+  [/^garbanzos$|^alubias (blancas|rojas)$|^lentejas( rojas)?$/, "g", "g", 500],  // legumbres secas → bolsa 500 g
+  [/atun en conserva/, "g", "g", 120],   // lata pequeña escurrida
+  [/mozzarella/, "g", "g", 125],      // bola / bolsa 125 g
+  // g → ud: verduras que se compran por pieza
+  // (cebolla morada ANTES de cebolla — la primera coincidencia gana)
+  [/yogur/, "g", "ud", 125],          // 1 yogur estándar ≈ 125 g
+  [/cebolla morada/, "g", "ud", 120], // 1 cebolla morada mediana
+  [/cebolla/, "g", "ud", 150],        // 1 cebolla mediana
+  [/zanahoria/, "g", "ud", 100],      // 1 zanahoria mediana
+  [/calabacin/, "g", "ud", 350],      // 1 calabacín mediano
+  [/berenjena/, "g", "ud", 300],      // 1 berenjena mediana
+  [/puerro/, "g", "ud", 200],         // 1 puerro mediano
+  [/^tomate$|tomate maduro/, "g", "ud", 150],  // 1 tomate de mesa
+  [/pepino/, "g", "ud", 200],         // 1 pepino mediano
 ];
 
 function snapToPackSize(name, unit, qty) {
   const lower = String(name ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
-  for (const [regex, packUnit, packSize] of PACK_SIZES) {
-    if (unit === packUnit && regex.test(lower)) {
-      return Math.ceil(qty / packSize) * packSize;
+  for (const [regex, inUnit, outUnit, packSize] of PACK_SIZES) {
+    if (unit === inUnit && regex.test(lower)) {
+      const snapped =
+        inUnit === outUnit
+          ? Math.ceil(qty / packSize) * packSize  // same unit: round to multiple
+          : Math.ceil(qty / packSize);             // unit conversion: count pieces
+      return { qty: snapped, unit: outUnit };
     }
   }
-  return qty;
+  return { qty, unit };
 }
 
 function formatQty(qty, unit) {
@@ -142,11 +166,12 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
 
   const pantryNormalized = pantryIngredients.map((p) => p.ingredientNormalized);
   const items = Object.values(aggregate).map((it) => {
-    const snappedQty = snapToPackSize(it.name, it.unit, it.qty);
+    const { qty: snappedQty, unit: snappedUnit } = snapToPackSize(it.name, it.unit, it.qty);
     return {
       ...it,
       qty: snappedQty,
-      displayQty: formatQty(snappedQty, it.unit),
+      unit: snappedUnit,
+      displayQty: formatQty(snappedQty, snappedUnit),
       price: Math.round(it.price * 100) / 100,
       fromPantry: matchesPantry(it.name, pantryNormalized),
     };
