@@ -208,6 +208,19 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
 
   return (
     <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
+      <style>{`
+        .share-chip-icon { display: flex; transition: transform .4s cubic-bezier(0.68,-0.55,0.265,1.55); }
+        .share-chip-icon.open { transform: rotate(180deg) scale(1.1); }
+        .share-drop-row { transition: background .15s ease !important; }
+        .share-drop-row:hover { background: #f3f8f4 !important; }
+        .share-drop-row-icon {
+          display: inline-flex; align-items: center; justify-content: center;
+          width: 28px; height: 28px; border-radius: 50%;
+          background: #e8f0ea; color: #2d5a3d; flex-shrink: 0;
+          transition: background .22s ease, transform .3s cubic-bezier(0.68,-0.55,0.265,1.55), color .22s ease;
+        }
+        .share-drop-row:hover .share-drop-row-icon { background: #1a3a24; color: #fff; transform: scale(1.12); }
+      `}</style>
       <input
         ref={fileRef}
         type="file"
@@ -316,13 +329,14 @@ export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
                           background: "none",
                           border: "none",
                           cursor: "pointer",
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: "#1a2e22",
+                          fontSize: 13,
+                          fontWeight: 700,
+                          color: "#142f1d",
                           textAlign: "left",
+                          fontFamily: "inherit",
                         }}
                       >
-                        {icon}
+                        <span className="share-drop-row-icon">{icon}</span>
                         {label}
                       </button>
                     ))}
