@@ -5,10 +5,13 @@ import {
   normalizeIngredientKey,
   normalizeName,
   SHOPPING_AISLES,
+  isQualitativeUnit,
+  qualitativeUnitLabel,
 } from "./ingredientCategories.js";
 import { DAYS } from "./planner.js";
 
 export function formatDisplay(qty, unit) {
+  if (isQualitativeUnit(unit)) return qualitativeUnitLabel(unit);
   if (unit === "g" && qty >= 1000)
     return `${(qty / 1000).toFixed(qty % 1000 === 0 ? 0 : 1)} kg`;
   if (unit === "ml" && qty >= 1000)

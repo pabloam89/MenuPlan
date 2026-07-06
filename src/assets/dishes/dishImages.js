@@ -50,6 +50,7 @@ export function dishImageUrl(recipeId, garnishId) {
  */
 export function dishImageForRecipe(recipe) {
   if (!recipe) return null;
+  if (recipe.photo) return recipe.photo;
   let baseId = recipe.baseRecipeId ?? recipe.id;
   // Strip group prefix (e.g. "groupA__carnes_001" → "carnes_001") for recipes
   // persisted before baseRecipeId was introduced.

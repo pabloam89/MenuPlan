@@ -45,6 +45,7 @@ export function scorePantryMatch(recipe, pantryNormalized) {
  * @param {string[]} opts.kitchenTools - available tools ["Horno", "Batidora", ...]
  * @param {string[]} [opts.pantryIngredients] - normalized user_pantry keys (e.g. ["pollo", "tomate"]);
  *   never excludes recipes, only annotates each with a `pantryScore` (see scorePantryMatch)
+ * @param {Object[]} [opts.extraRecipes] - user-created recipes, joined into the same pool
  * @returns {{ recipes: Object[], error: string|null }}
  */
 export function filterRecipes({
@@ -56,13 +57,14 @@ export function filterRecipes({
   cookLevel = "normal",
   isBabyGroup = false,
   pantryIngredients = [],
+  extraRecipes = [],
 } = {}) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();
 
-  let pool = recipeCatalog;
+  let pool = extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog;
 
   // 0. Baby group isolation — baby recipes only for baby groups, excluded otherwise
   pool = pool.filter((r) => isBabyGroup ? r.category === "bebes" : r.category !== "bebes");
@@ -111,10 +113,17 @@ export function filterRecipes({
   // 5. Time — exclude recipes that exceed the max
   pool = pool.filter((r) => r.time <= maxTime);
 
-  // 6. Required appliance — exclude if user doesn't have the required tool
+  // 6. Required appliance — exclude if user doesn't have the required tool.
+  // Static catalog dishes use a single `requiredAppliance` string; user-made
+  // recipes can accept several via `requiredAppliances` (any one unlocks it).
   pool = pool.filter((r) => {
-    if (!r.requiredAppliance) return true;
-    return toolsLower.has(r.requiredAppliance.toLowerCase());
+    const required = r.requiredAppliances?.length
+      ? r.requiredAppliances
+      : r.requiredAppliance
+        ? [r.requiredAppliance]
+        : [];
+    if (!required.length) return true;
+    return required.some((a) => toolsLower.has(a.toLowerCase()));
   });
 
   // 7. Cook level — deterministic difficulty filter

@@ -1583,6 +1583,7 @@ export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onRe
         onAdd={addCatalogDish}
         onRemove={removeCatalogDish}
         onSetGarnish={setCatalogGarnish}
+        extraRecipes={data.userRecipes ?? []}
       />
     </OnboardingShell>
   );

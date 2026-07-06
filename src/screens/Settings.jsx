@@ -16,6 +16,7 @@ import {
   Wrench,
   Pencil,
   ShoppingBasket,
+  LayoutDashboard,
 } from "lucide-react";
 import {
   BottomNav,
@@ -24,6 +25,7 @@ import {
   bottomNavSpacer,
 } from "../components/ui.jsx";
 import { memberAvatarColor, stageLabel, migrateHomeRole } from "../lib/stages.js";
+import { computeStreak } from "../lib/menuStats.js";
 
 const PAGE_BG = "#f7f9f7";
 const GREEN = "#2d5a3d";
@@ -37,7 +39,7 @@ const pageTitle = {
   letterSpacing: "-.7px",
 };
 
-function googleInfo(user) {
+export function googleInfo(user) {
   const meta = user?.user_metadata ?? {};
   return {
     photo: meta.avatar_url ?? meta.picture ?? null,
@@ -164,27 +166,7 @@ function fileToAvatarDataUrl(file) {
 }
 
 // ── Menu streak ───────────────────────────────────────────────────
-
-function weekStart(ts) {
-  const d = new Date(ts);
-  d.setHours(0, 0, 0, 0);
-  const day = (d.getDay() + 6) % 7; // Monday = 0
-  d.setDate(d.getDate() - day);
-  return d.getTime();
-}
-
-function computeStreak(history) {
-  if (!history?.length) return 0;
-  const weeks = new Set(history.map((h) => weekStart(h.at)));
-  let streak = 0;
-  let cursor = weekStart(Date.now());
-  const WEEK = 7 * 24 * 60 * 60 * 1000;
-  while (weeks.has(cursor)) {
-    streak += 1;
-    cursor -= WEEK;
-  }
-  return streak;
-}
+// (computeStreak now lives in lib/menuStats.js so the dashboard can reuse it)
 
 function formatDate(ts) {
   if (!ts) return "—";
@@ -203,6 +185,7 @@ export function SettingsScreen({
   setData,
   onNav,
   onOpenAccount,
+  onOpenDashboard,
   onEditPreferences,
   onSignIn,
   onReset,
@@ -312,6 +295,15 @@ export function SettingsScreen({
             marginBottom: 16,
           }}
         >
+          {user && onOpenDashboard && (
+            <button type="button" style={rowStyle} onClick={onOpenDashboard}>
+              <LayoutDashboard size={19} color={GREEN} />
+              <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: INK }}>
+                Tu panel
+              </span>
+              <ChevronRight size={18} color="#9ab0a1" />
+            </button>
+          )}
           {user && (
             <button type="button" style={rowStyle} onClick={onOpenAccount}>
               <User size={19} color={GREEN} />

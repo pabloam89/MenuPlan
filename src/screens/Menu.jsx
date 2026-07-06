@@ -49,6 +49,7 @@ import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { membersOfGroup, isBabyMenuGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
@@ -536,6 +537,7 @@ function MenuFilterPanel({
 }
 
 function formatQty(qty, unit) {
+  if (isQualitativeUnit(unit)) return qualitativeUnitLabel(unit);
   if (unit === "ud") return `${Math.ceil(qty)} ${Math.ceil(qty) === 1 ? "ud" : "uds"}`;
   if (unit === "g" && qty >= 1000) return `${(qty / 1000).toFixed(1)} kg`;
   if (unit === "ml" && qty >= 1000) return `${(qty / 1000).toFixed(1)} l`;
@@ -546,7 +548,7 @@ function scaledIngredients(recipe, eaters) {
   const factor = Math.max(1, eaters) / recipe.servings;
   return recipe.ingredients.map((ing) => ({
     ...ing,
-    label: formatQty(ing.qty * factor, ing.unit),
+    label: formatQty(isQualitativeUnit(ing.unit) ? null : ing.qty * factor, ing.unit),
   }));
 }
 

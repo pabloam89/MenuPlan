@@ -3,7 +3,7 @@ import { membersOfGroup } from "./groups.js";
 import { DAYS, getMeals, slotKey } from "./planner.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 
-const FAMILY_LABELS = {
+export const FAMILY_LABELS = {
   pescado: "Pescado",
   carne: "Carne",
   legumbres: "Legumbres",

@@ -78,6 +78,25 @@ function isRealProtein(p) {
   return Boolean(n) && n !== "none" && n !== "null" && n !== "ninguna" && n !== "ninguno";
 }
 
+function isGuarnicionRecipe(r) {
+  return r?.type === "guarnicion" || r?.mealRole?.includes?.("guarnicion");
+}
+
+function sortByNameQuery(items, q) {
+  const sorted = [...items];
+  if (q) {
+    sorted.sort((a, b) => {
+      const aStarts = norm(a.name).startsWith(q) ? 0 : 1;
+      const bStarts = norm(b.name).startsWith(q) ? 0 : 1;
+      if (aStarts !== bStarts) return aStarts - bStarts;
+      return a.name.localeCompare(b.name);
+    });
+  } else {
+    sorted.sort((a, b) => a.name.localeCompare(b.name));
+  }
+  return sorted;
+}
+
 export function categoryLabel(cat) {
   return CATEGORY_META[cat]?.label ?? titleCase(cat);
 }
@@ -98,8 +117,50 @@ function CategoryIcon({ category, size = 22 }) {
  * @param {(catalogId: string) => void} onRemove
  * @param {(recipe: object, garnishId: string|null) => void} onSetGarnish
  */
-export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnishByCatalogId = {}, onAdd, onRemove, onSetGarnish }) {
+export function CatalogBrowserSheet({
+  inline = false, onClose, addedIds = new Set(), garnishByCatalogId = {},
+  onAdd, onRemove, onSetGarnish, extraRecipes = [],
+  // Reference mode: read-only browsing. No add/garnish actions — cards show
+  // a subtle "Ya en el catálogo" tag.
+  reference = false,
+  // Gate-pick mode (recipe planner): search platos and/or guarniciones from the
+  // same browser used in ¿Qué repetimos?, with tap-to-select instead of add.
+  gatePick = false,
+  // When set ("plato" | "guarnicion"), the gate picker is locked to that type
+  // and the Todos/Platos/Guarniciones toggle is hidden (used by the recipe
+  // planner's review step, where the type is already decided).
+  gatePickType = null,
+  selectedPlatoId = null,
+  selectedGarnishId = null,
+  onPickPlato,
+  onPickGarnish,
+  extraGarnishes = [],
+}) {
+  const fullCatalog = useMemo(
+    () => (extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog),
+    [extraRecipes],
+  );
+  const platoCatalog = useMemo(
+    () => fullCatalog.filter((r) => !isGuarnicionRecipe(r)),
+    [fullCatalog],
+  );
+  const garnishCatalog = useMemo(() => {
+    const seen = new Set(GARNISHES.map((g) => g.id));
+    const merged = [...GARNISHES];
+    for (const g of extraGarnishes) {
+      if (g?.id && !seen.has(g.id)) {
+        seen.add(g.id);
+        merged.push(g);
+      }
+    }
+    return merged;
+  }, [extraGarnishes]);
   const [query, setQuery] = useState("");
+  // all | plato | guarnicion — locked to gatePickType when provided.
+  const [typeFilter, setTypeFilter] = useState(gatePickType ?? "all");
+  useEffect(() => {
+    if (gatePickType) setTypeFilter(gatePickType);
+  }, [gatePickType]);
   const [showFilters, setShowFilters] = useState(false);
   const [cats, setCats] = useState(() => new Set());
   const [proteins, setProteins] = useState(() => new Set());
@@ -113,7 +174,8 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
   const { allCats, allProteins } = useMemo(() => {
     const c = new Set();
     const p = new Set();
-    for (const r of recipeCatalog) {
+    const source = gatePick ? platoCatalog : fullCatalog;
+    for (const r of source) {
       if (r.category) c.add(r.category);
       if (isRealProtein(r.mainProtein)) p.add(r.mainProtein);
     }
@@ -121,7 +183,7 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
       allCats: [...c].sort((a, b) => categoryLabel(a).localeCompare(categoryLabel(b))),
       allProteins: [...p].sort((a, b) => titleCase(a).localeCompare(titleCase(b))),
     };
-  }, []);
+  }, [fullCatalog, gatePick, platoCatalog]);
 
   const activeFilterCount =
     cats.size +
@@ -130,9 +192,9 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
     (maxTime ? 1 : 0) +
     (kidOnly ? 1 : 0);
 
-  const results = useMemo(() => {
+  const platoResults = useMemo(() => {
     const q = norm(query);
-    const filtered = recipeCatalog.filter((r) => {
+    const filtered = platoCatalog.filter((r) => {
       if (q && !norm(r.name).includes(q)) return false;
       if (cats.size && !cats.has(r.category)) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
@@ -141,26 +203,61 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
       if (kidOnly && !r.kidFriendly) return false;
       return true;
     });
-    if (q) {
-      filtered.sort((a, b) => {
-        const aStarts = norm(a.name).startsWith(q) ? 0 : 1;
-        const bStarts = norm(b.name).startsWith(q) ? 0 : 1;
-        if (aStarts !== bStarts) return aStarts - bStarts;
-        return a.name.localeCompare(b.name);
-      });
-    } else {
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    return sortByNameQuery(filtered, q);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, platoCatalog]);
+
+  const garnishResults = useMemo(() => {
+    const q = norm(query);
+    const filtered = garnishCatalog.filter((g) => !q || norm(g.name).includes(q));
+    return sortByNameQuery(filtered, q);
+  }, [query, garnishCatalog]);
+
+  const results = useMemo(() => {
+    if (gatePick) {
+      if (typeFilter === "plato") {
+        return platoResults.map((item) => ({ kind: "plato", item }));
+      }
+      if (typeFilter === "guarnicion") {
+        return garnishResults.map((item) => ({ kind: "guarnicion", item }));
+      }
+      return sortByNameQuery(
+        [
+          ...platoResults.map((item) => ({ kind: "plato", item, name: item.name })),
+          ...garnishResults.map((item) => ({ kind: "guarnicion", item, name: item.name })),
+        ],
+        norm(query),
+      ).map(({ kind, item }) => ({ kind, item }));
     }
-    return filtered;
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly]);
+
+    const q = norm(query);
+    const filtered = fullCatalog.filter((r) => {
+      if (q && !norm(r.name).includes(q)) return false;
+      if (cats.size && !cats.has(r.category)) return false;
+      if (proteins.size && !proteins.has(r.mainProtein)) return false;
+      if (maxTime && (r.time ?? 999) > maxTime) return false;
+      if (difficulties.size && !difficulties.has(r.difficulty)) return false;
+      if (kidOnly && !r.kidFriendly) return false;
+      return true;
+    });
+    return sortByNameQuery(filtered, q);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog]);
 
   // Reset pagination whenever the result set or page size changes.
   useEffect(() => {
     setLimit(pageSize);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize, typeFilter, gatePick]);
 
   const visible = results.slice(0, limit);
   const hasMore = results.length > visible.length;
+
+  const selectedPlato = selectedPlatoId
+    ? platoCatalog.find((r) => r.id === selectedPlatoId) ?? null
+    : null;
+  const selectedGarnish = selectedGarnishId
+    ? garnishCatalog.find((g) => g.id === selectedGarnishId) ?? GARNISH_BY_ID[selectedGarnishId]
+    : null;
+
+  const showPlatoFilters = !gatePick || typeFilter !== "guarnicion";
 
   const clearFilters = () => {
     setCats(new Set());
@@ -194,62 +291,93 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
   );
 
   const searchRow = (
-    <div style={{ display: "flex", gap: 8, marginBottom: 12, padding: `0 ${px}px`, flexShrink: 0 }}>
-      <div
-        style={{
-          flex: 1, display: "flex", alignItems: "center", gap: 8,
-          height: 42, padding: "0 12px", borderRadius: 12,
-          background: "#f4f7f5", border: "1.5px solid #e8efe9",
-        }}
-      >
-        <Search size={16} color="#9ab0a1" />
-        <input
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder="Buscar plato…"
+    <>
+      {gatePick && !gatePickType && (
+        <div style={{ display: "flex", gap: 6, marginBottom: 10, padding: `0 ${px}px`, flexShrink: 0 }}>
+          {[
+            { id: "all", label: "Todos" },
+            { id: "plato", label: "Platos" },
+            { id: "guarnicion", label: "Guarniciones" },
+          ].map((opt) => {
+            const active = typeFilter === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setTypeFilter(opt.id)}
+                style={{
+                  flex: 1, padding: "8px 6px", borderRadius: 10, cursor: "pointer", fontFamily: "inherit",
+                  border: `1.5px solid ${active ? GREEN : "#e8efe9"}`,
+                  background: active ? GREEN : "#fff",
+                  color: active ? "#fff" : "#5a7066",
+                  fontSize: 12, fontWeight: 800,
+                }}
+              >
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+      <div style={{ display: "flex", gap: 8, marginBottom: 12, padding: `0 ${px}px`, flexShrink: 0 }}>
+        <div
           style={{
-            flex: 1, border: "none", background: "transparent", outline: "none",
-            fontSize: 14, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
+            flex: 1, display: "flex", alignItems: "center", gap: 8,
+            height: 42, padding: "0 12px", borderRadius: 12,
+            background: "#f4f7f5", border: "1.5px solid #e8efe9",
           }}
-        />
-        {query && (
+        >
+          <Search size={16} color="#9ab0a1" />
+          <input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={gatePick ? "Buscar plato o guarnición…" : "Buscar plato…"}
+            style={{
+              flex: 1, border: "none", background: "transparent", outline: "none",
+              fontSize: 14, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
+            }}
+          />
+          {query && (
+            <button
+              type="button"
+              onClick={() => setQuery("")}
+              aria-label="Limpiar búsqueda"
+              style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex" }}
+            >
+              <X size={15} color="#9ab0a1" />
+            </button>
+          )}
+        </div>
+        {showPlatoFilters && (
           <button
             type="button"
-            onClick={() => setQuery("")}
-            aria-label="Limpiar búsqueda"
-            style={{ border: "none", background: "transparent", cursor: "pointer", padding: 0, display: "flex" }}
+            onClick={() => setShowFilters((v) => !v)}
+            style={{
+              position: "relative", display: "inline-flex", alignItems: "center", gap: 7,
+              height: 42, padding: "0 14px", borderRadius: 12, cursor: "pointer",
+              border: `1.5px solid ${showFilters || activeFilterCount ? GREEN : "#e8efe9"}`,
+              background: showFilters || activeFilterCount ? GREEN : "#fff",
+              color: showFilters || activeFilterCount ? "#fff" : "#5a7066",
+              fontSize: 13, fontWeight: 800, fontFamily: "inherit", flexShrink: 0,
+            }}
           >
-            <X size={15} color="#9ab0a1" />
+            <SlidersHorizontal size={16} />
+            Filtros
+            {activeFilterCount > 0 && (
+              <span
+                style={{
+                  minWidth: 18, height: 18, borderRadius: 999, padding: "0 5px",
+                  background: "#fff", color: GREEN, fontSize: 11, fontWeight: 900,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                {activeFilterCount}
+              </span>
+            )}
           </button>
         )}
       </div>
-      <button
-        type="button"
-        onClick={() => setShowFilters((v) => !v)}
-        style={{
-          position: "relative", display: "inline-flex", alignItems: "center", gap: 7,
-          height: 42, padding: "0 14px", borderRadius: 12, cursor: "pointer",
-          border: `1.5px solid ${showFilters || activeFilterCount ? GREEN : "#e8efe9"}`,
-          background: showFilters || activeFilterCount ? GREEN : "#fff",
-          color: showFilters || activeFilterCount ? "#fff" : "#5a7066",
-          fontSize: 13, fontWeight: 800, fontFamily: "inherit", flexShrink: 0,
-        }}
-      >
-        <SlidersHorizontal size={16} />
-        Filtros
-        {activeFilterCount > 0 && (
-          <span
-            style={{
-              minWidth: 18, height: 18, borderRadius: 999, padding: "0 5px",
-              background: "#fff", color: GREEN, fontSize: 11, fontWeight: 900,
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-            }}
-          >
-            {activeFilterCount}
-          </span>
-        )}
-      </button>
-    </div>
+    </>
   );
 
   const countRow = (
@@ -257,7 +385,9 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
       <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#7a9485", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         {results.length === 0
           ? "Sin resultados — prueba a quitar filtros"
-          : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
+          : gatePick
+            ? `${results.length} ${results.length === 1 ? "resultado" : "resultados"}`
+            : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
       </p>
       {results.length > PAGE_SIZES[0] && (
         <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#f0f4f1", borderRadius: 9, padding: 2, flexShrink: 0 }}>
@@ -286,24 +416,67 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
     </div>
   );
 
+  const selectedRow = gatePick && (selectedPlato || selectedGarnish) ? (
+    <div style={{ padding: `0 ${px}px 8px`, display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
+      {selectedPlato && (
+        <SelectedChip
+          kind="plato"
+          label={selectedPlato.name}
+          onClear={() => onPickPlato?.(null)}
+        />
+      )}
+      {selectedGarnish && (
+        <SelectedChip
+          kind="guarnicion"
+          label={selectedGarnish.name}
+          onClear={() => onPickGarnish?.(null)}
+        />
+      )}
+    </div>
+  ) : null;
+
   const cards = (
     <>
-      {visible.map((r, i) => (
-        <RecipeCard
-          key={r.id}
-          recipe={r}
-          added={addedIds.has(r.id)}
-          garnishId={garnishByCatalogId[r.id] ?? null}
-          onAdd={() => onAdd(r)}
-          onRemove={() => onRemove(r.id)}
-          onOpenGarnish={() => setGarnishFor(r)}
-          animDelay={i < 12 ? i * 18 : 0}
-        />
-      ))}
+      {gatePick
+        ? visible.map((entry, i) => (
+            <GatePickCard
+              key={`${entry.kind}-${entry.item.id}`}
+              kind={entry.kind}
+              item={entry.item}
+              selected={
+                entry.kind === "plato"
+                  ? selectedPlatoId === entry.item.id
+                  : selectedGarnishId === entry.item.id
+              }
+              onToggle={() => {
+                if (entry.kind === "plato") {
+                  onPickPlato?.(selectedPlatoId === entry.item.id ? null : entry.item.id);
+                } else {
+                  onPickGarnish?.(selectedGarnishId === entry.item.id ? null : entry.item.id);
+                }
+              }}
+              animDelay={i < 12 ? i * 18 : 0}
+            />
+          ))
+        : visible.map((r, i) => (
+            <RecipeCard
+              key={r.id}
+              recipe={r}
+              reference={reference}
+              added={addedIds.has(r.id)}
+              garnishId={garnishByCatalogId[r.id] ?? null}
+              onAdd={() => onAdd?.(r)}
+              onRemove={() => onRemove?.(r.id)}
+              onOpenGarnish={() => setGarnishFor(r)}
+              animDelay={i < 12 ? i * 18 : 0}
+            />
+          ))}
       {results.length === 0 && (
         <div style={{ textAlign: "center", padding: "40px 20px", color: "#9ab0a1" }}>
           <Search size={32} color="#cdd8d0" />
-          <p style={{ margin: "10px 0 0", fontSize: 13 }}>No encontramos platos con esos filtros.</p>
+          <p style={{ margin: "10px 0 0", fontSize: 13 }}>
+            {gatePick ? "No encontramos platos ni guarniciones con esos filtros." : "No encontramos platos con esos filtros."}
+          </p>
         </div>
       )}
     </>
@@ -365,6 +538,7 @@ export function CatalogBrowserSheet({ inline = false, onClose, addedIds, garnish
         {styleBlock}
         <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#f5f9f6", paddingTop: 4 }}>
           {searchRow}
+          {selectedRow}
           {countRow}
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 2 }}>
@@ -773,11 +947,122 @@ const iconBtnStyle = {
   display: "flex", alignItems: "center", justifyContent: "center",
 };
 
-function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onOpenGarnish, animDelay = 0 }) {
+function SelectedChip({ kind, label, onClear }) {
+  const Icon = kind === "guarnicion" ? Salad : Utensils;
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
+        borderRadius: 10, border: `1.5px solid ${GREEN}`, background: "#eaf6ee",
+      }}
+    >
+      <Icon size={14} color={GREEN} style={{ flexShrink: 0 }} />
+      <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: GREEN, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {kind === "guarnicion" ? "Guarnición: " : "Plato: "}{label}
+      </span>
+      <button
+        type="button"
+        onClick={onClear}
+        aria-label="Quitar selección"
+        style={{
+          width: 22, height: 22, borderRadius: 6, border: "none", background: "#fff",
+          color: GREEN, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        }}
+      >
+        <X size={12} />
+      </button>
+    </div>
+  );
+}
+
+function GatePickCard({ kind, item, selected, onToggle, animDelay = 0 }) {
+  const isPlato = kind === "plato";
+  const color = isPlato ? categoryColor(item.category) : "#3f9656";
+  const photo = isPlato ? (item.photo ?? dishImageUrl(item.id)) : null;
+
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="catalog-card-enter"
+      style={{
+        width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+        flexShrink: 0, borderRadius: 14,
+        border: `1.5px solid ${selected ? "#bfe6cb" : "#eef3f0"}`,
+        background: selected ? "#f2fbf5" : "#fff",
+        transition: "border-color .15s ease, background .15s ease",
+        overflow: "hidden", animationDelay: `${animDelay}ms`,
+        padding: 0,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 8 }}>
+        <div
+          style={{
+            width: 52, height: 52, borderRadius: 12, flexShrink: 0, overflow: "hidden",
+            boxSizing: "border-box", border: `2.5px solid ${color}`,
+            background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          {photo ? (
+            <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          ) : isPlato ? (
+            <CategoryIcon category={item.category} size={22} />
+          ) : (
+            <Salad size={22} color={color} />
+          )}
+        </div>
+
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p
+            style={{
+              margin: 0, fontSize: 13.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.25,
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            }}
+          >
+            {item.name}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color }}>
+              {isPlato ? categoryLabel(item.category) : "Guarnición"}
+            </span>
+            {item.source === "user" && (
+              <span
+                style={{
+                  fontSize: 10, fontWeight: 800, color: GREEN, background: "#eaf6ee",
+                  padding: "2px 6px", borderRadius: 6, letterSpacing: ".2px",
+                }}
+              >
+                Tuya
+              </span>
+            )}
+            {item.time != null && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "#7a9485" }}>
+                <Clock size={11} /> {item.time} min
+              </span>
+            )}
+          </div>
+        </div>
+
+        <span
+          style={{
+            width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+            border: "none", background: selected ? GREEN : "#eaf3ed", color: selected ? "#fff" : GREEN,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            transition: "background .15s ease, color .15s ease",
+          }}
+        >
+          {selected ? <Check size={18} /> : <Plus size={18} />}
+        </span>
+      </div>
+    </button>
+  );
+}
+
+function RecipeCard({ recipe, reference = false, added, garnishId, onAdd, onRemove, onOpenGarnish, animDelay = 0 }) {
   const color = categoryColor(recipe.category);
   const isPrincipal = recipe.type === "principal";
   const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
-  const photo = dishImageUrl(recipe.id, garnishId ?? undefined);
+  const photo = recipe.photo ?? dishImageUrl(recipe.id, garnishId ?? undefined);
 
   return (
     <div
@@ -820,6 +1105,16 @@ function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onOpenGarnish, 
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
             <span style={{ fontSize: 11, fontWeight: 800, color }}>{categoryLabel(recipe.category)}</span>
+            {recipe.source === "user" && (
+              <span
+                style={{
+                  fontSize: 10, fontWeight: 800, color: GREEN, background: "#eaf6ee",
+                  padding: "2px 6px", borderRadius: 6, letterSpacing: ".2px",
+                }}
+              >
+                Tuya
+              </span>
+            )}
             {recipe.time != null && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "#7a9485" }}>
                 <Clock size={11} /> {recipe.time} min
@@ -841,43 +1136,57 @@ function RecipeCard({ recipe, added, garnishId, onAdd, onRemove, onOpenGarnish, 
           )}
         </div>
 
-        {/* garnish icon button — only for principal dishes once added */}
-        {isPrincipal && added && (
-          <button
-            type="button"
-            onClick={onOpenGarnish}
-            aria-label={garnish ? `Cambiar guarnición de ${recipe.name}` : `Añadir guarnición a ${recipe.name}`}
-            title={garnish ? "Cambiar guarnición" : "Añadir guarnición"}
+        {/* Reference mode: no actions — just a read-only "already exists" tag */}
+        {reference ? (
+          <span
             style={{
-              width: 36, height: 36, borderRadius: 10, flexShrink: 0, cursor: "pointer",
-              border: garnish ? "none" : `1.5px dashed ${GREEN}`,
-              background: garnish ? GREEN : "#fff",
-              color: garnish ? "#fff" : GREEN,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              transition: "all .12s ease",
+              flexShrink: 0, fontSize: 10.5, fontWeight: 800, color: GREEN, background: "#eaf6ee",
+              padding: "5px 8px", borderRadius: 8, letterSpacing: ".2px", whiteSpace: "nowrap",
             }}
           >
-            <Salad size={17} />
-          </button>
-        )}
+            Ya en el catálogo
+          </span>
+        ) : (
+          <>
+            {/* garnish icon button — only for principal dishes once added */}
+            {isPrincipal && added && (
+              <button
+                type="button"
+                onClick={onOpenGarnish}
+                aria-label={garnish ? `Cambiar guarnición de ${recipe.name}` : `Añadir guarnición a ${recipe.name}`}
+                title={garnish ? "Cambiar guarnición" : "Añadir guarnición"}
+                style={{
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0, cursor: "pointer",
+                  border: garnish ? "none" : `1.5px dashed ${GREEN}`,
+                  background: garnish ? GREEN : "#fff",
+                  color: garnish ? "#fff" : GREEN,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all .12s ease",
+                }}
+              >
+                <Salad size={17} />
+              </button>
+            )}
 
-        {/* add / added toggle */}
-        <button
-          type="button"
-          onClick={added ? onRemove : onAdd}
-          aria-label={added ? `Quitar ${recipe.name}` : `Añadir ${recipe.name}`}
-          className={added ? "catalog-added-pop" : undefined}
-          style={{
-            width: 36, height: 36, borderRadius: 10, flexShrink: 0, cursor: "pointer",
-            border: "none",
-            background: added ? GREEN : "#eaf3ed",
-            color: added ? "#fff" : GREEN,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            transition: "background .15s ease, color .15s ease",
-          }}
-        >
-          {added ? <Check size={18} /> : <Plus size={18} />}
-        </button>
+            {/* add / added toggle */}
+            <button
+              type="button"
+              onClick={added ? onRemove : onAdd}
+              aria-label={added ? `Quitar ${recipe.name}` : `Añadir ${recipe.name}`}
+              className={added ? "catalog-added-pop" : undefined}
+              style={{
+                width: 36, height: 36, borderRadius: 10, flexShrink: 0, cursor: "pointer",
+                border: "none",
+                background: added ? GREEN : "#eaf3ed",
+                color: added ? "#fff" : GREEN,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "background .15s ease, color .15s ease",
+              }}
+            >
+              {added ? <Check size={18} /> : <Plus size={18} />}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );

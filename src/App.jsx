@@ -19,6 +19,8 @@ const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => (
 const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
 const PantryScreen = lazy(() => import("./screens/Pantry.jsx").then(m => ({ default: m.PantryScreen })));
+const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
+const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 import { generateMenuWithAI, pickCatalogReplacement } from "./lib/aiPlanner.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
@@ -53,6 +55,9 @@ const INITIAL_DATA = {
   customAllergies: [],
   customDislikes: [],
   fixedDishes: [],
+  // Recipes created by the user via the recipe planner. Same shape as the
+  // bundled catalog (see src/data/recipes/*.json) plus source:"user".
+  userRecipes: [],
   menuModel: "same",
   groups: [],
   meals: ["Comida", "Cena"],
@@ -260,6 +265,7 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
+  d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.cookTime = migrateCookTime(d);
   return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
@@ -433,6 +439,17 @@ export default function App() {
     }
     await regenerateMenu();
   };
+
+  const goToDashboard = useCallback(() => fwd(() => setScreen("dashboard")), []);
+
+  const goToMenuFromDashboard = useCallback(() => {
+    fwd(() => setScreen("menu"));
+  }, []);
+
+  const generateNewMenuFromDashboard = useCallback(() => {
+    fwd(() => setScreen("menu"));
+    regenerateMenu();
+  }, [regenerateMenu]);
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
@@ -695,7 +712,12 @@ export default function App() {
           <SplashScreen
             onNext={() => fwd(() => setScreen("onboarding"))}
             hasSaved={data.members.length > 0}
-            onResume={() => fwd(() => (Object.keys(menuPlan).length > 0 ? setScreen("menu") : setScreen("onboarding")))}
+            onResume={() => fwd(() => {
+              // Signed-in users land on their dashboard; guests keep going
+              // straight to their menu (no account to show a profile for).
+              if (user) { setScreen("dashboard"); return; }
+              setScreen(Object.keys(menuPlan).length > 0 ? "menu" : "onboarding");
+            })}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
           />
@@ -786,6 +808,7 @@ export default function App() {
                 setData={setData}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("account"))}
+                onOpenDashboard={goToDashboard}
                 onEditPreferences={() => goToOnboardingStep(6)}
                 onSignIn={signInWithGoogle}
                 onReset={handleReset}
@@ -829,6 +852,44 @@ export default function App() {
                 user={user}
                 onBack={() => back(() => setScreen("account"))}
                 onSignIn={signInWithGoogle}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "dashboard" && (
+          <div
+            key="dashboard"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <DashboardScreen
+                user={user}
+                data={data}
+                menuPlan={menuPlan}
+                onNav={handleNav}
+                onOpenAccount={() => fwd(() => setScreen("account"))}
+                onViewMenu={goToMenuFromDashboard}
+                onGenerateNewMenu={generateNewMenuFromDashboard}
+                onOpenAnalytics={() => fwd(() => setScreen("analytics"))}
+                onOpenRecipePlanner={() => fwd(() => setScreen("recipePlanner"))}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "recipePlanner" && (
+          <div
+            key="recipePlanner"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <RecipePlannerScreen
+                userRecipes={data.userRecipes}
+                user={user}
+                setData={setData}
+                onClose={() => back(() => setScreen("dashboard"))}
+                onSaved={() => showToast("Receta creada con IA")}
               />
             </Suspense>
           </div>

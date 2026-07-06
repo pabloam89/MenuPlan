@@ -10,7 +10,7 @@ import guarnicionesData from "../data/recipes/guarniciones.json";
 import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
-import { guessIngredientCategory } from "./ingredientCategories.js";
+import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -54,7 +54,7 @@ const DAY_SLUG = {
   Vie: "vie", Sáb: "sab", Dom: "dom",
 };
 
-function extractJson(text) {
+export function extractJson(text) {
   const trimmed = String(text ?? "").trim();
   try {
     return JSON.parse(trimmed);
@@ -83,7 +83,7 @@ const DEFAULT_MODEL = PLANNER_MODEL;
 const RETRY_MODEL = FAST_MODEL;
 const DEFAULT_MAX_TOKENS = 1024;
 
-async function callModel(body, signal) {
+export async function callModel(body, signal) {
   let response;
   try {
     response = await fetch("/api/generate", {
@@ -278,6 +278,10 @@ function buildGroupContext(data, group) {
       kitchenTools,
       cookLevel: data.cookLevel ?? "normal",
       isBabyGroup,
+      // User-created recipes (from the recipe planner) join the same pool as
+      // the bundled catalog, so they go through the exact same filters and
+      // can be scheduled/scaled/hydrated like any other recipe.
+      extraRecipes: data.userRecipes ?? [],
     },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
@@ -624,7 +628,7 @@ async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
 
 // ── Hydration (Phase 4) ─────────────────────────────────────────
 
-const ICON_TYPE_MAP = {
+export const ICON_TYPE_MAP = {
   pescado_blanco: "fish", pescado_azul: "fish", marisco: "fish",
   pollo: "meat", cerdo: "meat", ternera: "meat",
   huevo: "egg",
@@ -632,7 +636,7 @@ const ICON_TYPE_MAP = {
   none: "chef",
 };
 
-const CATEGORY_ICON = {
+export const CATEGORY_ICON = {
   pasta_arroces: "pasta",
   sopas_cremas: "soup",
   ensaladas_verduras: "greens",
@@ -649,13 +653,19 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters) {
 
   // Scale ingredient amounts for the actual number of eaters.
   // Round g/ml to multiples of 5, ud to whole numbers.
+  // "al gusto" / "pizca" / "c/n" have no fixed amount to scale — they stay
+  // qty: null and are shown/summed as a no-quantity reminder line downstream
+  // (see Menu.jsx#formatQty, shoppingBuilder.js#scaleIngredient).
   const ingredients = r.ingredients.map((ing) => {
-    let scaledQty = ing.amount * factor;
-    if (ing.unit === "g" || ing.unit === "ml") {
-      scaledQty = Math.round(scaledQty / 5) * 5;
-      if (scaledQty < 5) scaledQty = 5;
-    } else {
-      scaledQty = Math.ceil(scaledQty);
+    let scaledQty = null;
+    if (!isQualitativeUnit(ing.unit)) {
+      scaledQty = ing.amount * factor;
+      if (ing.unit === "g" || ing.unit === "ml") {
+        scaledQty = Math.round(scaledQty / 5) * 5;
+        if (scaledQty < 5) scaledQty = 5;
+      } else {
+        scaledQty = Math.ceil(scaledQty);
+      }
     }
     return {
       id: ing.name.toLowerCase().replace(/\s+/g, "-"),
@@ -694,6 +704,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters) {
     prepSummary: r.description || r.name,
     steps: r.steps ?? [],
     image: `/dishes/${r.id}.webp`,
+    photo: r.photo ?? undefined,
     ingredients,
     // Appliance variants (airfryer, horno, thermomix…) — used to show the
     // best-fit method for the user's kitchen tools in the menu + dish detail.
@@ -728,6 +739,9 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
   let placedSlots = 0;
 
   const guarnicionById = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
+  // User-created recipes aren't in the static bundled catalog, so the final
+  // hydration step (recipeId -> full frontend recipe) needs its own lookup.
+  const userRecipeById = Object.fromEntries((data.userRecipes ?? []).map((r) => [r.id, r]));
 
   for (const { group, slotAssignments, slotsContext } of results) {
     const prefix = multi ? `${group.id}__` : "";
@@ -744,7 +758,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
     // Group assignments by day+meal
     const byDayMeal = {};
     for (const { slotId, recipeId, garnishId } of slotAssignments) {
-      const catalogRecipe = recipeCatalogById[recipeId];
+      const catalogRecipe = recipeCatalogById[recipeId] ?? userRecipeById[recipeId];
       if (!catalogRecipe) continue;
 
       const eaters = eatersBySlot[slotId] ?? 2;

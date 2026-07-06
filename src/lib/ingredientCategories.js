@@ -26,6 +26,32 @@ export function normalizeName(name) {
     .trim();
 }
 
+// Units that don't carry a fixed numeric amount — how much to use depends on
+// taste or on the process, not on a weighable/countable quantity. Kept here
+// (rather than in userRecipes.js) so aiPlanner.js / Menu.jsx / shoppingBuilder.js
+// / shoppingListUtils.js can all import it without creating an import cycle
+// with userRecipes.js (which itself imports from aiPlanner.js).
+//   - "al gusto": personal preference (sal, pimienta, aliño)
+//   - "pizca": a pinch, traditionally never weighed (sal, azafrán, canela)
+//   - "c/n" ("cantidad necesaria"): whatever the process needs, not taste
+//     (aceite para freír, agua para cubrir, harina para espolvorear)
+export const QUALITATIVE_INGREDIENT_UNITS = ["al gusto", "pizca", "c/n"];
+
+export function isQualitativeUnit(unit) {
+  return QUALITATIVE_INGREDIENT_UNITS.includes(unit);
+}
+
+const QUALITATIVE_UNIT_LABELS = {
+  "al gusto": "Al gusto",
+  "pizca": "Pizca",
+  "c/n": "C/N",
+};
+
+/** Display label for a qualitative unit on its own (no number attached). */
+export function qualitativeUnitLabel(unit) {
+  return QUALITATIVE_UNIT_LABELS[unit] ?? unit;
+}
+
 /** Stable shopping-list key: same product + unit merges into one row. */
 export function normalizeIngredientKey(name, unit = "ud") {
   const n = normalizeName(name);
@@ -83,7 +109,7 @@ const SHOPPING_AISLE_HINTS = [
     "Especias",
   ],
   [
-    /aceite|vinagre|sal|caldo|azucar|vino|tomate triturado|pasta de tomate|concentrado de tomate|miel|mostaza|mayonesa|ketchup|salsa|soja|levadura|maicena|almendra|nuez|aceituna|oliva|conserva|tahini/,
+    /aceite|vinagre|sal|caldo|azucar|vino|tomate triturado|pasta de tomate|concentrado de tomate|miel|mostaza|mayonesa|ketchup|salsa|soja|levadura|maicena|almendra|nuez|aceituna|oliva|conserva|tahini|bechamel|besamel|alioli|allioli|holandesa|romesco|chimichurri|pesto|roux/,
     "Aceites y conservas",
   ],
 ];

@@ -49,11 +49,42 @@ function devRecipeStepsApi(env) {
   }
 }
 
+// Same idea as devRecipeStepsApi, for the recipe-planner's AI dish photo
+// generation (fixed catalog style formula + Gemini image model).
+function devDishPhotoApi(env) {
+  return {
+    name: 'dev-dish-photo-api',
+    configureServer(server) {
+      process.env.GEMINI_AI_STUDIO_KEY =
+        process.env.GEMINI_AI_STUDIO_KEY || env.GEMINI_AI_STUDIO_KEY || env.VITE_GEMINI_AI_STUDIO_KEY || ''
+
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url || !req.url.startsWith('/api/generate-dish-photo')) return next()
+        if (req.method !== 'POST') return next()
+        try {
+          const { default: handler } = await import('./api/generate-dish-photo.js')
+          req.body = await readJsonBody(req)
+          res.status = (code) => { res.statusCode = code; return res }
+          res.json = (obj) => {
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(obj))
+          }
+          await handler(req, res)
+        } catch (err) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: err?.message || 'dev handler error' }))
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [react(), devRecipeStepsApi(env)],
+    plugins: [react(), devRecipeStepsApi(env), devDishPhotoApi(env)],
     server: {
       port: 5175,
       host: true,

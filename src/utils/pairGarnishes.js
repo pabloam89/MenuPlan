@@ -99,8 +99,10 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}) 
     const dayCarbs = dayUsedCarbs[daySlug] ?? new Set();
 
     // Pinned garnish (user picked it for this exact dish) wins over auto rules.
+    // Either pinned per fixed-dish combo (pinnedByRecipeId) or baked into the
+    // recipe itself when created in the recipe planner (recipe.pinnedGarnishId).
     let garnish = null;
-    const pinnedId = pinnedByRecipeId[recipeId];
+    const pinnedId = pinnedByRecipeId[recipeId] ?? recipe.pinnedGarnishId;
     if (pinnedId) {
       garnish = guarniciones.find((g) => g.id === pinnedId) ?? null;
     }

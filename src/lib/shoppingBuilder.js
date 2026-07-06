@@ -1,5 +1,5 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
-import { categoryForIngredient, normalizeIngredientKey } from "./ingredientCategories.js";
+import { categoryForIngredient, normalizeIngredientKey, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
 import { ingredientWords, wordsOverlapEither } from "../utils/normalizePantryInput.js";
 
@@ -15,6 +15,7 @@ function matchesPantry(ingredientName, pantryNormalized) {
 }
 
 function scaleIngredient(ing, eaters, recipeServings) {
+  if (isQualitativeUnit(ing.unit)) return { ...ing, qty: null, scaledPrice: 0 };
   const factor = Math.max(1, eaters) / recipeServings;
   return {
     ...ing,
@@ -72,6 +73,7 @@ function snapToPackSize(name, unit, qty) {
 }
 
 function formatQty(qty, unit) {
+  if (isQualitativeUnit(unit)) return qualitativeUnitLabel(unit);
   if (unit === "g" && qty >= 1000) return `${(qty / 1000).toFixed(qty % 1000 === 0 ? 0 : 1)}kg`;
   if (unit === "ml" && qty >= 1000) return `${(qty / 1000).toFixed(qty % 1000 === 0 ? 0 : 1)}L`;
   if (unit === "ud") {
