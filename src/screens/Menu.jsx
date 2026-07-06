@@ -34,7 +34,9 @@ import {
   ShoppingCart,
   Soup,
   Sparkles,
+  Heart,
   Sun,
+  ThumbsDown,
   Users,
   Utensils,
   UtensilsCrossed,
@@ -620,7 +622,7 @@ function DishIcon({ recipe, size = 44, imageUrl = null }) {
   );
 }
 
-function DishVisual({ recipe, height = 220, imageUrl = null }) {
+function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta de la semana" }) {
   const visual = visualForRecipe(recipe);
   const Icon = ICONS_BY_TYPE[recipe.iconType] ?? Utensils;
   const [imgFailed, setImgFailed] = useState(false);
@@ -720,7 +722,7 @@ function DishVisual({ recipe, height = 220, imageUrl = null }) {
             marginBottom: 4,
           }}
         >
-          Receta de la semana
+          {eyebrow}
         </div>
         <div
           style={{
@@ -2172,7 +2174,12 @@ function EmptyState({ onRegenerate }) {
   );
 }
 
-export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject }) {
+export function DishDetail({
+  recipe, slot, kitchenTools = [], onClose, onReject,
+  browse = false,
+  userVote = null,
+  onVote,
+}) {
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
   const [ingredientsOpen, setIngredientsOpen] = useState(false);
@@ -2303,9 +2310,69 @@ export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject 
           <X size={20} />
         </button>
 
-        <DishVisual recipe={recipe} height={220} imageUrl={dishImageForRecipe(recipe)} />
+        <DishVisual
+          recipe={recipe}
+          height={220}
+          imageUrl={dishImageForRecipe(recipe)}
+          eyebrow={browse ? "Catálogo" : "Receta de la semana"}
+        />
 
         <div style={{ padding: "18px 2px 0" }}>
+          {onVote && (
+            <div
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                marginBottom: 14, padding: "10px 12px", borderRadius: 14,
+                background: "#f7faf8", border: "1.5px solid #e8efe9",
+              }}
+            >
+              <button
+                type="button"
+                onClick={() => onVote("up")}
+                aria-label={userVote === "up" ? "Quitar de favoritas" : "Añadir a favoritas"}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "8px 14px", borderRadius: 12, cursor: "pointer",
+                  border: `1.5px solid ${userVote === "up" ? "#e0405a" : "#dde7e0"}`,
+                  background: userVote === "up" ? "#fdeef1" : "#fff",
+                  fontFamily: "inherit",
+                }}
+              >
+                <Heart
+                  size={16}
+                  color={userVote === "up" ? "#e0405a" : "#9ab0a1"}
+                  strokeWidth={userVote === "up" ? 2.4 : 2}
+                  fill={userVote === "up" ? "#e0405a" : "none"}
+                />
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: userVote === "up" ? "#e0405a" : "#7a9485" }}>
+                  {userVote === "up" ? "En favoritas" : "Añadir a favoritas"}
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onVote("down")}
+                aria-label="No me gusta"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "8px 14px", borderRadius: 12, cursor: "pointer",
+                  border: `1.5px solid ${userVote === "down" ? "#c0392b" : "#dde7e0"}`,
+                  background: userVote === "down" ? "#fdeeee" : "#fff",
+                  fontFamily: "inherit",
+                }}
+              >
+                <ThumbsDown
+                  size={16}
+                  color={userVote === "down" ? "#c0392b" : "#9ab0a1"}
+                  strokeWidth={userVote === "down" ? 2.4 : 2}
+                  fill={userVote === "down" ? "#c0392b" : "none"}
+                />
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: userVote === "down" ? "#c0392b" : "#7a9485" }}>
+                  No me gusta
+                </span>
+              </button>
+            </div>
+          )}
+
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
             <span style={detailTagStyle}>
               <Users size={12} /> {slot.eaters} comensales
@@ -2495,7 +2562,8 @@ export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject 
             )}
           </section>
 
-          {/* Swap section */}
+          {/* Swap section — only when opened from the weekly menu */}
+          {!browse && onReject && (
           <div style={{
             borderRadius: 16,
             border: "2px solid #2d5a3d",
@@ -2556,6 +2624,7 @@ export function DishDetail({ recipe, slot, kitchenTools = [], onClose, onReject 
               </button>
             )}
           </div>
+          )}
         </div>
       </div>
     </div>

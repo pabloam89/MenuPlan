@@ -1,14 +1,13 @@
 import { useMemo, useState } from "react";
 import {
   Flame,
-  Sparkles,
-  ChefHat,
   ChevronRight,
   ClipboardList,
   BarChart3,
   RotateCw,
   Utensils,
-  Settings as SettingsIcon,
+  BookOpen,
+  CalendarDays,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -17,7 +16,6 @@ import { computeStreak, countMenusGenerated, favoriteCategoryThisWeek } from "..
 const PAGE_BG = "#f4f8f5";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
-const RECIPE_GRADIENT = "linear-gradient(135deg, #8f3fc4 0%, #e0567a 100%)";
 const MENU_GRADIENT = "linear-gradient(135deg, #1f4a30 0%, #3f9c5f 100%)";
 
 function StatCard({ icon: Icon, value, label, color, bg }) {
@@ -59,26 +57,29 @@ function QuickActionRow({ icon: Icon, title, subtitle, onClick, disabled, color 
       onClick={disabled ? undefined : onClick}
       disabled={disabled}
       style={{
-        display: "flex", alignItems: "center", gap: 12, width: "100%",
-        padding: "12px 14px", borderRadius: 14, border: "1px solid #eef2ef",
-        background: disabled ? "#f7f9f7" : "#fff", cursor: disabled ? "not-allowed" : "pointer",
-        textAlign: "left", fontFamily: "inherit", marginBottom: 8,
-        opacity: disabled ? 0.55 : 1,
+        display: "flex", alignItems: "center", gap: 13, width: "100%",
+        padding: "13px 14px", borderRadius: 16,
+        border: `1.5px solid ${disabled ? "#eef2ef" : bg}`,
+        background: "#fff", cursor: disabled ? "not-allowed" : "pointer",
+        textAlign: "left", fontFamily: "inherit", marginBottom: 10,
+        opacity: disabled ? 0.5 : 1,
+        boxShadow: disabled ? "none" : `0 8px 18px -14px ${color}99`,
+        transition: "transform .12s ease, box-shadow .12s ease",
       }}
     >
       <div
         style={{
-          width: 36, height: 36, borderRadius: 11, background: bg, flexShrink: 0,
+          width: 42, height: 42, borderRadius: 13, background: bg, flexShrink: 0,
           display: "flex", alignItems: "center", justifyContent: "center",
         }}
       >
-        <Icon size={16} color={color} />
+        <Icon size={19} color={color} strokeWidth={2.2} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
-        <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: INK }}>{title}</p>
-        {subtitle && <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#7a9485" }}>{subtitle}</p>}
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: INK, letterSpacing: "-.1px" }}>{title}</p>
+        {subtitle && <p style={{ margin: "2px 0 0", fontSize: 11.5, color: "#7a9485", lineHeight: 1.35 }}>{subtitle}</p>}
       </div>
-      <ChevronRight size={16} color="#b7c7bd" />
+      <ChevronRight size={17} color={disabled ? "#c7d3cb" : color} style={{ opacity: 0.55 }} />
     </button>
   );
 }
@@ -155,11 +156,11 @@ export function DashboardScreen({
   data,
   menuPlan,
   onNav,
-  onOpenAccount,
   onViewMenu,
   onGenerateNewMenu,
   onOpenAnalytics,
   onOpenRecipePlanner,
+  onOpenRecipes,
 }) {
   const [expanded, setExpanded] = useState(null); // "menu" | null
   const g = googleInfo(user);
@@ -210,18 +211,6 @@ export function DashboardScreen({
               {g.email ?? "Tu panel"}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onOpenAccount}
-            aria-label="Ajustes de cuenta"
-            style={{
-              width: 38, height: 38, borderRadius: 12, border: "1px solid #e3ebe6",
-              background: "#f4f7f5", cursor: "pointer", display: "flex",
-              alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}
-          >
-            <SettingsIcon size={17} color={GREEN} />
-          </button>
         </div>
 
         {/* Stats */}
@@ -249,21 +238,20 @@ export function DashboardScreen({
           />
         </div>
 
-        {/* Actions */}
+        {/* Acceso directo al menú */}
         <ActionCard
           icon={ClipboardList}
-          title="Generar menú"
-          subtitle="Estadísticas, editar esta semana o generar uno nuevo"
+          title="Tu menú semanal"
+          subtitle={hasMenu ? "Ver y editar los platos de esta semana" : "Genera tu primer menú personalizado"}
           gradient={MENU_GRADIENT}
           expanded={expanded === "menu"}
-          onClick={() => setExpanded((v) => (v === "menu" ? null : "menu"))}
+          onClick={hasMenu ? () => setExpanded((v) => (v === "menu" ? null : "menu")) : onGenerateNewMenu}
         >
           <QuickActionRow
-            icon={ClipboardList}
+            icon={CalendarDays}
             title="Ver menú de esta semana"
-            subtitle={hasMenu ? "Editar los platos ya generados" : "Todavía no has generado ninguno"}
+            subtitle="Editar los platos ya generados"
             onClick={onViewMenu}
-            disabled={!hasMenu}
             color="#2f6fb8"
             bg="#e5eff9"
           />
@@ -284,40 +272,40 @@ export function DashboardScreen({
             color="#9647c9"
             bg="#f2e7fb"
           />
-          <p style={{ margin: "6px 2px 0", fontSize: 11, color: "#a8b8ae" }}>
-            Próximamente: histórico de semanas anteriores.
-          </p>
         </ActionCard>
 
-        <ActionCard
-          icon={ChefHat}
-          title="Crear receta"
-          subtitle="Cuéntanos tu plato y la IA rellena lo que falte"
-          gradient={RECIPE_GRADIENT}
-          badge="IA"
-          onClick={onOpenRecipePlanner}
+        {/* Acceso al recetario */}
+        <button
+          type="button"
+          onClick={onOpenRecipes}
+          style={{
+            display: "flex", alignItems: "center", gap: 14, width: "100%",
+            padding: "14px 16px", borderRadius: 18, border: "1.5px solid #e3ebe6",
+            background: "#fff", cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+            boxShadow: "0 4px 14px -10px rgba(20,47,29,.15)",
+          }}
         >
-          {null}
-        </ActionCard>
-
-        {data.userRecipes?.length > 0 && (
           <div
             style={{
-              display: "flex", alignItems: "center", gap: 8, marginTop: 2,
-              padding: "10px 14px", borderRadius: 14,
-              background: "#f2e7fb", border: "1px solid #e6d3f5",
+              width: 44, height: 44, borderRadius: 13, background: "#f2e7fb", flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
-            <Sparkles size={14} color="#9647c9" style={{ flexShrink: 0 }} />
-            <p style={{ margin: 0, fontSize: 12, color: "#6d3a8f", fontWeight: 600, lineHeight: 1.4 }}>
-              Tienes {data.userRecipes.length} receta{data.userRecipes.length === 1 ? "" : "s"} propia
-              {data.userRecipes.length === 1 ? "" : "s"} — añádela{data.userRecipes.length === 1 ? "" : "s"} en "¿Qué repetimos?".
+            <BookOpen size={20} color="#9647c9" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: INK }}>Recetario</p>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485" }}>
+              {data.userRecipes?.length > 0
+                ? `${data.userRecipes.length} receta${data.userRecipes.length === 1 ? "" : "s"} propia${data.userRecipes.length === 1 ? "" : "s"} · catálogo completo`
+                : "Explora el catálogo o crea tus propias recetas"}
             </p>
           </div>
-        )}
+          <ChevronRight size={17} color="#b7c7bd" />
+        </button>
       </div>
 
-      <BottomNav active="dashboard" onNav={onNav} />
+      <BottomNav active="dashboard" onNav={onNav} context="home" />
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Users, Sparkles } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -21,7 +22,9 @@ const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ d
 const PantryScreen = lazy(() => import("./screens/Pantry.jsx").then(m => ({ default: m.PantryScreen })));
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
-import { generateMenuWithAI, pickCatalogReplacement } from "./lib/aiPlanner.js";
+const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
+const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
+import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
@@ -34,7 +37,21 @@ import {
   hasUnderageMember,
 } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
-import { registerRecipes } from "./data/recipes.js";
+import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
+import {
+  toggleRecipeVote,
+  loadRecipeVotes,
+  saveRecipeVote,
+  deleteRecipeVote,
+  upsertRecipeVotes,
+} from "./lib/recipeVotes.js";
+import { loadUserState, saveUserState } from "./lib/userState.js";
+import {
+  loadUserRecipes,
+  upsertUserRecipe,
+  upsertUserRecipes,
+  updateRecipeVisibility,
+} from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
@@ -58,6 +75,8 @@ const INITIAL_DATA = {
   // Recipes created by the user via the recipe planner. Same shape as the
   // bundled catalog (see src/data/recipes/*.json) plus source:"user".
   userRecipes: [],
+  // Per-user recipe votes from catalog / dish detail. "up" = favorita.
+  recipeVotes: {},
   menuModel: "same",
   groups: [],
   meals: ["Comida", "Cena"],
@@ -266,6 +285,7 @@ function migrate(state) {
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
+  d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
   d.cookTime = migrateCookTime(d);
   return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
@@ -314,6 +334,12 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
+  // User-created recipes must live in RECIPES_BY_ID for DishDetail.
+  useEffect(() => {
+    const own = data.userRecipes ?? [];
+    if (own.length > 0) registerRecipes(own);
+  }, [data.userRecipes]);
+
   const { user, signInWithGoogle, signOut } = useAuth();
 
   // Debounced: serializar todo el estado a localStorage en cada pulsación de
@@ -325,6 +351,95 @@ export default function App() {
     );
     return () => window.clearTimeout(t);
   }, [screen, onbStep, data, menuPlan, shopping, aiRecipes]);
+
+  // ── Cloud sync (Supabase) ──────────────────────────────────────
+  // localStorage stays the working source of truth; these effects mirror it to
+  // the account so the profile, user recipes and favorites survive across
+  // devices and a "smart reset". Everything no-ops without a signed-in session.
+  const hydratedUserRef = useRef(null);
+  const cloudReadyRef = useRef(false);
+
+  useEffect(() => {
+    if (!user?.id) {
+      cloudReadyRef.current = false;
+      hydratedUserRef.current = null;
+      return;
+    }
+    if (hydratedUserRef.current === user.id) return;
+    hydratedUserRef.current = user.id;
+
+    // Captured now (effect runs the moment a session appears): these are the
+    // local-only items to reconcile with the cloud.
+    const localRecipes = data.userRecipes ?? [];
+    const localVotes = data.recipeVotes ?? {};
+    let cancelled = false;
+
+    (async () => {
+      const [remoteState, remoteRecipes, remoteVotes] = await Promise.all([
+        loadUserState(user.id),
+        loadUserRecipes(user.id),
+        loadRecipeVotes(user.id),
+      ]);
+      if (cancelled) return;
+
+      // Recipes: union by id (remote wins on conflict); votes: same.
+      const byId = new Map(localRecipes.map((r) => [r.id ?? r.name, r]));
+      for (const r of remoteRecipes) byId.set(r.id, r);
+      const mergedRecipes = Array.from(byId.values());
+      const mergedVotes = { ...localVotes, ...remoteVotes };
+
+      // Adopt the remote profile snapshot when it exists and is set up (has
+      // members); otherwise keep local as the base and push it up below.
+      const remoteData = remoteState?.state?.data;
+      const useRemote = remoteData && (remoteData.members?.length ?? 0) > 0;
+
+      setData((d) => ({
+        ...(useRemote ? { ...INITIAL_DATA, ...remoteData } : d),
+        userRecipes: mergedRecipes,
+        recipeVotes: mergedVotes,
+      }));
+      if (useRemote) {
+        if (remoteState.state.menuPlan) setMenuPlan(remoteState.state.menuPlan);
+        if (remoteState.state.shopping) setShopping(remoteState.state.shopping);
+        if (Array.isArray(remoteState.state.aiRecipes)) {
+          registerRecipes(remoteState.state.aiRecipes);
+          setAiRecipes(remoteState.state.aiRecipes);
+        }
+      }
+      if (mergedRecipes.length) registerRecipes(mergedRecipes);
+
+      // Backfill local-only rows the cloud doesn't have yet.
+      const remoteIds = new Set(remoteRecipes.map((r) => r.id));
+      const localOnly = localRecipes.filter((r) => r.id && !remoteIds.has(r.id));
+      if (localOnly.length) upsertUserRecipes(user.id, localOnly);
+      const votesBackfill = {};
+      for (const [rid, v] of Object.entries(localVotes)) {
+        if (!(rid in remoteVotes)) votesBackfill[rid] = v;
+      }
+      upsertRecipeVotes(user.id, votesBackfill);
+
+      cloudReadyRef.current = true;
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Debounced push of the private profile snapshot (everything except the
+  // normalized recipes/votes, which sync through their own tables). Gated on
+  // cloudReadyRef so we never clobber the remote copy before hydration lands.
+  useEffect(() => {
+    if (!user?.id || !cloudReadyRef.current) return;
+    const t = window.setTimeout(() => {
+      const profile = { ...data };
+      delete profile.userRecipes;
+      delete profile.recipeVotes;
+      saveUserState(user.id, { data: profile, menuPlan, shopping, aiRecipes, onbStep });
+    }, 1200);
+    return () => window.clearTimeout(t);
+  }, [user?.id, data, menuPlan, shopping, aiRecipes, onbStep]);
 
   const ensureGroupsIfMissing = () => {
     if (data.groups.length === 0 && data.members.length > 0) {
@@ -423,6 +538,8 @@ export default function App() {
   }, [regenerateMenu]);
 
   const dirRef = useRef("forward");
+  // Track which screen opened the recipe planner so we can return there on close.
+  const recipePlannerOriginRef = useRef("dashboard");
   const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
   const back = (fn) => { dirRef.current = "backward"; fn(); };
 
@@ -463,10 +580,57 @@ export default function App() {
     setScreen("onboarding");
   }, []);
 
+  // "¿Para quién es el menú?" — when the profile already has members, offer to
+  // reuse the household or start fresh for a different group, instead of always
+  // forcing the full onboarding.
+  const [whoForOpen, setWhoForOpen] = useState(false);
+  const handleGenerateMenu = useCallback(() => {
+    if ((data.members ?? []).length > 0) {
+      setWhoForOpen(true);
+    } else {
+      goToOnboardingStep(0);
+    }
+  }, [data.members, goToOnboardingStep]);
+
   const handleDishTap = useCallback((selection) => {
     setSelectedSlot(selection);
     trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
   }, [user]);
+
+  const handleVoteRecipe = useCallback((recipeId, vote) => {
+    const prev = data.recipeVotes?.[recipeId];
+    setData((d) => ({
+      ...d,
+      recipeVotes: toggleRecipeVote(d.recipeVotes, recipeId, vote),
+    }));
+    if (vote === "up") {
+      showToast(prev === "up" ? "Quitada de favoritas" : "Añadida a favoritas");
+    }
+    // Persist to the account. Re-casting the same vote clears it (toggle off).
+    if (user?.id) {
+      if (prev === vote) deleteRecipeVote(user.id, recipeId);
+      else saveRecipeVote(user.id, recipeId, vote);
+    }
+  }, [data.recipeVotes, showToast, user]);
+
+  const handleOpenCatalogRecipe = useCallback((recipe) => {
+    if (!recipe?.id) return;
+    const eaters = Math.max(1, data.members?.length || 4);
+    // Catalog/user-recipe objects use the protein_g/carbs_g/fat_g + baseServings
+    // shape; DishDetail expects the "frontend" shape (macros object, scaled
+    // ingredients) that the menu/planner already produce for every dish that's
+    // been placed in a menu. Reuse that converter so opening a dish straight
+    // from the catalog looks identical, and cache it in the runtime registry.
+    const already = RECIPES_BY_ID[recipe.id];
+    const full = already ?? catalogToFrontendRecipe(recipe, eaters);
+    if (!already) registerRecipes([full]);
+    setSelectedSlot({
+      recipe: full,
+      slot: { eaters: full.servings ?? eaters },
+      browse: true,
+    });
+    trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id });
+  }, [data.members, user]);
 
   const handleReplaceSlot = useCallback(async (selection) => {
     const { groupId, day, meal } = selection;
@@ -533,14 +697,17 @@ export default function App() {
     trackEvent(user, "dish_replaced", "menu", { day, meal, newRecipeId: recipeId });
   }, [data, menuPlan, showToast, user]);
 
-  const [resetConfirmOpen, setResetConfirmOpen] = useState(false);
+  // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
+  // only wipes the active menu/session; "hard" nukes everything (used by the
+  // onboarding "empezar de cero"); "delete" nukes + signs out.
+  const [resetConfirm, setResetConfirm] = useState(null); // null | "soft" | "hard" | "delete"
 
-  const handleReset = useCallback(() => {
-    setResetConfirmOpen(true);
-  }, []);
+  const handleReset = useCallback(() => setResetConfirm("hard"), []);
+  const handleSoftReset = useCallback(() => setResetConfirm("soft"), []);
+  const handleDeleteAccount = useCallback(() => setResetConfirm("delete"), []);
 
   const doReset = useCallback(() => {
-    setResetConfirmOpen(false);
+    setResetConfirm(null);
     clearState();
     setData(INITIAL_DATA);
     setMenuPlan({});
@@ -551,6 +718,36 @@ export default function App() {
     setMenuError(null);
     setScreen("splash");
   }, []);
+
+  // Soft reset — the profile lives in the account, so "reiniciar" only clears
+  // the current week's menu, shopping list and week selection, then lands back
+  // on the dashboard with the onboarding effectively already done.
+  const doSoftReset = useCallback(() => {
+    setResetConfirm(null);
+    setMenuPlan({});
+    setShopping({ items: [] });
+    setAiRecipes([]);
+    setSelectedSlot(null);
+    setMenuError(null);
+    setData((d) => ({ ...d, schedule: {}, slotType: {}, menuWeek: null }));
+    dirRef.current = "forward";
+    setScreen("dashboard");
+    showToast("Menú reiniciado");
+  }, [showToast]);
+
+  const doDeleteAccount = useCallback(async () => {
+    setResetConfirm(null);
+    clearState();
+    setData(INITIAL_DATA);
+    setMenuPlan({});
+    setShopping({ items: [] });
+    setSelectedSlot(null);
+    setOnbStep(0);
+    setAiRecipes([]);
+    setMenuError(null);
+    setScreen("splash");
+    await signOut();
+  }, [signOut]);
 
   // Order: Members → Menu Model → School Menu → Week → Schedule → Meal Style → Restrictions → Repeat → Cooking.
   // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
@@ -868,11 +1065,61 @@ export default function App() {
                 data={data}
                 menuPlan={menuPlan}
                 onNav={handleNav}
-                onOpenAccount={() => fwd(() => setScreen("account"))}
+                onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
-                onGenerateNewMenu={generateNewMenuFromDashboard}
+                onGenerateNewMenu={handleGenerateMenu}
                 onOpenAnalytics={() => fwd(() => setScreen("analytics"))}
-                onOpenRecipePlanner={() => fwd(() => setScreen("recipePlanner"))}
+                onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "dashboard"; fwd(() => setScreen("recipePlanner")); }}
+                onOpenRecipes={() => fwd(() => setScreen("recipes"))}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "recipes" && (
+          <div
+            key="recipes"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <RecipesScreen
+                userRecipes={data.userRecipes}
+                recipeVotes={data.recipeVotes}
+                onVote={handleVoteRecipe}
+                onOpenRecipe={handleOpenCatalogRecipe}
+                onNav={handleNav}
+                onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "recipes"; fwd(() => setScreen("recipePlanner")); }}
+                onChangeRecipeVisibility={(recipeId, visibility) => {
+                  setData((d) => ({
+                    ...d,
+                    userRecipes: (d.userRecipes ?? []).map((r) =>
+                      (r.id ?? r.name) === recipeId ? { ...r, visibility } : r
+                    ),
+                  }));
+                  if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
+                }}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "profile" && (
+          <div
+            key="profile"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <HomeProfileScreen
+                user={user}
+                data={data}
+                setData={setData}
+                onNav={handleNav}
+                onSignIn={signInWithGoogle}
+                onSignOut={signOut}
+                onReset={handleSoftReset}
+                onDeleteAccount={handleDeleteAccount}
+                onEditMembers={() => goToOnboardingStep(1)}
+                onOpenPantry={() => fwd(() => setScreen("pantry"))}
               />
             </Suspense>
           </div>
@@ -888,8 +1135,11 @@ export default function App() {
                 userRecipes={data.userRecipes}
                 user={user}
                 setData={setData}
-                onClose={() => back(() => setScreen("dashboard"))}
-                onSaved={() => showToast("Receta creada con IA")}
+                onClose={() => back(() => setScreen(recipePlannerOriginRef.current ?? "dashboard"))}
+                onSaved={(recipe) => {
+                  showToast("Receta creada con IA");
+                  if (user?.id && recipe) upsertUserRecipe(user.id, recipe);
+                }}
               />
             </Suspense>
           </div>
@@ -904,14 +1154,17 @@ export default function App() {
           recipe={selectedSlot.recipe}
           slot={selectedSlot.slot}
           kitchenTools={data.kitchenTools ?? []}
+          browse={Boolean(selectedSlot.browse)}
+          userVote={data.recipeVotes?.[selectedSlot.recipe.id] ?? null}
+          onVote={(vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
           onClose={() => setSelectedSlot(null)}
-          onReject={() => handleReplaceSlot(selectedSlot)}
+          onReject={selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
         />
       )}
 
-      {resetConfirmOpen && (
+      {resetConfirm && (
         <div
-          onClick={() => setResetConfirmOpen(false)}
+          onClick={() => setResetConfirm(null)}
           className="mp-overlay-in"
           style={{
             position: "fixed", inset: 0, zIndex: 300,
@@ -943,18 +1196,26 @@ export default function App() {
               margin: "0 0 8px", fontSize: 19, fontWeight: 900,
               color: "#142f1d", textAlign: "center",
             }}>
-              ¿Reiniciar todo?
+              {resetConfirm === "soft"
+                ? "¿Reiniciar el menú?"
+                : resetConfirm === "delete"
+                  ? "¿Eliminar tu cuenta?"
+                  : "¿Reiniciar todo?"}
             </h3>
             <p style={{
               margin: "0 0 24px", fontSize: 14, color: "#6b7b6e",
               textAlign: "center", lineHeight: 1.5,
             }}>
-              Se borrarán todos tus datos, menús y configuración. Esta acción no se puede deshacer.
+              {resetConfirm === "soft"
+                ? "Se borrará el menú de esta semana y la lista de la compra. Tu familia, recetas y preferencias se mantienen."
+                : resetConfirm === "delete"
+                  ? "Se borrarán todos tus datos y se cerrará tu sesión. Esta acción no se puede deshacer."
+                  : "Se borrarán todos tus datos, menús y configuración. Esta acción no se puede deshacer."}
             </p>
             <div style={{ display: "flex", gap: 10 }}>
               <button
                 type="button"
-                onClick={() => setResetConfirmOpen(false)}
+                onClick={() => setResetConfirm(null)}
                 style={{
                   flex: 1, padding: "14px", borderRadius: 14,
                   border: "none", background: "#2d5a3d", color: "#fff",
@@ -966,7 +1227,13 @@ export default function App() {
               </button>
               <button
                 type="button"
-                onClick={doReset}
+                onClick={
+                  resetConfirm === "soft"
+                    ? doSoftReset
+                    : resetConfirm === "delete"
+                      ? doDeleteAccount
+                      : doReset
+                }
                 style={{
                   flex: 1, padding: "14px", borderRadius: 14,
                   border: "none", background: "#c0392b", color: "#fff",
@@ -974,9 +1241,105 @@ export default function App() {
                   fontFamily: "inherit",
                 }}
               >
-                Reiniciar
+                {resetConfirm === "soft"
+                  ? "Reiniciar menú"
+                  : resetConfirm === "delete"
+                    ? "Eliminar"
+                    : "Reiniciar"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {whoForOpen && (
+        <div
+          onClick={() => setWhoForOpen(false)}
+          className="mp-overlay-in"
+          style={{
+            position: "fixed", inset: 0, zIndex: 300,
+            background: "rgba(0,0,0,.5)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0 24px",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="mp-sheet-up"
+            style={{
+              background: "#fff",
+              borderRadius: 26,
+              padding: "26px 22px 20px",
+              width: "100%", maxWidth: 360, boxSizing: "border-box",
+              boxShadow: "0 24px 60px rgba(0,0,0,.25)",
+            }}
+          >
+            <h3 style={{ margin: "0 0 6px", fontSize: 20, fontWeight: 900, color: "#142f1d", textAlign: "center", letterSpacing: "-.01em" }}>
+              ¿Para quién es el menú?
+            </h3>
+            <p style={{ margin: "0 auto 20px", fontSize: 13.5, color: "#7a9485", textAlign: "center", lineHeight: 1.45, maxWidth: 260 }}>
+              Reutiliza tu familia o empieza de cero para otro grupo.
+            </p>
+
+            {(() => {
+              const options = [
+                {
+                  key: "family", Icon: Users, primary: true,
+                  label: "Mi familia habitual",
+                  onClick: () => { setWhoForOpen(false); generateNewMenuFromDashboard(); },
+                },
+                {
+                  key: "other", Icon: Sparkles, primary: false,
+                  label: "Otro grupo",
+                  onClick: () => { setWhoForOpen(false); goToOnboardingStep(0); },
+                },
+              ];
+              return (
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {options.map(({ key, Icon, primary, label, onClick }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={onClick}
+                      style={{
+                        display: "flex", flexDirection: "column", alignItems: "center",
+                        justifyContent: "center", gap: 10, width: "100%", textAlign: "center",
+                        padding: "22px 18px", borderRadius: 20, cursor: "pointer",
+                        fontFamily: "inherit",
+                        background: primary ? "#eef6f0" : "#f7f9f8",
+                        border: `2.5px solid ${primary ? "#bfe0cb" : "#e8ede9"}`,
+                        transition: "all .15s ease",
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 58, height: 58, borderRadius: 18,
+                          background: primary ? "#2d5a3d" : "#edf2ee",
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        }}
+                      >
+                        <Icon size={28} color={primary ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
+                      </span>
+                      <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>
+                        {label}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              );
+            })()}
+
+            <button
+              type="button"
+              onClick={() => setWhoForOpen(false)}
+              style={{
+                display: "block", margin: "16px auto 0", padding: "6px 12px",
+                border: "none", background: "none", cursor: "pointer",
+                fontFamily: "inherit", fontSize: 13.5, fontWeight: 700, color: "#9aa8a0",
+              }}
+            >
+              Cancelar
+            </button>
           </div>
         </div>
       )}

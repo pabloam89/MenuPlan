@@ -21,10 +21,14 @@ import {
   ChevronLeft,
   BarChart3,
   Sparkles,
+  Heart,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
+import { getUserRecipeVote } from "../lib/recipeVotes.js";
 
 const GARNISHES = guarnicionesData;
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
@@ -120,8 +124,10 @@ function CategoryIcon({ category, size = 22 }) {
 export function CatalogBrowserSheet({
   inline = false, onClose, addedIds = new Set(), garnishByCatalogId = {},
   onAdd, onRemove, onSetGarnish, extraRecipes = [],
+  // Horizontal padding applied in inline mode (non-inline always uses 18px).
+  inlinePadding = 0,
   // Reference mode: read-only browsing. No add/garnish actions — cards show
-  // a subtle "Ya en el catálogo" tag.
+  // owner + vote info instead.
   reference = false,
   // Gate-pick mode (recipe planner): search platos and/or guarniciones from the
   // same browser used in ¿Qué repetimos?, with tap-to-select instead of add.
@@ -135,6 +141,11 @@ export function CatalogBrowserSheet({
   onPickPlato,
   onPickGarnish,
   extraGarnishes = [],
+  // User votes keyed by recipe id ("up" | "down").
+  recipeVotes = {},
+  onVote,
+  // Tap a recipe in reference mode to open dish detail.
+  onOpenRecipe,
 }) {
   const fullCatalog = useMemo(
     () => (extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog),
@@ -267,7 +278,7 @@ export function CatalogBrowserSheet({
     setKidOnly(false);
   };
 
-  const px = inline ? 0 : 18;
+  const px = inline ? inlinePadding : 18;
 
   const styleBlock = (
     <style>{`
@@ -468,6 +479,9 @@ export function CatalogBrowserSheet({
               onAdd={() => onAdd?.(r)}
               onRemove={() => onRemove?.(r.id)}
               onOpenGarnish={() => setGarnishFor(r)}
+              onOpenRecipe={onOpenRecipe}
+              userVote={getUserRecipeVote(recipeVotes, r.id)}
+              onVote={onVote}
               animDelay={i < 12 ? i * 18 : 0}
             />
           ))}
@@ -536,12 +550,12 @@ export function CatalogBrowserSheet({
     return (
       <div>
         {styleBlock}
-        <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#f5f9f6", paddingTop: 4 }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#f4f8f5", paddingTop: 12 }}>
           {searchRow}
           {selectedRow}
           {countRow}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 2 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: `2px ${px}px 0` }}>
           {cards}
         </div>
         {pager}
@@ -1058,7 +1072,72 @@ function GatePickCard({ kind, item, selected, onToggle, animDelay = 0 }) {
   );
 }
 
-function RecipeCard({ recipe, reference = false, added, garnishId, onAdd, onRemove, onOpenGarnish, animDelay = 0 }) {
+// Small MenuPlan logo mark used instead of a user avatar for catalog dishes.
+function MenuPlanBadge() {
+  return (
+    <div
+      style={{
+        width: 26, height: 26, borderRadius: 8, background: "#2d5a3d",
+        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+      }}
+    >
+      <Utensils size={13} color="#fff" strokeWidth={2.2} />
+    </div>
+  );
+}
+
+// Right-hand column shown in reference (browse) mode: owner badge + label +
+// vote counts. The favorite action itself lives on a heart badge over the
+// photo (see RecipeCard) so this column stays focused on provenance + score.
+function RecipeProvenance({ recipe }) {
+  const isUserRecipe = Boolean(recipe.owner);
+  const owner = recipe.owner;
+  const up = recipe.rating?.up ?? 0;
+  const down = recipe.rating?.down ?? 0;
+
+  return (
+    <div
+      style={{
+        flexShrink: 0, display: "flex", flexDirection: "column",
+        alignItems: "center", gap: 5, minWidth: 44,
+      }}
+    >
+      {/* Avatar / badge */}
+      {isUserRecipe && owner?.avatar ? (
+        <img
+          src={owner.avatar}
+          alt={owner.name ?? ""}
+          style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+        />
+      ) : (
+        <MenuPlanBadge />
+      )}
+      <span
+        style={{
+          fontSize: 9.5, fontWeight: 800, color: isUserRecipe ? "#2f6fb8" : "#2d5a3d",
+          letterSpacing: ".1px", whiteSpace: "nowrap",
+          background: isUserRecipe ? "#e5eff9" : "#eaf6ee",
+          padding: "1px 5px", borderRadius: 5,
+        }}
+      >
+        {isUserRecipe ? (owner?.name?.split(" ")[0] ?? "Tú") : "MenuPlan"}
+      </span>
+      <div style={{ display: "flex", gap: 4 }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 9.5, fontWeight: 700, color: "#9ab0a1" }}>
+          <ThumbsUp size={10} color="#9ab0a1" /> {up}
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 9.5, fontWeight: 700, color: "#9ab0a1" }}>
+          <ThumbsDown size={10} color="#9ab0a1" /> {down}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function RecipeCard({
+  recipe, reference = false, added, garnishId, onAdd, onRemove, onOpenGarnish,
+  onOpenRecipe, userVote, onVote, animDelay = 0,
+}) {
   const color = categoryColor(recipe.category);
   const isPrincipal = recipe.type === "principal";
   const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
@@ -1078,18 +1157,57 @@ function RecipeCard({ recipe, reference = false, added, garnishId, onAdd, onRemo
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 8 }}>
-        {/* thumbnail — colored ring per category */}
-        <div
+        <button
+          type="button"
+          onClick={reference && onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
+          disabled={!reference || !onOpenRecipe}
           style={{
-            width: 52, height: 52, borderRadius: 12, flexShrink: 0, overflow: "hidden",
-            boxSizing: "border-box", border: `2.5px solid ${color}`,
-            background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center",
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 12,
+            padding: 0, border: "none", background: "transparent",
+            cursor: reference && onOpenRecipe ? "pointer" : "default",
+            fontFamily: "inherit", textAlign: "left",
           }}
         >
-          {photo ? (
-            <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          ) : (
-            <CategoryIcon category={recipe.category} size={22} />
+        {/* thumbnail — colored ring per category */}
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <div
+            style={{
+              width: 52, height: 52, borderRadius: 12, overflow: "hidden",
+              boxSizing: "border-box", border: `2.5px solid ${color}`,
+              background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {photo ? (
+              <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <CategoryIcon category={recipe.category} size={22} />
+            )}
+          </div>
+          {/* Favorite badge — floats over the photo corner, outside the
+              owner/votes column so both stay visible at all times. */}
+          {reference && onVote && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onVote(recipe.id, "up"); }}
+              aria-label={userVote === "up" ? "Quitar de favoritas" : "Añadir a favoritas"}
+              title={userVote === "up" ? "Quitar de favoritas" : "Añadir a favoritas"}
+              style={{
+                position: "absolute", top: -6, right: -6,
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                border: "2px solid #fff", cursor: "pointer",
+                background: userVote === "up" ? "#e0405a" : "#fff",
+                boxShadow: "0 1px 4px rgba(0,0,0,.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all .15s ease",
+              }}
+            >
+              <Heart
+                size={11}
+                color={userVote === "up" ? "#fff" : "#c9b8ae"}
+                strokeWidth={2.4}
+                fill={userVote === "up" ? "#fff" : "none"}
+              />
+            </button>
           )}
         </div>
 
@@ -1115,6 +1233,11 @@ function RecipeCard({ recipe, reference = false, added, garnishId, onAdd, onRemo
                 Tuya
               </span>
             )}
+            {userVote === "up" && (
+              <span style={{ fontSize: 10, fontWeight: 800, color: GREEN, background: "#eaf6ee", padding: "2px 6px", borderRadius: 6 }}>
+                Favorita
+              </span>
+            )}
             {recipe.time != null && (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "#7a9485" }}>
                 <Clock size={11} /> {recipe.time} min
@@ -1135,17 +1258,11 @@ function RecipeCard({ recipe, reference = false, added, garnishId, onAdd, onRemo
             </div>
           )}
         </div>
+        </button>
 
-        {/* Reference mode: no actions — just a read-only "already exists" tag */}
+        {/* Reference mode: owner + votes column */}
         {reference ? (
-          <span
-            style={{
-              flexShrink: 0, fontSize: 10.5, fontWeight: 800, color: GREEN, background: "#eaf6ee",
-              padding: "5px 8px", borderRadius: 8, letterSpacing: ".2px", whiteSpace: "nowrap",
-            }}
-          >
-            Ya en el catálogo
-          </span>
+          <RecipeProvenance recipe={recipe} />
         ) : (
           <>
             {/* garnish icon button — only for principal dishes once added */}

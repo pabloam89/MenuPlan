@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { BarChart3, Calendar, ClipboardList, Settings, ShoppingCart } from "lucide-react";
+import { BarChart3, BookOpen, Calendar, ClipboardList, Home, Settings, ShoppingCart, UserCircle } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 
@@ -163,13 +163,23 @@ export function bottomNavSpacer() {
   return `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`;
 }
 
-export function BottomNav({ active, onNav }) {
-  const items = [
-    { id: "menu", icon: ClipboardList, label: "Menú" },
-    { id: "shopping", icon: ShoppingCart, label: "Compra" },
-    { id: "analytics", icon: BarChart3, label: "Análisis" },
-    { id: "settings", icon: Settings, label: "Ajustes" },
-  ];
+const HOME_NAV_ITEMS = [
+  { id: "dashboard", icon: Home, label: "Inicio" },
+  { id: "recipes",   icon: BookOpen,    label: "Recetas" },
+  { id: "menu",      icon: ClipboardList, label: "Menú" },
+  { id: "profile",   icon: Settings,    label: "Perfil" },
+];
+
+const MENU_NAV_ITEMS = [
+  { id: "dashboard", icon: Home,          label: "Inicio" },
+  { id: "menu",      icon: ClipboardList, label: "Menú" },
+  { id: "shopping",  icon: ShoppingCart,  label: "Compra" },
+  { id: "analytics", icon: BarChart3,     label: "Análisis" },
+];
+
+// context: "home" (Inicio + Recetas) | "menu" (Menú + Compra + Análisis + Ajustes)
+export function BottomNav({ active, onNav, context = "menu" }) {
+  const items = context === "home" ? HOME_NAV_ITEMS : MENU_NAV_ITEMS;
   const nav = (
     <nav
       aria-label="Navegación principal"

@@ -5150,9 +5150,9 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
           </p>
           <div style={{ display: "flex", gap: 8 }}>
             {[
-              { id: "primero_segundo", label: "Primero y segundo", sub: "Dos platos" },
-              { id: "1_plato",        label: "Un solo plato",      sub: "Plato completo" },
-            ].map(({ id, label, sub }) => {
+              { id: "primero_segundo", label: "Primero y segundo", Icon: Layers2 },
+              { id: "1_plato",        label: "Un solo plato",      Icon: CircleDot },
+            ].map(({ id, label, Icon }) => {
               const sel = (data.mealStructureByGroup?.[subjectId] ?? "primero_segundo") === id;
               return (
                 <button
@@ -5166,7 +5166,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                   }
                   style={{
                     flex: 1,
-                    padding: "10px 8px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    padding: "13px 8px",
                     borderRadius: 12,
                     border: sel ? "2px solid #2d5a3d" : "1.5px solid #dde8e1",
                     background: sel ? "#2d5a3d" : "#fff",
@@ -5177,8 +5181,8 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                     transition: "all .15s ease",
                   }}
                 >
-                  <div style={{ fontSize: 12.5, fontWeight: 800, lineHeight: 1.2 }}>{label}</div>
-                  <div style={{ fontSize: 10.5, opacity: sel ? .75 : .55, marginTop: 2 }}>{sub}</div>
+                  <Icon size={17} color={sel ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
+                  <span style={{ fontSize: 12.5, fontWeight: 800, lineHeight: 1.2 }}>{label}</span>
                 </button>
               );
             })}

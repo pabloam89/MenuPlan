@@ -46,6 +46,9 @@ import {
   CalendarDays,
   UserCircle2,
   Gauge,
+  Globe,
+  Users2,
+  Lock,
 } from "lucide-react";
 import { ProgressDots, SegmentedControl } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
@@ -522,9 +525,9 @@ function makeIngredient(name) {
 // very long, derived catalog) with a "Ver todos" to expand on demand.
 
 function AisleTile({ label, icon: Icon, color, active, onClick }) {
-  return (
-    <button
-      type="button"
+    return (
+        <button
+          type="button"
       onClick={onClick}
       style={{
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 5,
@@ -538,16 +541,16 @@ function AisleTile({ label, icon: Icon, color, active, onClick }) {
       <span style={{ fontSize: 10.5, fontWeight: 800, color: active ? "#fff" : INK, textAlign: "center", lineHeight: 1.15 }}>
         {label}
       </span>
-    </button>
-  );
-}
+        </button>
+    );
+  }
 
 function SelectedAisleChip({ label, onClear }) {
   const Icon = AISLE_ICONS[label] ?? UtensilsCrossed;
   const color = AISLE_COLORS[label] ?? GREEN;
   return (
-    <div
-      style={{
+        <div
+          style={{
         display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", marginBottom: 10,
         borderRadius: 10, border: `2px solid ${color}`, background: "#fff",
       }}
@@ -556,17 +559,17 @@ function SelectedAisleChip({ label, onClear }) {
       <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 700, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
         Explorando: {label}
       </span>
-      <button
-        type="button"
+            <button
+              type="button"
         onClick={onClear}
         aria-label="Quitar categoría"
-        style={{
+              style={{
           width: 22, height: 22, borderRadius: 6, border: "none", background: "#f0f4f1",
           color, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-        }}
-      >
+              }}
+            >
         <X size={12} />
-      </button>
+            </button>
     </div>
   );
 }
@@ -632,8 +635,8 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        <div
-          style={{
+            <div
+              style={{
             flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, height: 42, padding: "0 12px",
             borderRadius: 12, background: "#fff", border: `2px solid ${GREEN}`,
           }}
@@ -646,8 +649,8 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
             style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: INK }}
           />
           {query && (
-            <button
-              type="button"
+                <button
+                  type="button"
               onClick={() => onQueryChange("")}
               aria-label="Limpiar búsqueda"
               style={{ border: "none", background: "transparent", cursor: "pointer", color: "#9ab0a1", display: "flex", padding: 2 }}
@@ -659,7 +662,7 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
         <button
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
-          style={{
+                  style={{
             position: "relative", display: "inline-flex", alignItems: "center", gap: 6,
             height: 42, padding: "0 13px", borderRadius: 12, cursor: "pointer", flexShrink: 0,
             border: `1.5px solid ${filtersOpen || aisle ? GREEN : "#e8efe9"}`,
@@ -671,7 +674,7 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
           <SlidersHorizontal size={15} />
           Categorías
           {filtersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-        </button>
+                </button>
       </div>
 
       {filtersOpen && (
@@ -685,9 +688,9 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
               active={aisle === a}
               onClick={() => setAisle(aisle === a ? null : a)}
             />
-          ))}
-        </div>
-      )}
+              ))}
+            </div>
+          )}
 
       {!filtersOpen && aisle && !q && (
         <SelectedAisleChip label={aisle} onClear={() => setAisle(null)} />
@@ -709,14 +712,14 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
               onToggle={onToggle}
             />
           ))}
-        </div>
+      </div>
       )}
 
       {hiddenCount > 0 && (
-        <button
-          type="button"
+      <button
+        type="button"
           onClick={() => setShowAll(true)}
-          style={{
+        style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
             marginTop: 10, padding: "10px 12px", borderRadius: 11,
             border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN, cursor: "pointer",
@@ -736,12 +739,12 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
             display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%",
             marginTop: results.length > 0 ? 10 : 0, padding: "11px 12px", borderRadius: 11,
             border: "1.5px dashed #bfe6cb", background: "#f2fbf5", color: GREEN, cursor: "pointer",
-            fontFamily: "inherit", fontSize: 13, fontWeight: 800,
-          }}
-        >
+          fontFamily: "inherit", fontSize: 13, fontWeight: 800,
+        }}
+      >
           <Plus size={15} strokeWidth={2.6} />
           Añadir “{query.trim()}”
-        </button>
+      </button>
       )}
     </div>
   );
@@ -883,6 +886,136 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
   );
 }
 
+// ── Visibility options ─────────────────────────────────────────────────────
+const VISIBILITY_OPTIONS = [
+  {
+    id: "public",
+    icon: Globe,
+    label: "Pública",
+    sub: "Cualquier usuario de MenuPlan puede verla y valorarla.",
+    color: "#2d5a3d",
+    bg: "#e6f3ea",
+    border: "#a8d5b5",
+  },
+  {
+    id: "friends",
+    icon: Users2,
+    label: "Solo amigos",
+    sub: "Solo la ven las personas que sigues y que te siguen.",
+    color: "#7a4e00",
+    bg: "#fff8e7",
+    border: "#f0d090",
+  },
+  {
+    id: "private",
+    icon: Lock,
+    label: "Privada",
+    sub: "Solo tú puedes verla. No aparece en ningún listado.",
+    color: "#5a2d7a",
+    bg: "#f5edfc",
+    border: "#c9a0e8",
+  },
+];
+
+function VisibilitySheet({ onConfirm, onClose }) {
+  const [selected, setSelected] = useState("public");
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 300,
+        background: "rgba(0,0,0,.45)",
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#fff", borderRadius: "22px 22px 0 0",
+          width: "100%", maxWidth: 420,
+          padding: "22px 20px calc(28px + env(safe-area-inset-bottom, 0px))",
+          boxSizing: "border-box",
+        }}
+      >
+        {/* Handle */}
+        <div style={{ width: 36, height: 4, background: "#dde5df", borderRadius: 99, margin: "0 auto 18px" }} />
+
+        <p style={{ margin: "0 0 4px", fontSize: 17, fontWeight: 900, color: "#142f1d", textAlign: "center" }}>
+          ¿Quién puede ver esta receta?
+        </p>
+        <p style={{ margin: "0 0 18px", fontSize: 13, color: "#7a9485", textAlign: "center", lineHeight: 1.45 }}>
+          Podrás cambiarlo después desde tu recetario.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 18 }}>
+          {VISIBILITY_OPTIONS.map((opt) => {
+            const active = selected === opt.id;
+            const Icon = opt.icon;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                onClick={() => setSelected(opt.id)}
+                style={{
+                  display: "flex", alignItems: "flex-start", gap: 13,
+                  padding: "13px 14px", borderRadius: 14, cursor: "pointer",
+                  fontFamily: "inherit", textAlign: "left",
+                  border: `2px solid ${active ? opt.border : "#eef3f0"}`,
+                  background: active ? opt.bg : "#fafcfa",
+                  transition: "all .15s",
+                }}
+              >
+                <div
+                  style={{
+                    width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+                    background: active ? opt.border : "#f0f4f1",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <Icon size={17} color={active ? opt.color : "#9ab0a1"} />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: "0 0 2px", fontSize: 14, fontWeight: 800, color: active ? opt.color : "#1a3a24" }}>
+                    {opt.label}
+                  </p>
+                  <p style={{ margin: 0, fontSize: 12, color: active ? opt.color : "#7a9485", lineHeight: 1.4, opacity: active ? 0.85 : 1 }}>
+                    {opt.sub}
+                  </p>
+                </div>
+                <div
+                  style={{
+                    width: 20, height: 20, borderRadius: 99, flexShrink: 0, marginTop: 2,
+                    border: `2px solid ${active ? opt.color : "#c8d9ce"}`,
+                    background: active ? opt.color : "#fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "all .15s",
+                  }}
+                >
+                  {active && <Check size={11} color="#fff" strokeWidth={3} />}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={() => onConfirm(selected)}
+          style={{
+            width: "100%", padding: 14, borderRadius: 13, border: "none",
+            background: "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
+            color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Guardar receta
+        </button>
+      </div>
+    </div>
+  );
+}
+
 /**
  * Recipe-creation wizard. Collects name/ingredients/time/servings from the
  * user, lets Claude fill in what's missing (macros, allergens, difficulty,
@@ -911,6 +1044,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
   });
   // Eje A decision on the name step: null (undecided) | "new" | "variant".
   const [baseDishDecision, setBaseDishDecision] = useState(null);
+  // Visibility popup shown just before the final save.
+  const [showVisibilitySheet, setShowVisibilitySheet] = useState(false);
 
   // Every existing garnish a "plato normal" can pin: the bundled
   // guarniciones.json plus any garnish the user created earlier (type/role
@@ -1086,7 +1221,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
     }
   };
 
-  const saveRecipe = () => {
+  const saveRecipe = (visibility = "public") => {
     if (!draft) return;
     // The user may have tweaked the AI's classification at review — the
     // canonical `type` the rest of the app reads is derived from usageTags.
@@ -1121,6 +1256,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
       owner: ownerFromUser(user),
       createdAt: draft.createdAt ?? Date.now(),
       rating: draft.rating ?? { up: 0, down: 0, score: 0 },
+      // Visibility: "public" | "friends" | "private"
+      visibility,
     };
     setData((d) => ({ ...d, userRecipes: [...(d.userRecipes ?? []), finalRecipe] }));
     setSaved(true);
@@ -1289,19 +1426,19 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
             <div style={{ marginBottom: 8 }}>
               <FieldLabel icon={UtensilsCrossed}>¿Cómo se sirve?</FieldLabel>
               <UsageSegmentedControl value={form.usageTags} onChange={setUsage} />
-            </div>
+                </div>
 
             <div style={{ height: 1, background: "#e3ebe6", margin: "4px 0 8px" }} />
 
             <OptionSection icon={Clock} title="¿Cuándo se sirve?">
-              <OptionRow
+                    <OptionRow
                 icon={Soup}
                 color="#2d8659"
                 label="Comida"
                 checked={comidaChecked}
                 onToggle={toggleComida}
               />
-              <OptionRow
+                    <OptionRow
                 icon={MEAL_ROLE_ICONS.cena}
                 color={MEAL_ROLE_COLORS.cena}
                 label="Cena"
@@ -1309,7 +1446,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
                 onToggle={() => toggleMealRole("cena")}
                 last
               />
-            </OptionSection>
+                </OptionSection>
 
             <div style={{ margin: "12px 0" }}>
               <FieldLabel icon={Users}>¿Apto para niños?</FieldLabel>
@@ -1478,7 +1615,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
         ) : (
           <button
             type="button"
-            onClick={saveRecipe}
+            onClick={() => setShowVisibilitySheet(true)}
             disabled={aiState !== "done"}
             style={{
               width: "100%", padding: 14, borderRadius: 12, border: "none",
@@ -1492,6 +1629,13 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
           </button>
         )}
       </div>
+
+      {showVisibilitySheet && (
+        <VisibilitySheet
+          onClose={() => setShowVisibilitySheet(false)}
+          onConfirm={(vis) => { setShowVisibilitySheet(false); saveRecipe(vis); }}
+        />
+      )}
     </div>
   );
 }
