@@ -4,6 +4,7 @@ import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, decisionCatalog } from "../utils/filterRecipes.js";
+import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
@@ -282,6 +283,10 @@ function buildGroupContext(data, group) {
       // the bundled catalog, so they go through the exact same filters and
       // can be scheduled/scaled/hydrated like any other recipe.
       extraRecipes: data.userRecipes ?? [],
+      // "preferred" (default) | "only" (solo mías) | "catalog" (solo catálogo).
+      recipeMode: data.recipeMode ?? "preferred",
+      // Favorites that apply to THIS group (scope "all" or this group's label).
+      favoriteIds: favoriteIdsForGroup(data.recipeVotes, group.label),
     },
     config: {
       targetKcal: data.kcalByGroup?.[group.id] ?? data.kcal ?? 2000,
@@ -321,6 +326,14 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
         `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`,
+    );
+  }
+
+  // Favorites nudge: only add it when the pool actually has favorites, so the
+  // instruction never confuses the model when there's nothing to prioritize.
+  if (catalog.some((r) => r.favorite)) {
+    parts.push(
+      `\nRECETAS FAVORITAS DEL USUARIO: las marcadas con "favorite": true en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre otras equivalentes. Es una preferencia fuerte pero no absoluta: no repitas la misma favorita más de lo razonable ni rompas la variedad del menú solo por incluirlas.`,
     );
   }
 
@@ -709,6 +722,15 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters) {
     // Appliance variants (airfryer, horno, thermomix…) — used to show the
     // best-fit method for the user's kitchen tools in the menu + dish detail.
     methods: r.methods ?? [],
+    // Provenance — who created it (undefined for the built-in MenuPlan catalog),
+    // when, and how it's rated. Carried through so DishDetail can show the same
+    // owner/vote info the catalog list shows.
+    owner: r.owner,
+    rating: r.rating,
+    createdAt: r.createdAt,
+    source: r.source,
+    visibility: r.visibility,
+    category: r.category,
   };
 }
 

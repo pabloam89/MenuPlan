@@ -40,6 +40,11 @@ import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
 import {
   toggleRecipeVote,
+  setFavoriteScope,
+  voteOf,
+  favScopeOf,
+  isRecipeFavorite,
+  mergeVotes,
   loadRecipeVotes,
   saveRecipeVote,
   deleteRecipeVote,
@@ -75,7 +80,8 @@ const INITIAL_DATA = {
   // Recipes created by the user via the recipe planner. Same shape as the
   // bundled catalog (see src/data/recipes/*.json) plus source:"user".
   userRecipes: [],
-  // Per-user recipe votes from catalog / dish detail. "up" = favorita.
+  // Per-user recipe like/dislike ratings + favorite scope, keyed by recipe id.
+  // See lib/recipeVotes.js — the two are independent (VoteEntry: { v, fav }).
   recipeVotes: {},
   menuModel: "same",
   groups: [],
@@ -386,7 +392,9 @@ export default function App() {
       const byId = new Map(localRecipes.map((r) => [r.id ?? r.name, r]));
       for (const r of remoteRecipes) byId.set(r.id, r);
       const mergedRecipes = Array.from(byId.values());
-      const mergedVotes = { ...localVotes, ...remoteVotes };
+      // Remote is authoritative for the vote itself, but a locally-set group
+      // scope survives if it hasn't round-tripped to the server yet.
+      const mergedVotes = mergeVotes(localVotes, remoteVotes);
 
       // Adopt the remote profile snapshot when it exists and is set up (has
       // members); otherwise keep local as the base and push it up below.
@@ -545,6 +553,7 @@ export default function App() {
 
   const goToMenu = async () => {
     ensureGroupsIfMissing();
+    setQuickMenu(false);
     setScreen("menu");
     if (user) {
       upsertUserProfile(user, {
@@ -563,11 +572,6 @@ export default function App() {
     fwd(() => setScreen("menu"));
   }, []);
 
-  const generateNewMenuFromDashboard = useCallback(() => {
-    fwd(() => setScreen("menu"));
-    regenerateMenu();
-  }, [regenerateMenu]);
-
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
     setScreen(id);
@@ -584,34 +588,67 @@ export default function App() {
   // reuse the household or start fresh for a different group, instead of always
   // forcing the full onboarding.
   const [whoForOpen, setWhoForOpen] = useState(false);
+  // Quick-menu mode: a shortened onboarding for "Mi familia habitual" that skips
+  // the steps already configured in Mi perfil (family + cooking), while still
+  // walking through the per-menu screens (week, schedule, style, restrictions…).
+  const [quickMenu, setQuickMenu] = useState(false);
   const handleGenerateMenu = useCallback(() => {
     if ((data.members ?? []).length > 0) {
       setWhoForOpen(true);
     } else {
+      setQuickMenu(false);
       goToOnboardingStep(0);
     }
   }, [data.members, goToOnboardingStep]);
+
+  // "Mi familia habitual" → shortened assistant (not skipped entirely).
+  const startQuickMenu = useCallback(() => {
+    setQuickMenu(true);
+    dirRef.current = "forward";
+    setOnbStep(1); // step 0 (familia) is hidden in quick mode; effect hops if 1 is too
+    setScreen("onboarding");
+  }, []);
 
   const handleDishTap = useCallback((selection) => {
     setSelectedSlot(selection);
     trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
   }, [user]);
 
+  // Public like/dislike rating — independent of favoriting. Feeds the
+  // accumulated thumbs-up/down counts shown next to the recipe owner.
   const handleVoteRecipe = useCallback((recipeId, vote) => {
-    const prev = data.recipeVotes?.[recipeId];
-    setData((d) => ({
-      ...d,
-      recipeVotes: toggleRecipeVote(d.recipeVotes, recipeId, vote),
-    }));
-    if (vote === "up") {
-      showToast(prev === "up" ? "Quitada de favoritas" : "Añadida a favoritas");
-    }
-    // Persist to the account. Re-casting the same vote clears it (toggle off).
+    const nextVotes = toggleRecipeVote(data.recipeVotes, recipeId, vote);
+    setData((d) => ({ ...d, recipeVotes: nextVotes }));
     if (user?.id) {
-      if (prev === vote) deleteRecipeVote(user.id, recipeId);
-      else saveRecipeVote(user.id, recipeId, vote);
+      const entry = nextVotes[recipeId] ?? null;
+      if (entry == null) deleteRecipeVote(user.id, recipeId);
+      else saveRecipeVote(user.id, recipeId, entry);
+    }
+  }, [data.recipeVotes, user]);
+
+  // Favorite (personal collection) — sets/clears the group scope a recipe
+  // applies to ("all" | string[] | null to unfavorite). Independent of vote.
+  const handleSetFavoriteScope = useCallback((recipeId, scope) => {
+    const wasFav = isRecipeFavorite(data.recipeVotes, recipeId);
+    const nextVotes = setFavoriteScope(data.recipeVotes, recipeId, scope);
+    setData((d) => ({ ...d, recipeVotes: nextVotes }));
+    if (scope == null && wasFav) showToast("Quitada de favoritas");
+    else if (scope != null && !wasFav) showToast("Añadida a favoritas");
+    if (user?.id) {
+      const entry = nextVotes[recipeId] ?? null;
+      if (entry == null) deleteRecipeVote(user.id, recipeId);
+      else saveRecipeVote(user.id, recipeId, entry);
     }
   }, [data.recipeVotes, showToast, user]);
+
+  // Selectable scopes for a favorite: the household's distinct menu-group labels
+  // (excluding the single-family "Familia"). Empty/one → no per-group choice.
+  const favoriteScopeGroups = useMemo(() => {
+    const labels = (data.groups ?? [])
+      .map((g) => g.label)
+      .filter((l) => l && l !== "Familia");
+    return Array.from(new Set(labels));
+  }, [data.groups]);
 
   const handleOpenCatalogRecipe = useCallback((recipe) => {
     if (!recipe?.id) return;
@@ -757,8 +794,13 @@ export default function App() {
   const skipMenuModel = !canSplitMenus(data.members);
   const skipSchoolMenu = !hasUnderageMember(data.members);
   const isStepHidden = useCallback(
-    (i) => (i === 1 && skipMenuModel) || (i === 2 && skipSchoolMenu),
-    [skipMenuModel, skipSchoolMenu]
+    (i) =>
+      (i === 1 && skipMenuModel) ||
+      (i === 2 && skipSchoolMenu) ||
+      // Quick mode reuses the profile: skip Familia (0), Modelo de menú (1 —
+      // now editable from "Gestionar familia" in Mi perfil) and Cocina (8).
+      (quickMenu && (i === 0 || i === 1 || i === 8)),
+    [skipMenuModel, skipSchoolMenu, quickMenu]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -796,74 +838,87 @@ export default function App() {
     }
   }, [onbStep, isStepHidden, stepNeighbor]);
 
+  // The last visible step shows a single "Generar" button (no "Siguiente"); the
+  // first visible step hides the back button. This makes both the full flow and
+  // the shortened quick-menu flow finish correctly regardless of which steps are
+  // hidden.
+  const lastVisibleStep = visibleSteps[visibleSteps.length - 1];
+  const firstVisibleStep = visibleSteps[0];
+  const nextOf = (i) =>
+    i === lastVisibleStep ? undefined : () => fwd(() => setOnbStep(stepNeighbor(i, 1)));
+  const backOf = (i) =>
+    i === firstVisibleStep ? undefined : () => back(() => setOnbStep(stepNeighbor(i, -1)));
+
   const onbScreens = [
     <OnboardingMembers
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(0, 1)))}
+      onNext={nextOf(0)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingMenuModel
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(1, 1)))}
-      onBack={() => back(() => setOnbStep(stepNeighbor(1, -1)))}
+      onNext={nextOf(1)}
+      onBack={backOf(1)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingSchoolMenu
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(2, 1)))}
-      onBack={() => back(() => setOnbStep(stepNeighbor(2, -1)))}
+      onNext={nextOf(2)}
+      onBack={backOf(2)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingWeek
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(3, 1)))}
-      onBack={() => back(() => setOnbStep(stepNeighbor(3, -1)))}
+      onNext={nextOf(3)}
+      onBack={backOf(3)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingSchedule
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(4, 1)))}
-      onBack={() => back(() => setOnbStep(stepNeighbor(4, -1)))}
+      onNext={nextOf(4)}
+      onBack={backOf(4)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingMealStyle
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(5, 1)))}
-      onBack={() => back(() => setOnbStep(stepNeighbor(5, -1)))}
+      onNext={nextOf(5)}
+      onBack={backOf(5)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(6, 1)))}
-      onBack={() => back(() => setOnbStep(stepNeighbor(6, -1)))}
+      onNext={nextOf(6)}
+      onBack={backOf(6)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingRepeat
       data={data}
       setData={setData}
-      onNext={() => fwd(() => setOnbStep(stepNeighbor(7, 1)))}
-      onBack={() => back(() => setOnbStep(stepNeighbor(7, -1)))}
+      hasAccount={Boolean(user)}
+      onNext={nextOf(7)}
+      onBack={backOf(7)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onBack={() => back(() => setOnbStep(stepNeighbor(8, -1)))}
+      onNext={nextOf(8)}
+      onBack={backOf(8)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleReset}
     />,
@@ -898,8 +953,12 @@ export default function App() {
           from { opacity: 0; transform: translateX(-18px); }
           to   { opacity: 1; transform: translateX(0); }
         }
-        .screen-enter-fwd  { animation: slideFromRight .22s cubic-bezier(.25,.46,.45,.94) both; }
-        .screen-enter-back { animation: slideFromLeft  .22s cubic-bezier(.25,.46,.45,.94) both; }
+        /* "backwards" (not "both"): onboarding steps render nested position:fixed
+           overlays (filter sheets, pickers…), and pinning transform after the
+           transition ends would trap them inside this box instead of the
+           viewport once the user scrolls. See index.css .mp-nav-fwd for detail. */
+        .screen-enter-fwd  { animation: slideFromRight .22s cubic-bezier(.25,.46,.45,.94) backwards; }
+        .screen-enter-back { animation: slideFromLeft  .22s cubic-bezier(.25,.46,.45,.94) backwards; }
       `}</style>
       <div
         ref={containerRef}
@@ -1085,7 +1144,8 @@ export default function App() {
               <RecipesScreen
                 userRecipes={data.userRecipes}
                 recipeVotes={data.recipeVotes}
-                onVote={handleVoteRecipe}
+                scopeGroups={favoriteScopeGroups}
+                onSetFavoriteScope={handleSetFavoriteScope}
                 onOpenRecipe={handleOpenCatalogRecipe}
                 onNav={handleNav}
                 onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "recipes"; fwd(() => setScreen("recipePlanner")); }}
@@ -1118,10 +1178,28 @@ export default function App() {
                 onSignOut={signOut}
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
-                onEditMembers={() => goToOnboardingStep(1)}
+                onEditMembers={() => fwd(() => setScreen("members"))}
                 onOpenPantry={() => fwd(() => setScreen("pantry"))}
               />
             </Suspense>
+          </div>
+        )}
+
+        {screen === "members" && (
+          <div
+            key="members"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            {/* Standalone household editor — isolated from menu generation so
+                "Gestionar familia" never drops the user back into onboarding. */}
+            <OnboardingMembers
+              data={data}
+              setData={setData}
+              onBack={() => back(() => setScreen("profile"))}
+              onNext={() => back(() => setScreen("profile"))}
+              nextLabel="Guardar"
+              showMenuModel
+            />
           </div>
         )}
 
@@ -1155,8 +1233,11 @@ export default function App() {
           slot={selectedSlot.slot}
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
-          userVote={data.recipeVotes?.[selectedSlot.recipe.id] ?? null}
+          userVote={voteOf(data.recipeVotes?.[selectedSlot.recipe.id])}
           onVote={(vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
+          favoriteScope={favScopeOf(data.recipeVotes?.[selectedSlot.recipe.id])}
+          scopeGroups={favoriteScopeGroups}
+          onSetFavoriteScope={(scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
           onClose={() => setSelectedSlot(null)}
           onReject={selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
         />
@@ -1286,12 +1367,12 @@ export default function App() {
                 {
                   key: "family", Icon: Users, primary: true,
                   label: "Mi familia habitual",
-                  onClick: () => { setWhoForOpen(false); generateNewMenuFromDashboard(); },
+                  onClick: () => { setWhoForOpen(false); startQuickMenu(); },
                 },
                 {
                   key: "other", Icon: Sparkles, primary: false,
                   label: "Otro grupo",
-                  onClick: () => { setWhoForOpen(false); goToOnboardingStep(0); },
+                  onClick: () => { setWhoForOpen(false); setQuickMenu(false); goToOnboardingStep(0); },
                 },
               ];
               return (

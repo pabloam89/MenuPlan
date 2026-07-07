@@ -65,20 +65,28 @@ body {
   animation: mpSheetUp .22s cubic-bezier(.25,.46,.45,.94) both;
 }
 
+/* These wrap long-lived screen/tab content (which itself renders nested
+   position:fixed overlays like filter sheets, dish detail, etc.), so we use
+   "backwards" rather than "both": once the transition finishes, `transform`
+   must fall back to unset. Leaving it pinned at `translateX(0)` (visually
+   identical) would otherwise permanently establish a CSS containing block on
+   this element, breaking `position: fixed` for every overlay nested inside
+   it (fixed children start resolving against this box instead of the
+   viewport, so once the user scrolls, the overlay renders off-screen). */
 .mp-nav-fwd {
-  animation: mpSlideFwd .22s cubic-bezier(.25,.46,.45,.94) both;
+  animation: mpSlideFwd .22s cubic-bezier(.25,.46,.45,.94) backwards;
 }
 
 .mp-nav-back {
-  animation: mpSlideBack .22s cubic-bezier(.25,.46,.45,.94) both;
+  animation: mpSlideBack .22s cubic-bezier(.25,.46,.45,.94) backwards;
 }
 
 .mp-tab-fwd {
-  animation: mpTabFwd .18s ease both;
+  animation: mpTabFwd .18s ease backwards;
 }
 
 .mp-tab-back {
-  animation: mpTabBack .18s ease both;
+  animation: mpTabBack .18s ease backwards;
 }
 
 .mp-toast-in {

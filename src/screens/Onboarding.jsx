@@ -81,6 +81,7 @@ import guarnicionesData from "../data/recipes/guarniciones.json";
 const GARNISH_NAME_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g.name]));
 import {
   canAssignMemberToGroup,
+  canSplitMenus,
   groupsAvailableForMember,
   groupsFromModel,
   hasBabyMember,
@@ -339,7 +340,7 @@ const ROLE_ICON_MAP = {
   "Otro":     User,
 };
 
-export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) {
+export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
   const [roleEditId, setRoleEditId] = useState(null);
@@ -442,8 +443,10 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
       title="¿Quién come en casa?"
       subtitle="Añade a cada persona. Luego revisa su categoría (Adulto, Bebé…) y toca su avatar para elegir un color."
       onReset={onReset}
+      onBack={onBack}
       onNext={onNext}
       onFinish={onFinish}
+      nextLabel={nextLabel}
       nextDisabled={!hasMembers}
       finishDisabled={!hasMembers}
     >
@@ -715,10 +718,139 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset }) 
           </div>
         );
       })}
+
+      {/* Standalone "Gestionar familia" only: same-menu-or-not, indexed here
+          instead of forcing a trip through menu generation to set it. */}
+      {showMenuModel && hasMembers && canSplitMenus(data.members) && (
+        <FamilyMenuModelSection data={data} setData={setData} />
+      )}
     </OnboardingShell>
   );
 }
 
+// Inline "¿coméis todos el mismo menú?" control for the standalone family
+// editor. Mirrors OnboardingMenuModel's same/separate logic (incl. the group
+// assignment bubble) but as a compact segmented control instead of a full
+// onboarding step, so it can live at the bottom of "Gestionar familia".
+function FamilyMenuModelSection({ data, setData }) {
+  const membersWithAge = data.members.map((m) => ({ ...m, age: memberAge(m) }));
+  const showBabyHint = hasBabyMember(membersWithAge);
+  const [assignmentOpen, setAssignmentOpen] = useState(false);
+  const [draftGroups, setDraftGroups] = useState(null);
+
+  const buildGroups = (members, modelId) =>
+    migrateGroupsForBabies(
+      members.map((m) => ({ ...m, age: memberAge(m) })),
+      groupsFromModel(
+        members.map((m) => ({ ...m, age: memberAge(m) })),
+        modelId
+      ),
+      modelId
+    );
+
+  const pickModel = (modelId) => {
+    if (modelId === "same") {
+      setDraftGroups(null);
+      setAssignmentOpen(false);
+      setData((d) => ({ ...d, menuModel: "same", groups: buildGroups(d.members, "same") }));
+      return;
+    }
+    const reuseExisting =
+      data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
+    const groups = reuseExisting ? data.groups : buildGroups(data.members, "separate");
+
+    if (groups.length > 1) {
+      setDraftGroups(groups);
+      setAssignmentOpen(true);
+      if (!reuseExisting) setData((d) => ({ ...d, menuModel: null }));
+      return;
+    }
+    setDraftGroups(null);
+    setAssignmentOpen(false);
+    setData((d) => ({ ...d, menuModel: "separate", groups }));
+  };
+
+  const confirmAssignment = () => {
+    if (!draftGroups) return;
+    setData((d) => ({ ...d, menuModel: "separate", groups: draftGroups }));
+    setDraftGroups(null);
+    setAssignmentOpen(false);
+  };
+
+  const cancelAssignment = () => {
+    setDraftGroups(null);
+    setAssignmentOpen(false);
+  };
+
+  const selected = data.menuModel === "separate" ? "separate" : data.menuModel === "same" ? "same" : null;
+
+  return (
+    <div style={{ marginTop: 22, paddingTop: 18, borderTop: "1px solid #eef3f0" }}>
+      <p style={{ margin: "0 0 10px", fontSize: 13.5, fontWeight: 800, color: "#1a3a24" }}>
+        ¿Coméis todos el mismo menú?
+      </p>
+      <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, gap: 3 }}>
+        {[
+          { id: "same", label: "Sí, el mismo" },
+          { id: "separate", label: "No, distintos" },
+        ].map((opt) => {
+          const active = selected === opt.id;
+          return (
+            <button
+              key={opt.id}
+              type="button"
+              onClick={() => pickModel(opt.id)}
+              style={{
+                flex: 1, padding: "10px 0", borderRadius: 9, border: "none",
+                background: active ? "#2d5a3d" : "transparent",
+                color: active ? "#fff" : "#5a7066",
+                fontSize: 13.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                transition: "all .15s ease",
+              }}
+            >
+              {opt.label}
+            </button>
+          );
+        })}
+      </div>
+
+      {selected === "same" && showBabyHint && (
+        <p style={{ fontSize: 12, fontWeight: 600, color: "#5a7a66", margin: "10px 0 0", lineHeight: 1.45, textAlign: "center" }}>
+          Los bebés tendrán menú adaptado automáticamente.
+        </p>
+      )}
+
+      {selected === "separate" && !assignmentOpen && (
+        <div style={{ display: "flex", justifyContent: "center", marginTop: 10 }}>
+          <button
+            type="button"
+            onClick={() => pickModel("separate")}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 6,
+              background: "none", border: "none", color: "#2d5a3d",
+              fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", padding: "6px 4px",
+            }}
+          >
+            <GitBranch size={13} /> Editar quién va en cada menú
+          </button>
+        </div>
+      )}
+
+      {assignmentOpen && draftGroups && (
+        <GroupAssignmentSheet
+          members={data.members}
+          groups={draftGroups}
+          showBabyHint={showBabyHint}
+          onAssign={(memberId, targetGroupId) =>
+            setDraftGroups((groups) => applyMemberToGroup(groups, data.members, memberId, targetGroupId))
+          }
+          onConfirm={confirmAssignment}
+          onCancel={cancelAssignment}
+        />
+      )}
+    </div>
+  );
+}
 
 // ─── Restrictions ───────────────────────────────────────────────
 
@@ -1474,8 +1606,18 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
   );
 }
 
-export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onReset }) {
+export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, onBack, onFinish, onReset }) {
   const mealOptions = getMeals(data);
+
+  // Logged-in users who already saved fixed dishes get a quick choice up front:
+  // keep their usual repeats (skip straight ahead) or adjust (reveal the
+  // catalog). Captured once on mount so editing dishes doesn't re-show it.
+  const [hadSavedFixed] = useState(
+    () => migrateFixedDishes(data.fixedDishes ?? []).length > 0,
+  );
+  const [repeatChoice, setRepeatChoice] = useState(null);
+  const showChoice = hasAccount && hadSavedFixed && repeatChoice === null;
+  const advance = onNext ?? onFinish;
 
   const updateFixedDish = (idx, patch) =>
     setData((d) => {
@@ -1561,31 +1703,82 @@ export function OnboardingRepeat({ data, setData, onNext, onBack, onFinish, onRe
         }
       `}</style>
 
-      {/* Platos ya elegidos — resumen editable arriba */}
-      {fixedList.length > 0 && (
-        <>
-          <FixedDishTable
-            items={fixedList}
-            mealOptions={mealOptions}
-            onTimesChange={(idx, n) => updateFixedDish(idx, { timesPerWeek: n })}
-            onMealsChange={(idx, meals) => updateFixedDish(idx, { meals })}
-            onRemove={(idx) => removeFixedDish(idx)}
+      {showChoice ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 4 }}>
+          <RepeatChoiceCard
+            Icon={Repeat}
+            title="Seguir con los de siempre"
+            accent="#2d5a3d"
+            bg="#e6f3ea"
+            border="#a8d5b5"
+            onClick={() => advance?.()}
           />
-          <div style={{ height: 1, background: "#eef3f0", margin: "14px 0 6px" }} />
+          <RepeatChoiceCard
+            Icon={SlidersHorizontal}
+            title="Ajustar mis platos fijos"
+            accent="#7a4e00"
+            bg="#fff8e7"
+            border="#f0d090"
+            onClick={() => setRepeatChoice("adjust")}
+          />
+        </div>
+      ) : (
+        <>
+          {/* Platos ya elegidos — resumen editable arriba */}
+          {fixedList.length > 0 && (
+            <>
+              <FixedDishTable
+                items={fixedList}
+                mealOptions={mealOptions}
+                onTimesChange={(idx, n) => updateFixedDish(idx, { timesPerWeek: n })}
+                onMealsChange={(idx, meals) => updateFixedDish(idx, { meals })}
+                onRemove={(idx) => removeFixedDish(idx)}
+              />
+              <div style={{ height: 1, background: "#eef3f0", margin: "14px 0 6px" }} />
+            </>
+          )}
+
+          {/* Catálogo embebido — search, filtros y recetas siempre visibles */}
+          <CatalogBrowserSheet
+            inline
+            addedIds={addedCatalogIds}
+            garnishByCatalogId={addedGarnishByCatalogId}
+            onAdd={addCatalogDish}
+            onRemove={removeCatalogDish}
+            onSetGarnish={setCatalogGarnish}
+            extraRecipes={data.userRecipes ?? []}
+          />
         </>
       )}
-
-      {/* Catálogo embebido — search, filtros y recetas siempre visibles */}
-      <CatalogBrowserSheet
-        inline
-        addedIds={addedCatalogIds}
-        garnishByCatalogId={addedGarnishByCatalogId}
-        onAdd={addCatalogDish}
-        onRemove={removeCatalogDish}
-        onSetGarnish={setCatalogGarnish}
-        extraRecipes={data.userRecipes ?? []}
-      />
     </OnboardingShell>
+  );
+}
+
+// Big tappable option card (icon bubble + title, no subcopy) — same visual
+// language as the "¿Para quién es el menú?" popup, rendered inline here.
+function RepeatChoiceCard({ Icon, title, accent, bg, border, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex", alignItems: "center", gap: 14, width: "100%",
+        padding: "18px 18px", borderRadius: 18, cursor: "pointer",
+        border: `2px solid ${border}`, background: "#fff", fontFamily: "inherit",
+        textAlign: "left", boxShadow: "0 6px 18px -12px rgba(0,0,0,.25)",
+      }}
+    >
+      <span
+        style={{
+          flex: "0 0 auto", width: 48, height: 48, borderRadius: 14,
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+          background: bg, border: `1.5px solid ${border}`,
+        }}
+      >
+        <Icon size={22} color={accent} strokeWidth={2.2} />
+      </span>
+      <span style={{ fontSize: 16, fontWeight: 800, color: "#1a3a24" }}>{title}</span>
+    </button>
   );
 }
 

@@ -129,16 +129,25 @@ create trigger trg_user_recipes_updated_at
   for each row execute function set_updated_at();
 
 -- ── recipe_votes ──────────────────────────────────────────────
--- One vote per (user, recipe). recipe_id is text with NO FK: it may point to a
+-- One row per (user, recipe). recipe_id is text with NO FK: it may point to a
 -- bundled catalog id ("carnes_001") OR a user_recipes id ("user_<uuid>").
--- vote = 'up' is what the app surfaces as "favorita".
+-- `vote` (like/dislike) and `is_favorite` (personal collection) are
+-- independent — see migration 0004 — so a row can carry either or both.
 create table if not exists recipe_votes (
   user_id    uuid not null references auth.users(id) on delete cascade,
   recipe_id  text not null,
   vote       text not null check (vote in ('up', 'down')),
+  -- Optional per-group scope for a favorite: NULL = applies to the whole
+  -- household ("all"); otherwise the menu-group labels it applies to
+  -- ("Adultos", "Niños", "Bebé"). Used to prioritize favorites only in the
+  -- relevant group's menu (see favoriteIdsForGroup in lib/recipeVotes.js).
+  scope      text[],
   created_at timestamptz not null default now(),
   primary key (user_id, recipe_id)
 );
+
+-- Safe to re-run if recipe_votes already existed from an earlier apply.
+alter table recipe_votes add column if not exists scope text[];
 
 alter table recipe_votes enable row level security;
 create index if not exists idx_recipe_votes_recipe on recipe_votes(recipe_id);

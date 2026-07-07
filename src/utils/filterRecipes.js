@@ -58,6 +58,12 @@ export function filterRecipes({
   isBabyGroup = false,
   pantryIngredients = [],
   extraRecipes = [],
+  // "preferred" (default) | "only" (only the user's recipes) | "catalog"
+  // (only the bundled catalog). Set from data.recipeMode.
+  recipeMode = "preferred",
+  // Set<string> of recipe ids the user favorited for this group (soft ranking
+  // signal only — annotates each recipe with `isFavorite`, never excludes).
+  favoriteIds = null,
 } = {}) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
@@ -66,7 +72,15 @@ export function filterRecipes({
 
   let pool = extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog;
 
-  // 0. Baby group isolation — baby recipes only for baby groups, excluded otherwise
+  // 0. Recipe-source mode (never applies to baby groups, which have their own
+  // curated catalog). "only" = just the user's recipes; "catalog" = drop them.
+  if (!isBabyGroup && recipeMode === "only") {
+    pool = pool.filter((r) => r.source === "user");
+  } else if (!isBabyGroup && recipeMode === "catalog") {
+    pool = pool.filter((r) => r.source !== "user");
+  }
+
+  // 0b. Baby group isolation — baby recipes only for baby groups, excluded otherwise
   pool = pool.filter((r) => isBabyGroup ? r.category === "bebes" : r.category !== "bebes");
 
   // 1. Allergens — exclude any recipe containing a blocked allergen
@@ -141,10 +155,17 @@ export function filterRecipes({
     pool = pool.map((r) => ({ ...r, pantryScore: scorePantryMatch(r, pantryIngredients) }));
   }
 
-  // Validate minimum viable pool
+  // 8b. Favorites — soft ranking signal only (like pantry): annotate matching
+  // recipes so the LLM prioritizes them, never changes which survive.
+  if (favoriteIds && favoriteIds.size > 0) {
+    pool = pool.map((r) => (favoriteIds.has(r.id) ? { ...r, isFavorite: true } : r));
+  }
+
+  // Validate minimum viable pool. "Solo las mías" naturally has far fewer
+  // recipes, so relax the minimums (repetition is expected and acceptable).
   const categories = new Set(pool.map((r) => r.category));
-  const minRecipes = isBabyGroup ? 10 : 25;
-  const minCategories = isBabyGroup ? 1 : 4;
+  const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 5 : 25;
+  const minCategories = isBabyGroup ? 1 : recipeMode === "only" ? 1 : 4;
   if (pool.length < minRecipes) {
     return {
       recipes: pool,
@@ -189,6 +210,9 @@ export function decisionCatalog(filteredRecipes) {
     if (r.pantryScore > 0) {
       entry.pantryScore = Math.round(r.pantryScore * 100) / 100;
     }
+    // Signals for prioritization (only present when true, to keep payload lean).
+    if (r.isFavorite) entry.favorite = true;
+    if (r.source === "user") entry.own = true;
     return entry;
   });
 }

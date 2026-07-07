@@ -22,13 +22,17 @@ import {
   BarChart3,
   Sparkles,
   Heart,
-  ThumbsUp,
-  ThumbsDown,
+  Globe,
+  Users2,
+  Lock,
+  ChevronDown,
 } from "lucide-react";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
-import { getUserRecipeVote } from "../lib/recipeVotes.js";
+import { getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
+import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
+import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
 
 const GARNISHES = guarnicionesData;
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
@@ -141,15 +145,33 @@ export function CatalogBrowserSheet({
   onPickPlato,
   onPickGarnish,
   extraGarnishes = [],
-  // User votes keyed by recipe id ("up" | "down").
+  // User votes keyed by recipe id: { v: 'up'|'down' (rating), fav: 'all'|string[] (favorite scope) }.
   recipeVotes = {},
-  onVote,
+  // Selectable menu-group labels for per-group favorites (e.g. ["Adultos",
+  // "Niños"]); when there's more than one, tapping the heart opens a picker
+  // instead of favoriting for everyone right away.
+  scopeGroups = [],
+  onSetFavoriteScope,
   // Tap a recipe in reference mode to open dish detail.
   onOpenRecipe,
+  // When provided, fully replaces the bundled catalog as the browse source
+  // (used by "Mis recetas" to browse only the user's own recipes).
+  sourceRecipes = null,
+  // When provided, restricts results to these recipe ids ("Favoritas" tab).
+  favoriteIds = null,
+  // Custom empty-state copy (favorites / mine have their own wording).
+  emptyLabel = null,
+  // Reference mode only: lets user-owned recipes change visibility inline.
+  onChangeVisibility = null,
 }) {
   const fullCatalog = useMemo(
-    () => (extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog),
-    [extraRecipes],
+    () =>
+      sourceRecipes
+        ? sourceRecipes
+        : extraRecipes.length > 0
+          ? [...recipeCatalog, ...extraRecipes]
+          : recipeCatalog,
+    [sourceRecipes, extraRecipes],
   );
   const platoCatalog = useMemo(
     () => fullCatalog.filter((r) => !isGuarnicionRecipe(r)),
@@ -181,6 +203,7 @@ export function CatalogBrowserSheet({
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [garnishFor, setGarnishFor] = useState(null);
+  const [scopeFor, setScopeFor] = useState(null); // recipe being favorited via the group picker
 
   const { allCats, allProteins } = useMemo(() => {
     const c = new Set();
@@ -242,6 +265,7 @@ export function CatalogBrowserSheet({
 
     const q = norm(query);
     const filtered = fullCatalog.filter((r) => {
+      if (favoriteIds && !favoriteIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
       if (cats.size && !cats.has(r.category)) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
@@ -251,7 +275,7 @@ export function CatalogBrowserSheet({
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds]);
 
   // Reset pagination whenever the result set or page size changes.
   useEffect(() => {
@@ -279,6 +303,20 @@ export function CatalogBrowserSheet({
   };
 
   const px = inline ? inlinePadding : 18;
+
+  // Full-catalog browse mode (not gate-pick, not a scoped/limited list like
+  // favorites or "mis recetas"): land on a categories grid first instead of
+  // dumping all recipes at once. Picking a category (or typing a search)
+  // reveals the normal filtered list.
+  const isBrowseCatalog = reference && !gatePick && !favoriteIds && !sourceRecipes;
+  const showCategoryGrid = isBrowseCatalog && cats.size === 0 && !query.trim();
+  const categoryCounts = useMemo(() => {
+    const counts = {};
+    for (const r of fullCatalog) {
+      if (r.category) counts[r.category] = (counts[r.category] ?? 0) + 1;
+    }
+    return counts;
+  }, [fullCatalog]);
 
   const styleBlock = (
     <style>{`
@@ -427,6 +465,64 @@ export function CatalogBrowserSheet({
     </div>
   );
 
+  const categoryBackRow = isBrowseCatalog && cats.size > 0 ? (
+    <div style={{ padding: `0 ${px}px 8px`, flexShrink: 0 }}>
+      <button
+        type="button"
+        onClick={() => setCats(new Set())}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 5,
+          border: "none", background: "transparent", cursor: "pointer",
+          fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, color: GREEN, padding: "2px 0",
+        }}
+      >
+        <ChevronLeft size={15} /> Todas las categorías
+      </button>
+    </div>
+  ) : null;
+
+  const categoryGrid = (
+    <div style={{ padding: `2px ${px}px 4px` }}>
+      {allCats.map((catId, i) => {
+        const meta = CATEGORY_META[catId];
+        const Icon = meta?.icon ?? Utensils;
+        const color = categoryColor(catId);
+        return (
+          <button
+            key={catId}
+            type="button"
+            onClick={() => setCats(new Set([catId]))}
+            className="filter-opt-row catalog-card-enter"
+            style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 12,
+              padding: "12px 4px", border: "none", background: "transparent",
+              cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+              borderBottom: i === allCats.length - 1 ? "none" : "1px solid rgba(45,90,61,.1)",
+              animationDelay: `${i < 14 ? i * 16 : 0}ms`,
+            }}
+          >
+            <span
+              style={{
+                width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: `${color}18`,
+              }}
+            >
+              <Icon size={16} color={color} strokeWidth={2} />
+            </span>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {categoryLabel(catId)}
+            </span>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: "#9ab0a1", flexShrink: 0 }}>
+              {categoryCounts[catId] ?? 0}
+            </span>
+            <ChevronRight size={17} color="#c2cfc7" style={{ flexShrink: 0 }} />
+          </button>
+        );
+      })}
+    </div>
+  );
+
   const selectedRow = gatePick && (selectedPlato || selectedGarnish) ? (
     <div style={{ padding: `0 ${px}px 8px`, display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
       {selectedPlato && (
@@ -480,16 +576,23 @@ export function CatalogBrowserSheet({
               onRemove={() => onRemove?.(r.id)}
               onOpenGarnish={() => setGarnishFor(r)}
               onOpenRecipe={onOpenRecipe}
-              userVote={getUserRecipeVote(recipeVotes, r.id)}
-              onVote={onVote}
+              favorite={isRecipeFavorite(recipeVotes, r.id)}
+              onSetFavoriteScope={onSetFavoriteScope}
+              scopeGroups={scopeGroups}
+              onOpenScopePicker={() => setScopeFor(r)}
+              onChangeVisibility={onChangeVisibility}
               animDelay={i < 12 ? i * 18 : 0}
             />
           ))}
       {results.length === 0 && (
         <div style={{ textAlign: "center", padding: "40px 20px", color: "#9ab0a1" }}>
-          <Search size={32} color="#cdd8d0" />
-          <p style={{ margin: "10px 0 0", fontSize: 13 }}>
-            {gatePick ? "No encontramos platos ni guarniciones con esos filtros." : "No encontramos platos con esos filtros."}
+          {favoriteIds ? <Heart size={32} color="#cdd8d0" /> : <Search size={32} color="#cdd8d0" />}
+          <p style={{ margin: "10px 0 0", fontSize: 13, lineHeight: 1.5, maxWidth: 260, marginInline: "auto" }}>
+            {emptyLabel
+              ? emptyLabel
+              : gatePick
+                ? "No encontramos platos ni guarniciones con esos filtros."
+                : "No encontramos platos con esos filtros."}
           </p>
         </div>
       )}
@@ -542,6 +645,19 @@ export function CatalogBrowserSheet({
           onClear={clearFilters}
         />
       )}
+      {scopeFor && (
+        <FavoriteScopeModal
+          recipeName={scopeFor.name}
+          isFavorite={isRecipeFavorite(recipeVotes, scopeFor.id)}
+          scope={getFavoriteScope(recipeVotes, scopeFor.id)}
+          groups={scopeGroups}
+          onPick={(key) => {
+            applyFavoriteScopePick(key, { recipeId: scopeFor.id, onSetFavoriteScope });
+            setScopeFor(null);
+          }}
+          onClose={() => setScopeFor(null)}
+        />
+      )}
     </>
   );
 
@@ -553,12 +669,17 @@ export function CatalogBrowserSheet({
         <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#f4f8f5", paddingTop: 12 }}>
           {searchRow}
           {selectedRow}
-          {countRow}
+          {categoryBackRow}
+          {!showCategoryGrid && countRow}
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: `2px ${px}px 0` }}>
-          {cards}
-        </div>
-        {pager}
+        {showCategoryGrid ? (
+          categoryGrid
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: `2px ${px}px 0` }}>
+            {cards}
+          </div>
+        )}
+        {!showCategoryGrid && pager}
         {overlays}
       </div>
     );
@@ -1072,72 +1193,73 @@ function GatePickCard({ kind, item, selected, onToggle, animDelay = 0 }) {
   );
 }
 
-// Small MenuPlan logo mark used instead of a user avatar for catalog dishes.
-function MenuPlanBadge() {
-  return (
-    <div
-      style={{
-        width: 26, height: 26, borderRadius: 8, background: "#2d5a3d",
-        display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-      }}
-    >
-      <Utensils size={13} color="#fff" strokeWidth={2.2} />
-    </div>
-  );
-}
+// Inline visibility quick-change pill for user-owned recipes (browse mode).
+const VIS_META = {
+  public:  { icon: Globe,  label: "Pública",     color: "#2d5a3d", bg: "#e6f3ea" },
+  friends: { icon: Users2, label: "Solo amigos", color: "#7a4e00", bg: "#fff8e7" },
+  private: { icon: Lock,   label: "Privada",     color: "#5a2d7a", bg: "#f5edfc" },
+};
 
-// Right-hand column shown in reference (browse) mode: owner badge + label +
-// vote counts. The favorite action itself lives on a heart badge over the
-// photo (see RecipeCard) so this column stays focused on provenance + score.
-function RecipeProvenance({ recipe }) {
-  const isUserRecipe = Boolean(recipe.owner);
-  const owner = recipe.owner;
-  const up = recipe.rating?.up ?? 0;
-  const down = recipe.rating?.down ?? 0;
-
+function VisibilityMiniPill({ visibility = "private", onChange }) {
+  const [open, setOpen] = useState(false);
+  const current = VIS_META[visibility] ?? VIS_META.private;
+  const Icon = current.icon;
   return (
-    <div
-      style={{
-        flexShrink: 0, display: "flex", flexDirection: "column",
-        alignItems: "center", gap: 5, minWidth: 44,
-      }}
-    >
-      {/* Avatar / badge */}
-      {isUserRecipe && owner?.avatar ? (
-        <img
-          src={owner.avatar}
-          alt={owner.name ?? ""}
-          style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
-        />
-      ) : (
-        <MenuPlanBadge />
-      )}
-      <span
+    <div style={{ position: "relative" }}>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         style={{
-          fontSize: 9.5, fontWeight: 800, color: isUserRecipe ? "#2f6fb8" : "#2d5a3d",
-          letterSpacing: ".1px", whiteSpace: "nowrap",
-          background: isUserRecipe ? "#e5eff9" : "#eaf6ee",
-          padding: "1px 5px", borderRadius: 5,
+          display: "inline-flex", alignItems: "center", gap: 4,
+          padding: "3px 8px 3px 6px", borderRadius: 999, border: "none", cursor: "pointer",
+          background: current.bg, fontFamily: "inherit",
         }}
       >
-        {isUserRecipe ? (owner?.name?.split(" ")[0] ?? "Tú") : "MenuPlan"}
-      </span>
-      <div style={{ display: "flex", gap: 4 }}>
-        <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 9.5, fontWeight: 700, color: "#9ab0a1" }}>
-          <ThumbsUp size={10} color="#9ab0a1" /> {up}
-        </span>
-        <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 9.5, fontWeight: 700, color: "#9ab0a1" }}>
-          <ThumbsDown size={10} color="#9ab0a1" /> {down}
-        </span>
-      </div>
+        <Icon size={10} color={current.color} />
+        <span style={{ fontSize: 10, fontWeight: 700, color: current.color }}>{current.label}</span>
+        <ChevronDown size={9} color={current.color} />
+      </button>
+      {open && (
+        <div
+          style={{
+            position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 60,
+            background: "#fff", borderRadius: 12, border: "1.5px solid #e8efe9",
+            boxShadow: "0 6px 20px rgba(0,0,0,.12)", minWidth: 146, overflow: "hidden",
+          }}
+        >
+          {Object.entries(VIS_META).map(([id, meta]) => {
+            const Ic = meta.icon;
+            const active = id === visibility;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onChange?.(id); setOpen(false); }}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 8,
+                  padding: "9px 12px", border: "none", cursor: "pointer",
+                  fontFamily: "inherit", textAlign: "left",
+                  background: active ? meta.bg : "#fff",
+                }}
+              >
+                <Ic size={13} color={meta.color} />
+                <span style={{ fontSize: 12.5, fontWeight: active ? 800 : 600, color: active ? meta.color : "#1a3a24" }}>
+                  {meta.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
 
 function RecipeCard({
   recipe, reference = false, added, garnishId, onAdd, onRemove, onOpenGarnish,
-  onOpenRecipe, userVote, onVote, animDelay = 0,
+  onOpenRecipe, favorite, onSetFavoriteScope, scopeGroups = [], onOpenScopePicker, onChangeVisibility, animDelay = 0,
 }) {
+  const hasScopeChoice = scopeGroups.length > 1 && onOpenScopePicker;
   const color = categoryColor(recipe.category);
   const isPrincipal = recipe.type === "principal";
   const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
@@ -1185,17 +1307,21 @@ function RecipeCard({
           </div>
           {/* Favorite badge — floats over the photo corner, outside the
               owner/votes column so both stay visible at all times. */}
-          {reference && onVote && (
+          {reference && onSetFavoriteScope && (
             <button
               type="button"
-              onClick={(e) => { e.stopPropagation(); onVote(recipe.id, "up"); }}
-              aria-label={userVote === "up" ? "Quitar de favoritas" : "Añadir a favoritas"}
-              title={userVote === "up" ? "Quitar de favoritas" : "Añadir a favoritas"}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (hasScopeChoice) onOpenScopePicker();
+                else onSetFavoriteScope(recipe.id, favorite ? null : "all");
+              }}
+              aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+              title={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
               style={{
                 position: "absolute", top: -6, right: -6,
                 width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
                 border: "2px solid #fff", cursor: "pointer",
-                background: userVote === "up" ? "#e0405a" : "#fff",
+                background: favorite ? "#e0405a" : "#fff",
                 boxShadow: "0 1px 4px rgba(0,0,0,.2)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all .15s ease",
@@ -1203,9 +1329,9 @@ function RecipeCard({
             >
               <Heart
                 size={11}
-                color={userVote === "up" ? "#fff" : "#c9b8ae"}
+                color={favorite ? "#fff" : "#c9b8ae"}
                 strokeWidth={2.4}
-                fill={userVote === "up" ? "#fff" : "none"}
+                fill={favorite ? "#fff" : "none"}
               />
             </button>
           )}
@@ -1233,7 +1359,7 @@ function RecipeCard({
                 Tuya
               </span>
             )}
-            {userVote === "up" && (
+            {favorite && (
               <span style={{ fontSize: 10, fontWeight: 800, color: GREEN, background: "#eaf6ee", padding: "2px 6px", borderRadius: 6 }}>
                 Favorita
               </span>
@@ -1305,10 +1431,25 @@ function RecipeCard({
           </>
         )}
       </div>
+      {/* Owner-only: inline visibility control (Mis recetas) */}
+      {reference && onChangeVisibility && recipe.source === "user" && (
+        <div
+          style={{ padding: "0 8px 9px 66px" }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <VisibilityMiniPill
+            visibility={recipe.visibility ?? "private"}
+            onChange={(v) => onChangeVisibility(recipe.id, v)}
+          />
+        </div>
+      )}
     </div>
   );
 }
 
+// Small centered popup shown when tapping the heart on a recipe card in a
+// multi-group household: picks whether the favorite applies to everyone or
+// to one specific group, in a single tap.
 function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose }) {
   return (
     <div

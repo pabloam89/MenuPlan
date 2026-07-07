@@ -36,7 +36,6 @@ import {
   Sparkles,
   Heart,
   Sun,
-  ThumbsDown,
   Users,
   Utensils,
   UtensilsCrossed,
@@ -57,6 +56,8 @@ import { eatersForSlot } from "../lib/slotEaters.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
+import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
+import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
 import { OnboardingRestrictions } from "./Onboarding.jsx";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
@@ -2177,12 +2178,23 @@ function EmptyState({ onRegenerate }) {
 export function DishDetail({
   recipe, slot, kitchenTools = [], onClose, onReject,
   browse = false,
+  // Public like/dislike rating — independent of favoriting. Applied by
+  // tapping the accumulated thumbs-up/down counts (see RecipeProvenance).
   userVote = null,
   onVote,
+  // Favorite (personal collection): `favoriteScope` is null when not a
+  // favorite, else "all" | string[] of group labels. `scopeGroups` are the
+  // selectable labels (only passed when the household has more than one menu
+  // group); `onSetFavoriteScope(scope)` persists the choice (null to unfavorite).
+  favoriteScope = null,
+  scopeGroups = [],
+  onSetFavoriteScope,
 }) {
+  const isFavorite = favoriteScope != null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
   const [ingredientsOpen, setIngredientsOpen] = useState(false);
+  const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
   const [steps, setSteps] = useState(() => recipe.steps ?? []);
@@ -2318,59 +2330,123 @@ export function DishDetail({
         />
 
         <div style={{ padding: "18px 2px 0" }}>
-          {onVote && (
-            <div
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-                marginBottom: 14, padding: "10px 12px", borderRadius: 14,
-                background: "#f7faf8", border: "1.5px solid #e8efe9",
-              }}
-            >
-              <button
-                type="button"
-                onClick={() => onVote("up")}
-                aria-label={userVote === "up" ? "Quitar de favoritas" : "Añadir a favoritas"}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 6,
-                  padding: "8px 14px", borderRadius: 12, cursor: "pointer",
-                  border: `1.5px solid ${userVote === "up" ? "#e0405a" : "#dde7e0"}`,
-                  background: userVote === "up" ? "#fdeef1" : "#fff",
-                  fontFamily: "inherit",
-                }}
-              >
-                <Heart
-                  size={16}
-                  color={userVote === "up" ? "#e0405a" : "#9ab0a1"}
-                  strokeWidth={userVote === "up" ? 2.4 : 2}
-                  fill={userVote === "up" ? "#e0405a" : "none"}
-                />
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: userVote === "up" ? "#e0405a" : "#7a9485" }}>
-                  {userVote === "up" ? "En favoritas" : "Añadir a favoritas"}
-                </span>
-              </button>
-              <button
-                type="button"
-                onClick={() => onVote("down")}
-                aria-label="No me gusta"
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 6,
-                  padding: "8px 14px", borderRadius: 12, cursor: "pointer",
-                  border: `1.5px solid ${userVote === "down" ? "#c0392b" : "#dde7e0"}`,
-                  background: userVote === "down" ? "#fdeeee" : "#fff",
-                  fontFamily: "inherit",
-                }}
-              >
-                <ThumbsDown
-                  size={16}
-                  color={userVote === "down" ? "#c0392b" : "#9ab0a1"}
-                  strokeWidth={userVote === "down" ? 2.4 : 2}
-                  fill={userVote === "down" ? "#c0392b" : "none"}
-                />
-                <span style={{ fontSize: 12.5, fontWeight: 800, color: userVote === "down" ? "#c0392b" : "#7a9485" }}>
-                  No me gusta
-                </span>
-              </button>
+          {(onSetFavoriteScope || recipe.owner || recipe.rating || browse) && (
+            <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginBottom: 14 }}>
+              {/* Favoritear — own bordered section. Top row (button) lines up with
+                  the owner row on the right; bottom row (Para) lines up with thumbs. */}
+              {onSetFavoriteScope && (
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 10, padding: "12px 14px", borderRadius: 16, background: "#fff", border: "2px solid #2d5a3d" }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (scopeGroups.length > 1) setScopeOpen(true);
+                      else onSetFavoriteScope(isFavorite ? null : "all");
+                    }}
+                    aria-label={isFavorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 8, alignSelf: "flex-start",
+                      padding: 0, cursor: "pointer", flexShrink: 0,
+                      border: "none", background: "transparent",
+                      fontFamily: "inherit",
+                    }}
+                  >
+                    <span
+                      style={{
+                        width: 32, height: 32, borderRadius: 10, flexShrink: 0,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        border: `1.5px solid ${isFavorite ? "#e0405a" : "#dde7e0"}`,
+                        background: isFavorite ? "#fdeef1" : "#fff",
+                      }}
+                    >
+                      <Heart
+                        size={16}
+                        color={isFavorite ? "#e0405a" : "#9ab0a1"}
+                        strokeWidth={isFavorite ? 2.4 : 2}
+                        fill={isFavorite ? "#e0405a" : "none"}
+                      />
+                    </span>
+                    <span style={{ fontSize: 13, fontWeight: 800, color: isFavorite ? "#e0405a" : "#7a9485" }}>
+                      {isFavorite ? "Quitar" : "Favorito"}
+                    </span>
+                  </button>
+
+                  {isFavorite && scopeGroups.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => setScopeOpen(true)}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap",
+                        border: "none", background: "transparent", padding: 0,
+                        fontFamily: "inherit", cursor: "pointer",
+                      }}
+                    >
+                      <span style={{ fontSize: 13, fontWeight: 700, color: "#9ab0a1", marginRight: 2 }}>Para:</span>
+                      {(!Array.isArray(favoriteScope) ? ["Todos"] : favoriteScope).map((label) => (
+                        <span
+                          key={label}
+                          style={{
+                            display: "inline-flex", alignItems: "center", gap: 4,
+                            padding: "4px 9px", borderRadius: 999,
+                            border: "1.5px solid #f0aebb", background: "#fdeef1",
+                            fontSize: 13, fontWeight: 800, color: "#e0405a",
+                          }}
+                        >
+                          {label}
+                        </span>
+                      ))}
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Likear — own bordered section. Owner row lines up with the favorito
+                  button; thumbs row lines up with Para. */}
+              {(recipe.owner || recipe.rating || browse) && (
+                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 8, padding: "12px 14px", borderRadius: 16, background: "#fff", border: "2px solid #2d5a3d" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+                    {recipe.owner?.avatar ? (
+                      <img
+                        src={recipe.owner.avatar}
+                        alt={recipe.owner.name ?? ""}
+                        style={{ width: 18, height: 18, borderRadius: 6, objectFit: "cover", flexShrink: 0 }}
+                      />
+                    ) : (
+                      <MenuPlanBadge size={18} />
+                    )}
+                    <span style={{ fontSize: 13, fontWeight: 800, color: recipe.owner ? "#2f6fb8" : "#2d5a3d" }}>
+                      {recipe.owner ? (recipe.owner.name?.split(" ")[0] ?? "Tú") : "MenuPlan"}
+                    </span>
+                  </div>
+                  {recipe.createdAt && (
+                    <span style={{ fontSize: 13, fontWeight: 700, color: "#9ab0a1" }}>
+                      {formatRecipeDate(recipe.createdAt)}
+                    </span>
+                  )}
+                  <RecipeVoteCounts
+                    up={recipe.rating?.up ?? 0}
+                    down={recipe.rating?.down ?? 0}
+                    userVote={userVote}
+                    onVote={onVote}
+                    textSize={13}
+                    iconSize={16}
+                  />
+                </div>
+              )}
             </div>
+          )}
+
+          {scopeOpen && (
+            <FavoriteScopeModal
+              recipeName={recipe.name}
+              isFavorite={isFavorite}
+              scope={favoriteScope}
+              groups={scopeGroups}
+              onPick={(key) => {
+                onSetFavoriteScope(key === "__remove" ? null : key === "all" ? "all" : [key]);
+                setScopeOpen(false);
+              }}
+              onClose={() => setScopeOpen(false)}
+            />
           )}
 
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>

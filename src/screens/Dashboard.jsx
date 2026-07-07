@@ -166,6 +166,17 @@ export function DashboardScreen({
   const g = googleInfo(user);
   const hasMenu = Object.keys(menuPlan ?? {}).length > 0;
 
+  const greeting = useMemo(() => {
+    const h = new Date().getHours();
+    if (h < 6) return "Buenas noches";
+    if (h < 14) return "Buenos días";
+    if (h < 21) return "Buenas tardes";
+    return "Buenas noches";
+  }, []);
+  const heroSubline = hasMenu
+    ? "Tu menú de esta semana te espera"
+    : "¿Qué cocinamos esta semana?";
+
   const streak = useMemo(() => computeStreak(data.menuHistory), [data.menuHistory]);
   const { count: menusGenerated, isCapped } = useMemo(
     () => countMenusGenerated(data.menuHistory),
@@ -188,27 +199,45 @@ export function DashboardScreen({
           boxSizing: "border-box",
         }}
       >
-        {/* Profile header */}
+        {/* Profile hero */}
         <div
           style={{
+            position: "relative",
             display: "flex",
             alignItems: "center",
             gap: 14,
-            background: "#fff",
-            border: "1px solid #eef2ef",
-            borderRadius: 20,
-            padding: "14px 14px",
+            background: MENU_GRADIENT,
+            borderRadius: 22,
+            padding: "18px 16px",
             marginBottom: 16,
-            boxShadow: "0 4px 14px -10px rgba(20,47,29,.2)",
+            overflow: "hidden",
+            boxShadow: "0 16px 30px -16px rgba(20,47,29,.55)",
           }}
         >
-          <Avatar name={g.name} photo={g.photo} size={50} color={GREEN} />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ margin: 0, fontSize: 18, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
-              Hola, {g.name.split(" ")[0]}
+          <div
+            style={{
+              position: "absolute", top: -34, right: -22, width: 120, height: 120,
+              borderRadius: "50%", background: "rgba(255,255,255,.12)", pointerEvents: "none",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute", bottom: -40, right: 40, width: 80, height: 80,
+              borderRadius: "50%", background: "rgba(255,255,255,.08)", pointerEvents: "none",
+            }}
+          />
+          <div style={{ padding: 2, borderRadius: "50%", background: "rgba(255,255,255,.28)", flexShrink: 0 }}>
+            <Avatar name={g.name} photo={g.photo} size={50} color="#1f4a30" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0, position: "relative" }}>
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,.82)" }}>
+              {greeting}
             </p>
-            <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#7a9485", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {g.email ?? "Tu panel"}
+            <p style={{ margin: "1px 0 0", fontSize: 21, fontWeight: 900, color: "#fff", letterSpacing: "-.4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {g.name.split(" ")[0]}
+            </p>
+            <p style={{ margin: "3px 0 0", fontSize: 12.5, color: "rgba(255,255,255,.8)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {heroSubline}
             </p>
           </div>
         </div>
