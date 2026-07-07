@@ -36,6 +36,7 @@ import {
 } from "../components/ui.jsx";
 import { INGREDIENT_CATEGORIES } from "../data/recipes.js";
 import { normalizeIngredientKey } from "../lib/ingredientCategories.js";
+import { kitchenHint } from "../lib/kitchenUnits.js";
 import { extractReceiptProducts } from "../lib/receiptParser.js";
 import {
   enrichItem,
@@ -617,6 +618,9 @@ function ShoppingRow({
   onRemove,
 }) {
   const qty = item.displayQty ?? formatDisplay(item.qty ?? 0, item.unit ?? "ud");
+  // Same kitchen-friendly reading used in the menu's DishDetail (≈ 3 muslos,
+  // al gusto…) so buying-by-count is obvious for meat/produce still shown in g.
+  const hint = kitchenHint(item.name, item.qty, item.unit);
   // Pantry-matched rows are always struck through (the whole "Despensa"
   // section is inherently "done"), independent of the doneView convention
   // used elsewhere, which only dims within the mixed "all" scope.
@@ -632,21 +636,28 @@ function ShoppingRow({
       }}
     >
       <div style={rowGridStyle}>
-        <span
-          style={{
-            minWidth: 0,
-            fontSize: 15,
-            fontWeight: 800,
-            color: "#142f1d",
-            textDecoration: dimmed ? "line-through" : "none",
-            lineHeight: 1.2,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {item.name}
-        </span>
+        <div style={{ minWidth: 0 }}>
+          <span
+            style={{
+              display: "block",
+              fontSize: 15,
+              fontWeight: 800,
+              color: "#142f1d",
+              textDecoration: dimmed ? "line-through" : "none",
+              lineHeight: 1.2,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {item.name}
+          </span>
+          {hint && (
+            <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", lineHeight: 1.2, marginTop: 1 }}>
+              {hint}
+            </span>
+          )}
+        </div>
         {isEditingQty ? (
           <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
         ) : (

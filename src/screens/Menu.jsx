@@ -51,6 +51,7 @@ import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
+import { kitchenHint } from "../lib/kitchenUnits.js";
 import { membersOfGroup, isBabyMenuGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
@@ -549,10 +550,14 @@ function formatQty(qty, unit) {
 
 function scaledIngredients(recipe, eaters) {
   const factor = Math.max(1, eaters) / recipe.servings;
-  return recipe.ingredients.map((ing) => ({
-    ...ing,
-    label: formatQty(isQualitativeUnit(ing.unit) ? null : ing.qty * factor, ing.unit),
-  }));
+  return recipe.ingredients.map((ing) => {
+    const scaledQty = isQualitativeUnit(ing.unit) ? null : ing.qty * factor;
+    return {
+      ...ing,
+      label: formatQty(scaledQty, ing.unit),
+      hint: kitchenHint(ing.name, scaledQty, ing.unit),
+    };
+  });
 }
 
 function MacroPill({ label, value, tone = "#2d5a3d" }) {
@@ -2595,8 +2600,14 @@ export function DishDetail({
               <div style={{ display: "grid", gap: 7, marginBottom: 16 }}>
                 {ingredients.map((ing) => (
                   <div key={ing.id} style={ingredientRowStyle}>
-                    <span>{ing.name}</span>
-                    <strong>{ing.label}</strong>
+                    <span style={{ flex: 1, minWidth: 0 }}>{ing.name}</span>
+                    {ing.hint && (
+                      <>
+                        <span style={ingredientHintStyle}>{ing.hint}</span>
+                        <span style={ingredientDividerStyle} />
+                      </>
+                    )}
+                    <strong style={ingredientQtyStyle}>{ing.label}</strong>
                   </div>
                 ))}
               </div>
@@ -2840,13 +2851,43 @@ const sectionTitleStyle = {
 
 const ingredientRowStyle = {
   display: "flex",
+  alignItems: "center",
   justifyContent: "space-between",
-  gap: 12,
+  gap: 10,
   padding: "8px 10px",
   borderRadius: 10,
   background: "#f8faf8",
   color: "#526057",
   fontSize: 12,
+};
+
+// Secondary "kitchen-friendly" reading (≈ 3 muslos / al gusto). Same color as
+// the exact g/ml amount — it's not a warning or a different kind of data, just
+// a softer weight — separated from it by ingredientDividerStyle instead.
+// Fixed width + right alignment so the divider lands in the same spot on
+// every row instead of drifting with each hint's text length.
+const ingredientHintStyle = {
+  flexShrink: 0,
+  width: 92,
+  textAlign: "right",
+  fontSize: 11,
+  fontWeight: 600,
+  color: "#526057",
+  whiteSpace: "nowrap",
+};
+
+const ingredientDividerStyle = {
+  flexShrink: 0,
+  width: 1,
+  height: 13,
+  background: "#d7e3da",
+};
+
+const ingredientQtyStyle = {
+  flexShrink: 0,
+  minWidth: 48,
+  textAlign: "right",
+  whiteSpace: "nowrap",
 };
 
 const replaceButtonStyle = {
