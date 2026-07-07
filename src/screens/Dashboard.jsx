@@ -272,14 +272,6 @@ export function DashboardScreen({
   const [activeGroupId, setActiveGroupId] = useState(null);
   const selectedGroup = groups.find((gr) => gr.id === activeGroupId) ?? groups[0] ?? null;
 
-  const greeting = useMemo(() => {
-    const h = new Date().getHours();
-    if (h < 6) return "Buenas noches";
-    if (h < 14) return "Buenos días";
-    if (h < 21) return "Buenas tardes";
-    return "Buenas noches";
-  }, []);
-
   const { count: menusGenerated, isCapped } = useMemo(
     () => countMenusGenerated(data.menuHistory),
     [data.menuHistory],
@@ -357,16 +349,6 @@ export function DashboardScreen({
               background: "linear-gradient(180deg, rgba(12,34,21,.5) 0%, rgba(12,34,21,.32) 32%, rgba(10,28,18,.68) 100%)",
             }}
           />
-
-          {/* greeting */}
-          <p
-            style={{
-              margin: "0 0 12px", fontSize: 15.5, fontWeight: 800, color: "#fff",
-              textShadow: "0 1px 4px rgba(0,0,0,.4)", position: "relative",
-            }}
-          >
-            {greeting}
-          </p>
 
           {/* avatar circle */}
           <div style={{ padding: 3, borderRadius: "50%", background: "rgba(255,255,255,.3)", position: "relative" }}>
@@ -458,6 +440,26 @@ export function DashboardScreen({
           />
         </div>
 
+        {/* ── Acciones rápidas ──────────────────────────── */}
+        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+          <QuickActionTile
+            icon={RotateCw}
+            title="Generar menú"
+            subtitle="Para toda la semana"
+            photo={menuCardPhoto}
+            objectPosition="center 38%"
+            onClick={onGenerateNewMenu}
+          />
+          <QuickActionTile
+            icon={Sparkles}
+            title="Generar recetas"
+            subtitle="Con lo que tengas en casa"
+            photo={recipesCardPhoto}
+            objectPosition="center 62%"
+            onClick={onOpenRecipePlanner}
+          />
+        </div>
+
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (
           <div style={{ marginBottom: 16 }}>
@@ -486,26 +488,6 @@ export function DashboardScreen({
             )}
           </div>
         )}
-
-        {/* ── Acciones rápidas ──────────────────────────── */}
-        <div style={{ display: "flex", gap: 10 }}>
-          <QuickActionTile
-            icon={RotateCw}
-            title="Generar menú"
-            subtitle="Para toda la semana"
-            photo={menuCardPhoto}
-            objectPosition="center 38%"
-            onClick={onGenerateNewMenu}
-          />
-          <QuickActionTile
-            icon={Sparkles}
-            title="Generar recetas"
-            subtitle="Con lo que tengas en casa"
-            photo={recipesCardPhoto}
-            objectPosition="center 62%"
-            onClick={onOpenRecipePlanner}
-          />
-        </div>
       </div>
 
       <BottomNav active="dashboard" onNav={onNav} context="home" />
