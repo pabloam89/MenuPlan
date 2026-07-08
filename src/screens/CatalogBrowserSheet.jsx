@@ -133,6 +133,10 @@ export function CatalogBrowserSheet({
   // Reference mode: read-only browsing. No add/garnish actions — cards show
   // owner + vote info instead.
   reference = false,
+  // Land on the categories grid first, same as `reference` browsing, but
+  // without giving up add/garnish actions — used by "¿Qué repetimos?" so
+  // picking fixed dishes still gets the "browse by category" landing.
+  browseCategories = false,
   // Gate-pick mode (recipe planner): search platos and/or guarniciones from the
   // same browser used in ¿Qué repetimos?, with tap-to-select instead of add.
   gatePick = false,
@@ -308,7 +312,7 @@ export function CatalogBrowserSheet({
   // favorites or "mis recetas"): land on a categories grid first instead of
   // dumping all recipes at once. Picking a category (or typing a search)
   // reveals the normal filtered list.
-  const isBrowseCatalog = reference && !gatePick && !favoriteIds && !sourceRecipes;
+  const isBrowseCatalog = (reference || browseCategories) && !gatePick && !favoriteIds && !sourceRecipes;
   const showCategoryGrid = isBrowseCatalog && cats.size === 0 && !query.trim();
   const categoryCounts = useMemo(() => {
     const counts = {};

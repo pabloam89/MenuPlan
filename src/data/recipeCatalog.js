@@ -11,6 +11,13 @@ import bebes from "./recipes/bebes.json";
 import guarniciones from "./recipes/guarniciones.json";
 import { validateRecipes } from "./recipeSchema.js";
 import { supabase } from "../lib/supabase.js";
+import { deriveHealthFlags } from "../lib/healthFlags.js";
+
+// Attach heuristic health flags once, so filterRecipes/decisionCatalog get them
+// for free regardless of whether the recipe came from JSON or Supabase.
+function withHealthFlags(recipes) {
+  return recipes.map((r) => ({ ...r, healthFlags: deriveHealthFlags(r) }));
+}
 
 const JSON_RECIPES = [
   ...legumbres,
@@ -122,7 +129,7 @@ async function loadRecipes() {
   }
 }
 
-export const recipeCatalog = await loadRecipes();
+export const recipeCatalog = withHealthFlags(await loadRecipes());
 
 export const recipeCatalogById = Object.fromEntries(
   recipeCatalog.map((r) => [r.id, r]),

@@ -45,3 +45,16 @@ export async function saveUserState(userId, state) {
   );
   if (error) console.warn("[userState] save failed", error.message);
 }
+
+/**
+ * Deletes the cloud snapshot outright. Must be awaited (not fire-and-forget)
+ * before a hard reset/delete-account reload: the debounced saveUserState push
+ * is 1200ms, so a quick reload right after "Reiniciar" can otherwise race the
+ * old cloud row back onto the fresh local reset on the next hydration.
+ * @param {string} userId
+ */
+export async function clearUserState(userId) {
+  if (!supabase || !userId) return;
+  const { error } = await supabase.from("user_state").delete().eq("user_id", userId);
+  if (error) console.warn("[userState] clear failed", error.message);
+}

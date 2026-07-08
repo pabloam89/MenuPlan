@@ -12,6 +12,7 @@ import {
   Clock3,
   CircleHelp,
   Coffee,
+  CookingPot,
   Download,
   Droplets,
   Drumstick,
@@ -48,11 +49,12 @@ import {
 import { visualForRecipe, paletteForRecipe } from "../assets/dishes/dishVisuals.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
+import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { kitchenHint } from "../lib/kitchenUnits.js";
-import { membersOfGroup, isBabyMenuGroup } from "../lib/groups.js";
+import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
@@ -63,7 +65,7 @@ import { OnboardingRestrictions } from "./Onboarding.jsx";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
-import { DAYS, getMeals, isLunchMeal, dayLabel, slotKey, modeForGroupSlot } from "../lib/planner.js";
+import { DAYS, getMeals, isLunchMeal, dayLabel, modeForGroupSlot } from "../lib/planner.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import {
   MEAL_STYLES,
@@ -193,9 +195,10 @@ const menuHelpIconBtnStyle = {
 
 function GroupMenuBadge({ group, size = 22 }) {
   const abbrev = GROUP_ABBREV[group.label] ?? group.label.charAt(0);
+  const displayLabel = group.adHoc ? adhocReasonLabel(group.reason) : group.label;
   return (
     <span
-      title={group.label}
+      title={group.adHoc ? `${displayLabel} · menú individual` : displayLabel}
       style={{
         width: size,
         height: size,
@@ -211,7 +214,7 @@ function GroupMenuBadge({ group, size = 22 }) {
         boxShadow: `0 1px 4px ${group.color}44`,
       }}
     >
-      {abbrev}
+      {group.adHoc ? <CookingPot size={size <= 20 ? 11 : 13} /> : abbrev}
     </span>
   );
 }
@@ -260,7 +263,7 @@ function MenuHelpBubble({ onClose, multiGroup }) {
     },
     {
       title: "Personas",
-      text: "Toca una inicial para ver solo sus comidas. Los círculos rellenos de color son personas.",
+      text: "Toca a alguien para ver su menú: el de la familia, o el suyo aparte si tiene uno individual.",
     },
     {
       title: "En cada plato",
@@ -418,82 +421,72 @@ function FilterSectionRow({ label, color, children }) {
   );
 }
 
-function memberEatsSlot(member, schedule, day, meal) {
-  const status = schedule[slotKey(member.id, day, meal)] ?? "casa";
-  return status === "casa" || status === "tupper";
-}
-
 function groupForMember(memberId, groups) {
   return groups.find((g) => g.memberIds.includes(memberId));
 }
 
-/** Filled person badge — visually distinct from menu scope circles (outline when idle). */
-function PersonInitialBadge({
-  member,
-  color,
-  size = 36,
-  active = true,
-  onClick,
-  title,
-}) {
-  const abbrev = initialsOf(member.name);
-  const shared = {
-    width: size,
-    height: size,
-    borderRadius: 999,
-    background: color,
-    color: "#fff",
-    fontSize: size <= 22 ? 8 : 11,
-    fontWeight: 900,
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-    opacity: active ? 1 : 0.55,
-    boxShadow: active ? `0 3px 10px ${color}55` : `0 1px 4px ${color}33`,
-    transition: "opacity .15s ease, box-shadow .15s ease",
-    border: "none",
-    padding: 0,
-    fontFamily: "inherit",
-    cursor: onClick ? "pointer" : "default",
-  };
-
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} title={title ?? member.name} style={shared}>
-        {abbrev}
-      </button>
-    );
-  }
-
-  return (
-    <span title={title ?? member.name} style={shared}>
-      {abbrev}
-    </span>
-  );
-}
-
+/** Filled person avatar (name below) that jumps the menu to whichever group
+ * this person is currently in — their own ad-hoc menu if they have one,
+ * otherwise their shared family/group menu. Same selection model as the
+ * "Menú" row above: one `scope`, whatever avatar you tap. */
 function PersonScopeCircle({ member, color, active, onClick }) {
+  const abbrev = initialsOf(member.name);
   return (
-    <PersonInitialBadge
-      member={member}
-      color={color}
-      size={36}
-      active={active}
+    <button
+      type="button"
       onClick={onClick}
-    />
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 5,
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        minWidth: 44,
+      }}
+    >
+      <span
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 999,
+          background: color,
+          color: "#fff",
+          fontSize: 11,
+          fontWeight: 900,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          opacity: active ? 1 : 0.55,
+          boxShadow: active ? `0 3px 10px ${color}55` : `0 1px 4px ${color}33`,
+          transition: "opacity .15s ease, box-shadow .15s ease",
+        }}
+      >
+        {abbrev}
+      </span>
+      <span
+        style={{
+          fontSize: 10,
+          fontWeight: 800,
+          color: active ? color : "#8d978f",
+          letterSpacing: "-.1px",
+          maxWidth: 56,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {member.name}
+      </span>
+    </button>
   );
 }
 
-function MenuFilterPanel({
-  groups,
-  scope,
-  onScopeChange,
-  members,
-  memberScope,
-  onMemberScopeChange,
-  multiGroup,
-}) {
+function MenuFilterPanel({ groups, scope, onScopeChange, members, multiGroup }) {
   return (
     <div style={{ width: "100%" }}>
       <FilterSectionRow label="Menú" color="#2d5a3d">
@@ -515,22 +508,23 @@ function MenuFilterPanel({
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: 10,
+            alignItems: "flex-start",
+            gap: 12,
             flexWrap: "wrap",
             width: "100%",
           }}
         >
           {members.map((member) => {
             const color = memberAvatarColor(member.id, members);
-            const active = memberScope === member.id;
+            const memberGroupId = groupForMember(member.id, groups)?.id ?? "all";
+            const active = scope === memberGroupId;
             return (
               <PersonScopeCircle
                 key={member.id}
                 member={member}
                 color={color}
                 active={active}
-                onClick={() => onMemberScopeChange(active ? null : member.id)}
+                onClick={() => onScopeChange(memberGroupId)}
               />
             );
           })}
@@ -901,13 +895,30 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const dislikes = [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])];
   const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
   const fixedDishes = migrateFixedDishes(data.fixedDishes ?? []);
-  // members with allergies or regimen
+  // members with allergies, and members needing a more careful menu
   const membersWithAllergies = members.filter((m) => (m.allergies ?? []).length > 0);
-  const membersWithRegimen = members.filter((m) => m.regimen);
+  const CARE_LABELS = {
+    glucemico: "Control glucémico",
+    corazon: "Corazón",
+    bajo_sodio: "Bajo en sal",
+    reflux: "Reflujo",
+    anemia: "Anemia",
+    lactosa_fina: "Lactosa",
+    fructosa: "Fructosa",
+    sorbitol: "Sorbitol",
+    embarazo: "Embarazo",
+    lactancia: "Lactancia",
+    dieta_blanda: "Dieta blanda",
+  };
+  const memberCareTags = (m) =>
+    [m.healthProfile, ...(m.dietaryStates ?? []), ...(m.intolerances ?? [])]
+      .filter(Boolean)
+      .map((id) => CARE_LABELS[id] ?? id);
+  const membersWithRegimen = members.filter((m) => memberCareTags(m).length > 0);
 
   // ── Meal style ──
   const styleableGroups = useMemo(
-    () => (data.groups ?? []).filter((g) => !isBabyMenuGroup(g, members)),
+    () => (data.groups ?? []).filter((g) => !isBabyMenuGroup(g, members) && !g.adHoc),
     [data.groups, members],
   );
   const hasMultipleStyleGroups = styleableGroups.length > 1;
@@ -1129,7 +1140,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
               })}
               {membersWithRegimen.length > 0 && (
                 <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginTop: 2 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: "#526057" }}>Régimen:</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#526057" }}>Menú cuidado:</span>
                   {membersWithRegimen.map((m) => {
                     const memberColor = memberAvatarColor(m.id, members);
                     return (
@@ -1146,7 +1157,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                         }}>
                           {(m.name ?? "?")[0].toUpperCase()}
                         </div>
-                        {m.name}
+                        {m.name}: {memberCareTags(m).join(", ")}
                       </div>
                     );
                   })}
@@ -1389,6 +1400,15 @@ function DishCard({
   const method = selectMethodForRecipe(recipe, kitchenTools);
   const MethodIcon = method ? APPLIANCE_ICONS[method.appliance] : null;
 
+  // "Menú más cuidado" badge — active health profiles of the group this dish
+  // was planned for, matched against the dish's own healthFlags (see
+  // lib/healthProfileMatch.js). Uses the group's full roster (not just today's
+  // eaters) since aiPlanner biases the whole week's menu for the group, not
+  // just individual slots.
+  const groupMembers = group ? membersOfGroup(group, allMembers) : (eaterMembers ?? []);
+  const activeHealthProfiles = groupMembers.map((m) => m.healthProfile).filter(Boolean);
+  const healthBadges = matchingHealthProfiles(recipe.healthFlags, activeHealthProfiles);
+
   return (
     <button
       type="button"
@@ -1515,6 +1535,23 @@ function DishCard({
               </span>
             </>
           )}
+          {healthBadges.length > 0 && (
+            <>
+              <span style={{ color: "#dde8e0", fontSize: 12 }}>·</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                {healthBadges.map(({ id, Icon, label, color }) => (
+                  <span
+                    key={id}
+                    title={`Menú más cuidado: ${label}`}
+                    aria-label={`Menú más cuidado: ${label}`}
+                    style={{ display: "inline-flex", alignItems: "center", color }}
+                  >
+                    <Icon size={14} strokeWidth={2.2} />
+                  </span>
+                ))}
+              </span>
+            </>
+          )}
           {eaterMembers && eaterMembers.length > 0 && (
             <>
               <span style={{ color: "#dde8e0", fontSize: 12 }}>·</span>
@@ -1563,7 +1600,6 @@ export const MenuScreen = memo(function MenuScreen({
   onTrackEvent,
 }) {
   const [scope, setScope] = useState("all");
-  const [memberScope, setMemberScope] = useState(null);
   const [showMenuHelp, setShowMenuHelp] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [viewMode, setViewMode] = useState("dia"); // "dia" | "semana"
@@ -1811,8 +1847,6 @@ export const MenuScreen = memo(function MenuScreen({
           scope={scope}
           onScopeChange={setScope}
           members={data.members ?? []}
-          memberScope={memberScope}
-          onMemberScopeChange={setMemberScope}
           multiGroup={multiGroup}
         />
         <div style={{ height: 1, background: "#e0eae3" }} />
@@ -1976,13 +2010,6 @@ export const MenuScreen = memo(function MenuScreen({
                     const result = [];
                     const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
                     if (slot) {
-                      if (memberScope) {
-                        const groupMembers = membersOfGroup(g, members);
-                        const eater = groupMembers.find((m) => m.id === memberScope);
-                        if (!eater || !memberEatsSlot(eater, schedule, day, meal)) {
-                          return result;
-                        }
-                      }
                       for (const dish of dishesFromSlot(slot, isLunch)) {
                         result.push({ kind: "dish", group: g, slot, dish });
                       }
@@ -2183,6 +2210,11 @@ function EmptyState({ onRegenerate }) {
 export function DishDetail({
   recipe, slot, kitchenTools = [], onClose, onReject,
   browse = false,
+  // Group context — only present when opened from the weekly menu (not when
+  // browsing the catalog). Used solely to resolve which "menú más cuidado"
+  // badges this dish earns (see lib/healthProfileMatch.js).
+  group = null,
+  allMembers = [],
   // Public like/dislike rating — independent of favoriting. Applied by
   // tapping the accumulated thumbs-up/down counts (see RecipeProvenance).
   userVote = null,
@@ -2210,6 +2242,10 @@ export function DishDetail({
   const ingredients = scaledIngredients(recipe, slot.eaters);
   const macros = recipe.macros;
   const selectedMethod = selectMethodForRecipe(recipe, kitchenTools);
+
+  const detailGroupMembers = group ? membersOfGroup(group, allMembers) : [];
+  const detailActiveHealthProfiles = detailGroupMembers.map((m) => m.healthProfile).filter(Boolean);
+  const healthBadges = matchingHealthProfiles(recipe.healthFlags, detailActiveHealthProfiles);
 
   // Opciones de preparación: la tradicional (base) + solo los electrodomésticos
   // que el usuario tiene declarados en kitchenTools.
@@ -2489,6 +2525,51 @@ export function DishDetail({
               ))}
             </div>
           )}
+
+          {recipe.adaptations?.length > 0 && (
+            <div style={{
+              display: "flex", alignItems: "flex-start", gap: 8,
+              marginBottom: 14,
+              padding: "12px 15px",
+              borderRadius: 16,
+              background: "#f2f9f4",
+              border: "2px solid #4cba6e",
+            }}>
+              <Leaf size={15} color="#2f9e52" strokeWidth={2.4} style={{ marginTop: 1, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#2f9e52", letterSpacing: ".3px", textTransform: "uppercase" }}>
+                  Adaptado: {Array.from(new Set(recipe.adaptations.map((a) => a.label))).join(", ")}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#3a5a44", marginTop: 3 }}>
+                  {recipe.adaptations.map((a) => `${a.from} → ${a.to}`).join(" · ")}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {healthBadges.map(({ id, Icon, label, color, explain }) => (
+            <div
+              key={id}
+              style={{
+                display: "flex", alignItems: "flex-start", gap: 8,
+                marginBottom: 14,
+                padding: "12px 15px",
+                borderRadius: 16,
+                background: `${color}10`,
+                border: `2px solid ${color}`,
+              }}
+            >
+              <Icon size={15} color={color} strokeWidth={2.4} style={{ marginTop: 1, flexShrink: 0 }} />
+              <div>
+                <div style={{ fontSize: 11, fontWeight: 800, color, letterSpacing: ".3px", textTransform: "uppercase" }}>
+                  Menú más cuidado · {label}
+                </div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#3a4a42", marginTop: 3 }}>
+                  {explain}
+                </div>
+              </div>
+            </div>
+          ))}
 
           <section style={{ ...macroCardStyle, border: "2px solid #2d5a3d" }}>
             {/* kcal header */}

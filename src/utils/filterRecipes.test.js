@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { filterRecipes, decisionCatalog, scorePantryMatch } from "./filterRecipes.js";
+import { recipeHitsIntolerances } from "../lib/intolerances.js";
 
 function recipe(ingredientNames) {
   return { ingredients: ingredientNames.map((name) => ({ name })) };
@@ -54,6 +55,164 @@ describe("filterRecipes pantry integration", () => {
     const { recipes: withPantry } = filterRecipes({ ...baseOpts, pantryIngredients: ["pollo"] });
     const scored = withPantry.filter((r) => r.pantryScore > 0);
     expect(scored.length).toBeGreaterThan(0);
+  });
+});
+
+describe("filterRecipes allergen safety net", () => {
+  const baseOpts = { maxTime: 999, cookLevel: "pro" };
+
+  it("excludes recipes with soja ingredients even if not declared", () => {
+    const { recipes: all } = filterRecipes(baseOpts);
+    const { recipes: noSoja } = filterRecipes({ ...baseOpts, allergies: ["soja"] });
+    // Marking soja must remove at least the recipes whose ingredients mention it.
+    const hadSoja = all.filter((r) =>
+      (r.ingredients ?? []).some((ing) => /soja|tofu|edamame|tempeh|tamari|miso/i.test(ing.name)),
+    );
+    expect(hadSoja.length).toBeGreaterThan(0);
+    expect(noSoja.length).toBeLessThan(all.length);
+    for (const r of noSoja) {
+      expect(
+        (r.ingredients ?? []).some((ing) => /soja|tofu|edamame|tempeh|tamari|miso/i.test(ing.name)),
+      ).toBe(false);
+    }
+  });
+
+  it("still keeps a viable pool for a common gap allergen", () => {
+    const { error } = filterRecipes({ ...baseOpts, allergies: ["cacahuetes"] });
+    expect(error).toBeNull();
+  });
+});
+
+describe("filterRecipes intolerances & dietary states", () => {
+  const baseOpts = { maxTime: 999, cookLevel: "pro" };
+
+  it("excludes high-mercury/raw/cured dishes for embarazo (alcohol handled separately)", () => {
+    const { recipes: all } = filterRecipes(baseOpts);
+    const { recipes: preg, error } = filterRecipes({ ...baseOpts, intolerances: ["embarazo"] });
+    expect(error).toBeNull();
+    expect(preg.length).toBeLessThan(all.length);
+    for (const r of preg) {
+      const hay = [r.name, ...(r.ingredients ?? []).map((i) => i.name)]
+        .join(" ")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      expect(/\b(sushi|crudo|pez espada|atun rojo)/.test(hay)).toBe(false);
+    }
+  });
+
+  it("does NOT exclude alcohol on its own (that's alcohol_cocina's job, added by buildGroupContext)", () => {
+    const { recipes: all } = filterRecipes(baseOpts);
+    const { recipes: preg } = filterRecipes({ ...baseOpts, intolerances: ["embarazo"] });
+    const stillHasWine = preg.some((r) =>
+      (r.ingredients ?? []).some((ing) => /vino|cerveza/i.test(ing.name)),
+    );
+    expect(stillHasWine).toBe(true);
+    // "embarazo" alone must behave exactly like recipeHitsIntolerances(["embarazo"])
+    // — i.e. filterRecipes adds no implicit alcohol exclusion of its own.
+    expect(preg.length).toBe(all.filter((r) => !recipeHitsIntolerances(r, ["embarazo"])).length);
+  });
+
+  it("adapts (not excludes) cooking-alcohol dishes for embarazo + alcohol_cocina", () => {
+    const { recipes: all } = filterRecipes(baseOpts);
+    const { recipes: preg } = filterRecipes({
+      ...baseOpts,
+      intolerances: ["embarazo", "alcohol_cocina"],
+    });
+
+    const adaptedForAlcohol = preg.filter((r) =>
+      r.adaptations?.some((a) => a.restriction === "alcohol_cocina"),
+    );
+    expect(adaptedForAlcohol.length).toBeGreaterThan(0);
+    for (const r of adaptedForAlcohol) {
+      for (const swap of r.adaptations.filter((a) => a.restriction === "alcohol_cocina")) {
+        expect(swap.to.toLowerCase()).toContain("sin alcohol");
+      }
+    }
+    // No recipe should still carry a raw wine/beer ingredient once adapted.
+    for (const r of preg) {
+      const renamed = new Set((r.adaptations ?? []).map((a) => a.from));
+      for (const ing of r.ingredients ?? []) {
+        if (renamed.has(ing.name)) continue;
+        expect(/\bvino\b|\bcerveza\b/i.test(ing.name)).toBe(false);
+      }
+    }
+    // Raw/cured/mercury-fish exclusions from embarazo still apply on top.
+    for (const r of preg) {
+      const hay = [r.name, ...(r.ingredients ?? []).map((i) => i.name)]
+        .join(" ")
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+      expect(/\b(sushi|crudo|pez espada|atun rojo)/.test(hay)).toBe(false);
+    }
+    expect(preg.length).toBeLessThan(all.length);
+  });
+
+  it("no longer excludes a plain 'Vinagre de Jerez' dish for embarazo (jerez false-positive fix)", () => {
+    // Chickpea salad: tomato, cucumber, olives, olive oil, sherry vinegar — no
+    // other embarazo-restricted ingredient, so the "jerez" false positive was
+    // the ONLY thing excluding it before this fix.
+    const { recipes: all } = filterRecipes(baseOpts);
+    const dish = all.find((r) => (r.ingredients ?? []).some((ing) => ing.name === "Vinagre de Jerez") && r.category === "legumbres");
+    expect(dish).toBeTruthy();
+
+    const { recipes: preg } = filterRecipes({
+      ...baseOpts,
+      intolerances: ["embarazo", "alcohol_cocina"],
+    });
+    expect(preg.some((r) => r.id === dish.id)).toBe(true);
+  });
+
+  it("keeps a viable pool for lactosa fina", () => {
+    const { error } = filterRecipes({ ...baseOpts, intolerances: ["lactosa_fina"] });
+    expect(error).toBeNull();
+  });
+
+  it("adapts (not excludes) dairy recipes for lactosa fina", () => {
+    const { recipes: all } = filterRecipes(baseOpts);
+    const { recipes: lf } = filterRecipes({ ...baseOpts, intolerances: ["lactosa_fina"] });
+
+    // Lactose intolerance shouldn't gut the catalog the way an allergen does —
+    // dairy dishes stay in, just annotated with lactose-free swaps.
+    const adapted = lf.filter((r) => r.adaptations?.length > 0);
+    expect(adapted.length).toBeGreaterThan(0);
+    for (const r of adapted) {
+      for (const swap of r.adaptations) {
+        expect(swap.to.toLowerCase()).toContain("sin lactosa");
+        expect(swap.label).toBe("sin lactosa");
+      }
+    }
+    // Far more survive than a milk allergy would allow (see next test).
+    expect(lf.length).toBeGreaterThan(all.length * 0.8);
+  });
+
+  it("still hard-excludes dairy for a milk ALLERGEN (no adaptation)", () => {
+    const { recipes: milkFree } = filterRecipes({ ...baseOpts, allergies: ["leche"] });
+    expect(milkFree.every((r) => !r.adaptations)).toBe(true);
+    // An allergen removes recipes; a lactose intolerance keeps + adapts them.
+    const { recipes: lf } = filterRecipes({ ...baseOpts, intolerances: ["lactosa_fina"] });
+    expect(milkFree.length).toBeLessThan(lf.length);
+  });
+
+  it("does nothing when no intolerances are passed", () => {
+    const a = filterRecipes(baseOpts).recipes.map((r) => r.id);
+    const b = filterRecipes({ ...baseOpts, intolerances: [] }).recipes.map((r) => r.id);
+    expect(b).toEqual(a);
+  });
+});
+
+describe("decisionCatalog health fields", () => {
+  it("omits macros/healthFlags by default, includes them when includeHealth", () => {
+    const { recipes } = filterRecipes({ maxTime: 999, cookLevel: "pro" });
+    const plain = decisionCatalog(recipes);
+    expect(plain.every((e) => e.carbs_g === undefined && e.fat_g === undefined)).toBe(true);
+
+    const withHealth = decisionCatalog(recipes, { includeHealth: true });
+    const anyWithMacros = withHealth.filter(
+      (e) => typeof e.carbs_g === "number" || typeof e.fat_g === "number",
+    );
+    expect(anyWithMacros.length).toBeGreaterThan(0);
   });
 });
 

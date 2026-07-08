@@ -151,6 +151,76 @@ export function nextGroupColor(existing) {
   return GROUP_COLORS.find((c) => !used.has(c)) ?? GROUP_COLORS[existing.length % GROUP_COLORS.length];
 }
 
+// ── Ad-hoc individual menus ────────────────────────────────────────────────
+// A short, single-person menu (e.g. "dieta blanda") that lives alongside the
+// family menu as its own group, then auto-expires. It's a normal group object
+// with extra bookkeeping fields (adHoc / sourceMemberId / sourceGroupId /
+// reason / createdAt / days) so the whole existing pipeline — generation,
+// hydration, rendering, persistence — treats it like any other menu group.
+
+export const ADHOC_MENU_DAYS = 3;
+const ADHOC_MENU_MS = ADHOC_MENU_DAYS * 24 * 60 * 60 * 1000;
+
+export function isIndividualMenuGroup(group) {
+  return Boolean(group?.adHoc);
+}
+
+export function individualMenuGroupFor(groups, memberId) {
+  return (groups ?? []).find((g) => g.adHoc && g.sourceMemberId === memberId) ?? null;
+}
+
+// Fixed color (matches the "Dieta blanda" icon everywhere else: onboarding
+// row, confirmation pop-up, scope picker) so an ad-hoc menu is always
+// recognizable at a glance instead of picking up a rotating group color.
+export const ADHOC_MENU_COLOR = "#7a8a3a";
+
+// Labeled by *what* the menu is for, not *who* it's for — the person is
+// already identifiable via their avatar in the "Personas" row, so the scope
+// picker/badge only need to say "Dieta blanda", not repeat their name.
+const ADHOC_REASON_LABEL = { dieta_blanda: "Dieta blanda" };
+export function adhocReasonLabel(reason) {
+  return ADHOC_REASON_LABEL[reason] ?? "Menú individual";
+}
+
+/** Create the ad-hoc group for one member, remembering their home group. */
+export function createIndividualMenuGroup(member, sourceGroupId, reason) {
+  return {
+    id: uid(),
+    label: adhocReasonLabel(reason),
+    memberIds: [member.id],
+    color: ADHOC_MENU_COLOR,
+    adHoc: true,
+    sourceMemberId: member.id,
+    sourceGroupId: sourceGroupId ?? null,
+    reason,
+    createdAt: Date.now(),
+    days: ADHOC_MENU_DAYS,
+  };
+}
+
+/**
+ * Drop ad-hoc menus older than ADHOC_MENU_DAYS and put their member back into
+ * the home group they came from (if it still exists).
+ * @returns {{ groups: Array, expired: Array }}
+ */
+export function pruneExpiredIndividualMenus(groups, nowMs = Date.now()) {
+  const all = groups ?? [];
+  const expired = all.filter(
+    (g) => g.adHoc && g.createdAt && nowMs - g.createdAt >= ADHOC_MENU_MS,
+  );
+  if (expired.length === 0) return { groups: all, expired: [] };
+
+  const kept = all.filter((g) => !expired.includes(g));
+  const restored = kept.map((g) => {
+    const back = expired
+      .filter((e) => e.sourceGroupId === g.id)
+      .map((e) => e.sourceMemberId);
+    if (back.length === 0) return g;
+    return { ...g, memberIds: Array.from(new Set([...g.memberIds, ...back])) };
+  });
+  return { groups: restored, expired };
+}
+
 export function membersOfGroup(group, members) {
   const set = new Set(group.memberIds);
   return members.filter((m) => set.has(m.id));

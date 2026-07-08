@@ -2,17 +2,9 @@ import { RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "./groups.js";
 import { DAYS, getMeals, slotKey } from "./planner.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
+import { FOOD_GROUP_LABELS, foodGroupOf } from "./foodGroups.js";
 
-export const FAMILY_LABELS = {
-  pescado: "Pescado",
-  carne: "Carne",
-  legumbres: "Legumbres",
-  huevos: "Huevos",
-  verdura: "Verdura",
-  pasta: "Pasta",
-  arroz: "Arroz",
-  otros: "Otros",
-};
+export const FAMILY_LABELS = FOOD_GROUP_LABELS;
 
 const EMPTY_MACROS = { protein: 0, carbs: 0, fat: 0, kcal: 0 };
 
@@ -23,47 +15,9 @@ function normalizedText(value) {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
-function familyFromRecipe(recipe) {
-  const iconMap = {
-    fish: "pescado",
-    meat: "carne",
-    egg: "huevos",
-    legume: "legumbres",
-    pasta: "pasta",
-    rice: "arroz",
-    greens: "verdura",
-    soup: "verdura",
-  };
-  if (recipe.iconType && iconMap[recipe.iconType]) {
-    return iconMap[recipe.iconType];
-  }
-
-  const tags = recipe.tags ?? [];
-  const name = normalizedText(recipe.name);
-
-  if (tags.includes("pescado") || /pesc|merluza|salmon|bacalao|atun/.test(name)) return "pescado";
-  if (tags.includes("carne") || /pollo|ternera|cerdo|carne|lomo|hamburg/.test(name)) return "carne";
-  if (tags.includes("legumbres") || /lentej|garbanz|alubia|judia/.test(name)) return "legumbres";
-  if (tags.includes("huevos") || /huevo|tortilla|revuelto/.test(name)) return "huevos";
-  if (tags.includes("pasta") || /pasta|macarron|lasañ|espaguet/.test(name)) return "pasta";
-  if (tags.includes("arroz") || /arroz|paella/.test(name)) return "arroz";
-  if (
-    tags.includes("verdura") ||
-    tags.includes("vegetariano") ||
-    tags.includes("crema") ||
-    tags.includes("sopa") ||
-    /verdur|ensalad|calabac|crema|sopa|guis/.test(name)
-  ) {
-    return "verdura";
-  }
-  if (tags.includes("carbos")) return /arroz|paella/.test(name) ? "arroz" : "pasta";
-  if (tags.includes("guiso")) {
-    if (tags.includes("legumbres")) return "legumbres";
-    if (tags.includes("carne")) return "carne";
-    return "verdura";
-  }
-  return "otros";
-}
+// Recipe → food group now lives in foodGroups.js so menu analytics and
+// consumption insights stay in sync. Kept as a thin alias to avoid churn.
+const familyFromRecipe = foodGroupOf;
 
 function familyFromSchoolCourses(courses) {
   if (!hasAnySchoolDish(courses)) return "otros";

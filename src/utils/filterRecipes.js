@@ -1,5 +1,7 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
-import { normalizeAllergenId } from "../lib/allergens.js";
+import { normalizeAllergenId, recipeIngredientsHitAllergens } from "../lib/allergens.js";
+import { recipeHitsIntolerances } from "../lib/intolerances.js";
+import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 
 function currentSeason() {
@@ -50,6 +52,9 @@ export function scorePantryMatch(recipe, pantryNormalized) {
  */
 export function filterRecipes({
   allergies = [],
+  // Predefined intolerances + dietary states (lactosa_fina, fructosa,
+  // sorbitol, embarazo, lactancia) — see lib/intolerances.js. Hard exclusion.
+  intolerances = [],
   dislikes = [],
   hasKids = false,
   maxTime = 120,
@@ -66,6 +71,7 @@ export function filterRecipes({
   favoriteIds = null,
 } = {}) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
+  const activeIntolerances = Array.from(new Set(intolerances));
   const dislikeLower = dislikes.map((d) => d.toLowerCase());
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();
@@ -83,11 +89,39 @@ export function filterRecipes({
   // 0b. Baby group isolation — baby recipes only for baby groups, excluded otherwise
   pool = pool.filter((r) => isBabyGroup ? r.category === "bebes" : r.category !== "bebes");
 
-  // 1. Allergens — exclude any recipe containing a blocked allergen
+  // 1. Allergens — exclude any recipe containing a blocked allergen. Declared
+  // `allergens` cover 8 of the 14 UE allergens; the ingredient-name safety net
+  // catches the other 6 (soja, cacahuetes, apio, mostaza, sulfitos, altramuces)
+  // that the catalog can't encode, so marking them actually excludes recipes.
   if (blockedAllergens.size > 0) {
-    pool = pool.filter(
-      (r) => !r.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a))),
-    );
+    pool = pool.filter((r) => {
+      if (r.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
+      const names = (r.ingredients ?? []).map((ing) => ing.name);
+      if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
+      return true;
+    });
+  }
+
+  // 1c. Intolerances & dietary states. Two behaviors:
+  //   - Adaptable (lactosa_fina): don't drop the recipe — annotate the swaps
+  //     (dairy → lactose-free) so hydration can rename ingredients invisibly.
+  //     Only bail out when the conflict is name-only (nothing to rename).
+  //   - Hard (fructosa/sorbitol/embarazo/lactancia): exclude outright, no swap.
+  if (activeIntolerances.length > 0) {
+    const adaptableIds = activeIntolerances.filter(isAdaptableRestriction);
+    const hardIds = activeIntolerances.filter((id) => !isAdaptableRestriction(id));
+
+    pool = pool
+      .map((r) => {
+        if (hardIds.length > 0 && recipeHitsIntolerances(r, hardIds)) return null;
+        if (adaptableIds.length > 0) {
+          const { swaps, blocked } = planAdaptations(r, adaptableIds);
+          if (blocked) return null;
+          if (swaps.length > 0) return { ...r, adaptations: swaps };
+        }
+        return r;
+      })
+      .filter(Boolean);
   }
 
   // 2. Dislikes — exclude if any ingredient name contains a disliked term
@@ -185,8 +219,14 @@ export function filterRecipes({
 /**
  * Build reduced catalog (decision-only fields) from a filtered pool.
  * This is what gets sent to the LLM.
+ *
+ * @param {Object[]} filteredRecipes
+ * @param {Object} [opts]
+ * @param {boolean} [opts.includeHealth] - add macros (carbs/fat/protein) and
+ *   healthFlags so the model can honor a group's health profiles. Off by
+ *   default to keep the prompt lean when no profile is active.
  */
-export function decisionCatalog(filteredRecipes) {
+export function decisionCatalog(filteredRecipes, { includeHealth = false } = {}) {
   return filteredRecipes.map((r) => {
     const entry = {
       id: r.id,
@@ -203,6 +243,16 @@ export function decisionCatalog(filteredRecipes) {
       entry.protein_g = r.protein_g ?? 0;
       if (r.mainBase) {
         entry.mainBase = r.mainBase;
+      }
+    }
+    // Macros + healthFlags only when a health profile is active in the group,
+    // so the prompt stays lean the rest of the time.
+    if (includeHealth) {
+      if (typeof r.carbs_g === "number") entry.carbs_g = r.carbs_g;
+      if (typeof r.fat_g === "number") entry.fat_g = r.fat_g;
+      if (typeof r.protein_g === "number") entry.protein_g = r.protein_g;
+      if (Array.isArray(r.healthFlags) && r.healthFlags.length > 0) {
+        entry.healthFlags = r.healthFlags;
       }
     }
     // Omit when zero/absent rather than sending "pantryScore": 0 on every

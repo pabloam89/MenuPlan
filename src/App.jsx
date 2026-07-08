@@ -12,6 +12,7 @@ import {
   OnboardingCooking,
   OnboardingWeek,
   AfinarWizardBubble,
+  IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
@@ -35,6 +36,10 @@ import {
   memberIsBaby,
   canSplitMenus,
   hasUnderageMember,
+  createIndividualMenuGroup,
+  individualMenuGroupFor,
+  pruneExpiredIndividualMenus,
+  adhocReasonLabel,
 } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
@@ -50,7 +55,7 @@ import {
   deleteRecipeVote,
   upsertRecipeVotes,
 } from "./lib/recipeVotes.js";
-import { loadUserState, saveUserState } from "./lib/userState.js";
+import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import {
   loadUserRecipes,
   upsertUserRecipe,
@@ -70,6 +75,10 @@ import demoState from "./dev/demoState.json";
 const DEV_DEMO_MENU =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).get("demo") === "1";
+
+// Temporary dietary states heavy/disruptive enough to warrant offering a
+// separate ad-hoc individual menu instead of restricting the whole family.
+const HEAVY_DIETARY_STATES = ["dieta_blanda"];
 
 const INITIAL_DATA = {
   members: [],
@@ -117,6 +126,20 @@ const INITIAL_DATA = {
   menuWeek: null,
 };
 
+// Ad-hoc menus used to be labeled by the member's name ("Menú de X"); now
+// they're labeled by what they're for ("Dieta blanda"). Heals any group
+// saved under the old scheme (localStorage or cloud) so every reader of
+// `group.label` — scope pickers, exports, insights — sees the current
+// wording without needing per-call special-casing.
+function healAdhocGroupLabels(groups) {
+  if (!Array.isArray(groups)) return groups;
+  return groups.map((g) =>
+    g.adHoc && g.label !== adhocReasonLabel(g.reason)
+      ? { ...g, label: adhocReasonLabel(g.reason) }
+      : g,
+  );
+}
+
 function migrate(state) {
   if (!state) return null;
   const d = state.data ?? INITIAL_DATA;
@@ -149,6 +172,14 @@ function migrate(state) {
         allergies: Array.isArray(m.allergies)
           ? m.allergies
           : [...legacyAllergies],
+        // Predefined intolerances (lactosa_fina, fructosa, sorbitol) and
+        // temporary dietary states (embarazo, lactancia) — hard exclusions.
+        intolerances: Array.isArray(m.intolerances) ? m.intolerances : [],
+        dietaryStates: Array.isArray(m.dietaryStates) ? m.dietaryStates : [],
+        // Single "menú más cuidado" profile (glucemico | corazon | bajo_sodio
+        // | reflux | anemia | null). Replaces the old boolean `regimen`.
+        healthProfile:
+          typeof m.healthProfile === "string" && m.healthProfile ? m.healthProfile : null,
         dislikes: Array.isArray(m.dislikes) ? m.dislikes : [],
         useBirthDate: Boolean(m.useBirthDate),
         birthDate: typeof m.birthDate === "string" ? m.birthDate : "",
@@ -165,6 +196,7 @@ function migrate(state) {
       d.groups.length > 0 ? d.groups : groupsFromModel(d.members, model);
     d.groups = migrateGroupsForBabies(d.members, base, model);
   }
+  d.groups = healAdhocGroupLabels(d.groups);
   d.customAllergies = Array.isArray(d.customAllergies) ? d.customAllergies : [];
   d.customDislikes = Array.isArray(d.customDislikes) ? d.customDislikes : [];
   if (!d.menuModel) d.menuModel = "same";
@@ -331,6 +363,10 @@ export default function App() {
   const [menuError, setMenuError] = useState(null);
   const lastRegenerateArgs = useRef(null);
   const generateAbortRef = useRef(null);
+  // Auto-triggered ad-hoc individual menu prompt: { memberId, reason }.
+  const [individualPrompt, setIndividualPrompt] = useState(null);
+  // Member+reason pairs we've already offered, so we don't re-prompt in a loop.
+  const promptedIndividualRef = useRef(new Set());
 
   // Re-hydrate AI-generated recipes from persisted state so DishCard
   // can resolve ids after a reload.
@@ -400,6 +436,7 @@ export default function App() {
       // members); otherwise keep local as the base and push it up below.
       const remoteData = remoteState?.state?.data;
       const useRemote = remoteData && (remoteData.members?.length ?? 0) > 0;
+      if (useRemote) remoteData.groups = healAdhocGroupLabels(remoteData.groups);
 
       setData((d) => ({
         ...(useRemote ? { ...INITIAL_DATA, ...remoteData } : d),
@@ -531,6 +568,94 @@ export default function App() {
   }, [data, showToast]);
 
   const handleRegenerate = useCallback(() => regenerateMenu(), [regenerateMenu]);
+
+  // ── Ad-hoc individual menus ──────────────────────────────────────────────
+  // Auto-offer a separate 3-day menu when a member gets a heavy, hard-to-share
+  // temporary state. Only "dieta blanda" qualifies today: embarazo/lactancia
+  // are long-term and their restrictions don't wreck the shared menu, so they
+  // stay applied to the family group (see buildGroupContext).
+
+  // A dismissal only "sticks" while the state stays active: if the member's
+  // dieta_blanda gets unchecked and rechecked later, that's a new decision
+  // and the pop-up (shown once per "decision") should be offered again.
+  useEffect(() => {
+    const activeKeys = new Set(
+      data.members.flatMap((m) =>
+        (m.dietaryStates ?? [])
+          .filter((s) => HEAVY_DIETARY_STATES.includes(s))
+          .map((s) => `${m.id}:${s}`),
+      ),
+    );
+    for (const key of promptedIndividualRef.current) {
+      if (!activeKeys.has(key)) promptedIndividualRef.current.delete(key);
+    }
+  }, [data.members]);
+
+  useEffect(() => {
+    if (individualPrompt) return;
+    for (const m of data.members) {
+      const reason = (m.dietaryStates ?? []).find((s) => HEAVY_DIETARY_STATES.includes(s));
+      if (!reason) continue;
+      if (individualMenuGroupFor(data.groups, m.id)) continue;
+      const key = `${m.id}:${reason}`;
+      if (promptedIndividualRef.current.has(key)) continue;
+      promptedIndividualRef.current.add(key);
+      setIndividualPrompt({ memberId: m.id, reason });
+      break;
+    }
+  }, [data.members, data.groups, individualPrompt]);
+
+  // Retire individual menus older than 3 days: put the member back in their
+  // home group, clear the "dieta blanda" flag, and drop the ad-hoc menu plan.
+  useEffect(() => {
+    const { groups, expired } = pruneExpiredIndividualMenus(data.groups);
+    if (expired.length === 0) return;
+    const expiredIds = new Set(expired.map((g) => g.id));
+    const expiredMemberIds = new Set(expired.map((g) => g.sourceMemberId));
+    setData((d) => ({
+      ...d,
+      groups,
+      members: d.members.map((m) =>
+        expiredMemberIds.has(m.id)
+          ? { ...m, dietaryStates: (m.dietaryStates ?? []).filter((s) => s !== "dieta_blanda") }
+          : m,
+      ),
+    }));
+    setMenuPlan((mp) => {
+      const next = { ...mp };
+      for (const id of expiredIds) delete next[id];
+      return next;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const confirmIndividualMenu = useCallback(
+    (useIndividual) => {
+      const prompt = individualPrompt;
+      setIndividualPrompt(null);
+      if (!prompt || !useIndividual) return;
+      const member = data.members.find((m) => m.id === prompt.memberId);
+      if (!member) return;
+      const homeGroup =
+        data.groups.find((g) => !g.adHoc && g.memberIds.includes(member.id)) ?? null;
+      const adHoc = createIndividualMenuGroup(member, homeGroup?.id ?? null, prompt.reason);
+      // Take the member out of the shared menu for the duration so they don't
+      // get two menus; they're restored on expiry (pruneExpiredIndividualMenus).
+      const nextGroups = [
+        ...data.groups.map((g) =>
+          homeGroup && g.id === homeGroup.id
+            ? { ...g, memberIds: g.memberIds.filter((id) => id !== member.id) }
+            : g,
+        ),
+        adHoc,
+      ];
+      const nextData = { ...data, groups: nextGroups };
+      setData(nextData);
+      setScreen("menu");
+      regenerateMenu(nextData);
+    },
+    [individualPrompt, data, regenerateMenu],
+  );
 
   const stopGeneration = useCallback(() => {
     if (generateAbortRef.current) {
@@ -746,6 +871,10 @@ export default function App() {
   const doReset = useCallback(() => {
     setResetConfirm(null);
     clearState();
+    // Fired immediately (not the 1200ms debounced profile push) so a quick
+    // reload right after "Reiniciar" can't race the stale cloud snapshot back
+    // in through the hydration effect above.
+    if (user?.id) clearUserState(user.id);
     setData(INITIAL_DATA);
     setMenuPlan({});
     setShopping({ items: [] });
@@ -754,7 +883,7 @@ export default function App() {
     setAiRecipes([]);
     setMenuError(null);
     setScreen("splash");
-  }, []);
+  }, [user]);
 
   // Soft reset — the profile lives in the account, so "reiniciar" only clears
   // the current week's menu, shopping list and week selection, then lands back
@@ -775,6 +904,10 @@ export default function App() {
   const doDeleteAccount = useCallback(async () => {
     setResetConfirm(null);
     clearState();
+    // Must happen before signOut(): the delete is authorized by the current
+    // session (RLS on user_id = auth.uid()), so it has to run while still
+    // logged in.
+    if (user?.id) await clearUserState(user.id);
     setData(INITIAL_DATA);
     setMenuPlan({});
     setShopping({ items: [] });
@@ -784,7 +917,7 @@ export default function App() {
     setMenuError(null);
     setScreen("splash");
     await signOut();
-  }, [signOut]);
+  }, [signOut, user]);
 
   // Order: Members → Menu Model → School Menu → Week → Schedule → Meal Style → Restrictions → Repeat → Cooking.
   // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
@@ -1226,11 +1359,22 @@ export default function App() {
 
       {isGeneratingMenu && <GeneratingScreen onStop={stopGeneration} />}
 
+      {individualPrompt && (
+        <IndividualMenuSheet
+          member={data.members.find((m) => m.id === individualPrompt.memberId) ?? null}
+          reason={individualPrompt.reason}
+          onConfirm={confirmIndividualMenu}
+          onCancel={() => setIndividualPrompt(null)}
+        />
+      )}
+
       {selectedSlot && (
         <DishDetail
           key={selectedSlot.recipe.id}
           recipe={selectedSlot.recipe}
           slot={selectedSlot.slot}
+          group={selectedSlot.group ?? null}
+          allMembers={data.members}
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
           userVote={voteOf(data.recipeVotes?.[selectedSlot.recipe.id])}

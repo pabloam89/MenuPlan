@@ -12,12 +12,14 @@ import {
   Users,
   PersonStanding,
   Baby,
+  CookingPot,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { countMenusGenerated } from "../lib/menuStats.js";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { DAYS, getMeals } from "../lib/planner.js";
+import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor } from "../lib/stages.js";
@@ -170,13 +172,14 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
       }}
     >
       {groups.map((group) => {
-        const Icon = GROUP_ICONS[group.label] ?? Users;
+        const Icon = group.adHoc ? CookingPot : GROUP_ICONS[group.label] ?? Users;
+        const label = group.adHoc ? adhocReasonLabel(group.reason) : group.label;
         const active = group.id === activeId;
         return (
           <button
             key={group.id}
             type="button"
-            title={group.label}
+            title={label}
             onClick={() => onChange(group.id)}
             style={{
               width: 26, height: 26, borderRadius: "50%", border: "none", cursor: "pointer",

@@ -12,6 +12,7 @@ import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes } from "./
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
+import { buildAdaptationMap } from "./substitutions.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -158,6 +159,15 @@ OBJETIVOS SEMANALES (config.freqs) — cuotas orientativas por semana:
   - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida)
 - Son objetivos, no límites rígidos: intenta cumplirlos, pero la coherencia gastronómica y las reglas anteriores mandan siempre.
 
+PERFILES DE SALUD (config.healthProfiles) — ORIENTACIÓN, nunca exclusión:
+- Si la lista NO está vacía, inclina el menú hacia lo más adecuado SIN romper estructura, variedad, tiempos ni restricciones. Cuando el catálogo trae carbs_g/fat_g/protein_g y healthFlags, úsalos para decidir:
+  - glucemico: prioriza verdura, legumbre y pescado; modera pasta_arroces y platos con carbs_g alto o healthFlags "azucar_anadido".
+  - corazon: prioriza pescado, legumbre y verdura; evita healthFlags "frito"/"embutido" y platos con fat_g alto.
+  - bajo_sodio: evita healthFlags "alto_sodio" y "embutido".
+  - reflux: evita healthFlags "frito", "picante" y "acido".
+  - anemia: prioriza platos ricos en hierro (carne roja magra, legumbre, verdura de hoja, pescado) y healthFlags "rico_hierro".
+- Es una preferencia FUERTE pero SECUNDARIA a alergias, tipo de plato, variedad y tiempos. Nunca dejes un hueco sin cubrir por cumplir un perfil.
+
 RESTRICCIONES POR SLOT:
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
 - Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
@@ -176,7 +186,7 @@ Si usas un plato_unico en la comida, incluye solo el slot _1 con ese plato y omi
 
 // ── Context builders ────────────────────────────────────────────
 
-function buildGroupContext(data, group) {
+export function buildGroupContext(data, group) {
   const meals = getMeals(data);
   const groupMembers = membersOfGroup(group, data.members);
   const isBabyGroup = isBabyMenuGroup(group, data.members);
@@ -187,6 +197,24 @@ function buildGroupContext(data, group) {
       return s === "infantil" || s === "primaria";
     });
   const allergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));
+  // Predefined intolerances + temporary dietary states (embarazo/lactancia)
+  // are aggregated together and handled by filterRecipes via lib/intolerances.js
+  // — most are hard exclusions, lactosa_fina is adapted (see substitutions.js).
+  const memberDietaryStates = groupMembers.flatMap((m) => m.dietaryStates ?? []);
+  // embarazo/lactancia imply "alcohol_cocina" (adaptable — real alcohol-free
+  // wine/beer swap) in addition to their own remaining hard exclusions (raw,
+  // cured, high-mercury fish, unpasteurized cheese). Not user-selectable on
+  // its own; see lib/intolerances.js#alcohol_cocina.
+  const impliesAlcoholCocina = memberDietaryStates.some(
+    (s) => s === "embarazo" || s === "lactancia",
+  );
+  const intolerances = Array.from(
+    new Set([
+      ...groupMembers.flatMap((m) => m.intolerances ?? []),
+      ...memberDietaryStates,
+      ...(impliesAlcoholCocina ? ["alcohol_cocina"] : []),
+    ]),
+  );
   const dislikes = Array.from(
     new Set([...(data.dislikes ?? []), ...groupMembers.flatMap((m) => m.dislikes ?? [])]),
   );
@@ -197,7 +225,12 @@ function buildGroupContext(data, group) {
   const slots = [];
   const schoolMenuByDay = {};
 
-  for (const day of DAYS) {
+  // Ad-hoc individual menus (e.g. "dieta blanda") only span a few days, not the
+  // whole week. Everything else keeps the standard 7-day window.
+  const planDays =
+    Number.isInteger(group.days) && group.days > 0 ? DAYS.slice(0, group.days) : DAYS;
+
+  for (const day of planDays) {
     const daySlug = DAY_SLUG[day];
     const isWeekend = day === "Sáb" || day === "Dom";
 
@@ -273,6 +306,7 @@ function buildGroupContext(data, group) {
     isBabyGroup,
     filterOpts: {
       allergies,
+      intolerances,
       dislikes,
       hasKids,
       maxTime: maxCookTimeFilter(data),
@@ -293,13 +327,23 @@ function buildGroupContext(data, group) {
       freqs: data.freqsByGroup?.[group.id] ?? data.freqs ?? DEFAULT_FREQS,
       cookLevel: data.cookLevel ?? "normal",
       cookTime,
+      // "Menú más cuidado" profiles present in the group (soft bias for the LLM).
+      // An ad-hoc "dieta blanda" menu reuses the reflux profile as a bland-diet
+      // proxy (no fritos/picante/ácido), so the individual menu comes out gentle.
+      healthProfiles: Array.from(
+        new Set([
+          ...groupMembers.map((m) => m.healthProfile).filter(Boolean),
+          ...(group.adHoc && group.reason === "dieta_blanda" ? ["reflux"] : []),
+        ]),
+      ),
     },
   };
 }
 
 // Exported for tests only — not used elsewhere outside this module.
 export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = []) {
-  const catalog = decisionCatalog(filteredRecipes);
+  const includeHealth = Array.isArray(config?.healthProfiles) && config.healthProfiles.length > 0;
+  const catalog = decisionCatalog(filteredRecipes, { includeHealth });
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
     if (s.position) out.position = s.position;
@@ -636,6 +680,9 @@ async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
     slotAssignments,
     filteredPool,
     slotsContext: ctx.slots,
+    // Active intolerances/states for this group; hydration uses them to apply
+    // invisible ingredient swaps (e.g. lactose-free) to the chosen recipes.
+    restrictions: ctx.filterOpts.intolerances ?? [],
   };
 }
 
@@ -657,12 +704,17 @@ export const CATEGORY_ICON = {
   cenas_rapidas: "chef",
 };
 
-export function catalogToFrontendRecipe(catalogRecipe, eaters) {
+export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []) {
   const r = catalogRecipe;
   const servings = Math.max(1, eaters);
   const factor = servings / r.baseServings;
 
   const iconType = ICON_TYPE_MAP[r.mainProtein] ?? CATEGORY_ICON[r.category] ?? "chef";
+
+  // Dietary adaptations (e.g. lactose-free swaps): rename affected ingredient
+  // lines in place so the shopping list and dish detail reflect the product the
+  // family actually buys, and surface a compact `adaptations` note for the UI.
+  const { renameByName, adaptations } = buildAdaptationMap(r, restrictions);
 
   // Scale ingredient amounts for the actual number of eaters.
   // Round g/ml to multiples of 5, ud to whole numbers.
@@ -680,10 +732,11 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters) {
         scaledQty = Math.ceil(scaledQty);
       }
     }
+    const name = renameByName.get(ing.name) ?? ing.name;
     return {
-      id: ing.name.toLowerCase().replace(/\s+/g, "-"),
-      name: ing.name,
-      category: guessIngredientCategory(ing.name),
+      id: name.toLowerCase().replace(/\s+/g, "-"),
+      name,
+      category: guessIngredientCategory(name),
       qty: scaledQty,
       unit: ing.unit,
     };
@@ -714,6 +767,9 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters) {
       carbs: r.carbs_g,
       fat: r.fat_g,
     },
+    // Heuristic flags (see lib/healthFlags.js) carried through so the menu/
+    // dish detail can show a "menú más cuidado" badge (lib/healthProfileMatch.js).
+    healthFlags: r.healthFlags ?? [],
     prepSummary: r.description || r.name,
     steps: r.steps ?? [],
     image: `/dishes/${r.id}.webp`,
@@ -731,6 +787,9 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters) {
     source: r.source,
     visibility: r.visibility,
     category: r.category,
+    // Present only when at least one ingredient was swapped for a dietary
+    // restriction (e.g. lactose-free). Undefined otherwise to keep recipes lean.
+    adaptations: adaptations.length > 0 ? adaptations : undefined,
   };
 }
 
@@ -765,7 +824,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
   // hydration step (recipeId -> full frontend recipe) needs its own lookup.
   const userRecipeById = Object.fromEntries((data.userRecipes ?? []).map((r) => [r.id, r]));
 
-  for (const { group, slotAssignments, slotsContext } of results) {
+  for (const { group, slotAssignments, slotsContext, restrictions } of results) {
     const prefix = multi ? `${group.id}__` : "";
     const eatersBySlot = Object.fromEntries(
       slotsContext.map((s) => [s.slotId, s.eaters]),
@@ -788,7 +847,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
 
       if (!seenRecipeIds.has(frontendId)) {
         seenRecipeIds.add(frontendId);
-        const fr = catalogToFrontendRecipe(catalogRecipe, eaters);
+        const fr = catalogToFrontendRecipe(catalogRecipe, eaters, restrictions);
         if (prefix) fr.id = frontendId;
         // Keep the catalog id so the UI can resolve the dish photo even when
         // fr.id carries a group prefix (e.g. "groupId__carnes_007").
@@ -1044,7 +1103,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const prefix = activeGroups.length > 1 ? `${groupId}__` : "";
 
   const eaters = currentSlot.eaters ?? 2;
-  const fr = catalogToFrontendRecipe(picked, eaters);
+  const fr = catalogToFrontendRecipe(picked, eaters, ctx.filterOpts.intolerances ?? []);
   fr.id = prefix + picked.id;
   fr.baseRecipeId = picked.id;
 

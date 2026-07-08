@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { BarChart3, BookOpen, Calendar, ClipboardList, Home, Settings, ShoppingCart, UserCircle } from "lucide-react";
+import { BarChart3, BookOpen, Calendar, ClipboardList, CookingPot, Home, Settings, ShoppingCart, UserCircle } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
+import { adhocReasonLabel } from "../lib/groups.js";
 
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", Bebé: "B", Familia: "F" };
 
@@ -557,7 +558,7 @@ export function WeekRangeBadge({ label, hideLabel = false }) {
   );
 }
 
-function ScopeCircle({ label, abbrev, color, active, onClick }) {
+export function ScopeCircle({ label, abbrev, Icon, color, active, onClick }) {
   return (
     <button
       type="button"
@@ -592,7 +593,7 @@ function ScopeCircle({ label, abbrev, color, active, onClick }) {
           transition: "all .18s ease",
         }}
       >
-        {abbrev}
+        {Icon ? <Icon size={19} /> : abbrev}
       </span>
       <span
         style={{
@@ -628,8 +629,14 @@ export function GroupScopePicker({ groups, scope, onChange, style }) {
               {groups.map((g) => (
                 <ScopeCircle
                   key={g.id}
-                  label={g.label}
+                  // Ad-hoc individual menus (dieta blanda) get the cooking-pot
+                  // icon instead of an initial, and are labeled by *what* the
+                  // menu is for ("Dieta blanda") rather than *who* it's for —
+                  // derived from `reason` (not the stored `label`) so groups
+                  // created before this label existed still read correctly.
+                  label={g.adHoc ? adhocReasonLabel(g.reason) : g.label}
                   abbrev={GROUP_ABBREV[g.label] ?? g.label.charAt(0)}
+                  Icon={g.adHoc ? CookingPot : undefined}
                   color={g.color}
                   active={scope === g.id}
                   onClick={() => onChange(g.id)}

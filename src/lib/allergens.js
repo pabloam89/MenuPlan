@@ -13,6 +13,7 @@ import {
   Wheat,
   Wine,
 } from "lucide-react";
+import { compileKeywordRegex, normalizeText } from "./recipeText.js";
 
 /** Reglamento UE — 14 alérgenos declarables */
 export const EU_ALLERGENS = {
@@ -129,7 +130,46 @@ function slugifyAllergen(raw) {
 /** @param {string} raw */
 export function normalizeAllergenId(raw) {
   const slug = slugifyAllergen(raw);
-  return ALLERGEN_ALIASES[slug] ?? (EU_ALLERGENS[slug] ? slug : slug);
+  return ALLERGEN_ALIASES[slug] ?? slug;
+}
+
+// Ingredient-name safety net for allergens the bundled catalog does NOT encode
+// in its `allergens` field (see recipeSchema.js ALLERGENS: only 8 of the 14 UE
+// allergens are representable). Without this, marking e.g. "Soja" or
+// "Cacahuetes" would exclude ZERO recipes — a false sense of safety. Keys are
+// normalized allergen ids (see normalizeAllergenId). Over-exclusion is the safe
+// direction for an allergen, so lists favor coverage over precision.
+export const INGREDIENT_ALLERGEN_KEYWORDS = {
+  cacahuetes: ["cacahuete", "cacahuate"],
+  soja: ["soja", "tofu", "edamame", "tempeh", "tamari", "miso"],
+  apio: ["apio"],
+  mostaza: ["mostaza"],
+  sulfitos: ["sulfito", "vino", "vinagre"],
+  altramuces: ["altramuz", "altramuces", "lupino"],
+};
+
+const INGREDIENT_ALLERGEN_RE = Object.fromEntries(
+  Object.entries(INGREDIENT_ALLERGEN_KEYWORDS).map(([id, words]) => [id, compileKeywordRegex(words)]),
+);
+
+/**
+ * Safety net: does any of a recipe's ingredient names reveal a blocked allergen
+ * that the catalog's `allergens` field cannot encode? Only checks the allergens
+ * in INGREDIENT_ALLERGEN_KEYWORDS; the other 8 are already covered by declared
+ * `allergens`, so this never second-guesses them.
+ *
+ * @param {string[]} ingredientNames
+ * @param {Set<string>|Iterable<string>} blockedAllergenIds - normalized ids
+ * @returns {boolean}
+ */
+export function recipeIngredientsHitAllergens(ingredientNames, blockedAllergenIds) {
+  const names = (ingredientNames ?? []).map(normalizeText);
+  for (const id of blockedAllergenIds) {
+    const re = INGREDIENT_ALLERGEN_RE[id];
+    if (!re) continue;
+    if (names.some((name) => re.test(name))) return true;
+  }
+  return false;
 }
 
 /** @param {string[] | undefined} allergens */

@@ -66,6 +66,7 @@ import {
   AvatarStack,
   ProgressDots,
   GroupScopePicker,
+  ScopeCircle,
 } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { PantryInput } from "../components/PantryInput.jsx";
@@ -74,6 +75,7 @@ import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
 import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
+import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
@@ -1243,36 +1245,39 @@ function FixedDishTable({ items, mealOptions, onTimesChange, onMealsChange, onRe
   );
 }
 
+const FAMILIA_TARGET = "__familia__";
+
+// Family-member picker in the exact "MENÚ" scope style (GroupScopePicker):
+// "Familia" first (edits everyone at once) — same role as "Todos" there —
+// then a divider, then each member as a ScopeCircle with their name below.
+// Groups don't apply here — restrictions are always set per individual.
 function MemberAvatarSelector({ members, selectedId, onSelect }) {
-  const single = members.length <= 1;
   return (
-    <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
-      {members.map((m) => {
-        const sel = single || m.id === selectedId;
-        const color = memberAvatarColor(m.id, members);
-        return (
-          <button
-            key={m.id}
-            type="button"
-            title={m.name}
-            aria-pressed={sel}
-            onClick={() => onSelect(m.id)}
-            className="avoid-avatar"
-            style={{
-              border: sel ? `2px solid ${color}` : "2px solid transparent",
-              borderRadius: "50%",
-              padding: 1,
-              background: "transparent",
-              cursor: single ? "default" : "pointer",
-              lineHeight: 0,
-              opacity: sel ? 1 : 0.45,
-              filter: sel ? "none" : "grayscale(0.4)",
-            }}
-          >
-            <Avatar name={m.name} size={26} color={color} />
-          </button>
-        );
-      })}
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexWrap: "wrap", justifyContent: "center" }}>
+      <ScopeCircle
+        label="Familia"
+        abbrev="F"
+        color="#2d5a3d"
+        active={selectedId === FAMILIA_TARGET}
+        onClick={() => onSelect(FAMILIA_TARGET)}
+      />
+      <div style={{ width: 1, height: 40, background: "#dde8e1", flexShrink: 0 }} />
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+        {members.map((m) => {
+          const color = memberAvatarColor(m.id, members);
+          const abbrev = (m.name ?? "?").trim().charAt(0).toUpperCase() || "?";
+          return (
+            <ScopeCircle
+              key={m.id}
+              label={m.name}
+              abbrev={abbrev}
+              color={color}
+              active={m.id === selectedId}
+              onClick={() => onSelect(m.id)}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -1371,45 +1376,127 @@ const EXTRA_ALLERGEN_IDS = Object.keys(EU_ALLERGENS).filter((id) => !COMMON_ALLE
 // visibleAllergenIds = todos, sin colapso
 const EU_ALLERGEN_IDS = new Set(Object.keys(EU_ALLERGENS));
 
+// Predefined intolerances (stored on member.intolerances) — hard exclusions
+// distinct from the "Leche" allergen: "fina" tolerates cured cheese, etc.
+const INTOLERANCE_UI = [
+  { id: "lactosa_fina", label: "Lactosa (intolerancia)", Icon: CircleDot, color: "#4a7ab8" },
+  { id: "fructosa", label: "Fructosa", Icon: CircleDot, color: "#c0562f" },
+  { id: "sorbitol", label: "Sorbitol", Icon: CircleDot, color: "#8a5a28" },
+];
+
+// "Menú más cuidado" — one per member (member.healthProfile). Soft bias only.
+// "Crónico" tab: structural conditions, no end date. Kept as a single flat
+// bias per condition — e.g. diabetes tipo 1/2/gestacional all want the same
+// food-level guidance (moderar carbs/azúcar), so splitting by subtype would
+// add UI weight without changing what the planner actually does.
+const HEALTH_PROFILE_UI = [
+  { id: "glucemico", label: "Diabetes", Icon: Zap, color: "#dd8a2c" },
+  { id: "corazon", label: "Corazón y colesterol", Icon: HeartPulse, color: "#c0562f" },
+  { id: "bajo_sodio", label: "Bajo en sal", Icon: CircleDot, color: "#3f87b0" },
+  { id: "reflux", label: "Digestión / reflujo", Icon: Flame, color: "#a06b2f" },
+  { id: "anemia", label: "Anemia (más hierro)", Icon: Beef, color: "#b0303f" },
+];
+
+// Temporary states (member.dietaryStates) — situations with an implicit end
+// date. Embarazo/lactancia are hard exclusions (see intolerances.js).
+// "Dieta blanda" has no group-wide rule on purpose: it's too restrictive to
+// impose on the shared family menu, so it's the trigger for the ad-hoc
+// single-person menu (deferred feature) — stored here, wired up there.
+const DIETARY_STATE_UI = [
+  { id: "embarazo", label: "Embarazo", Icon: Baby, color: "#c86a9e" },
+  { id: "lactancia", label: "Lactancia", Icon: Heart, color: "#7a5ab8" },
+  { id: "dieta_blanda", label: "Dieta blanda", Icon: CookingPot, color: "#7a8a3a" },
+];
+
 export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
   const [customAllergy, setCustomAllergy] = useState("");
   const [showAddAllergy, setShowAddAllergy] = useState(false);
   const [allergyMemberId, setAllergyMemberId] = useState(data.members[0]?.id ?? null);
+  const [mainTab, setMainTab] = useState("alergias");
 
-  // Miembro al que aplican las alergias marcadas (cae al primero si el actual ya no existe).
-  const activeAllergyMemberId = data.members.some((m) => m.id === allergyMemberId)
-    ? allergyMemberId
-    : data.members[0]?.id ?? null;
-  const activeMemberColor = activeAllergyMemberId
-    ? memberAvatarColor(activeAllergyMemberId, data.members)
-    : "#2d5a3d";
+  // Edit target: a real member, or FAMILIA_TARGET to edit everyone at once.
+  // Falls back to the first member if the stored id is stale.
+  const isFamilia = allergyMemberId === FAMILIA_TARGET;
+  const activeAllergyMemberId = isFamilia
+    ? FAMILIA_TARGET
+    : data.members.some((m) => m.id === allergyMemberId)
+      ? allergyMemberId
+      : data.members[0]?.id ?? null;
+  const activeMemberColor = isFamilia
+    ? "#2d5a3d"
+    : activeAllergyMemberId
+      ? memberAvatarColor(activeAllergyMemberId, data.members)
+      : "#2d5a3d";
+
+  // Members the current selection writes to (all of them in "Familia" scope).
+  const inScope = (m) => isFamilia || m.id === activeAllergyMemberId;
+  const scopeMembers = data.members.filter(inScope);
 
   const memberHasKey = (m, key) =>
     (m.allergies ?? []).some((a) => normalizeAllergenId(a) === key);
 
-  const activeHasKey = (key) => {
-    const m = data.members.find((x) => x.id === activeAllergyMemberId);
-    return m ? memberHasKey(m, key) : false;
-  };
+  // In Familia scope a row reads as "checked" only when EVERY member has it.
+  const allScopeHave = (pred) => scopeMembers.length > 0 && scopeMembers.every(pred);
 
-  const toggleRegimen = (id) =>
-    setData((d) => ({
-      ...d,
-      members: d.members.map((m) => (m.id === id ? { ...m, regimen: !m.regimen } : m)),
-    }));
+  // Toggle a set-membership field across the whole scope: if everyone already
+  // has it, remove it from all; otherwise add it to those missing it.
+  const toggleScopeMembership = (getList, setList, value, matches) =>
+    setData((d) => {
+      const targets = d.members.filter(inScope);
+      const allHave = targets.length > 0 && targets.every((m) => getList(m).some((v) => matches(v, value)));
+      return {
+        ...d,
+        members: d.members.map((m) => {
+          if (!inScope(m)) return m;
+          const list = getList(m);
+          const has = list.some((v) => matches(v, value));
+          if (allHave) return setList(m, list.filter((v) => !matches(v, value)));
+          return has ? m : setList(m, [...list, value]);
+        }),
+      };
+    });
 
-  const toggleMemberAllergen = (memberId, key, label) =>
-    setData((d) => ({
-      ...d,
-      members: d.members.map((m) => {
-        if (m.id !== memberId) return m;
-        const has = (m.allergies ?? []).some((a) => normalizeAllergenId(a) === key);
-        const allergies = has
-          ? (m.allergies ?? []).filter((a) => normalizeAllergenId(a) !== key)
-          : [...(m.allergies ?? []), label];
-        return { ...m, allergies };
-      }),
-    }));
+  const eq = (a, b) => a === b;
+
+  const activeHasKey = (key) => allScopeHave((m) => memberHasKey(m, key));
+  const toggleMemberAllergen = (_target, key, label) =>
+    setData((d) => {
+      const targets = d.members.filter(inScope);
+      const allHave = targets.length > 0 && targets.every((m) => memberHasKey(m, key));
+      return {
+        ...d,
+        members: d.members.map((m) => {
+          if (!inScope(m)) return m;
+          const has = memberHasKey(m, key);
+          if (allHave) return { ...m, allergies: (m.allergies ?? []).filter((a) => normalizeAllergenId(a) !== key) };
+          return has ? m : { ...m, allergies: [...(m.allergies ?? []), label] };
+        }),
+      };
+    });
+
+  const activeHasIntolerance = (id) => allScopeHave((m) => (m.intolerances ?? []).includes(id));
+  const toggleIntolerance = (_target, id) =>
+    toggleScopeMembership((m) => m.intolerances ?? [], (m, list) => ({ ...m, intolerances: list }), id, eq);
+
+  const activeHasState = (id) => allScopeHave((m) => (m.dietaryStates ?? []).includes(id));
+  const toggleDietaryState = (_target, id) =>
+    toggleScopeMembership((m) => m.dietaryStates ?? [], (m, list) => ({ ...m, dietaryStates: list }), id, eq);
+
+  // Single-value field: in Familia scope only reflect a value everyone shares.
+  const activeHealthProfile = (() => {
+    if (scopeMembers.length === 0) return null;
+    const first = scopeMembers[0].healthProfile ?? null;
+    return scopeMembers.every((m) => (m.healthProfile ?? null) === first) ? first : null;
+  })();
+  const setHealthProfile = (_target, id) =>
+    setData((d) => {
+      const targets = d.members.filter(inScope);
+      const allSet = targets.length > 0 && targets.every((m) => (m.healthProfile ?? null) === id);
+      return {
+        ...d,
+        members: d.members.map((m) => (inScope(m) ? { ...m, healthProfile: allSet ? null : id } : m)),
+      };
+    });
 
   const addCustomAllergy = () => {
     const label = titleCase(customAllergy);
@@ -1465,19 +1552,37 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
             .avoid-avatar:active { transform: scale(.92); }
           `}</style>
 
-          <AvoidSection
-            icon={Zap}
-            accent="#dd8a2c"
-            title="Alergias"
-            right={
+          {data.members.length > 1 && (
+            <div style={{ marginBottom: 16 }}>
               <MemberAvatarSelector
                 members={data.members}
                 selectedId={activeAllergyMemberId}
                 onSelect={setAllergyMemberId}
               />
-            }
-          >
-            <div>
+            </div>
+          )}
+
+          {/* Two top cards act as the section switcher so only one panel is
+              visible at a time — keeps the whole step above the fold. */}
+          <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+            <RestrictionTabCard
+              Icon={Zap}
+              title="Alergias"
+              subtitle="e intolerancias"
+              active={mainTab === "alergias"}
+              onClick={() => setMainTab("alergias")}
+            />
+            <RestrictionTabCard
+              Icon={HeartPulse}
+              title="Salud"
+              subtitle="crónico y temporal"
+              active={mainTab === "salud"}
+              onClick={() => setMainTab("salud")}
+            />
+          </div>
+
+          {mainTab === "alergias" ? (
+            <div style={panelCardStyle}>
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
                 {visibleAllergenIds.map((id) => {
                   const meta = EU_ALLERGENS[id];
@@ -1508,27 +1613,44 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
                     />
                   );
                 })}
-              </div>
 
-              <div style={{ display: "flex", marginTop: 12 }}>
+                {INTOLERANCE_UI.map((opt) => (
+                  <AllergenRow
+                    key={opt.id}
+                    Icon={opt.Icon}
+                    color={opt.color}
+                    label={opt.label}
+                    checked={activeHasIntolerance(opt.id)}
+                    checkColor={activeMemberColor}
+                    onToggle={() => activeAllergyMemberId && toggleIntolerance(activeAllergyMemberId, opt.id)}
+                  />
+                ))}
+
                 <button
                   type="button"
                   onClick={() => setShowAddAllergy((v) => !v)}
-                  className="avoid-pill"
+                  className="avoid-row"
                   style={{
-                    display: "inline-flex", alignItems: "center", gap: 6, height: 36,
-                    padding: "0 15px 0 12px", borderRadius: 10, border: "none",
-                    background: showAddAllergy ? "#234a31" : "#2d5a3d", color: "#fff",
-                    fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                    boxShadow: "0 2px 8px rgba(45,90,61,.3)",
+                    width: "100%", boxSizing: "border-box", display: "flex", alignItems: "center", gap: 8,
+                    padding: "8px 6px", border: "none", background: "transparent",
+                    cursor: "pointer", fontFamily: "inherit", textAlign: "left", borderRadius: 8,
                   }}
                 >
-                  <Plus size={15} strokeWidth={2.6} /> Añadir otra
+                  <span
+                    style={{
+                      width: 24, height: 24, borderRadius: 7, flexShrink: 0,
+                      background: "#2d5a3d", color: "#fff",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    <Plus size={14} strokeWidth={2.6} />
+                  </span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 12, fontWeight: 800, color: "#2d5a3d" }}>Añadir otra</span>
                 </button>
               </div>
 
               {showAddAllergy && (
-                <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
+                <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
                   <input
                     value={customAllergy}
                     onChange={(e) => setCustomAllergy(e.target.value)}
@@ -1548,61 +1670,94 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
                 </div>
               )}
             </div>
-          </AvoidSection>
+          ) : (
+            <div style={panelCardStyle}>
+              <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={healthColHeaderStyle}>Crónico</p>
+                  {HEALTH_PROFILE_UI.map((opt, i) => (
+                    <AllergenRow
+                      key={opt.id}
+                      Icon={opt.Icon}
+                      color={opt.color}
+                      label={opt.label}
+                      checked={activeHealthProfile === opt.id}
+                      checkColor={activeMemberColor}
+                      onToggle={() => activeAllergyMemberId && setHealthProfile(activeAllergyMemberId, opt.id)}
+                      last={i === HEALTH_PROFILE_UI.length - 1}
+                    />
+                  ))}
+                </div>
 
-          <AvoidSection
-            icon={HeartPulse}
-            accent="#3f87b0"
-            title="¿Alguien a régimen?"
-          >
-            <div>
-              {data.members.map((m, i) => {
-                const on = !!m.regimen;
-                const memberColor = memberAvatarColor(m.id, data.members);
-                return (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => toggleRegimen(m.id)}
-                    className="avoid-row"
-                    style={{
-                      width: "100%", display: "flex", alignItems: "center", gap: 11,
-                      padding: "9px 6px", border: "none", background: "transparent",
-                      cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-                      borderBottom: i === data.members.length - 1 ? "none" : "1px solid #eef3f0",
-                      borderRadius: 8,
-                    }}
-                  >
-                    <span style={{ opacity: on ? 1 : 0.5, filter: on ? "none" : "grayscale(0.4)", lineHeight: 0, transition: "opacity .15s ease, filter .15s ease" }}>
-                      <Avatar name={m.name} size={28} color={memberColor} />
-                    </span>
-                    <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: on ? 800 : 600, color: on ? "#142f1d" : "#41524a", transition: "color .15s ease" }}>
-                      {m.name}
-                    </span>
-                    <span
-                      aria-hidden
-                      style={{
-                        width: 40, height: 23, borderRadius: 999, flexShrink: 0,
-                        background: on ? "#2d5a3d" : "#d4ddd7", position: "relative",
-                        transition: "background .18s ease",
-                      }}
-                    >
-                      <span
-                        style={{
-                          position: "absolute", top: 2.5, left: on ? 19.5 : 2.5,
-                          width: 18, height: 18, borderRadius: "50%", background: "#fff",
-                          boxShadow: "0 1px 2px rgba(20,47,29,.3)", transition: "left .18s ease",
-                        }}
-                      />
-                    </span>
-                  </button>
-                );
-              })}
+                <div style={{ width: 1, alignSelf: "stretch", background: "#eef3f0", flexShrink: 0 }} />
+
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={healthColHeaderStyle}>Temporal</p>
+                  {DIETARY_STATE_UI.map((opt, i) => (
+                    <AllergenRow
+                      key={opt.id}
+                      Icon={opt.Icon}
+                      color={opt.color}
+                      label={opt.label}
+                      checked={activeHasState(opt.id)}
+                      checkColor={activeMemberColor}
+                      onToggle={() => activeAllergyMemberId && toggleDietaryState(activeAllergyMemberId, opt.id)}
+                      last={i === DIETARY_STATE_UI.length - 1}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <p style={{ margin: "12px 2px 0", fontSize: 10.5, lineHeight: 1.4, color: "#8a9a90" }}>
+                Orientación general para la planificación. No sustituye el consejo de un profesional sanitario.
+              </p>
             </div>
-          </AvoidSection>
+          )}
 
       </>
     </OnboardingShell>
+  );
+}
+
+const panelCardStyle = {
+  background: "#fff",
+  border: "1.5px solid #2d5a3d",
+  borderRadius: 16,
+  padding: "14px 14px",
+  boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+};
+
+const healthColHeaderStyle = {
+  margin: "0 0 8px",
+  padding: "5px 0",
+  borderRadius: 8,
+  background: "#2d5a3d",
+  fontSize: 11,
+  fontWeight: 800,
+  letterSpacing: ".04em",
+  textTransform: "uppercase",
+  color: "#fff",
+  textAlign: "center",
+};
+
+// One of the two top switch cards (Alergias vs Menú cuidado). Mirrors the
+// meal-style cards (icon on top, label below, green fill + check when active).
+function RestrictionTabCard({ Icon, title, subtitle, active, onClick }) {
+  return (
+    <button type="button" onClick={onClick} aria-pressed={active} style={mealStyleCardStyle(active)}>
+      {active && (
+        <span style={{ position: "absolute", top: 6, right: 6, display: "flex" }}>
+          <Check size={11} color="#fff" />
+        </span>
+      )}
+      <div style={mealStyleIconStyle(active)}>
+        <Icon size={16} />
+      </div>
+      <div style={{ textAlign: "center", lineHeight: 1.2, color: active ? "#fff" : "#142f1d" }}>
+        <div style={{ fontSize: 12, fontWeight: 800 }}>{title}</div>
+        <div style={{ fontSize: 10, fontWeight: 600, marginTop: 1 }}>{subtitle}</div>
+      </div>
+    </button>
   );
 }
 
@@ -1686,6 +1841,15 @@ export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, on
     fixedList.filter((fd) => fd.catalogId && fd.garnishId).map((fd) => [fd.catalogId, fd.garnishId])
   );
 
+  // Same browsing model as "Recetas" (categories first, then a Favoritas
+  // filter) — minus the ability to mark new favorites here, since that's not
+  // this screen's job. "Favoritas" just surfaces whatever's already starred.
+  const [catalogTab, setCatalogTab] = useState("catalogo");
+  const favoriteIds = useMemo(
+    () => new Set(favoriteRecipeIds(data.recipeVotes)),
+    [data.recipeVotes],
+  );
+
   return (
     <OnboardingShell
       title="¿Qué repetimos?"
@@ -1738,9 +1902,53 @@ export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, on
             </>
           )}
 
-          {/* Catálogo embebido — search, filtros y recetas siempre visibles */}
+          {/* Catálogo/Favoritas — mismas pestañas que "Recetas", sin poder marcar
+              favoritas aquí (solo elegir de las que ya lo son). */}
+          <div style={{ display: "flex", background: "#e8efe9", borderRadius: 12, padding: 3, marginBottom: 12 }}>
+            {[
+              { id: "catalogo", label: "Catálogo" },
+              { id: "favoritas", label: "Favoritas", count: favoriteIds.size },
+            ].map((t) => {
+              const sel = catalogTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  onClick={() => setCatalogTab(t.id)}
+                  style={{
+                    flex: 1, padding: "7px 0", borderRadius: 9, border: "none",
+                    background: sel ? "#fff" : "transparent",
+                    color: sel ? "#142f1d" : "#7a9485",
+                    fontSize: 13, fontWeight: sel ? 800 : 700,
+                    cursor: "pointer", fontFamily: "inherit",
+                    boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                    transition: "all .15s",
+                  }}
+                >
+                  {t.label}
+                  {t.count > 0 && (
+                    <span
+                      style={{
+                        marginLeft: 5, fontSize: 10, fontWeight: 900, color: sel ? "#2d5a3d" : "#9ab0a1",
+                        background: sel ? "#e4f3e9" : "#dce8de",
+                        padding: "1px 6px", borderRadius: 999,
+                      }}
+                    >
+                      {t.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
           <CatalogBrowserSheet
+            key={catalogTab}
             inline
+            browseCategories={catalogTab === "catalogo"}
+            favoriteIds={catalogTab === "favoritas" ? favoriteIds : null}
+            emptyLabel={catalogTab === "favoritas" ? "Aún no tienes favoritas. Márcalas desde Recetas para verlas aquí." : null}
+            recipeVotes={data.recipeVotes}
             addedIds={addedCatalogIds}
             garnishByCatalogId={addedGarnishByCatalogId}
             onAdd={addCatalogDish}
@@ -2061,6 +2269,165 @@ function GroupAssignmentSheet({ members, groups, showBabyHint, onAssign, onConfi
         >
           Listo
         </button>
+      </div>
+    </div>
+  );
+}
+
+const INDIVIDUAL_REASON_COPY = {
+  dieta_blanda: {
+    title: "Dieta blanda para {name}",
+    Icon: CookingPot,
+    what: "un menú aparte de dieta blanda: suave, sin frituras ni picante",
+  },
+  embarazo: {
+    title: "Menú de embarazo para {name}",
+    Icon: Baby,
+    what: "un menú aparte adaptado al embarazo",
+  },
+  lactancia: {
+    title: "Menú de lactancia para {name}",
+    Icon: Heart,
+    what: "un menú aparte adaptado a la lactancia",
+  },
+};
+
+// Auto-triggered the moment the state is checked (dieta blanda, embarazo,
+// lactancia): same look and feel as the "menú de bebé" bubble, so accepting a
+// heavy/ad-hoc state always explains itself the same way, right when it
+// happens — no separate explainer shown later on the menu screen.
+export function IndividualMenuSheet({ member, reason, onConfirm, onCancel }) {
+  if (!member) return null;
+
+  const copy = INDIVIDUAL_REASON_COPY[reason] ?? INDIVIDUAL_REASON_COPY.dieta_blanda;
+  const firstName = (member.name || "").trim().split(/\s+/)[0] || member.name;
+  const title = copy.title.replace("{name}", firstName);
+  const points = [
+    {
+      Icon: copy.Icon,
+      text: (
+        <>
+          Le prepararemos a <strong>{firstName}</strong> {copy.what}.
+        </>
+      ),
+    },
+    {
+      Icon: CalendarDays,
+      text: (
+        <>
+          Durará <strong>3 días</strong>; después volverá sola al menú de la familia.
+        </>
+      ),
+    },
+    {
+      Icon: Users,
+      text: (
+        <>
+          Podrás verlo cuando quieras tocando su avatar en <strong>Personas</strong>.
+        </>
+      ),
+    },
+  ];
+
+  return (
+    <div
+      style={{
+        position: "fixed", inset: 0, zIndex: 260,
+        background: "rgba(20,47,29,.32)", backdropFilter: "blur(2px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "0 16px", animation: "afinarFadeIn .2s ease",
+      }}
+      onClick={onCancel}
+    >
+      <style>{`
+        @keyframes afinarFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes afinarPop {
+          0%   { opacity: 0; transform: translateY(18px) scale(.94); }
+          60%  { transform: translateY(-3px) scale(1.01); }
+          100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes afinarBob {
+          0%, 100% { transform: translateY(0) rotate(-4deg); }
+          50%      { transform: translateY(-4px) rotate(-4deg); }
+        }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative", width: "100%", maxWidth: 380,
+          background: "#fff", borderRadius: 24, padding: "22px 20px 18px",
+          boxShadow: "0 18px 50px rgba(20,47,29,.32)",
+          animation: "afinarPop .38s cubic-bezier(.34,1.56,.5,1) both",
+        }}
+      >
+        <div
+          style={{
+            position: "absolute", top: -26, left: 22, width: 52, height: 52,
+            borderRadius: "50% 50% 50% 8px",
+            background: "linear-gradient(135deg, #7a8a3a, #a8bf5a)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 6px 16px rgba(122,138,58,.4)",
+            animation: "afinarBob 2.4s ease-in-out infinite",
+          }}
+        >
+          <copy.Icon size={24} color="#fff" />
+        </div>
+
+        <div style={{ marginTop: 14 }}>
+          <h3 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.4px" }}>
+            {title}
+          </h3>
+          <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5a7a66", lineHeight: 1.45 }}>
+            Es difícil de compartir con toda la familia. Si quieres, esto es lo que haríamos:
+          </p>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+          {points.map((p, i) => (
+            <div
+              key={i}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                padding: "9px 11px", borderRadius: 12, background: "#f4f9f5",
+              }}
+            >
+              <span
+                style={{
+                  width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+                  background: "#e4efe7", display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <p.Icon size={16} color="#2d5a3d" />
+              </span>
+              <span style={{ fontSize: 12.5, color: "#33513e", lineHeight: 1.4 }}>{p.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <button
+            type="button"
+            onClick={() => onConfirm(true)}
+            style={{
+              width: "100%", padding: "12px 16px", borderRadius: 13, border: "none",
+              background: "linear-gradient(135deg, #7a8a3a, #a8bf5a)",
+              color: "#fff", fontSize: 14.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Sí, menú aparte
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(false)}
+            style={{
+              width: "100%", padding: "11px 16px", borderRadius: 13,
+              border: "1.5px solid #cfe0d4", background: "#fff", color: "#2d5a3d",
+              fontSize: 13.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            No, seguir con el menú familiar
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -5532,14 +5899,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                 .sl-freq::-moz-range-thumb { width: 13px; height: 13px; border: 1.5px solid var(--thumb-color, #2d5a3d); border-radius: 50%; background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,.25); cursor: pointer; }
               `}</style>
             )}
-            <div
-              style={{
-                background: "#fff",
-                border: "1px solid #e2ede6",
-                borderRadius: 14,
-                padding: "12px 14px",
-              }}
-            >
+            <div style={panelCardStyle}>
               <div
                     style={{
                       display: "flex",

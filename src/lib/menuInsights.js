@@ -5,6 +5,7 @@ import {
   getMeals,
   modeForGroupSlot,
 } from "./planner.js";
+import { foodGroupOf } from "./foodGroups.js";
 
 const FREQ_KEYS = ["verdura", "pescado", "legumbres"];
 const FREQ_LABELS = { verdura: "Verdura", pescado: "Pescado", legumbres: "Legumbres" };
@@ -38,9 +39,17 @@ function countCookSlotsForGroup(data, group, meals) {
 
 function countFreqTags(entries) {
   const counts = { verdura: 0, pescado: 0, legumbres: 0 };
-  for (const { recipe } of entries) {
-    for (const key of FREQ_KEYS) {
-      if (recipe.tags?.includes(key)) counts[key]++;
+  const bump = (recipe) => {
+    const group = foodGroupOf(recipe);
+    if (group in counts) counts[group]++;
+  };
+  for (const { recipe, slot } of entries) {
+    // Main dish (segundo / plato único) and, when present, the first course
+    // (primero) — usually where the vegetable goes, previously uncounted.
+    bump(recipe);
+    if (slot?.firstRecipeId) {
+      const first = RECIPES_BY_ID[slot.firstRecipeId];
+      if (first) bump(first);
     }
   }
   return counts;

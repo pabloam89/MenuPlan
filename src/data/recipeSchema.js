@@ -23,12 +23,26 @@ const DIFFICULTIES = ["elaborada", "facil", "normal"];
 
 const SEASONS = ["all", "invierno", "verano"];
 
+// The 14 UE allergens. The first 8 are the historical catalog vocabulary
+// (marisco = crustáceos, huevo = huevos, lactosa = leche, frutos_secos =
+// frutos de cáscara); the last 6 close the gap so future catalog/remote
+// recipes can declare them (see lib/allergens.js for the ingredient net that
+// backfills them on the existing 244 recipes).
 const ALLERGENS = [
   "frutos_secos", "gluten", "huevo", "lactosa", "marisco", "moluscos",
   "pescado", "sesamo",
+  "cacahuetes", "soja", "apio", "mostaza", "sulfitos", "altramuces",
 ];
 
 const UNITS = ["g", "ml", "ud"];
+
+// Coarse dietary signals for the "menú más cuidado" profiles. Optional and
+// usually derived at load time (lib/healthFlags.js), but a recipe may declare
+// them explicitly too.
+const HEALTH_FLAGS = [
+  "frito", "embutido", "alto_sodio", "picante", "acido",
+  "azucar_anadido", "rico_hierro",
+];
 
 const IngredientSchema = z.object({
   name: z.string().min(1),
@@ -68,6 +82,7 @@ export const RecipeSchema = z
     kidFriendly: z.boolean(),
     tupperFriendly: z.boolean(),
     allergens: z.array(z.enum(ALLERGENS)),
+    healthFlags: z.array(z.enum(HEALTH_FLAGS)).optional(),
     ingredients: z.array(IngredientSchema).min(1),
     steps: z.array(z.string().min(1)).min(1),
     description: z.string().min(1),
