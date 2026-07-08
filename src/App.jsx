@@ -633,28 +633,46 @@ export default function App() {
     (useIndividual) => {
       const prompt = individualPrompt;
       setIndividualPrompt(null);
-      if (!prompt || !useIndividual) return;
+      if (!prompt) return;
       const member = data.members.find((m) => m.id === prompt.memberId);
       if (!member) return;
+
+      if (!useIndividual) {
+        // Declined: leave the checkbox unmarked (drop the state) so there's no
+        // orphan "dieta blanda" without its own menu.
+        setData((d) => ({
+          ...d,
+          members: d.members.map((m) =>
+            m.id === member.id
+              ? { ...m, dietaryStates: (m.dietaryStates ?? []).filter((s) => s !== prompt.reason) }
+              : m,
+          ),
+        }));
+        return;
+      }
+
+      // Accepted: just set up the ad-hoc group and keep the checkbox marked.
+      // Don't generate or navigate here — the menu is generated as usual at the
+      // end of onboarding (goToMenu → regenerateMenu picks up data.groups), so
+      // the remaining steps (e.g. "cómo cocinas") aren't skipped.
       const homeGroup =
         data.groups.find((g) => !g.adHoc && g.memberIds.includes(member.id)) ?? null;
       const adHoc = createIndividualMenuGroup(member, homeGroup?.id ?? null, prompt.reason);
       // Take the member out of the shared menu for the duration so they don't
       // get two menus; they're restored on expiry (pruneExpiredIndividualMenus).
-      const nextGroups = [
-        ...data.groups.map((g) =>
-          homeGroup && g.id === homeGroup.id
-            ? { ...g, memberIds: g.memberIds.filter((id) => id !== member.id) }
-            : g,
-        ),
-        adHoc,
-      ];
-      const nextData = { ...data, groups: nextGroups };
-      setData(nextData);
-      setScreen("menu");
-      regenerateMenu(nextData);
+      setData((d) => ({
+        ...d,
+        groups: [
+          ...d.groups.map((g) =>
+            homeGroup && g.id === homeGroup.id
+              ? { ...g, memberIds: g.memberIds.filter((id) => id !== member.id) }
+              : g,
+          ),
+          adHoc,
+        ],
+      }));
     },
-    [individualPrompt, data, regenerateMenu],
+    [individualPrompt, data],
   );
 
   const stopGeneration = useCallback(() => {
