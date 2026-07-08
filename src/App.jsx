@@ -612,15 +612,20 @@ export default function App() {
     if (expired.length === 0) return;
     const expiredIds = new Set(expired.map((g) => g.id));
     const expiredMemberIds = new Set(expired.map((g) => g.sourceMemberId));
-    setData((d) => ({
-      ...d,
-      groups,
-      members: d.members.map((m) =>
-        expiredMemberIds.has(m.id)
-          ? { ...m, dietaryStates: (m.dietaryStates ?? []).filter((s) => s !== "dieta_blanda") }
-          : m,
-      ),
-    }));
+    setData((d) => {
+      const mealStructureByGroup = { ...(d.mealStructureByGroup ?? {}) };
+      for (const id of expiredIds) delete mealStructureByGroup[id];
+      return {
+        ...d,
+        groups,
+        mealStructureByGroup,
+        members: d.members.map((m) =>
+          expiredMemberIds.has(m.id)
+            ? { ...m, dietaryStates: (m.dietaryStates ?? []).filter((s) => s !== "dieta_blanda") }
+            : m,
+        ),
+      };
+    });
     setMenuPlan((mp) => {
       const next = { ...mp };
       for (const id of expiredIds) delete next[id];
@@ -670,6 +675,14 @@ export default function App() {
           ),
           adHoc,
         ],
+        // Inherit the meal structure (1 plato vs primero+segundo) from the
+        // member's home group, so their bland menu keeps the same 1/2-dish
+        // shape they picked for the family instead of defaulting to two.
+        mealStructureByGroup: {
+          ...(d.mealStructureByGroup ?? {}),
+          [adHoc.id]:
+            d.mealStructureByGroup?.[homeGroup?.id] ?? "primero_segundo",
+        },
       }));
     },
     [individualPrompt, data],
