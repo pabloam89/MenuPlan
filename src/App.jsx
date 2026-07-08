@@ -176,10 +176,11 @@ function migrate(state) {
         // temporary dietary states (embarazo, lactancia) — hard exclusions.
         intolerances: Array.isArray(m.intolerances) ? m.intolerances : [],
         dietaryStates: Array.isArray(m.dietaryStates) ? m.dietaryStates : [],
-        // Single "menú más cuidado" profile (glucemico | corazon | bajo_sodio
-        // | reflux | anemia | null). Replaces the old boolean `regimen`.
-        healthProfile:
-          typeof m.healthProfile === "string" && m.healthProfile ? m.healthProfile : null,
+        healthProfiles: Array.isArray(m.healthProfiles)
+          ? m.healthProfiles
+          : typeof m.healthProfile === "string" && m.healthProfile
+            ? [m.healthProfile]
+            : [],
         dislikes: Array.isArray(m.dislikes) ? m.dislikes : [],
         useBirthDate: Boolean(m.useBirthDate),
         birthDate: typeof m.birthDate === "string" ? m.birthDate : "",

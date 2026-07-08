@@ -1,5 +1,6 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import { normalizeAllergenId, recipeIngredientsHitAllergens } from "../lib/allergens.js";
+import { deriveHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
@@ -76,7 +77,9 @@ export function filterRecipes({
   const toolsLower = new Set(kitchenTools.map((t) => t.toLowerCase()));
   const season = currentSeason();
 
-  let pool = extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog;
+  let pool = extraRecipes.length > 0
+    ? [...recipeCatalog, ...extraRecipes.map((r) => r.healthFlags ? r : { ...r, healthFlags: deriveHealthFlags(r) })]
+    : recipeCatalog;
 
   // 0. Recipe-source mode (never applies to baby groups, which have their own
   // curated catalog). "only" = just the user's recipes; "catalog" = drop them.

@@ -332,7 +332,7 @@ export function buildGroupContext(data, group) {
       // proxy (no fritos/picante/ácido), so the individual menu comes out gentle.
       healthProfiles: Array.from(
         new Set([
-          ...groupMembers.map((m) => m.healthProfile).filter(Boolean),
+          ...groupMembers.flatMap((m) => m.healthProfiles ?? []),
           ...(group.adHoc && group.reason === "dieta_blanda" ? ["reflux"] : []),
         ]),
       ),

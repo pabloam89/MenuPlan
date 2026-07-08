@@ -911,7 +911,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
     dieta_blanda: "Dieta blanda",
   };
   const memberCareTags = (m) =>
-    [m.healthProfile, ...(m.dietaryStates ?? []), ...(m.intolerances ?? [])]
+    [...(m.healthProfiles ?? []), ...(m.dietaryStates ?? []), ...(m.intolerances ?? [])]
       .filter(Boolean)
       .map((id) => CARE_LABELS[id] ?? id);
   const membersWithRegimen = members.filter((m) => memberCareTags(m).length > 0);
@@ -1406,7 +1406,7 @@ function DishCard({
   // eaters) since aiPlanner biases the whole week's menu for the group, not
   // just individual slots.
   const groupMembers = group ? membersOfGroup(group, allMembers) : (eaterMembers ?? []);
-  const activeHealthProfiles = groupMembers.map((m) => m.healthProfile).filter(Boolean);
+  const activeHealthProfiles = groupMembers.flatMap((m) => m.healthProfiles ?? []);
   const healthBadges = matchingHealthProfiles(recipe.healthFlags, activeHealthProfiles);
 
   return (
@@ -2244,7 +2244,7 @@ export function DishDetail({
   const selectedMethod = selectMethodForRecipe(recipe, kitchenTools);
 
   const detailGroupMembers = group ? membersOfGroup(group, allMembers) : [];
-  const detailActiveHealthProfiles = detailGroupMembers.map((m) => m.healthProfile).filter(Boolean);
+  const detailActiveHealthProfiles = detailGroupMembers.flatMap((m) => m.healthProfiles ?? []);
   const healthBadges = matchingHealthProfiles(recipe.healthFlags, detailActiveHealthProfiles);
 
   // Opciones de preparación: la tradicional (base) + solo los electrodomésticos

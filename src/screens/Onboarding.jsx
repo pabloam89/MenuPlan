@@ -1384,7 +1384,7 @@ const INTOLERANCE_UI = [
   { id: "sorbitol", label: "Sorbitol", Icon: CircleDot, color: "#8a5a28" },
 ];
 
-// "Menú más cuidado" — one per member (member.healthProfile). Soft bias only.
+// "Menú más cuidado" — per member (member.healthProfiles[]). Soft bias only.
 // "Crónico" tab: structural conditions, no end date. Kept as a single flat
 // bias per condition — e.g. diabetes tipo 1/2/gestacional all want the same
 // food-level guidance (moderar carbs/azúcar), so splitting by subtype would
@@ -1482,21 +1482,9 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
   const toggleDietaryState = (_target, id) =>
     toggleScopeMembership((m) => m.dietaryStates ?? [], (m, list) => ({ ...m, dietaryStates: list }), id, eq);
 
-  // Single-value field: in Familia scope only reflect a value everyone shares.
-  const activeHealthProfile = (() => {
-    if (scopeMembers.length === 0) return null;
-    const first = scopeMembers[0].healthProfile ?? null;
-    return scopeMembers.every((m) => (m.healthProfile ?? null) === first) ? first : null;
-  })();
-  const setHealthProfile = (_target, id) =>
-    setData((d) => {
-      const targets = d.members.filter(inScope);
-      const allSet = targets.length > 0 && targets.every((m) => (m.healthProfile ?? null) === id);
-      return {
-        ...d,
-        members: d.members.map((m) => (inScope(m) ? { ...m, healthProfile: allSet ? null : id } : m)),
-      };
-    });
+  const activeHasHealthProfile = (id) => allScopeHave((m) => (m.healthProfiles ?? []).includes(id));
+  const toggleHealthProfile = (_target, id) =>
+    toggleScopeMembership((m) => m.healthProfiles ?? [], (m, list) => ({ ...m, healthProfiles: list }), id, eq);
 
   const addCustomAllergy = () => {
     const label = titleCase(customAllergy);
@@ -1681,9 +1669,9 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
                       Icon={opt.Icon}
                       color={opt.color}
                       label={opt.label}
-                      checked={activeHealthProfile === opt.id}
+                      checked={activeHasHealthProfile(opt.id)}
                       checkColor={activeMemberColor}
-                      onToggle={() => activeAllergyMemberId && setHealthProfile(activeAllergyMemberId, opt.id)}
+                      onToggle={() => activeAllergyMemberId && toggleHealthProfile(activeAllergyMemberId, opt.id)}
                       last={i === HEALTH_PROFILE_UI.length - 1}
                     />
                   ))}
