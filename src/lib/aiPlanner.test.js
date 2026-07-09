@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import {
   buildUserMessage,
   buildGroupContext,
@@ -9,7 +9,7 @@ import {
   pickCatalogReplacement,
   selectReplacementCandidates,
 } from "./aiPlanner.js";
-import { getCarbType } from "../utils/validateMenu.js";
+import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { filterRecipes } from "../utils/filterRecipes.js";
 
@@ -372,5 +372,233 @@ describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes err
     await expect(generateMenuWithAI(threeKidsData)).rejects.toThrow(
       /Solo quedan \d+ recetas tras filtrar/,
     );
+  });
+});
+
+// ── Multi-domain integration: rules that are only tested in isolation      ──
+// elsewhere in this file can still interact when generateGroupMenu runs the
+// FULL pipeline (LLM -> retries -> applyFallback -> 3b -> enforceFixedDishes
+// -> enforceSlotTypes -> pairGarnishes). These tests mock the LLM to always
+// return a deliberately non-compliant answer (so the deterministic machinery
+// — not the model — has to do all the work) and assert the FINAL output
+// satisfies every active domain simultaneously, via a real validateMenu()
+// call on the result. A test that only checked "the freq target is met" or
+// only "the school menu is respected" could pass while silently violating
+// the other — see the applyFallback/enforceFixedDishes unit tests above for
+// the underlying bugs this exercises.
+describe("generateGroupMenu: multiple rule domains active at once", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function mockLLMAlwaysReturns(slots) {
+    const text = JSON.stringify({ slots });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ content: [{ text }] }),
+      }),
+    );
+  }
+
+  it("satisfies an allergy, a weekly pescado target, and the school-menu carb/protein avoidance together — not just whichever rule ran last", async () => {
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 2 };
+    const data = {
+      members: [{ id: "m1", age: 35, allergies: ["Gluten"] }],
+      groups: [group],
+      schedule: {},
+      timeWeekday: 90,
+      timeWeekend: 90,
+      schoolMenus: {
+        shared: {},
+        byMember: {
+          m1: { "Lun-Primero": "Arroz con verduras", "Lun-Segundo": "Merluza a la plancha" },
+        },
+      },
+      freqs: { pescado: 1 },
+    };
+
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    expect(pool.length).toBeGreaterThan(10);
+
+    // Real, gluten-safe candidates, deliberately chosen so the *initial* LLM
+    // answer is wrong on two different domains at once: zero pescado anywhere
+    // (freq deficit) and an arroz-based dish on the exact cena the school
+    // already served arroz+pescado (school_carb_conflict, and would-be
+    // school_protein_conflict if a naive freq fix just swapped it for pescado).
+    const usedIds = new Set();
+    const pick = (pred) => {
+      const r = pool.find((c) => pred(c) && !usedIds.has(c.id));
+      expect(r, `no pool candidate matched a fixture predicate`).toBeTruthy();
+      usedIds.add(r.id);
+      return r;
+    };
+    const primero = (day) =>
+      pick((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico") && getCarbType(r) !== "arroz");
+    const segundoNoPescado = (day) =>
+      pick(
+        (r) =>
+          r.mealRole.includes("segundo") &&
+          r.category !== "pescados" &&
+          !["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein),
+      );
+    const cenaArroz = () =>
+      pick(
+        (r) =>
+          r.mealRole.includes("cena") &&
+          r.category !== "legumbres" &&
+          getCarbType(r) === "arroz" &&
+          !["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein),
+      );
+    const cenaNoPescadoNoArroz = () =>
+      pick(
+        (r) =>
+          r.mealRole.includes("cena") &&
+          r.category !== "legumbres" &&
+          getCarbType(r) !== "arroz" &&
+          !["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein),
+      );
+
+    const lunP = primero("lun");
+    const lunS = segundoNoPescado("lun");
+    const lunC = cenaArroz(); // the deliberately-wrong pick for lun_cena
+    const marP = primero("mar");
+    const marS = segundoNoPescado("mar");
+    const marC = cenaNoPescadoNoArroz();
+
+    mockLLMAlwaysReturns([
+      { slotId: "lun_comida_1", recipeId: lunP.id },
+      { slotId: "lun_comida_2", recipeId: lunS.id },
+      { slotId: "lun_cena", recipeId: lunC.id },
+      { slotId: "mar_comida_1", recipeId: marP.id },
+      { slotId: "mar_comida_2", recipeId: marS.id },
+      { slotId: "mar_cena", recipeId: marC.id },
+    ]);
+
+    const result = await generateGroupMenu(data, group);
+    expect(result.slotAssignments).toHaveLength(6);
+
+    // Nothing in the final menu carries the allergen (guaranteed upstream by
+    // filterRecipes, but assert it explicitly since it's one of the three
+    // domains under test).
+    for (const { recipeId } of result.slotAssignments) {
+      const r = recipeCatalogById[recipeId];
+      expect((r.allergens ?? []).some((a) => /gluten/i.test(a))).toBe(false);
+    }
+
+    // The strongest assertion: re-running validateMenu on the FINAL output
+    // (with the same achievable freqs generateGroupMenu itself computed) must
+    // report zero violations — every domain holds simultaneously, including
+    // on lun_cena specifically (the slot where the freq-fix and the
+    // school-avoidance rule could otherwise fight each other).
+    const { achievable } = splitAchievableFreqs(pool, data.freqs);
+    const finalCheck = validateMenu(result.slotAssignments, pool, ctx.slots, [], achievable);
+    expect(finalCheck.violations).toEqual([]);
+    expect(finalCheck.valid).toBe(true);
+
+    const lunCenaFinal = result.slotAssignments.find((s) => s.slotId === "lun_cena");
+    const lunCenaRecipe = recipeCatalogById[lunCenaFinal.recipeId];
+    expect(getCarbType(lunCenaRecipe)).not.toBe("arroz");
+    expect(["pescado_blanco", "pescado_azul", "marisco"]).not.toContain(lunCenaRecipe.mainProtein);
+
+    if (achievable.pescado) {
+      const pescadoCount = result.slotAssignments.filter(
+        (s) => recipeCatalogById[s.recipeId] && FREQ_KEY_MATCHERS.pescado(recipeCatalogById[s.recipeId]),
+      ).length;
+      expect(pescadoCount).toBeGreaterThanOrEqual(achievable.pescado);
+    }
+  });
+
+  it("keeps a fixed dish's forced weekly placements off the exact cena day the school already served its protein — while still honoring an active allergy", async () => {
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 4 };
+    // A pollo/cerdo/ternera-family cena dish — deliberately carne-based, so
+    // it collides with schoolProteinsToAvoid ["carne"] on the one day (lun)
+    // the school served pollo, exercising enforceFixedDishes' school-avoidance
+    // carve-out end to end (not just the fixedDishes.test.js unit tests).
+    const fixedRecipe = recipeCatalogById.carnes_002;
+    expect(fixedRecipe, "fixture depends on carnes_002 existing in the catalog").toBeTruthy();
+    expect(fixedRecipe.mealRole).toContain("cena");
+    expect(["pollo", "pavo", "cerdo", "ternera"]).toContain(fixedRecipe.mainProtein);
+
+    const data = {
+      members: [{ id: "m1", age: 35, allergies: ["Marisco"] }],
+      groups: [group],
+      schedule: {},
+      timeWeekday: 90,
+      timeWeekend: 90,
+      schoolMenus: {
+        shared: {},
+        byMember: {
+          m1: { "Lun-Primero": "Ensalada mixta", "Lun-Segundo": "Pollo asado" },
+        },
+      },
+      // timesPerWeek 2 with 3 non-conflicting cena days (mar/mie/jue) free —
+      // the avoidance carve-out has enough room to satisfy the guarantee
+      // without ever falling back onto the conflicting lun_cena slot.
+      fixedDishes: [
+        { name: fixedRecipe.name, catalogId: fixedRecipe.id, timesPerWeek: 2, meals: ["Cena"] },
+      ],
+    };
+
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    expect(pool.length).toBeGreaterThan(10);
+    expect(ctx.slots.find((s) => s.slotId === "lun_cena")?.schoolProteinsToAvoid).toEqual(["carne"]);
+
+    // A wrong-but-non-repetitive initial LLM answer: distinct, non-carne
+    // dishes per slot, so the only violations validateMenu should find are
+    // the ones this test deliberately set up (fixed-dish placement + school
+    // avoidance), not incidental noise from e.g. recipeId_repetido cascades.
+    const notCarneOrFixed = (r) =>
+      r.id !== fixedRecipe.id && !["pollo", "pavo", "cerdo", "ternera"].includes(r.mainProtein);
+    const used = new Set([fixedRecipe.id]);
+    const pickDistinct = (pred) => {
+      const r = pool.find((c) => pred(c) && notCarneOrFixed(c) && !used.has(c.id));
+      expect(r, "no distinct pool candidate matched a fixture predicate").toBeTruthy();
+      used.add(r.id);
+      return r;
+    };
+    mockLLMAlwaysReturns(
+      ["lun", "mar", "mie", "jue"].flatMap((d) => [
+        {
+          slotId: `${d}_comida_1`,
+          recipeId: pickDistinct((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico")).id,
+        },
+        { slotId: `${d}_comida_2`, recipeId: pickDistinct((r) => r.mealRole.includes("segundo")).id },
+        { slotId: `${d}_cena`, recipeId: pickDistinct((r) => r.mealRole.includes("cena")).id },
+      ]),
+    );
+
+    const result = await generateGroupMenu(data, group);
+
+    // Allergy domain: nothing in the final menu carries a marisco allergen.
+    for (const { recipeId } of result.slotAssignments) {
+      const r = recipeCatalogById[recipeId];
+      expect((r.allergens ?? []).some((a) => /marisco/i.test(a))).toBe(false);
+    }
+
+    // Fixed-dish domain: the dish appears exactly timesPerWeek (2) times
+    // among the cena slots it was fixed for.
+    const fixedCenaPlacements = result.slotAssignments.filter(
+      (s) => s.slotId.endsWith("_cena") && s.recipeId === fixedRecipe.id,
+    );
+    expect(fixedCenaPlacements).toHaveLength(2);
+
+    // School domain: the fixed dish must never land on lun_cena, since that's
+    // exactly the day/slot the school's "carne" course already covered.
+    const lunCena = result.slotAssignments.find((s) => s.slotId === "lun_cena");
+    expect(lunCena.recipeId).not.toBe(fixedRecipe.id);
+
+    // Re-validating the whole final menu confirms every domain holds
+    // simultaneously — not just the fixed-dish guarantee in isolation.
+    // recipeId_repetido is expected and excluded here: a fixed dish
+    // appearing timesPerWeek > 1 times is an intentional, sanctioned repeat
+    // that validateMenu's generic rule 6 has no way to distinguish from an
+    // accidental one.
+    const finalCheck = validateMenu(result.slotAssignments, pool, ctx.slots, [], {});
+    const unexpected = finalCheck.violations.filter((v) => v.rule !== "recipeId_repetido");
+    expect(unexpected).toEqual([]);
   });
 });
