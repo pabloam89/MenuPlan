@@ -279,9 +279,14 @@ export function buildGroupContext(data, group) {
           // Single complete dish: only one slot, no primero+segundo.
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico", preferType: "plato_unico" });
         } else {
-          const primeroMaxTime = Math.max(20, Math.round(maxTime * 0.4));
+          // The user reads the cook-time slider as the budget for the WHOLE
+          // comida, not per dish. So split it (primeros are quicker → 40%,
+          // segundos get the rest → ~60%) instead of giving each the full max,
+          // which used to let primero+segundo sum up to 1.4× the limit.
+          const primeroMaxTime = Math.max(10, Math.round(maxTime * 0.4));
+          const segundoMaxTime = Math.max(10, maxTime - primeroMaxTime);
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" });
-          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_2`, position: "segundo" });
+          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: segundoMaxTime, slotId: `${daySlug}_comida_2`, position: "segundo" });
         }
       } else {
         const isQuick = slotTypeSel === "rapida";

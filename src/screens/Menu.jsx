@@ -5,6 +5,7 @@ import {
   Blend,
   BookOpen,
   BookOpenCheck,
+  CalendarDays,
   Check,
   ChefHat,
   ChevronDown,
@@ -29,7 +30,6 @@ import {
   RotateCw,
   Salad,
   Shell,
-  ShoppingBasket,
   SlidersHorizontal,
   Share2,
   ShoppingCart,
@@ -61,8 +61,7 @@ import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
-import { OnboardingRestrictions } from "./Onboarding.jsx";
-import { PantryInput } from "../components/PantryInput.jsx";
+import { OnboardingRestrictions, OnboardingMealStyle } from "./Onboarding.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, isLunchMeal, dayLabel, modeForGroupSlot } from "../lib/planner.js";
@@ -934,6 +933,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const snapshotRef = useRef(JSON.stringify({ cookLevel: data.cookLevel, kitchenTools: data.kitchenTools }));
   const [confirmRegen, setConfirmRegen] = useState(false);
   const [editingAvoid, setEditingAvoid] = useState(false);
+  const [editingStyle, setEditingStyle] = useState(false);
 
   const wrappedSetData = (updater) => {
     setData(updater);
@@ -973,61 +973,155 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   // instead of duplicating member-scoped allergen logic here — editing marks
   // the profile dirty so closing this sheet prompts regeneration as usual.
   if (editingAvoid) {
+    // Rendered standalone (outside the onboarding flow) OnboardingShell has no
+    // width cap, so it sprawled edge-to-edge. Wrap it in the same centered
+    // mobile viewport the rest of the app uses so it stays consistent.
     return createPortal(
-      <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "#f5f9f6" }}>
-        <OnboardingRestrictions
-          data={data}
-          setData={wrappedSetData}
-          onNext={() => setEditingAvoid(false)}
-          nextLabel="Guardar"
-        />
+      <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(20,47,29,.28)", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: 420, height: "100dvh", background: "#f5f9f6", boxShadow: "0 0 40px rgba(0,0,0,.18)" }}>
+          <OnboardingRestrictions
+            data={data}
+            setData={wrappedSetData}
+            onNext={() => setEditingAvoid(false)}
+            onBack={() => setEditingAvoid(false)}
+            nextLabel="Guardar"
+          />
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  // "A tu gusto" reuses the full onboarding meal-style editor (presets +
+  // per-food "veces/semana" stepper) so fine-tuning here is identical to the
+  // onboarding step, no duplicated logic.
+  if (editingStyle) {
+    return createPortal(
+      <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(20,47,29,.28)", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: 420, height: "100dvh", background: "#f5f9f6", boxShadow: "0 0 40px rgba(0,0,0,.18)" }}>
+          <OnboardingMealStyle
+            data={data}
+            setData={wrappedSetData}
+            onNext={() => setEditingStyle(false)}
+            onBack={() => setEditingStyle(false)}
+            nextLabel="Guardar"
+          />
+        </div>
       </div>,
       document.body
     );
   }
 
   if (confirmRegen) {
+    const regenPoints = [
+      {
+        Icon: SlidersHorizontal,
+        text: <>Aplicaremos <strong>tus nuevos ajustes</strong> (alergias, estilo, tiempos…) al menú.</>,
+      },
+      {
+        Icon: CalendarDays,
+        text: <>Se generará un <strong>menú nuevo</strong> para las mismas fechas; el actual se reemplaza.</>,
+      },
+    ];
     return createPortal(
       <div
         style={{
-          position: "fixed", inset: 0, background: "rgba(0,0,0,.5)",
-          zIndex: 160, display: "flex", alignItems: "center", justifyContent: "center",
-          padding: "0 24px",
+          position: "fixed", inset: 0, zIndex: 260,
+          background: "rgba(20,47,29,.32)", backdropFilter: "blur(2px)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "0 16px", animation: "afinarFadeIn .2s ease",
         }}
+        onClick={() => { setConfirmRegen(false); onClose(); }}
       >
-        <div style={{
-          background: "#fff", borderRadius: 20, padding: "28px 22px 22px",
-          width: "100%", maxWidth: 340, textAlign: "center",
-        }}>
-          <p style={{ margin: "0 0 6px", fontSize: 17, fontWeight: 900, color: "#142f1d" }}>
-            ¿Generar nuevo menú?
-          </p>
-          <p style={{ margin: "0 0 22px", fontSize: 13, color: "#526057", lineHeight: 1.5 }}>
-            Has cambiado tu perfil. ¿Quieres que generemos un menú nuevo con estas condiciones?
-          </p>
-          <button
-            type="button"
-            onClick={() => { setConfirmRegen(false); onClose(); onRegenerate(); }}
+        <style>{`
+          @keyframes afinarFadeIn { from { opacity: 0; } to { opacity: 1; } }
+          @keyframes afinarPop {
+            0%   { opacity: 0; transform: translateY(18px) scale(.94); }
+            60%  { transform: translateY(-3px) scale(1.01); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          @keyframes afinarBob {
+            0%, 100% { transform: translateY(0) rotate(-4deg); }
+            50%      { transform: translateY(-4px) rotate(-4deg); }
+          }
+        `}</style>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            position: "relative", width: "100%", maxWidth: 380,
+            background: "#fff", borderRadius: 24, padding: "22px 20px 18px",
+            boxShadow: "0 18px 50px rgba(20,47,29,.32)",
+            animation: "afinarPop .38s cubic-bezier(.34,1.56,.5,1) both",
+          }}
+        >
+          <div
             style={{
-              width: "100%", padding: "13px", borderRadius: 12, border: "none",
-              background: "#2d5a3d", color: "#fff", fontSize: 14, fontWeight: 800,
-              cursor: "pointer", fontFamily: "inherit", marginBottom: 10,
+              position: "absolute", top: -26, left: 22, width: 52, height: 52,
+              borderRadius: "50% 50% 50% 8px",
+              background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 6px 16px rgba(45,90,61,.4)",
+              animation: "afinarBob 2.4s ease-in-out infinite",
             }}
           >
-            Sí, generar nuevo menú
-          </button>
-          <button
-            type="button"
-            onClick={() => { setConfirmRegen(false); onClose(); }}
-            style={{
-              width: "100%", padding: "13px", borderRadius: 12,
-              border: "1.5px solid #dde8e0", background: "#fff",
-              color: "#526057", fontSize: 14, fontWeight: 700,
-              cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            No, solo guardar cambios
-          </button>
+            <Wand2 size={24} color="#fff" />
+          </div>
+
+          <div style={{ marginTop: 14 }}>
+            <h3 style={{ margin: "0 0 5px", fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.4px" }}>
+              ¿Generar nuevo menú?
+            </h3>
+            <p style={{ margin: "0 0 14px", fontSize: 13, color: "#5a7a66", lineHeight: 1.45 }}>
+              Has cambiado tu perfil. Esto es lo que haríamos si generamos de nuevo:
+            </p>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+            {regenPoints.map((p, i) => (
+              <div
+                key={i}
+                style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "9px 11px", borderRadius: 12, background: "#f4f9f5",
+                }}
+              >
+                <span
+                  style={{
+                    width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+                    background: "#e4efe7", display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <p.Icon size={16} color="#2d5a3d" />
+                </span>
+                <span style={{ fontSize: 12.5, color: "#33513e", lineHeight: 1.4 }}>{p.text}</span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <button
+              type="button"
+              onClick={() => { setConfirmRegen(false); onClose(); onRegenerate(); }}
+              style={{
+                width: "100%", padding: "12px 16px", borderRadius: 13, border: "none",
+                background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+                color: "#fff", fontSize: 14.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              Sí, generar nuevo menú
+            </button>
+            <button
+              type="button"
+              onClick={() => { setConfirmRegen(false); onClose(); }}
+              style={{
+                width: "100%", padding: "11px 16px", borderRadius: 13,
+                border: "1.5px solid #cfe0d4", background: "#fff", color: "#2d5a3d",
+                fontSize: 13.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              No, solo guardar cambios
+            </button>
+          </div>
         </div>
       </div>,
       document.body
@@ -1088,25 +1182,25 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           }}
         >
         {/* ── Qué evitamos ── */}
+        {/* Like the rest of the sections, expanding shows the current state and
+            tapping it lets you edit (no separate "Editar" pill). The whole
+            summary is a button that opens the full allergy/dislikes editor. */}
         <AccordionSection
           title="Qué evitamos"
           icon={UtensilsCrossed}
-          action={
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setEditingAvoid(true); }}
-              style={{
-                flexShrink: 0, border: "1.5px solid #c8ddd0", background: "#fff",
-                color: "#2d5a3d", fontSize: 12, fontWeight: 700, borderRadius: 20,
-                padding: "5px 12px", cursor: "pointer", fontFamily: "inherit",
-              }}
-            >
-              Editar
-            </button>
-          }
         >
+          <button
+            type="button"
+            onClick={() => setEditingAvoid(true)}
+            style={{
+              width: "100%", textAlign: "left", border: "none", background: "transparent",
+              padding: 0, cursor: "pointer", fontFamily: "inherit",
+              display: "flex", alignItems: "flex-start", gap: 8,
+            }}
+          >
+          <div style={{ flex: 1, minWidth: 0 }}>
           {membersWithAllergies.length === 0 && membersWithRegimen.length === 0 && dislikes.length === 0 ? (
-            <span style={{ fontSize: 12, color: "#9ab0a1" }}>—</span>
+            <span style={{ fontSize: 12, color: "#9ab0a1" }}>Toca para añadir alergias, intolerancias o lo que no os gusta.</span>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {membersWithAllergies.map((m) => {
@@ -1174,16 +1268,11 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
               )}
             </div>
           )}
+          </div>
+          </button>
         </AccordionSection>
 
-        {/* ── Tu despensa ── */}
-        <AccordionSection title="Tu despensa" icon={ShoppingBasket}>
-          <p style={{ margin: "0 0 10px", fontSize: 12, color: "#9ab0a1", lineHeight: 1.4 }}>
-            Lo que añadas aquí se tiene en cuenta la próxima vez que generes el menú
-            y se descuenta de la lista de la compra.
-          </p>
-          <PantryInput onSaved={() => { snapshotRef.current = "__dirty__"; }} />
-        </AccordionSection>
+        {/* ── Tu despensa — oculto de momento (feature en pausa) ── */}
 
         {/* ── Qué repetimos ── */}
         <AccordionSection title="Qué repetimos" icon={RotateCcw}>
@@ -1236,16 +1325,17 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
               />
             </div>
           )}
-          <div style={{ display: "flex", gap: 7 }}>
-            {/* "Personalizado" is an onboarding-only advanced mode (needs the
-                stepper editor); here we only offer the quick presets. */}
-            {MEAL_STYLES.filter((s) => s.id !== "personalizado").map((s) => {
+          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+            {/* Presets + "A tu gusto": the last one opens the full onboarding
+                food-frequency editor so you can fine-tune the chosen style. */}
+            {MEAL_STYLES.map((s) => {
               const sel = activeStyle === s.id;
+              const isCustom = s.id === "personalizado";
               return (
                 <button
                   key={s.id}
                   type="button"
-                  onClick={() => selectStyle(s.id)}
+                  onClick={() => (isCustom ? setEditingStyle(true) : selectStyle(s.id))}
                   style={mealStyleCardStyle(sel)}
                 >
                   {sel && (
@@ -2240,7 +2330,14 @@ export function DishDetail({
   );
   const stepsCacheRef = useRef({});
   const ingredients = scaledIngredients(recipe, slot.eaters);
-  const macros = recipe.macros;
+  // Fall back to the flat protein_g/carbs_g/fat_g shape (raw catalog / user
+  // recipes) and finally to 0, so a recipe without a hydrated `macros` object
+  // never crashes the detail view.
+  const macros = recipe.macros ?? {
+    protein: recipe.protein_g ?? 0,
+    carbs: recipe.carbs_g ?? 0,
+    fat: recipe.fat_g ?? 0,
+  };
   const selectedMethod = selectMethodForRecipe(recipe, kitchenTools);
 
   const detailGroupMembers = group ? membersOfGroup(group, allMembers) : [];
@@ -2372,11 +2469,51 @@ export function DishDetail({
 
         <div style={{ padding: "18px 2px 0" }}>
           {(onSetFavoriteScope || recipe.owner || recipe.rating || browse) && (
-            <div style={{ display: "flex", alignItems: "stretch", gap: 10, marginBottom: 14 }}>
-              {/* Favoritear — own bordered section. Top row (button) lines up with
-                  the owner row on the right; bottom row (Para) lines up with thumbs. */}
+            <div style={{ marginBottom: 14, borderRadius: 16, background: "#fff", border: "2px solid #2d5a3d", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
+              {/* Row 1 — owner + date on the left, votes on the right, all in a
+                  single horizontal line. */}
+              {(recipe.owner || recipe.rating || browse) && (
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  {recipe.owner?.avatar ? (
+                    <img
+                      src={recipe.owner.avatar}
+                      alt={recipe.owner.name ?? ""}
+                      style={{ width: 30, height: 30, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
+                    />
+                  ) : (
+                    <MenuPlanBadge size={30} />
+                  )}
+                  <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+                    <span style={{ fontSize: 13.5, fontWeight: 800, color: recipe.owner ? "#2f6fb8" : "#2d5a3d" }}>
+                      {recipe.owner ? (recipe.owner.name ?? "Tú") : "MenuPlan"}
+                    </span>
+                    {recipe.createdAt && (
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#9ab0a1" }}>
+                        · {formatRecipeDate(recipe.createdAt)}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ flexShrink: 0 }}>
+                    <RecipeVoteCounts
+                      up={recipe.rating?.up ?? 0}
+                      down={recipe.rating?.down ?? 0}
+                      userVote={userVote}
+                      onVote={onVote}
+                      textSize={13}
+                      iconSize={16}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Divider between the owner/votes row and the favorite row. */}
+              {onSetFavoriteScope && (recipe.owner || recipe.rating || browse) && (
+                <div style={{ height: 1, background: "#eef3f0" }} />
+              )}
+
+              {/* Row 2 — favorite toggle + the groups it applies to. */}
               {onSetFavoriteScope && (
-                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 10, padding: "12px 14px", borderRadius: 16, background: "#fff", border: "2px solid #2d5a3d" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
                   <button
                     type="button"
                     onClick={() => {
@@ -2385,10 +2522,9 @@ export function DishDetail({
                     }}
                     aria-label={isFavorite ? "Quitar de favoritas" : "Añadir a favoritas"}
                     style={{
-                      display: "inline-flex", alignItems: "center", gap: 8, alignSelf: "flex-start",
+                      display: "inline-flex", alignItems: "center", gap: 8,
                       padding: 0, cursor: "pointer", flexShrink: 0,
-                      border: "none", background: "transparent",
-                      fontFamily: "inherit",
+                      border: "none", background: "transparent", fontFamily: "inherit",
                     }}
                   >
                     <span
@@ -2437,40 +2573,6 @@ export function DishDetail({
                       ))}
                     </button>
                   )}
-                </div>
-              )}
-
-              {/* Likear — own bordered section. Owner row lines up with the favorito
-                  button; thumbs row lines up with Para. */}
-              {(recipe.owner || recipe.rating || browse) && (
-                <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 8, padding: "12px 14px", borderRadius: 16, background: "#fff", border: "2px solid #2d5a3d" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    {recipe.owner?.avatar ? (
-                      <img
-                        src={recipe.owner.avatar}
-                        alt={recipe.owner.name ?? ""}
-                        style={{ width: 18, height: 18, borderRadius: 6, objectFit: "cover", flexShrink: 0 }}
-                      />
-                    ) : (
-                      <MenuPlanBadge size={18} />
-                    )}
-                    <span style={{ fontSize: 13, fontWeight: 800, color: recipe.owner ? "#2f6fb8" : "#2d5a3d" }}>
-                      {recipe.owner ? (recipe.owner.name?.split(" ")[0] ?? "Tú") : "MenuPlan"}
-                    </span>
-                  </div>
-                  {recipe.createdAt && (
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "#9ab0a1" }}>
-                      {formatRecipeDate(recipe.createdAt)}
-                    </span>
-                  )}
-                  <RecipeVoteCounts
-                    up={recipe.rating?.up ?? 0}
-                    down={recipe.rating?.down ?? 0}
-                    userVote={userVote}
-                    onVote={onVote}
-                    textSize={13}
-                    iconSize={16}
-                  />
                 </div>
               )}
             </div>

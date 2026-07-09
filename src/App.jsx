@@ -61,8 +61,10 @@ import {
   upsertUserRecipe,
   upsertUserRecipes,
   updateRecipeVisibility,
+  deleteUserRecipe,
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
+import { buildGarnishComboRecipe } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
@@ -377,11 +379,16 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
-  // User-created recipes must live in RECIPES_BY_ID for DishDetail.
+  // User-created recipes must live in RECIPES_BY_ID for DishDetail — but in the
+  // "frontend" shape (macros object, scaled ingredients), not the raw catalog
+  // shape (flat protein_g/…). Registering them raw made DishDetail crash on
+  // recipe.macros.protein when a user opened their own recipe from the catalog.
   useEffect(() => {
     const own = data.userRecipes ?? [];
-    if (own.length > 0) registerRecipes(own);
-  }, [data.userRecipes]);
+    if (own.length === 0) return;
+    const eaters = Math.max(1, data.members?.length || 4);
+    registerRecipes(own.map((r) => catalogToFrontendRecipe(r, eaters)));
+  }, [data.userRecipes, data.members]);
 
   const { user, signInWithGoogle, signOut } = useAuth();
 
@@ -705,6 +712,8 @@ export default function App() {
   const dirRef = useRef("forward");
   // Track which screen opened the recipe planner so we can return there on close.
   const recipePlannerOriginRef = useRef("dashboard");
+  // When set, the recipe planner opens in "edit" mode for this user recipe.
+  const [editingRecipe, setEditingRecipe] = useState(null);
   const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
   const back = (fn) => { dirRef.current = "backward"; fn(); };
 
@@ -1293,7 +1302,7 @@ export default function App() {
                 onViewMenu={goToMenuFromDashboard}
                 onGenerateNewMenu={handleGenerateMenu}
                 onOpenAnalytics={() => fwd(() => setScreen("analytics"))}
-                onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "dashboard"; fwd(() => setScreen("recipePlanner")); }}
+                onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "dashboard"; setEditingRecipe(null); fwd(() => setScreen("recipePlanner")); }}
                 onOpenRecipes={() => fwd(() => setScreen("recipes"))}
               />
             </Suspense>
@@ -1313,7 +1322,8 @@ export default function App() {
                 onSetFavoriteScope={handleSetFavoriteScope}
                 onOpenRecipe={handleOpenCatalogRecipe}
                 onNav={handleNav}
-                onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "recipes"; fwd(() => setScreen("recipePlanner")); }}
+                onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "recipes"; setEditingRecipe(null); fwd(() => setScreen("recipePlanner")); }}
+                onEditRecipe={(recipe) => { recipePlannerOriginRef.current = "recipes"; setEditingRecipe(recipe); fwd(() => setScreen("recipePlanner")); }}
                 onChangeRecipeVisibility={(recipeId, visibility) => {
                   setData((d) => ({
                     ...d,
@@ -1322,6 +1332,23 @@ export default function App() {
                     ),
                   }));
                   if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
+                }}
+                onDeleteRecipe={(recipeId) => {
+                  setData((d) => ({
+                    ...d,
+                    userRecipes: (d.userRecipes ?? []).filter((r) => (r.id ?? r.name) !== recipeId),
+                  }));
+                  if (user?.id) deleteUserRecipe(user.id, recipeId);
+                  showToast("Receta eliminada");
+                }}
+                onCombineGarnish={(recipe, garnish) => {
+                  if (!garnish) return;
+                  const combo = buildGarnishComboRecipe(recipe, garnish);
+                  setData((d) => ({ ...d, userRecipes: [...(d.userRecipes ?? []), combo] }));
+                  const eaters = Math.max(1, data.members?.length || 4);
+                  registerRecipes([catalogToFrontendRecipe(combo, eaters)]);
+                  if (user?.id) upsertUserRecipe(user.id, combo);
+                  showToast(`Guardada en Mis recetas: ${combo.name}`);
                 }}
               />
             </Suspense>
@@ -1378,10 +1405,15 @@ export default function App() {
                 userRecipes={data.userRecipes}
                 user={user}
                 setData={setData}
-                onClose={() => back(() => setScreen(recipePlannerOriginRef.current ?? "dashboard"))}
-                onSaved={(recipe) => {
-                  showToast("Receta creada con IA");
+                editRecipe={editingRecipe}
+                onClose={() => { setEditingRecipe(null); back(() => setScreen(recipePlannerOriginRef.current ?? "dashboard")); }}
+                onSaved={(recipe, { edited } = {}) => {
+                  showToast(edited ? "Receta actualizada" : "Receta creada con IA");
                   if (user?.id && recipe) upsertUserRecipe(user.id, recipe);
+                  setEditingRecipe(null);
+                  // Saving takes you straight Home (dashboard), not back into
+                  // the wizard's success screen.
+                  goToDashboard();
                 }}
               />
             </Suspense>

@@ -217,6 +217,72 @@ export function buildUserRecipeId() {
 }
 
 /**
+ * Builds a "combo" user recipe from a catalog dish + a garnish, so a user can
+ * save a MenuPlan catalog recipe paired with the side they like into "Mis
+ * recetas". From there it joins the pool like any other own recipe and is
+ * favored/excluded by the general recipeMode setting (preferir/solo mías).
+ *
+ * Macros are per-ración: the garnish JSON stores them per its own baseServings,
+ * so we normalize before adding. Ingredients are re-scaled to the dish's
+ * baseServings and merged. Time is the max (dishes cook in parallel).
+ *
+ * @param {object} recipe - catalog recipe (protein_g/… flat shape)
+ * @param {object} garnish - guarniciones.json entry
+ * @returns {object} a new user recipe (source: "user"), not yet persisted
+ */
+export function buildGarnishComboRecipe(recipe, garnish) {
+  const gPer = garnish.baseServings ?? 1;
+  const baseServings = recipe.baseServings ?? gPer;
+  const perServing = (v) => Math.round((Number(v) || 0) / gPer);
+  const factor = baseServings / gPer;
+
+  const garnishIngredients = (garnish.ingredients ?? []).map((ing) => {
+    let amount = ing.amount != null ? ing.amount * factor : ing.amount;
+    if (amount != null) {
+      if (ing.unit === "g" || ing.unit === "ml") {
+        amount = Math.max(5, Math.round(amount / 5) * 5);
+      } else {
+        amount = Math.ceil(amount);
+      }
+    }
+    return { name: ing.name, amount, unit: ing.unit };
+  });
+
+  const shortGarnish = garnish.shortName ?? garnish.name;
+
+  return {
+    id: buildUserRecipeId(),
+    name: `${recipe.name} con ${shortGarnish}`,
+    category: recipe.category,
+    mainProtein: recipe.mainProtein ?? "none",
+    mealRole: recipe.mealRole ?? ["segundo"],
+    usageTags: deriveUsageTagsFromType(recipe.type),
+    type: recipe.type ?? "principal",
+    time: Math.max(recipe.time ?? 0, garnish.time ?? 0),
+    difficulty: recipe.difficulty ?? "normal",
+    season: recipe.season ?? "all",
+    kcal: (Number(recipe.kcal) || 0) + perServing(garnish.kcal),
+    protein_g: (Number(recipe.protein_g) || 0) + perServing(garnish.protein_g),
+    carbs_g: (Number(recipe.carbs_g) || 0) + perServing(garnish.carbs_g),
+    fat_g: (Number(recipe.fat_g) || 0) + perServing(garnish.fat_g),
+    baseServings,
+    kidFriendly: Boolean(recipe.kidFriendly),
+    tupperFriendly: Boolean(recipe.tupperFriendly),
+    allergens: [...new Set([...(recipe.allergens ?? []), ...(garnish.allergens ?? [])])],
+    ingredients: [...(recipe.ingredients ?? []), ...garnishIngredients],
+    steps: [...(recipe.steps ?? []), ...(garnish.steps ?? [])],
+    description: `${recipe.description || recipe.name} con ${shortGarnish}`,
+    // Provenance so the combo is traceable back to the catalog dish + garnish.
+    linkedCatalogId: recipe.id,
+    pinnedGarnishId: garnish.id,
+    requiredAppliances: undefined,
+    methods: [],
+    source: "user",
+    createdAt: Date.now(),
+  };
+}
+
+/**
  * Generates a dish photo through the server-side `/api/generate-dish-photo`
  * proxy, which keeps GEMINI_AI_STUDIO_KEY off the client and reuses the exact
  * same fixed style formula as the curated catalog (see
@@ -384,6 +450,59 @@ function normalizeUnit(value) {
     if (regex.test(text)) return id;
   }
   return value;
+}
+
+// Lightweight, name-only ingredient suggester used to PRE-FILL the ingredient
+// step of the recipe wizard (so the user starts from a plausible list instead
+// of a blank slate and can tweak/remove). Deliberately separate from the full
+// draft: fewer tokens, faster, and the user is still in control (these are
+// suggestions, not the final recipe).
+const SUGGEST_INGREDIENTS_SYSTEM = `Eres un cocinero español. Recibes el NOMBRE de un plato casero y el número de raciones, y devuelves SOLO un JSON válido (sin markdown ni texto fuera del JSON) con una lista realista de ingredientes típicos para prepararlo.
+
+Reglas:
+- Devuelve un objeto: { "ingredients": [ { "name": string, "amount": number, "unit": string } ] }.
+- Entre 4 y 10 ingredientes, los más habituales y representativos del plato. No inventes rarezas.
+- "unit": usa "g", "ml" o "ud" para cantidades medibles; usa "al gusto", "pizca" o "c/n" para sal, especias o aceite de freír (en esos casos NO incluyas "amount").
+- Cantidades realistas para el total de raciones indicado.
+- Nombres cortos en español (ej. "Cebolla", "Aceite de oliva", "Pechuga de pollo").
+- Si no reconoces el plato, devuelve igualmente tu mejor estimación.`;
+
+/**
+ * Suggests a plausible ingredient list from just a dish name. Used to pre-fill
+ * the wizard's ingredient step. Returns [] on empty name; throws AIPlannerError
+ * on failure so the caller can fall back to a blank list silently.
+ *
+ * @param {string} name
+ * @param {{ servings?: number, signal?: AbortSignal }} [opts]
+ * @returns {Promise<Array<{name:string, amount?:number, unit:string}>>}
+ */
+export async function suggestRecipeIngredients(name, { servings = 4, signal } = {}) {
+  const clean = String(name || "").trim();
+  if (!clean) return [];
+  const body = {
+    model: FAST_MODEL,
+    max_tokens: 500,
+    system: SUGGEST_INGREDIENTS_SYSTEM,
+    messages: [{ role: "user", content: JSON.stringify({ name: clean, servings }) }],
+  };
+  let parsed;
+  try {
+    const text = await callModel(body, signal);
+    parsed = extractJson(text);
+  } catch (err) {
+    if (err instanceof AIPlannerError) throw err;
+    throw new AIPlannerError("No se pudieron sugerir ingredientes.", { cause: err });
+  }
+  const list = Array.isArray(parsed?.ingredients) ? parsed.ingredients : [];
+  return list
+    .filter((i) => i && typeof i.name === "string" && i.name.trim())
+    .map((i) => {
+      const unit = normalizeUnit(i.unit);
+      const out = { name: i.name.trim(), unit };
+      if (!isQualitativeUnit(unit)) out.amount = Number(i.amount) || 0;
+      return out;
+    })
+    .slice(0, 12);
 }
 
 // What the AI is asked to fill in / return. Name, ingredients, time and

@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -69,7 +69,6 @@ import {
   ScopeCircle,
 } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
-import { PantryInput } from "../components/PantryInput.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
@@ -2479,6 +2478,21 @@ export function AfinarWizardBubble({ onClose, visibleSteps }) {
           animation: "afinarPop .38s cubic-bezier(.34,1.56,.5,1) both",
         }}
       >
+        {/* Cancel — informational bubble, so a plain close in the corner */}
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Cerrar"
+          style={{
+            position: "absolute", top: 12, right: 12, zIndex: 1,
+            width: 30, height: 30, borderRadius: 999, border: "none",
+            background: "#f0f4f1", cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <X size={17} color="#5a7a66" />
+        </button>
+
         {/* cartoon mascot bubble */}
         <div
           style={{
@@ -5433,7 +5447,7 @@ export function mealStyleIconStyle(selected) {
   };
 }
 
-export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, onReset }) {
+export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
   // Seed groups if the user skipped MenuModel, so per-menu tabs have anchors.
   useEffect(() => {
     if (!Array.isArray(data.groups) || data.groups.length === 0) {
@@ -5627,6 +5641,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
       title="¿Cómo os gusta comer?"
       subtitle="Elige el estilo de cada menú. Podrás cambiarlo cuando quieras."
       nextDisabled={customOverBudget}
+      nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -7121,12 +7136,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 
       <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 20px" }} />
 
-      {/* Despensa — surfaced early (not buried after tools/time) since it's
-          easy to miss otherwise; opcional, el menú se genera igual si se
-          deja vacío. */}
-      <PantryInput />
-
-      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
+      {/* Despensa — oculto de momento (feature en pausa) */}
 
       {/* Herramientas — modelo tipo alergias */}
       <style>{`
@@ -7269,6 +7279,33 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
 
   const weeks = buildCalendarWeeks(4);
 
+  // The select-column card is drawn as one continuous pill that hugs the
+  // circles: it must start above the FIRST circle and end below the LAST one
+  // with equal padding, regardless of the month labels that add variable
+  // height between week rows. So we measure the circles and size the card.
+  const wrapRef = useRef(null);
+  const firstCircleRef = useRef(null);
+  const lastCircleRef = useRef(null);
+  const [cardRect, setCardRect] = useState(null);
+  useLayoutEffect(() => {
+    const measure = () => {
+      const wrap = wrapRef.current;
+      const first = firstCircleRef.current;
+      const last = lastCircleRef.current;
+      if (!wrap || !first || !last) return;
+      const PAD = 6;
+      const wrapBox = wrap.getBoundingClientRect();
+      const firstBox = first.getBoundingClientRect();
+      const lastBox = last.getBoundingClientRect();
+      const top = firstBox.top - wrapBox.top - PAD;
+      const height = lastBox.bottom - wrapBox.top + PAD - top;
+      setCardRect({ top, height });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [weeks.length]);
+
   // Active days count for hint
   const selectedWeek = weeks[selectedOffset] ?? weeks[0];
   const activeDayCount = selectedOffset === 0
@@ -7306,8 +7343,24 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
         <div />
       </div>
 
-      {/* Calendar grid */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      {/* Calendar grid — the select column (last 32px) is drawn as ONE
+          continuous pill-shaped card that hugs the circles (measured), instead
+          of a thin border repeated per row, so it reads as a single control
+          rather than disconnected segments. */}
+      <div style={{ position: "relative" }} ref={wrapRef}>
+        <div style={{
+          position: "absolute",
+          top: cardRect ? cardRect.top : 0,
+          height: cardRect ? cardRect.height : "100%",
+          right: 4,
+          width: 32,
+          border: "1.5px solid #2d5a3d",
+          borderRadius: 16,
+          background: "rgba(45,90,61,.04)",
+          pointerEvents: "none",
+          opacity: cardRect ? 1 : 0,
+        }} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, position: "relative" }}>
         {weeks.map(({ offset, monday, days }, weekIdx) => {
           const isSelected = offset === selectedOffset;
           const showMonthLabel =
@@ -7398,13 +7451,17 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                     );
                   })}
 
-                  {/* Select indicator */}
+                  {/* Select indicator — sits inside the continuous pill card
+                      drawn as an absolute overlay above, so no per-row border. */}
                   <div style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
+                    alignSelf: "stretch",
                   }}>
-                    <span style={{
+                    <span
+                      ref={weekIdx === 0 ? firstCircleRef : weekIdx === weeks.length - 1 ? lastCircleRef : undefined}
+                      style={{
                       width: 20,
                       height: 20,
                       borderRadius: 999,
@@ -7428,6 +7485,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
             </div>
           );
         })}
+        </div>
       </div>
 
       {/* Hint — only when current week and fewer than 7 days */}

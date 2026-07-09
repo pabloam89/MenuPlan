@@ -401,24 +401,6 @@ export function DashboardScreen({
               )}
             </div>
           )}
-
-          {/* follows — social model, wired later (user_follows) */}
-          <div
-            style={{
-              display: "flex", alignItems: "center", gap: 22, marginTop: 16, position: "relative",
-              textShadow: "0 1px 3px rgba(0,0,0,.35)",
-            }}
-          >
-            <div style={{ textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", lineHeight: 1 }}>0</p>
-              <p style={{ margin: "2px 0 0", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,.85)" }}>siguiendo</p>
-            </div>
-            <div style={{ width: 1, height: 26, background: "rgba(255,255,255,.3)" }} />
-            <div style={{ textAlign: "center" }}>
-              <p style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#fff", lineHeight: 1 }}>0</p>
-              <p style={{ margin: "2px 0 0", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,.85)" }}>seguidores</p>
-            </div>
-          </div>
         </div>
 
         {/* ── Stats (liquid glass) ──────────────────────── */}
