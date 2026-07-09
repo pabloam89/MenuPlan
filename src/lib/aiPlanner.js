@@ -3,7 +3,7 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
-import { filterRecipes, decisionCatalog } from "../utils/filterRecipes.js";
+import { filterRecipes, filterGarnishes, decisionCatalog } from "../utils/filterRecipes.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
@@ -530,7 +530,8 @@ const LLMResponseSchema = z.object({
 
 // ── Generation ──────────────────────────────────────────────────
 
-async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
+// Exported for tests only — not used elsewhere outside this module.
+export async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -547,8 +548,24 @@ async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
   // Baby groups use a deterministic planner — no LLM call needed
   if (ctx.isBabyGroup) {
     const slotAssignments = generateBabyMenuDeterministic(filteredPool, ctx.slots);
-    return { group, slotAssignments, filteredPool, slotsContext: ctx.slots };
+    return {
+      group,
+      slotAssignments,
+      filteredPool,
+      slotsContext: ctx.slots,
+      // Same as the non-baby return below — without this, hydration falls
+      // back to buildAdaptationMap's default `[]` and lactosa_fina/etc. never
+      // get their ingredient swap applied for baby-only menus.
+      restrictions: ctx.filterOpts.intolerances ?? [],
+      warnings: [],
+    };
   }
+
+  // Garnishes come from a separate catalog (guarniciones.json) that never
+  // goes through filterRecipes, so it needs its own allergy/intolerance/
+  // alcohol pass — otherwise pairGarnishes could attach a side dish carrying
+  // a restriction the main dish was correctly filtered to avoid.
+  const safeGarnishes = filterGarnishes(filterOpts);
 
   const userMessage = buildUserMessage(
     filteredPool,
@@ -630,7 +647,7 @@ async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
   // 2. Business rule validation + up to 2 correction retries
   const MAX_RETRIES = 2;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const check = validateMenu(slotAssignments, filteredPool, ctx.slots);
+    const check = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles);
     if (check.valid) break;
 
     if (attempt < MAX_RETRIES - 1) {
@@ -657,10 +674,30 @@ async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
   }
 
   // 3. Final validation — apply deterministic fallback if still invalid
-  const finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots);
+  const finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles);
   if (!finalCheck.valid) {
-    slotAssignments = applyFallback(slotAssignments, finalCheck.violations, filteredPool, ctx.slots);
+    slotAssignments = applyFallback(
+      slotAssignments,
+      finalCheck.violations,
+      filteredPool,
+      ctx.slots,
+      ctx.config.healthProfiles,
+    );
   }
+
+  // 3b. Last-resort safety net: hydration (generateMenuWithAI) resolves each
+  // recipeId against the FULL unfiltered catalog, not filteredPool — so if a
+  // violation survives retries + fallback (e.g. no compliant candidate existed
+  // for a tightly-constrained slot), it would otherwise still render with
+  // unfiltered data (allergen, alcohol, baby-only...). Drop those slots here
+  // instead of letting them reach the user, and surface why.
+  const warnings = [];
+  const poolIds = new Set(filteredPool.map((r) => r.id));
+  slotAssignments = slotAssignments.filter((s) => {
+    if (poolIds.has(s.recipeId)) return true;
+    warnings.push(`${group.label}: no se encontró una receta que cumpliera todas las restricciones para ${s.slotId}; hueco omitido.`);
+    return false;
+  });
 
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
 
@@ -673,7 +710,7 @@ async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
 
   // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
   //    User-pinned combos (dish chosen from the catalog) take priority.
-  slotAssignments = pairGarnishes(slotAssignments, poolById, pinnedGarnishMap(data.fixedDishes));
+  slotAssignments = pairGarnishes(slotAssignments, poolById, pinnedGarnishMap(data.fixedDishes), safeGarnishes);
 
   return {
     group,
@@ -683,6 +720,7 @@ async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
     // Active intolerances/states for this group; hydration uses them to apply
     // invisible ingredient swaps (e.g. lactose-free) to the chosen recipes.
     restrictions: ctx.filterOpts.intolerances ?? [],
+    warnings,
   };
 }
 
@@ -824,7 +862,8 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
   // hydration step (recipeId -> full frontend recipe) needs its own lookup.
   const userRecipeById = Object.fromEntries((data.userRecipes ?? []).map((r) => [r.id, r]));
 
-  for (const { group, slotAssignments, slotsContext, restrictions } of results) {
+  for (const { group, slotAssignments, slotsContext, restrictions, warnings } of results) {
+    if (warnings?.length) plan._warnings.push(...warnings);
     const prefix = multi ? `${group.id}__` : "";
     const eatersBySlot = Object.fromEntries(
       slotsContext.map((s) => [s.slotId, s.eaters]),
@@ -1143,7 +1182,8 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   }
   if (!swapped) dayAssignments.push({ slotId: targetSlotId, recipeId: picked.id });
 
-  const paired = pairGarnishes(dayAssignments, recipeCatalogById);
+  const safeGarnishes = filterGarnishes(ctx.filterOpts);
+  const paired = pairGarnishes(dayAssignments, recipeCatalogById, {}, safeGarnishes);
   const targetGarnishId = paired.find((a) => a.slotId === targetSlotId)?.garnishId;
   if (targetGarnishId) {
     const garnish = guarnicionesData.find((g) => g.id === targetGarnishId);

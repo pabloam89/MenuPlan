@@ -58,3 +58,16 @@ export function deriveHealthFlags(recipe) {
 
   return Array.from(flags);
 }
+
+/**
+ * Defensive helper for any place that registers/joins a recipe at runtime
+ * (user-created recipes, AI-generated recipes, remote merges): returns the
+ * recipe unchanged if it already carries healthFlags, otherwise derives them.
+ * Keeps every registration point honest without recomputing on recipes that
+ * already went through the catalog pipeline.
+ * @param {Object} recipe
+ * @returns {Object}
+ */
+export function ensureHealthFlags(recipe) {
+  return Array.isArray(recipe?.healthFlags) ? recipe : { ...recipe, healthFlags: deriveHealthFlags(recipe) };
+}

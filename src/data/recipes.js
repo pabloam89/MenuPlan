@@ -3,6 +3,8 @@
 //
 // Ingredient categories must match the ones used in shoppingBuilder.js.
 
+import { ensureHealthFlags } from "../lib/healthFlags.js";
+
 export const INGREDIENT_CATEGORIES = [
   "Verduras y frutas",
   "Carnes y pescados",
@@ -755,7 +757,11 @@ export function registerRecipes(extra) {
   for (const recipe of extra) {
     if (!recipe?.id) continue;
     const existed = Boolean(RECIPES_BY_ID[recipe.id]);
-    RECIPES_BY_ID[recipe.id] = { ...recipe };
+    // Derive healthFlags defensively so every recipe reachable through
+    // RECIPES_BY_ID (dish cards, dish detail) can show an honest health-profile
+    // badge, regardless of which caller registered it (own recipe, AI-generated,
+    // remote merge...).
+    RECIPES_BY_ID[recipe.id] = ensureHealthFlags({ ...recipe });
     if (!existed) RECIPES.push(RECIPES_BY_ID[recipe.id]);
     else {
       const idx = RECIPES.findIndex((r) => r.id === recipe.id);

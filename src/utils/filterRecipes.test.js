@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { filterRecipes, decisionCatalog, scorePantryMatch } from "./filterRecipes.js";
+import { filterRecipes, filterGarnishes, decisionCatalog, scorePantryMatch } from "./filterRecipes.js";
 import { recipeHitsIntolerances } from "../lib/intolerances.js";
 
 function recipe(ingredientNames) {
@@ -228,5 +228,85 @@ describe("decisionCatalog pantryScore", () => {
         expect(entry.pantryScore).toBeUndefined();
       }
     }
+  });
+});
+
+describe("filterRecipes hasKids", () => {
+  const baseOpts = { maxTime: 999, cookLevel: "pro" };
+
+  it("excludes recipes with alcohol ingredients, even if marked kidFriendly", () => {
+    const { recipes: all } = filterRecipes(baseOpts);
+    const hadAlcohol = all.filter((r) =>
+      (r.ingredients ?? []).some((ing) => /\bvino\b|\bcerveza\b/i.test(ing.name)),
+    );
+    expect(hadAlcohol.length).toBeGreaterThan(0); // sanity: fixture data has some
+
+    const { recipes: kidsPool } = filterRecipes({ ...baseOpts, hasKids: true });
+    for (const r of kidsPool) {
+      const hasAlcohol = (r.ingredients ?? []).some((ing) =>
+        /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan)\b/i.test(ing.name),
+      );
+      expect(hasAlcohol).toBe(false);
+    }
+  });
+
+  it("only keeps kidFriendly recipes", () => {
+    const { recipes: kidsPool } = filterRecipes({ ...baseOpts, hasKids: true });
+    expect(kidsPool.length).toBeGreaterThan(0);
+    expect(kidsPool.every((r) => r.kidFriendly)).toBe(true);
+  });
+});
+
+describe("filterRecipes isBabyGroup isolation", () => {
+  it("only returns 'bebes' category recipes for baby groups", () => {
+    const { recipes } = filterRecipes({ maxTime: 999, cookLevel: "pro", isBabyGroup: true });
+    expect(recipes.length).toBeGreaterThan(0);
+    expect(recipes.every((r) => r.category === "bebes")).toBe(true);
+  });
+
+  it("never returns 'bebes' category recipes for non-baby groups", () => {
+    const { recipes } = filterRecipes({ maxTime: 999, cookLevel: "pro", isBabyGroup: false });
+    expect(recipes.length).toBeGreaterThan(0);
+    expect(recipes.some((r) => r.category === "bebes")).toBe(false);
+  });
+});
+
+describe("filterGarnishes", () => {
+  it("excludes a garnish carrying a blocked allergen", () => {
+    const all = filterGarnishes({});
+    const hadLactosa = all.filter((g) => g.allergens?.includes("lactosa"));
+    expect(hadLactosa.length).toBeGreaterThan(0); // sanity: fixture data has some
+
+    const safe = filterGarnishes({ allergies: ["Leche"] });
+    expect(safe.length).toBeLessThan(all.length);
+    expect(safe.some((g) => hadLactosa.some((h) => h.id === g.id))).toBe(false);
+  });
+
+  it("excludes a garnish matching an active intolerance", () => {
+    const all = filterGarnishes({});
+    const safe = filterGarnishes({ intolerances: ["lactosa_fina"] });
+    expect(safe.length).toBeLessThan(all.length);
+    for (const g of safe) {
+      expect(recipeHitsIntolerances(g, ["lactosa_fina"])).toBe(false);
+    }
+  });
+
+  it("excludes alcoholic garnishes when hasKids, via an injected fixture (the real catalog has none today)", () => {
+    const fixture = [
+      {
+        id: "g-wine", name: "Guarnición con vino", shortName: "vino",
+        time: 5, allergens: [], ingredients: [{ name: "Vino blanco" }],
+      },
+      {
+        id: "g-plain", name: "Arroz blanco", shortName: "arroz",
+        time: 5, allergens: [], ingredients: [{ name: "Arroz" }],
+      },
+    ];
+    const result = filterGarnishes({ hasKids: true }, fixture);
+    expect(result.map((g) => g.id)).toEqual(["g-plain"]);
+  });
+
+  it("returns the full catalog when no restrictions are active", () => {
+    expect(filterGarnishes({}).length).toBeGreaterThan(0);
   });
 });

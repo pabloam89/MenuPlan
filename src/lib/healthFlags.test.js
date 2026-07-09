@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { deriveHealthFlags } from "./healthFlags.js";
+import { deriveHealthFlags, ensureHealthFlags } from "./healthFlags.js";
 
 const r = (name, ingredients = [], extra = {}) => ({
   name,
@@ -37,5 +37,28 @@ describe("deriveHealthFlags", () => {
   it("merges explicitly declared flags", () => {
     const flags = deriveHealthFlags(r("Plato X", ["Agua"], { healthFlags: ["picante"] }));
     expect(flags).toContain("picante");
+  });
+});
+
+describe("ensureHealthFlags", () => {
+  it("derives healthFlags for a recipe that doesn't have them yet", () => {
+    const recipe = r("Croquetas de jamón", ["Jamón serrano", "Aceite"]);
+    const result = ensureHealthFlags(recipe);
+    expect(result.healthFlags).toContain("frito");
+    expect(result.healthFlags).toContain("embutido");
+  });
+
+  it("leaves a recipe with existing healthFlags untouched (same reference, no recompute)", () => {
+    const recipe = r("Plato X", ["Agua"], { healthFlags: ["picante"] });
+    const result = ensureHealthFlags(recipe);
+    expect(result).toBe(recipe);
+    expect(result.healthFlags).toEqual(["picante"]);
+  });
+
+  it("treats an empty healthFlags array as already-derived (no recompute)", () => {
+    const recipe = r("Merluza a la plancha", ["Merluza", "Limón"], { healthFlags: [] });
+    const result = ensureHealthFlags(recipe);
+    expect(result).toBe(recipe);
+    expect(result.healthFlags).toEqual([]);
   });
 });

@@ -1,9 +1,15 @@
 import { recipeCatalog } from "../data/recipeCatalog.js";
+import guarniciones from "../data/recipes/guarniciones.json";
 import { normalizeAllergenId, recipeIngredientsHitAllergens } from "../lib/allergens.js";
-import { deriveHealthFlags } from "../lib/healthFlags.js";
+import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
+
+// Shared with the hasKids alcohol check inside filterRecipes() below.
+const ALCOHOL_RE =
+  /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan|jerez|oporto|vermut|ginebra|cointreau|amaretto)\b/;
+const normalizeForAlcoholCheck = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
 function currentSeason() {
   const month = new Date().getMonth() + 1;
@@ -78,7 +84,7 @@ export function filterRecipes({
   const season = currentSeason();
 
   let pool = extraRecipes.length > 0
-    ? [...recipeCatalog, ...extraRecipes.map((r) => r.healthFlags ? r : { ...r, healthFlags: deriveHealthFlags(r) })]
+    ? [...recipeCatalog, ...extraRecipes.map(ensureHealthFlags)]
     : recipeCatalog;
 
   // 0. Recipe-source mode (never applies to baby groups, which have their own
@@ -147,12 +153,8 @@ export function filterRecipes({
   // when the recipe is otherwise marked kidFriendly (wine "cooks off" in theory
   // but parents rightly expect a kids menu to have zero alcohol ingredients).
   if (hasKids) {
-    const ALCOHOL_RE =
-      /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan|jerez|oporto|vermut|ginebra|cointreau|amaretto)\b/;
-    const normalizeForFilter = (s) =>
-      s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
     pool = pool.filter(
-      (r) => !r.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForFilter(ing.name))),
+      (r) => !r.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name))),
     );
   }
 
@@ -217,6 +219,47 @@ export function filterRecipes({
   }
 
   return { recipes: pool, error: null };
+}
+
+/**
+ * Filter the garnish list the same way filterRecipes filters main dishes, so
+ * a side dish can never carry an allergen/intolerance/alcohol a household
+ * member is excluded from. `pairGarnishes` only ever picks from this output,
+ * never from the raw guarniciones.json import.
+ *
+ * Unlike main dishes, adaptable intolerances (lactosa_fina) are excluded
+ * outright here rather than adapted — a garnish is disposable enough that
+ * swapping it for a compliant one is simpler and safer than renaming its
+ * ingredients after the fact (which pairGarnishes has no mechanism for).
+ *
+ * @param {Object} opts
+ * @param {string[]} [opts.allergies] - member allergens (app format)
+ * @param {string[]} [opts.intolerances] - active intolerance/dietary-state ids
+ * @param {boolean}  [opts.hasKids]
+ * @param {Object[]} [guarnicionesList] - defaults to the bundled catalog;
+ *   overridable for tests that need a specific fixture (e.g. an alcoholic
+ *   garnish, which the real catalog doesn't currently contain).
+ * @returns {Object[]}
+ */
+export function filterGarnishes(
+  { allergies = [], intolerances = [], hasKids = false } = {},
+  guarnicionesList = guarniciones,
+) {
+  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
+  const activeIntolerances = Array.from(new Set(intolerances));
+
+  return guarnicionesList.filter((g) => {
+    if (blockedAllergens.size > 0) {
+      if (g.allergens.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return false;
+      const names = (g.ingredients ?? []).map((ing) => ing.name);
+      if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
+    }
+    if (activeIntolerances.length > 0 && recipeHitsIntolerances(g, activeIntolerances)) return false;
+    if (hasKids && g.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
+      return false;
+    }
+    return true;
+  });
 }
 
 /**

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildUserMessage, buildGroupContext } from "./aiPlanner.js";
+import { buildUserMessage, buildGroupContext, generateGroupMenu } from "./aiPlanner.js";
 
 const SLOTS = [{ slotId: "lun_cena", mealType: "cena", mode: "casa", maxTime: 30 }];
 const CONFIG = { targetKcal: 2000, freqs: {}, cookLevel: "normal", cookTime: {} };
@@ -63,5 +63,29 @@ describe("buildGroupContext intolerances aggregation", () => {
   it("never lets the user select alcohol_cocina directly (it's not a real dietaryState)", () => {
     const ctx = buildGroupContext(dataWith({}), group);
     expect(ctx.filterOpts.intolerances).toEqual([]);
+  });
+});
+
+describe("generateGroupMenu baby group", () => {
+  // Baby groups skip the LLM entirely (generateBabyMenuDeterministic), so this
+  // is safe to call directly without mocking callModel/network.
+  const group = { id: "g1", label: "Bebé", memberIds: ["baby1"] };
+
+  function babyData(memberOverrides) {
+    return {
+      members: [{ id: "baby1", age: 1, ...memberOverrides }],
+      groups: [group],
+      schedule: {},
+    };
+  }
+
+  it("passes the group's intolerances through as `restrictions`, so hydration can adapt ingredients (e.g. lactose-free) for baby-only menus", async () => {
+    const result = await generateGroupMenu(babyData({ intolerances: ["lactosa_fina"] }), group);
+    expect(result.restrictions).toEqual(["lactosa_fina"]);
+  });
+
+  it("returns an empty warnings array for baby groups", async () => {
+    const result = await generateGroupMenu(babyData({}), group);
+    expect(result.warnings).toEqual([]);
   });
 });

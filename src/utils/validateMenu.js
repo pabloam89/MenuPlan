@@ -5,6 +5,18 @@
  * Each violation: { rule, slotId, message }
  */
 
+import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
+
+// Health profiles that trigger a correctable violation below. `anemia` is a
+// presence-based profile ("must contain iron-rich flag") rather than
+// absence-based ("must not contain risk flag") — treating it the same way
+// would flag almost every slot in the week as a violation and fight the
+// variety/carb-repetition rules. It stays pure LLM soft-bias, matching the
+// "prioriza" (not "excluye") wording in the SYSTEM_PROMPT.
+const CORRECTABLE_HEALTH_PROFILES = new Set(
+  Object.keys(HEALTH_PROFILE_BADGE).filter((id) => id !== "anemia"),
+);
+
 // ── Carb-type extraction ─────────────────────────────────────────
 // Used to detect same-day "guarnición" repetition without catalog edits.
 // Matches recipe name + ingredient list, most specific pattern first.
@@ -29,7 +41,7 @@ function getCarbType(recipe) {
   return null;
 }
 
-export function validateMenu(slotAssignments, filteredPool, slotsContext) {
+export function validateMenu(slotAssignments, filteredPool, slotsContext, activeHealthProfiles = []) {
   const violations = [];
   const poolIds = new Set(filteredPool.map((r) => r.id));
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
@@ -240,6 +252,31 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext) {
     }
   }
 
+  // 10. Health-profile conflicts — reuses the exact rules the dish-detail
+  // badge uses (matchingHealthProfiles), so a violation here means "the badge
+  // would show this dish as non-compliant for an active profile". Soft and
+  // correctable like every other rule above, never a hard block (see
+  // applyFallback's carve-out): this is the deterministic backstop for the
+  // SYSTEM_PROMPT's "PERFILES DE SALUD" instruction, which the LLM can ignore.
+  const activeProfileIds = Array.from(new Set(activeHealthProfiles ?? [])).filter((id) =>
+    CORRECTABLE_HEALTH_PROFILES.has(id),
+  );
+  if (activeProfileIds.length > 0) {
+    for (const { slotId, recipeId } of slotAssignments) {
+      const recipe = poolById[recipeId];
+      if (!recipe) continue;
+      const flags = recipe.healthFlags ?? [];
+      const violated = activeProfileIds.filter((id) => !HEALTH_PROFILE_BADGE[id].matches(flags));
+      if (violated.length > 0) {
+        violations.push({
+          rule: "health_profile_conflict",
+          slotId,
+          message: `"${recipe.name}" no cumple el/los perfil(es) de salud activos: ${violated.join(", ")}`,
+        });
+      }
+    }
+  }
+
   return { valid: violations.length === 0, violations };
 }
 
@@ -258,7 +295,7 @@ export function buildCorrectionMessage(violations) {
  * with the first valid alternative from the filtered pool.
  * Also fills missing slots that the LLM omitted.
  */
-export function applyFallback(slotAssignments, violations, filteredPool, slotsContext) {
+export function applyFallback(slotAssignments, violations, filteredPool, slotsContext, activeHealthProfiles = []) {
   const result = slotAssignments.map((s) => ({ ...s }));
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
   const contextBySlot = Object.fromEntries(
@@ -355,6 +392,18 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (v.rule === "guarnicion_repetida") {
         const carb = getCarbType(r);
         if (carb && dayCarbsUsed.has(carb)) return false;
+      }
+
+      // Prefer a profile-compliant replacement, but only for the violation
+      // that's actually about health profiles — never reject an otherwise-fine
+      // replacement for a legumbres_en_cena/tupper/etc. violation just because
+      // it also happens to be non-compliant with an unrelated active profile.
+      if (v.rule === "health_profile_conflict") {
+        const profileIds = Array.from(new Set(activeHealthProfiles ?? [])).filter((id) =>
+          CORRECTABLE_HEALTH_PROFILES.has(id),
+        );
+        const flags = r.healthFlags ?? [];
+        if (profileIds.some((id) => !HEALTH_PROFILE_BADGE[id].matches(flags))) return false;
       }
 
       return true;

@@ -63,9 +63,14 @@ function carbOfRecipe(recipe) {
  * @param {Array<{slotId: string, recipeId: string}>} slotAssignments
  * @param {Object} poolById - { [recipeId]: catalogRecipe }
  * @param {Object<string,string>} [pinnedByRecipeId] - { [recipeId]: garnishId }
+ * @param {Object[]} [safeGarnishes] - guarniciones pre-filtered for the
+ *   group's allergies/intolerances/hasKids (see filterRecipes.js
+ *   `filterGarnishes`). Defaults to the full unfiltered catalog, but every
+ *   real caller should pass the filtered list — this default only exists so
+ *   call sites that genuinely have no restriction context don't crash.
  * @returns {Array<{slotId: string, recipeId: string, garnishId?: string}>}
  */
-export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}) {
+export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, safeGarnishes = guarniciones) {
   // Collect carbs already used by main recipes, per day
   const dayUsedCarbs = {};
   for (const { slotId, recipeId } of slotAssignments) {
@@ -117,12 +122,12 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}) 
       // Every garnish meeting the rules is an equally valid pick — choosing
       // randomly among them (instead of always the first match in the JSON's
       // fixed order) is what actually gives week-to-week variety.
-      let candidates = guarniciones.filter(fitsRules);
+      let candidates = safeGarnishes.filter(fitsRules);
       // Relax "not used yet this week" before giving up entirely, so a slot
       // never goes without a side just because the week is running low on
       // fresh garnishes (still respects the cena time cap and day carb rule).
       if (candidates.length === 0) {
-        candidates = guarniciones.filter((g) => {
+        candidates = safeGarnishes.filter((g) => {
           if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
           const gCarb = carbOfGarnish(g);
           if (gCarb && dayCarbs.has(gCarb)) return false;
