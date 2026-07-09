@@ -1,4 +1,5 @@
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
+import { recipeViolatesHardSafety } from "../utils/filterRecipes.js";
 
 /** Normalized fixed dish: repetitions per week + which meals.
  * `catalogId` is set when the dish was picked from the catalog browser, so the
@@ -141,28 +142,52 @@ function slotPositionForRecipe(recipe, targetMealType) {
  * @param {Array<{slotId: string, recipeId: string, garnishId?: string}>} slotAssignments
  * @param {Array} fixedDishesRaw - raw fixed dishes from user data
  * @param {Object} poolById - { [recipeId]: catalogRecipe }, mutated in place
- * @returns {Array} new slot assignments with fixed dishes enforced
+ * @param {Object} [filterOpts] - the group's filterRecipes() options (allergies,
+ *   intolerances, hasKids, isBabyGroup), used to gate the full-catalog fallback
+ *   below so a fixed dish can never reintroduce a hard safety violation just
+ *   because it dropped out of the group's filtered pool.
+ * @returns {{ slotAssignments: Array, warnings: string[] }}
  */
-export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById) {
+export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById, filterOpts = {}) {
   const fixedDishes = migrateFixedDishes(fixedDishesRaw);
-  if (fixedDishes.length === 0) return slotAssignments;
+  if (fixedDishes.length === 0) return { slotAssignments, warnings: [] };
 
   const bySlot = new Map(slotAssignments.map((s) => [s.slotId, { ...s }]));
   const locked = new Set(); // slots already owned by a fixed dish — never evict
+  const warnings = [];
 
   for (const fd of fixedDishes) {
     const meal = String(fd.meals?.[0] ?? "Comida").toLowerCase();
     const targetMealType = meal === "cena" ? "cena" : "comida";
 
-    // Resolve the target recipe (pool first, then full catalog).
-    let recipe = null;
-    if (fd.catalogId) {
-      recipe = poolById[fd.catalogId] ?? recipeCatalogById[fd.catalogId] ?? null;
-    } else {
-      recipe =
-        Object.values(poolById).find((r) => recipeMatchesFixedDish(r, fd)) ??
-        recipeCatalog.find((r) => recipeMatchesFixedDish(r, fd)) ??
-        null;
+    // Resolve the target recipe (pool first, then full catalog). The pool is
+    // already safe by construction; a full-catalog fallback candidate is not
+    // — it may have dropped out of the pool precisely because it violates an
+    // allergy/intolerance/kid-safety rule, so it must pass the same hard
+    // check before we're willing to inject it.
+    let recipe = poolById[fd.catalogId] ?? null;
+    if (!recipe && fd.catalogId) {
+      const candidate = recipeCatalogById[fd.catalogId] ?? null;
+      if (candidate && recipeViolatesHardSafety(candidate, filterOpts)) {
+        warnings.push(
+          `El plato fijado "${fd.name}" ya no cumple las restricciones del grupo (alergias/intolerancias) y se ha omitido esta semana.`,
+        );
+      } else {
+        recipe = candidate;
+      }
+    }
+    if (!recipe && !fd.catalogId) {
+      recipe = Object.values(poolById).find((r) => recipeMatchesFixedDish(r, fd)) ?? null;
+      if (!recipe) {
+        const candidate = recipeCatalog.find((r) => recipeMatchesFixedDish(r, fd)) ?? null;
+        if (candidate && recipeViolatesHardSafety(candidate, filterOpts)) {
+          warnings.push(
+            `El plato fijado "${fd.name}" ya no cumple las restricciones del grupo (alergias/intolerancias) y se ha omitido esta semana.`,
+          );
+        } else {
+          recipe = candidate;
+        }
+      }
     }
     if (!recipe) continue;
 
@@ -211,7 +236,7 @@ export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById) {
   }
 
   // Preserve original slot order.
-  return slotAssignments.map((s) => bySlot.get(s.slotId) ?? s);
+  return { slotAssignments: slotAssignments.map((s) => bySlot.get(s.slotId) ?? s), warnings };
 }
 
 export function catalogMatchesForFixedDish(fixedDish, catalog = recipeCatalog) {

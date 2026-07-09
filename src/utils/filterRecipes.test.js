@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { filterRecipes, filterGarnishes, decisionCatalog, scorePantryMatch } from "./filterRecipes.js";
+import {
+  filterRecipes,
+  filterGarnishes,
+  decisionCatalog,
+  scorePantryMatch,
+  recipeViolatesHardSafety,
+} from "./filterRecipes.js";
 import { recipeHitsIntolerances } from "../lib/intolerances.js";
 
 function recipe(ingredientNames) {
@@ -323,5 +329,62 @@ describe("filterGarnishes", () => {
 
   it("returns the full catalog when no restrictions are active", () => {
     expect(filterGarnishes({}).length).toBeGreaterThan(0);
+  });
+});
+
+describe("recipeViolatesHardSafety", () => {
+  function recipeWith(overrides) {
+    return {
+      id: "r1", name: "Receta", category: "carnes",
+      allergens: [], ingredients: [],
+      ...overrides,
+    };
+  }
+
+  it("flags a declared allergen match", () => {
+    const r = recipeWith({ allergens: ["gluten"] });
+    expect(recipeViolatesHardSafety(r, { allergies: ["Gluten"] })).toBe(true);
+  });
+
+  it("flags an undeclared allergen caught by the ingredient-name safety net", () => {
+    const r = recipeWith({ ingredients: [{ name: "Cacahuetes tostados" }] });
+    expect(recipeViolatesHardSafety(r, { allergies: ["Cacahuetes"] })).toBe(true);
+  });
+
+  it("does not flag a recipe with no matching allergen", () => {
+    const r = recipeWith({ allergens: ["huevos"] });
+    expect(recipeViolatesHardSafety(r, { allergies: ["Gluten"] })).toBe(false);
+  });
+
+  it("flags a non-adaptable intolerance (fructosa)", () => {
+    const r = recipeWith({ name: "Tarta de manzana", ingredients: [{ name: "Manzana" }] });
+    expect(recipeViolatesHardSafety(r, { intolerances: ["fructosa"] })).toBe(true);
+  });
+
+  it("does NOT flag an adaptable intolerance (lactosa_fina) — hydration adapts it instead", () => {
+    const r = recipeWith({ ingredients: [{ name: "Leche" }] });
+    expect(recipeViolatesHardSafety(r, { intolerances: ["lactosa_fina"] })).toBe(false);
+  });
+
+  it("flags an alcohol-containing recipe when hasKids", () => {
+    const r = recipeWith({ ingredients: [{ name: "Vino blanco" }] });
+    expect(recipeViolatesHardSafety(r, { hasKids: true })).toBe(true);
+    expect(recipeViolatesHardSafety(r, { hasKids: false })).toBe(false);
+  });
+
+  it("flags a non-baby recipe for a baby group and vice versa", () => {
+    const babyRecipe = recipeWith({ category: "bebes" });
+    const adultRecipe = recipeWith({ category: "carnes" });
+    expect(recipeViolatesHardSafety(adultRecipe, { isBabyGroup: true })).toBe(true);
+    expect(recipeViolatesHardSafety(babyRecipe, { isBabyGroup: false })).toBe(true);
+    expect(recipeViolatesHardSafety(babyRecipe, { isBabyGroup: true })).toBe(false);
+  });
+
+  it("returns false for a clean recipe with no active restrictions", () => {
+    expect(recipeViolatesHardSafety(recipeWith({}), {})).toBe(false);
+  });
+
+  it("treats a missing recipe as unsafe", () => {
+    expect(recipeViolatesHardSafety(null, { allergies: ["Gluten"] })).toBe(true);
   });
 });

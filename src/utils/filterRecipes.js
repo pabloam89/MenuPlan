@@ -11,6 +11,53 @@ const ALCOHOL_RE =
   /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan|jerez|oporto|vermut|ginebra|cointreau|amaretto)\b/;
 const normalizeForAlcoholCheck = (s) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
 
+/**
+ * Whether a single recipe violates any HARD safety restriction (allergen,
+ * non-adaptable intolerance, alcohol-for-kids, baby-category isolation) for a
+ * group — the subset of filterRecipes' rules that can never be relaxed
+ * (unlike soft rules like cook time or appliance). Exported so callers that
+ * resolve a recipe OUTSIDE the normal filterRecipes() pipeline can still
+ * refuse to inject something actively unsafe. Concretely: enforceFixedDishes
+ * (fixedDishes.js) falls back to the full unfiltered catalog when a user's
+ * "repeat this dish" pick has dropped out of the group's filtered pool — that
+ * fallback is fine when the pick just doesn't fit a soft constraint anymore
+ * (e.g. cook-time budget shrank), but must never reintroduce an allergen.
+ *
+ * @param {Object} recipe
+ * @param {Object} opts
+ * @param {string[]} [opts.allergies] - member allergens (app format)
+ * @param {string[]} [opts.intolerances] - active intolerance/dietary-state ids
+ * @param {boolean}  [opts.hasKids]
+ * @param {boolean}  [opts.isBabyGroup]
+ * @returns {boolean}
+ */
+export function recipeViolatesHardSafety(
+  recipe,
+  { allergies = [], intolerances = [], hasKids = false, isBabyGroup = false } = {},
+) {
+  if (!recipe) return true;
+
+  const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
+  if (blockedAllergens.size > 0) {
+    if (recipe.allergens?.some((a) => blockedAllergens.has(normalizeAllergenId(a)))) return true;
+    const names = (recipe.ingredients ?? []).map((ing) => ing.name);
+    if (recipeIngredientsHitAllergens(names, blockedAllergens)) return true;
+  }
+
+  const hardIntolerances = Array.from(new Set(intolerances)).filter(
+    (id) => !isAdaptableRestriction(id),
+  );
+  if (hardIntolerances.length > 0 && recipeHitsIntolerances(recipe, hardIntolerances)) return true;
+
+  if (hasKids && (recipe.ingredients ?? []).some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
+    return true;
+  }
+
+  if (isBabyGroup !== (recipe.category === "bebes")) return true;
+
+  return false;
+}
+
 function currentSeason() {
   const month = new Date().getMonth() + 1;
   if (month >= 6 && month <= 9) return "verano";
