@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildUserMessage, buildGroupContext, generateGroupMenu } from "./aiPlanner.js";
+import { buildUserMessage, buildGroupContext, generateGroupMenu, generateMenuWithAI, AIPlannerError } from "./aiPlanner.js";
+import { filterRecipes } from "../utils/filterRecipes.js";
 
 const SLOTS = [{ slotId: "lun_cena", mealType: "cena", mode: "casa", maxTime: 30 }];
 const CONFIG = { targetKcal: 2000, freqs: {}, cookLevel: "normal", cookTime: {} };
@@ -87,5 +88,53 @@ describe("generateGroupMenu baby group", () => {
   it("returns an empty warnings array for baby groups", async () => {
     const result = await generateGroupMenu(babyData({}), group);
     expect(result.warnings).toEqual([]);
+  });
+});
+
+describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes error propagation)", () => {
+  // Three kids, each contributing a DIFFERENT allergy/intolerance. None of
+  // these alone would exhaust the 244-recipe catalog (see the "one member
+  // only" contrast test below) — it's specifically the UNION across several
+  // children (buildGroupContext's flatMap) that pushes the filtered pool
+  // under filterRecipes.js's minRecipes floor. hasKids + a 30-min weekday
+  // budget + cookLevel "basic" mirror a realistic family setup rather than an
+  // artificial edge case.
+  const group = { id: "g1", label: "Niños", memberIds: ["kid1", "kid2", "kid3"] };
+  const threeKidsData = {
+    members: [
+      { id: "kid1", age: 8, allergies: ["Gluten"], intolerances: ["fructosa"] },
+      { id: "kid2", age: 6, allergies: ["Leche"], intolerances: ["sorbitol"] },
+      { id: "kid3", age: 10, allergies: ["Huevos", "Pescado"] },
+    ],
+    groups: [group],
+    schedule: {},
+    timeWeekday: 30,
+    timeWeekend: 30,
+    cookLevel: "basic",
+  };
+
+  it("generateGroupMenu throws an AIPlannerError carrying filterRecipes' pool-exhaustion message", async () => {
+    await expect(generateGroupMenu(threeKidsData, group)).rejects.toBeInstanceOf(AIPlannerError);
+    await expect(generateGroupMenu(threeKidsData, group)).rejects.toThrow(
+      /Solo quedan \d+ recetas tras filtrar/,
+    );
+  });
+
+  it("does NOT exhaust the pool for just one of the three kids — the exhaustion is genuinely cumulative, not from a single member's restrictions", () => {
+    // Checked via filterRecipes directly (not generateGroupMenu) so this stays
+    // a pure/offline assertion: a non-exhausted pool would otherwise proceed
+    // to call the LLM, which this test suite never mocks.
+    const oneKidGroup = { id: "g1", label: "Niños", memberIds: ["kid1"] };
+    const oneKidData = { ...threeKidsData, members: [threeKidsData.members[0]], groups: [oneKidGroup] };
+    const ctx = buildGroupContext(oneKidData, oneKidGroup);
+    const { error } = filterRecipes(ctx.filterOpts);
+    expect(error).toBeNull();
+  });
+
+  it("generateMenuWithAI (the function App.jsx actually calls) also rejects end-to-end for the same multi-restriction group", async () => {
+    await expect(generateMenuWithAI(threeKidsData)).rejects.toBeInstanceOf(AIPlannerError);
+    await expect(generateMenuWithAI(threeKidsData)).rejects.toThrow(
+      /Solo quedan \d+ recetas tras filtrar/,
+    );
   });
 });

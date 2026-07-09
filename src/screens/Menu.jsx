@@ -56,8 +56,10 @@ import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCatego
 import { kitchenHint } from "../lib/kitchenUnits.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
+import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
+import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
@@ -1590,6 +1592,7 @@ export const MenuScreen = memo(function MenuScreen({
   menuPlan,
   isGenerating = false,
   error = null,
+  restrictionConflicts = [],
   onDishTap,
   onNav,
   onRegenerate,
@@ -1623,6 +1626,10 @@ export const MenuScreen = memo(function MenuScreen({
   }, [data.menuWeek]);
   const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates, activeDays), [weekDates, activeDays]);
   const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
+  const restrictionWarning = useMemo(
+    () => summarizeMenuRestrictionConflicts(restrictionConflicts),
+    [restrictionConflicts],
+  );
   const multiGroup = data.groups.length > 1;
 
   const visibleGroups = useMemo(() => {
@@ -1918,6 +1925,11 @@ export const MenuScreen = memo(function MenuScreen({
 
       {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
       <div>
+        {restrictionWarning && (
+          // Keyed on the message text so a NEW conflict (different dishes/
+          // restrictions) re-surfaces even if the user dismissed an earlier one.
+          <RestrictionConflictBanner key={restrictionWarning} message={restrictionWarning} onRegenerate={onRegenerate} />
+        )}
         {/* ── Week strip (only in "dia" mode) ── */}
         <div
           style={{
