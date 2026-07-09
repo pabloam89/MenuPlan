@@ -553,7 +553,17 @@ export default function App() {
           })),
         };
       });
-      showToast("Menú generado con IA");
+      // plan._warnings collects non-blocking issues from generation (slots
+      // dropped by the 3b safety net, weekly freqs targets the filtered pool
+      // couldn't achieve, etc.) — surface them instead of the generic success
+      // toast so "no bloquea, pero informa" actually reaches the user instead
+      // of a warning that was computed and then silently discarded.
+      if (plan._warnings?.length > 0) {
+        const [first, ...rest] = plan._warnings;
+        showToast(rest.length > 0 ? `${first} (+${rest.length} aviso${rest.length === 1 ? "" : "s"} más)` : first);
+      } else {
+        showToast("Menú generado con IA");
+      }
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
@@ -837,7 +847,14 @@ export default function App() {
       showToast("No hay otra receta compatible para este hueco");
       return;
     }
-    const { frontendRecipe, recipeId } = result;
+    const { frontendRecipe, recipeId, reusedDuplicate } = result;
+    // No unused alternative existed for this slot — the swap still goes
+    // through (better than refusing), but it repeats a dish already placed
+    // elsewhere this week, so the user should know instead of finding out by
+    // spotting it themselves.
+    if (reusedDuplicate) {
+      showToast("Sin alternativas nuevas: se repite un plato ya usado esta semana");
+    }
 
     // Register it exactly like AI-generated dishes (runtime catalog + persisted
     // aiRecipes) so DishCard/DishDetail resolve it through the same path.

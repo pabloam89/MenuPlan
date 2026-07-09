@@ -5,6 +5,7 @@ import {
   generateGroupMenu,
   applyGarnishToRecipe,
   pickCatalogReplacement,
+  selectReplacementCandidates,
 } from "./aiPlanner.js";
 import { getCarbType } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -201,6 +202,65 @@ describe("pickCatalogReplacement respects school-menu avoidance", () => {
       course: "main",
     });
     expect(result).toBeTruthy();
+  });
+});
+
+describe("selectReplacementCandidates (single-dish swap)", () => {
+  // Covers the manual "swap this dish" path (pickCatalogReplacement), which
+  // picks from a much smaller pool than the full weekly generator and is the
+  // one place a recipeId can end up duplicated in the week — validateMenu's
+  // rule 6 (recipeId_repetido) never runs on this path.
+  const matchesAll = () => true;
+
+  it("prefers unused candidates and never reports a duplicate when some exist", () => {
+    const pool = [{ id: "a" }, { id: "b" }];
+    const { candidates, reusedDuplicate } = selectReplacementCandidates(
+      pool,
+      matchesAll,
+      new Set(["a"]), // "a" already used elsewhere this week
+      "a", // slot being replaced currently holds "a"
+    );
+    expect(candidates.map((r) => r.id)).toEqual(["b"]);
+    expect(reusedDuplicate).toBe(false);
+  });
+
+  it("falls back to an already-used recipe (and flags it) when no unused candidate fits", () => {
+    // Every structurally-fitting recipe other than the one being replaced is
+    // already placed somewhere else in the week.
+    const pool = [{ id: "a" }, { id: "b" }];
+    const { candidates, reusedDuplicate } = selectReplacementCandidates(
+      pool,
+      matchesAll,
+      new Set(["a", "b"]), // both already used
+      "a", // currently in this slot
+    );
+    expect(candidates.map((r) => r.id)).toEqual(["b"]);
+    expect(reusedDuplicate).toBe(true);
+  });
+
+  it("never proposes the exact dish being replaced as its own replacement", () => {
+    const pool = [{ id: "a" }];
+    const { candidates, reusedDuplicate } = selectReplacementCandidates(
+      pool,
+      matchesAll,
+      new Set(["a"]),
+      "a",
+    );
+    expect(candidates).toEqual([]);
+    expect(reusedDuplicate).toBe(false);
+  });
+
+  it("does not claim a duplicate happened when nothing fits even after relaxing", () => {
+    const noMatch = () => false;
+    const pool = [{ id: "a" }, { id: "b" }];
+    const { candidates, reusedDuplicate } = selectReplacementCandidates(
+      pool,
+      noMatch,
+      new Set(["a"]),
+      "a",
+    );
+    expect(candidates).toEqual([]);
+    expect(reusedDuplicate).toBe(false);
   });
 });
 
