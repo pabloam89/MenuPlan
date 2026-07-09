@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { buildShoppingList } from "./shoppingBuilder.js";
+import { registerRecipes } from "../data/recipes.js";
 
 const GROUPS = [{ id: "g1", label: "Familia" }];
 
@@ -70,5 +71,36 @@ describe("buildShoppingList pantry discount (Phase 6)", () => {
     const sh = buildShoppingList(plan, GROUPS, ["Comida"], pantry);
     const pantryNames = sh.pantryItems.map((it) => it.name);
     expect(pantryNames).toEqual(["Cebolla"]);
+  });
+});
+
+describe("buildShoppingList adapted-ingredient flag", () => {
+  it("flags a renamed ingredient so the UI can call out the swap, so the family buys the right product", () => {
+    registerRecipes([
+      {
+        id: "test_shopping_adapted",
+        name: "Puré de patatas sin lactosa",
+        servings: 2,
+        ingredients: [
+          { id: "leche-sin-lactosa", name: "Leche sin lactosa", category: "Lácteos y huevos", qty: 200, unit: "ml" },
+          { id: "patata", name: "Patata", category: "Verduras y frutas", qty: 400, unit: "g" },
+        ],
+        adaptations: [{ from: "Leche", to: "Leche sin lactosa", label: "sin lactosa" }],
+      },
+    ]);
+    const plan = planWith("Lun", "Comida", "test_shopping_adapted");
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
+    const all = sh.byCategory.flatMap((c) => c.items);
+    const milk = all.find((it) => it.name === "Leche sin lactosa");
+    const potato = all.find((it) => it.name === "Patata");
+    expect(milk.adapted).toBe(true);
+    expect(potato.adapted).toBe(false);
+  });
+
+  it("does not flag ingredients from a recipe with no adaptations", () => {
+    const plan = planWith("Lun", "Comida", "pollo-horno-patatas");
+    const sh = buildShoppingList(plan, GROUPS, ["Comida"]);
+    const all = sh.byCategory.flatMap((c) => c.items);
+    expect(all.every((it) => it.adapted === false)).toBe(true);
   });
 });

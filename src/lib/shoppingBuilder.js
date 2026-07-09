@@ -119,6 +119,11 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
         for (const rid of recipeIds) {
           const recipe = RECIPES_BY_ID[rid];
           if (!recipe) continue;
+          // Names this recipe's ingredients got renamed to for a dietary
+          // adaptation (e.g. "Leche" -> "Leche sin lactosa") — so the item can
+          // be flagged in the shopping list instead of blending in as a plain
+          // renamed line the user might not notice and buy the wrong product.
+          const adaptedNames = new Set((recipe.adaptations ?? []).map((a) => a.to));
           for (const ing of recipe.ingredients) {
             const scaled = scaleIngredient(ing, slot.eaters, recipe.servings);
             const key = normalizeIngredientKey(ing.name, ing.unit);
@@ -135,8 +140,10 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
                 have: false,
                 atHome: false,
                 manual: false,
+                adapted: false,
               };
             }
+            if (adaptedNames.has(ing.name)) aggregate[key].adapted = true;
             aggregate[key].qty += scaled.qty;
             aggregate[key].price += scaled.scaledPrice;
             aggregate[key].sources.push({

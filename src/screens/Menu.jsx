@@ -1410,6 +1410,12 @@ function DishCard({
   const groupMembers = group ? membersOfGroup(group, allMembers) : (eaterMembers ?? []);
   const activeHealthProfiles = groupMembers.flatMap((m) => m.healthProfiles ?? []);
   const healthBadges = matchingHealthProfiles(recipe.healthFlags, activeHealthProfiles);
+  // Same signal as DishDetail's "Adaptado" card, but visible while just
+  // scanning the week — a family shouldn't have to open every dish to find
+  // out we already handled an intolerance (e.g. lactose-free swap).
+  const adaptationLabels = recipe.adaptations?.length > 0
+    ? Array.from(new Set(recipe.adaptations.map((a) => a.label)))
+    : [];
 
   return (
     <button
@@ -1534,6 +1540,22 @@ function DishCard({
                     <Icon size={14} strokeWidth={2.2} />
                   </span>
                 ))}
+              </span>
+            </>
+          )}
+          {adaptationLabels.length > 0 && (
+            <>
+              <span style={{ color: "#dde8e0", fontSize: 12 }}>·</span>
+              <span
+                title={`Adaptado: ${adaptationLabels.join(", ")}`}
+                aria-label={`Adaptado: ${adaptationLabels.join(", ")}`}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 4,
+                  fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                }}
+              >
+                <Leaf size={13} strokeWidth={2.4} />
+                Adaptado
               </span>
             </>
           )}

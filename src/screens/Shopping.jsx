@@ -652,6 +652,19 @@ function ShoppingRow({
           >
             {item.name}
           </span>
+          {item.adapted && (
+            <span
+              title="Adaptado por una intolerancia — asegúrate de comprar este producto y no el habitual"
+              style={{
+                display: "flex", alignItems: "center", gap: 3,
+                fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                marginTop: 1,
+              }}
+            >
+              <Leaf size={11} strokeWidth={2.6} />
+              Adaptado
+            </span>
+          )}
           {hint && (
             <span style={{ display: "block", fontSize: 11, fontWeight: 700, color: "#64748b", lineHeight: 1.2, marginTop: 1 }}>
               {hint}
