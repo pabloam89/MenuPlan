@@ -29,16 +29,23 @@ const CARB_PATTERNS = [
   [/\bpan\b|s[áa]ndwich|bocadillo|tostada|rebanada/, "pan"],
 ];
 
-function getCarbType(recipe) {
-  const text = [recipe.name, ...recipe.ingredients.map((i) => i.name)]
-    .join(" ")
+// Text-only carb classifier — exported so aiPlanner.js can classify the
+// school menu's free-text dish names (which have no ingredients array) with
+// the exact same taxonomy used below, instead of a second regex list that
+// could drift out of sync.
+export function carbTypeFromText(text) {
+  const normalized = String(text ?? "")
     .toLowerCase()
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "");
   for (const [pattern, carbType] of CARB_PATTERNS) {
-    if (pattern.test(text)) return carbType;
+    if (pattern.test(normalized)) return carbType;
   }
   return null;
+}
+
+export function getCarbType(recipe) {
+  return carbTypeFromText([recipe.name, ...recipe.ingredients.map((i) => i.name)].join(" "));
 }
 
 export function validateMenu(slotAssignments, filteredPool, slotsContext, activeHealthProfiles = []) {
@@ -167,6 +174,26 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext, active
         rule: "school_protein_conflict",
         slotId,
         message: `"${recipe.name}" tiene proteína "${recipeProteinGroup}" que el menú escolar ya cubrió`,
+      });
+    }
+  }
+
+  // 4b. schoolCarbsToAvoid respected in cena — same idea as rule 4 above but
+  // for the carbohydrate base (e.g. school served arroz at lunch, so dinner
+  // shouldn't also be arroz-based). Reuses the same carb taxonomy as rule 9's
+  // same-day guarnición-repetida check below, via getCarbType.
+  for (const { slotId, recipeId, mealType } of mealOrder) {
+    if (mealType !== "cena") continue;
+    const ctx = contextBySlot[slotId];
+    if (!ctx?.schoolCarbsToAvoid?.length) continue;
+    const recipe = poolById[recipeId];
+    if (!recipe) continue;
+    const carb = getCarbType(recipe);
+    if (carb && ctx.schoolCarbsToAvoid.includes(carb)) {
+      violations.push({
+        rule: "school_carb_conflict",
+        slotId,
+        message: `"${recipe.name}" tiene base "${carb}" que el menú escolar ya cubrió`,
       });
     }
   }
@@ -387,6 +414,11 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         };
         const group = proteinMap[r.mainProtein] ?? r.mainProtein;
         if (ctx.schoolProteinsToAvoid.includes(group)) return false;
+      }
+
+      if (v.rule === "school_carb_conflict" && ctx?.schoolCarbsToAvoid) {
+        const carb = getCarbType(r);
+        if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return false;
       }
 
       if (v.rule === "guarnicion_repetida") {
