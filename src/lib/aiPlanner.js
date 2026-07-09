@@ -895,7 +895,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
         // Merge garnish into the recipe: name, time, macros, ingredients
         if (garnishId) {
           const garnish = guarnicionById[garnishId];
-          if (garnish) applyGarnishToRecipe(fr, garnish, eaters);
+          if (garnish) applyGarnishToRecipe(fr, garnish, eaters, restrictions);
         }
 
         allRecipes.push(fr);
@@ -970,7 +970,7 @@ const stripGroupPrefix = (id) => (id ? String(id).split("__").pop() : null);
  * ingredients, prepSummary and steps. Shared by the generator and the swap flow
  * so a paired dish looks identical regardless of how it entered the menu.
  */
-export function applyGarnishToRecipe(fr, garnish, eaters) {
+export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   if (!fr || !garnish) return fr;
 
   // Preserve garnishId so the photo lookup can build the combo key
@@ -990,7 +990,12 @@ export function applyGarnishToRecipe(fr, garnish, eaters) {
     fat: (fr.macros.fat ?? 0) + Math.round(garnish.fat_g / gPerServing),
   };
 
-  // Ingredients: scale garnish to actual number of eaters
+  // Ingredients: scale garnish to actual number of eaters. Compute the swap
+  // the same way the main dish does (buildAdaptationMap against the group's
+  // live restrictions) — filterGarnishes only decided the garnish was
+  // *eligible*, not what to rename, so a garnish never needs to be dropped
+  // just because it has a swappable ingredient (e.g. lactose-free milk).
+  const { renameByName, adaptations: garnishAdaptations } = buildAdaptationMap(garnish, restrictions);
   const gFactor = eaters / gPerServing;
   const gIngredients = garnish.ingredients.map((ing) => {
     let scaledQty = ing.amount * gFactor;
@@ -1000,15 +1005,23 @@ export function applyGarnishToRecipe(fr, garnish, eaters) {
     } else {
       scaledQty = Math.ceil(scaledQty);
     }
+    const name = renameByName.get(ing.name) ?? ing.name;
     return {
-      id: `garnish-${ing.name.toLowerCase().replace(/\s+/g, "-")}`,
-      name: ing.name,
-      category: guessIngredientCategory(ing.name),
+      id: `garnish-${name.toLowerCase().replace(/\s+/g, "-")}`,
+      name,
+      category: guessIngredientCategory(name),
       qty: scaledQty,
       unit: ing.unit,
     };
   });
   fr.ingredients = [...fr.ingredients, ...gIngredients];
+
+  // Surface the garnish's own swaps in the same `adaptations` note the main
+  // dish uses, so the UI shows "Adaptado: sin lactosa" regardless of which
+  // part of the combined dish needed the swap.
+  if (garnishAdaptations.length > 0) {
+    fr.adaptations = [...(fr.adaptations ?? []), ...garnishAdaptations];
+  }
 
   if (garnish.description) {
     fr.prepSummary = `${fr.prepSummary}. ${garnish.description}`;
@@ -1187,7 +1200,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const targetGarnishId = paired.find((a) => a.slotId === targetSlotId)?.garnishId;
   if (targetGarnishId) {
     const garnish = guarnicionesData.find((g) => g.id === targetGarnishId);
-    if (garnish) applyGarnishToRecipe(fr, garnish, eaters);
+    if (garnish) applyGarnishToRecipe(fr, garnish, eaters, ctx.filterOpts.intolerances ?? []);
   }
 
   return { frontendRecipe: fr, recipeId: fr.id, course };

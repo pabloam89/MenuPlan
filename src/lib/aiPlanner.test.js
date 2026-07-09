@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildUserMessage, buildGroupContext, generateGroupMenu } from "./aiPlanner.js";
+import { buildUserMessage, buildGroupContext, generateGroupMenu, applyGarnishToRecipe } from "./aiPlanner.js";
 
 const SLOTS = [{ slotId: "lun_cena", mealType: "cena", mode: "casa", maxTime: 30 }];
 const CONFIG = { targetKcal: 2000, freqs: {}, cookLevel: "normal", cookTime: {} };
@@ -87,5 +87,41 @@ describe("generateGroupMenu baby group", () => {
   it("returns an empty warnings array for baby groups", async () => {
     const result = await generateGroupMenu(babyData({}), group);
     expect(result.warnings).toEqual([]);
+  });
+});
+
+describe("applyGarnishToRecipe adaptations", () => {
+  function baseFr() {
+    return {
+      id: "r1", name: "Pollo asado", time: 30, kcal: 400,
+      macros: { protein: 30, carbs: 10, fat: 15 },
+      ingredients: [{ id: "pollo", name: "Pollo", category: "carnes", qty: 200, unit: "g" }],
+    };
+  }
+
+  function dairyGarnish() {
+    return {
+      id: "g1", shortName: "puré", time: 10, baseServings: 2,
+      kcal: 200, protein_g: 4, carbs_g: 30, fat_g: 6,
+      ingredients: [
+        { name: "Leche", amount: 100, unit: "ml" },
+        { name: "Patata", amount: 300, unit: "g" },
+      ],
+    };
+  }
+
+  it("renames a lactose ingredient in the merged garnish and notes the adaptation, instead of the garnish having been dropped", () => {
+    const fr = applyGarnishToRecipe(baseFr(), dairyGarnish(), 2, ["lactosa_fina"]);
+    const milk = fr.ingredients.find((i) => i.name.toLowerCase().includes("leche"));
+    expect(milk.name.toLowerCase()).toContain("sin lactosa");
+    expect(fr.adaptations).toEqual(
+      expect.arrayContaining([expect.objectContaining({ from: "Leche", label: "sin lactosa" })]),
+    );
+  });
+
+  it("leaves garnish ingredients untouched when the restriction isn't active", () => {
+    const fr = applyGarnishToRecipe(baseFr(), dairyGarnish(), 2, []);
+    expect(fr.ingredients.some((i) => i.name === "Leche")).toBe(true);
+    expect(fr.adaptations).toBeUndefined();
   });
 });

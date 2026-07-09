@@ -282,13 +282,28 @@ describe("filterGarnishes", () => {
     expect(safe.some((g) => hadLactosa.some((h) => h.id === g.id))).toBe(false);
   });
 
-  it("excludes a garnish matching an active intolerance", () => {
+  it("keeps a lactose-containing garnish (adaptable) instead of excluding it", () => {
+    // guarniciones_003 "Puré de patatas" has "Leche" among its ingredients —
+    // adaptable, not a hard exclusion: dropping it would be an unnecessary
+    // wall when a lactose-free version of the same product exists.
     const all = filterGarnishes({});
+    const withDairy = all.find((g) => g.id === "guarniciones_003");
+    expect(withDairy).toBeTruthy(); // sanity: fixture data still has it
+
     const safe = filterGarnishes({ intolerances: ["lactosa_fina"] });
-    expect(safe.length).toBeLessThan(all.length);
-    for (const g of safe) {
-      expect(recipeHitsIntolerances(g, ["lactosa_fina"])).toBe(false);
-    }
+    expect(safe.some((g) => g.id === "guarniciones_003")).toBe(true);
+  });
+
+  it("still hard-excludes a non-adaptable intolerance (fructosa)", () => {
+    // guarniciones_011 "Zanahoria glaseada" has "Miel" — fructosa has no
+    // supermarket swap, so it must still be a hard exclusion.
+    const all = filterGarnishes({});
+    const withHoney = all.find((g) => g.id === "guarniciones_011");
+    expect(withHoney).toBeTruthy(); // sanity: fixture data still has it
+    expect(recipeHitsIntolerances(withHoney, ["fructosa"])).toBe(true);
+
+    const safe = filterGarnishes({ intolerances: ["fructosa"] });
+    expect(safe.some((g) => g.id === "guarniciones_011")).toBe(false);
   });
 
   it("excludes alcoholic garnishes when hasKids, via an injected fixture (the real catalog has none today)", () => {

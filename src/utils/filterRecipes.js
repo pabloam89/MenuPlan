@@ -227,10 +227,16 @@ export function filterRecipes({
  * member is excluded from. `pairGarnishes` only ever picks from this output,
  * never from the raw guarniciones.json import.
  *
- * Unlike main dishes, adaptable intolerances (lactosa_fina) are excluded
- * outright here rather than adapted — a garnish is disposable enough that
- * swapping it for a compliant one is simpler and safer than renaming its
- * ingredients after the fact (which pairGarnishes has no mechanism for).
+ * Like main dishes, adaptable intolerances (lactosa_fina) are ADAPTED, not
+ * excluded — a "Puré de patatas" made with lactose-free milk is a real
+ * product, so there's no reason to drop the garnish from the pool over an
+ * ingredient with a simple swap. This function only decides which garnishes
+ * are *eligible* (a blocked adaptation — conflict only in the name, nothing
+ * to rename — still excludes); the actual rename happens later, in
+ * `applyGarnishToRecipe` (aiPlanner.js), via the same `buildAdaptationMap`
+ * the main recipe uses. That keeps a garnish's `adaptations` computed once,
+ * against the group's live `restrictions`, instead of stamped here and then
+ * carried through re-lookups by id that would otherwise drop it.
  *
  * @param {Object} opts
  * @param {string[]} [opts.allergies] - member allergens (app format)
@@ -247,6 +253,8 @@ export function filterGarnishes(
 ) {
   const blockedAllergens = new Set(allergies.map(normalizeAllergenId));
   const activeIntolerances = Array.from(new Set(intolerances));
+  const adaptableIds = activeIntolerances.filter(isAdaptableRestriction);
+  const hardIds = activeIntolerances.filter((id) => !isAdaptableRestriction(id));
 
   return guarnicionesList.filter((g) => {
     if (blockedAllergens.size > 0) {
@@ -254,10 +262,13 @@ export function filterGarnishes(
       const names = (g.ingredients ?? []).map((ing) => ing.name);
       if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
     }
-    if (activeIntolerances.length > 0 && recipeHitsIntolerances(g, activeIntolerances)) return false;
+    if (hardIds.length > 0 && recipeHitsIntolerances(g, hardIds)) return false;
     if (hasKids && g.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
       return false;
     }
+    // Adaptable (lactosa_fina): only excludes when the conflict is name-only
+    // (nothing to rename) — same rule main dishes follow via planAdaptations.
+    if (adaptableIds.length > 0 && planAdaptations(g, adaptableIds).blocked) return false;
     return true;
   });
 }

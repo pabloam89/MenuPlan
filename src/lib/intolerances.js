@@ -18,7 +18,7 @@ export const INTOLERANCE_RULES = {
     keywords: [
       "leche", "nata", "bechamel", "queso fresco", "requeson", "mozzarella",
       "ricotta", "mascarpone", "cuajada", "crema de leche", "batido de leche",
-      "helado",
+      "helado", "yogur", "yogurt",
     ],
   },
   fructosa: {

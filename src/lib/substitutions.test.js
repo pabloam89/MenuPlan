@@ -94,6 +94,19 @@ describe("planAdaptations (lactosa_fina)", () => {
     expect(blocked).toBe(false);
   });
 
+  it("swaps yogurt for its lactose-free version (previously missing from the keyword list entirely)", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Pepino con yogur y menta", ["Yogur natural", "Pepino"]),
+      ["lactosa_fina"],
+    );
+    expect(blocked).toBe(false);
+    expect(swaps).toEqual(
+      expect.arrayContaining([
+        { from: "Yogur natural", to: "Yogur natural sin lactosa", restriction: "lactosa_fina", label: "sin lactosa" },
+      ]),
+    );
+  });
+
   it("does NOT touch tolerated cured cheese / butter (not in the keyword list)", () => {
     const { swaps } = planAdaptations(
       recipe("Tostada", ["Queso curado", "Mantequilla"]),
