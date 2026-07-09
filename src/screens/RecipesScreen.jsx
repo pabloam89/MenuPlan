@@ -24,6 +24,9 @@ export function RecipesScreen({
   onNav,
   onOpenRecipePlanner,
   onChangeRecipeVisibility,
+  onDeleteRecipe,
+  onEditRecipe,
+  onCombineGarnish,
 }) {
   const [tab, setTab] = useState("catalog");
 
@@ -135,6 +138,7 @@ export function RecipesScreen({
             onSetFavoriteScope={onSetFavoriteScope}
             onOpenRecipe={onOpenRecipe}
             extraRecipes={userRecipes}
+            onCombineGarnish={onCombineGarnish}
           />
         )}
 
@@ -201,6 +205,9 @@ export function RecipesScreen({
               onOpenRecipe={onOpenRecipe}
               sourceRecipes={userRecipes}
               onChangeVisibility={onChangeRecipeVisibility}
+              onDeleteRecipe={onDeleteRecipe}
+              onEditRecipe={onEditRecipe}
+              ownRecipesView
               emptyLabel="Ninguna de tus recetas coincide con esos filtros."
             />
           )

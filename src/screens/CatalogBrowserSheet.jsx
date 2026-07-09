@@ -1,4 +1,5 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   Search,
   SlidersHorizontal,
@@ -26,6 +27,8 @@ import {
   Users2,
   Lock,
   ChevronDown,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
@@ -167,6 +170,15 @@ export function CatalogBrowserSheet({
   emptyLabel = null,
   // Reference mode only: lets user-owned recipes change visibility inline.
   onChangeVisibility = null,
+  // Reference mode only: lets the owner delete their own recipes inline.
+  onDeleteRecipe = null,
+  // "Mis recetas" view: edit action + edit/delete icons rendered outside the
+  // card, and the "Tuya" badge hidden (redundant when all are yours).
+  onEditRecipe = null,
+  ownRecipesView = false,
+  // Reference/browse mode: lets the user pair a catalog dish with a garnish and
+  // save the combo to "Mis recetas" (called with the built combo recipe).
+  onCombineGarnish = null,
 }) {
   const fullCatalog = useMemo(
     () =>
@@ -207,6 +219,7 @@ export function CatalogBrowserSheet({
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [garnishFor, setGarnishFor] = useState(null);
+  const [combineFor, setCombineFor] = useState(null); // catalog dish being paired with a garnish to save as own recipe
   const [scopeFor, setScopeFor] = useState(null); // recipe being favorited via the group picker
 
   const { allCats, allProteins } = useMemo(() => {
@@ -585,6 +598,10 @@ export function CatalogBrowserSheet({
               scopeGroups={scopeGroups}
               onOpenScopePicker={() => setScopeFor(r)}
               onChangeVisibility={onChangeVisibility}
+              onDelete={onDeleteRecipe && r.source === "user" ? () => onDeleteRecipe(r.id) : undefined}
+              onEdit={onEditRecipe && r.source === "user" ? () => onEditRecipe(r) : undefined}
+              ownView={ownRecipesView}
+              onCombine={onCombineGarnish && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
               animDelay={i < 12 ? i * 18 : 0}
             />
           ))}
@@ -627,6 +644,20 @@ export function CatalogBrowserSheet({
           currentGarnishId={garnishByCatalogId[garnishFor.id] ?? null}
           onSelect={(gid) => { onSetGarnish?.(garnishFor, gid); setGarnishFor(null); }}
           onClose={() => setGarnishFor(null)}
+        />
+      )}
+      {combineFor && (
+        <GarnishPickerSheet
+          recipe={combineFor}
+          currentGarnishId={null}
+          title="Guardar con guarnición"
+          subtitle={null}
+          onSelect={(gid) => {
+            const g = gid ? (GARNISH_BY_ID[gid] ?? garnishCatalog.find((x) => x.id === gid)) : null;
+            if (g) onCombineGarnish?.(combineFor, g);
+            setCombineFor(null);
+          }}
+          onClose={() => setCombineFor(null)}
         />
       )}
       {showFilters && (
@@ -1206,11 +1237,48 @@ const VIS_META = {
 
 function VisibilityMiniPill({ visibility = "private", onChange }) {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const [menuPos, setMenuPos] = useState(null);
   const current = VIS_META[visibility] ?? VIS_META.private;
   const Icon = current.icon;
+
+  // The card clips overflow (rounded thumbnail), so an absolutely-positioned
+  // dropdown was invisible. Render it in a portal with fixed coords measured
+  // from the trigger, and flip above if there's no room below.
+  useLayoutEffect(() => {
+    if (!open || !btnRef.current) return;
+    const measure = () => {
+      const r = btnRef.current?.getBoundingClientRect();
+      if (!r) return;
+      const MENU_H = 150;
+      const below = window.innerHeight - r.bottom;
+      const openUp = below < MENU_H && r.top > below;
+      setMenuPos({
+        left: r.left,
+        top: openUp ? undefined : r.bottom + 4,
+        bottom: openUp ? window.innerHeight - r.top + 4 : undefined,
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.removeEventListener("scroll", measure, true);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = () => setOpen(false);
+    document.addEventListener("click", onDoc);
+    return () => document.removeEventListener("click", onDoc);
+  }, [open]);
+
   return (
     <div style={{ position: "relative" }}>
       <button
+        ref={btnRef}
         type="button"
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
         style={{
@@ -1223,10 +1291,11 @@ function VisibilityMiniPill({ visibility = "private", onChange }) {
         <span style={{ fontSize: 10, fontWeight: 700, color: current.color }}>{current.label}</span>
         <ChevronDown size={9} color={current.color} />
       </button>
-      {open && (
+      {open && menuPos && createPortal(
         <div
+          onClick={(e) => e.stopPropagation()}
           style={{
-            position: "absolute", top: "calc(100% + 4px)", left: 0, zIndex: 60,
+            position: "fixed", left: menuPos.left, top: menuPos.top, bottom: menuPos.bottom, zIndex: 400,
             background: "#fff", borderRadius: 12, border: "1.5px solid #e8efe9",
             boxShadow: "0 6px 20px rgba(0,0,0,.12)", minWidth: 146, overflow: "hidden",
           }}
@@ -1253,7 +1322,8 @@ function VisibilityMiniPill({ visibility = "private", onChange }) {
               </button>
             );
           })}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
@@ -1261,15 +1331,16 @@ function VisibilityMiniPill({ visibility = "private", onChange }) {
 
 function RecipeCard({
   recipe, reference = false, added, garnishId, onAdd, onRemove, onOpenGarnish,
-  onOpenRecipe, favorite, onSetFavoriteScope, scopeGroups = [], onOpenScopePicker, onChangeVisibility, animDelay = 0,
+  onOpenRecipe, favorite, onSetFavoriteScope, scopeGroups = [], onOpenScopePicker, onChangeVisibility, onDelete, onEdit, onCombine, ownView = false, animDelay = 0,
 }) {
   const hasScopeChoice = scopeGroups.length > 1 && onOpenScopePicker;
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const color = categoryColor(recipe.category);
   const isPrincipal = recipe.type === "principal";
   const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
   const photo = recipe.photo ?? dishImageUrl(recipe.id, garnishId ?? undefined);
 
-  return (
+  const card = (
     <div
       className="catalog-card-enter"
       style={{
@@ -1353,7 +1424,7 @@ function RecipeCard({
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
             <span style={{ fontSize: 11, fontWeight: 800, color }}>{categoryLabel(recipe.category)}</span>
-            {recipe.source === "user" && (
+            {recipe.source === "user" && !ownView && (
               <span
                 style={{
                   fontSize: 10, fontWeight: 800, color: GREEN, background: "#eaf6ee",
@@ -1390,9 +1461,35 @@ function RecipeCard({
         </div>
         </button>
 
-        {/* Reference mode: owner + votes column */}
+        {/* Reference mode: owner + votes column (+ optional garnish combo) */}
         {reference ? (
-          <RecipeProvenance recipe={recipe} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            {onCombine && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onCombine(); }}
+                aria-label={`Guardar ${recipe.name} con guarnición`}
+                title="Guardar con guarnición en Mis recetas"
+                style={{
+                  width: 34, height: 34, borderRadius: 10, flexShrink: 0, cursor: "pointer",
+                  border: `1.5px dashed ${GREEN}`, background: "#fff", color: GREEN,
+                  display: "flex", alignItems: "center", justifyContent: "center", position: "relative",
+                }}
+              >
+                <Salad size={16} />
+                <span
+                  style={{
+                    position: "absolute", bottom: -3, right: -3, width: 15, height: 15,
+                    borderRadius: "50%", background: GREEN, color: "#fff", border: "1.5px solid #fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <Plus size={9} strokeWidth={3} />
+                </span>
+              </button>
+            )}
+            <RecipeProvenance recipe={recipe} />
+          </div>
         ) : (
           <>
             {/* garnish icon button — only for principal dishes once added */}
@@ -1435,10 +1532,11 @@ function RecipeCard({
           </>
         )}
       </div>
-      {/* Owner-only: inline visibility control (Mis recetas) */}
-      {reference && onChangeVisibility && recipe.source === "user" && (
+      {/* Owner-only: inline visibility control (Mis recetas). Delete/edit now
+          live OUTSIDE the card (see actions column below). */}
+      {reference && recipe.source === "user" && onChangeVisibility && (
         <div
-          style={{ padding: "0 8px 9px 66px" }}
+          style={{ padding: "0 8px 9px 66px", display: "flex", alignItems: "center", gap: 8 }}
           onClick={(e) => e.stopPropagation()}
         >
           <VisibilityMiniPill
@@ -1449,12 +1547,89 @@ function RecipeCard({
       )}
     </div>
   );
+
+  // "Mis recetas" view: edit + delete icons live OUTSIDE the card, on the
+  // right, as a vertical column (delete asks for confirmation inline).
+  if (!ownView || (!onEdit && !onDelete)) return card;
+  return (
+    <div style={{ display: "flex", alignItems: "stretch", gap: 8 }}>
+      <div style={{ flex: 1, minWidth: 0 }}>{card}</div>
+      <div
+        style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 8, flexShrink: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {confirmDelete ? (
+          <>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDelete?.(); }}
+              aria-label={`Borrar ${recipe.name}`}
+              title="Confirmar borrado"
+              style={{
+                width: 38, height: 38, borderRadius: 11, flexShrink: 0, border: "none", cursor: "pointer",
+                background: "#c0392b", color: "#fff",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <Trash2 size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); setConfirmDelete(false); }}
+              aria-label="Cancelar"
+              title="Cancelar"
+              style={{
+                width: 38, height: 38, borderRadius: 11, flexShrink: 0, cursor: "pointer",
+                border: "1.5px solid #e8efe9", background: "#fff", color: "#7a9485",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              <X size={16} />
+            </button>
+          </>
+        ) : (
+          <>
+            {onEdit && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onEdit(); }}
+                aria-label={`Editar ${recipe.name}`}
+                title="Editar receta"
+                style={{
+                  width: 38, height: 38, borderRadius: 11, flexShrink: 0, cursor: "pointer",
+                  border: "1.5px solid #e0e8e3", background: "#fff", color: GREEN,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Pencil size={15} />
+              </button>
+            )}
+            {onDelete && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); setConfirmDelete(true); }}
+                aria-label={`Borrar ${recipe.name}`}
+                title="Borrar receta"
+                style={{
+                  width: 38, height: 38, borderRadius: 11, flexShrink: 0, cursor: "pointer",
+                  border: "none", background: "#fdecea", color: "#c0392b",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
 }
 
 // Small centered popup shown when tapping the heart on a recipe card in a
 // multi-group household: picks whether the favorite applies to everyone or
 // to one specific group, in a single tap.
-function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose }) {
+function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose, title, subtitle }) {
   return (
     <div
       onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -1479,10 +1654,12 @@ function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose }) {
         {/* header */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px 12px", flexShrink: 0 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Elige guarnición</h3>
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              para {recipe.name}
-            </p>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>{title ?? "Elige guarnición"}</h3>
+            {subtitle !== null && (
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {subtitle ?? `para ${recipe.name}`}
+              </p>
+            )}
           </div>
           <button type="button" onClick={onClose} aria-label="Cerrar" style={iconBtnStyle}>
             <X size={18} />

@@ -14,7 +14,6 @@ import {
   Camera,
   Plus,
   Check,
-  ShoppingBasket,
   Info,
   Trash2,
   UserX,
@@ -478,26 +477,7 @@ export function HomeProfileScreen({
           <CookTimeEditor data={data} setData={setData} />
         </Section>
 
-        {/* ── 5. Tu despensa ─────────────────────────── */}
-        <div style={{ marginBottom: 14 }}>
-          <Card>
-            <button
-              type="button"
-              onClick={onOpenPantry}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 12,
-                padding: "13px 14px", border: "none", background: "transparent",
-                cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-              }}
-            >
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "#fdece1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <ShoppingBasket size={15} color="#d9711f" />
-              </div>
-              <span style={{ flex: 1, fontSize: 14, fontWeight: 700, color: INK }}>Tu despensa</span>
-              <ChevronRight size={16} color="#c0cfca" />
-            </button>
-          </Card>
-        </div>
+        {/* ── Tu despensa — oculto de momento (feature en pausa) ── */}
 
         {/* ── 6. Zona de peligro ─────────────────────── */}
         <Card style={{ borderColor: "#f0d0cc", marginBottom: 8 }}>

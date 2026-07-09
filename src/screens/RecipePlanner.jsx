@@ -64,6 +64,7 @@ import {
   COOKING_METHODS,
   generateUserRecipeDraft,
   generateDishPhotoWithAI,
+  suggestRecipeIngredients,
 } from "../lib/userRecipes.js";
 import { SHOPPING_AISLES, isQualitativeUnit } from "../lib/ingredientCategories.js";
 
@@ -1023,9 +1024,33 @@ function VisibilitySheet({ onConfirm, onClose }) {
  * into data.userRecipes, where it becomes usable exactly like a catalog dish
  * (see filterRecipes.js / aiPlanner.js / CatalogBrowserSheet.jsx).
  */
-export function RecipePlannerScreen({ userRecipes = [], user = null, setData, onClose, onSaved }) {
-  const [step, setStep] = useState(0);
-  const [form, setForm] = useState({
+export function RecipePlannerScreen({ userRecipes = [], user = null, setData, onClose, onSaved, editRecipe = null }) {
+  // Editing an existing recipe: jump straight to the review step with the
+  // recipe already loaded (no AI re-run), and let "Atrás" walk back through
+  // the wizard to tweak anything. Saving updates the same recipe (by id).
+  const isEditing = !!editRecipe;
+  const reviewStepIndex = STEP_META.length - 1;
+  const [step, setStep] = useState(isEditing ? reviewStepIndex : 0);
+  const [form, setForm] = useState(
+    isEditing
+      ? {
+          name: editRecipe.name ?? "",
+          baseServings: editRecipe.baseServings ?? 4,
+          time: editRecipe.time ?? 30,
+          ingredients: editRecipe.ingredients ?? [],
+          category: editRecipe.category ?? "",
+          mealRole: editRecipe.mealRole ?? [],
+          mainProtein: editRecipe.mainProtein ?? "",
+          usageTags: editRecipe.usageTags ?? [],
+          baseDishId: editRecipe.baseDishId ?? null,
+          linkedCatalogId: editRecipe.linkedCatalogId ?? null,
+          pinnedGarnishId: editRecipe.pinnedGarnishId ?? null,
+          requiredAppliances: editRecipe.requiredAppliances ?? [],
+          kidFriendly: editRecipe.kidFriendly ?? null,
+          allergens: editRecipe.allergens ?? [],
+          preparationNotes: editRecipe.preparationNotes ?? "",
+        }
+      : {
     name: "",
     baseServings: 4,
     time: 30,
@@ -1067,16 +1092,20 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
   );
   const [ingredientQuery, setIngredientQuery] = useState("");
   const [ingredientAisle, setIngredientAisle] = useState(null);
-  const [aiState, setAiState] = useState("idle"); // idle | loading | error | done
+  const [aiState, setAiState] = useState(isEditing ? "done" : "idle"); // idle | loading | error | done
   const [aiError, setAiError] = useState(null);
-  const [draft, setDraft] = useState(null);
-  const [confirmedAllergens, setConfirmedAllergens] = useState(new Set());
-  const [photo, setPhoto] = useState(null);
+  const [draft, setDraft] = useState(isEditing ? editRecipe : null);
+  const [confirmedAllergens, setConfirmedAllergens] = useState(new Set(isEditing ? editRecipe.allergens ?? [] : []));
+  const [photo, setPhoto] = useState(isEditing ? editRecipe.photo ?? null : null);
   const [photoGenState, setPhotoGenState] = useState("idle"); // idle | loading | error
   const [photoGenError, setPhotoGenError] = useState(null);
   const [saved, setSaved] = useState(false);
   const abortRef = useRef(null);
   const photoAbortRef = useRef(null);
+  // Pre-fills the ingredient step with AI suggestions (item: "ir más rápido").
+  const [suggestState, setSuggestState] = useState("idle"); // idle | loading | done | error
+  const suggestAbortRef = useRef(null);
+  const suggestedForNameRef = useRef(null);
 
   const updateForm = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -1195,8 +1224,42 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
     }
   };
 
+  // Pre-fill the ingredient step with AI suggestions the first time the user
+  // lands on it with an empty list — a head start they can freely edit/remove.
+  // Keyed by name so retyping the dish name (and coming back) re-suggests once.
+  useEffect(() => {
+    const ingredientsStepIndex = 1;
+    if (step !== ingredientsStepIndex) return;
+    const name = form.name.trim();
+    if (!name) return;
+    if (form.ingredients.length > 0) return;
+    if (suggestedForNameRef.current === name.toLowerCase()) return;
+    suggestedForNameRef.current = name.toLowerCase();
+    setSuggestState("loading");
+    const ctrl = new AbortController();
+    suggestAbortRef.current = ctrl;
+    suggestRecipeIngredients(name, { servings: Number(form.baseServings) || 4, signal: ctrl.signal })
+      .then((list) => {
+        if (ctrl.signal.aborted) return;
+        if (list.length) {
+          const asIngredients = list.map((i) =>
+            i.unit
+              ? { name: String(i.name).trim(), amount: i.amount != null ? i.amount : defaultAmountForUnit(i.unit), unit: i.unit }
+              : makeIngredient(i.name),
+          );
+          setForm((f) => (f.ingredients.length === 0 ? { ...f, ingredients: asIngredients } : f));
+        }
+        setSuggestState("done");
+      })
+      .catch((err) => {
+        if (err?.name === "AbortError") return;
+        setSuggestState("error");
+      });
+    return () => ctrl.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, form.name]);
+
   // Kick off the AI draft once we land on the review step (the last one).
-  const reviewStepIndex = STEP_META.length - 1;
   useEffect(() => {
     if (step === reviewStepIndex && aiState === "idle") runAI();
     return () => abortRef.current?.abort();
@@ -1239,6 +1302,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
 
     const finalRecipe = {
       ...draft,
+      // Editing keeps the original id so it updates in place; a new recipe
+      // keeps whatever id the draft already carries.
+      id: editRecipe?.id ?? draft.id,
       usageTags,
       type,
       category: isGarnishOnly ? "guarniciones" : form.category || draft.category,
@@ -1259,9 +1325,16 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
       // Visibility: "public" | "friends" | "private"
       visibility,
     };
-    setData((d) => ({ ...d, userRecipes: [...(d.userRecipes ?? []), finalRecipe] }));
+    setData((d) => {
+      const list = d.userRecipes ?? [];
+      const idx = editRecipe ? list.findIndex((r) => r.id === editRecipe.id) : -1;
+      const next = idx >= 0
+        ? list.map((r, i) => (i === idx ? finalRecipe : r))
+        : [...list, finalRecipe];
+      return { ...d, userRecipes: next };
+    });
     setSaved(true);
-    onSaved?.(finalRecipe);
+    onSaved?.(finalRecipe, { edited: !!editRecipe });
   };
 
   const updateStepAt = (idx, value) =>
@@ -1396,6 +1469,29 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
 
         {step === 1 && (
           <div>
+            {suggestState === "loading" ? (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px",
+                padding: "9px 11px", borderRadius: 12, background: "#fff7ed",
+                border: "1px solid #f6dcc0",
+              }}>
+                <Sparkles size={14} color="#c96a1c" />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#a85a15" }}>
+                  Sugiriendo ingredientes para «{form.name.trim()}»…
+                </span>
+              </div>
+            ) : suggestState === "done" && form.ingredients.length > 0 ? (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px",
+                padding: "9px 11px", borderRadius: 12, background: "#fff7ed",
+                border: "1px solid #f6dcc0",
+              }}>
+                <Sparkles size={14} color="#c96a1c" />
+                <span style={{ fontSize: 12, fontWeight: 700, color: "#a85a15" }}>
+                  Sugerencia lista: revisa, ajusta cantidades o quita lo que no lleve.
+                </span>
+              </div>
+            ) : null}
             <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
               MARCA LOS INGREDIENTES QUE LLEVA
             </p>
@@ -1625,7 +1721,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
           >
-            <Sparkles size={16} /> Guardar receta
+            <Sparkles size={16} /> {isEditing ? "Guardar cambios" : "Guardar receta"}
           </button>
         )}
       </div>
