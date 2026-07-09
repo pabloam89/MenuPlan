@@ -1577,7 +1577,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -1840,7 +1842,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "lactosa"
     ],
     "season": "all",
     "ingredients": [

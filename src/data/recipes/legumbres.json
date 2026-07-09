@@ -1578,7 +1578,8 @@
     "kidFriendly": false,
     "tupperFriendly": true,
     "allergens": [
-      "moluscos"
+      "moluscos",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [

@@ -663,7 +663,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -917,7 +918,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "pescado"
+      "pescado",
+      "huevo"
     ],
     "season": "all",
     "ingredients": [
@@ -986,7 +988,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "verano",
     "ingredients": [
       {

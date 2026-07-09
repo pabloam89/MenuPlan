@@ -979,7 +979,8 @@
     "kidFriendly": false,
     "tupperFriendly": false,
     "allergens": [
-      "moluscos"
+      "moluscos",
+      "pescado"
     ],
     "season": "all",
     "ingredients": [
@@ -1072,7 +1073,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "lactosa"
     ],
     "season": "all",
     "ingredients": [
@@ -1647,7 +1649,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "pescado"
+      "pescado",
+      "marisco"
     ],
     "season": "all",
     "ingredients": [

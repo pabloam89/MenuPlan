@@ -273,7 +273,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "pescado"
+      "pescado",
+      "huevo"
     ],
     "season": "all",
     "ingredients": [
@@ -680,7 +681,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "lactosa"
     ],
     "season": "all",
     "ingredients": [

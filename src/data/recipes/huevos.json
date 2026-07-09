@@ -270,7 +270,8 @@
     "kidFriendly": false,
     "tupperFriendly": false,
     "allergens": [
-      "huevo"
+      "huevo",
+      "marisco"
     ],
     "season": "all",
     "ingredients": [
@@ -598,7 +599,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "huevo"
+      "huevo",
+      "pescado"
     ],
     "season": "verano",
     "ingredients": [

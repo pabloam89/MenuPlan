@@ -329,7 +329,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "huevo"
     ],
     "season": "verano",
     "ingredients": [

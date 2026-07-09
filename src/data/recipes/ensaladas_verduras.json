@@ -1139,7 +1139,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "huevo"
+      "huevo",
+      "pescado"
     ],
     "season": "verano",
     "ingredients": [
