@@ -41,23 +41,22 @@ function getCarbType(recipe) {
   return null;
 }
 
-export function validateMenu(slotAssignments, filteredPool, slotsContext, activeHealthProfiles = []) {
-  const violations = [];
-  const poolIds = new Set(filteredPool.map((r) => r.id));
-  const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
+// ── Meal ordering (chronological across the whole week) ─────────
+// Shared by rule 3 (consecutive-protein) below and by applyFallback's
+// targeted fix for that same rule, so both agree on what "adjacent meal"
+// means — a slot's neighbors in this array are always its true chronological
+// prev/next main meal, including across a day boundary (cena day N ->
+// comida day N+1).
+const DAY_ORDER = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
 
-  const contextBySlot = Object.fromEntries(
-    slotsContext.map((s) => [s.slotId, s]),
-  );
-
-  const dayOrder = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
+function buildMealOrder(slotAssignments) {
   const mealOrder = [];
   for (const { slotId, recipeId } of slotAssignments) {
     const parts = slotId.split("_");
     const daySlug = parts[0];
     const mealType = parts[1];
     const position = parts[2];
-    const dayIdx = dayOrder.indexOf(daySlug);
+    const dayIdx = DAY_ORDER.indexOf(daySlug);
     mealOrder.push({ slotId, recipeId, daySlug, dayIdx, mealType, position });
   }
   mealOrder.sort((a, b) => {
@@ -66,6 +65,90 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext, active
     if (a.mealType === "cena" && b.mealType === "comida") return 1;
     return (a.position ?? "").localeCompare(b.position ?? "");
   });
+  return mealOrder;
+}
+
+// A "comida_1" slot is normally a light primero (soup/salad, mainProtein
+// "none") that shouldn't collide-check against segundo/cena — EXCEPT when it
+// holds a plato_unico (paella, cocido...), which carries the day's actual
+// protein just like any other main dish and must stay visible to rule 3.
+// Recipes that don't resolve in `poolById` (already flagged by rule 1) are
+// treated as non-main, same as before.
+function mainMealsOf(mealOrder, poolById) {
+  return mealOrder.filter((m) => {
+    if (!(m.mealType === "comida" && m.position === "1")) return true;
+    const r = poolById[m.recipeId];
+    return Boolean(r?.mealRole?.includes("plato_unico"));
+  });
+}
+
+// ── Weekly frequency targets (config.freqs) ──────────────────────
+// Mirrors the SYSTEM_PROMPT's "OBJETIVOS SEMANALES (config.freqs)" mapping
+// exactly (aiPlanner.js), so the deterministic check enforces the same
+// categories the LLM is asked to aim for. A recipe can count toward more
+// than one key (e.g. a chicken-and-rice dish is both "carne" and
+// "pasta_arroz"), matching the prompt's own per-bullet "category X OR
+// mainProtein Y" wording.
+export const FREQ_KEY_MATCHERS = {
+  carne: (r) =>
+    r.category === "carnes" || ["pollo", "pavo", "cerdo", "ternera"].includes(r.mainProtein),
+  pescado: (r) =>
+    r.category === "pescados" ||
+    ["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein),
+  legumbres: (r) => r.category === "legumbres" || r.mainProtein === "legumbre",
+  huevos: (r) => r.category === "huevos" || r.mainProtein === "huevo",
+  pasta_arroz: (r) => r.category === "pasta_arroces",
+  verdura: (r) => r.category === "ensaladas_verduras" || r.category === "sopas_cremas",
+};
+
+/**
+ * Split a freqs target into the keys the filtered pool can realistically
+ * satisfy vs. the ones it can't — e.g. `{ pescado: 2 }` when only one pescado
+ * recipe survived the allergy/preference filter. Retrying the LLM (or the
+ * deterministic fallback) can never fix an unachievable key, since there
+ * simply aren't enough matching recipes in the pool to place — so callers
+ * should only feed `achievable` into validateMenu's rule 11, and surface
+ * `warnings` to the user instead of silently shipping an unbalanced week.
+ *
+ * @param {Object[]} filteredPool
+ * @param {Object} freqs - e.g. { carne: 3, pescado: 2, ... }
+ * @returns {{ achievable: Object, warnings: string[] }}
+ */
+export function splitAchievableFreqs(filteredPool, freqs) {
+  const achievable = {};
+  const warnings = [];
+  for (const [key, target] of Object.entries(freqs ?? {})) {
+    if (!target || target <= 0) continue;
+    const matcher = FREQ_KEY_MATCHERS[key];
+    if (!matcher) continue; // unknown/custom key — ignore rather than crash
+    const available = filteredPool.filter(matcher).length;
+    if (available < target) {
+      warnings.push(
+        `El objetivo semanal de "${key}" (${target}/semana) no es alcanzable: solo hay ${available} receta(s) de esa categoría tras aplicar alergias/preferencias. Se ha omitido ese objetivo para no bloquear el menú.`,
+      );
+    } else {
+      achievable[key] = target;
+    }
+  }
+  return { achievable, warnings };
+}
+
+export function validateMenu(
+  slotAssignments,
+  filteredPool,
+  slotsContext,
+  activeHealthProfiles = [],
+  freqs = {},
+) {
+  const violations = [];
+  const poolIds = new Set(filteredPool.map((r) => r.id));
+  const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
+
+  const contextBySlot = Object.fromEntries(
+    slotsContext.map((s) => [s.slotId, s]),
+  );
+
+  const mealOrder = buildMealOrder(slotAssignments);
 
   const returnedIds = new Set(slotAssignments.map((s) => s.slotId));
 
@@ -126,10 +209,11 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext, active
     });
   }
 
-  // 3. No repeated mainProtein in consecutive meals
-  const mainMeals = mealOrder.filter(
-    (m) => !(m.mealType === "comida" && m.position === "1"),
-  );
+  // 3. No repeated mainProtein in consecutive meals (including across a day
+  // boundary: cena day N and comida_2 day N+1 are adjacent in mainMeals once
+  // comida_1 primeros are filtered out — see mainMealsOf above for the
+  // plato_unico carve-in).
+  const mainMeals = mainMealsOf(mealOrder, poolById);
   for (let i = 1; i < mainMeals.length; i++) {
     const prev = mainMeals[i - 1];
     const curr = mainMeals[i];
@@ -277,6 +361,68 @@ export function validateMenu(slotAssignments, filteredPool, slotsContext, active
     }
   }
 
+  // 11. Weekly frequency targets (config.freqs) — soft, correctable quotas
+  // for how many times each food-group key (carne/pescado/legumbres/huevos/
+  // pasta_arroz/verdura) should appear across the week. `freqs` is expected
+  // to already be the *achievable* subset (see splitAchievableFreqs) — every
+  // key here is one the filtered pool has enough recipes for, so a violation
+  // is always in principle fixable by swapping some other slot. Soft and
+  // correctable like every other rule above: retried through the LLM, then a
+  // deterministic carve-out in applyFallback, never a hard block — this is
+  // the deterministic backstop for the SYSTEM_PROMPT's "OBJETIVOS SEMANALES"
+  // instruction, which today is pure LLM soft-bias with no code-side check.
+  if (freqs && Object.keys(freqs).length > 0) {
+    const freqCounts = {};
+    for (const key of Object.keys(freqs)) freqCounts[key] = 0;
+    const matchedKeysBySlot = {};
+    for (const { slotId, recipeId } of slotAssignments) {
+      const recipe = poolById[recipeId];
+      if (!recipe) continue;
+      const matched = new Set();
+      for (const key of Object.keys(freqs)) {
+        const matcher = FREQ_KEY_MATCHERS[key];
+        if (matcher?.(recipe)) {
+          freqCounts[key]++;
+          matched.add(key);
+        }
+      }
+      matchedKeysBySlot[slotId] = matched;
+    }
+
+    const claimedDonors = new Set();
+    for (const [key, target] of Object.entries(freqs)) {
+      const missing = target - (freqCounts[key] ?? 0);
+      if (missing <= 0) continue;
+
+      // Donor slots: not already claimed by another deficit this pass, don't
+      // already count toward THIS key, and — for every other key their
+      // current dish does count toward — that key has slack (count > target),
+      // so donating them away doesn't just trade one deficit for another.
+      // Walked in mealOrder for a stable, deterministic pick.
+      const donors = mealOrder.filter((m) => {
+        if (claimedDonors.has(m.slotId)) return false;
+        const matched = matchedKeysBySlot[m.slotId];
+        if (!matched) return false;
+        if (matched.has(key)) return false;
+        for (const k of matched) {
+          if ((freqCounts[k] ?? 0) <= (freqs[k] ?? 0)) return false;
+        }
+        return true;
+      });
+
+      for (const donor of donors.slice(0, missing)) {
+        claimedDonors.add(donor.slotId);
+        const donorRecipe = poolById[donor.recipeId];
+        violations.push({
+          rule: "freq_target_not_met",
+          slotId: donor.slotId,
+          targetKey: key,
+          message: `Objetivo semanal "${key}" no alcanzado (actual ${freqCounts[key]}/${target}). Sustituye "${donorRecipe?.name ?? donor.recipeId}" (${donor.slotId}) por una receta de esa categoría si encaja en el hueco.`,
+        });
+      }
+    }
+  }
+
   return { valid: violations.length === 0, violations };
 }
 
@@ -361,6 +507,26 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
     }
 
+    // For proteina_consecutiva: the generic filters below (role/time/mode)
+    // don't know WHY this slot was flagged, so without this a "replacement"
+    // could still share mainProtein with the neighbor that triggered the
+    // violation in the first place, leaving it unresolved. Mirror the
+    // neighbor(s) — prev and next in the current mainMeals sequence — the
+    // same way rule 3 itself finds them, using the live `result` so earlier
+    // fixes in this same pass are reflected.
+    const neighborProteins = new Set();
+    if (v.rule === "proteina_consecutiva") {
+      const order = mainMealsOf(buildMealOrder(result), poolById);
+      const orderIdx = order.findIndex((m) => m.slotId === slot.slotId);
+      if (orderIdx !== -1) {
+        for (const neighbor of [order[orderIdx - 1], order[orderIdx + 1]]) {
+          if (!neighbor) continue;
+          const nr = poolById[neighbor.recipeId];
+          if (nr && nr.mainProtein !== "none") neighborProteins.add(nr.mainProtein);
+        }
+      }
+    }
+
     const replacement = filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
@@ -392,6 +558,13 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (v.rule === "guarnicion_repetida") {
         const carb = getCarbType(r);
         if (carb && dayCarbsUsed.has(carb)) return false;
+      }
+
+      if (v.rule === "proteina_consecutiva" && neighborProteins.has(r.mainProtein)) return false;
+
+      if (v.rule === "freq_target_not_met" && v.targetKey) {
+        const matcher = FREQ_KEY_MATCHERS[v.targetKey];
+        if (matcher && !matcher(r)) return false;
       }
 
       // Prefer a profile-compliant replacement, but only for the violation

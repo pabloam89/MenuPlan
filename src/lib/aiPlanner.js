@@ -6,7 +6,7 @@ import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog } from "../utils/filterRecipes.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
-import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
+import { validateMenu, buildCorrectionMessage, applyFallback, splitAchievableFreqs } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
@@ -567,6 +567,17 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // a restriction the main dish was correctly filtered to avoid.
   const safeGarnishes = filterGarnishes(filterOpts);
 
+  // config.freqs (weekly category quotas) can only be enforced for keys the
+  // filtered pool actually has enough recipes for — retrying the LLM can't
+  // conjure up a 3rd pescado dish that isn't in the pool. Unachievable keys
+  // are dropped from what validateMenu checks below and surfaced as a
+  // warning instead of silently shipping an unbalanced week.
+  const { achievable: achievableFreqs, warnings: freqWarnings } = splitAchievableFreqs(
+    filteredPool,
+    ctx.config.freqs,
+  );
+  const warnings = freqWarnings.map((msg) => `${group.label}: ${msg}`);
+
   const userMessage = buildUserMessage(
     filteredPool,
     ctx.slots,
@@ -647,7 +658,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // 2. Business rule validation + up to 2 correction retries
   const MAX_RETRIES = 2;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const check = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles);
+    const check = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
     if (check.valid) break;
 
     if (attempt < MAX_RETRIES - 1) {
@@ -674,7 +685,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   }
 
   // 3. Final validation — apply deterministic fallback if still invalid
-  const finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles);
+  const finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
   if (!finalCheck.valid) {
     slotAssignments = applyFallback(
       slotAssignments,
@@ -690,8 +701,8 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // violation survives retries + fallback (e.g. no compliant candidate existed
   // for a tightly-constrained slot), it would otherwise still render with
   // unfiltered data (allergen, alcohol, baby-only...). Drop those slots here
-  // instead of letting them reach the user, and surface why.
-  const warnings = [];
+  // instead of letting them reach the user, and surface why. (`warnings` was
+  // declared earlier so it can also collect freqWarnings above.)
   const poolIds = new Set(filteredPool.map((r) => r.id));
   slotAssignments = slotAssignments.filter((s) => {
     if (poolIds.has(s.recipeId)) return true;
@@ -966,6 +977,35 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
 const stripGroupPrefix = (id) => (id ? String(id).split("__").pop() : null);
 
 /**
+ * Pick swap candidates for a slot: recipes matching its structural
+ * constraints (role/time/category — encoded by the caller in `matches`) that
+ * aren't already used elsewhere in the week. Falls back to allowing an
+ * already-used recipe (excluding only the exact dish being replaced) when
+ * that strict pool is empty, rather than refusing the swap outright.
+ *
+ * This is the ONE path in the app where a recipeId can end up duplicated in
+ * the week: validateMenu's rule 6 (recipeId_repetido) only runs during the AI
+ * generation pass, not on a single-slot swap. `reusedDuplicate` flags exactly
+ * when that fallback had to fire, so the caller can tell the user instead of
+ * silently duplicating a dish. Extracted as a pure function (no catalog/pool
+ * globals) so this edge case is unit-testable without the full 244-recipe
+ * bundled catalog.
+ *
+ * @param {Object[]} pool
+ * @param {(recipe: Object) => boolean} matches - structural fit check (role/time/category)
+ * @param {Set<string>} usedBaseIds - recipe ids already placed elsewhere this week
+ * @param {string|null} currentBaseId - the recipe id currently in the slot being replaced
+ * @returns {{ candidates: Object[], reusedDuplicate: boolean }}
+ */
+export function selectReplacementCandidates(pool, matches, usedBaseIds, currentBaseId) {
+  const fresh = pool.filter((r) => matches(r) && !usedBaseIds.has(r.id));
+  if (fresh.length > 0) return { candidates: fresh, reusedDuplicate: false };
+
+  const reused = pool.filter((r) => matches(r) && r.id !== currentBaseId);
+  return { candidates: reused, reusedDuplicate: reused.length > 0 };
+}
+
+/**
  * Merge a garnish into a frontend recipe in place: name, time, macros, scaled
  * ingredients, prepSummary and steps. Shared by the generator and the swap flow
  * so a paired dish looks identical regardless of how it entered the menu.
@@ -1022,7 +1062,11 @@ export function applyGarnishToRecipe(fr, garnish, eaters) {
 /**
  * Pick a replacement recipe for a slot from the rich catalog.
  *
- * @returns {{ frontendRecipe: object, recipeId: string, course: string } | null}
+ * @returns {{ frontendRecipe: object, recipeId: string, course: string, reusedDuplicate: boolean } | null}
+ *   `reusedDuplicate` is true when no unused candidate existed for this slot's
+ *   role/time constraints and the pick had to reuse a recipe already placed
+ *   elsewhere in the week — callers should tell the user rather than silently
+ *   duplicating a dish (see App.jsx#handleReplaceSlot).
  */
 export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main" }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
@@ -1072,23 +1116,15 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const isCenaRapida = data.slotType?.[`${day}|${meal}`] === "rapida";
 
   const roleMatch = (r) => r.mealRole?.some((role) => targetRoles.has(role));
-  let candidates = pool.filter(
-    (r) =>
-      roleMatch(r) &&
-      r.time <= slotMaxTime &&
-      !usedBaseIds.has(r.id) &&
-      (isCenaRapida || r.category !== "cenas_rapidas"),
+  const structuralFit = (r) =>
+    roleMatch(r) && r.time <= slotMaxTime && (isCenaRapida || r.category !== "cenas_rapidas");
+  const { candidates: selected, reusedDuplicate } = selectReplacementCandidates(
+    pool,
+    structuralFit,
+    usedBaseIds,
+    currentBaseId,
   );
-  // Relax the "not already used" rule if nothing else fits (never the same dish).
-  if (candidates.length === 0) {
-    candidates = pool.filter(
-      (r) =>
-        roleMatch(r) &&
-        r.time <= slotMaxTime &&
-        r.id !== currentBaseId &&
-        (isCenaRapida || r.category !== "cenas_rapidas"),
-    );
-  }
+  let candidates = selected;
   if (candidates.length === 0) return null;
 
   // Diversity guardrails: this swap path picks from a much smaller pool than
@@ -1190,7 +1226,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     if (garnish) applyGarnishToRecipe(fr, garnish, eaters);
   }
 
-  return { frontendRecipe: fr, recipeId: fr.id, course };
+  return { frontendRecipe: fr, recipeId: fr.id, course, reusedDuplicate };
 }
 
 // ── Recipe steps (on-demand, for catalog recipes without steps) ──
