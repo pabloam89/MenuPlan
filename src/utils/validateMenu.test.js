@@ -455,6 +455,69 @@ describe("applyFallback", () => {
     const result = applyFallback(assignments, violations, pool, slots);
     expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("pescado_a");
   });
+
+  describe("cross-rule integration: fixing one violation must not reintroduce another", () => {
+    // Bug this guards against: violations are fixed one at a time, in the
+    // order validateMenu pushed them (roughly rule 0..11). The replacement
+    // search for each violation only checked rule-specific carve-outs gated
+    // by `v.rule === "<that rule>"`. So fixing a LATER rule (11,
+    // freq_target_not_met) could pick a candidate that reintroduces an
+    // EARLIER rule's violation (4b, school_carb_conflict) on the very same
+    // cena slot, because nothing re-validated the whole menu between fixes.
+    it("does not let a freq_target_not_met fix reintroduce a school_carb_conflict on the same slot", () => {
+      const pool = [
+        recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["cena"] }), // currently assigned, not pescado
+        // First pescado candidate in pool order — but its carb base ("arroz")
+        // is exactly what the school already served that day.
+        recipe({
+          id: "pescado_arroz", category: "pescados", mainProtein: "pescado_blanco",
+          mealRole: ["cena"], name: "Arroz con pescado", ingredients: [{ name: "Arroz" }],
+        }),
+        // Second pescado candidate — safe carb base, should be picked instead.
+        recipe({
+          id: "pescado_patatas", category: "pescados", mainProtein: "pescado_blanco",
+          mealRole: ["cena"], name: "Pescado con patatas", ingredients: [{ name: "Patata" }],
+        }),
+      ];
+      const slots = [slot("lun_cena", { schoolCarbsToAvoid: ["arroz"] })];
+      const assignments = [{ slotId: "lun_cena", recipeId: "pollo_a" }];
+      const violations = [
+        { rule: "freq_target_not_met", slotId: "lun_cena", targetKey: "pescado", message: "" },
+      ];
+      const result = applyFallback(assignments, violations, pool, slots);
+      const fixed = result.find((s) => s.slotId === "lun_cena")?.recipeId;
+      expect(fixed).toBe("pescado_patatas");
+      // Re-validating confirms both the freq deficit AND the school carb
+      // rule are satisfied simultaneously, not just the rule that triggered
+      // the fix.
+      expect(validateMenu(result, pool, slots, [], { pescado: 1 }).valid).toBe(true);
+    });
+
+    it("does not let a freq_target_not_met fix reintroduce a legumbres_en_cena violation", () => {
+      const pool = [
+        recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["cena"] }),
+        // First legumbres candidate in pool order that would satisfy the
+        // "legumbres" freq deficit but is illegal in cena.
+        recipe({ id: "lentejas", category: "legumbres", mainProtein: "legumbre", mealRole: ["cena"] }),
+        // No other legumbre alternative exists for cena — a huevo dish also
+        // matches "legumbres"? No: use a second legumbre dish that IS cena-safe
+        // is not realistic (legumbres_en_cena is a hard rule), so the deficit
+        // should stay unresolved rather than break the hard rule.
+      ];
+      const slots = [slot("lun_cena")];
+      const assignments = [{ slotId: "lun_cena", recipeId: "pollo_a" }];
+      const violations = [
+        { rule: "freq_target_not_met", slotId: "lun_cena", targetKey: "legumbres", message: "" },
+      ];
+      const result = applyFallback(assignments, violations, pool, slots);
+      const fixed = result.find((s) => s.slotId === "lun_cena")?.recipeId;
+      // The only "legumbres" candidate is illegal in cena, so applyFallback
+      // must leave the slot as-is rather than trade one violation for another.
+      expect(fixed).toBe("pollo_a");
+      expect(validateMenu(result, pool, slots).valid ||
+        validateMenu(result, pool, slots).violations.every((v) => v.rule !== "legumbres_en_cena")).toBe(true);
+    });
+  });
 });
 
 describe("carbTypeFromText", () => {

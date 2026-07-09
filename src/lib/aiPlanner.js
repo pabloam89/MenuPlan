@@ -746,7 +746,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 4. Force fixed dishes to appear exactly timesPerWeek times (hard rule).
   //    The LLM is asked to do this but isn't reliable, so we guarantee it here.
-  const fixedDishesResult = enforceFixedDishes(slotAssignments, data.fixedDishes, poolById, filterOpts);
+  const fixedDishesResult = enforceFixedDishes(slotAssignments, data.fixedDishes, poolById, filterOpts, ctx.slots);
   slotAssignments = fixedDishesResult.slotAssignments;
   if (fixedDishesResult.warnings.length > 0) warnings.push(...fixedDishesResult.warnings);
 
