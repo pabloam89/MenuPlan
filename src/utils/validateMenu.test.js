@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateMenu, buildCorrectionMessage, applyFallback } from "./validateMenu.js";
+import { validateMenu, buildCorrectionMessage, applyFallback, carbTypeFromText } from "./validateMenu.js";
 
 function recipe(overrides) {
   return {
@@ -86,6 +86,31 @@ describe("validateMenu", () => {
     const assignments = [{ slotId: "lun_cena", recipeId: "a" }];
     const { violations } = validateMenu(assignments, pool, slots);
     expect(violations.map((v) => v.rule)).toContain("school_protein_conflict");
+  });
+
+  it("flags a school-avoided carb base reused in cena", () => {
+    const pool = [
+      recipe({
+        id: "a", mainProtein: "pollo", mealRole: ["cena"],
+        name: "Arroz con pollo", ingredients: [{ name: "Arroz" }, { name: "Pollo" }],
+      }),
+    ];
+    const slots = [slot("lun_cena", { schoolCarbsToAvoid: ["arroz"] })];
+    const assignments = [{ slotId: "lun_cena", recipeId: "a" }];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("school_carb_conflict");
+  });
+
+  it("does not flag a cena carb base the school didn't serve", () => {
+    const pool = [
+      recipe({
+        id: "a", mainProtein: "pollo", mealRole: ["cena"],
+        name: "Pollo con patatas", ingredients: [{ name: "Patata" }, { name: "Pollo" }],
+      }),
+    ];
+    const slots = [slot("lun_cena", { schoolCarbsToAvoid: ["arroz"] })];
+    const assignments = [{ slotId: "lun_cena", recipeId: "a" }];
+    expect(validateMenu(assignments, pool, slots).valid).toBe(true);
   });
 
   it("flags a non-tupperFriendly recipe in a tupper slot", () => {
@@ -251,5 +276,39 @@ describe("applyFallback", () => {
     const result = applyFallback(assignments, violations, pool, slots, ["corazon"]);
     expect(result).toHaveLength(1);
     expect(result[0].recipeId).toBe("a");
+  });
+
+  it("replaces a school_carb_conflict violation with a different carb base", () => {
+    const pool = [
+      recipe({
+        id: "a", mealRole: ["cena"],
+        name: "Arroz con verduras", ingredients: [{ name: "Arroz" }],
+      }),
+      recipe({
+        id: "b", mealRole: ["cena"],
+        name: "Pasta con tomate", ingredients: [{ name: "Pasta" }],
+      }),
+    ];
+    const slots = [slot("lun_cena", { schoolCarbsToAvoid: ["arroz"] })];
+    const assignments = [{ slotId: "lun_cena", recipeId: "a" }];
+    const violations = [{ rule: "school_carb_conflict", slotId: "lun_cena", message: "" }];
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("b");
+  });
+});
+
+describe("carbTypeFromText", () => {
+  it("classifies common carb bases from free text", () => {
+    expect(carbTypeFromText("Arroz con tomate")).toBe("arroz");
+    expect(carbTypeFromText("Macarrones con queso")).toBe("pasta");
+    expect(carbTypeFromText("Puré de patata")).toBe("patatas");
+    expect(carbTypeFromText("Cuscús con verduras")).toBe("cuscus");
+  });
+
+  it("returns null for text with no recognizable carb base", () => {
+    expect(carbTypeFromText("Ensalada mixta")).toBeNull();
+    expect(carbTypeFromText("Merluza a la plancha")).toBeNull();
+    expect(carbTypeFromText("")).toBeNull();
+    expect(carbTypeFromText(undefined)).toBeNull();
   });
 });

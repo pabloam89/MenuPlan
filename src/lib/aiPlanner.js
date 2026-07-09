@@ -6,7 +6,7 @@ import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog } from "../utils/filterRecipes.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
-import { validateMenu, buildCorrectionMessage, applyFallback } from "../utils/validateMenu.js";
+import { validateMenu, buildCorrectionMessage, applyFallback, carbTypeFromText, getCarbType } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
@@ -171,6 +171,7 @@ PERFILES DE SALUD (config.healthProfiles) — ORIENTACIÓN, nunca exclusión:
 RESTRICCIONES POR SLOT:
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
 - Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
+- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/quinoa/cuscús/pan) en la CENA de ese día.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
 - Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
 - Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido.
@@ -247,6 +248,21 @@ export function buildGroupContext(data, group) {
         .filter(Boolean),
     );
 
+    // Carb base (arroz/pasta/patatas/...) the school already served that day.
+    // Only primero+segundo feed this — postre text (e.g. "Arroz con leche")
+    // would otherwise false-positive the taxonomy against a dessert, not a
+    // real carb-bearing course.
+    const schoolCarbs = new Set(
+      groupMembers
+        .map((m) => {
+          const courses = getSchoolDish(data.schoolMenus, m.id, day);
+          if (!hasAnySchoolDish(courses)) return null;
+          const text = [courses.primero, courses.segundo].filter(Boolean).join(" ");
+          return carbTypeFromText(text);
+        })
+        .filter(Boolean),
+    );
+
     // Collect school menu text for context
     for (const m of groupMembers) {
       const courses = getSchoolDish(data.schoolMenus, m.id, day);
@@ -293,6 +309,9 @@ export function buildGroupContext(data, group) {
         if (isQuick) slot.preferType = "cena_rapida";
         if (schoolProteins.size > 0) {
           slot.schoolProteinsToAvoid = Array.from(schoolProteins);
+        }
+        if (schoolCarbs.size > 0) {
+          slot.schoolCarbsToAvoid = Array.from(schoolCarbs);
         }
         slots.push(slot);
       }
@@ -349,6 +368,7 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
     if (s.position) out.position = s.position;
     if (s.preferType) out.preferType = s.preferType;
     if (s.schoolProteinsToAvoid) out.schoolProteinsToAvoid = s.schoolProteinsToAvoid;
+    if (s.schoolCarbsToAvoid) out.schoolCarbsToAvoid = s.schoolCarbsToAvoid;
     return out;
   });
 
@@ -1090,6 +1110,29 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     );
   }
   if (candidates.length === 0) return null;
+
+  // School-menu avoidance: this swap path (manual "cambiar plato") is a
+  // separate code path from the main generator and never runs through
+  // validateMenu.js's school_protein_conflict / school_carb_conflict rules —
+  // so without this, replacing a cena dish could silently reintroduce the
+  // exact protein or carb base the school already served that day, undoing
+  // the one guarantee buildGroupContext made for that slot. Soft guardrail
+  // like the others here: relaxed (not applied) if it would empty the pool.
+  if (String(meal).toLowerCase() === "cena") {
+    const schoolSlotCtx = ctx.slots.find((s) => s.slotId === `${DAY_SLUG[day]}_cena`);
+    const schoolProteinsToAvoid = new Set(schoolSlotCtx?.schoolProteinsToAvoid ?? []);
+    const schoolCarbsToAvoid = new Set(schoolSlotCtx?.schoolCarbsToAvoid ?? []);
+    if (schoolProteinsToAvoid.size > 0 || schoolCarbsToAvoid.size > 0) {
+      const schoolSafe = candidates.filter((r) => {
+        const proteinGroup = proteinGroupOf(r);
+        if (proteinGroup && schoolProteinsToAvoid.has(proteinGroup)) return false;
+        const carb = getCarbType(r);
+        if (carb && schoolCarbsToAvoid.has(carb)) return false;
+        return true;
+      });
+      if (schoolSafe.length > 0) candidates = schoolSafe;
+    }
+  }
 
   // Diversity guardrails: this swap path picks from a much smaller pool than
   // the full generator and previously ignored validateMenu.js's rules
