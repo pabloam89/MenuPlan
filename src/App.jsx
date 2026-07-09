@@ -26,6 +26,7 @@ const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").the
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
+import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
@@ -362,6 +363,15 @@ export default function App() {
   const [toast, setToast] = useState(null);
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
   const [menuError, setMenuError] = useState(null);
+  // Detects dishes already in menuPlan that no longer respect a member's
+  // current allergies/intolerances (e.g. edited from "Tu perfil" after the
+  // menu was generated, declining regeneration). Pure/deterministic — see
+  // utils/menuConflicts.js. Recomputed whenever restrictions, groups or the
+  // plan itself change.
+  const restrictionConflicts = useMemo(
+    () => findMenuRestrictionConflicts(data, menuPlan),
+    [data, menuPlan],
+  );
   const lastRegenerateArgs = useRef(null);
   const generateAbortRef = useRef(null);
   // Auto-triggered ad-hoc individual menu prompt: { memberId, reason }.
@@ -1190,6 +1200,7 @@ export default function App() {
               menuPlan={menuPlan}
               isGenerating={isGeneratingMenu}
               error={menuError}
+              restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
               onNav={handleNav}
               onRegenerate={handleRegenerate}
