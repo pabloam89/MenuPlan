@@ -9,6 +9,8 @@ import {
   Check,
   ChefHat,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Clock3,
   CircleHelp,
@@ -90,6 +92,7 @@ import {
   getWeekDatesByMenuWeek,
   todayDayIdx,
 } from "../lib/weekCalendar.js";
+import { orderedWeeks } from "../lib/menuArchive.js";
 
 const ICONS_BY_TYPE = {
   fish: Fish,
@@ -858,14 +861,19 @@ function FreqStepper({ label, value, onChange }) {
   );
 }
 
-function AccordionSection({ title, icon: Icon, children, defaultOpen = false, action }) {
-  const [open, setOpen] = useState(defaultOpen);
+// When `onHeaderClick` is passed, this section isn't collapsible: the whole
+// header (including the chevron) is a single tap that navigates straight to
+// the editor — content stays always visible as a summary, and the chevron
+// points right (navigate) instead of down (expand), so the affordance is
+// honest about what tapping it does.
+function AccordionSection({ title, icon: Icon, children, defaultOpen = false, action, onHeaderClick }) {
+  const [open, setOpen] = useState(defaultOpen || Boolean(onHeaderClick));
   return (
     <div style={{ borderBottom: "1px solid #e8f0ea" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0" }}>
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={onHeaderClick ?? (() => setOpen((v) => !v))}
           style={{
             flex: 1, minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between",
             border: "none", background: "transparent", cursor: "pointer", padding: 0,
@@ -878,11 +886,15 @@ function AccordionSection({ title, icon: Icon, children, defaultOpen = false, ac
               {title}
             </span>
           </span>
-          <ChevronDown
-            size={16}
-            color="#9ab0a1"
-            style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}
-          />
+          {onHeaderClick ? (
+            <ChevronRight size={16} color="#9ab0a1" />
+          ) : (
+            <ChevronDown
+              size={16}
+              color="#9ab0a1"
+              style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s" }}
+            />
+          )}
         </button>
         {action}
       </div>
@@ -1184,21 +1196,16 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           }}
         >
         {/* ── Qué evitamos ── */}
-        {/* Like the rest of the sections, expanding shows the current state and
-            tapping it lets you edit (no separate "Editar" pill). The whole
-            summary is a button that opens the full allergy/dislikes editor. */}
+        {/* Not collapsible: tapping the header (chevron included) opens the
+            editor directly — the summary below is just a live preview. */}
         <AccordionSection
           title="Qué evitamos"
           icon={UtensilsCrossed}
+          onHeaderClick={() => setEditingAvoid(true)}
         >
-          <button
-            type="button"
+          <div
             onClick={() => setEditingAvoid(true)}
-            style={{
-              width: "100%", textAlign: "left", border: "none", background: "transparent",
-              padding: 0, cursor: "pointer", fontFamily: "inherit",
-              display: "flex", alignItems: "flex-start", gap: 8,
-            }}
+            style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer" }}
           >
           <div style={{ flex: 1, minWidth: 0 }}>
           {membersWithAllergies.length === 0 && membersWithRegimen.length === 0 && dislikes.length === 0 ? (
@@ -1271,7 +1278,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             </div>
           )}
           </div>
-          </button>
+          </div>
         </AccordionSection>
 
         {/* ── Tu despensa — oculto de momento (feature en pausa) ── */}
@@ -1713,10 +1720,24 @@ export const MenuScreen = memo(function MenuScreen({
   onToast,
   user,
   onTrackEvent,
+  activeMenu = null,
+  onSwitchWeek,
+  onOpenMenus,
+  autoOpenProfile = false,
+  onAutoOpenProfileHandled,
 }) {
   const [scope, setScope] = useState("all");
   const [showMenuHelp, setShowMenuHelp] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  // "Editar" desde la pantalla de Menús reutiliza este mismo sheet de "Tu
+  // perfil" en vez de duplicar un flujo de edición aparte — es un signal
+  // one-shot que el padre limpia tras consumirlo.
+  useEffect(() => {
+    if (!autoOpenProfile) return;
+    setProfileOpen(true);
+    onAutoOpenProfileHandled?.();
+  }, [autoOpenProfile, onAutoOpenProfileHandled]);
   const [viewMode, setViewMode] = useState("dia"); // "dia" | "semana"
   const [viewAnimDir, setViewAnimDir] = useState(0);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
@@ -1738,6 +1759,11 @@ export const MenuScreen = memo(function MenuScreen({
   }, [data.menuWeek]);
   const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates, activeDays), [weekDates, activeDays]);
   const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
+  const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
+  const currentWeekIdx = useMemo(
+    () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
+    [menuWeeks, data.menuWeek],
+  );
   const restrictionWarning = useMemo(
     () => summarizeMenuRestrictionConflicts(restrictionConflicts),
     [restrictionConflicts],
@@ -2010,6 +2036,40 @@ export const MenuScreen = memo(function MenuScreen({
           </button>
         </div>
 
+        {/* ── Multi-week switcher: only shown when this menú spans >1 week ── */}
+        {menuWeeks.length > 1 && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
+            <button
+              type="button"
+              onClick={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
+              disabled={currentWeekIdx <= 0}
+              aria-label="Semana anterior"
+              style={weekNavArrowStyle(currentWeekIdx <= 0)}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={onOpenMenus}
+              style={{
+                border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
+                fontSize: 12.5, fontWeight: 800, color: "#2d5a3d", padding: "4px 8px",
+              }}
+            >
+              Semana {Math.max(0, currentWeekIdx) + 1} de {menuWeeks.length}
+            </button>
+            <button
+              type="button"
+              onClick={() => currentWeekIdx < menuWeeks.length - 1 && onSwitchWeek?.(menuWeeks[currentWeekIdx + 1].weekStart)}
+              disabled={currentWeekIdx >= menuWeeks.length - 1}
+              aria-label="Semana siguiente"
+              style={weekNavArrowStyle(currentWeekIdx >= menuWeeks.length - 1)}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        )}
+
         {/* Semana / Día toggle */}
         {hasMenu && (
           <>
@@ -2211,7 +2271,7 @@ export const MenuScreen = memo(function MenuScreen({
         />
       )}
 
-      <BottomNav active="menu" onNav={onNav} />
+      <BottomNav active="menus" onNav={onNav} />
     </div>
   );
 });
@@ -2987,6 +3047,24 @@ const regenerateIconButtonStyle = {
   color: "#fff",
   boxShadow: "0 2px 8px rgba(26,58,36,.22)",
 };
+
+function weekNavArrowStyle(disabled) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 26,
+    height: 26,
+    borderRadius: 999,
+    border: "1px solid #e6eee8",
+    background: disabled ? "#f7f9f7" : "#fff",
+    color: disabled ? "#c3cdc6" : "#2d5a3d",
+    cursor: disabled ? "default" : "pointer",
+    fontFamily: "inherit",
+    padding: 0,
+    flexShrink: 0,
+  };
+}
 
 const detailOverlayStyle = {
   position: "fixed",

@@ -563,7 +563,7 @@ const LLMResponseSchema = z.object({
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = []) {
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], excludeRecipeIds = null) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -572,9 +572,18 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     pantryIngredients: pantryIngredients.map((p) => p.ingredientNormalized),
   };
 
-  const { recipes: filteredPool, error: filterError } = filterRecipes(filterOpts);
+  let { recipes: filteredPool, error: filterError } = filterRecipes(filterOpts);
   if (filterError) {
     throw new AIPlannerError(filterError);
+  }
+
+  // Multi-week menús bias against repeating the same dish across weeks: drop
+  // ids used in previously generated weeks, but only when the pool stays big
+  // enough to still cover every slot — a small pool repeating a dish beats
+  // the LLM running out of valid options entirely.
+  if (excludeRecipeIds && excludeRecipeIds.size > 0) {
+    const reduced = filteredPool.filter((r) => !excludeRecipeIds.has(r.id));
+    if (reduced.length >= Math.min(8, filteredPool.length)) filteredPool = reduced;
   }
 
   // Baby groups use a deterministic planner — no LLM call needed
@@ -876,7 +885,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
   };
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [] } = {}) {
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], excludeRecipeIds = null } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -889,7 +898,9 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [] 
   }
 
   const results = await Promise.all(
-    activeGroups.map((group) => generateGroupMenu(data, group, signal, pantryIngredients)),
+    activeGroups.map((group) =>
+      generateGroupMenu(data, group, signal, pantryIngredients, excludeRecipeIds),
+    ),
   );
 
   const multi = results.length > 1;

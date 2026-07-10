@@ -44,6 +44,18 @@ import {
   resolveMemberAge,
 } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
+import {
+  clampWeekCount,
+  computeWeekRange,
+  createMenuId,
+  foldInNewMenu,
+  removeMenu,
+  toggleMenuFavorite,
+  collectMenuRecipeIds,
+  pruneAiRecipes,
+} from "./lib/menuArchive.js";
+import { todayDayIdx } from "./lib/weekCalendar.js";
+const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
 import {
   toggleRecipeVote,
@@ -128,7 +140,26 @@ const INITIAL_DATA = {
   budget: 80,
   supermarkets: [],
   // menuWeek: { offset: 0=current/1=next/2=in2weeks, startDayIdx: 0-6 (Mon-Sun) }
+  // — always mirrors the EARLIEST offset in menuWeekOffsets below.
   menuWeek: null,
+  // Which weeks (offsets from "today", 0=this week) to generate in one go.
+  // Not necessarily consecutive — e.g. [0, 2] skips next week (holiday).
+  menuWeekOffsets: [0],
+  // "strict" = bias every week against repeating dishes from ANY earlier
+  // week of the same menú; "moderate" = only vs. the immediately preceding
+  // week; "relaxed" = no cross-week bias (deliberate repeats OK).
+  menuVarietyPref: "strict",
+  // Whether every selected week reuses the exact same "quién come dónde"
+  // pattern (the common case) or each can be customized independently.
+  menuScheduleSameForAllWeeks: true,
+  // Per-week schedule overrides, keyed by week OFFSET (not position), only
+  // used when menuScheduleSameForAllWeeks is false. Absent = that week
+  // inherits the base `schedule` pattern. See OnboardingSchedule.
+  menuWeekOverrides: {},
+  // Archive of generated menús, keyed by id — see lib/menuArchive.js.
+  // { [menuId]: { id, createdAt, isFavorite, isActive, varietyPref, weeks } }
+  menus: {},
+  activeMenuId: null,
 };
 
 // Ad-hoc menus used to be labeled by the member's name ("Menú de X"); now
@@ -321,6 +352,20 @@ function migrate(state) {
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
   d.cookTime = migrateCookTime(d);
+  d.menus = d.menus && typeof d.menus === "object" && !Array.isArray(d.menus) ? d.menus : {};
+  d.activeMenuId = typeof d.activeMenuId === "string" ? d.activeMenuId : null;
+  // Legacy shape: a single consecutive count from week 1 → [0, 1, ..., n-1].
+  if (!Array.isArray(d.menuWeekOffsets) || d.menuWeekOffsets.length === 0) {
+    const legacyCount = clampWeekCount(d.menuWeekCount ?? 1);
+    d.menuWeekOffsets = Array.from({ length: legacyCount }, (_, i) => i);
+  }
+  delete d.menuWeekCount;
+  d.menuVarietyPref = ["strict", "moderate", "relaxed"].includes(d.menuVarietyPref)
+    ? d.menuVarietyPref
+    : d.menuVarietyPref === "max" ? "strict" : d.menuVarietyPref === "relaxed" ? "relaxed" : "strict";
+  d.menuScheduleSameForAllWeeks = d.menuScheduleSameForAllWeeks !== false;
+  d.menuWeekOverrides =
+    d.menuWeekOverrides && typeof d.menuWeekOverrides === "object" ? d.menuWeekOverrides : {};
   return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
 
@@ -536,25 +581,95 @@ export default function App() {
     setMenuError(null);
     try {
       const pantryIngredients = user ? await loadPantry(user.id) : [];
-      const { plan, recipes } = await generateMenuWithAI(
-        { ...working, groups },
-        { signal: ctrl.signal, pantryIngredients },
-      );
-      registerRecipes(recipes);
+      const weekOffsets = (Array.isArray(working.menuWeekOffsets) && working.menuWeekOffsets.length
+        ? [...new Set(working.menuWeekOffsets)]
+        : [working.menuWeek?.offset ?? 0]
+      ).sort((a, b) => a - b);
+      const weekCount = weekOffsets.length;
+      const baseStartDayIdx = working.menuWeek?.startDayIdx ?? 0;
+      const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref)
+        ? working.menuVarietyPref
+        : "strict";
+      const sameForAllWeeks = working.menuScheduleSameForAllWeeks !== false;
+      // Cross-week dedup bias (see generateGroupMenu): "strict" accumulates
+      // every dish used so far this menú; "moderate" resets each iteration to
+      // only the immediately preceding week; "relaxed" applies no bias.
+      let excludeRecipeIds = varietyPref === "relaxed" ? null : new Set();
+
+      const weeks = {};
+      let firstWeekPlan = null;
+      let firstWeekShopping = null;
+      const allRecipes = [];
+
+      for (let w = 0; w < weekOffsets.length; w++) {
+        if (ctrl.signal.aborted) return;
+        const offset = weekOffsets[w];
+        // Only the earliest selected week can be partial (starts today, not
+        // Monday) — any other offset is always a full 7-day week.
+        const startDayIdx = offset === weekOffsets[0] ? baseStartDayIdx : 0;
+        const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
+          ? working.schedule
+          : (working.menuWeekOverrides?.[offset] ?? working.schedule);
+        const weekData = { ...working, groups, schedule: weekSchedule, menuWeek: { offset, startDayIdx } };
+
+        const { plan, recipes } = await generateMenuWithAI(weekData, {
+          signal: ctrl.signal,
+          pantryIngredients,
+          excludeRecipeIds,
+        });
+        if (excludeRecipeIds) {
+          const usedIds = recipes.map((r) => r.baseRecipeId ?? r.id);
+          if (varietyPref === "moderate") excludeRecipeIds = new Set(usedIds);
+          else for (const id of usedIds) excludeRecipeIds.add(id);
+        }
+        allRecipes.push(...recipes);
+
+        const sh = buildShoppingList(plan, groups, getMeals(weekData), pantryIngredients);
+        const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
+        const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
+        weeks[startISO] = { offset, startDayIdx, startISO, endISO, plan, shopping: weekShopping, schedule: weekSchedule };
+        if (w === 0) {
+          firstWeekPlan = plan;
+          firstWeekShopping = weekShopping;
+        }
+      }
+
+      registerRecipes(allRecipes);
+      setMenuPlan(firstWeekPlan);
+      const isFirstMenu = (data.menuHistory ?? []).length === 0;
+      trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length, weekCount });
+      if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
+
+      const newMenu = {
+        id: createMenuId(),
+        createdAt: Date.now(),
+        isFavorite: false,
+        isActive: true,
+        varietyPref,
+        weeks,
+      };
+      // Guests never keep history (one active menú at a time, per product
+      // decision); signed-in users keep every past menú browsable.
+      const keepHistory = Boolean(user);
+      // Fold once and reuse for both the archive AND the AI-recipe prune so the
+      // two stay consistent: any dish only referenced by a menú that the fold
+      // trims out of history is dropped from the aiRecipes cache too, instead
+      // of accumulating forever inside the persisted state blob.
+      const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
+      const keepRecipeIds = collectMenuRecipeIds(foldedMenus);
+
       setAiRecipes((cur) => {
         const byId = new Map(cur.map((r) => [r.id, r]));
-        for (const r of recipes) byId.set(r.id, r);
-        return Array.from(byId.values());
+        for (const r of allRecipes) byId.set(r.id, r);
+        return pruneAiRecipes(Array.from(byId.values()), keepRecipeIds);
       });
-      setMenuPlan(plan);
-      const isFirstMenu = (data.menuHistory ?? []).length === 0;
-      trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length });
-      if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
+
       setData((d) => ({
         ...d,
+        menus: foldedMenus,
+        activeMenuId: newMenu.id,
         menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
       }));
-      const sh = buildShoppingList(plan, groups, getMeals(working), pantryIngredients);
       setShopping((prev) => {
         const flags = Object.fromEntries(
           prev.items.map((i) => [
@@ -563,7 +678,7 @@ export default function App() {
           ])
         );
         return {
-          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
+          items: firstWeekShopping.items.map((it) => ({
             ...it,
             have: flags[it.id]?.have ?? false,
             atHome: flags[it.id]?.atHome ?? false,
@@ -575,11 +690,11 @@ export default function App() {
       // couldn't achieve, etc.) — surface them instead of the generic success
       // toast so "no bloquea, pero informa" actually reaches the user instead
       // of a warning that was computed and then silently discarded.
-      if (plan._warnings?.length > 0) {
-        const [first, ...rest] = plan._warnings;
+      if (firstWeekPlan._warnings?.length > 0) {
+        const [first, ...rest] = firstWeekPlan._warnings;
         showToast(rest.length > 0 ? `${first} (+${rest.length} aviso${rest.length === 1 ? "" : "s"} más)` : first);
       } else {
-        showToast("Menú generado con IA");
+        showToast(weekCount > 1 ? `Menú generado con IA (${weekCount} semanas)` : "Menú generado con IA");
       }
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
@@ -757,6 +872,93 @@ export default function App() {
   const goToMenuFromDashboard = useCallback(() => {
     fwd(() => setScreen("menu"));
   }, []);
+
+  const openMenusScreen = useCallback(() => fwd(() => setScreen("menus")), []);
+
+  // One-shot signal consumed by MenuScreen: "Editar" en la card de menú
+  // actual reutiliza el sheet de "Tu perfil" (ProfileSettingsSheet) en vez
+  // de mandar a un flujo de edición aparte.
+  const [pendingProfileOpen, setPendingProfileOpen] = useState(false);
+
+  // Switches which week of the ACTIVE menú is displayed (menús spanning
+  // several weeks) — materializes that week's plan/shopping into the live
+  // menuPlan/shopping state everything else already reads from.
+  const switchActiveWeek = useCallback((weekStart) => {
+    const menu = data.menus?.[data.activeMenuId];
+    const wk = menu?.weeks?.[weekStart];
+    if (!wk) return;
+    setMenuPlan(wk.plan);
+    setShopping(wk.shopping);
+    setData((d) => ({ ...d, menuWeek: { offset: wk.offset, startDayIdx: wk.startDayIdx } }));
+  }, [data.menus, data.activeMenuId]);
+
+  // "Borrar" from the Menús screen: drops the active menú from the archive
+  // (still leaves any OTHER past menús untouched) and clears the live
+  // plan/shopping so nothing stale lingers around.
+  const deleteActiveMenu = useCallback(() => {
+    setData((d) => {
+      if (!d.activeMenuId) return d;
+      return { ...d, menus: removeMenu(d.menus, d.activeMenuId), activeMenuId: null };
+    });
+    setMenuPlan({});
+    setShopping({ items: [] });
+  }, []);
+
+  // "Repetir esta configuración" from the histórico: reuses a past menú's
+  // logistics (schedule) always, and either clones its dishes verbatim or
+  // regenerates fresh ones for new dates, per the user's choice.
+  const reuseMenu = useCallback(async (menuId, { weekCount, sameRecipes } = {}) => {
+    const old = data.menus?.[menuId];
+    if (!old) return;
+    const oldWeeks = Object.values(old.weeks ?? {}).sort((a, b) => a.offset - b.offset);
+    const count = clampWeekCount(weekCount ?? oldWeeks.length ?? 1);
+    const oldSchedule = oldWeeks[0]?.schedule ?? data.schedule;
+    const startDayIdx = todayDayIdx();
+
+    if (sameRecipes && oldWeeks.length > 0) {
+      const weeks = {};
+      for (let w = 0; w < count; w++) {
+        const src = oldWeeks[w % oldWeeks.length];
+        const offset = w;
+        const sdIdx = w === 0 ? startDayIdx : 0;
+        const { startISO, endISO } = computeWeekRange(offset, sdIdx);
+        weeks[startISO] = {
+          offset, startDayIdx: sdIdx, startISO, endISO,
+          plan: src.plan, shopping: src.shopping, schedule: src.schedule ?? oldSchedule,
+        };
+      }
+      const newMenu = {
+        id: createMenuId(), createdAt: Date.now(), isFavorite: false, isActive: true,
+        varietyPref: old.varietyPref ?? "strict", weeks,
+      };
+      const firstKey = Object.keys(weeks)[0];
+      setMenuPlan(weeks[firstKey].plan);
+      setShopping(weeks[firstKey].shopping);
+      const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory: Boolean(user) });
+      const keepRecipeIds = collectMenuRecipeIds(foldedMenus);
+      setAiRecipes((cur) => pruneAiRecipes(cur, keepRecipeIds));
+      setData((d) => ({
+        ...d,
+        schedule: oldSchedule,
+        menus: foldedMenus,
+        activeMenuId: newMenu.id,
+        menuWeek: { offset: 0, startDayIdx },
+      }));
+      showToast("Menú repetido con los mismos platos");
+      fwd(() => setScreen("menu"));
+      return;
+    }
+
+    // Fresh dishes: reuse only the logistics, regenerate for the new dates.
+    await regenerateMenu({
+      ...data,
+      schedule: oldSchedule,
+      menuWeekOffsets: Array.from({ length: count }, (_, i) => i),
+      menuScheduleSameForAllWeeks: true,
+      menuWeek: { offset: 0, startDayIdx },
+    });
+    fwd(() => setScreen("menu"));
+  }, [data, regenerateMenu, showToast, user]);
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
@@ -963,7 +1165,16 @@ export default function App() {
     setAiRecipes([]);
     setSelectedSlot(null);
     setMenuError(null);
-    setData((d) => ({ ...d, schedule: {}, slotType: {}, menuWeek: null }));
+    setData((d) => ({
+      ...d,
+      schedule: {},
+      slotType: {},
+      menuWeek: null,
+      activeMenuId: null,
+      menuWeekOffsets: [0],
+      menuScheduleSameForAllWeeks: true,
+      menuWeekOverrides: {},
+    }));
     dirRef.current = "forward";
     setScreen("dashboard");
     showToast("Menú reiniciado");
@@ -1218,7 +1429,34 @@ export default function App() {
               onToast={showToast}
               user={user}
               onTrackEvent={(event, metadata) => trackEvent(user, event, "menu", metadata)}
+              activeMenu={data.menus?.[data.activeMenuId] ?? null}
+              onSwitchWeek={switchActiveWeek}
+              onOpenMenus={openMenusScreen}
+              autoOpenProfile={pendingProfileOpen}
+              onAutoOpenProfileHandled={() => setPendingProfileOpen(false)}
             />
+          </div>
+        )}
+
+        {screen === "menus" && (
+          <div
+            key="menus"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <MenusScreen
+                data={data}
+                hasAccount={Boolean(user)}
+                onNav={handleNav}
+                onOpenCurrent={() => fwd(() => setScreen("menu"))}
+                onReuseMenu={reuseMenu}
+                onToggleFavorite={(menuId) => setData((d) => ({ ...d, menus: toggleMenuFavorite(d.menus, menuId) }))}
+                onSignIn={signInWithGoogle}
+                onRegenerateActive={() => { fwd(() => setScreen("menu")); regenerateMenu(); }}
+                onEditActive={() => { setPendingProfileOpen(true); fwd(() => setScreen("menu")); }}
+                onDeleteActive={deleteActiveMenu}
+              />
+            </Suspense>
           </div>
         )}
 
