@@ -57,6 +57,7 @@ import {
 import { todayDayIdx } from "./lib/weekCalendar.js";
 import {
   saveMenu as saveMenuRemote,
+  loadMenuSummaries as loadMenuSummariesRemote,
   activateMenu as activateMenuRemote,
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
@@ -510,6 +511,7 @@ export default function App() {
     // local-only items to reconcile with the cloud.
     const localRecipes = data.userRecipes ?? [];
     const localVotes = data.recipeVotes ?? {};
+    const localMenus = data.menus ?? {};
     let cancelled = false;
 
     (async () => {
@@ -566,6 +568,27 @@ export default function App() {
         if (!(rid in remoteVotes)) votesBackfill[rid] = v;
       }
       upsertRecipeVotes(user.id, votesBackfill);
+
+      // One-time backfill: an account that never wrote to the new menú
+      // tables (pre-existing user, or a device that only ever wrote to
+      // user_state) has real history sitting in the JSONB blob. Only runs
+      // when the cloud archive is empty, so it's naturally idempotent —
+      // once any menú lands there (from this backfill or a live dual-write),
+      // it never runs again for this user.
+      const finalMenus = useRemote ? (remoteData.menus ?? {}) : localMenus;
+      const menuList = Object.values(finalMenus);
+      if (menuList.length) {
+        const existingSummaries = await loadMenuSummariesRemote(user.id);
+        if (!cancelled && existingSummaries.length === 0) {
+          for (const menu of menuList) {
+            const recipes = Array.from(collectMenuRecipeIds({ [menu.id]: menu }))
+              .map((id) => RECIPES_BY_ID[id])
+              .filter(Boolean);
+            const res = await saveMenuRemote(user.id, menu, recipes);
+            if (res.ok && menu.isActive) await activateMenuRemote(menu.id);
+          }
+        }
+      }
 
       cloudReadyRef.current = true;
     })();
