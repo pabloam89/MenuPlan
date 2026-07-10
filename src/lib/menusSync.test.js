@@ -6,6 +6,7 @@ import {
   rowToWeek,
   saveMenu,
   loadMenuSummaries,
+  loadMenuWeekRanges,
   loadMenuDetail,
   deleteMenu,
   toggleMenuFavorite,
@@ -112,6 +113,10 @@ describe("public API degrades to no-op without a Supabase session (no client con
 
   it("loadMenuSummaries returns an empty array", async () => {
     expect(await loadMenuSummaries("user-1")).toEqual([]);
+  });
+
+  it("loadMenuWeekRanges returns an empty object", async () => {
+    expect(await loadMenuWeekRanges("user-1")).toEqual({});
   });
 
   it("loadMenuDetail returns null", async () => {

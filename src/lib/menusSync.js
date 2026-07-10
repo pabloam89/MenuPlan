@@ -130,6 +130,37 @@ export async function saveMenu(userId, menu, recipes = []) {
   return { ok: true };
 }
 
+/**
+ * Week date-ranges for every menú the user has, WITHOUT plan/shopping/
+ * schedule — cheap enough to fetch eagerly for the whole history list
+ * (date range + week count), leaving the heavy per-week JSON to be fetched
+ * on demand via loadMenuDetail only for the menú actually being opened.
+ * @returns {Promise<Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>>}
+ */
+export async function loadMenuWeekRanges(userId) {
+  if (!supabase || !userId) return {};
+  const { data, error } = await supabase
+    .from("user_menu_weeks")
+    .select("menu_id, week_start, week_end, week_offset, start_day_idx")
+    .eq("user_id", userId)
+    .order("week_offset");
+  if (error) {
+    console.warn("[menusSync] load week ranges failed", error.message);
+    return {};
+  }
+  const byMenu = {};
+  for (const row of data ?? []) {
+    const weeks = (byMenu[row.menu_id] ??= {});
+    weeks[row.week_start] = {
+      offset: row.week_offset,
+      startDayIdx: row.start_day_idx,
+      startISO: row.week_start,
+      endISO: row.week_end,
+    };
+  }
+  return byMenu;
+}
+
 /** Lightweight list for a history screen: metadata only, no weeks/recipes. */
 export async function loadMenuSummaries(userId) {
   if (!supabase || !userId) return [];

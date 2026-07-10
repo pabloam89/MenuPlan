@@ -58,6 +58,8 @@ import { todayDayIdx } from "./lib/weekCalendar.js";
 import {
   saveMenu as saveMenuRemote,
   loadMenuSummaries as loadMenuSummariesRemote,
+  loadMenuWeekRanges as loadMenuWeekRangesRemote,
+  loadMenuDetail as loadMenuDetailRemote,
   activateMenu as activateMenuRemote,
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
@@ -569,25 +571,58 @@ export default function App() {
       }
       upsertRecipeVotes(user.id, votesBackfill);
 
-      // One-time backfill: an account that never wrote to the new menú
-      // tables (pre-existing user, or a device that only ever wrote to
-      // user_state) has real history sitting in the JSONB blob. Only runs
-      // when the cloud archive is empty, so it's naturally idempotent —
-      // once any menú lands there (from this backfill or a live dual-write),
-      // it never runs again for this user.
-      const finalMenus = useRemote ? (remoteData.menus ?? {}) : localMenus;
-      const menuList = Object.values(finalMenus);
-      if (menuList.length) {
-        const existingSummaries = await loadMenuSummariesRemote(user.id);
-        if (!cancelled && existingSummaries.length === 0) {
-          for (const menu of menuList) {
-            const recipes = Array.from(collectMenuRecipeIds({ [menu.id]: menu }))
-              .map((id) => RECIPES_BY_ID[id])
-              .filter(Boolean);
-            const res = await saveMenuRemote(user.id, menu, recipes);
-            if (res.ok && menu.isActive) await activateMenuRemote(menu.id);
+      // Fase 3/4 of the menú-archive migration: the cloud tables
+      // (user_menus/user_menu_weeks/user_menu_recipes) are the read
+      // preference once they hold anything for this account; the JSONB
+      // blob (data.menus, hydrated above) is only the fallback for an
+      // account that hasn't migrated yet.
+      const cloudSummaries = await loadMenuSummariesRemote(user.id);
+      if (cancelled) return;
+
+      if (cloudSummaries.length === 0) {
+        // One-time backfill: an account that never wrote to the new menú
+        // tables (pre-existing user, or a device that only ever wrote to
+        // user_state) has real history sitting in the JSONB blob. Only
+        // runs when the cloud archive is empty, so it's naturally
+        // idempotent — once any menú lands there (from this backfill or a
+        // live dual-write), this branch never runs again for this user.
+        const finalMenus = useRemote ? (remoteData.menus ?? {}) : localMenus;
+        const menuList = Object.values(finalMenus);
+        for (const menu of menuList) {
+          const recipes = Array.from(collectMenuRecipeIds({ [menu.id]: menu }))
+            .map((id) => RECIPES_BY_ID[id])
+            .filter(Boolean);
+          const res = await saveMenuRemote(user.id, menu, recipes);
+          if (cancelled) return;
+          if (res.ok && menu.isActive) await activateMenuRemote(menu.id);
+        }
+      } else {
+        // Cloud has data: it wins over the blob for the archive (data.menus).
+        // History entries get lightweight week ranges only (just enough for
+        // MenusScreen's date range + week-count labels — see
+        // lib/menuArchive.js's formatMenuRangeLabel/orderedWeeks, which only
+        // read offset/startISO/endISO); the active menú gets full week
+        // detail (plan/shopping/schedule) eagerly since Menu.jsx's week
+        // switcher (switchActiveWeek) needs it right away. Any OTHER
+        // historic menú's full detail is fetched lazily, on demand, by
+        // reuseMenu() only when the user actually taps "Repetir" on it.
+        const weekRanges = await loadMenuWeekRangesRemote(user.id);
+        if (cancelled) return;
+
+        const cloudMenus = {};
+        for (const s of cloudSummaries) cloudMenus[s.id] = { ...s, weeks: weekRanges[s.id] ?? {} };
+
+        const activeSummary = cloudSummaries.find((s) => s.isActive) ?? null;
+        if (activeSummary) {
+          const detail = await loadMenuDetailRemote(user.id, activeSummary.id);
+          if (cancelled) return;
+          if (detail) {
+            cloudMenus[activeSummary.id] = { ...cloudMenus[activeSummary.id], weeks: detail.menu.weeks };
+            if (detail.recipes.length) registerRecipes(detail.recipes);
           }
         }
+
+        setData((d) => ({ ...d, menus: cloudMenus, activeMenuId: activeSummary?.id ?? null }));
       }
 
       cloudReadyRef.current = true;
@@ -983,8 +1018,22 @@ export default function App() {
   // logistics (schedule) always, and either clones its dishes verbatim or
   // regenerates fresh ones for new dates, per the user's choice.
   const reuseMenu = useCallback(async (menuId, { weekCount, sameRecipes } = {}) => {
-    const old = data.menus?.[menuId];
+    let old = data.menus?.[menuId];
     if (!old) return;
+    // A history entry hydrated from the cloud read-preference (see the
+    // session-hydration effect) may only carry lightweight week ranges
+    // (offset/startISO/endISO — no plan/shopping/schedule) for every menú
+    // except the active one. Fetch the real detail now, on demand, instead
+    // of eagerly fetching every historic menú's full JSON up front.
+    const isLazy = Object.values(old.weeks ?? {}).some((w) => w && w.schedule === undefined);
+    if (isLazy && user) {
+      const detail = await loadMenuDetailRemote(user.id, menuId);
+      if (detail) {
+        old = { ...old, weeks: detail.menu.weeks };
+        if (detail.recipes.length) registerRecipes(detail.recipes);
+        setData((d) => (d.menus?.[menuId] ? { ...d, menus: { ...d.menus, [menuId]: old } } : d));
+      }
+    }
     const oldWeeks = Object.values(old.weeks ?? {}).sort((a, b) => a.offset - b.offset);
     const count = clampWeekCount(weekCount ?? oldWeeks.length ?? 1);
     const oldSchedule = oldWeeks[0]?.schedule ?? data.schedule;
