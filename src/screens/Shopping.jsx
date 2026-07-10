@@ -987,12 +987,14 @@ function ReceiptSheet({ matches, onClose, onConfirm }) {
               style={{
                 padding: "10px 0",
                 borderBottom: "1px solid #e8f0ea",
-                fontSize: 14,
-                fontWeight: 700,
-                color: "#142f1d",
               }}
             >
-              {m.name}
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#142f1d" }}>{m.name}</div>
+              {m.receiptLine && (
+                <div style={{ fontSize: 12, fontWeight: 600, color: "#7a8a7f", marginTop: 2 }}>
+                  Ticket: {m.receiptLine}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -1,7 +1,7 @@
 import { RECIPES, RECIPES_BY_ID } from "../data/recipes.js";
 import { membersOfGroup } from "./groups.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
-import { stageForAge } from "./stages.js";
+import { resolveMemberAge, stageForAge } from "./stages.js";
 import {
   fixedDishScoreBoost,
   markFixedDishPlaced,
@@ -412,7 +412,7 @@ export function generateMenu(data) {
     plan[group.id] = {};
     const groupMembers = membersOfGroup(group, members);
     const groupHasKids = groupMembers.some((m) => {
-      const s = stageForAge(m.age).id;
+      const s = stageForAge(resolveMemberAge(m)).id;
       return s === "baby" || s === "infantil" || s === "primaria";
     });
 
@@ -564,7 +564,7 @@ export function replaceMenuSlot(
   if (!mode.cook) return null;
 
   const groupHasKids = groupMembers.some((m) => {
-    const s = stageForAge(m.age).id;
+    const s = stageForAge(resolveMemberAge(m)).id;
     return s === "baby" || s === "infantil" || s === "primaria";
   });
   const groupAllergies = Array.from(new Set(groupMembers.flatMap((m) => m.allergies ?? [])));

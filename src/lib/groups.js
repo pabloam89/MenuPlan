@@ -1,4 +1,4 @@
-import { migrateHomeRole, stageForAge, suggestHomeRole } from "./stages.js";
+import { migrateHomeRole, resolveMemberAge, stageForAge, suggestHomeRole } from "./stages.js";
 
 const GROUP_COLORS = ["#2d5a3d", "#c67030", "#5a7ea8", "#a85a7e", "#7e5aa8", "#5aa87e"];
 const BABY_GROUP_LABEL = "Bebé";
@@ -7,20 +7,10 @@ export function uid() {
   return Math.random().toString(36).slice(2, 10);
 }
 
-export function resolveMemberAge(member) {
-  if (member.useBirthDate && member.birthDate) {
-    const d0 = new Date(member.birthDate);
-    if (!Number.isNaN(d0.getTime())) {
-      const now = new Date();
-      let age = now.getFullYear() - d0.getFullYear();
-      const md = now.getMonth() - d0.getMonth();
-      const dd = now.getDate() - d0.getDate();
-      if (md < 0 || (md === 0 && dd < 0)) age -= 1;
-      return Math.max(0, age);
-    }
-  }
-  return Number.isFinite(member.age) ? member.age : parseInt(member.age, 10) || 30;
-}
+// Re-exported for backwards compatibility: `resolveMemberAge` lives in
+// stages.js (the single source of truth for age math), but historically
+// callers import it from groups.js.
+export { resolveMemberAge };
 
 /**
  * Which menu tier ("Adultos" / "Niños" / "Bebé") a member belongs to by
