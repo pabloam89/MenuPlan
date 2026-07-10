@@ -1453,7 +1453,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   );
 }
 
-function dishesFromSlot(slot, isLunch) {
+export function dishesFromSlot(slot, isLunch) {
   if (!slot?.recipeId) return [];
   const items = [];
   if (isLunch && slot.firstRecipeId) {
@@ -1471,7 +1471,7 @@ function dishesFromSlot(slot, isLunch) {
   return items;
 }
 
-function DishCard({
+export function DishCard({
   slot,
   onTap,
   courseLabel = null,

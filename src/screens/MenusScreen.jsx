@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Calendar, ChevronRight, Pencil, RotateCw, Sparkles, Star, Trash2, X } from "lucide-react";
+import { Calendar, ChevronRight, Loader2, Pencil, RotateCw, Sparkles, Star, Trash2, X } from "lucide-react";
 import { BottomNav, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer } from "../components/ui.jsx";
 import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 
@@ -210,25 +210,36 @@ function ActiveMenuCard({ menu, onOpen, onRegenerate, onEdit, onDelete }) {
   );
 }
 
-function HistoryMenuRow({ menu, onToggleFavorite, onReuse }) {
+function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening }) {
   const weeks = orderedWeeks(menu);
   const rangeLabel = formatMenuRangeLabel(menu);
   return (
     <div style={{ ...cardStyle, padding: 14, display: "flex", alignItems: "center", gap: 12 }}>
-      <div
+      <button
+        type="button"
+        onClick={onOpen}
+        disabled={isOpening}
         style={{
-          width: 40, height: 40, borderRadius: 11, background: "#f0f5f1",
-          color: "#2d5a3d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 12,
+          border: "none", background: "transparent", padding: 0, textAlign: "left",
+          cursor: isOpening ? "default" : "pointer", fontFamily: "inherit",
         }}
       >
-        <Calendar size={18} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 14, fontWeight: 800, color: "#142f1d" }}>{rangeLabel}</div>
-        <div style={{ fontSize: 12, color: "#9ab0a1", marginTop: 1 }}>
-          {weeks.length} semana{weeks.length === 1 ? "" : "s"}
+        <div
+          style={{
+            width: 40, height: 40, borderRadius: 11, background: "#f0f5f1",
+            color: "#2d5a3d", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+          }}
+        >
+          {isOpening ? <Loader2 size={18} style={{ animation: "mp-spin 1s linear infinite" }} /> : <Calendar size={18} />}
         </div>
-      </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 14, fontWeight: 800, color: "#142f1d" }}>{rangeLabel}</div>
+          <div style={{ fontSize: 12, color: "#9ab0a1", marginTop: 1 }}>
+            {weeks.length} semana{weeks.length === 1 ? "" : "s"}
+          </div>
+        </div>
+      </button>
       <button
         type="button"
         onClick={onToggleFavorite}
@@ -397,8 +408,10 @@ export function MenusScreen({
   onRegenerateActive,
   onEditActive,
   onDeleteActive,
+  onOpenHistory,
 }) {
   const [reuseTargetId, setReuseTargetId] = useState(null);
+  const [openingId, setOpeningId] = useState(null);
 
   const activeMenu = data.menus?.[data.activeMenuId] ?? null;
   const history = sortMenusDesc(data.menus).filter((m) => m.id !== data.activeMenuId);
@@ -445,6 +458,16 @@ export function MenusScreen({
                 menu={m}
                 onToggleFavorite={() => onToggleFavorite(m.id)}
                 onReuse={() => setReuseTargetId(m.id)}
+                isOpening={openingId === m.id}
+                onOpen={async () => {
+                  if (openingId) return;
+                  setOpeningId(m.id);
+                  try {
+                    await onOpenHistory(m.id);
+                  } finally {
+                    setOpeningId(null);
+                  }
+                }}
               />
             ))}
           </div>
@@ -461,6 +484,8 @@ export function MenusScreen({
           }}
         />
       )}
+
+      <style>{`@keyframes mp-spin { to { transform: rotate(360deg); } }`}</style>
 
       <BottomNav active="menus" onNav={onNav} />
     </div>

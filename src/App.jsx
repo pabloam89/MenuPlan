@@ -65,6 +65,7 @@ import {
   toggleMenuFavorite as toggleMenuFavoriteRemote,
 } from "./lib/menusSync.js";
 const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
+const MenuHistoryView = lazy(() => import("./screens/MenuHistoryView.jsx").then(m => ({ default: m.MenuHistoryView })));
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
 import {
   toggleRecipeVote,
@@ -422,6 +423,8 @@ export default function App() {
     DEV_DEMO_MENU ? (persisted?.screen ?? "menu") : "splash"
   );
   const [onbStep, setOnbStep] = useState(persisted?.onbStep ?? 0);
+  // Which history entry is open in the read-only viewer (screen "menuHistory").
+  const [historyMenuId, setHistoryMenuId] = useState(null);
   // "Afinar o generar ya" bubble — shown once on the first onboarding screen
   // after Members (whichever is visible), remembered locally so it never nags.
   const [afinarBubbleSeen, setAfinarBubbleSeen] = useState(() => {
@@ -1095,6 +1098,25 @@ export default function App() {
     fwd(() => setScreen("menu"));
   }, [data, regenerateMenu, showToast, user]);
 
+  // Opens a history entry in the read-only viewer — same lazy-detail fetch as
+  // reuseMenu, since a history row hydrated from the cloud read-preference may
+  // only carry lightweight week ranges (no plan/shopping/schedule) up front.
+  const openHistoryMenu = useCallback(async (menuId) => {
+    let m = data.menus?.[menuId];
+    if (!m) return;
+    const isLazy = Object.values(m.weeks ?? {}).some((w) => w && w.schedule === undefined);
+    if (isLazy && user) {
+      const detail = await loadMenuDetailRemote(user.id, menuId);
+      if (detail) {
+        m = { ...m, weeks: detail.menu.weeks };
+        if (detail.recipes.length) registerRecipes(detail.recipes);
+        setData((d) => (d.menus?.[menuId] ? { ...d, menus: { ...d.menus, [menuId]: m } } : d));
+      }
+    }
+    setHistoryMenuId(menuId);
+    fwd(() => setScreen("menuHistory"));
+  }, [data.menus, user]);
+
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
     setScreen(id);
@@ -1594,6 +1616,22 @@ export default function App() {
                 onRegenerateActive={() => { fwd(() => setScreen("menu")); regenerateMenu(); }}
                 onEditActive={() => { setPendingProfileOpen(true); fwd(() => setScreen("menu")); }}
                 onDeleteActive={deleteActiveMenu}
+                onOpenHistory={openHistoryMenu}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "menuHistory" && historyMenuId && data.menus?.[historyMenuId] && (
+          <div
+            key="menuHistory"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <MenuHistoryView
+                menu={data.menus[historyMenuId]}
+                data={data}
+                onBack={() => back(() => setScreen("menus"))}
               />
             </Suspense>
           </div>
