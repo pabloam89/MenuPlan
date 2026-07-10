@@ -834,7 +834,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "gluten"
     ],
     "season": "invierno",
     "ingredients": [

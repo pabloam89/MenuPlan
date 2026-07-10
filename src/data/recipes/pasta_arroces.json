@@ -1151,7 +1151,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "huevo"
+      "huevo",
+      "soja"
     ],
     "season": "all",
     "ingredients": [
