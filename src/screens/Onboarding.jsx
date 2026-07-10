@@ -67,7 +67,10 @@ import {
   ProgressDots,
   GroupScopePicker,
   ScopeCircle,
+  ToggleSwitch,
 } from "../components/ui.jsx";
+import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
+import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
@@ -3012,6 +3015,48 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   const [dayViewOpen, setDayViewOpen] = useState(false);
   const [dayViewIdx, setDayViewIdx] = useState(0);
 
+  // Multi-week menús: which selected week's "quién come dónde" is currently
+  // being viewed/edited. Defaults to the earliest one (the base pattern).
+  const weekOffsets = useMemo(() => {
+    const raw = Array.isArray(data.menuWeekOffsets) && data.menuWeekOffsets.length
+      ? data.menuWeekOffsets
+      : [data.menuWeek?.offset ?? 0];
+    return [...new Set(raw)].sort((a, b) => a - b);
+  }, [data.menuWeekOffsets, data.menuWeek]);
+  const sameForAllWeeks = data.menuScheduleSameForAllWeeks !== false;
+  const [editingWeekOffset, setEditingWeekOffset] = useState(weekOffsets[0]);
+  useEffect(() => {
+    if (!weekOffsets.includes(editingWeekOffset)) setEditingWeekOffset(weekOffsets[0]);
+  }, [weekOffsets, editingWeekOffset]);
+  const baseOffset = weekOffsets[0];
+  const viewingOffset = sameForAllWeeks ? baseOffset : editingWeekOffset;
+  const isEditingBaseWeek = viewingOffset === baseOffset;
+
+  // Real calendar dates for the week being viewed — only the earliest
+  // selected week can be partial (it starts today, not Monday); every other
+  // week always shows all 7 days.
+  const { dates: weekDates, activeDays } = useMemo(
+    () => getWeekDatesByMenuWeek({
+      offset: viewingOffset,
+      startDayIdx: viewingOffset === baseOffset ? (data.menuWeek?.startDayIdx ?? 0) : 0,
+    }),
+    [viewingOffset, baseOffset, data.menuWeek],
+  );
+
+  const effectiveSchedule = isEditingBaseWeek
+    ? data.schedule
+    : (data.menuWeekOverrides?.[viewingOffset] ?? data.schedule);
+
+  const updateSchedule = (updater) => {
+    setData((d) => {
+      if (isEditingBaseWeek) {
+        return { ...d, schedule: updater(d.schedule) };
+      }
+      const base = d.menuWeekOverrides?.[viewingOffset] ?? d.schedule;
+      return { ...d, menuWeekOverrides: { ...(d.menuWeekOverrides ?? {}), [viewingOffset]: updater(base) } };
+    });
+  };
+
   const subjectMemberIds = useMemo(() => memberList.map((m) => m.id), [memberList]);
   const subjectMembers = memberList;
   const allowCole = memberList.some(
@@ -3037,20 +3082,17 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   const setSlots = (memberIds, day, meal, value) => {
     if (memberIds.length === 0) return;
-    setData((d) => {
-      const next = { ...d.schedule };
+    updateSchedule((prev) => {
+      const next = { ...prev };
       for (const id of memberIds) {
         next[`${id}|${day}|${meal}`] = value;
       }
-      return { ...d, schedule: next };
+      return next;
     });
   };
 
   const setMemberSlot = (memberId, day, meal, value) => {
-    setData((d) => ({
-      ...d,
-      schedule: { ...d.schedule, [`${memberId}|${day}|${meal}`]: value },
-    }));
+    updateSchedule((prev) => ({ ...prev, [`${memberId}|${day}|${meal}`]: value }));
   };
 
   const openCell = (day, meal) => {
@@ -3073,14 +3115,14 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   const applyPreset = (preset) => {
     if (subjectMemberIds.length === 0) return;
     const overwritten =
-      subjectMemberIds.length > 1 ? countMixedCells(subjectMemberIds, data.schedule) : 0;
-    setData((d) => {
-      const next = { ...d.schedule };
+      subjectMemberIds.length > 1 ? countMixedCells(subjectMemberIds, effectiveSchedule) : 0;
+    updateSchedule((prev) => {
+      const next = { ...prev };
       const colable = subjectMembers.some(
         (m) => stageForAge(memberAge(m)).id !== "adulto"
       );
-      const main = primaryDayMeal(d);
-      const dayMeals = getMeals(d);
+      const main = primaryDayMeal(data);
+      const dayMeals = getMeals(data);
       for (const day of DAYS) {
         const isWeekday = !["Sáb", "Dom"].includes(day);
         for (const meal of dayMeals) {
@@ -3098,7 +3140,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
           }
         }
       }
-      return { ...d, schedule: next };
+      return next;
     });
     if (overwritten > 0) {
       showToast(
@@ -3110,11 +3152,11 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   };
 
   const applyQuickFill = () => {
-    setData((d) => {
-      const next = { ...d.schedule };
-      const dayMeals = getMeals(d);
+    updateSchedule((prev) => {
+      const next = { ...prev };
+      const dayMeals = getMeals(data);
       for (const id of subjectMemberIds) {
-        const member = d.members.find((m) => m.id === id);
+        const member = data.members.find((m) => m.id === id);
         const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
         for (const block of QF_BLOCKS) {
           for (const day of block.days) {
@@ -3126,7 +3168,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
           }
         }
       }
-      return { ...d, schedule: next };
+      return next;
     });
     setQuickFillOpen(false);
   };
@@ -3136,7 +3178,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     for (const block of QF_BLOCKS) {
       for (const meal of meals) {
         next[`${block.key}|${meal}`] = inferQuickFillValue(
-          data.schedule,
+          effectiveSchedule,
           subjectMemberIds,
           subjectMembers,
           block.days,
@@ -3441,12 +3483,77 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         </div>
       )}
 
+      {/* Multi-week menús with independent per-week schedules: pick which
+          week's "quién come dónde" you're looking at/editing. Hidden when
+          only one week is selected, or when "misma config para todas" is on. */}
+      {!sameForAllWeeks && weekOffsets.length > 1 && (
+        <>
+          <div style={{ height: 1, background: "#e6eee8", margin: "2px 0 14px" }} />
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(3, 1fr)",
+              gap: 3,
+              background: "#f0f4f1",
+              borderRadius: 12,
+              padding: 3,
+              marginBottom: 14,
+            }}
+          >
+            {weekOffsets.map((offset) => {
+              const { dates: d, activeDays: ad } = getWeekDatesByMenuWeek({
+                offset,
+                startDayIdx: offset === baseOffset ? (data.menuWeek?.startDayIdx ?? 0) : 0,
+              });
+              const label = formatWeekRangeLabel(d, ad);
+              const hasOverride = offset !== baseOffset && Boolean(data.menuWeekOverrides?.[offset]);
+              const sel = offset === viewingOffset;
+              return (
+                <button
+                  key={offset}
+                  type="button"
+                  onClick={() => setEditingWeekOffset(offset)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 5,
+                    padding: "8px 4px",
+                    borderRadius: 9,
+                    border: "none",
+                    background: sel ? "#2d5a3d" : "transparent",
+                    color: sel ? "#fff" : "#5c6b60",
+                    fontSize: 12,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    whiteSpace: "nowrap",
+                    boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                    transition: "all .15s ease",
+                  }}
+                >
+                  {label}
+                  {hasOverride && (
+                    <span style={{
+                      width: 6, height: 6, borderRadius: 999, flexShrink: 0,
+                      background: sel ? "#fff" : "#4cba6e",
+                    }} />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
+
       <ScheduleGrid
         meals={meals}
         memberIds={subjectMemberIds}
-        schedule={data.schedule}
+        schedule={effectiveSchedule}
         onCellClick={openCell}
         onDayClick={openDay}
+        activeDays={activeDays}
+        dates={weekDates}
       />
       <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8, marginBottom: 12 }}>
         <div style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #e3ebe6", background: "#fafcfb" }}>
@@ -3454,12 +3561,38 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         </div>
       </div>
 
+      {/* "Aplicar la misma configuración a todas las semanas" toggle — only
+          relevant once several weeks are selected for this menú. */}
+      {weekOffsets.length > 1 && (
+        <div
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "10px 14px", background: "#f7f9f7", borderRadius: 14, marginBottom: 16,
+          }}
+        >
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", paddingRight: 10 }}>
+            Misma configuración en todas las semanas
+          </span>
+          <ToggleSwitch
+            checked={sameForAllWeeks}
+            onChange={(v) => {
+              setData((d) => ({
+                ...d,
+                menuScheduleSameForAllWeeks: v,
+                ...(v ? { menuWeekOverrides: {} } : {}),
+              }));
+              if (v) setEditingWeekOffset(baseOffset);
+            }}
+          />
+        </div>
+      )}
+
       {sheetSlot && (
         <ScheduleSlotSheet
           day={sheetSlot.day}
           meal={sheetSlot.meal}
           members={subjectMembers}
-          schedule={data.schedule}
+          schedule={effectiveSchedule}
           allowCole={allowCole}
           onClose={() => setSheetSlot(null)}
           onSetMember={(memberId, value) =>
@@ -3496,10 +3629,10 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
       {dayViewOpen && (
         <DayView
-          days={DAYS}
+          days={activeDays}
           meals={meals}
           members={memberList}
-          schedule={data.schedule}
+          schedule={effectiveSchedule}
           coleAllowedIds={new Set(memberList.filter((m) => stageForAge(memberAge(m)).id !== "adulto").map((m) => m.id))}
           dayIdx={dayViewIdx}
           onDayChange={setDayViewIdx}
@@ -4173,10 +4306,14 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
   );
 }
 
-function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
+function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick, activeDays = DAYS, dates = null }) {
   // Renders one row per meal. For groups, each cell shows the consensus, or a
   // dot stack of every member's state when they diverge. Clicking a consensus
   // cell cycles; clicking a divergent cell opens the slot editor.
+  // Always shows all 7 days (fixed layout across every week of a menú); days
+  // that don't apply to the week currently being viewed (a partial first
+  // week starting mid-week) are just dimmed — not hidden, since the same
+  // pattern still governs every other, full week.
   return (
     <div
       style={{
@@ -4190,6 +4327,8 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
         <div />
         {DAYS.map((d) => {
           const isWeekend = d === "Sáb" || d === "Dom";
+          const isActive = activeDays.includes(d);
+          const dayNum = dates ? calendarDayNumber(d, dates) : null;
           return (
             <button
               key={d}
@@ -4198,13 +4337,17 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
               title={onDayClick ? `Igualar todo el ${d}` : undefined}
               style={{
                 display: "flex",
+                flexDirection: "column",
                 alignItems: "center",
                 justifyContent: "center",
+                gap: 2,
                 padding: "0 0 6px",
                 background: "transparent",
                 border: "none",
                 cursor: onDayClick ? "pointer" : "default",
                 fontFamily: "inherit",
+                opacity: isActive ? 1 : 0.38,
+                transition: "opacity .15s ease",
               }}
             >
               <span
@@ -4223,6 +4366,9 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
               >
                 {d.slice(0, 2)}
               </span>
+              {dayNum != null && (
+                <span style={{ fontSize: 9, fontWeight: 700, color: "#9ab0a1" }}>{dayNum}</span>
+              )}
             </button>
           );
         })}
@@ -4248,6 +4394,7 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
               </span>
             </div>
             {DAYS.map((day) => {
+              const isActive = activeDays.includes(day);
               const memberStates = memberIds.map((id) => {
                 const raw = schedule[`${id}|${day}|${meal}`] ?? "casa";
                 return raw === "off" ? "casa" : raw;
@@ -4260,13 +4407,14 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick }) {
                   ? memberStates[0]
                   : "mixed";
               return (
-                <ScheduleCell
-                  key={`${day}-${meal}`}
-                  value={value}
-                  states={value === "mixed" ? memberStates : undefined}
-                  onClick={() => onCellClick(day, meal)}
-                  size={16}
-                />
+                <div key={`${day}-${meal}`} style={{ opacity: isActive ? 1 : 0.38, transition: "opacity .15s ease" }}>
+                  <ScheduleCell
+                    value={value}
+                    states={value === "mixed" ? memberStates : undefined}
+                    onClick={() => onCellClick(day, meal)}
+                    size={16}
+                  />
+                </div>
               );
             })}
           </Fragment>
@@ -7264,20 +7412,53 @@ function isSameDay(a, b) {
     a.getDate() === b.getDate();
 }
 
+// Cross-week variety options: "strict" biases every week's generation away
+// from dishes used in ANY earlier week of the same menú; "moderate" only
+// avoids repeating vs. the immediately preceding week; "relaxed" applies no
+// bias at all (handy for meal-prep-style repeats on purpose).
+const VARIETY_OPTIONS = [
+  { id: "strict", label: "No quiero repetir platos", Icon: Shuffle },
+  { id: "moderate", label: "Algo de repetición está bien", Icon: Repeat },
+  { id: "relaxed", label: "Repetir para ahorrar tiempo", Icon: Zap },
+];
+
 export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinish }) {
   const todayIdx = todayMondayIdx();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  const menuWeek = data.menuWeek ?? { offset: 0, startDayIdx: todayIdx };
-  const selectedOffset = menuWeek.offset ?? 0;
+  const selectedOffsets = useMemo(() => {
+    const raw = Array.isArray(data.menuWeekOffsets) && data.menuWeekOffsets.length
+      ? data.menuWeekOffsets
+      : [data.menuWeek?.offset ?? 0];
+    return [...new Set(raw)].sort((a, b) => a - b);
+  }, [data.menuWeekOffsets, data.menuWeek]);
 
-  const selectWeek = (offset) => {
-    const startDayIdx = offset === 0 ? todayIdx : 0;
-    setData((d) => ({ ...d, menuWeek: { offset, startDayIdx } }));
+  const toggleWeek = (offset) => {
+    setData((d) => {
+      const current = Array.isArray(d.menuWeekOffsets) && d.menuWeekOffsets.length
+        ? d.menuWeekOffsets
+        : [d.menuWeek?.offset ?? 0];
+      const has = current.includes(offset);
+      let next;
+      if (has) {
+        if (current.length <= 1) return d; // always keep at least one week selected
+        next = current.filter((o) => o !== offset);
+      } else {
+        if (current.length >= MAX_MENU_WEEKS) return d;
+        next = [...current, offset];
+      }
+      next = next.sort((a, b) => a - b);
+      const anchor = next[0];
+      return {
+        ...d,
+        menuWeekOffsets: next,
+        menuWeek: { offset: anchor, startDayIdx: anchor === 0 ? todayIdx : 0 },
+      };
+    });
   };
 
-  const weeks = buildCalendarWeeks(4);
+  const weeks = buildCalendarWeeks(8);
 
   // The select-column card is drawn as one continuous pill that hugs the
   // circles: it must start above the FIRST circle and end below the LAST one
@@ -7306,16 +7487,17 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
     return () => window.removeEventListener("resize", measure);
   }, [weeks.length]);
 
-  // Active days count for hint
-  const selectedWeek = weeks[selectedOffset] ?? weeks[0];
-  const activeDayCount = selectedOffset === 0
-    ? selectedWeek.days.filter((d) => d >= today).length
+  // Active days count for hint — only the current week (offset 0) can be
+  // partial (it starts today, not on Monday).
+  const currentWeek = weeks[0];
+  const activeDayCount = selectedOffsets.includes(0)
+    ? currentWeek.days.filter((d) => d >= today).length
     : 7;
 
   return (
     <OnboardingShell
       title="¿Para cuándo quieres el menú?"
-      subtitle="Toca la semana que quieres planificar"
+      subtitle={`Toca las semanas que quieres planificar (hasta ${MAX_MENU_WEEKS})`}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -7362,7 +7544,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
         }} />
         <div style={{ display: "flex", flexDirection: "column", gap: 4, position: "relative" }}>
         {weeks.map(({ offset, monday, days }, weekIdx) => {
-          const isSelected = offset === selectedOffset;
+          const isSelected = selectedOffsets.includes(offset);
           const showMonthLabel =
             weekIdx === 0 ||
             monday.getMonth() !== weeks[weekIdx - 1].monday.getMonth();
@@ -7387,7 +7569,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
               {/* Week row */}
               <button
                 type="button"
-                onClick={() => selectWeek(offset)}
+                onClick={() => toggleWeek(offset)}
                 style={{
                   width: "100%",
                   border: "none",
@@ -7489,10 +7671,54 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
       </div>
 
       {/* Hint — only when current week and fewer than 7 days */}
-      {selectedOffset === 0 && activeDayCount < 7 && (
+      {selectedOffsets.includes(0) && activeDayCount < 7 && (
         <p style={{ fontSize: 12, color: "#9aaa9e", margin: "14px 0 0", textAlign: "center" }}>
-          {`Menú de ${activeDayCount} día${activeDayCount !== 1 ? "s" : ""} (desde hoy)`}
+          {`Semana actual de ${activeDayCount} día${activeDayCount !== 1 ? "s" : ""} (desde hoy)`}
         </p>
+      )}
+
+      {selectedOffsets.length > 1 && (
+        <div style={{ marginTop: 18, padding: 14, background: "#f7f9f7", borderRadius: 14 }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>
+            Variedad entre semanas
+          </div>
+          <div style={{ fontSize: 11.5, color: "#9ab0a1", marginTop: 2, marginBottom: 12 }}>
+            Vas a generar {selectedOffsets.length} semanas de una vez
+          </div>
+          <div style={{ display: "flex", gap: 6 }}>
+            {VARIETY_OPTIONS.map((opt) => {
+              const sel = (data.menuVarietyPref ?? "strict") === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setData((d) => ({ ...d, menuVarietyPref: opt.id }))}
+                  style={mealStyleCardStyle(sel)}
+                >
+                  {sel && (
+                    <span style={{ position: "absolute", top: 6, right: 6, display: "flex" }}>
+                      <Check size={11} color="#fff" />
+                    </span>
+                  )}
+                  <div style={mealStyleIconStyle(sel)}>
+                    <opt.Icon size={16} />
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 10.5,
+                      fontWeight: 800,
+                      color: sel ? "#fff" : "#142f1d",
+                      textAlign: "center",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {opt.label}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
       )}
     </OnboardingShell>
   );

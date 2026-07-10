@@ -167,13 +167,13 @@ export function bottomNavSpacer() {
 const HOME_NAV_ITEMS = [
   { id: "dashboard", icon: Home, label: "Inicio" },
   { id: "recipes",   icon: BookOpen,    label: "Recetas" },
-  { id: "menu",      icon: ClipboardList, label: "Menú" },
+  { id: "menus",     icon: ClipboardList, label: "Menús" },
   { id: "profile",   icon: Settings,    label: "Perfil" },
 ];
 
 const MENU_NAV_ITEMS = [
   { id: "dashboard", icon: Home,          label: "Inicio" },
-  { id: "menu",      icon: ClipboardList, label: "Menú" },
+  { id: "menus",     icon: ClipboardList, label: "Menús" },
   { id: "shopping",  icon: ShoppingCart,  label: "Compra" },
   { id: "analytics", icon: BarChart3,     label: "Análisis" },
 ];
