@@ -1,16 +1,27 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { categoryForIngredient, normalizeIngredientKey, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
-import { ingredientWords, wordsOverlapEither } from "../utils/normalizePantryInput.js";
+import { ingredientWords, wordsOverlapEither, isWordSubsetOf } from "../utils/normalizePantryInput.js";
 
 // Whole-word match (not raw substring — see normalizePantryInput.js's
 // "Repollo" note) between a shopping-list ingredient name and the user's
 // saved pantry. Quantities are ignored entirely: if the recipe needs
 // tomatoes and the user has tomatoes, the whole line is discounted — no
 // partial-amount tracking (per the feature spec, deliberately out of scope).
-function matchesPantry(ingredientName, pantryNormalized) {
+//
+// `adapted` lines (dietary swaps like "Leche sin lactosa") use a stricter,
+// one-directional match: the pantry entry must mention every word of the
+// adapted name, not just the base ingredient. Otherwise a plain "leche"
+// pantry entry (regular milk) would silently discount the whole "Leche sin
+// lactosa" line, defeating the reason that line was flagged `adapted` in the
+// first place — the family still needs to buy the specific substitute
+// product even though they already have the regular one at home.
+function matchesPantry(ingredientName, pantryNormalized, adapted = false) {
   if (!pantryNormalized || pantryNormalized.length === 0) return false;
   const words = ingredientWords(ingredientName);
+  if (adapted) {
+    return pantryNormalized.some((key) => isWordSubsetOf(words, key.split("_")));
+  }
   return pantryNormalized.some((key) => wordsOverlapEither(key.split("_"), words));
 }
 
@@ -69,6 +80,12 @@ function snapToPackSize(name, unit, qty) {
       return { qty: snapped, unit: outUnit };
     }
   }
+  // No specific pack-size rule matched. Whole-unit ("ud") ingredients still
+  // can't be bought as fractions — e.g. a recipe scaled to 1 eater can need
+  // "0.25 cebolla", but the store only sells whole onions. Round up so the
+  // returned qty (used for editing, totals) matches what formatQty already
+  // displays, instead of silently understating what to buy.
+  if (unit === "ud") return { qty: Math.ceil(qty), unit };
   return { qty, unit };
 }
 
@@ -182,7 +199,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
       unit: snappedUnit,
       displayQty: formatQty(snappedQty, snappedUnit),
       price: Math.round(it.price * 100) / 100,
-      fromPantry: matchesPantry(it.name, pantryNormalized),
+      fromPantry: matchesPantry(it.name, pantryNormalized, it.adapted),
     };
   });
 
