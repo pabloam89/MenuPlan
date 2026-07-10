@@ -1761,6 +1761,7 @@ export default function App() {
                 onOpenAnalytics={() => fwd(() => setScreen("analytics"))}
                 onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "dashboard"; setEditingRecipe(null); fwd(() => setScreen("recipePlanner")); }}
                 onOpenRecipes={() => fwd(() => setScreen("recipes"))}
+                onOpenStreak={() => fwd(() => setScreen("account"))}
               />
             </Suspense>
           </div>
