@@ -77,3 +77,107 @@ describe("enforceFixedDishes hard-safety gate on the full-catalog fallback", () 
     expect(slotAssignments).toEqual(baseAssignments());
   });
 });
+
+describe("enforceFixedDishes respects the school menu on cena placements (rules 4 / 4b)", () => {
+  // Synthetic dish that carries both a "carne" protein group AND an "arroz"
+  // carb base — enough to collide with either a schoolProteinsToAvoid or a
+  // schoolCarbsToAvoid entry.
+  const FIXED_RECIPE = {
+    id: "fake_pollo_arroz",
+    name: "Pollo con arroz",
+    category: "carnes",
+    mainProtein: "pollo",
+    mealRole: ["cena"],
+    ingredients: [{ name: "Arroz" }, { name: "Pollo" }],
+    tupperFriendly: true,
+    healthFlags: [],
+  };
+
+  function poolWithFixedRecipe() {
+    return { [FIXED_RECIPE.id]: FIXED_RECIPE, huevos_001: recipeCatalogById.huevos_001 };
+  }
+
+  it("avoids injecting a fixed dish into a cena day whose school menu already served that carb base, when a conflict-free day is available", () => {
+    // Bug this guards against: enforceFixedDishes runs AFTER applyFallback and
+    // the 3b safety net (see aiPlanner.js), so nothing downstream re-validates
+    // rules 4/4b once a fixed dish is force-placed. Without slotsContext wired
+    // through, a fixed "Pollo con arroz" dish could land on mar/jue even
+    // though the school already served arroz those exact days.
+    const fixedDishesRaw = [
+      { name: "Pollo con arroz", catalogId: FIXED_RECIPE.id, timesPerWeek: 2, meals: ["Cena"] },
+    ];
+    const slotsContext = [
+      { slotId: "mar_cena", schoolCarbsToAvoid: ["arroz"] },
+      { slotId: "jue_cena", schoolCarbsToAvoid: ["arroz"] },
+    ];
+    const { slotAssignments, warnings } = enforceFixedDishes(
+      baseAssignments(),
+      fixedDishesRaw,
+      poolWithFixedRecipe(),
+      {},
+      slotsContext,
+    );
+    const daysWithFixedDish = slotAssignments
+      .filter((s) => s.recipeId === FIXED_RECIPE.id)
+      .map((s) => s.slotId);
+    expect(daysWithFixedDish).toHaveLength(2);
+    expect(daysWithFixedDish).not.toContain("mar_cena");
+    expect(daysWithFixedDish).not.toContain("jue_cena");
+    expect(warnings).toEqual([]);
+  });
+
+  it("avoids a school-avoided protein group on cena placements the same way", () => {
+    const fixedDishesRaw = [
+      { name: "Pollo con arroz", catalogId: FIXED_RECIPE.id, timesPerWeek: 1, meals: ["Cena"] },
+    ];
+    const slotsContext = CENA_SLOTS.filter((s) => s !== "vie_cena").map((slotId) => ({
+      slotId,
+      schoolProteinsToAvoid: ["carne"],
+    }));
+    const { slotAssignments, warnings } = enforceFixedDishes(
+      baseAssignments(),
+      fixedDishesRaw,
+      poolWithFixedRecipe(),
+      {},
+      slotsContext,
+    );
+    const daysWithFixedDish = slotAssignments
+      .filter((s) => s.recipeId === FIXED_RECIPE.id)
+      .map((s) => s.slotId);
+    expect(daysWithFixedDish).toEqual(["vie_cena"]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("falls back to a school-conflicting day (with a warning) rather than under-placing the fixed dish", () => {
+    // Every cena day conflicts — the "appears exactly timesPerWeek times" hard
+    // guarantee wins, but the user must be told why.
+    const fixedDishesRaw = [
+      { name: "Pollo con arroz", catalogId: FIXED_RECIPE.id, timesPerWeek: 3, meals: ["Cena"] },
+    ];
+    const slotsContext = CENA_SLOTS.map((slotId) => ({ slotId, schoolCarbsToAvoid: ["arroz"] }));
+    const { slotAssignments, warnings } = enforceFixedDishes(
+      baseAssignments(),
+      fixedDishesRaw,
+      poolWithFixedRecipe(),
+      {},
+      slotsContext,
+    );
+    const daysWithFixedDish = slotAssignments.filter((s) => s.recipeId === FIXED_RECIPE.id);
+    expect(daysWithFixedDish).toHaveLength(3);
+    expect(warnings.some((w) => w.includes("Pollo con arroz"))).toBe(true);
+  });
+
+  it("is backward compatible when slotsContext is omitted (no crash, no filtering)", () => {
+    const fixedDishesRaw = [
+      { name: "Pollo con arroz", catalogId: FIXED_RECIPE.id, timesPerWeek: 1, meals: ["Cena"] },
+    ];
+    const { slotAssignments, warnings } = enforceFixedDishes(
+      baseAssignments(),
+      fixedDishesRaw,
+      poolWithFixedRecipe(),
+      {},
+    );
+    expect(slotAssignments.some((s) => s.recipeId === FIXED_RECIPE.id)).toBe(true);
+    expect(warnings).toEqual([]);
+  });
+});

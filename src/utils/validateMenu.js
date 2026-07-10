@@ -523,26 +523,31 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     const mealType = slot.slotId.split("_")[1];
     const daySlug = slot.slotId.split("_")[0];
 
-    // For guarnicion_repetida: collect carb types used in this day (excluding current slot)
+    // Carb types already used this day (excluding current slot) — always
+    // computed and always enforced below, not just when the violation being
+    // fixed IS guarnicion_repetida. Rationale: violations are processed one
+    // at a time in rule order, so a fix applied for a LATER rule (e.g. rule
+    // 11 freq_target_not_met) must not reintroduce a violation of an EARLIER
+    // rule (e.g. rule 9 guarnicion_repetida) that already passed. Since
+    // nothing re-validates the whole menu between fixes within this same
+    // pass, every candidate search has to independently respect every
+    // context-derived constraint, regardless of which rule triggered it.
     const dayCarbsUsed = new Set();
-    if (v.rule === "guarnicion_repetida") {
-      for (const s of result) {
-        if (s.slotId === slot.slotId) continue;
-        if (!s.slotId.startsWith(daySlug + "_")) continue;
-        const r = poolById[s.recipeId];
-        if (r) { const c = getCarbType(r); if (c) dayCarbsUsed.add(c); }
-      }
+    for (const s of result) {
+      if (s.slotId === slot.slotId) continue;
+      if (!s.slotId.startsWith(daySlug + "_")) continue;
+      const r = poolById[s.recipeId];
+      if (r) { const c = getCarbType(r); if (c) dayCarbsUsed.add(c); }
     }
 
-    // For proteina_consecutiva: the generic filters below (role/time/mode)
-    // don't know WHY this slot was flagged, so without this a "replacement"
-    // could still share mainProtein with the neighbor that triggered the
-    // violation in the first place, leaving it unresolved. Mirror the
-    // neighbor(s) — prev and next in the current mainMeals sequence — the
-    // same way rule 3 itself finds them, using the live `result` so earlier
-    // fixes in this same pass are reflected.
+    // Same rationale as dayCarbsUsed above, for rule 3 (proteina_consecutiva):
+    // always mirror the neighbor(s) — prev and next in the current mainMeals
+    // sequence — the same way rule 3 itself finds them, using the live
+    // `result` so earlier fixes in this same pass are reflected. Always
+    // enforced below so fixing an unrelated later violation can never
+    // reintroduce a same-protein collision that already passed.
     const neighborProteins = new Set();
-    if (v.rule === "proteina_consecutiva") {
+    {
       const order = mainMealsOf(buildMealOrder(result), poolById);
       const orderIdx = order.findIndex((m) => m.slotId === slot.slotId);
       if (orderIdx !== -1) {
@@ -559,7 +564,14 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (r.id === slot.recipeId) return false;
 
       if (ctx?.maxTime && r.time > ctx.maxTime) return false;
-      if (v.rule === "legumbres_en_cena" && r.category === "legumbres") return false;
+      // legumbres_en_cena, school_protein_conflict, school_carb_conflict,
+      // guarnicion_repetida and proteina_consecutiva below are enforced
+      // unconditionally (not gated to `v.rule === "..."`) for the same
+      // cross-rule-safety reason as dayCarbsUsed/neighborProteins above: a
+      // replacement picked to fix violation N must never reintroduce a
+      // violation of rule M that was already resolved (or never triggered)
+      // earlier in this same pass.
+      if (mealType === "cena" && r.category === "legumbres") return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
       if (ctx?.preferType !== "cena_rapida" && r.category === "cenas_rapidas") return false;
 
@@ -572,7 +584,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
 
       if (ctx?.mode === "tupper" && !r.tupperFriendly) return false;
 
-      if (v.rule === "school_protein_conflict" && ctx?.schoolProteinsToAvoid) {
+      if (mealType === "cena" && ctx?.schoolProteinsToAvoid) {
         const proteinMap = {
           pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
           pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
@@ -582,17 +594,17 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         if (ctx.schoolProteinsToAvoid.includes(group)) return false;
       }
 
-      if (v.rule === "school_carb_conflict" && ctx?.schoolCarbsToAvoid) {
+      if (mealType === "cena" && ctx?.schoolCarbsToAvoid) {
         const carb = getCarbType(r);
         if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return false;
       }
 
-      if (v.rule === "guarnicion_repetida") {
+      {
         const carb = getCarbType(r);
         if (carb && dayCarbsUsed.has(carb)) return false;
       }
 
-      if (v.rule === "proteina_consecutiva" && neighborProteins.has(r.mainProtein)) return false;
+      if (neighborProteins.has(r.mainProtein)) return false;
 
       if (v.rule === "freq_target_not_met" && v.targetKey) {
         const matcher = FREQ_KEY_MATCHERS[v.targetKey];

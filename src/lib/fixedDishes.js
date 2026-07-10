@@ -1,5 +1,33 @@
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import { recipeViolatesHardSafety } from "../utils/filterRecipes.js";
+import { getCarbType } from "../utils/validateMenu.js";
+
+// Mirrors validateMenu.js rule 4's grouping (pollo/pavo/cerdo/ternera -> carne,
+// etc.) so enforceFixedDishes can check a cena candidate against the same
+// schoolProteinsToAvoid the day's slot context carries — kept as a local copy
+// (not imported) because validateMenu.js doesn't export it separately.
+const PROTEIN_GROUP_MAP = {
+  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
+  legumbre: "legumbres", huevo: "huevos",
+};
+
+/** True when placing `recipe` in the cena slot at `ctx` would reintroduce a
+ * protein or carb base the school menu already served that day (validateMenu
+ * rules 4 / 4b). Only meaningful for cena — comida slots never carry
+ * schoolProteinsToAvoid/schoolCarbsToAvoid. */
+function conflictsWithSchoolMenu(recipe, ctx) {
+  if (!ctx) return false;
+  if (ctx.schoolProteinsToAvoid?.length) {
+    const group = PROTEIN_GROUP_MAP[recipe.mainProtein] ?? recipe.mainProtein;
+    if (ctx.schoolProteinsToAvoid.includes(group)) return true;
+  }
+  if (ctx.schoolCarbsToAvoid?.length) {
+    const carb = getCarbType(recipe);
+    if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return true;
+  }
+  return false;
+}
 
 /** Normalized fixed dish: repetitions per week + which meals.
  * `catalogId` is set when the dish was picked from the catalog browser, so the
@@ -146,15 +174,21 @@ function slotPositionForRecipe(recipe, targetMealType) {
  *   intolerances, hasKids, isBabyGroup), used to gate the full-catalog fallback
  *   below so a fixed dish can never reintroduce a hard safety violation just
  *   because it dropped out of the group's filtered pool.
+ * @param {Array} [slotsContext] - the group's slot context (ctx.slots from
+ *   buildGroupContext), used so a cena placement never reintroduces the
+ *   protein/carb base the school menu already served that day (validateMenu
+ *   rules 4 / 4b) — this step runs AFTER applyFallback and the 3b safety net,
+ *   so nothing else re-checks those rules once a fixed dish is force-placed.
  * @returns {{ slotAssignments: Array, warnings: string[] }}
  */
-export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById, filterOpts = {}) {
+export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById, filterOpts = {}, slotsContext = []) {
   const fixedDishes = migrateFixedDishes(fixedDishesRaw);
   if (fixedDishes.length === 0) return { slotAssignments, warnings: [] };
 
   const bySlot = new Map(slotAssignments.map((s) => [s.slotId, { ...s }]));
   const locked = new Set(); // slots already owned by a fixed dish — never evict
   const warnings = [];
+  const ctxBySlot = Object.fromEntries(slotsContext.map((s) => [s.slotId, s]));
 
   for (const fd of fixedDishes) {
     const meal = String(fd.meals?.[0] ?? "Comida").toLowerCase();
@@ -228,7 +262,29 @@ export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById, fi
     const freeDays = days.filter(
       (day) => !daysWithDish.has(day) && !locked.has(slotByDay.get(day)),
     );
-    for (const day of pickEvenlySpread(freeDays, need)) {
+
+    // Prefer days where this cena placement doesn't collide with what the
+    // school already served (validateMenu rules 4 / 4b). Only relevant for
+    // cena — comida slots carry no schoolProteinsToAvoid/schoolCarbsToAvoid.
+    // Soft guardrail like the other deterministic carve-outs in this codebase
+    // (see aiPlanner.js#pickCatalogReplacement): relaxed back to the full
+    // freeDays list rather than under-placing the dish, since "the fixed dish
+    // appears exactly timesPerWeek times" is documented as a hard guarantee.
+    let chosenFreeDays = freeDays;
+    if (targetMealType === "cena") {
+      const safeFreeDays = freeDays.filter(
+        (day) => !conflictsWithSchoolMenu(recipe, ctxBySlot[slotByDay.get(day)]),
+      );
+      if (safeFreeDays.length >= need) {
+        chosenFreeDays = safeFreeDays;
+      } else if (safeFreeDays.length < freeDays.length) {
+        warnings.push(
+          `El plato fijado "${fd.name}" coincide con la proteína o base del menú escolar en algún día de esta semana; se ha mantenido igualmente para cumplir la repetición semanal solicitada.`,
+        );
+      }
+    }
+
+    for (const day of pickEvenlySpread(chosenFreeDays, need)) {
       const slotId = slotByDay.get(day);
       bySlot.set(slotId, { slotId, recipeId: recipe.id });
       locked.add(slotId);
