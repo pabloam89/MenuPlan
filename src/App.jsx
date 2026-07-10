@@ -374,6 +374,41 @@ function migrate(state) {
   d.menuScheduleSameForAllWeeks = d.menuScheduleSameForAllWeeks !== false;
   d.menuWeekOverrides =
     d.menuWeekOverrides && typeof d.menuWeekOverrides === "object" ? d.menuWeekOverrides : {};
+  // Backfill: `menuPlan`/`shopping` predate the multi-week archive (`data.menus`)
+  // and live outside `data` (see App() — they're their own useState, restored
+  // from `state.menuPlan`/`state.shopping`). An account whose last menú was
+  // generated before this feature shipped has real content there but an empty
+  // archive, which made MenusScreen ("Menús") report "no tienes menú" while
+  // Dashboard/MenuScreen (which still read menuPlan directly) showed it fine.
+  // Synthesize a single-week archive entry from it so both screens agree.
+  // Only fires once: after this runs, `d.menus` is non-empty and the whole
+  // block is skipped on every later load. Guarded on `state.menuPlan` still
+  // having content so a legitimately-deleted active menú isn't resurrected.
+  if (Object.keys(d.menus).length === 0 && Object.keys(state.menuPlan ?? {}).length > 0) {
+    const offset = d.menuWeek?.offset ?? 0;
+    const startDayIdx = d.menuWeek?.startDayIdx ?? 0;
+    const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
+    const legacyMenu = {
+      id: createMenuId(),
+      createdAt: Date.now(),
+      isFavorite: false,
+      isActive: true,
+      varietyPref: d.menuVarietyPref,
+      weeks: {
+        [startISO]: {
+          offset,
+          startDayIdx,
+          startISO,
+          endISO,
+          plan: state.menuPlan,
+          shopping: state.shopping ?? { items: [] },
+          schedule: d.schedule,
+        },
+      },
+    };
+    d.menus = { [legacyMenu.id]: legacyMenu };
+    d.activeMenuId = legacyMenu.id;
+  }
   return { ...state, data: { ...INITIAL_DATA, ...d } };
 }
 
