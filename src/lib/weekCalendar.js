@@ -37,6 +37,26 @@ export function getWeekDatesByMenuWeek(menuWeek) {
   return { dates, activeDays };
 }
 
+/**
+ * Same return shape as getWeekDatesByMenuWeek, but anchored to a week's own
+ * absolute startISO (see menuArchive.js's computeWeekRange) instead of
+ * "today" — for a menú still being edited, dates are relative to when it's
+ * viewed (offset from today); for an archived week, they must stay fixed to
+ * the calendar dates it was actually generated for, however long ago that
+ * was. Reversing computeWeekRange's own math: startISO is the first ACTIVE
+ * day, i.e. startDayIdx days after that week's Monday.
+ */
+export function getWeekDatesFromStartISO(startISO, startDayIdx = 0) {
+  const [y, m, d] = startISO.split("-").map(Number);
+  const start = new Date(y, m - 1, d);
+  start.setHours(0, 0, 0, 0);
+  const monday = new Date(start);
+  monday.setDate(start.getDate() - startDayIdx);
+  const dates = getWeekDates(monday);
+  const activeDays = DAYS.filter((_, i) => i >= startDayIdx);
+  return { dates, activeDays };
+}
+
 /** Returns the 0-based Monday index of today (0=Lun … 6=Dom). */
 export function todayDayIdx() {
   const dow = new Date().getDay(); // 0=Sun

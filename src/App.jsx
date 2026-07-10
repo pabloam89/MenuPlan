@@ -1107,15 +1107,17 @@ export default function App() {
     const isLazy = Object.values(m.weeks ?? {}).some((w) => w && w.schedule === undefined);
     if (isLazy && user) {
       const detail = await loadMenuDetailRemote(user.id, menuId);
-      if (detail) {
-        m = { ...m, weeks: detail.menu.weeks };
-        if (detail.recipes.length) registerRecipes(detail.recipes);
-        setData((d) => (d.menus?.[menuId] ? { ...d, menus: { ...d.menus, [menuId]: m } } : d));
+      if (!detail) {
+        showToast("No se pudo cargar este menú del histórico. Inténtalo de nuevo.");
+        return;
       }
+      m = { ...m, weeks: detail.menu.weeks };
+      if (detail.recipes.length) registerRecipes(detail.recipes);
+      setData((d) => (d.menus?.[menuId] ? { ...d, menus: { ...d.menus, [menuId]: m } } : d));
     }
     setHistoryMenuId(menuId);
     fwd(() => setScreen("menuHistory"));
-  }, [data.menus, user]);
+  }, [data.menus, user, showToast]);
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);

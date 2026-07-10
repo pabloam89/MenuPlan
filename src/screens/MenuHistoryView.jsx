@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ChevronLeft } from "lucide-react";
-import { getWeekDatesByMenuWeek, calendarDayNumber } from "../lib/weekCalendar.js";
+import { getWeekDatesFromStartISO, calendarDayNumber } from "../lib/weekCalendar.js";
 import { getMeals, isLunchMeal } from "../lib/planner.js";
 import { membersOfGroup } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
@@ -48,10 +48,7 @@ export function MenuHistoryView({ menu, data, onBack }) {
 
       <div style={{ padding: "8px 16px 24px" }}>
         {weeks.map((week) => {
-          const { dates, activeDays } = getWeekDatesByMenuWeek({
-            offset: week.offset,
-            startDayIdx: week.startDayIdx ?? 0,
-          });
+          const { dates, activeDays } = getWeekDatesFromStartISO(week.startISO, week.startDayIdx ?? 0);
           return (
             <div key={week.weekStart} style={{ marginBottom: 22 }}>
               {weeks.length > 1 && (
@@ -81,10 +78,16 @@ export function MenuHistoryView({ menu, data, onBack }) {
                     </div>
                     {meals.map((meal) => {
                       const isLunch = isLunchMeal(meal);
+                      // Drop dishes whose recipe no longer exists in the catalog before
+                      // computing idx/showDivider below — DishCard silently renders null
+                      // for those, and counting them would leave a dangling divider under
+                      // the last dish that's actually visible.
                       const cards = groups.flatMap((g) => {
                         const slot = week.plan?.[g.id]?.[`${day}-${meal}`] ?? null;
                         if (!slot) return [];
-                        return dishesFromSlot(slot, isLunch).map((dish) => ({ group: g, slot, dish }));
+                        return dishesFromSlot(slot, isLunch)
+                          .filter((dish) => RECIPES_BY_ID[dish.recipeId])
+                          .map((dish) => ({ group: g, slot, dish }));
                       });
                       if (cards.length === 0) return null;
                       return (
