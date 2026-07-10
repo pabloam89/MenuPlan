@@ -60,6 +60,29 @@ export function isSchoolAge(age) {
   return a >= 3 && a <= 17;
 }
 
+/**
+ * Single source of truth for "how old is this member, right now". Every
+ * caller that needs an age (baby/child gating, stage labels, menu
+ * generation) MUST go through this — never read `member.age` directly —
+ * so a member added via `birthDate` (useBirthDate: true) is treated
+ * identically everywhere instead of only in whichever screen happened to
+ * compute it locally.
+ */
+export function resolveMemberAge(member) {
+  if (member.useBirthDate && member.birthDate) {
+    const d0 = new Date(member.birthDate);
+    if (!Number.isNaN(d0.getTime())) {
+      const now = new Date();
+      let age = now.getFullYear() - d0.getFullYear();
+      const md = now.getMonth() - d0.getMonth();
+      const dd = now.getDate() - d0.getDate();
+      if (md < 0 || (md === 0 && dd < 0)) age -= 1;
+      return Math.max(0, age);
+    }
+  }
+  return Number.isFinite(member.age) ? member.age : parseInt(member.age, 10) || 30;
+}
+
 /** Fixed avatar palette — one distinct colour per member slot (index-based). */
 export const AVATAR_PALETTE = [
   "#e53935", // red
@@ -91,7 +114,7 @@ export function initialsOf(name) {
 }
 
 export function stageLabel(member) {
-  const base = stageForAge(member.age);
+  const base = stageForAge(resolveMemberAge(member));
   if (base.id === "adulto" && member.stageDetail) return member.stageDetail;
   return base.short;
 }
