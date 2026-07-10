@@ -55,6 +55,12 @@ import {
   pruneAiRecipes,
 } from "./lib/menuArchive.js";
 import { todayDayIdx } from "./lib/weekCalendar.js";
+import {
+  saveMenu as saveMenuRemote,
+  activateMenu as activateMenuRemote,
+  deleteMenu as deleteMenuRemote,
+  toggleMenuFavorite as toggleMenuFavoriteRemote,
+} from "./lib/menusSync.js";
 const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
 import {
@@ -670,6 +676,15 @@ export default function App() {
         activeMenuId: newMenu.id,
         menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
       }));
+      // Fase 2 (multi-week-menus plan): best-effort dual write to the
+      // normalized tables, fire-and-forget. Never awaited — the localStorage/
+      // user_state blob (just written above) stays the real source of truth;
+      // a failed or slow cloud write must never block or risk the local one.
+      if (user) {
+        saveMenuRemote(user.id, newMenu, allRecipes).then((res) => {
+          if (res.ok) activateMenuRemote(newMenu.id);
+        });
+      }
       setShopping((prev) => {
         const flags = Object.fromEntries(
           prev.items.map((i) => [
@@ -896,13 +911,15 @@ export default function App() {
   // (still leaves any OTHER past menús untouched) and clears the live
   // plan/shopping so nothing stale lingers around.
   const deleteActiveMenu = useCallback(() => {
+    const menuIdToDelete = data.activeMenuId;
     setData((d) => {
       if (!d.activeMenuId) return d;
       return { ...d, menus: removeMenu(d.menus, d.activeMenuId), activeMenuId: null };
     });
+    if (user && menuIdToDelete) deleteMenuRemote(user.id, menuIdToDelete);
     setMenuPlan({});
     setShopping({ items: [] });
-  }, []);
+  }, [data.activeMenuId, user]);
 
   // "Repetir esta configuración" from the histórico: reuses a past menú's
   // logistics (schedule) always, and either clones its dishes verbatim or
@@ -944,6 +961,17 @@ export default function App() {
         activeMenuId: newMenu.id,
         menuWeek: { offset: 0, startDayIdx },
       }));
+      // Fase 2 dual write (see regenerateMenu) — no fresh generation happened
+      // here, so resolve the cloned menú's recipe snapshots from the already-
+      // registered catalog/aiRecipes/own-recipes registry instead.
+      if (user) {
+        const recipes = Array.from(collectMenuRecipeIds({ [newMenu.id]: newMenu }))
+          .map((id) => RECIPES_BY_ID[id])
+          .filter(Boolean);
+        saveMenuRemote(user.id, newMenu, recipes).then((res) => {
+          if (res.ok) activateMenuRemote(newMenu.id);
+        });
+      }
       showToast("Menú repetido con los mismos platos");
       fwd(() => setScreen("menu"));
       return;
@@ -1450,7 +1478,11 @@ export default function App() {
                 onNav={handleNav}
                 onOpenCurrent={() => fwd(() => setScreen("menu"))}
                 onReuseMenu={reuseMenu}
-                onToggleFavorite={(menuId) => setData((d) => ({ ...d, menus: toggleMenuFavorite(d.menus, menuId) }))}
+                onToggleFavorite={(menuId) => {
+                  const nextFavorite = !data.menus?.[menuId]?.isFavorite;
+                  setData((d) => ({ ...d, menus: toggleMenuFavorite(d.menus, menuId) }));
+                  if (user) toggleMenuFavoriteRemote(user.id, menuId, nextFavorite);
+                }}
                 onSignIn={signInWithGoogle}
                 onRegenerateActive={() => { fwd(() => setScreen("menu")); regenerateMenu(); }}
                 onEditActive={() => { setPendingProfileOpen(true); fwd(() => setScreen("menu")); }}
