@@ -41,6 +41,7 @@ import {
   individualMenuGroupFor,
   pruneExpiredIndividualMenus,
   adhocReasonLabel,
+  resolveMemberAge,
 } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import { registerRecipes, RECIPES_BY_ID } from "./data/recipes.js";
@@ -57,6 +58,7 @@ import {
   upsertRecipeVotes,
 } from "./lib/recipeVotes.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
+import { shouldAdoptRemoteProfile } from "./lib/profileMerge.js";
 import {
   loadUserRecipes,
   upsertUserRecipe,
@@ -154,21 +156,11 @@ function migrate(state) {
   const legacyAllergies = Array.isArray(d.allergies) ? d.allergies : [];
   if (Array.isArray(d.members)) {
     d.members = d.members.map((m) => {
-      const age = m.useBirthDate
-        ? (() => {
-            if (!m.birthDate) return 30;
-            const d0 = new Date(m.birthDate);
-            if (Number.isNaN(d0.getTime())) return 30;
-            const now = new Date();
-            let a = now.getFullYear() - d0.getFullYear();
-            const md = now.getMonth() - d0.getMonth();
-            const dd = now.getDate() - d0.getDate();
-            if (md < 0 || (md === 0 && dd < 0)) a -= 1;
-            return Math.max(0, a);
-          })()
-        : Number.isFinite(m.age)
-          ? m.age
-          : parseInt(m.age, 10) || 30;
+      // Delegates to the single source of truth (lib/stages.js's
+      // resolveMemberAge) instead of re-deriving the birthDate math here, so
+      // this migration step can never silently drift from the onboarding
+      // form's own calculation.
+      const age = resolveMemberAge(m);
       return {
         ...m,
         id: m.id ?? Math.random().toString(36).slice(2, 10),
@@ -450,10 +442,18 @@ export default function App() {
       // scope survives if it hasn't round-tripped to the server yet.
       const mergedVotes = mergeVotes(localVotes, remoteVotes);
 
-      // Adopt the remote profile snapshot when it exists and is set up (has
-      // members); otherwise keep local as the base and push it up below.
+      // Adopt the remote profile snapshot only to hydrate a session that
+      // hasn't built a local profile yet (new device, cleared storage, or
+      // mid "sin cuenta" flow). If the local session already completed
+      // onboarding (has members), it wins — signing in with Google right
+      // after finishing onboarding locally must never silently discard the
+      // profile (members, allergies, intolerances, healthProfiles) the user
+      // just set up. See lib/profileMerge.js.
       const remoteData = remoteState?.state?.data;
-      const useRemote = remoteData && (remoteData.members?.length ?? 0) > 0;
+      const useRemote = shouldAdoptRemoteProfile({
+        localMemberCount: data.members?.length ?? 0,
+        remoteMemberCount: remoteData?.members?.length ?? 0,
+      });
       if (useRemote) remoteData.groups = healAdhocGroupLabels(remoteData.groups);
 
       setData((d) => ({

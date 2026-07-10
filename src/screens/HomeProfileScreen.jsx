@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
-import { memberAvatarColor, migrateHomeRole } from "../lib/stages.js";
+import { memberAvatarColor, migrateHomeRole, resolveMemberAge } from "../lib/stages.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 
 const GREEN = "#2d5a3d";
@@ -184,9 +184,11 @@ function Section({ iconEl, iconColor = GREEN, iconBg = "#e6f3ea", title, default
 // ── Member read-only card (no delete, as in the settings view) ────────────
 
 function MemberCard({ member, allMembers }) {
-  const age = member.useBirthDate
-    ? null
-    : Number.isFinite(member.age) ? member.age : parseInt(member.age, 10) || null;
+  // Goes through resolveMemberAge (the same source of truth used for
+  // baby/child gating everywhere else) instead of reading member.age
+  // directly, so a member added via birthDate shows their real age here
+  // too instead of silently hiding it.
+  const age = resolveMemberAge(member);
   const role = migrateHomeRole(member.homeRole ?? "Adulto");
 
   return (

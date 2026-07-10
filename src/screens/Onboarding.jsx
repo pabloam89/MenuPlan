@@ -90,6 +90,7 @@ import {
   memberIsBaby,
   membersOfGroup,
   migrateGroupsForBabies,
+  resolveMemberAge,
   uid,
 } from "../lib/groups.js";
 import {
@@ -103,21 +104,12 @@ import {
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 
-function ageFromBirthDate(birthDate) {
-  if (!birthDate) return 30;
-  const d = new Date(birthDate);
-  if (Number.isNaN(d.getTime())) return 30;
-  const now = new Date();
-  let age = now.getFullYear() - d.getFullYear();
-  const monthDiff = now.getMonth() - d.getMonth();
-  const dayDiff = now.getDate() - d.getDate();
-  if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age -= 1;
-  return Math.max(0, age);
-}
-
+// Delegates to the single source of truth (lib/stages.js's resolveMemberAge,
+// re-exported via lib/groups.js) instead of re-deriving the birthDate math
+// here — a second implementation is exactly how this and the onboarding form
+// could silently drift apart.
 function memberAge(member) {
-  if (member.useBirthDate) return ageFromBirthDate(member.birthDate);
-  return Number.isFinite(member.age) ? member.age : parseInt(member.age, 10) || 30;
+  return resolveMemberAge(member);
 }
 
 function normalizeTextValue(input) {
