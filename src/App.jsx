@@ -1017,6 +1017,17 @@ export default function App() {
     setShopping({ items: [] });
   }, [data.activeMenuId, user]);
 
+  // Deletes a non-active menú from the histórico. Unlike deleteActiveMenu,
+  // never touches menuPlan/shopping — those mirror the active menú's current
+  // week and have nothing to do with a history entry.
+  const deleteHistoryMenu = useCallback((menuId) => {
+    setData((d) => {
+      if (!d.menus?.[menuId] || menuId === d.activeMenuId) return d;
+      return { ...d, menus: removeMenu(d.menus, menuId) };
+    });
+    if (user) deleteMenuRemote(user.id, menuId);
+  }, [user]);
+
   // "Repetir esta configuración" from the histórico: reuses a past menú's
   // logistics (schedule) always, and either clones its dishes verbatim or
   // regenerates fresh ones for new dates, per the user's choice.
@@ -1619,6 +1630,7 @@ export default function App() {
                 onEditActive={() => { setPendingProfileOpen(true); fwd(() => setScreen("menu")); }}
                 onDeleteActive={deleteActiveMenu}
                 onOpenHistory={openHistoryMenu}
+                onDeleteHistory={deleteHistoryMenu}
               />
             </Suspense>
           </div>

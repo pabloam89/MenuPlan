@@ -99,7 +99,11 @@ function CardActionButton({ icon: Icon, label, onClick, danger }) {
   );
 }
 
-function DeleteMenuConfirmSheet({ onCancel, onConfirm }) {
+function DeleteMenuConfirmSheet({
+  onCancel,
+  onConfirm,
+  subtitle = "Perderás los platos y la compra generada. El histórico no se ve afectado.",
+}) {
   const overlay = (
     <div
       style={{
@@ -129,7 +133,7 @@ function DeleteMenuConfirmSheet({ onCancel, onConfirm }) {
             ¿Borrar este menú?
           </h3>
           <p style={{ fontSize: 13, color: "#7a8a7f", margin: "4px 0 0", textAlign: "center" }}>
-            Perderás los platos y la compra generada. El histórico no se ve afectado.
+            {subtitle}
           </p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -210,9 +214,10 @@ function ActiveMenuCard({ menu, onOpen, onRegenerate, onEdit, onDelete }) {
   );
 }
 
-function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening }) {
+function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, onDelete }) {
   const weeks = orderedWeeks(menu);
   const rangeLabel = formatMenuRangeLabel(menu);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   return (
     <div style={{ ...cardStyle, padding: 14, display: "flex", alignItems: "center", gap: 12 }}>
       <button
@@ -261,6 +266,24 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening }) 
       >
         <RotateCw size={13} /> Repetir
       </button>
+      <button
+        type="button"
+        onClick={() => setConfirmDelete(true)}
+        aria-label="Borrar menú del histórico"
+        style={{
+          border: "none", background: "transparent", cursor: "pointer", padding: 6, flexShrink: 0,
+        }}
+      >
+        <Trash2 size={17} color="#c3a2a0" />
+      </button>
+
+      {confirmDelete && (
+        <DeleteMenuConfirmSheet
+          subtitle="Se borrará permanentemente este menú del histórico. Esta acción no se puede deshacer."
+          onCancel={() => setConfirmDelete(false)}
+          onConfirm={() => { setConfirmDelete(false); onDelete(); }}
+        />
+      )}
     </div>
   );
 }
@@ -409,6 +432,7 @@ export function MenusScreen({
   onEditActive,
   onDeleteActive,
   onOpenHistory,
+  onDeleteHistory,
 }) {
   const [reuseTargetId, setReuseTargetId] = useState(null);
   const [openingId, setOpeningId] = useState(null);
@@ -458,6 +482,7 @@ export function MenusScreen({
                 menu={m}
                 onToggleFavorite={() => onToggleFavorite(m.id)}
                 onReuse={() => setReuseTargetId(m.id)}
+                onDelete={() => onDeleteHistory(m.id)}
                 isOpening={openingId === m.id}
                 onOpen={async () => {
                   if (openingId) return;
