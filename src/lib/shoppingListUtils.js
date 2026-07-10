@@ -229,17 +229,54 @@ export function matchReceiptProducts(productNames, items) {
   for (const raw of productNames) {
     const p = normalizeName(raw);
     if (p.length < 3) continue;
+
+    // Pick the *best* candidate among all still-unmatched items rather than
+    // the first one that satisfies any condition — otherwise a generic list
+    // item ("Leche") that happens to come first can steal a receipt line
+    // that actually spells out a more specific item ("Leche sin lactosa").
+    let best = null;
+    let bestScore = 0;
     for (const it of pending) {
       if (matchedIds.has(it.id)) continue;
       const n = normalizeName(it.name);
-      if (n.includes(p) || p.includes(n) || tokenOverlap(n, p) >= 0.6) {
-        matchedIds.add(it.id);
-        matches.push({ id: it.id, name: it.name, receiptLine: raw });
-        break;
+      const score = matchScore(n, p, it.adapted);
+      if (score > bestScore) {
+        bestScore = score;
+        best = it;
       }
+    }
+    if (best) {
+      matchedIds.add(best.id);
+      matches.push({ id: best.id, name: best.name, receiptLine: raw });
     }
   }
   return matches;
+}
+
+/**
+ * Score how well a receipt line (p) matches a shopping-list item name (n).
+ * Higher = more confident; 0 means "no match".
+ *
+ * Items flagged `adapted` were renamed for an allergy/intolerance (e.g.
+ * "Leche" -> "Leche sin lactosa" — see shoppingBuilder.js). They require
+ * stronger evidence than a plain substring: a generic receipt line like
+ * "LECHE" must NOT be enough to confirm the safety-relevant "sin lactosa"
+ * variant was actually bought, since the store or the shopper may well have
+ * bought regular milk instead. So for adapted items we drop the loose
+ * "item name contains the (possibly generic) receipt text" direction and
+ * only accept an exact match, the receipt text spelling out the item's full
+ * name, or a high token overlap.
+ */
+function matchScore(n, p, adapted) {
+  if (n === p) return 3;
+  if (adapted) {
+    if (p.includes(n)) return 2;
+    const overlap = tokenOverlap(n, p);
+    return overlap >= 0.6 ? 1 + overlap : 0;
+  }
+  if (n.includes(p) || p.includes(n)) return 2;
+  const overlap = tokenOverlap(n, p);
+  return overlap >= 0.6 ? 1 + overlap : 0;
 }
 
 function tokenOverlap(a, b) {
