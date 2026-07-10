@@ -62,6 +62,19 @@ export function wordsOverlapEither(a, b) {
   return isWordSubset(a, b) || isWordSubset(b, a);
 }
 
+/**
+ * True only if every word of `words` appears in `of` (one-directional —
+ * unlike `wordsOverlapEither`, `of` being a subset of `words` does NOT
+ * count). Used where a looser either-direction match would be wrong, e.g.
+ * matching a dietary-adaptation shopping line ("Leche sin lactosa") against a
+ * saved pantry entry: the pantry entry must itself mention the specific
+ * product, not just the base ingredient — a generic "leche" pantry entry
+ * shouldn't silently swallow the lactose-free line (see shoppingBuilder.js).
+ */
+export function isWordSubsetOf(words, of) {
+  return isWordSubset(words, of);
+}
+
 let catalogIndexCache = null;
 
 /** Unique ingredient names across the whole catalog, pre-split into words. */
