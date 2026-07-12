@@ -646,6 +646,14 @@ export default function App() {
       const profile = { ...data };
       delete profile.userRecipes;
       delete profile.recipeVotes;
+      // Fase 7 (multi-week-menus plan): user_menus/user_menu_weeks/
+      // user_menu_recipes are now the source of truth for a signed-in
+      // account's menú archive (see the Fase 3/4 hydration above) — stop
+      // duplicating it into this JSONB blob. Untouched for accounts that
+      // haven't cut over yet: their existing remote snapshot still carries
+      // whatever `menus` it had until the one-time backfill (line ~585)
+      // consumes it, and this write simply never re-adds it afterwards.
+      delete profile.menus;
       saveUserState(user.id, { data: profile, menuPlan, shopping, aiRecipes, onbStep });
     }, 1200);
     return () => window.clearTimeout(t);

@@ -10,14 +10,15 @@ import { getWeekDatesByMenuWeek } from "./weekCalendar.js";
 
 export const MAX_MENU_WEEKS = 5;
 
-// Signed-in users keep browsable history, but the whole archive lives inside a
-// single JSONB blob (user_state.state) that gets rewritten on every debounced
-// save — so an unbounded history means unbounded write amplification and,
-// eventually, the localStorage quota. Cap the retained history: the active
-// menú and every favourite are always kept; the rest are trimmed newest-first
-// down to this many. Bump/replace this once history moves to its own table
-// (see the normalized-tables plan) where server-side paging removes the need.
-export const MAX_HISTORY_MENUS = 12;
+// Fase 8 (multi-week-menus plan): a signed-in account's archive now lives in
+// user_menus/user_menu_weeks/user_menu_recipes, not the user_state JSONB blob
+// (App.jsx no longer writes data.menus there — see the debounced profile
+// push), so the old "unbounded history = unbounded cloud write amplification"
+// pressure is gone. This cap now only bounds what stays in memory/localStorage
+// per session (still relevant for guests, who have no cloud tables) — raised
+// well past real-world usage rather than removed outright, since there's no
+// pagination yet for the in-memory Histórico list.
+export const MAX_HISTORY_MENUS = 40;
 
 export function clampWeekCount(n) {
   const v = Number(n);
