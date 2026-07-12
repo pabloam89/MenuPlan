@@ -38,9 +38,12 @@ const todayShort = () => DAYS[(new Date().getDay() + 6) % 7];
 
 // ── Liquid-glass stat pill ──────────────────────────────────────────────────
 
-function GlassStat({ icon: Icon, value, label, tint }) {
+function GlassStat({ icon: Icon, value, label, tint, onClick }) {
+  const Tag = onClick ? "button" : "div";
   return (
-    <div
+    <Tag
+      type={onClick ? "button" : undefined}
+      onClick={onClick}
       style={{
         flex: 1,
         minWidth: 0,
@@ -52,6 +55,8 @@ function GlassStat({ icon: Icon, value, label, tint }) {
         alignItems: "center",
         gap: 8,
         textAlign: "center",
+        fontFamily: "inherit",
+        cursor: onClick ? "pointer" : "default",
         // Liquid glass: translucent fill + blur + a strong green rim and a
         // top inner highlight so it reads as frosted glass over the page.
         background:
@@ -79,7 +84,7 @@ function GlassStat({ icon: Icon, value, label, tint }) {
       </div>
       <span style={{ fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1 }}>{value}</span>
       <span style={{ fontSize: 10.5, color: "#5f7568", fontWeight: 700, lineHeight: 1.2 }}>{label}</span>
-    </div>
+    </Tag>
   );
 }
 
@@ -265,6 +270,7 @@ export function DashboardScreen({
   onViewMenu,
   onGenerateNewMenu,
   onOpenRecipePlanner,
+  onOpenStreak,
 }) {
   const g = googleInfo(user);
   const hasMenu = Object.keys(menuPlan ?? {}).length > 0;
@@ -416,6 +422,7 @@ export function DashboardScreen({
             value={menusGenerated > 0 ? `${menusGenerated}${isCapped ? "+" : ""}` : "—"}
             label={menusGenerated === 1 ? "menú generado" : "menús generados"}
             tint="#e5eff9"
+            onClick={onOpenStreak}
           />
           <GlassStat
             icon={Heart}
