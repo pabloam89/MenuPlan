@@ -615,17 +615,47 @@ export default function App() {
         const cloudMenus = {};
         for (const s of cloudSummaries) cloudMenus[s.id] = { ...s, weeks: weekRanges[s.id] ?? {} };
 
+        const nowD = new Date();
+        nowD.setHours(0, 0, 0, 0);
+        const todayISO = `${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, "0")}-${String(nowD.getDate()).padStart(2, "0")}`;
+
         const activeSummary = cloudSummaries.find((s) => s.isActive) ?? null;
+        let activeWeek = null;
         if (activeSummary) {
           const detail = await loadMenuDetailRemote(user.id, activeSummary.id);
           if (cancelled) return;
           if (detail) {
             cloudMenus[activeSummary.id] = { ...cloudMenus[activeSummary.id], weeks: detail.menu.weeks };
             if (detail.recipes.length) registerRecipes(detail.recipes);
+            // Re-materialize the live plan/shopping from the cloud's active
+            // menú. Otherwise Home ("hoy te toca") and the Menú screen keep
+            // rendering the user_state blob's menuPlan (set above) while
+            // data.menus/activeMenuId (and MenusScreen) come from the cloud
+            // tables — the two silently diverge and show different menús.
+            // Prefer the week that contains today, falling back to the
+            // earliest, mirroring switchActiveWeek.
+            const weeks = Object.values(detail.menu.weeks ?? {}).sort(
+              (a, b) => a.offset - b.offset,
+            );
+            activeWeek =
+              weeks.find((w) => w.startISO <= todayISO && todayISO <= w.endISO) ??
+              weeks[0] ??
+              null;
+            if (activeWeek) {
+              setMenuPlan(activeWeek.plan ?? {});
+              setShopping(activeWeek.shopping ?? { items: [] });
+            }
           }
         }
 
-        setData((d) => ({ ...d, menus: cloudMenus, activeMenuId: activeSummary?.id ?? null }));
+        setData((d) => ({
+          ...d,
+          menus: cloudMenus,
+          activeMenuId: activeSummary?.id ?? null,
+          ...(activeWeek
+            ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0 } }
+            : {}),
+        }));
       }
 
       cloudReadyRef.current = true;
