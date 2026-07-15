@@ -336,7 +336,7 @@ const ROLE_ICON_MAP = {
   "Otro":     User,
 };
 
-export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false }) {
+export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false, demoName = null, demoAge = null }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
   const [roleEditId, setRoleEditId] = useState(null);
@@ -516,7 +516,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
             Nombre
           </div>
           <input
-            value={name}
+            value={demoName ?? name}
             onChange={(e) => setName(e.target.value)}
             placeholder="María"
             style={{
@@ -537,7 +537,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
             <input
               type="text"
               inputMode="numeric"
-              value={ageStr}
+              value={demoAge ?? ageStr}
               onChange={(e) => setAgeStr(e.target.value.replace(/\D/g, ""))}
               style={ageBoxStyle}
               onKeyDown={(e) => e.key === "Enter" && addMember()}
@@ -1402,11 +1402,52 @@ const DIETARY_STATE_UI = [
   { id: "dieta_blanda", label: "Dieta blanda", Icon: CookingPot, color: "#7a8a3a" },
 ];
 
-export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+export function OnboardingRestrictions({
+  data,
+  setData,
+  onNext,
+  onBack,
+  onFinish,
+  onReset,
+  nextLabel,
+  // Optional demo hooks (first-run value-prop carousel): preset the visible tab
+  // and edit scope, and optionally auto-cycle through them. All default to the
+  // normal interactive behaviour and are never passed in the real onboarding.
+  initialTab = null,
+  initialScopeId = null,
+  autoplay = false,
+}) {
   const [customAllergy, setCustomAllergy] = useState("");
   const [showAddAllergy, setShowAddAllergy] = useState(false);
-  const [allergyMemberId, setAllergyMemberId] = useState(data.members[0]?.id ?? null);
-  const [mainTab, setMainTab] = useState("alergias");
+  const [allergyMemberId, setAllergyMemberId] = useState(
+    initialScopeId ?? data.members[0]?.id ?? null,
+  );
+  const [mainTab, setMainTab] = useState(initialTab ?? "alergias");
+
+  // Demo autoplay: walk allergens → health (pregnancy) → health (diabetes),
+  // switching the edit scope so each highlighted member's chips light up.
+  useEffect(() => {
+    if (!autoplay) return undefined;
+    const plan = [
+      { tab: "alergias", idx: 0 },
+      { tab: "salud", idx: 1 },
+      { tab: "salud", idx: 2 },
+    ];
+    let k = 0;
+    const apply = () => {
+      const p = plan[k % plan.length];
+      const m = data.members[p.idx] ?? data.members[0];
+      setMainTab(p.tab);
+      setAllergyMemberId(m?.id ?? null);
+    };
+    apply();
+    const id = setInterval(() => {
+      k += 1;
+      apply();
+    }, 2100);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoplay, data.members]);
 
   // Edit target: a real member, or FAMILIA_TARGET to edit everyone at once.
   // Falls back to the first member if the stored id is stale.
@@ -4432,7 +4473,27 @@ const presetStyle = {
 
 // ─── School menu ───────────────────────────────────────────────
 
-export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, onReset }) {
+// Value-prop carousel only (see `demoScript` below) — a plausible comedor
+// menu the fake "AI parse" fills in once it "finishes".
+const DEMO_SCHOOL_ENTRIES = {
+  "Lun-Primero": "Crema de calabacín",
+  "Lun-Segundo": "Merluza a la plancha",
+  "Lun-Postre": "Fruta de temporada",
+  "Mar-Primero": "Lentejas estofadas",
+  "Mar-Segundo": "Tortilla de patatas",
+  "Mar-Postre": "Yogur natural",
+  "Mié-Primero": "Ensalada de pasta",
+  "Mié-Segundo": "Pollo al horno",
+  "Mié-Postre": "Fruta de temporada",
+  "Jue-Primero": "Puré de verduras",
+  "Jue-Segundo": "Albóndigas en salsa",
+  "Jue-Postre": "Macedonia",
+  "Vie-Primero": "Arroz tres delicias",
+  "Vie-Segundo": "Merluza rebozada",
+  "Vie-Postre": "Yogur natural",
+};
+
+export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, onReset, demoScript = false }) {
   const schoolKids = data.members.filter(
     (m) => stageForAge(memberAge(m)).id !== "adulto"
   );
@@ -4673,6 +4734,64 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     if (file) handleFile(file);
     e.target.value = "";
   };
+
+  // Value-prop carousel only: fakes the exact same visual states `handleFile`
+  // walks through (progress bar, AI-parsing copy, elapsed timer) without any
+  // real upload/OCR/AI call, then fills the review grid and loops.
+  useEffect(() => {
+    if (!demoScript) return undefined;
+    let cancelled = false;
+    const timers = [];
+    const wait = (ms) =>
+      new Promise((res) => {
+        const id = setTimeout(res, ms);
+        timers.push(id);
+      });
+    const reset = () => {
+      replaceDishes({});
+      setImportedFileName("");
+      setImportStatus("");
+      setImportError(null);
+      setParsedWeeks([]);
+    };
+    const run = async () => {
+      while (!cancelled) {
+        reset();
+        await wait(900);
+        if (cancelled) return;
+        setImporting(true);
+        importElapsedRef.current = 0;
+        setImportElapsedSec(0);
+        setImportProgress(0.08);
+        setImportStatus("Leyendo PDF (1/2)…");
+        await wait(650);
+        if (cancelled) return;
+        setImportProgress(0.4);
+        setImportStatus("Leyendo PDF (2/2)…");
+        await wait(650);
+        if (cancelled) return;
+        aiParseStartSecRef.current = importElapsedRef.current;
+        setAiParsing(true);
+        setImportProgress(0.85);
+        await wait(1700);
+        if (cancelled) return;
+        setAiParsing(false);
+        setImporting(false);
+        setImportProgress(0);
+        replaceDishes(DEMO_SCHOOL_ENTRIES);
+        setImportedFileName("menu_comedor_octubre.pdf");
+        setImportStatus("Detectados 5/5 días (15 platos) · revisa antes de continuar");
+        await wait(4200);
+        if (cancelled) return;
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [demoScript]);
 
   if (schoolKids.length === 0) {
     return (

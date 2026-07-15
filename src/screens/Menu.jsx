@@ -1725,6 +1725,7 @@ export const MenuScreen = memo(function MenuScreen({
   onOpenMenus,
   autoOpenProfile = false,
   onAutoOpenProfileHandled,
+  initialViewMode = "dia",
 }) {
   const [scope, setScope] = useState("all");
   const [showMenuHelp, setShowMenuHelp] = useState(false);
@@ -1738,7 +1739,7 @@ export const MenuScreen = memo(function MenuScreen({
     setProfileOpen(true);
     onAutoOpenProfileHandled?.();
   }, [autoOpenProfile, onAutoOpenProfileHandled]);
-  const [viewMode, setViewMode] = useState("dia"); // "dia" | "semana"
+  const [viewMode, setViewMode] = useState(initialViewMode); // "dia" | "semana"
   const [viewAnimDir, setViewAnimDir] = useState(0);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
   const [showShareDropdown, setShowShareDropdown] = useState(false);
@@ -2410,10 +2411,22 @@ export function DishDetail({
   favoriteScope = null,
   scopeGroups = [],
   onSetFavoriteScope,
+  // Optional demo hooks (first-run value-prop carousel):
+  // - initialAppliance: preselect a cooking method tab.
+  // - stepsByAppliance: bundled step lists per appliance, so the demo shows
+  //   different Thermomix/airfryer steps offline without hitting /api/recipe-steps.
+  // - autoDemo: "methods" cycles the method tabs; "reject" auto-picks a swap
+  //   reason and fires onReject once. Default null → normal interactive behaviour.
+  initialAppliance = null,
+  stepsByAppliance = null,
+  autoDemo = null,
 }) {
   const isFavorite = favoriteScope != null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
   const [rejected, setRejected] = useState(null);
+  // Demo only (autoDemo="reject"): visual "press" on "Sustituir plato" right
+  // before firing onReject, since the auto-trigger skips the real pointerdown.
+  const [demoPressed, setDemoPressed] = useState(false);
   const [ingredientsOpen, setIngredientsOpen] = useState(false);
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
@@ -2462,10 +2475,35 @@ export function DishDetail({
   }, [recipe, kitchenTools]);
 
   const [activeAppliance, setActiveAppliance] = useState(
-    () => selectedMethod?.appliance ?? "base",
+    () => initialAppliance ?? selectedMethod?.appliance ?? "base",
   );
   const activeMethod =
     methodOptions.find((o) => o.appliance === activeAppliance) ?? methodOptions[0];
+
+  // Demo autoplay for the value-prop carousel (guarded by autoDemo).
+  useEffect(() => {
+    if (autoDemo !== "methods" || methodOptions.length <= 1) return undefined;
+    let i = 0;
+    const id = setInterval(() => {
+      i = (i + 1) % methodOptions.length;
+      setActiveAppliance(methodOptions[i].appliance);
+    }, 1700);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo, methodOptions]);
+
+  useEffect(() => {
+    if (autoDemo !== "reject") return undefined;
+    const t1 = setTimeout(() => setRejected(rejectReasons[0]), 1100);
+    const t2 = setTimeout(() => setDemoPressed(true), 1750);
+    const t3 = setTimeout(() => onReject?.(slot, rejectReasons[0]), 2000);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo]);
 
   const TITLE_GREEN = "#2d5a3d";
 
@@ -2476,6 +2514,15 @@ export function DishDetail({
     const cached = stepsCacheRef.current[activeAppliance];
     if (cached) {
       setSteps(cached);
+      setStepsLoading(false);
+      return undefined;
+    }
+
+    // Demo: pasos empaquetados por método (evita /api/recipe-steps offline).
+    const bundled = stepsByAppliance?.[activeAppliance];
+    if (bundled && bundled.length > 0) {
+      stepsCacheRef.current[activeAppliance] = bundled;
+      setSteps(bundled);
       setStepsLoading(false);
       return undefined;
     }
@@ -2545,7 +2592,7 @@ export function DishDetail({
       active = false;
       ctrl.abort();
     };
-  }, [recipe, activeAppliance]);
+  }, [recipe, activeAppliance, stepsByAppliance]);
 
   return (
     <div className="mp-overlay-in" style={detailOverlayStyle} onClick={onClose}>
@@ -2801,7 +2848,7 @@ export function DishDetail({
             </div>
           </section>
 
-          <section style={recipeBlockStyle}>
+          <section className="mp-recipe-section" style={recipeBlockStyle}>
             <div style={sectionTitleStyle}>
               <BookOpen size={16} /> Receta
             </div>
@@ -2979,8 +3026,10 @@ export function DishDetail({
                   fontSize: 13, fontWeight: 900,
                   cursor: "pointer", fontFamily: "inherit",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  boxShadow: "0 4px 14px rgba(45,90,61,.25)",
+                  boxShadow: demoPressed ? "0 1px 6px rgba(45,90,61,.25)" : "0 4px 14px rgba(45,90,61,.25)",
                   marginTop: 10,
+                  transform: demoPressed ? "scale(.95)" : "scale(1)",
+                  transition: "transform .15s ease, box-shadow .15s ease",
                 }}
               >
                 <RotateCw size={14} />

@@ -16,6 +16,7 @@ import {
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
+const ValuePropsCarousel = lazy(() => import("./screens/ValueProps.jsx").then(m => ({ default: m.ValuePropsCarousel })));
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
 const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
@@ -102,6 +103,11 @@ import demoState from "./dev/demoState.json";
 const DEV_DEMO_MENU =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).get("demo") === "1";
+
+// Dev/support helper: open the app with ?tutorial=1 to replay the first-run
+// value-prop carousel on demand, regardless of the "seen" flag or saved data.
+const FORCE_VALUE_PROPS =
+  new URLSearchParams(window.location.search).get("tutorial") === "1";
 
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.
@@ -441,6 +447,24 @@ export default function App() {
       // ignore storage failures (private mode, etc.)
     }
     setAfinarBubbleSeen(true);
+  }, []);
+  // First-run value-prop carousel — shown once, only to brand-new guests before
+  // onboarding (see the splash "onNext" wiring). Remembered locally so it never
+  // reappears after the first pass.
+  const [valuePropsSeen, setValuePropsSeen] = useState(() => {
+    try {
+      return Boolean(localStorage.getItem("mp_value_props_seen"));
+    } catch {
+      return false;
+    }
+  });
+  const markValuePropsSeen = useCallback(() => {
+    try {
+      localStorage.setItem("mp_value_props_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setValuePropsSeen(true);
   }, []);
   const [data, setData] = useState(persisted?.data ?? INITIAL_DATA);
   const [menuPlan, setMenuPlan] = useState(persisted?.menuPlan ?? {});
@@ -1578,8 +1602,12 @@ export default function App() {
       >
         {screen === "splash" && (
           <SplashScreen
-            onNext={() => fwd(() => setScreen("onboarding"))}
-            hasSaved={data.members.length > 0}
+            onNext={() =>
+              fwd(() =>
+                setScreen(!FORCE_VALUE_PROPS && valuePropsSeen ? "onboarding" : "valueProps"),
+              )
+            }
+            hasSaved={FORCE_VALUE_PROPS ? false : data.members.length > 0}
             onResume={() => fwd(() => {
               // Signed-in users land on their dashboard; guests keep going
               // straight to their menu (no account to show a profile for).
@@ -1589,6 +1617,23 @@ export default function App() {
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
           />
+        )}
+
+        {screen === "valueProps" && (
+          <div
+            key="valueProps"
+            className={animDir === "forward" ? "screen-enter-fwd" : "screen-enter-back"}
+            style={{ flex: 1, display: "flex", flexDirection: "column" }}
+          >
+            <Suspense fallback={null}>
+              <ValuePropsCarousel
+                onFinish={() => {
+                  markValuePropsSeen();
+                  fwd(() => setScreen("onboarding"));
+                }}
+              />
+            </Suspense>
+          </div>
         )}
 
         {screen === "onboarding" && (

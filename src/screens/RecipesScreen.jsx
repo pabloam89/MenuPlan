@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ChefHat, BookOpen, Plus } from "lucide-react";
 import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
@@ -27,8 +27,28 @@ export function RecipesScreen({
   onDeleteRecipe,
   onEditRecipe,
   onCombineGarnish,
+  // Optional demo hooks (first-run value-prop carousel): preset the visible tab
+  // and optionally auto-cycle Catálogo → Favoritas → Mis recetas. Default to the
+  // normal interactive behaviour; never passed in the real app.
+  initialTab = null,
+  autoplay = false,
+  // Demo only: land the Catálogo tab directly on a category so real dish
+  // thumbnails show instead of the category grid.
+  catalogInitialCategory = null,
 }) {
-  const [tab, setTab] = useState("catalog");
+  const [tab, setTab] = useState(initialTab ?? "catalog");
+
+  useEffect(() => {
+    if (!autoplay) return undefined;
+    const tabs = ["catalog", "favorites", "mine"];
+    let k = tabs.indexOf(initialTab ?? "catalog");
+    if (k < 0) k = 0;
+    const id = setInterval(() => {
+      k = (k + 1) % tabs.length;
+      setTab(tabs[k]);
+    }, 2200);
+    return () => clearInterval(id);
+  }, [autoplay, initialTab]);
 
   const favoriteIds = useMemo(
     () => new Set(favoriteRecipeIds(recipeVotes)),
@@ -139,6 +159,7 @@ export function RecipesScreen({
             onOpenRecipe={onOpenRecipe}
             extraRecipes={userRecipes}
             onCombineGarnish={onCombineGarnish}
+            initialCategory={catalogInitialCategory}
           />
         )}
 

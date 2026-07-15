@@ -90,9 +90,28 @@ const AISLE_UI = {
   __pantry: { Icon: Home, color: "#8a6d1f" },
 };
 
-export function ShoppingScreen({ shopping, setShopping, onNav, onToast }) {
-  const [listScope, setListScope] = useState("pending");
-  const [openSections, setOpenSections] = useState({});
+export function ShoppingScreen({
+  shopping,
+  setShopping,
+  onNav,
+  onToast,
+  // Optional demo hooks (first-run value-prop carousel): preset the list filter
+  // and pre-open one aisle so the category "zoom" is visible on mount. Default
+  // to the normal collapsed behaviour; never passed in the real app.
+  initialOpenAisle = null,
+  initialListScope = null,
+}) {
+  const [listScope, setListScope] = useState(initialListScope ?? "pending");
+  const [openSections, setOpenSections] = useState(
+    initialOpenAisle ? { [initialOpenAisle]: true } : {},
+  );
+
+  // Demo only (value-prop carousel): let the parent drive the tab from
+  // outside by changing `initialListScope`. Never happens in the real app,
+  // where this prop is passed once and never updated.
+  useEffect(() => {
+    if (initialListScope) setListScope(initialListScope);
+  }, [initialListScope]);
   const [expandedId, setExpandedId] = useState(null);
   const [showLegend, setShowLegend] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
