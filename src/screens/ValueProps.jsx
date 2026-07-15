@@ -43,7 +43,7 @@ const headerBtnStyle = {
 
 const LOGICAL_W = 420;
 const VIS_W = 300;
-const VIS_H = 432;
+const VIS_H = 380;
 const SCALE = VIS_W / LOGICAL_W;
 const MASK = "radial-gradient(125% 115% at 50% 40%, #000 58%, rgba(0,0,0,0) 100%)";
 // Logical height that exactly fills the visible frame (VIS_H / SCALE). Demos
@@ -784,9 +784,9 @@ export function ValuePropsCarousel({ onFinish }) {
       {!isWelcome && (
         <div
           style={{
-            position: "relative", zIndex: 2,
-            minHeight: 38,
-            padding: "18px 22px 0",
+            position: "relative", zIndex: 3, flexShrink: 0,
+            minHeight: 30,
+            padding: "12px 22px 0",
             display: "flex", alignItems: "center", gap: 8,
           }}
         >
@@ -829,10 +829,10 @@ export function ValuePropsCarousel({ onFinish }) {
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
         style={{
-          position: "relative", zIndex: 2, flex: 1,
+          position: "relative", zIndex: 2, flex: 1, minHeight: 0,
           display: "flex", flexDirection: "column",
           justifyContent: "center", alignItems: "center",
-          padding: "6px 26px", gap: 20,
+          padding: "8px 26px", gap: 20,
         }}
       >
         {isWelcome ? (
@@ -889,11 +889,11 @@ export function ValuePropsCarousel({ onFinish }) {
           <div
             key={step}
             className="vp-slide"
-            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 18, width: "100%" }}
+            style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16, width: "100%", maxWidth: 360 }}
           >
             <h2
               style={{
-                fontSize: 22, fontWeight: 900, letterSpacing: "-.5px",
+                fontSize: 20, fontWeight: 900, letterSpacing: "-.5px",
                 color: INK, margin: 0, lineHeight: 1.15, textAlign: "center",
                 maxWidth: 360,
                 fontFamily: "'Playfair Display', Georgia, serif",
@@ -921,7 +921,7 @@ export function ValuePropsCarousel({ onFinish }) {
                   >
                     <Check size={13} strokeWidth={3} color={BULLET_GREEN} />
                   </span>
-                  <span style={{ fontSize: 14.5, lineHeight: 1.35, fontWeight: 600, color: INK }}>
+                  <span style={{ fontSize: 13.5, lineHeight: 1.35, fontWeight: 600, color: INK }}>
                     {b}
                   </span>
                 </div>
@@ -931,38 +931,44 @@ export function ValuePropsCarousel({ onFinish }) {
         )}
       </div>
 
-      {/* Pie: Saltar + Siguiente en línea, misma anchura, en todas las pantallas */}
+      {/* Pie: Saltar + Siguiente. En el último paso, solo "Empezar ya" a todo
+          el ancho. El bloque flota sobre el mismo fondo degradado que el resto
+          (sin franja blanca): así respira igual que en la pantalla de
+          Bienvenida, cuyo pie usa este mismo componente. */}
       <div
         style={{
-          position: "relative", zIndex: 2,
-          padding: "14px 28px 30px", display: "flex", gap: 10,
+          position: "relative", zIndex: 2, flexShrink: 0,
+          display: "flex", gap: 12,
+          padding: "22px 26px calc(22px + env(safe-area-inset-bottom))",
         }}
       >
-        <button
-          type="button"
-          onClick={onFinish}
-          style={{
-            flex: 1, padding: "15px 18px", borderRadius: 999,
-            border: "1.5px solid #cdddd2", background: "transparent",
-            color: "#2d5a3d", fontSize: 14.5, fontWeight: 800,
-            cursor: "pointer", fontFamily: "inherit",
-          }}
-        >
-          Saltar
-        </button>
+        {!isLast && (
+          <button
+            type="button"
+            onClick={onFinish}
+            style={{
+              flex: 1, padding: 13, borderRadius: 13,
+              border: "1.5px solid #c8ddd0", background: "#fff",
+              color: "#2d5a3d", fontSize: 14.5, fontWeight: 800,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Saltar
+          </button>
+        )}
         <button
           type="button"
           onClick={isWelcome ? () => setStep(1) : isLast ? onFinish : next}
           style={{
-            flex: 1, padding: "15px 20px", borderRadius: 999, border: "none",
-            background: "#2d5a3d", color: "#fff", fontSize: 15.5, fontWeight: 800,
+            flex: 1, padding: 13, borderRadius: 13, border: "none",
+            background: "#2d5a3d", color: "#fff", fontSize: 14.5, fontWeight: 800,
             cursor: "pointer", fontFamily: "inherit",
-            boxShadow: "0 10px 26px rgba(45,90,61,.3)",
+            boxShadow: "0 8px 22px rgba(45,90,61,.28)",
             display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
           }}
         >
-          {isLast ? "Empezar" : "Siguiente"}
-          {isLast && <Sparkles size={17} />}
+          {isLast ? "Empezar ya" : "Siguiente"}
+          {isLast && <Sparkles size={16} />}
         </button>
       </div>
     </div>
