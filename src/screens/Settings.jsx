@@ -26,6 +26,7 @@ import {
 } from "../components/ui.jsx";
 import { memberAvatarColor, stageLabel, migrateHomeRole } from "../lib/stages.js";
 import { computeStreak } from "../lib/menuStats.js";
+import { INTOLERANCE_RULES } from "../lib/intolerances.js";
 
 const PAGE_BG = "#f7f9f7";
 const GREEN = "#2d5a3d";
@@ -393,6 +394,17 @@ export function AccountScreen({
     () => Array.from(new Set(members.flatMap((m) => m.allergies ?? []))),
     [members],
   );
+  // Intolerances (lactosa_fina/fructosa/sorbitol) live on member.intolerances,
+  // a separate field from member.allergies (see Onboarding.jsx's
+  // INTOLERANCE_UI) — a member with ONLY an intolerance used to show "Ninguna
+  // alergia registrada" here even though it's saved and respected by the
+  // menu generator, since this card never read that field.
+  const intolerances = useMemo(
+    () =>
+      Array.from(new Set(members.flatMap((m) => m.intolerances ?? [])))
+        .map((id) => INTOLERANCE_RULES[id]?.label ?? id),
+    [members],
+  );
   const dislikes = useMemo(
     () => Array.from(new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])),
     [data.dislikes, members],
@@ -620,6 +632,13 @@ export function AccountScreen({
                 <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Alergias</span>
               </div>
               <Chips items={allergies} empty="Ninguna alergia registrada" />
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <Ban size={14} color={GREEN} />
+                <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>Intolerancias</span>
+              </div>
+              <Chips items={intolerances} empty="Ninguna intolerancia registrada" />
             </div>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>

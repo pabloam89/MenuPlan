@@ -54,6 +54,7 @@ import {
   toggleMenuFavorite,
   collectMenuRecipeIds,
   pruneAiRecipes,
+  pruneMenuHistory,
 } from "./lib/menuArchive.js";
 import { todayDayIdx } from "./lib/weekCalendar.js";
 import {
@@ -64,6 +65,7 @@ import {
   activateMenu as activateMenuRemote,
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
+  saveAndActivateMenu,
 } from "./lib/menusSync.js";
 const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
 const MenuHistoryView = lazy(() => import("./screens/MenuHistoryView.jsx").then(m => ({ default: m.MenuHistoryView })));
@@ -502,6 +504,16 @@ export default function App() {
     setValuePropsSeen(true);
   }, []);
   const [data, setData] = useState(persisted?.data ?? INITIAL_DATA);
+  // Safety net: if a history entry gets deleted (e.g. from another tab/
+  // device, or a race the per-row delete-button guard in MenusScreen didn't
+  // catch) while the user is viewing it, the "menuHistory" screen block
+  // simply renders nothing (no fallback branch) — bounce back to the list
+  // instead of leaving a blank screen with no BottomNav.
+  useEffect(() => {
+    if (screen === "menuHistory" && historyMenuId && !data.menus?.[historyMenuId]) {
+      setScreen("menus");
+    }
+  }, [screen, historyMenuId, data.menus]);
   const [menuPlan, setMenuPlan] = useState(persisted?.menuPlan ?? {});
   const [shopping, setShopping] = useState(persisted?.shopping ?? { items: [] });
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -519,6 +531,11 @@ export default function App() {
   );
   const lastRegenerateArgs = useRef(null);
   const generateAbortRef = useRef(null);
+  // Warn at most once per session if localStorage writes start failing
+  // (full quota, private-mode Safari) — see the debounced saveState effect
+  // below. Without this, the app silently stops persisting ANY state
+  // (profile, restrictions, active menu) with zero signal to the user.
+  const storageQuotaWarnedRef = useRef(false);
   // Auto-triggered ad-hoc individual menu prompt: { memberId, reason }.
   const [individualPrompt, setIndividualPrompt] = useState(null);
   // Member+reason pairs we've already offered, so we don't re-prompt in a loop.
@@ -548,10 +565,13 @@ export default function App() {
   // Debounced: serializar todo el estado a localStorage en cada pulsación de
   // tecla del onboarding es perceptible en móviles modestos.
   useEffect(() => {
-    const t = window.setTimeout(
-      () => saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes }),
-      400
-    );
+    const t = window.setTimeout(() => {
+      const ok = saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes });
+      if (!ok && !storageQuotaWarnedRef.current) {
+        storageQuotaWarnedRef.current = true;
+        showToast("No se ha podido guardar tu progreso en este dispositivo (memoria llena). Inicia sesión para no perderlo.");
+      }
+    }, 400);
     return () => window.clearTimeout(t);
   }, [screen, onbStep, data, menuPlan, shopping, aiRecipes]);
 
@@ -561,6 +581,14 @@ export default function App() {
   // devices and a "smart reset". Everything no-ops without a signed-in session.
   const hydratedUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
+  // Kept live (not just captured once) so the one-time legacy backfill below
+  // can tell whether a menú it's about to activate in the cloud is still
+  // actually the active one locally — the user may generate a brand new menú
+  // while the backfill's slow sequential loop is still in flight.
+  const activeMenuIdRef = useRef(data.activeMenuId);
+  useEffect(() => {
+    activeMenuIdRef.current = data.activeMenuId;
+  }, [data.activeMenuId]);
 
   useEffect(() => {
     if (!user?.id) {
@@ -656,7 +684,13 @@ export default function App() {
             .filter(Boolean);
           const res = await saveMenuRemote(user.id, menu, recipes);
           if (cancelled) return;
-          if (res.ok && menu.isActive) await activateMenuRemote(menu.id);
+          // Only (re)activate in the cloud if this menú is STILL the active
+          // one locally right now — otherwise a menú freshly generated while
+          // this backfill loop was mid-flight (see activeMenuIdRef above)
+          // could get clobbered back to an old "active" menú.
+          if (res.ok && menu.isActive && menu.id === activeMenuIdRef.current) {
+            await activateMenuRemote(menu.id);
+          }
         }
       } else {
         // Cloud has data: it wins over the blob for the archive (data.menus).
@@ -707,9 +741,15 @@ export default function App() {
           }
         }
 
+        // The cloud tables have no row cap (loadMenuSummaries/loadMenuWeekRanges
+        // fetch the whole history), so apply the same cap used everywhere else
+        // in the archive — otherwise an old account's local state (and every
+        // subsequent hydration's network cost) grows without bound.
+        const prunedCloudMenus = pruneMenuHistory(cloudMenus);
+
         setData((d) => ({
           ...d,
-          menus: cloudMenus,
+          menus: prunedCloudMenus,
           activeMenuId: activeSummary?.id ?? null,
           ...(activeWeek
             ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0 } }
@@ -873,11 +913,7 @@ export default function App() {
       // normalized tables, fire-and-forget. Never awaited — the localStorage/
       // user_state blob (just written above) stays the real source of truth;
       // a failed or slow cloud write must never block or risk the local one.
-      if (user) {
-        saveMenuRemote(user.id, newMenu, allRecipes).then((res) => {
-          if (res.ok) activateMenuRemote(newMenu.id);
-        });
-      }
+      if (user) saveAndActivateMenu(user.id, newMenu, allRecipes);
       setShopping((prev) => {
         const flags = Object.fromEntries(
           prev.items.map((i) => [
@@ -1109,10 +1145,18 @@ export default function App() {
       if (!d.activeMenuId) return d;
       return { ...d, menus: removeMenu(d.menus, d.activeMenuId), activeMenuId: null };
     });
-    if (user && menuIdToDelete) deleteMenuRemote(user.id, menuIdToDelete);
+    if (user && menuIdToDelete) {
+      // Optimistic: the local delete above always applies immediately. If the
+      // cloud call fails, the row would otherwise silently reappear on the
+      // next hydration with zero explanation — at least warn so the user
+      // knows to retry instead of assuming it's gone for good.
+      deleteMenuRemote(user.id, menuIdToDelete).then((res) => {
+        if (!res.ok) showToast("No se pudo borrar el menú en la nube. Puede reaparecer al recargar.");
+      });
+    }
     setMenuPlan({});
     setShopping({ items: [] });
-  }, [data.activeMenuId, user]);
+  }, [data.activeMenuId, user, showToast]);
 
   // Deletes a non-active menú from the histórico. Unlike deleteActiveMenu,
   // never touches menuPlan/shopping — those mirror the active menú's current
@@ -1122,8 +1166,12 @@ export default function App() {
       if (!d.menus?.[menuId] || menuId === d.activeMenuId) return d;
       return { ...d, menus: removeMenu(d.menus, menuId) };
     });
-    if (user) deleteMenuRemote(user.id, menuId);
-  }, [user]);
+    if (user) {
+      deleteMenuRemote(user.id, menuId).then((res) => {
+        if (!res.ok) showToast("No se pudo borrar el menú en la nube. Puede reaparecer al recargar.");
+      });
+    }
+  }, [user, showToast]);
 
   // "Repetir esta configuración" from the histórico: reuses a past menú's
   // logistics (schedule) always, and either clones its dishes verbatim or
@@ -1141,7 +1189,18 @@ export default function App() {
       const detail = await loadMenuDetailRemote(user.id, menuId);
       if (detail) {
         old = { ...old, weeks: detail.menu.weeks };
-        if (detail.recipes.length) registerRecipes(detail.recipes);
+        if (detail.recipes.length) {
+          registerRecipes(detail.recipes);
+          // Persist into aiRecipes too, not just the in-memory RECIPES_BY_ID
+          // registry — otherwise a reload right after opening a lazy history
+          // entry loses these snapshots (isLazy is now false since `schedule`
+          // is set, so it never re-fetches) and the dish silently disappears.
+          setAiRecipes((cur) => {
+            const byId = new Map(cur.map((r) => [r.id, r]));
+            for (const r of detail.recipes) byId.set(r.id, r);
+            return Array.from(byId.values());
+          });
+        }
         setData((d) => (d.menus?.[menuId] ? { ...d, menus: { ...d.menus, [menuId]: old } } : d));
       }
     }
@@ -1178,6 +1237,12 @@ export default function App() {
         menus: foldedMenus,
         activeMenuId: newMenu.id,
         menuWeek: { offset: 0, startDayIdx },
+        // "Repetir → Mismos platos" still generates and activates a real
+        // menú for the week — it just clones dishes instead of asking the AI
+        // for new ones. Without this it never appended to menuHistory, so
+        // the streak (computeStreak) and the Dashboard's "menús generados"
+        // counter silently undercounted a week the user did have a menú for.
+        menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: (d.groups ?? []).length }].slice(-60),
       }));
       // Fase 2 dual write (see regenerateMenu) — no fresh generation happened
       // here, so resolve the cloned menú's recipe snapshots from the already-
@@ -1186,9 +1251,7 @@ export default function App() {
         const recipes = Array.from(collectMenuRecipeIds({ [newMenu.id]: newMenu }))
           .map((id) => RECIPES_BY_ID[id])
           .filter(Boolean);
-        saveMenuRemote(user.id, newMenu, recipes).then((res) => {
-          if (res.ok) activateMenuRemote(newMenu.id);
-        });
+        saveAndActivateMenu(user.id, newMenu, recipes);
       }
       showToast("Menú repetido con los mismos platos");
       fwd(() => setScreen("menu"));
@@ -1220,7 +1283,17 @@ export default function App() {
         return;
       }
       m = { ...m, weeks: detail.menu.weeks };
-      if (detail.recipes.length) registerRecipes(detail.recipes);
+      if (detail.recipes.length) {
+        registerRecipes(detail.recipes);
+        // See the matching comment in reuseMenu: persist into aiRecipes too so
+        // a reload doesn't lose these dishes forever (isLazy would otherwise
+        // stay false since `schedule` is now set, so it never re-fetches).
+        setAiRecipes((cur) => {
+          const byId = new Map(cur.map((r) => [r.id, r]));
+          for (const r of detail.recipes) byId.set(r.id, r);
+          return Array.from(byId.values());
+        });
+      }
       setData((d) => (d.menus?.[menuId] ? { ...d, menus: { ...d.menus, [menuId]: m } } : d));
     }
     setHistoryMenuId(menuId);
@@ -1239,6 +1312,18 @@ export default function App() {
     setOnbStep(step);
     setScreen("onboarding");
   }, []);
+
+  // "Editar preferencias" from Settings/Account used to just jump into step 6
+  // of the full onboarding wizard — "Atrás" then stepped backward through the
+  // whole wizard instead of returning to where the user came from, and
+  // finishing it regenerated the entire menú (goToMenu → regenerateMenu) just
+  // to save an allergy edit. This tracks which screen to return to so the
+  // restrictions step can behave as a self-contained mini-editor instead.
+  const [editPreferencesOrigin, setEditPreferencesOrigin] = useState(null);
+  const openEditPreferences = useCallback((origin) => {
+    setEditPreferencesOrigin(origin);
+    goToOnboardingStep(6);
+  }, [goToOnboardingStep]);
 
   // "¿Para quién es el menú?" — when the profile already has members, offer to
   // reuse the household or start fresh for a different group, instead of always
@@ -1613,10 +1698,19 @@ export default function App() {
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      onNext={nextOf(6)}
-      onBack={backOf(6)}
-      onFinish={() => fwd(goToMenu)}
+      onNext={editPreferencesOrigin ? undefined : nextOf(6)}
+      onBack={
+        editPreferencesOrigin
+          ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
+          : backOf(6)
+      }
+      onFinish={
+        editPreferencesOrigin
+          ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
+          : () => fwd(goToMenu)
+      }
       onReset={handleAbandonOnboarding}
+      {...(editPreferencesOrigin ? { finishLabel: "Guardar" } : {})}
     />,
     <OnboardingRepeat
       data={data}
@@ -1850,7 +1944,7 @@ export default function App() {
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("account"))}
                 onOpenDashboard={goToDashboard}
-                onEditPreferences={() => goToOnboardingStep(6)}
+                onEditPreferences={() => openEditPreferences("settings")}
                 onSignIn={signInWithGoogle}
                 onReset={handleReset}
               />
@@ -1873,7 +1967,7 @@ export default function App() {
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("settings"))}
                 onEditMembers={() => goToOnboardingStep(0)}
-                onEditPreferences={() => goToOnboardingStep(6)}
+                onEditPreferences={() => openEditPreferences("account")}
                 onSignIn={signInWithGoogle}
                 onSignOut={signOut}
                 onToast={showToast}

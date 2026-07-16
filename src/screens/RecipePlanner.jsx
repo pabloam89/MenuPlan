@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Plus,
@@ -921,7 +922,14 @@ const VISIBILITY_OPTIONS = [
 function VisibilitySheet({ onConfirm, onClose }) {
   const [selected, setSelected] = useState("public");
 
-  return (
+  // Rendered via a portal (matching every other position:fixed sheet in the
+  // app — CatalogBrowserSheet, MenusScreen, Menu.jsx, ui.jsx's BottomNav):
+  // without it, this was the one overlay left rendering inline inside
+  // RecipePlannerScreen's own tree, so a transform/animation on an ancestor
+  // (e.g. mid-transition) could turn it into position:fixed's containing
+  // block instead of the viewport — the backdrop still covers the screen,
+  // but the white sheet itself renders off-position/invisible.
+  return createPortal(
     <div
       onClick={onClose}
       style={{
@@ -1013,7 +1021,8 @@ function VisibilitySheet({ onConfirm, onClose }) {
           Guardar receta
         </button>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

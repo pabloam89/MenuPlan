@@ -1412,6 +1412,7 @@ export function OnboardingRestrictions({
   onFinish,
   onReset,
   nextLabel,
+  finishLabel,
   // Optional demo hooks (first-run value-prop carousel): preset the visible tab
   // and edit scope, and optionally auto-cycle through them. All default to the
   // normal interactive behaviour and are never passed in the real onboarding.
@@ -1558,6 +1559,7 @@ export function OnboardingRestrictions({
       onNext={onNext}
       onFinish={onFinish}
       {...(nextLabel ? { nextLabel } : {})}
+      {...(finishLabel ? { finishLabel } : {})}
     >
       <>
           <style>{`
