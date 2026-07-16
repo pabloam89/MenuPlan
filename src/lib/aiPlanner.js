@@ -92,47 +92,77 @@ const DEFAULT_MODEL = PLANNER_MODEL;
 const RETRY_MODEL = FAST_MODEL;
 const DEFAULT_MAX_TOKENS = 1024;
 
-export async function callModel(body, signal) {
-  let response;
-  try {
-    response = await fetch("/api/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-      signal,
+// Anthropic's API returns these under normal peak-load conditions (529
+// "Overloaded" especially), not because anything is wrong with the request —
+// retrying the exact same call a moment later routinely succeeds. Every AI
+// feature (menu generation, AI recipe drafting, ingredient suggestions) goes
+// through this one function, so this is the single place that needs the
+// retry: without it, a transient overload surfaced as an outright failure
+// the user had to notice and manually retry themselves.
+const RETRYABLE_STATUSES = new Set([429, 500, 502, 503, 529]);
+const RETRY_DELAYS_MS = [600, 1500];
+
+function sleep(ms, signal) {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(resolve, ms);
+    signal?.addEventListener("abort", () => {
+      clearTimeout(t);
+      reject(new DOMException("Aborted", "AbortError"));
     });
-  } catch (err) {
-    throw new AIPlannerError(
-      "No se pudo contactar con el servicio de IA. Comprueba la conexión.",
-      { cause: err },
-    );
-  }
+  });
+}
 
-  if (!response.ok) {
-    let detail = "";
+export async function callModel(body, signal) {
+  let lastError;
+  for (let attempt = 0; attempt <= RETRY_DELAYS_MS.length; attempt++) {
+    let response;
     try {
-      const errBody = await response.json();
-      detail = errBody?.error?.message || errBody?.error || JSON.stringify(errBody);
-    } catch {
-      detail = await response.text().catch(() => "");
+      response = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal,
+      });
+    } catch (err) {
+      if (err?.name === "AbortError") throw err;
+      throw new AIPlannerError(
+        "No se pudo contactar con el servicio de IA. Comprueba la conexión.",
+        { cause: err },
+      );
     }
-    throw new AIPlannerError(
-      `La IA respondió con un error (HTTP ${response.status}). ${detail}`.trim(),
-    );
-  }
 
-  let payload;
-  try {
-    payload = await response.json();
-  } catch (err) {
-    throw new AIPlannerError("Respuesta no JSON del proxy.", { cause: err });
-  }
+    if (!response.ok) {
+      let detail = "";
+      try {
+        const errBody = await response.json();
+        detail = errBody?.error?.message || errBody?.error || JSON.stringify(errBody);
+      } catch {
+        detail = await response.text().catch(() => "");
+      }
+      lastError = new AIPlannerError(
+        `La IA respondió con un error (HTTP ${response.status}). ${detail}`.trim(),
+      );
+      if (RETRYABLE_STATUSES.has(response.status) && attempt < RETRY_DELAYS_MS.length) {
+        await sleep(RETRY_DELAYS_MS[attempt], signal);
+        continue;
+      }
+      throw lastError;
+    }
 
-  const text = payload?.content?.[0]?.text;
-  if (typeof text !== "string" || text.length === 0) {
-    throw new AIPlannerError("La IA devolvió una respuesta vacía.", { raw: payload });
+    let payload;
+    try {
+      payload = await response.json();
+    } catch (err) {
+      throw new AIPlannerError("Respuesta no JSON del proxy.", { cause: err });
+    }
+
+    const text = payload?.content?.[0]?.text;
+    if (typeof text !== "string" || text.length === 0) {
+      throw new AIPlannerError("La IA devolvió una respuesta vacía.", { raw: payload });
+    }
+    return text;
   }
-  return text;
+  throw lastError;
 }
 
 // ── System prompt ───────────────────────────────────────────────

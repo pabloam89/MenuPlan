@@ -629,16 +629,16 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
     parsed.category = normalizeCategory(parsed.category);
     parsed.difficulty = normalizeDifficulty(parsed.difficulty);
     parsed.mealRole = normalizeMealRole(parsed.mealRole, parsed.type);
-    if (Array.isArray(parsed.ingredients)) {
-      parsed.ingredients = parsed.ingredients.map((ing) => {
-        if (!ing || typeof ing !== "object") return ing;
-        const unit = normalizeUnit(ing.unit);
-        // Ignore whatever the model put in `amount` for qualitative units —
-        // it sometimes tries to invent a number (or "al gusto" as a string,
-        // which would fail the numeric coercion) even though none is needed.
-        return { ...ing, unit, amount: isQualitativeUnit(unit) ? undefined : ing.amount };
-      });
-    }
+    // The prompt asks the model to echo `ingredients` back verbatim (name/
+    // amount/unit), never adding, dropping or re-quantifying any — so the
+    // user's own list (already guaranteed valid: every unit came from this
+    // wizard's own INGREDIENT_UNITS picker, see userPayload above) is always
+    // ground truth. Fast/cheap models occasionally ignore that instruction
+    // and hallucinate an extra ingredient with a unit outside the enum,
+    // which previously failed the WHOLE draft over a field we don't even
+    // need the model's version of. Use the user's list directly instead of
+    // trusting the echo, so this entire failure mode can't happen.
+    parsed.ingredients = userPayload.ingredients;
   }
 
   const validation = UserRecipeDraftSchema.safeParse(parsed);

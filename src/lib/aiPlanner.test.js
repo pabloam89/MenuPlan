@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import {
   buildUserMessage,
   buildGroupContext,
@@ -8,6 +8,7 @@ import {
   applyGarnishToRecipe,
   pickCatalogReplacement,
   selectReplacementCandidates,
+  callModel,
 } from "./aiPlanner.js";
 import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -600,5 +601,54 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     const finalCheck = validateMenu(result.slotAssignments, pool, ctx.slots, [], {});
     const unexpected = finalCheck.violations.filter((v) => v.rule !== "recipeId_repetido");
     expect(unexpected).toEqual([]);
+  });
+});
+
+describe("callModel retry on transient overload", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+  });
+
+  it("retries on a 529 (overloaded) and succeeds once the API recovers", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: false, status: 529, json: async () => ({ error: "Overloaded" }) })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ content: [{ text: "hola" }] }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const promise = callModel({ model: "m", max_tokens: 10, system: "s", messages: [] });
+    await vi.runAllTimersAsync();
+    expect(await promise).toBe("hola");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("gives up after exhausting retries on repeated 529s", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: false, status: 529, json: async () => ({ error: "Overloaded" }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const promise = callModel({ model: "m", max_tokens: 10, system: "s", messages: [] });
+    const assertion = expect(promise).rejects.toThrow(AIPlannerError);
+    await vi.runAllTimersAsync();
+    await assertion;
+    // Initial attempt + 2 retries (RETRY_DELAYS_MS has 2 entries).
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("does not retry a non-retryable client error (e.g. 400)", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue({ ok: false, status: 400, json: async () => ({ error: "Bad request" }) });
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      callModel({ model: "m", max_tokens: 10, system: "s", messages: [] }),
+    ).rejects.toThrow(AIPlannerError);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
