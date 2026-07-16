@@ -7549,6 +7549,22 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
     return [...new Set(raw)].sort((a, b) => a - b);
   }, [data.menuWeekOffsets, data.menuWeek]);
 
+  // Persist the default selection even when the user never toggles a week:
+  // without this, data.menuWeek stays null and the current week is treated as
+  // a full Mon–Sun week — so "¿dónde coméis?" never dims the past days and the
+  // menú gets generated for days already gone. Invariant: the current week
+  // (offset 0) always starts today; any later week is a full 7-day week.
+  useEffect(() => {
+    const anchor = selectedOffsets[0];
+    const startDayIdx = anchor === 0 ? todayIdx : 0;
+    if (
+      data.menuWeek?.offset !== anchor ||
+      (data.menuWeek?.startDayIdx ?? 0) !== startDayIdx
+    ) {
+      setData((d) => ({ ...d, menuWeek: { offset: anchor, startDayIdx } }));
+    }
+  }, [selectedOffsets, todayIdx, data.menuWeek, setData]);
+
   const toggleWeek = (offset) => {
     setData((d) => {
       const current = Array.isArray(d.menuWeekOffsets) && d.menuWeekOffsets.length

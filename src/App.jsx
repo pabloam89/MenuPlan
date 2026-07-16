@@ -98,6 +98,7 @@ import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
+import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { loadPantry } from "./lib/pantry.js";
 import demoState from "./dev/demoState.json";
@@ -106,9 +107,20 @@ const DEV_DEMO_MENU =
   import.meta.env.DEV &&
   new URLSearchParams(window.location.search).get("demo") === "1";
 
+// Dev/support helper: open the app with ?tour=1 to see the *whole* first-time
+// experience end to end — the value-prop carousel, then every guided
+// coach-mark tour (Home, Recetas, Tu menú) — regardless of what's actually
+// saved in this browser. Loads the same demo data as ?demo=1 (a family +
+// an already-generated menú) so there's something real for every coach-mark
+// to point at, but starts from the splash screen like a genuine first visit.
+const FORCE_TOUR =
+  import.meta.env.DEV &&
+  new URLSearchParams(window.location.search).get("tour") === "1";
+
 // Dev/support helper: open the app with ?tutorial=1 to replay the first-run
 // value-prop carousel on demand, regardless of the "seen" flag or saved data.
 const FORCE_VALUE_PROPS =
+  FORCE_TOUR ||
   new URLSearchParams(window.location.search).get("tutorial") === "1";
 
 // Temporary dietary states heavy/disruptive enough to warrant offering a
@@ -459,7 +471,7 @@ function migrate(state) {
 
 export default function App() {
   const persisted = useMemo(
-    () => (DEV_DEMO_MENU ? migrate(demoState) : migrate(loadState())),
+    () => (DEV_DEMO_MENU || FORCE_TOUR ? migrate(demoState) : migrate(loadState())),
     []
   );
   const [screen, setScreen] = useState(
@@ -489,6 +501,7 @@ export default function App() {
   // onboarding (see the splash "onNext" wiring). Remembered locally so it never
   // reappears after the first pass.
   const [valuePropsSeen, setValuePropsSeen] = useState(() => {
+    if (FORCE_TOUR) return false;
     try {
       return Boolean(localStorage.getItem("mp_value_props_seen"));
     } catch {
@@ -502,6 +515,61 @@ export default function App() {
       // ignore storage failures (private mode, etc.)
     }
     setValuePropsSeen(true);
+  }, []);
+  // Home coach-marks — guided highlights over the Home actions + nav tabs,
+  // shown once the first time a user reaches the dashboard. Remembered locally
+  // so it never nags again.
+  const [homeCoachSeen, setHomeCoachSeen] = useState(() => {
+    if (FORCE_TOUR) return false;
+    try {
+      return Boolean(localStorage.getItem("mp_home_coachmarks_seen"));
+    } catch {
+      return false;
+    }
+  });
+  const markHomeCoachSeen = useCallback(() => {
+    try {
+      localStorage.setItem("mp_home_coachmarks_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setHomeCoachSeen(true);
+  }, []);
+  // Recetas coach-marks — same idea, shown once the first time the Recetas
+  // screen is opened, explaining "Crear" and the three tabs.
+  const [recipesCoachSeen, setRecipesCoachSeen] = useState(() => {
+    if (FORCE_TOUR) return false;
+    try {
+      return Boolean(localStorage.getItem("mp_recipes_coachmarks_seen"));
+    } catch {
+      return false;
+    }
+  });
+  const markRecipesCoachSeen = useCallback(() => {
+    try {
+      localStorage.setItem("mp_recipes_coachmarks_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setRecipesCoachSeen(true);
+  }, []);
+  // "Tu menú" coach-marks — shown once the first time the user sees a generated
+  // menu, explaining Tu perfil, filtros, día/semana, los platos y el nav.
+  const [menuCoachSeen, setMenuCoachSeen] = useState(() => {
+    if (FORCE_TOUR) return false;
+    try {
+      return Boolean(localStorage.getItem("mp_menu_coachmarks_seen"));
+    } catch {
+      return false;
+    }
+  });
+  const markMenuCoachSeen = useCallback(() => {
+    try {
+      localStorage.setItem("mp_menu_coachmarks_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setMenuCoachSeen(true);
   }, []);
   const [data, setData] = useState(persisted?.data ?? INITIAL_DATA);
   // Safety net: if a history entry gets deleted (e.g. from another tab/
@@ -1843,7 +1911,6 @@ export default function App() {
               onNav={handleNav}
               onRegenerate={handleRegenerate}
               onRetry={retryGenerateMenu}
-              onReset={handleReset}
               onToast={showToast}
               user={user}
               onTrackEvent={(event, metadata) => trackEvent(user, event, "menu", metadata)}
@@ -1855,6 +1922,14 @@ export default function App() {
             />
           </div>
         )}
+
+        {screen === "menu" &&
+          !menuCoachSeen &&
+          !isGeneratingMenu &&
+          !menuError &&
+          Object.keys(menuPlan ?? {}).length > 0 && (
+            <MenuCoachTour onClose={markMenuCoachSeen} />
+          )}
 
         {screen === "menus" && (
           <div
@@ -1910,6 +1985,7 @@ export default function App() {
                 setShopping={setShopping}
                 onNav={handleNav}
                 onToast={showToast}
+                menuWeek={data.menuWeek}
               />
             </Suspense>
           </div>
@@ -2015,6 +2091,10 @@ export default function App() {
           </div>
         )}
 
+        {screen === "dashboard" && !homeCoachSeen && (
+          <HomeCoachTour onClose={markHomeCoachSeen} />
+        )}
+
         {screen === "recipes" && (
           <div
             key="recipes"
@@ -2059,6 +2139,10 @@ export default function App() {
               />
             </Suspense>
           </div>
+        )}
+
+        {screen === "recipes" && !recipesCoachSeen && (
+          <RecipesCoachTour onClose={markRecipesCoachSeen} />
         )}
 
         {screen === "profile" && (

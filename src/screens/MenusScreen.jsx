@@ -515,7 +515,7 @@ export function MenusScreen({
 
       <style>{`@keyframes mp-spin { to { transform: rotate(360deg); } }`}</style>
 
-      <BottomNav active="menus" onNav={onNav} />
+      <BottomNav active="menus" onNav={onNav} context="home" />
     </div>
   );
 }

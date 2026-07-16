@@ -203,10 +203,11 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
 
 // ── Quick action: full-bleed photo card with the title embedded ────────────
 
-function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", onClick }) {
+function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", onClick, id }) {
   return (
     <button
       type="button"
+      id={id}
       onClick={onClick}
       style={{
         flex: 1,
@@ -435,6 +436,7 @@ export function DashboardScreen({
         {/* ── Acciones rápidas ──────────────────────────── */}
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           <QuickActionTile
+            id="coach-generate-menu"
             icon={RotateCw}
             title="Generar menú"
             subtitle="Para toda la semana"
@@ -443,6 +445,7 @@ export function DashboardScreen({
             onClick={onGenerateNewMenu}
           />
           <QuickActionTile
+            id="coach-generate-recipes"
             icon={Sparkles}
             title="Generar recetas"
             subtitle="Con lo que tengas en casa"

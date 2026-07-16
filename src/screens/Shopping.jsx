@@ -48,7 +48,7 @@ import {
   mergeShoppingItems,
   matchReceiptProducts,
 } from "../lib/shoppingListUtils.js";
-import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
+import { formatWeekRangeLabel, getWeekDates, getWeekDatesByMenuWeek } from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
@@ -95,6 +95,9 @@ export function ShoppingScreen({
   setShopping,
   onNav,
   onToast,
+  // The menú's own week (offset + startDayIdx). Drives the date label so a
+  // mid-week menú shows only its real days, matching the Menú screen.
+  menuWeek = null,
   // Optional demo hooks (first-run value-prop carousel): preset the list filter
   // and pre-open one aisle so the category "zoom" is visible on mount. Default
   // to the normal collapsed behaviour; never passed in the real app.
@@ -120,7 +123,10 @@ export function ShoppingScreen({
   const [editingQtyId, setEditingQtyId] = useState(null);
   const fileRef = useRef(null);
 
-  const weekLabel = formatWeekRangeLabel(getWeekDates());
+  const { dates: weekDates, activeDays } = menuWeek
+    ? getWeekDatesByMenuWeek(menuWeek)
+    : { dates: getWeekDates(), activeDays: undefined };
+  const weekLabel = formatWeekRangeLabel(weekDates, activeDays);
 
   useEffect(() => {
     setShopping((s) => {
