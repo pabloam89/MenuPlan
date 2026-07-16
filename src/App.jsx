@@ -1985,6 +1985,7 @@ export default function App() {
                 hasAccount={Boolean(user)}
                 onNav={handleNav}
                 onOpenCurrent={() => fwd(() => setScreen("menu"))}
+                onGenerateMenu={handleGenerateMenu}
                 onReuseMenu={reuseMenu}
                 onToggleFavorite={(menuId) => {
                   const nextFavorite = !data.menus?.[menuId]?.isFavorite;

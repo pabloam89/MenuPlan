@@ -428,6 +428,7 @@ export function MenusScreen({
   hasAccount,
   onNav,
   onOpenCurrent,
+  onGenerateMenu,
   onReuseMenu,
   onToggleFavorite,
   onSignIn,
@@ -470,7 +471,7 @@ export function MenusScreen({
         ) : (
           <EmptyState
             text="Todavía no tienes un menú generado."
-            onAction={onOpenCurrent}
+            onAction={onGenerateMenu}
             actionLabel="Generar menú"
           />
         )}
