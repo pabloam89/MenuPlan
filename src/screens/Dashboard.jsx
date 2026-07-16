@@ -17,6 +17,7 @@ import {
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { countMenusGenerated } from "../lib/menuStats.js";
+import { planHasDishes } from "../lib/menuArchive.js";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { DAYS, getMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -203,10 +204,11 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
 
 // ── Quick action: full-bleed photo card with the title embedded ────────────
 
-function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", onClick }) {
+function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", onClick, id }) {
   return (
     <button
       type="button"
+      id={id}
       onClick={onClick}
       style={{
         flex: 1,
@@ -273,7 +275,9 @@ export function DashboardScreen({
   onOpenStreak,
 }) {
   const g = googleInfo(user);
-  const hasMenu = Object.keys(menuPlan ?? {}).length > 0;
+  // Real dishes, not just key count: a plan always carries `_warnings`, so an
+  // empty/aborted plan would otherwise show a phantom "hoy te toca" section.
+  const hasMenu = planHasDishes(menuPlan);
   const members = data.members ?? [];
   const groups = data.groups ?? [];
   const multiGroup = groups.length > 1;
@@ -435,6 +439,7 @@ export function DashboardScreen({
         {/* ── Acciones rápidas ──────────────────────────── */}
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           <QuickActionTile
+            id="coach-generate-menu"
             icon={RotateCw}
             title="Generar menú"
             subtitle="Para toda la semana"
@@ -443,6 +448,7 @@ export function DashboardScreen({
             onClick={onGenerateNewMenu}
           />
           <QuickActionTile
+            id="coach-generate-recipes"
             icon={Sparkles}
             title="Generar recetas"
             subtitle="Con lo que tengas en casa"

@@ -173,7 +173,7 @@ const HOME_NAV_ITEMS = [
 
 const MENU_NAV_ITEMS = [
   { id: "dashboard", icon: Home,          label: "Inicio" },
-  { id: "menus",     icon: ClipboardList, label: "Menús" },
+  { id: "menu",      icon: ClipboardList, label: "Menú" },
   { id: "shopping",  icon: ShoppingCart,  label: "Compra" },
   { id: "analytics", icon: BarChart3,     label: "Análisis" },
 ];
@@ -221,6 +221,7 @@ export function BottomNav({ active, onNav, context = "menu" }) {
             <button
               key={it.id}
               type="button"
+              data-coach={`nav-${it.id}`}
               onClick={() => onNav(it.id)}
               style={{
                 flex: 1,

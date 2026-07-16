@@ -777,6 +777,7 @@ function ProfileButton({ onClick }) {
       `}</style>
       <button
         type="button"
+        data-coach="menu-profile"
         onClick={onClick}
         className="profile-pill-btn"
         style={{
@@ -1517,6 +1518,7 @@ export function DishCard({
   return (
     <button
       type="button"
+      data-coach="menu-dish"
       onClick={onTap}
       style={{
         width: "100%",
@@ -1716,7 +1718,6 @@ export const MenuScreen = memo(function MenuScreen({
   onNav,
   onRegenerate,
   onRetry,
-  onReset,
   onToast,
   user,
   onTrackEvent,
@@ -1957,9 +1958,6 @@ export const MenuScreen = memo(function MenuScreen({
                 )}
               </div>
             )}
-            <button type="button" onClick={onReset} style={ghostButtonStyle} disabled={isGenerating}>
-              Reiniciar
-            </button>
             {!isGenerating && (
               <button
                 type="button"
@@ -2007,6 +2005,7 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
           <button
             type="button"
+            data-coach="menu-filters"
             onClick={() => setFilterPanelOpen((v) => !v)}
             aria-label={filterPanelOpen ? "Colapsar filtros" : "Expandir filtros"}
             style={{
@@ -2074,12 +2073,14 @@ export const MenuScreen = memo(function MenuScreen({
         {/* Semana / Día toggle */}
         {hasMenu && (
           <>
-            <SegmentedControl
-              value={viewMode}
-              onChange={handleViewModeChange}
-              options={MENU_VIEW_OPTIONS}
-              style={{ marginBottom: 0 }}
-            />
+            <div data-coach="menu-viewmode">
+              <SegmentedControl
+                value={viewMode}
+                onChange={handleViewModeChange}
+                options={MENU_VIEW_OPTIONS}
+                style={{ marginBottom: 0 }}
+              />
+            </div>
             <MenuViewDivider options={MENU_VIEW_OPTIONS} value={viewMode} />
           </>
         )}
@@ -2272,7 +2273,7 @@ export const MenuScreen = memo(function MenuScreen({
         />
       )}
 
-      <BottomNav active="menus" onNav={onNav} />
+      <BottomNav active="menu" onNav={onNav} />
     </div>
   );
 });
@@ -3043,18 +3044,6 @@ export function DishDetail({
     </div>
   );
 }
-
-const ghostButtonStyle = {
-  border: "1px solid #d9e5dd",
-  background: "#fff",
-  color: "#2d5a3d",
-  padding: "7px 11px",
-  borderRadius: 10,
-  fontSize: 11,
-  fontWeight: 800,
-  cursor: "pointer",
-  fontFamily: "inherit",
-};
 
 const shoppingButtonStyle = {
   flex: 1,

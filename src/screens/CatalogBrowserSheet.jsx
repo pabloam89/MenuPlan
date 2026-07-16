@@ -403,7 +403,7 @@ export function CatalogBrowserSheet({
             placeholder={gatePick ? "Buscar plato o guarnición…" : "Buscar plato…"}
             style={{
               flex: 1, border: "none", background: "transparent", outline: "none",
-              fontSize: 14, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
+              fontSize: 16, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
             }}
           />
           {query && (

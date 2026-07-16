@@ -87,6 +87,7 @@ export function RecipesScreen({
           </div>
           <button
             type="button"
+            data-coach="recipes-create"
             onClick={onOpenRecipePlanner}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "8px 13px",
@@ -111,6 +112,7 @@ export function RecipesScreen({
               <button
                 key={t.id}
                 type="button"
+                data-coach={`recipes-tab-${t.id}`}
                 onClick={() => setTab(t.id)}
                 style={{
                   flex: 1, padding: "7px 0", borderRadius: 9, border: "none",
