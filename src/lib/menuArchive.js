@@ -20,6 +20,15 @@ export const MAX_MENU_WEEKS = 5;
 // pagination yet for the in-memory Histórico list.
 export const MAX_HISTORY_MENUS = 40;
 
+// Favourites and the active menú are never pruned by MAX_HISTORY_MENUS (see
+// pruneMenuHistory) — that's the whole point of favouriting one. But nothing
+// stopped that set from growing without bound, and each entry carries a full
+// week's plan/shopping list; combined with storage.js silently swallowing
+// QuotaExceededError, an account with hundreds of favourites could eventually
+// lose ALL local state with zero warning. This is a last-resort safety net,
+// not a normal product cap — it should essentially never trigger.
+export const MAX_PROTECTED_MENUS = 150;
+
 export function clampWeekCount(n) {
   const v = Number(n);
   if (!Number.isFinite(v)) return 1;
@@ -96,15 +105,30 @@ export function orderedWeeks(menu) {
 
 /**
  * Trims the archive to at most MAX_HISTORY_MENUS entries. Never drops the
- * active menú or any favourite; only plain inactive menús are candidates, and
- * they're removed oldest-first (by createdAt). Pure — returns a new map.
+ * active menú; favourites are also kept regardless of MAX_HISTORY_MENUS, but
+ * are still subject to the MAX_PROTECTED_MENUS safety net below. Plain
+ * inactive menús are the normal trim candidates, removed oldest-first (by
+ * createdAt). Pure — returns a new map.
  */
 export function pruneMenuHistory(menus, max = MAX_HISTORY_MENUS) {
   const all = Object.values(menus ?? {});
-  const protectedMenus = all.filter((m) => m.isActive || m.isFavorite);
-  const trimmable = all
-    .filter((m) => !m.isActive && !m.isFavorite)
-    .sort((a, b) => (b?.createdAt ?? 0) - (a?.createdAt ?? 0));
+  const active = all.filter((m) => m.isActive);
+  let favorites = all.filter((m) => !m.isActive && m.isFavorite);
+
+  // Safety net: if favourites alone blow past MAX_PROTECTED_MENUS, demote the
+  // oldest excess ones (unfavourite, don't delete outright) back into the
+  // normal trimmable pool instead of letting the archive grow forever.
+  let demoted = [];
+  if (favorites.length > MAX_PROTECTED_MENUS) {
+    favorites = [...favorites].sort((a, b) => (b?.createdAt ?? 0) - (a?.createdAt ?? 0));
+    demoted = favorites.slice(MAX_PROTECTED_MENUS).map((m) => ({ ...m, isFavorite: false }));
+    favorites = favorites.slice(0, MAX_PROTECTED_MENUS);
+  }
+
+  const protectedMenus = [...active, ...favorites];
+  const trimmable = [...all.filter((m) => !m.isActive && !m.isFavorite), ...demoted].sort(
+    (a, b) => (b?.createdAt ?? 0) - (a?.createdAt ?? 0),
+  );
   const keepTrimmable = Math.max(0, max - protectedMenus.length);
   const kept = [...protectedMenus, ...trimmable.slice(0, keepTrimmable)];
   return Object.fromEntries(kept.map((m) => [m.id, m]));

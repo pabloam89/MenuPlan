@@ -10,11 +10,16 @@ export function loadState() {
   }
 }
 
+// Returns whether the write actually succeeded, so callers can warn the user
+// instead of losing state (profile, restrictions, active menu) with zero
+// signal — private-mode Safari and a full quota both throw here, and this
+// used to be swallowed unconditionally.
 export function saveState(state) {
   try {
     localStorage.setItem(KEY, JSON.stringify(state));
+    return true;
   } catch {
-    // Ignore quota / private mode errors silently.
+    return false;
   }
 }
 

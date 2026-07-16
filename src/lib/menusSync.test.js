@@ -123,12 +123,14 @@ describe("public API degrades to no-op without a Supabase session (no client con
     expect(await loadMenuDetail("user-1", "menu_abc")).toBeNull();
   });
 
-  it("deleteMenu resolves without throwing", async () => {
-    await expect(deleteMenu("user-1", "menu_abc")).resolves.toBeUndefined();
+  it("deleteMenu returns ok:false without throwing", async () => {
+    const result = await deleteMenu("user-1", "menu_abc");
+    expect(result.ok).toBe(false);
   });
 
-  it("toggleMenuFavorite resolves without throwing", async () => {
-    await expect(toggleMenuFavorite("user-1", "menu_abc", true)).resolves.toBeUndefined();
+  it("toggleMenuFavorite returns ok:false without throwing", async () => {
+    const result = await toggleMenuFavorite("user-1", "menu_abc", true);
+    expect(result.ok).toBe(false);
   });
 
   it("activateMenu returns ok:false without throwing", async () => {

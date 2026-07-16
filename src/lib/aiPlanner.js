@@ -698,12 +698,18 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 2. Business rule validation + up to 2 correction retries
   const MAX_RETRIES = 2;
+  // Tracks the validateMenu() result for the CURRENT slotAssignments as of
+  // the end of the loop: the loop only ever reassigns slotAssignments right
+  // before looping back around to revalidate it (or, on the very last
+  // attempt, not at all) — so this is always still accurate afterwards,
+  // making the old unconditional re-validation below redundant.
+  let finalCheck = null;
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const check = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
-    if (check.valid) break;
+    finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
+    if (finalCheck.valid) break;
 
     if (attempt < MAX_RETRIES - 1) {
-      const correctionMsg = buildCorrectionMessage(check.violations);
+      const correctionMsg = buildCorrectionMessage(finalCheck.violations);
       const retryText = await request(
         [
           { role: "user", content: userMessage },
@@ -725,8 +731,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     }
   }
 
-  // 3. Final validation — apply deterministic fallback if still invalid
-  const finalCheck = validateMenu(slotAssignments, filteredPool, ctx.slots, ctx.config.healthProfiles, achievableFreqs);
+  // 3. Apply deterministic fallback if still invalid after retries.
   if (!finalCheck.valid) {
     slotAssignments = applyFallback(
       slotAssignments,

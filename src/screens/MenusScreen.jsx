@@ -270,8 +270,11 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, on
         type="button"
         onClick={() => setConfirmDelete(true)}
         aria-label="Borrar menú del histórico"
+        disabled={isOpening}
         style={{
-          border: "none", background: "transparent", cursor: "pointer", padding: 6, flexShrink: 0,
+          border: "none", background: "transparent",
+          cursor: isOpening ? "default" : "pointer", padding: 6, flexShrink: 0,
+          opacity: isOpening ? 0.4 : 1,
         }}
       >
         <Trash2 size={17} color="#c3a2a0" />

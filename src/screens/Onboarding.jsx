@@ -1402,7 +1402,7 @@ const DIETARY_STATE_UI = [
   { id: "dieta_blanda", label: "Dieta blanda", Icon: CookingPot, color: "#7a8a3a" },
 ];
 
-export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish, onReset, nextLabel, finishLabel }) {
   const [customAllergy, setCustomAllergy] = useState("");
   const [showAddAllergy, setShowAddAllergy] = useState(false);
   const [allergyMemberId, setAllergyMemberId] = useState(data.members[0]?.id ?? null);
@@ -1515,6 +1515,7 @@ export function OnboardingRestrictions({ data, setData, onNext, onBack, onFinish
       onNext={onNext}
       onFinish={onFinish}
       {...(nextLabel ? { nextLabel } : {})}
+      {...(finishLabel ? { finishLabel } : {})}
     >
       <>
           <style>{`

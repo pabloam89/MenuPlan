@@ -208,19 +208,27 @@ export async function loadMenuDetail(userId, menuId) {
 
 /** Deletes a menú; its weeks and recipe snapshots cascade with it. */
 export async function deleteMenu(userId, menuId) {
-  if (!supabase || !userId || !menuId) return;
+  if (!supabase || !userId || !menuId) return { ok: false, error: "no-op" };
   const { error } = await supabase.from("user_menus").delete().eq("user_id", userId).eq("id", menuId);
-  if (error) console.warn("[menusSync] delete menu failed", error.message);
+  if (error) {
+    console.warn("[menusSync] delete menu failed", error.message);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 export async function toggleMenuFavorite(userId, menuId, isFavorite) {
-  if (!supabase || !userId || !menuId) return;
+  if (!supabase || !userId || !menuId) return { ok: false, error: "no-op" };
   const { error } = await supabase
     .from("user_menus")
     .update({ is_favorite: isFavorite })
     .eq("user_id", userId)
     .eq("id", menuId);
-  if (error) console.warn("[menusSync] toggle favorite failed", error.message);
+  if (error) {
+    console.warn("[menusSync] toggle favorite failed", error.message);
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
 }
 
 /**
@@ -237,4 +245,28 @@ export async function activateMenu(menuId) {
     return { ok: false, error: error.message };
   }
   return { ok: true };
+}
+
+// App.jsx fire-and-forgets `saveMenu(...).then(() => activateMenu(...))`
+// after every new generation/repeat, never awaited (the localStorage/
+// user_state blob stays the real source of truth — see the comment at each
+// call site). Two generations close together (double-tap "Regenerar", or a
+// user tapping "Repetir" right after a fresh generation) would otherwise fire
+// two independent request pairs whose network round-trips can resolve out of
+// the order they were started in, leaving the cloud's "active" menú pointing
+// at the STALE one. Chaining each call onto a per-user queue instead forces
+// them to resolve in the order they were issued.
+const activationQueues = new Map();
+
+export function saveAndActivateMenu(userId, menu, recipes) {
+  const prev = activationQueues.get(userId) ?? Promise.resolve();
+  const next = prev
+    .catch(() => {}) // an earlier failure must never block this call
+    .then(async () => {
+      const res = await saveMenu(userId, menu, recipes);
+      if (res.ok) await activateMenu(menu.id);
+      return res;
+    });
+  activationQueues.set(userId, next);
+  return next;
 }
