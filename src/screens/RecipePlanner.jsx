@@ -299,7 +299,7 @@ function TextField({ value, onChange, placeholder, type = "text", suffix, ...res
         placeholder={placeholder}
         style={{
           width: "100%", boxSizing: "border-box", padding: suffix ? "12px 44px 12px 14px" : "12px 14px",
-          borderRadius: 12, border: "1.5px solid #e8efe9", background: "#fff", fontSize: 14,
+          borderRadius: 12, border: "1.5px solid #e8efe9", background: "#fff", fontSize: 16,
           color: INK, fontFamily: "inherit", outline: "none",
         }}
         {...rest}
@@ -418,7 +418,7 @@ function GridNumberPicker({ values, value, onChange }) {
           style={{
             height: 40, width: "100%", boxSizing: "border-box", borderRadius: 11, textAlign: "center",
             fontFamily: "inherit", border: `1.5px solid ${GREEN}`, outline: "none",
-            fontSize: 13, fontWeight: 750, color: INK,
+            fontSize: 16, fontWeight: 750, color: INK,
           }}
         />
       ) : (
@@ -647,7 +647,7 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Buscar ingrediente…"
-            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 13, color: INK }}
+            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 16, color: INK }}
           />
           {query && (
                 <button
@@ -778,7 +778,7 @@ function IngredientEditList({ items, onUpdate, onRemove }) {
               onChange={(e) => onUpdate(i, { amount: e.target.value })}
               inputMode="decimal"
               placeholder="0"
-              style={{ ...inputBase, width: 46, flexShrink: 0, padding: "8px 4px", fontSize: 12.5, textAlign: "center" }}
+              style={{ ...inputBase, width: 52, flexShrink: 0, padding: "8px 4px", fontSize: 16, textAlign: "center" }}
             />
           )}
           <select
@@ -790,8 +790,8 @@ function IngredientEditList({ items, onUpdate, onRemove }) {
               onUpdate(i, isQualitativeUnit(unit) ? { unit, amount: "" } : { unit });
             }}
             style={{
-              ...inputBase, flexShrink: 0, padding: "8px 4px", fontSize: 12.5, background: "#fff",
-              width: isQualitativeUnit(it.unit) ? 96 : 82,
+              ...inputBase, flexShrink: 0, padding: "8px 4px", fontSize: 16, background: "#fff",
+              width: isQualitativeUnit(it.unit) ? 108 : 92,
             }}
           >
             {INGREDIENT_UNITS.map((u) => (
@@ -851,7 +851,7 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
               style={{
                 flex: 1, minWidth: 0, resize: "none", overflow: "hidden", boxSizing: "border-box",
                 border: "none", background: "#fff", borderRadius: 10, padding: "6px 8px",
-                fontSize: 13, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
+                fontSize: 16, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
               }}
             />
             <button
@@ -1598,7 +1598,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
                 rows={4}
                 style={{
                   width: "100%", boxSizing: "border-box", padding: 12, borderRadius: 12,
-                  border: "1.5px solid #e8efe9", fontSize: 14, fontFamily: "inherit", color: INK,
+                  border: "1.5px solid #e8efe9", fontSize: 16, fontFamily: "inherit", color: INK,
                   outline: "none", resize: "vertical",
                 }}
               />

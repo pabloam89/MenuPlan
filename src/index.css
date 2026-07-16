@@ -12,6 +12,17 @@ body {
   background: #f0f0f0;
 }
 
+/* Baseline safety net: iOS Safari auto-zooms (and stays zoomed in) on focus
+   whenever a form field's effective font-size is below 16px, since our
+   viewport meta tag disables manual zoom. Every input/textarea/select in the
+   app should already set fontSize: 16 inline, but this catches anything that
+   relies on the browser default instead. */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
+
 @keyframes rotate {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }

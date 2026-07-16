@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles } from "lucide-react";
+import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2 } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -112,6 +112,41 @@ const FORCE_VALUE_PROPS =
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.
 const HEAVY_DIETARY_STATES = ["dieta_blanda"];
+
+// Shared copy/branding for the reset-family confirmation sheet. "abandon" and
+// "soft" are low-stakes (nothing valuable is lost), so they get MenuPlan's
+// friendly brand green; "hard"/"delete" actually destroy data, so the accent
+// leans amber/red instead — same layout and type everywhere, just the tone.
+const RESET_VARIANTS = {
+  soft: {
+    Icon: RotateCcw,
+    tone: "brand",
+    title: "¿Reiniciar el menú?",
+    desc: "Se borrará el menú de esta semana y la lista de la compra. Tu familia, recetas y preferencias se mantienen.",
+    confirmLabel: "Reiniciar menú",
+  },
+  hard: {
+    Icon: AlertTriangle,
+    tone: "danger",
+    title: "¿Reiniciar todo?",
+    desc: "Se borrarán todos tus datos, menús y configuración. Esta acción no se puede deshacer.",
+    confirmLabel: "Reiniciar todo",
+  },
+  delete: {
+    Icon: Trash2,
+    tone: "danger",
+    title: "¿Eliminar tu cuenta?",
+    desc: "Se borrarán todos tus datos y se cerrará tu sesión. Esta acción no se puede deshacer.",
+    confirmLabel: "Eliminar cuenta",
+  },
+  abandon: {
+    Icon: LogOut,
+    tone: "brand",
+    title: "¿Salir sin generar el menú?",
+    desc: "Se perderá lo que has configurado en este asistente. Tu familia, recetas y menú actual no se ven afectados.",
+    confirmLabel: "Salir",
+  },
+};
 
 const INITIAL_DATA = {
   members: [],
@@ -1200,6 +1235,7 @@ export default function App() {
 
   const goToOnboardingStep = useCallback((step) => {
     dirRef.current = "forward";
+    setFirstRunOnboarding(false);
     setOnbStep(step);
     setScreen("onboarding");
   }, []);
@@ -1212,6 +1248,10 @@ export default function App() {
   // the steps already configured in Mi perfil (family + cooking), while still
   // walking through the per-menu screens (week, schedule, style, restrictions…).
   const [quickMenu, setQuickMenu] = useState(false);
+  // First-time visitor path: splash → (tutorial) → "¿quién come en casa?" only
+  // → straight to Home, instead of the full 9-step wizard. Any other entry
+  // into onboarding (edit shortcuts, "Otro grupo", quick menu…) resets this.
+  const [firstRunOnboarding, setFirstRunOnboarding] = useState(false);
   const handleGenerateMenu = useCallback(() => {
     if ((data.members ?? []).length > 0) {
       setWhoForOpen(true);
@@ -1224,6 +1264,7 @@ export default function App() {
   // "Mi familia habitual" → shortened assistant (not skipped entirely).
   const startQuickMenu = useCallback(() => {
     setQuickMenu(true);
+    setFirstRunOnboarding(false);
     dirRef.current = "forward";
     setOnbStep(1); // step 0 (familia) is hidden in quick mode; effect hops if 1 is too
     setScreen("onboarding");
@@ -1362,13 +1403,15 @@ export default function App() {
   }, [data, menuPlan, showToast, user]);
 
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
-  // only wipes the active menu/session; "hard" nukes everything (used by the
-  // onboarding "empezar de cero"); "delete" nukes + signs out.
-  const [resetConfirm, setResetConfirm] = useState(null); // null | "soft" | "hard" | "delete"
+  // only wipes the active menu/session; "hard" nukes everything (used by
+  // Ajustes' "empezar de cero"); "delete" nukes + signs out; "abandon" just
+  // walks away from the onboarding wizard without touching any saved data.
+  const [resetConfirm, setResetConfirm] = useState(null); // null | "soft" | "hard" | "delete" | "abandon"
 
   const handleReset = useCallback(() => setResetConfirm("hard"), []);
   const handleSoftReset = useCallback(() => setResetConfirm("soft"), []);
   const handleDeleteAccount = useCallback(() => setResetConfirm("delete"), []);
+  const handleAbandonOnboarding = useCallback(() => setResetConfirm("abandon"), []);
 
   const doReset = useCallback(() => {
     setResetConfirm(null);
@@ -1412,6 +1455,18 @@ export default function App() {
     showToast("Menú reiniciado");
   }, [showToast]);
 
+  // Abandon the onboarding/menu-generation wizard: only exits back to the
+  // dashboard (every entry point into onboarding — "Otro grupo", "Mi familia
+  // habitual", edit shortcuts, and the empty-profile case — starts there), no
+  // data is cleared. Whatever the wizard already wrote into `data` mid-flow
+  // simply stays as-is, same as tapping "Atrás" between steps.
+  const doAbandonOnboarding = useCallback(() => {
+    setResetConfirm(null);
+    setQuickMenu(false);
+    setFirstRunOnboarding(false);
+    back(() => setScreen("dashboard"));
+  }, []);
+
   const doDeleteAccount = useCallback(async () => {
     setResetConfirm(null);
     clearState();
@@ -1441,9 +1496,12 @@ export default function App() {
     (i) =>
       (i === 1 && skipMenuModel) ||
       (i === 2 && skipSchoolMenu) ||
-      // Quick mode reuses the profile: skip Familia (0), Modelo de menú (1 —
-      // now editable from "Gestionar familia" in Mi perfil) and Cocina (8).
-      (quickMenu && (i === 0 || i === 1 || i === 8)),
+      // "Mi familia habitual" only ever skips Familia (0) — it's the one
+      // thing already known. Everything else (modelo de menú, semana,
+      // horario, estilo, restricciones, qué repetimos, cocina) can change
+      // from una generación a otra, so it's asked in full every time, same
+      // as a brand-new family or "Otro grupo".
+      (quickMenu && i === 0),
     [skipMenuModel, skipSchoolMenu, quickMenu]
   );
   const stepNeighbor = useCallback(
@@ -1462,12 +1520,18 @@ export default function App() {
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
   const progressIndex = Math.max(0, visibleSteps.indexOf(safeOnbStep));
   const onbProgressValue = useMemo(
-    () => ({
-      current: progressIndex,
-      total: visibleSteps.length,
-      onJump: (i) => setOnbStep(visibleSteps[i] ?? 0),
-    }),
-    [progressIndex, visibleSteps]
+    () =>
+      // First-run visitors only ever see this one screen before Home, so a
+      // "step 1 of 9" progress bar would be meaningless (and about to jump to
+      // Home makes it look broken). Hide it entirely for that path.
+      firstRunOnboarding
+        ? null
+        : {
+            current: progressIndex,
+            total: visibleSteps.length,
+            onJump: (i) => setOnbStep(visibleSteps[i] ?? 0),
+          },
+    [firstRunOnboarding, progressIndex, visibleSteps]
   );
 
   useEffect(() => {
@@ -1497,9 +1561,14 @@ export default function App() {
     <OnboardingMembers
       data={data}
       setData={setData}
-      onNext={nextOf(0)}
-      onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onNext={
+        firstRunOnboarding
+          ? () => { setFirstRunOnboarding(false); goToDashboard(); }
+          : nextOf(0)
+      }
+      onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
+      nextLabel={firstRunOnboarding ? "Continuar" : undefined}
+      onReset={firstRunOnboarding ? undefined : handleAbandonOnboarding}
     />,
     <OnboardingMenuModel
       data={data}
@@ -1507,7 +1576,7 @@ export default function App() {
       onNext={nextOf(1)}
       onBack={backOf(1)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingSchoolMenu
       data={data}
@@ -1515,7 +1584,7 @@ export default function App() {
       onNext={nextOf(2)}
       onBack={backOf(2)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingWeek
       data={data}
@@ -1523,7 +1592,7 @@ export default function App() {
       onNext={nextOf(3)}
       onBack={backOf(3)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingSchedule
       data={data}
@@ -1531,7 +1600,7 @@ export default function App() {
       onNext={nextOf(4)}
       onBack={backOf(4)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingMealStyle
       data={data}
@@ -1539,7 +1608,7 @@ export default function App() {
       onNext={nextOf(5)}
       onBack={backOf(5)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingRestrictions
       data={data}
@@ -1547,7 +1616,7 @@ export default function App() {
       onNext={nextOf(6)}
       onBack={backOf(6)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingRepeat
       data={data}
@@ -1556,7 +1625,7 @@ export default function App() {
       onNext={nextOf(7)}
       onBack={backOf(7)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingCooking
       data={data}
@@ -1564,7 +1633,7 @@ export default function App() {
       onNext={nextOf(8)}
       onBack={backOf(8)}
       onFinish={() => fwd(goToMenu)}
-      onReset={handleReset}
+      onReset={handleAbandonOnboarding}
     />,
   ];
 
@@ -1611,17 +1680,19 @@ export default function App() {
         {screen === "splash" && (
           <SplashScreen
             onNext={() =>
-              fwd(() =>
-                setScreen(!FORCE_VALUE_PROPS && valuePropsSeen ? "onboarding" : "valueProps"),
-              )
+              fwd(() => {
+                // hasSaved is false here (see below), so this is always a
+                // brand-new visitor: after this they only fill in "¿quién
+                // come en casa?" and land straight on Home. Force onbStep
+                // back to 0 too — it may still be pointing at a later step
+                // left over from a previous (abandoned) attempt.
+                setFirstRunOnboarding(true);
+                setOnbStep(0);
+                setScreen(!FORCE_VALUE_PROPS && valuePropsSeen ? "onboarding" : "valueProps");
+              })
             }
             hasSaved={FORCE_VALUE_PROPS ? false : data.members.length > 0}
-            onResume={() => fwd(() => {
-              // Signed-in users land on their dashboard; guests keep going
-              // straight to their menu (no account to show a profile for).
-              if (user) { setScreen("dashboard"); return; }
-              setScreen(Object.keys(menuPlan).length > 0 ? "menu" : "onboarding");
-            })}
+            onResume={() => fwd(() => setScreen("dashboard"))}
             isAuthed={Boolean(user)}
             onGoogle={signInWithGoogle}
           />
@@ -1992,95 +2063,134 @@ export default function App() {
         />
       )}
 
-      {resetConfirm && (
-        <div
-          onClick={() => setResetConfirm(null)}
-          className="mp-overlay-in"
-          style={{
-            position: "fixed", inset: 0, zIndex: 300,
-            background: "rgba(0,0,0,.5)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "0 24px",
-          }}
-        >
+      {resetConfirm && (() => {
+        const variant = RESET_VARIANTS[resetConfirm];
+        const danger = variant.tone === "danger";
+        const confirmAction =
+          resetConfirm === "soft"
+            ? doSoftReset
+            : resetConfirm === "delete"
+              ? doDeleteAccount
+              : resetConfirm === "abandon"
+                ? doAbandonOnboarding
+                : doReset;
+        return (
           <div
-            onClick={(e) => e.stopPropagation()}
-            className="mp-sheet-up"
+            onClick={() => setResetConfirm(null)}
             style={{
-              background: "#fff",
-              borderRadius: 24,
-              padding: "28px 24px 24px",
-              width: "100%",
-              maxWidth: 360,
-              boxShadow: "0 24px 60px rgba(0,0,0,.25)",
+              position: "fixed", inset: 0, zIndex: 300,
+              background: "rgba(20,47,29,.4)",
+              backdropFilter: "blur(2px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: "0 22px",
+              animation: "mpModalFadeIn .2s ease",
             }}
           >
-            <div style={{
-              width: 52, height: 52, borderRadius: 16,
-              background: "#fff3f3", margin: "0 auto 16px",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <span style={{ fontSize: 26 }}>⚠️</span>
-            </div>
-            <h3 style={{
-              margin: "0 0 8px", fontSize: 19, fontWeight: 900,
-              color: "#142f1d", textAlign: "center",
-            }}>
-              {resetConfirm === "soft"
-                ? "¿Reiniciar el menú?"
-                : resetConfirm === "delete"
-                  ? "¿Eliminar tu cuenta?"
-                  : "¿Reiniciar todo?"}
-            </h3>
-            <p style={{
-              margin: "0 0 24px", fontSize: 14, color: "#6b7b6e",
-              textAlign: "center", lineHeight: 1.5,
-            }}>
-              {resetConfirm === "soft"
-                ? "Se borrará el menú de esta semana y la lista de la compra. Tu familia, recetas y preferencias se mantienen."
-                : resetConfirm === "delete"
-                  ? "Se borrarán todos tus datos y se cerrará tu sesión. Esta acción no se puede deshacer."
-                  : "Se borrarán todos tus datos, menús y configuración. Esta acción no se puede deshacer."}
-            </p>
-            <div style={{ display: "flex", gap: 10 }}>
-              <button
-                type="button"
-                onClick={() => setResetConfirm(null)}
+            <style>{`
+              @keyframes mpModalFadeIn { from { opacity: 0; } to { opacity: 1; } }
+              @keyframes mpModalPop {
+                0%   { opacity: 0; transform: translateY(18px) scale(.94); }
+                60%  { transform: translateY(-3px) scale(1.01); }
+                100% { opacity: 1; transform: translateY(0) scale(1); }
+              }
+              @keyframes mpModalBob {
+                0%, 100% { transform: translateY(0) rotate(-4deg); }
+                50%      { transform: translateY(-4px) rotate(-4deg); }
+              }
+            `}</style>
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "relative",
+                width: "100%",
+                maxWidth: 360,
+                background: "#fff",
+                borderRadius: 24,
+                padding: "28px 22px 20px",
+                boxShadow: "0 18px 50px rgba(20,47,29,.32)",
+                animation: "mpModalPop .38s cubic-bezier(.34,1.56,.5,1) both",
+              }}
+            >
+              <div
                 style={{
-                  flex: 1, padding: "14px", borderRadius: 14,
-                  border: "none", background: "#2d5a3d", color: "#fff",
-                  fontSize: 15, fontWeight: 800, cursor: "pointer",
-                  fontFamily: "inherit",
+                  position: "absolute",
+                  top: -24,
+                  left: 24,
+                  width: 52,
+                  height: 52,
+                  borderRadius: "50% 50% 50% 8px",
+                  background: danger
+                    ? "linear-gradient(135deg, #b7452f, #d9704f)"
+                    : "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: danger
+                    ? "0 6px 16px rgba(183,69,47,.4)"
+                    : "0 6px 16px rgba(45,90,61,.4)",
+                  animation: "mpModalBob 2.4s ease-in-out infinite",
                 }}
               >
-                Cancelar
-              </button>
-              <button
-                type="button"
-                onClick={
-                  resetConfirm === "soft"
-                    ? doSoftReset
-                    : resetConfirm === "delete"
-                      ? doDeleteAccount
-                      : doReset
-                }
-                style={{
-                  flex: 1, padding: "14px", borderRadius: 14,
-                  border: "none", background: "#c0392b", color: "#fff",
-                  fontSize: 15, fontWeight: 800, cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                {resetConfirm === "soft"
-                  ? "Reiniciar menú"
-                  : resetConfirm === "delete"
-                    ? "Eliminar"
-                    : "Reiniciar"}
-              </button>
+                <variant.Icon size={24} color="#fff" />
+              </div>
+
+              <div style={{ marginTop: 20 }}>
+                <h3 style={{
+                  margin: "0 0 6px", fontSize: 19, fontWeight: 900,
+                  color: "#142f1d", letterSpacing: "-.4px",
+                }}>
+                  {variant.title}
+                </h3>
+                <p style={{
+                  margin: "0 0 20px", fontSize: 13.5, color: "#5a7a66",
+                  lineHeight: 1.5,
+                }}>
+                  {variant.desc}
+                </p>
+              </div>
+
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setResetConfirm(null)}
+                  style={{
+                    width: "100%",
+                    padding: "13px 16px",
+                    borderRadius: 13,
+                    border: "none",
+                    background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+                    color: "#fff",
+                    fontSize: 14.5,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {resetConfirm === "abandon" ? "Seguir aquí" : "Cancelar"}
+                </button>
+                <button
+                  type="button"
+                  onClick={confirmAction}
+                  style={{
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: 13,
+                    border: `1.5px solid ${danger ? "#f0c9bf" : "#cfe0d4"}`,
+                    background: "#fff",
+                    color: danger ? "#a8402b" : "#2d5a3d",
+                    fontSize: 13.5,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {variant.confirmLabel}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {whoForOpen && (
         <div

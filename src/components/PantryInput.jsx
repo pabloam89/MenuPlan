@@ -145,7 +145,7 @@ export function PantryInput({ onSaved }) {
             padding: "10px 12px",
             borderRadius: 12,
             border: "1.5px solid #dde7e0",
-            fontSize: 13.5,
+            fontSize: 16,
             fontFamily: "inherit",
             resize: "none",
             outline: "none",
@@ -211,7 +211,7 @@ export function PantryInput({ onSaved }) {
                   style={{
                     border: "1px solid #e8c98a",
                     borderRadius: 8,
-                    fontSize: 11.5,
+                    fontSize: 16,
                     color: "#8a6d1f",
                     background: "#fff",
                     fontFamily: "inherit",

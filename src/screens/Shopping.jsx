@@ -601,12 +601,12 @@ function QtyInput({ item, onSave, onCancel }) {
           if (e.key === "Escape") { e.preventDefault(); onCancel(); }
         }}
         style={{
-          width: "2.8rem",
+          width: "3.4rem",
           textAlign: "right",
           border: "1.5px solid #2d5a3d",
           borderRadius: 7,
           padding: "3px 5px",
-          fontSize: 13,
+          fontSize: 16,
           fontWeight: 800,
           fontVariantNumeric: "tabular-nums",
           fontFamily: "inherit",
@@ -1198,7 +1198,7 @@ const inputStyle = {
   padding: "8px 10px",
   borderRadius: 10,
   border: "1px solid #e0eae3",
-  fontSize: 14,
+  fontSize: 16,
   fontWeight: 600,
   outline: "none",
   width: "100%",

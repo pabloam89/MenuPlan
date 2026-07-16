@@ -205,7 +205,7 @@ export function FeedbackFAB({ user, screen, onToast }) {
                     borderRadius: 12,
                     border: "1px solid #e0e5e2",
                     background: "#f7f9f8",
-                    fontSize: 13,
+                    fontSize: 16,
                     fontFamily: "inherit",
                     resize: "vertical",
                     outline: "none",

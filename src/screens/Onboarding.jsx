@@ -204,7 +204,7 @@ export function OnboardingShell({
         <div style={{ flex: "0 0 auto" }}>
           {onReset && (
             <button type="button" onClick={onReset} style={headerBtn}>
-              Reiniciar
+              Salir
             </button>
           )}
         </div>
@@ -425,7 +425,9 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     borderRadius: 10,
     border: "1.5px solid #ddd",
     background: "#fff",
-    fontSize: 15,
+    // 16px es el mínimo para que Safari/iOS no haga zoom automático al
+    // enfocar el campo (ver index.css: regla global para inputs/textarea).
+    fontSize: 16,
     fontWeight: 800,
     textAlign: "center",
     color: "#1a3a24",
@@ -522,7 +524,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
             style={{
               width: "100%", height: fieldH, padding: "0 12px",
               borderRadius: 10, border: "1.5px solid #ddd",
-              fontSize: 14, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+              fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
             }}
             onKeyDown={(e) => e.key === "Enter" && addMember()}
           />
@@ -882,12 +884,12 @@ function gridChipStyle(selected) {
 
 const fixedRowH = 36;
 const fixedTimesInputStyle = {
-  width: 36,
+  width: 40,
   height: fixedRowH,
   padding: "0 2px",
   borderRadius: 8,
   border: "1px solid #ddd",
-  fontSize: 12,
+  fontSize: 16,
   fontWeight: 700,
   textAlign: "center",
   color: "#1a3a24",
@@ -1049,7 +1051,7 @@ function FixedDishRow({ name, garnish, catLabel, catColor, leading, nameValue, o
               padding: "0 10px",
               borderRadius: 8,
               border: "1px solid #ddd",
-              fontSize: 13,
+              fontSize: 16,
               outline: "none",
               boxSizing: "border-box",
               background: "#fff",
@@ -1678,7 +1680,7 @@ export function OnboardingRestrictions({
                     value={customAllergy}
                     onChange={(e) => setCustomAllergy(e.target.value)}
                     placeholder="Otra alergia o intolerancia"
-                    style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 12.5, outline: "none", fontFamily: "inherit" }}
+                    style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 16, outline: "none", fontFamily: "inherit" }}
                     onKeyDown={(e) => e.key === "Enter" && addCustomAllergy()}
                     autoFocus
                   />
@@ -5070,7 +5072,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               border: "1.5px solid #2d5a3d",
               background: "#fff",
               color: "#2d5a3d",
-              fontSize: 12,
+              fontSize: 16,
               fontWeight: 700,
               cursor: "pointer",
               width: "100%",
@@ -5190,7 +5192,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                       padding: "8px 10px",
                       borderRadius: 8,
                       border: "1.5px solid #e3ebe6",
-                      fontSize: 13,
+                      fontSize: 16,
                       outline: "none",
                       background: "#fff",
                     }}
@@ -5246,7 +5248,7 @@ export function OnboardingFixedDishes({ data, setData, onNext, onBack, onFinish,
             padding: "12px 14px",
             borderRadius: 10,
             border: "1.5px solid #ddd",
-            fontSize: 14,
+            fontSize: 16,
             outline: "none",
           }}
           onKeyDown={(e) => e.key === "Enter" && add()}
@@ -5457,7 +5459,7 @@ function GoalOptionGrid({
             value={addValue}
             onChange={(e) => onAddValueChange(e.target.value)}
             placeholder="Tu objetivo"
-            style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid #ddd", fontSize: 12 }}
+            style={{ flex: 1, padding: "8px 10px", borderRadius: 8, border: "1px solid #ddd", fontSize: 16 }}
             onKeyDown={(e) => e.key === "Enter" && onAddConfirm()}
             autoFocus
           />
@@ -5654,13 +5656,13 @@ function FreqNumberInput({ value, color, onChange }) {
       }}
       aria-label="Veces por semana"
       style={{
-        width: 34,
-        height: 26,
+        width: 38,
+        height: 30,
         borderRadius: 8,
         border: `1.5px solid ${color}`,
         background: "#fff",
         color: "#1a3a24",
-        fontSize: 12.5,
+        fontSize: 16,
         fontWeight: 800,
         fontFamily: "inherit",
         textAlign: "center",
@@ -7007,7 +7009,7 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
               padding: "8px 12px",
               borderRadius: 10,
               border: "1.5px solid #2d5a3d",
-              fontSize: 13,
+              fontSize: 16,
               outline: "none",
               fontFamily: "inherit",
             }}
@@ -7148,7 +7150,7 @@ function GoalChip({ def, selected, onToggle, onRename, onRemove }) {
           padding: "8px 14px",
           borderRadius: 20,
           border: "1.5px solid #2d5a3d",
-          fontSize: 13,
+          fontSize: 16,
           outline: "none",
           fontFamily: "inherit",
           minWidth: 100,
@@ -7242,7 +7244,7 @@ function FreqRow({ freqKey, value, onChange, onRename, onRemove }) {
               padding: "4px 8px",
               borderRadius: 6,
               border: "1.5px solid #2d5a3d",
-              fontSize: 13,
+              fontSize: 16,
               color: "#555",
               outline: "none",
               fontFamily: "inherit",
@@ -7460,7 +7462,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                   if (e.key === "Escape") { setDraftTool(""); setAddingTool(false); }
                 }}
                 placeholder="Otra herramienta"
-                style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 12.5, outline: "none", fontFamily: "inherit" }}
+                style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 16, outline: "none", fontFamily: "inherit" }}
               />
               <button
                 type="button"
