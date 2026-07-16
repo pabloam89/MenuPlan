@@ -18,10 +18,20 @@ const PLANNER_ALIASES = {
   haiku: FAST_MODEL,
 };
 
+// Full model ids an override is allowed to resolve to. `?planner=`/
+// localStorage/env accept arbitrary strings, but Anthropic's API rejects an
+// unrecognized `model` with a 400 — and because the localStorage override is
+// sticky, a single bad or mistyped value used to break EVERY generation from
+// that browser until someone thought to clear it manually. Anything that
+// doesn't land on one of these two known-good ids is now rejected instead of
+// forwarded to the API as-is.
+const ALLOWED_OVERRIDE_MODELS = new Set([PLANNER_MODEL, FAST_MODEL]);
+
 /**
  * Resolves which model the menu planner should use for THIS generation, so we
  * can A/B Sonnet vs Haiku (latency/cost vs quality) without shipping code.
- * Precedence (first match wins):
+ * Precedence (first match wins, skipping any override that isn't a known
+ * model — see ALLOWED_OVERRIDE_MODELS):
  *   1. `?planner=haiku|sonnet|<full-id>`  — per-session manual QA override.
  *   2. localStorage `mp_planner_model`     — sticky override for a browser.
  *   3. env `VITE_PLANNER_MODEL`            — per-deployment default (e.g. staging).
@@ -31,28 +41,44 @@ const PLANNER_ALIASES = {
  * `menu_generated` analytics event, so variants stay comparable end to end.
  */
 export function resolvePlannerModel() {
-  const wrap = (raw, source) => ({
-    model: PLANNER_ALIASES[raw] ?? raw,
-    variant: raw,
-    source,
-  });
+  const wrap = (raw, source) => {
+    const model = PLANNER_ALIASES[raw] ?? raw;
+    return ALLOWED_OVERRIDE_MODELS.has(model) ? { model, variant: raw, source } : null;
+  };
 
   try {
     const q = new URLSearchParams(window.location.search).get("planner");
-    if (q) return wrap(q, "url");
+    if (q) {
+      const resolved = wrap(q, "url");
+      if (resolved) return resolved;
+    }
   } catch {
     // no window (tests/SSR) — fall through
   }
 
   try {
     const ls = localStorage.getItem("mp_planner_model");
-    if (ls) return wrap(ls, "storage");
+    if (ls) {
+      const resolved = wrap(ls, "storage");
+      if (resolved) return resolved;
+      // Bad/stale value (e.g. a typo, or a since-retired model id) — clear it
+      // so this browser self-heals instead of failing every generation
+      // forever until someone manually clears localStorage.
+      try {
+        localStorage.removeItem("mp_planner_model");
+      } catch {
+        // ignore
+      }
+    }
   } catch {
     // localStorage unavailable — fall through
   }
 
   const env = import.meta.env?.VITE_PLANNER_MODEL;
-  if (env) return wrap(env, "env");
+  if (env) {
+    const resolved = wrap(env, "env");
+    if (resolved) return resolved;
+  }
 
   if (import.meta.env?.VITE_PLANNER_AB === "1") {
     let bucket = null;
