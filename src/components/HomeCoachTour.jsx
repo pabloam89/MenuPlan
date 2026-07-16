@@ -15,6 +15,11 @@ import {
   ShoppingCart,
   BarChart3,
   ArrowRight,
+  Share2,
+  Receipt,
+  Home,
+  Check,
+  Trash2,
   X,
 } from "lucide-react";
 
@@ -137,6 +142,62 @@ export const MENU_COACH_STEPS = [
     Icon: BarChart3,
     title: "Análisis",
     desc: "Consulta el equilibrio nutricional y la variedad de vuestra semana.",
+    place: "above",
+  },
+];
+
+// Compra screen: explains every clickable icon (header actions + per-product
+// actions). Unlike the other tours this one is opened on demand from the "?"
+// button and can be re-run any time — it's a toggleable spotlight, not a
+// one-shot for first-timers.
+export const SHOPPING_COACH_STEPS = [
+  {
+    selector: '[data-coach="shop-share"]',
+    Icon: Share2,
+    title: "Compartir",
+    desc: "Manda la lista por WhatsApp o cópiala para pegarla donde quieras.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="shop-receipt"]',
+    Icon: Receipt,
+    title: "Ticket",
+    desc: "Sube una foto del ticket y marcamos como comprado lo que coincida.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="shop-add"]',
+    Icon: Plus,
+    title: "Añadir",
+    desc: "Suma a mano cualquier cosa que falte y no esté en el menú.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="shop-athome"]',
+    Icon: Home,
+    title: "En casa",
+    desc: "Ya lo tienes: sale de la lista sin contar como compra.",
+    place: "above",
+  },
+  {
+    selector: '[data-coach="shop-purchased"]',
+    Icon: Check,
+    title: "Comprado",
+    desc: "Lo acabas de comprar: se tacha y suma al progreso.",
+    place: "above",
+  },
+  {
+    selector: '[data-coach="shop-recipes"]',
+    Icon: BookOpen,
+    title: "Recetas",
+    desc: "Mira en qué días y platos se usa ese ingrediente.",
+    place: "above",
+  },
+  {
+    selector: '[data-coach="shop-remove"]',
+    Icon: Trash2,
+    title: "Quitar",
+    desc: "Elimina el producto de la lista por completo.",
     place: "above",
   },
 ];
@@ -437,4 +498,8 @@ export function RecipesCoachTour({ onClose }) {
 
 export function MenuCoachTour({ onClose }) {
   return <CoachTour steps={MENU_COACH_STEPS} onClose={onClose} />;
+}
+
+export function ShoppingCoachTour({ onClose }) {
+  return <CoachTour steps={SHOPPING_COACH_STEPS} onClose={onClose} />;
 }

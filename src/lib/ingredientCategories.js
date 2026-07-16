@@ -18,6 +18,27 @@ export const SHOPPING_AISLES = [
   "Aceites y conservas",
 ];
 
+// Perishable aisles (fresh food) — best bought for the week you'll actually eat
+// it. The rest (legumbres, pasta/arroz, especias, aceites y conservas) keep for
+// a long time, so they can be bought ahead for several weeks at once. Derived
+// purely from the aisle each item already gets (guessShoppingAisle), so no new
+// per-recipe field or catalog change is needed. Used by the shopping list to
+// split "Frescos" vs "Despensa" and, for multi-week menús, to decide what can
+// be merged across weeks.
+export const PERISHABLE_AISLES = new Set([
+  "Verduras",
+  "Frutas",
+  "Carne",
+  "Pescado",
+  "Lácteos",
+  "Huevos",
+  "Panadería",
+]);
+
+export function isPerishableAisle(aisle) {
+  return PERISHABLE_AISLES.has(aisle);
+}
+
 export function normalizeName(name) {
   return String(name ?? "")
     .toLowerCase()

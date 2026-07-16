@@ -955,6 +955,15 @@ export default function App() {
           plannerModel: planner.model,
         });
 
+        // The planner picks from recipeCatalog.js, but buildShoppingList (and the
+        // UI) resolve dishes through RECIPES_BY_ID in recipes.js — the two are
+        // bridged only by registerRecipes(). Register THIS week's recipes before
+        // building its shopping list; otherwise none of the picked catalog/AI
+        // recipes resolve and the list comes back empty. (registerRecipes is a
+        // synchronous mutation of a shared map, so it's safe to call from the
+        // parallel workers.) The aggregate registerRecipes below is now belt-and-
+        // suspenders for health-flags/UI, but harmless.
+        registerRecipes(recipes);
         const sh = buildShoppingList(plan, groups, getMeals(weekData), pantryIngredients);
         const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
         const { startISO, endISO } = computeWeekRange(offset, startDayIdx);

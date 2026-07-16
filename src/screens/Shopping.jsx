@@ -34,8 +34,9 @@ import {
   SegmentedControl,
   bottomNavSpacer,
 } from "../components/ui.jsx";
+import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
 import { INGREDIENT_CATEGORIES } from "../data/recipes.js";
-import { normalizeIngredientKey } from "../lib/ingredientCategories.js";
+import { normalizeIngredientKey, isPerishableAisle } from "../lib/ingredientCategories.js";
 import { kitchenHint } from "../lib/kitchenUnits.js";
 import { extractReceiptProducts } from "../lib/receiptParser.js";
 import {
@@ -58,18 +59,6 @@ const MEAL_BADGE = {
   Comida: { Icon: Sun, color: "#0d9488" },
   Cena: { Icon: Moon, color: "#6366f1" },
 };
-
-const ICON_LEGEND_HEADER = [
-  { icon: Receipt, label: "Ticket", hint: "Sube una foto y marca lo comprado." },
-  { icon: Plus, label: "Añadir", hint: "Añade un producto a mano." },
-];
-
-const ICON_LEGEND_ROW = [
-  { icon: Home, label: "En casa", hint: "Ya lo tienes. Sale de la lista." },
-  { icon: Check, label: "Comprado", hint: "Lo acabas de comprar." },
-  { icon: BookOpen, label: "Recetas", hint: "Días y platos donde entra." },
-  { icon: Trash2, label: "Quitar", hint: "Eliminar de la lista." },
-];
 
 const AISLE_UI = {
   Verduras: { Icon: Leaf, color: "#3d9b5f" },
@@ -116,7 +105,7 @@ export function ShoppingScreen({
     if (initialListScope) setListScope(initialListScope);
   }, [initialListScope]);
   const [expandedId, setExpandedId] = useState(null);
-  const [showLegend, setShowLegend] = useState(false);
+  const [showIconCoach, setShowIconCoach] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   const [receiptMatches, setReceiptMatches] = useState(null);
@@ -224,6 +213,17 @@ export function ShoppingScreen({
     () => itemsByAisle(visibleItems).map((g) => ({ key: g.aisle, title: g.aisle, items: g.items })),
     [visibleItems]
   );
+  // Split the aisles into two always-visible macro-groups: fresh food you buy
+  // for this week vs. staples that keep and can be bought ahead. Purely a
+  // presentation split — same aisles/accordions inside each.
+  const freshSections = useMemo(
+    () => sections.filter((s) => isPerishableAisle(s.key)),
+    [sections]
+  );
+  const stapleSections = useMemo(
+    () => sections.filter((s) => !isPerishableAisle(s.key)),
+    [sections]
+  );
 
   const isEmpty = sections.every((s) => s.items.length === 0) && pantryItems.length === 0;
   const hasPendingItems = shoppingOnlyItems.some(isActiveItem);
@@ -246,6 +246,102 @@ export function ShoppingScreen({
       setReceiptBusy(false);
       if (fileRef.current) fileRef.current.value = "";
     }
+  };
+
+  const toggleIconCoach = () => {
+    setShowIconCoach((on) => {
+      if (on) return false;
+      // The per-product icons only exist in the DOM when a section is open, so
+      // make sure the first available aisle is expanded before the spotlight
+      // starts hunting for its targets.
+      const firstKey = freshSections[0]?.key ?? stapleSections[0]?.key;
+      if (firstKey) setOpenSections((c) => ({ ...c, [firstKey]: true }));
+      return true;
+    });
+  };
+
+  const renderAisleSection = (section) => {
+    if (section.items.length === 0) return null;
+    const open = Boolean(openSections[section.key]);
+    return (
+      <div key={section.key} style={{ marginBottom: 10 }}>
+        <button
+          type="button"
+          onClick={() =>
+            setOpenSections((c) => ({ ...c, [section.key]: !c[section.key] }))
+          }
+          style={{
+            ...sectionHeaderStyle,
+            ...sectionLabelCardStyle,
+            borderRadius: open ? "14px 14px 0 0" : 14,
+            borderBottom: open ? "none" : sectionLabelCardStyle.border,
+          }}
+        >
+          <AisleIcon aisle={section.key} />
+          <span
+            style={{
+              flex: 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              minWidth: 0,
+              textAlign: "left",
+            }}
+          >
+            {open ? (
+              <ChevronDown size={16} color="#7a8a7f" />
+            ) : (
+              <ChevronRight size={16} color="#7a8a7f" />
+            )}
+            <span
+              style={{
+                fontSize: 15,
+                fontWeight: 800,
+                color: "#142f1d",
+                letterSpacing: "-.2px",
+              }}
+            >
+              {section.title}
+            </span>
+          </span>
+          <span
+            style={{
+              fontSize: 14,
+              fontWeight: 800,
+              color: "#7a8a7f",
+              minWidth: 28,
+              textAlign: "right",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {section.items.length}
+          </span>
+        </button>
+        {open && (
+          <div style={aisleItemsStyle}>
+            {section.items.map((item) => (
+              <ShoppingRow
+                key={`${section.key}-${item.id}`}
+                item={item}
+                doneView={listScope === "done"}
+                expanded={expandedId === item.id}
+                isEditingQty={editingQtyId === item.id}
+                onToggleRecipes={() =>
+                  setExpandedId(expandedId === item.id ? null : item.id)
+                }
+                onEditQty={() => setEditingQtyId(item.id)}
+                onSaveQty={(val) => saveItemQty(item.id, val)}
+                onCancelQty={() => setEditingQtyId(null)}
+                onAtHome={() => patchItem(item.id, { atHome: true, have: false })}
+                onPurchased={() => patchItem(item.id, { have: true })}
+                onUndo={() => patchItem(item.id, { atHome: false, have: false })}
+                onRemove={() => removeItem(item.id)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
   };
 
   return (
@@ -272,16 +368,16 @@ export function ShoppingScreen({
             <h2 style={titleStyle}>Tu compra</h2>
             <button
               type="button"
-              onClick={() => setShowLegend((v) => !v)}
+              onClick={toggleIconCoach}
               style={{
                 ...iconBtnStyle,
                 width: 32,
                 height: 32,
                 borderRadius: 999,
-                background: showLegend ? "#e8f0ea" : "#fff",
+                background: showIconCoach ? "#e8f0ea" : "#fff",
               }}
-              aria-label="Ayuda iconos"
-              aria-expanded={showLegend}
+              aria-label="Explicar iconos"
+              aria-pressed={showIconCoach}
             >
               <CircleHelp size={17} strokeWidth={2.2} />
             </button>
@@ -289,6 +385,7 @@ export function ShoppingScreen({
           <div style={{ display: "flex", gap: 8 }}>
             <button
               type="button"
+              data-coach="shop-share"
               onClick={() => shareShoppingList(shopping).then((r) => {
                 if (r.method === "clipboard") onToast?.("Lista copiada al portapapeles");
                 else if (r.method === "download") onToast?.("Lista descargada");
@@ -301,6 +398,7 @@ export function ShoppingScreen({
             </button>
             <button
               type="button"
+              data-coach="shop-receipt"
               onClick={() => fileRef.current?.click()}
               disabled={receiptBusy}
               style={iconBtnStyle}
@@ -314,6 +412,7 @@ export function ShoppingScreen({
             </button>
             <button
               type="button"
+              data-coach="shop-add"
               onClick={() => setShowAdd(true)}
               style={iconBtnStyle}
               aria-label="Añadir"
@@ -326,8 +425,8 @@ export function ShoppingScreen({
           {weekLabel}
         </div>
 
-        {showLegend && (
-          <IconLegendBubble onClose={() => setShowLegend(false)} />
+        {showIconCoach && (
+          <ShoppingCoachTour onClose={() => setShowIconCoach(false)} />
         )}
 
         {totalCount > 0 && (
@@ -379,89 +478,24 @@ export function ShoppingScreen({
           />
         )}
 
-        {sections.map((section) => {
-          if (section.items.length === 0) return null;
-          const open = Boolean(openSections[section.key]);
-          return (
-            <div key={section.key} style={{ marginBottom: 10 }}>
-              <button
-                type="button"
-                onClick={() =>
-                  setOpenSections((c) => ({ ...c, [section.key]: !c[section.key] }))
-                }
-                style={{
-                  ...sectionHeaderStyle,
-                  ...sectionLabelCardStyle,
-                  borderRadius: open ? "14px 14px 0 0" : 14,
-                  borderBottom: open ? "none" : sectionLabelCardStyle.border,
-                }}
-              >
-                <AisleIcon aisle={section.key} />
-                <span
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    minWidth: 0,
-                    textAlign: "left",
-                  }}
-                >
-                  {open ? (
-                    <ChevronDown size={16} color="#7a8a7f" />
-                  ) : (
-                    <ChevronRight size={16} color="#7a8a7f" />
-                  )}
-                  <span
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 800,
-                      color: "#142f1d",
-                      letterSpacing: "-.2px",
-                    }}
-                  >
-                    {section.title}
-                  </span>
-                </span>
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 800,
-                    color: "#7a8a7f",
-                    minWidth: 28,
-                    textAlign: "right",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {section.items.length}
-                </span>
-              </button>
-              {open && (
-                <div style={aisleItemsStyle}>
-                  {section.items.map((item) => (
-                    <ShoppingRow
-                      key={`${section.key}-${item.id}`}
-                      item={item}
-                      doneView={listScope === "done"}
-                      expanded={expandedId === item.id}
-                      isEditingQty={editingQtyId === item.id}
-                      onToggleRecipes={() =>
-                        setExpandedId(expandedId === item.id ? null : item.id)
-                      }
-                      onEditQty={() => setEditingQtyId(item.id)}
-                      onSaveQty={(val) => saveItemQty(item.id, val)}
-                      onCancelQty={() => setEditingQtyId(null)}
-                      onAtHome={() => patchItem(item.id, { atHome: true, have: false })}
-                      onPurchased={() => patchItem(item.id, { have: true })}
-                      onUndo={() => patchItem(item.id, { atHome: false, have: false })}
-                      onRemove={() => removeItem(item.id)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
+        {freshSections.length > 0 && (
+          <MacroHeader
+            icon={Apple}
+            title="Frescos"
+            count={freshSections.reduce((n, s) => n + s.items.length, 0)}
+            first
+          />
+        )}
+        {freshSections.map(renderAisleSection)}
+
+        {stapleSections.length > 0 && (
+          <MacroHeader
+            icon={Package}
+            title="Despensa"
+            count={stapleSections.reduce((n, s) => n + s.items.length, 0)}
+          />
+        )}
+        {stapleSections.map(renderAisleSection)}
 
         {pantryItems.length > 0 && (() => {
           const open = Boolean(openSections.__pantry);
@@ -501,7 +535,7 @@ export function ShoppingScreen({
                       letterSpacing: "-.2px",
                     }}
                   >
-                    Despensa
+                    Ya en casa
                   </span>
                 </span>
                 <span
@@ -752,17 +786,18 @@ function ShoppingRow({
             </>
           ) : (
             <>
-              <ActionBtn icon={Home} label="En casa" onClick={onAtHome} active={item.atHome} />
-              <ActionBtn icon={Check} label="Comprado" onClick={onPurchased} active={item.have} />
+              <ActionBtn icon={Home} label="En casa" onClick={onAtHome} active={item.atHome} coach="shop-athome" />
+              <ActionBtn icon={Check} label="Comprado" onClick={onPurchased} active={item.have} coach="shop-purchased" />
               {item.recipeCount > 0 && (
                 <ActionBtn
                   icon={BookOpen}
                   label="Recetas"
                   onClick={onToggleRecipes}
                   active={expanded}
+                  coach="shop-recipes"
                 />
               )}
-              <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted />
+              <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted coach="shop-remove" />
             </>
           )}
         </div>
@@ -867,92 +902,71 @@ function MealBadge({ meal }) {
   );
 }
 
-function IconLegendBubble({ onClose }) {
+function MacroHeader({ icon: Icon, title, subtitle, count, first }) {
   return (
     <div
       style={{
-        marginBottom: 14,
-        padding: "14px 14px 12px",
-        borderRadius: 14,
-        background: "#fff",
-        border: "1px solid #e0eae3",
-        boxShadow: "0 8px 28px rgba(20,47,29,.1)",
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        margin: first ? "2px 2px 10px" : "22px 2px 10px",
       }}
     >
-      <div
+      <span
         style={{
-          display: "flex",
-          justifyContent: "space-between",
+          width: 34,
+          height: 34,
+          borderRadius: 10,
+          background: "#e8f0ea",
+          color: "#2d5a3d",
+          display: "inline-flex",
           alignItems: "center",
-          marginBottom: 12,
+          justifyContent: "center",
+          flexShrink: 0,
         }}
       >
-        <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>Iconos</span>
-        <button type="button" onClick={onClose} style={{ ...iconBtnStyle, width: 28, height: 28 }}>
-          <X size={14} />
-        </button>
-      </div>
-      <LegendGroup title="Lista" items={ICON_LEGEND_HEADER} />
-      <LegendGroup title="Producto" items={ICON_LEGEND_ROW} />
-    </div>
-  );
-}
-
-function LegendGroup({ title, items }) {
-  return (
-    <div style={{ marginTop: title === "Producto" ? 10 : 0 }}>
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 800,
-          color: "#8d978f",
-          textTransform: "uppercase",
-          letterSpacing: ".04em",
-          marginBottom: 4,
-        }}
-      >
-        {title}
-      </div>
-      {items.map(({ icon: Icon, label, hint }) => (
+        <Icon size={18} strokeWidth={2.4} />
+      </span>
+      <div style={{ flex: 1, minWidth: 0 }}>
         <div
-          key={label}
           style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 12,
-            padding: "8px 0",
-            borderTop: "1px solid #f0f4f1",
+            fontSize: 15,
+            fontWeight: 900,
+            color: "#142f1d",
+            letterSpacing: "-.3px",
+            lineHeight: 1.1,
           }}
         >
-          <span
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 10,
-              border: "1px solid #e0eae3",
-              background: "#f7f9f7",
-              color: "#2d5a3d",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <Icon size={16} strokeWidth={2.2} />
-          </span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>{label}</div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "#8d978f", marginTop: 1 }}>
-              {hint}
-            </div>
-          </div>
+          {title}
         </div>
-      ))}
+        {subtitle && (
+          <div style={{ fontSize: 11.5, fontWeight: 700, color: "#7a8a7f", marginTop: 1 }}>
+            {subtitle}
+          </div>
+        )}
+      </div>
+      {typeof count === "number" && count > 0 && (
+        <span
+          style={{
+            fontSize: 12,
+            fontWeight: 900,
+            color: "#2d5a3d",
+            background: "#eef4ef",
+            border: "1px solid #d7e6dc",
+            borderRadius: 999,
+            padding: "3px 9px",
+            fontVariantNumeric: "tabular-nums",
+            flexShrink: 0,
+          }}
+        >
+          {count}
+        </span>
+      )}
     </div>
   );
 }
 
-function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly }) {
+function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach }) {
   const style = {
     width: 32,
     height: 32,
@@ -983,6 +997,7 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly }) {
       onClick={onClick}
       aria-label={label}
       title={label}
+      data-coach={coach}
       style={style}
     >
       <Icon size={15} strokeWidth={2.2} />
