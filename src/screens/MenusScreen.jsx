@@ -2,7 +2,7 @@ import { useState } from "react";
 import { createPortal } from "react-dom";
 import { Calendar, ChevronRight, Loader2, Pencil, RotateCw, Sparkles, Star, Trash2, X } from "lucide-react";
 import { BottomNav, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer } from "../components/ui.jsx";
-import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS } from "../lib/menuArchive.js";
+import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS, menuHasContent } from "../lib/menuArchive.js";
 
 const cardStyle = {
   background: "#fff",
@@ -440,8 +440,13 @@ export function MenusScreen({
   const [reuseTargetId, setReuseTargetId] = useState(null);
   const [openingId, setOpeningId] = useState(null);
 
-  const activeMenu = data.menus?.[data.activeMenuId] ?? null;
-  const history = sortMenusDesc(data.menus).filter((m) => m.id !== data.activeMenuId);
+  // Only treat the active menú as present when it has real dishes — a
+  // content-less/degenerate record must never render as "Menú actual".
+  const rawActive = data.menus?.[data.activeMenuId] ?? null;
+  const activeMenu = rawActive && menuHasContent(rawActive) ? rawActive : null;
+  const history = sortMenusDesc(data.menus).filter(
+    (m) => m.id !== data.activeMenuId && menuHasContent(m),
+  );
   const reuseTarget = reuseTargetId ? data.menus?.[reuseTargetId] : null;
 
   return (

@@ -27,6 +27,7 @@ const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").the
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
+import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
@@ -55,6 +56,7 @@ import {
   collectMenuRecipeIds,
   pruneAiRecipes,
   pruneMenuHistory,
+  planHasDishes,
 } from "./lib/menuArchive.js";
 import { todayDayIdx } from "./lib/weekCalendar.js";
 import {
@@ -126,6 +128,31 @@ const FORCE_VALUE_PROPS =
 // Temporary dietary states heavy/disruptive enough to warrant offering a
 // separate ad-hoc individual menu instead of restricting the whole family.
 const HEAVY_DIETARY_STATES = ["dieta_blanda"];
+
+// Max menú-weeks generated concurrently. Weeks are independent (deterministic
+// cross-week variety, see aiPlanner#poolForWeek), so they run in parallel — but
+// each week fans out to one LLM call per group, so we cap the burst to stay well
+// under Anthropic rate limits (e.g. 4 weeks × 2 groups would be 8 in flight).
+const WEEK_CONCURRENCY = 3;
+
+// Runs `fn` over `items` with at most `limit` in flight, preserving input order
+// in the returned results array. Rejects on the first error (like Promise.all).
+async function mapWithConcurrency(items, limit, fn) {
+  const results = new Array(items.length);
+  let cursor = 0;
+  async function worker() {
+    while (cursor < items.length) {
+      const i = cursor++;
+      results[i] = await fn(items[i], i);
+    }
+  }
+  const workers = Array.from(
+    { length: Math.max(1, Math.min(limit, items.length)) },
+    worker,
+  );
+  await Promise.all(workers);
+  return results;
+}
 
 // Shared copy/branding for the reset-family confirmation sheet. "abandon" and
 // "soft" are low-stakes (nothing valuable is lost), so they get MenuPlan's
@@ -441,7 +468,10 @@ function migrate(state) {
   // Only fires once: after this runs, `d.menus` is non-empty and the whole
   // block is skipped on every later load. Guarded on `state.menuPlan` still
   // having content so a legitimately-deleted active menú isn't resurrected.
-  if (Object.keys(d.menus).length === 0 && Object.keys(state.menuPlan ?? {}).length > 0) {
+  // Guard on real dishes (not just key count): a plan always carries a
+  // `_warnings` array, so an empty/aborted plan (`{ _warnings: [] }`) would
+  // otherwise synthesize a phantom "Menú actual" card with a date but no food.
+  if (Object.keys(d.menus).length === 0 && planHasDishes(state.menuPlan)) {
     const offset = d.menuWeek?.offset ?? 0;
     const startDayIdx = d.menuWeek?.startDayIdx ?? 0;
     const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
@@ -898,19 +928,15 @@ export default function App() {
         ? working.menuVarietyPref
         : "strict";
       const sameForAllWeeks = working.menuScheduleSameForAllWeeks !== false;
-      // Cross-week dedup bias (see generateGroupMenu): "strict" accumulates
-      // every dish used so far this menú; "moderate" resets each iteration to
-      // only the immediately preceding week; "relaxed" applies no bias.
-      let excludeRecipeIds = varietyPref === "relaxed" ? null : new Set();
+      // Planner model for THIS generation (A/B Sonnet vs Haiku). Resolved once
+      // so every week/group of the same menú uses the same variant.
+      const planner = resolvePlannerModel();
 
-      const weeks = {};
-      let firstWeekPlan = null;
-      let firstWeekShopping = null;
-      const allRecipes = [];
-
-      for (let w = 0; w < weekOffsets.length; w++) {
-        if (ctrl.signal.aborted) return;
-        const offset = weekOffsets[w];
+      // Weeks are generated in parallel (bounded by WEEK_CONCURRENCY). Cross-week
+      // variety is deterministic per week (aiPlanner#poolForWeek), so there's no
+      // dependency on a previous week's result — "strict"/"moderate" bias the
+      // pool, "relaxed" applies none.
+      const weekResults = await mapWithConcurrency(weekOffsets, WEEK_CONCURRENCY, async (offset, w) => {
         // Only the earliest selected week can be partial (starts today, not
         // Monday) — any other offset is always a full 7-day week.
         const startDayIdx = offset === weekOffsets[0] ? baseStartDayIdx : 0;
@@ -918,33 +944,50 @@ export default function App() {
           ? working.schedule
           : (working.menuWeekOverrides?.[offset] ?? working.schedule);
         const weekData = { ...working, groups, schedule: weekSchedule, menuWeek: { offset, startDayIdx } };
+        const crossWeek = varietyPref === "relaxed" || weekCount <= 1
+          ? null
+          : { weekIndex: w, weekCount, varietyPref };
 
         const { plan, recipes } = await generateMenuWithAI(weekData, {
           signal: ctrl.signal,
           pantryIngredients,
-          excludeRecipeIds,
+          crossWeek,
+          plannerModel: planner.model,
         });
-        if (excludeRecipeIds) {
-          const usedIds = recipes.map((r) => r.baseRecipeId ?? r.id);
-          if (varietyPref === "moderate") excludeRecipeIds = new Set(usedIds);
-          else for (const id of usedIds) excludeRecipeIds.add(id);
-        }
-        allRecipes.push(...recipes);
 
         const sh = buildShoppingList(plan, groups, getMeals(weekData), pantryIngredients);
         const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
         const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
-        weeks[startISO] = { offset, startDayIdx, startISO, endISO, plan, shopping: weekShopping, schedule: weekSchedule };
+        return { offset, startDayIdx, startISO, endISO, plan, weekShopping, weekSchedule, recipes };
+      });
+
+      if (ctrl.signal.aborted) return;
+
+      const weeks = {};
+      const allRecipes = [];
+      let firstWeekPlan = null;
+      let firstWeekShopping = null;
+      weekResults.forEach((res, w) => {
+        weeks[res.startISO] = {
+          offset: res.offset,
+          startDayIdx: res.startDayIdx,
+          startISO: res.startISO,
+          endISO: res.endISO,
+          plan: res.plan,
+          shopping: res.weekShopping,
+          schedule: res.weekSchedule,
+        };
+        allRecipes.push(...res.recipes);
         if (w === 0) {
-          firstWeekPlan = plan;
-          firstWeekShopping = weekShopping;
+          firstWeekPlan = res.plan;
+          firstWeekShopping = res.weekShopping;
         }
-      }
+      });
 
       registerRecipes(allRecipes);
       setMenuPlan(firstWeekPlan);
       const isFirstMenu = (data.menuHistory ?? []).length === 0;
-      trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length, weekCount });
+      trackEvent(user, "menu_generated", "menu", { groupCount: groups.length, memberCount: working.members.length, weekCount, plannerModel: planner.model, plannerVariant: planner.variant });
       if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
 
       const newMenu = {

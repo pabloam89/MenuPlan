@@ -560,10 +560,50 @@ const LLMResponseSchema = z.object({
   slots: z.array(SlotAssignmentSchema).min(1),
 });
 
+// ── Cross-week variety (parallel-safe) ──────────────────────────
+// Multi-week menús are generated in parallel (see App.jsx#regenerateMenu), so a
+// week can't look at what the previous week picked. Instead of a runtime
+// exclusion set, each recipe gets a STABLE bucket in [0, weekCount); a week
+// keeps its own bucket and only tops up from other buckets to stay above a safe
+// floor. Different weeks therefore lean toward disjoint dishes, deterministically
+// and without any inter-week dependency. "relaxed" disables it; "moderate" uses
+// a higher floor than "strict" (more overlap allowed, milder bias).
+
+// djb2 — small, fast, stable string hash. Only needs to be deterministic across
+// weeks within one generation, not cryptographic.
+function hashId(id) {
+  let h = 5381;
+  const s = String(id);
+  for (let i = 0; i < s.length; i++) h = (((h << 5) + h) + s.charCodeAt(i)) >>> 0;
+  return h;
+}
+
+export function poolForWeek(pool, crossWeek, slotCount) {
+  if (!crossWeek) return pool;
+  const { weekIndex, weekCount, varietyPref } = crossWeek;
+  if (!weekCount || weekCount <= 1 || varietyPref === "relaxed") return pool;
+
+  // Keep enough recipes that per-slot variety/time/type rules still have room.
+  const floor =
+    varietyPref === "moderate"
+      ? Math.max(slotCount * 3, 18)
+      : Math.max(slotCount * 2, 12);
+  if (pool.length <= floor) return pool;
+
+  const own = [];
+  const rest = [];
+  for (const r of pool) {
+    if (hashId(r.id) % weekCount === weekIndex % weekCount) own.push(r);
+    else rest.push(r);
+  }
+  if (own.length >= floor) return own;
+  return own.concat(rest.slice(0, floor - own.length));
+}
+
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], excludeRecipeIds = null) {
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -577,14 +617,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     throw new AIPlannerError(filterError);
   }
 
-  // Multi-week menús bias against repeating the same dish across weeks: drop
-  // ids used in previously generated weeks, but only when the pool stays big
-  // enough to still cover every slot — a small pool repeating a dish beats
-  // the LLM running out of valid options entirely.
-  if (excludeRecipeIds && excludeRecipeIds.size > 0) {
-    const reduced = filteredPool.filter((r) => !excludeRecipeIds.has(r.id));
-    if (reduced.length >= Math.min(8, filteredPool.length)) filteredPool = reduced;
-  }
+  // Multi-week menús bias against repeating the same dish across weeks. This is
+  // a deterministic per-week pool partition (see poolForWeek) rather than a
+  // runtime exclusion set, so weeks can be generated in parallel.
+  filteredPool = poolForWeek(filteredPool, crossWeek, ctx.slots.length);
 
   // Baby groups use a deterministic planner — no LLM call needed
   if (ctx.isBabyGroup) {
@@ -628,7 +664,9 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     pantryIngredients.map((p) => p.ingredientName),
   );
 
-  const request = (messages, model = DEFAULT_MODEL) =>
+  // The primary planner model is resolvable per-generation (A/B Sonnet vs
+  // Haiku); format/correction retries stay on the cheap FAST_MODEL.
+  const request = (messages, model = plannerModel) =>
     callModel(
       { model, max_tokens: DEFAULT_MAX_TOKENS, system: SYSTEM_PROMPT, messages },
       signal,
@@ -716,7 +754,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
           { role: "assistant", content: text },
           { role: "user", content: correctionMsg },
         ],
-        attempt === 0 ? DEFAULT_MODEL : RETRY_MODEL,
+        attempt === 0 ? plannerModel : RETRY_MODEL,
       );
       try {
         const retryParsed = extractJson(retryText);
@@ -890,7 +928,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
   };
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], excludeRecipeIds = null } = {}) {
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -904,7 +942,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
 
   const results = await Promise.all(
     activeGroups.map((group) =>
-      generateGroupMenu(data, group, signal, pantryIngredients, excludeRecipeIds),
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel),
     ),
   );
 

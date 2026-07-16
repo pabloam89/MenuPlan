@@ -17,6 +17,7 @@ import {
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { countMenusGenerated } from "../lib/menuStats.js";
+import { planHasDishes } from "../lib/menuArchive.js";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { DAYS, getMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -274,7 +275,9 @@ export function DashboardScreen({
   onOpenStreak,
 }) {
   const g = googleInfo(user);
-  const hasMenu = Object.keys(menuPlan ?? {}).length > 0;
+  // Real dishes, not just key count: a plan always carries `_warnings`, so an
+  // empty/aborted plan would otherwise show a phantom "hoy te toca" section.
+  const hasMenu = planHasDishes(menuPlan);
   const members = data.members ?? [];
   const groups = data.groups ?? [];
   const multiGroup = groups.length > 1;

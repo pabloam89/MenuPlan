@@ -194,6 +194,28 @@ export function pruneAiRecipes(aiRecipes, keepIds, extraKeep = null) {
   });
 }
 
+/**
+ * True when a single-week plan object actually has at least one dish placed.
+ * A plan always carries a `_warnings` array (see aiPlanner), so a bare
+ * `{ _warnings: [] }` has keys but no real content — checking `Object.keys`
+ * length would wrongly treat it as a generated menú.
+ */
+export function planHasDishes(plan) {
+  const ids = new Set();
+  planRecipeIds(plan, ids);
+  return ids.size > 0;
+}
+
+/**
+ * True when a menú has at least one dish in any of its weeks. Guards the
+ * "Menú actual" card so a content-less/degenerate record (e.g. an entry
+ * synthesized from a warnings-only legacy plan) never renders as a real menú.
+ */
+export function menuHasContent(menu) {
+  if (!menu?.weeks) return false;
+  return Object.values(menu.weeks).some((w) => planHasDishes(w?.plan));
+}
+
 export function removeMenu(menus, menuId) {
   const next = { ...(menus ?? {}) };
   delete next[menuId];
