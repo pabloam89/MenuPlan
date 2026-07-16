@@ -179,6 +179,9 @@ export function CatalogBrowserSheet({
   // Reference/browse mode: lets the user pair a catalog dish with a garnish and
   // save the combo to "Mis recetas" (called with the built combo recipe).
   onCombineGarnish = null,
+  // Demo only: preselect a category so we land straight on its dish list (with
+  // real thumbnails) instead of the category grid.
+  initialCategory = null,
 }) {
   const fullCatalog = useMemo(
     () =>
@@ -211,7 +214,7 @@ export function CatalogBrowserSheet({
     if (gatePickType) setTypeFilter(gatePickType);
   }, [gatePickType]);
   const [showFilters, setShowFilters] = useState(false);
-  const [cats, setCats] = useState(() => new Set());
+  const [cats, setCats] = useState(() => (initialCategory ? new Set([initialCategory]) : new Set()));
   const [proteins, setProteins] = useState(() => new Set());
   const [maxTime, setMaxTime] = useState(0);
   const [difficulties, setDifficulties] = useState(() => new Set());

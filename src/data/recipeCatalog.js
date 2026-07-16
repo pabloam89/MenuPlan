@@ -10,8 +10,9 @@ import cenasRapidas from "./recipes/cenas_rapidas.json";
 import bebes from "./recipes/bebes.json";
 import guarniciones from "./recipes/guarniciones.json";
 import { validateRecipes } from "./recipeSchema.js";
-import { supabase } from "../lib/supabase.js";
 import { deriveHealthFlags } from "../lib/healthFlags.js";
+import { supabase } from "../lib/supabase.js";
+import { BUNDLED_CATALOG_VERSION } from "./catalogVersion.js";
 
 // Attach heuristic health flags once, so filterRecipes/decisionCatalog get them
 // for free regardless of whether the recipe came from JSON or Supabase.
@@ -101,17 +102,48 @@ function withTimeout(promise, ms) {
   ]);
 }
 
-// Best-effort: try Supabase first so the catalog can be edited without a
-// redeploy; fall back to the bundled JSON (already validated above) on any
-// failure — missing config, network error, timeout, or invalid remote data.
-// Never throws: menu generation must keep working even if Supabase is down.
+// Reads the remote catalog version from catalog_meta. Any problem (table not
+// created yet, no row, network/permission error) resolves to 0 so the version
+// gate below treats the DB as "behind" and keeps the bundled JSON — the safe
+// default. Never throws.
+async function loadRemoteCatalogVersion() {
+  try {
+    const { data, error } = await withTimeout(
+      supabase.from("catalog_meta").select("version").eq("id", "recipes").maybeSingle(),
+      SUPABASE_FETCH_TIMEOUT_MS,
+    );
+    if (error) throw error;
+    return Number(data?.version ?? 0) || 0;
+  } catch {
+    return 0;
+  }
+}
+
+// Catalog loading strategy — Supabase is authoritative, but GATED on version.
+//
+// Editing recipes in Supabase (no redeploy) stays possible, but a database
+// that's BEHIND the bundled JSON (e.g. an old seed missing an allergen fix)
+// can no longer silently override the reviewed catalog: if
+// catalog_meta.version < BUNDLED_CATALOG_VERSION, or the remote data is
+// missing/invalid/unreachable, we fall back to the bundled JSON (already
+// validated above). Never throws: menu generation must keep working.
 async function loadRecipes() {
   if (!supabase) return JSON_RECIPES;
   try {
-    const { data, error } = await withTimeout(
-      supabase.from("recipes").select("*"),
-      SUPABASE_FETCH_TIMEOUT_MS,
-    );
+    const [remoteVersion, result] = await Promise.all([
+      loadRemoteCatalogVersion(),
+      withTimeout(supabase.from("recipes").select("*"), SUPABASE_FETCH_TIMEOUT_MS),
+    ]);
+
+    if (remoteVersion < BUNDLED_CATALOG_VERSION) {
+      console.warn(
+        `[recipeCatalog] Catálogo de Supabase v${remoteVersion} por detrás del incluido ` +
+          `v${BUNDLED_CATALOG_VERSION}; usando el catálogo local para no degradar datos.`,
+      );
+      return JSON_RECIPES;
+    }
+
+    const { data, error } = result;
     if (error) throw error;
     if (!data || data.length === 0) throw new Error("empty result");
 
