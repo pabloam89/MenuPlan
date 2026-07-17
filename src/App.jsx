@@ -57,6 +57,7 @@ import {
   pruneAiRecipes,
   pruneMenuHistory,
   planHasDishes,
+  orderedWeeks,
 } from "./lib/menuArchive.js";
 import { todayDayIdx } from "./lib/weekCalendar.js";
 import {
@@ -1256,6 +1257,60 @@ export default function App() {
     setData((d) => ({ ...d, menuWeek: { offset: wk.offset, startDayIdx: wk.startDayIdx } }));
   }, [data.menus, data.activeMenuId]);
 
+  // Writes one week's shopping back into the archive so per-week lists stay
+  // authoritative (Compra can view/edit several weeks). Mirrors into the live
+  // `shopping` state when the edited week is the one currently active, so the
+  // Menú/Compra views and the archive never drift apart.
+  const updateWeekShopping = useCallback((weekStart, nextShopping) => {
+    const menuId = data.activeMenuId;
+    setData((d) => {
+      const m = d.menus?.[menuId];
+      if (!m?.weeks?.[weekStart]) return d;
+      if (m.weeks[weekStart].shopping === nextShopping) return d;
+      return {
+        ...d,
+        menus: {
+          ...d.menus,
+          [menuId]: {
+            ...m,
+            weeks: {
+              ...m.weeks,
+              [weekStart]: { ...m.weeks[weekStart], shopping: nextShopping },
+            },
+          },
+        },
+      };
+    });
+    const wk = data.menus?.[menuId]?.weeks?.[weekStart];
+    if (wk && wk.offset === data.menuWeek?.offset) setShopping(nextShopping);
+  }, [data.menus, data.activeMenuId, data.menuWeek?.offset]);
+
+  // Keep the active week's archived shopping in sync with the live list, so
+  // switching weeks (or reloading) never loses the check-offs/edits made in
+  // Compra. Covers every path that touches `shopping` directly (receipt import,
+  // generation, manual edits in single-week mode). No-ops (returns the same
+  // reference) once the archive already matches, so it can't loop.
+  useEffect(() => {
+    const menuId = data.activeMenuId;
+    if (!menuId) return;
+    const offset = data.menuWeek?.offset;
+    setData((d) => {
+      const m = d.menus?.[menuId];
+      if (!m?.weeks) return d;
+      const entry = Object.entries(m.weeks).find(([, w]) => w?.offset === offset);
+      if (!entry) return d;
+      const [weekStart, wk] = entry;
+      if (wk.shopping === shopping) return d;
+      return {
+        ...d,
+        menus: {
+          ...d.menus,
+          [menuId]: { ...m, weeks: { ...m.weeks, [weekStart]: { ...wk, shopping } } },
+        },
+      };
+    });
+  }, [shopping, data.activeMenuId, data.menuWeek?.offset]);
+
   // "Borrar" from the Menús screen: drops the active menú from the archive
   // (still leaves any OTHER past menús untouched) and clears the live
   // plan/shopping so nothing stale lingers around.
@@ -2039,6 +2094,9 @@ export default function App() {
                 onNav={handleNav}
                 onToast={showToast}
                 menuWeek={data.menuWeek}
+                menuWeeks={data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]) : null}
+                activeOffset={data.menuWeek?.offset ?? null}
+                onUpdateWeek={updateWeekShopping}
               />
             </Suspense>
           </div>

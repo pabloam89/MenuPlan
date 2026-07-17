@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Apple,
   Bean,
@@ -36,7 +36,8 @@ import {
 } from "../components/ui.jsx";
 import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
 import { INGREDIENT_CATEGORIES } from "../data/recipes.js";
-import { normalizeIngredientKey, isPerishableAisle } from "../lib/ingredientCategories.js";
+import { normalizeIngredientKey, isPerishableAisle, guessShoppingAisle } from "../lib/ingredientCategories.js";
+import { formatISODateShort } from "../lib/menuArchive.js";
 import { kitchenHint } from "../lib/kitchenUnits.js";
 import { extractReceiptProducts } from "../lib/receiptParser.js";
 import {
@@ -87,6 +88,19 @@ export function ShoppingScreen({
   // The menú's own week (offset + startDayIdx). Drives the date label so a
   // mid-week menú shows only its real days, matching the Menú screen.
   menuWeek = null,
+  // Multi-week support: every week of the ACTIVE menú (orderedWeeks shape:
+  // { weekStart, offset, startISO, endISO, startDayIdx, shopping }). When
+  // present with >1 entries the screen shows a week multi-select and merges
+  // the selected weeks (staples summed, perishables kept per week). Empty/
+  // absent → falls back to the single live `shopping` list (guests, demo,
+  // legacy menús with no archive).
+  menuWeeks = null,
+  // Offset of the menú's currently-active week (drives the default selection
+  // and which week reads the live `shopping` instead of the archived copy).
+  activeOffset = null,
+  // Writes one week's shopping back to the archive (and mirrors the live list
+  // when it's the active week). Signature: (weekStart, { items }).
+  onUpdateWeek = null,
   // Optional demo hooks (first-run value-prop carousel): preset the list filter
   // and pre-open one aisle so the category "zoom" is visible on mount. Default
   // to the normal collapsed behaviour; never passed in the real app.
@@ -112,122 +126,231 @@ export function ShoppingScreen({
   const [editingQtyId, setEditingQtyId] = useState(null);
   const fileRef = useRef(null);
 
-  const { dates: weekDates, activeDays } = menuWeek
-    ? getWeekDatesByMenuWeek(menuWeek)
-    : { dates: getWeekDates(), activeDays: undefined };
-  const weekLabel = formatWeekRangeLabel(weekDates, activeDays);
+  const menuMode = Array.isArray(menuWeeks) && menuWeeks.length > 0;
 
-  useEffect(() => {
-    setShopping((s) => {
-      const merged = mergeShoppingItems(s.items);
-      const same =
-        merged.length === s.items.length &&
-        merged.every(
-          (it, i) => it.id === s.items[i]?.id && it.category === s.items[i]?.category
-        );
-      return same ? s : { items: merged };
-    });
-  }, [setShopping]);
-
-  const patchItem = (id, patch) =>
-    setShopping((s) => ({
-      ...s,
-      items: mergeShoppingItems(
-        s.items.map((it) =>
-          normalizeIngredientKey(it.name, it.unit ?? "ud") === id ? { ...it, ...patch } : it
-        )
-      ),
-    }));
-
-  const removeItem = (id) =>
-    setShopping((s) => ({
-      ...s,
-      items: s.items.filter(
-        (it) => normalizeIngredientKey(it.name, it.unit ?? "ud") !== id
-      ),
-    }));
-
-  const addItem = (newItem) =>
-    setShopping((s) => ({
-      ...s,
-      items: [
-        ...s.items,
+  // Each week's item list. The ACTIVE week reads the live `shopping` (freshest
+  // edits) rather than its archived copy; the rest read the archive. In
+  // fallback mode (guests / demo / legacy menús with no archive) there's a
+  // single synthetic week wrapping the live list.
+  const weeks = menuMode
+    ? menuWeeks.map((w) => ({
+        ...w,
+        items: w.offset === activeOffset ? shopping.items : (w.shopping?.items ?? []),
+      }))
+    : [
         {
-          ...newItem,
-          id: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-          have: false,
-          atHome: false,
-          manual: true,
-          sources: [],
+          weekStart: "__live",
+          offset: activeOffset ?? 0,
+          startISO: null,
+          endISO: null,
+          startDayIdx: menuWeek?.startDayIdx ?? 0,
+          items: shopping.items,
         },
-      ],
-    }));
+      ];
 
-  const markPurchased = (ids) =>
-    setShopping((s) => ({
-      ...s,
-      items: s.items.map((it) => (ids.includes(it.id) ? { ...it, have: true } : it)),
-    }));
+  const orderedAll = [...weeks].sort((a, b) => a.offset - b.offset);
+  const weekNumByStart = new Map(orderedAll.map((w, i) => [w.weekStart, i + 1]));
+  const weeksSig = orderedAll.map((w) => w.offset).join(",");
 
+  // Which weeks are included in the list right now. Defaults to the active
+  // week; the user can add more to buy for several weeks at once. Never empty.
+  const [selectedOffsets, setSelectedOffsets] = useState(null);
+  useEffect(() => {
+    const avail = weeksSig.split(",").filter(Boolean).map(Number);
+    setSelectedOffsets((cur) => {
+      if (!avail.length) return cur && cur.size === 0 ? cur : new Set();
+      let base = cur ? [...cur].filter((o) => avail.includes(o)) : [];
+      if (base.length === 0) base = [avail.includes(activeOffset) ? activeOffset : avail[0]];
+      const next = new Set(base);
+      if (cur && cur.size === next.size && [...next].every((o) => cur.has(o))) return cur;
+      return next;
+    });
+  }, [weeksSig, activeOffset]);
+
+  const activeSelected = weeks
+    .filter((w) => selectedOffsets?.has(w.offset))
+    .sort((a, b) => a.offset - b.offset);
+  const selectedWeeks = activeSelected.length ? activeSelected : [orderedAll[0]].filter(Boolean);
+  const multiWeek = selectedWeeks.length > 1;
+
+  const toggleWeek = (offset) =>
+    setSelectedOffsets((cur) => {
+      const next = new Set(cur ?? []);
+      if (next.has(offset)) {
+        if (next.size <= 1) return cur; // keep at least one week selected
+        next.delete(offset);
+      } else {
+        next.add(offset);
+      }
+      return next;
+    });
+
+  // Writes one week's shopping through the parent (archive + live mirror for
+  // the active week). Fallback mode drives the live `shopping` state directly.
+  const updateWeek = (weekStart, updater) => {
+    const w = weeks.find((x) => x.weekStart === weekStart);
+    const next = updater(w?.items ?? []);
+    if (menuMode) onUpdateWeek?.(weekStart, { items: next });
+    else setShopping((s) => ({ ...s, items: next }));
+  };
+
+  // Apply a patch to a display row across every week it came from: a merged
+  // Despensa line can span several weeks; a Frescos line belongs to one.
+  const applyToSources = (row, patch) => {
+    const byWeek = new Map();
+    for (const s of row?.__sources ?? []) {
+      if (!byWeek.has(s.weekStart)) byWeek.set(s.weekStart, new Set());
+      byWeek.get(s.weekStart).add(s.ikey);
+    }
+    for (const [weekStart, ikeys] of byWeek) {
+      // Merge first so a patch (esp. an absolute qty) lands once even if the
+      // stored week still carries legacy duplicate rows for the same key.
+      updateWeek(weekStart, (items) =>
+        mergeShoppingItems(items).map((it) =>
+          ikeys.has(normalizeIngredientKey(it.name, it.unit ?? "ud")) ? { ...it, ...patch } : it,
+        ),
+      );
+    }
+  };
+
+  // ── Combined, enriched view of the selected weeks ──
+  // Perishables (Frescos) stay per week; staples (Despensa) and pantry matches
+  // are merged/summed across the selected weeks.
+  const perishRows = [];
+  const stapleAgg = new Map(); // ikey -> { items:[], sources:[] }
+  const pantryAgg = new Map();
+  const accumulate = (agg, ikey, it, weekStart) => {
+    if (!agg.has(ikey)) agg.set(ikey, { items: [], sources: [] });
+    const e = agg.get(ikey);
+    e.items.push(it);
+    e.sources.push({ weekStart, ikey });
+  };
+  for (const w of selectedWeeks) {
+    for (const it of mergeShoppingItems(w.items ?? [])) {
+      const ikey = it.id;
+      if (isPantryItem(it)) {
+        accumulate(pantryAgg, ikey, it, w.weekStart);
+        continue;
+      }
+      if (isPerishableAisle(guessShoppingAisle(it.name))) {
+        const row = enrichItem(it);
+        row.id = multiWeek ? `${w.weekStart}::${ikey}` : ikey;
+        row.__sources = [{ weekStart: w.weekStart, ikey }];
+        row.__weekLabel = multiWeek ? `Sem ${weekNumByStart.get(w.weekStart)}` : null;
+        row.__weekOffset = w.offset;
+        perishRows.push(row);
+      } else {
+        accumulate(stapleAgg, ikey, it, w.weekStart);
+      }
+    }
+  }
+  const aggToRows = (agg, idPrefix) =>
+    [...agg.values()].map(({ items, sources }) => {
+      const merged = mergeShoppingItems(items)[0];
+      const row = enrichItem(merged);
+      row.id = `${idPrefix}${merged.id}`;
+      row.__sources = sources;
+      row.__qtyLocked = sources.length > 1;
+      return row;
+    });
+  const enrichedItems = [...perishRows, ...aggToRows(stapleAgg, "")];
+  const pantryItems = aggToRows(pantryAgg, "p::").sort((a, b) => a.name.localeCompare(b.name));
+
+  const rowById = new Map();
+  for (const r of [...enrichedItems, ...pantryItems]) rowById.set(r.id, r);
+  const mergedItems = enrichedItems; // receipt matching / qty lookups
+
+  const patchItem = (id, patch) => {
+    const row = rowById.get(id);
+    if (row) applyToSources(row, patch);
+  };
+  const removeItem = (id) => {
+    const row = rowById.get(id);
+    if (!row) return;
+    const byWeek = new Map();
+    for (const s of row.__sources ?? []) {
+      if (!byWeek.has(s.weekStart)) byWeek.set(s.weekStart, new Set());
+      byWeek.get(s.weekStart).add(s.ikey);
+    }
+    for (const [weekStart, ikeys] of byWeek) {
+      updateWeek(weekStart, (items) =>
+        mergeShoppingItems(items).filter(
+          (it) => !ikeys.has(normalizeIngredientKey(it.name, it.unit ?? "ud")),
+        ),
+      );
+    }
+  };
+  const addItem = (newItem) => {
+    const target = selectedWeeks[0]?.weekStart ?? orderedAll[0]?.weekStart;
+    if (target == null) return;
+    updateWeek(target, (items) => [
+      ...items,
+      {
+        ...newItem,
+        id: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+        have: false,
+        atHome: false,
+        manual: true,
+        sources: [],
+      },
+    ]);
+  };
+  const markPurchased = (ids) => {
+    for (const id of ids) {
+      const row = rowById.get(id);
+      if (row) applyToSources(row, { have: true });
+    }
+  };
   const saveItemQty = (id, rawValue) => {
     const parsed = parseFloat(String(rawValue).replace(",", "."));
-    if (!isNaN(parsed) && parsed > 0) {
-      const item = mergedItems.find((it) => it.id === id);
-      if (item) {
-        patchItem(id, {
-          qty: parsed,
-          displayQty: formatDisplay(parsed, item.unit ?? "ud"),
-        });
-      }
+    const row = rowById.get(id);
+    if (row && !row.__qtyLocked && !isNaN(parsed) && parsed > 0) {
+      applyToSources(row, {
+        qty: parsed,
+        displayQty: formatDisplay(parsed, row.unit ?? "ud"),
+      });
     }
     setEditingQtyId(null);
   };
 
-  const mergedItems = useMemo(
-    () => mergeShoppingItems(shopping.items),
-    [shopping.items]
-  );
-  // Pantry matches get their own "Despensa" section (always shown, regardless
-  // of the pending/done toggle below) instead of being mixed into the aisle
-  // groups or the manual "en casa"/"comprado" bookkeeping.
-  const shoppingOnlyItems = useMemo(
-    () => mergedItems.filter((it) => !isPantryItem(it)),
-    [mergedItems]
-  );
-  const pantryItems = useMemo(
-    () => mergedItems.filter(isPantryItem).map(enrichItem).sort((a, b) => a.name.localeCompare(b.name)),
-    [mergedItems]
-  );
-  const enrichedItems = useMemo(() => shoppingOnlyItems.map(enrichItem), [shoppingOnlyItems]);
-  const { doneCount, totalCount, progress } = useMemo(() => {
-    const totalCount = shoppingOnlyItems.length;
-    const doneCount = shoppingOnlyItems.filter(isDoneItem).length;
-    return { doneCount, totalCount, progress: totalCount > 0 ? doneCount / totalCount : 0 };
-  }, [shoppingOnlyItems]);
-  const visibleItems = useMemo(() => {
-    if (listScope === "pending") return enrichedItems.filter(isActiveItem);
-    if (listScope === "done") return enrichedItems.filter(isDoneItem);
-    return enrichedItems;
-  }, [enrichedItems, listScope]);
-  const sections = useMemo(
-    () => itemsByAisle(visibleItems).map((g) => ({ key: g.aisle, title: g.aisle, items: g.items })),
-    [visibleItems]
-  );
-  // Split the aisles into two always-visible macro-groups: fresh food you buy
-  // for this week vs. staples that keep and can be bought ahead. Purely a
-  // presentation split — same aisles/accordions inside each.
-  const freshSections = useMemo(
-    () => sections.filter((s) => isPerishableAisle(s.key)),
-    [sections]
-  );
-  const stapleSections = useMemo(
-    () => sections.filter((s) => !isPerishableAisle(s.key)),
-    [sections]
-  );
+  const shoppingOnlyItems = enrichedItems;
+  const totalCount = shoppingOnlyItems.length;
+  const doneCount = shoppingOnlyItems.filter(isDoneItem).length;
+  const progress = totalCount > 0 ? doneCount / totalCount : 0;
+  const visibleItems =
+    listScope === "pending"
+      ? enrichedItems.filter(isActiveItem)
+      : listScope === "done"
+        ? enrichedItems.filter(isDoneItem)
+        : enrichedItems;
+  const sections = itemsByAisle(visibleItems).map((g) => ({
+    key: g.aisle,
+    title: g.aisle,
+    items: g.items,
+  }));
+  // Two always-visible macro-groups: Frescos (perishable aisles) vs Despensa.
+  const freshSections = sections.filter((s) => isPerishableAisle(s.key));
+  const stapleSections = sections.filter((s) => !isPerishableAisle(s.key));
 
   const isEmpty = sections.every((s) => s.items.length === 0) && pantryItems.length === 0;
   const hasPendingItems = shoppingOnlyItems.some(isActiveItem);
   const hasDoneItems = shoppingOnlyItems.some(isDoneItem);
+
+  // Date label for the current selection: real span of the selected weeks in
+  // menú mode; the single-week label otherwise.
+  const weekLabel = (() => {
+    const withISO = selectedWeeks.filter((w) => w.startISO && w.endISO);
+    if (menuMode && withISO.length) {
+      const start = withISO.reduce((m, w) => (w.startISO < m ? w.startISO : m), withISO[0].startISO);
+      const end = withISO.reduce((m, w) => (w.endISO > m ? w.endISO : m), withISO[0].endISO);
+      const range = `${formatISODateShort(start)} – ${formatISODateShort(end)}`;
+      return multiWeek ? `${selectedWeeks.length} semanas · ${range}` : range;
+    }
+    const { dates: weekDates, activeDays } = menuWeek
+      ? getWeekDatesByMenuWeek(menuWeek)
+      : { dates: getWeekDates(), activeDays: undefined };
+    return formatWeekRangeLabel(weekDates, activeDays);
+  })();
 
   const handleReceiptPick = async (file) => {
     if (!file) return;
@@ -421,9 +544,43 @@ export function ShoppingScreen({
             </button>
           </div>
         </div>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#7a8a7f", marginBottom: 16 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: "#7a8a7f", marginBottom: orderedAll.length > 1 ? 10 : 16 }}>
           {weekLabel}
         </div>
+
+        {orderedAll.length > 1 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+            {orderedAll.map((w, i) => {
+              const sel = selectedOffsets?.has(w.offset);
+              return (
+                <button
+                  key={w.weekStart}
+                  type="button"
+                  onClick={() => toggleWeek(w.offset)}
+                  aria-pressed={sel}
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "7px 13px",
+                    borderRadius: 999,
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "#dbe6df"}`,
+                    background: sel ? "#2d5a3d" : "#fff",
+                    color: sel ? "#fff" : "#3d5245",
+                    fontSize: 13,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "background .15s, border-color .15s, color .15s",
+                  }}
+                >
+                  {sel && <Check size={14} strokeWidth={3} />}
+                  Sem {i + 1}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {showIconCoach && (
           <ShoppingCoachTour onClose={() => setShowIconCoach(false)} />
@@ -684,7 +841,8 @@ function ShoppingRow({
   // section is inherently "done"), independent of the doneView convention
   // used elsewhere, which only dims within the mixed "all" scope.
   const dimmed = item.fromPantry || (!doneView && (item.have || item.atHome));
-  const canEditQty = !item.fromPantry && !dimmed;
+  // Merged Despensa lines spanning several weeks have no single editable qty.
+  const canEditQty = !item.fromPantry && !dimmed && !item.__qtyLocked;
 
   return (
     <div
@@ -711,6 +869,24 @@ function ShoppingRow({
           >
             {item.name}
           </span>
+          {item.__weekLabel && (
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                fontSize: 10,
+                fontWeight: 800,
+                color: "#2d5a3d",
+                background: "#eef4ef",
+                border: "1px solid #d7e6dc",
+                borderRadius: 999,
+                padding: "1px 7px",
+                marginTop: 2,
+              }}
+            >
+              {item.__weekLabel}
+            </span>
+          )}
           {item.adapted && (
             <span
               title="Adaptado por una intolerancia — asegúrate de comprar este producto y no el habitual"
