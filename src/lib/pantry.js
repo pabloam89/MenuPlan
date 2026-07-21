@@ -1,61 +1,127 @@
 import { supabase } from "./supabase.js";
+import { uid } from "./groups.js";
 
 /**
- * Data access for user_pantry (see supabase/migrations/0002_user_pantry.sql).
- * Gated behind auth: every function requires a userId, and the feature's UI
- * never calls these without a signed-in session — "Entrar sin cuenta" users
- * never see the pantry input, so there's no anonymous-write path to support.
+ * Data access for user_pantry (see supabase/migrations/0002_user_pantry.sql +
+ * 0006_pantry_quantity.sql). The cloud functions below all require a userId —
+ * "Entrar sin cuenta" users instead read/write a localStorage mirror with the
+ * same shape (see loadLocalPantry & co.), so the pantry works fully signed
+ * out too. mergeLocalPantryIntoCloud folds that local copy into the account
+ * the first time a signed-out user logs in.
+ *
+ * Quantities live in the SAME closed unit set the recipe catalog itself uses
+ * (g / ml / ud — see kitchenUnits.js), so a cooked recipe can subtract its
+ * ingredient amounts straight from stock with no conversion layer.
  */
 
-/** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, source: string }[]>} */
+function mapRow(row) {
+  return {
+    id: row.id,
+    ingredientName: row.ingredient_name,
+    ingredientNormalized: row.ingredient_normalized,
+    qty: Number(row.qty) || 0,
+    unit: row.unit ?? "ud",
+    source: row.source,
+  };
+}
+
+/** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string }[]>} */
 export async function loadPantry(userId) {
   if (!supabase || !userId) return [];
   const { data, error } = await supabase
     .from("user_pantry")
-    .select("id, ingredient_name, ingredient_normalized, source, created_at")
+    .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
   if (error) {
     console.error("[pantry] load failed", error);
     return [];
   }
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    ingredientName: row.ingredient_name,
-    ingredientNormalized: row.ingredient_normalized,
-    source: row.source,
-  }));
+  return (data ?? []).map(mapRow);
 }
 
 /**
- * Adds items, skipping ones the user already has (ingredient_normalized is
- * unique per user). Returns the rows actually inserted.
- * @param {{ name: string, normalized: string, source?: 'manual'|'voice' }[]} items
+ * Adds items. An ingredient the user already has (ingredient_normalized is
+ * unique per user) gets its quantity TOPPED UP instead of being skipped —
+ * buying another kilo of rice should add to what's left, not silently no-op.
+ * Returns every affected row, each flagged `isNew` so callers that need to
+ * know "did this create a brand-new pantry entry" (e.g. undoing a deleted
+ * ticket) can tell a top-up apart from a fresh row.
+ * @param {{ name: string, normalized: string, qty?: number, unit?: 'g'|'ml'|'ud', source?: 'manual'|'voice'|'photo' }[]} items
  */
 export async function addPantryItems(userId, items) {
   if (!supabase || !userId || items.length === 0) return [];
-  const rows = items.map((it) => ({
-    user_id: userId,
-    ingredient_name: it.name,
-    ingredient_normalized: it.normalized,
-    source: it.source ?? "manual",
-  }));
-  const { data, error } = await supabase
+  const normalizedKeys = items.map((it) => it.normalized);
+  const { data: existing, error: fetchError } = await supabase
     .from("user_pantry")
-    // Existing ingredients are left as-is (first write wins) rather than
-    // overwritten — re-adding "pollo" shouldn't reset its original source.
-    .upsert(rows, { onConflict: "user_id,ingredient_normalized", ignoreDuplicates: true })
-    .select("id, ingredient_name, ingredient_normalized, source");
-  if (error) {
-    console.error("[pantry] add failed", error);
-    return [];
+    .select("id, ingredient_normalized, qty, unit")
+    .eq("user_id", userId)
+    .in("ingredient_normalized", normalizedKeys);
+  if (fetchError) console.error("[pantry] add lookup failed", fetchError);
+  const existingByKey = new Map((existing ?? []).map((r) => [r.ingredient_normalized, r]));
+
+  const toInsert = [];
+  const toUpdate = [];
+  for (const it of items) {
+    const qty = Number(it.qty) > 0 ? Number(it.qty) : 1;
+    const unit = it.unit ?? "ud";
+    const found = existingByKey.get(it.normalized);
+    if (found) {
+      // Same unit domain as the existing row → add on top; a mismatched unit
+      // (rare — e.g. dictated "leche" as "ud" when it's stored in "ml") is
+      // left as-is rather than mixing incompatible amounts.
+      const nextQty = found.unit === unit ? (Number(found.qty) || 0) + qty : Number(found.qty) || 0;
+      toUpdate.push({ id: found.id, qty: nextQty });
+    } else {
+      toInsert.push({
+        user_id: userId,
+        ingredient_name: it.name,
+        ingredient_normalized: it.normalized,
+        qty,
+        unit,
+        source: it.source ?? "manual",
+      });
+    }
   }
-  return (data ?? []).map((row) => ({
-    id: row.id,
-    ingredientName: row.ingredient_name,
-    ingredientNormalized: row.ingredient_normalized,
-    source: row.source,
-  }));
+
+  const rows = [];
+  if (toInsert.length) {
+    const { data, error } = await supabase
+      .from("user_pantry")
+      .insert(toInsert)
+      .select("id, ingredient_name, ingredient_normalized, qty, unit, source");
+    if (error) console.error("[pantry] insert failed", error);
+    else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
+  }
+  for (const u of toUpdate) {
+    const { data, error } = await supabase
+      .from("user_pantry")
+      .update({ qty: u.qty })
+      .eq("user_id", userId)
+      .eq("id", u.id)
+      .select("id, ingredient_name, ingredient_normalized, qty, unit, source");
+    if (error) console.error("[pantry] top-up failed", error);
+    else if (data?.[0]) rows.push({ ...mapRow(data[0]), isNew: false });
+  }
+  return rows;
+}
+
+/** Sets a pantry item's stock to an exact amount, deleting it once it hits 0.
+ *  Optional `unit` updates the stored unit in the same write (Pantry row edit). */
+export async function setPantryItemQty(userId, id, qty, unit) {
+  if (!supabase || !userId) return false;
+  if (!(qty > 0)) return removePantryItem(userId, id);
+  const patch = unit != null ? { qty, unit } : { qty };
+  const { error } = await supabase
+    .from("user_pantry")
+    .update(patch)
+    .eq("user_id", userId)
+    .eq("id", id);
+  if (error) {
+    console.error("[pantry] set qty failed", error);
+    return false;
+  }
+  return true;
 }
 
 export async function removePantryItem(userId, id) {
@@ -79,5 +145,109 @@ export async function clearPantry(userId) {
     console.error("[pantry] clear failed", error);
     return false;
   }
+  return true;
+}
+
+// ── Signed-out mirror (localStorage) ──────────────────────────────────────
+// Same row shape as mapRow() above so PantryScreen/PantryInput can treat
+// both sources identically and only branch on *which* function to call.
+
+const LOCAL_KEY = "menuplan.pantry.v1";
+
+function readLocalPantry() {
+  try {
+    const raw = localStorage.getItem(LOCAL_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalPantry(items) {
+  try {
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(items));
+  } catch {
+    // Private-mode Safari / full quota — the in-memory state the caller
+    // already updated is still correct for this session, just not persisted.
+  }
+}
+
+export function loadLocalPantry() {
+  return readLocalPantry();
+}
+
+/** Same top-up-by-normalized-name semantics as addPantryItems, just synchronous. */
+export function addLocalPantryItems(items) {
+  const current = readLocalPantry();
+  const byKey = new Map(current.map((it) => [it.ingredientNormalized, it]));
+  for (const it of items) {
+    const qty = Number(it.qty) > 0 ? Number(it.qty) : 1;
+    const unit = it.unit ?? "ud";
+    const existing = byKey.get(it.normalized);
+    if (existing) {
+      if (existing.unit === unit) existing.qty = (Number(existing.qty) || 0) + qty;
+    } else {
+      byKey.set(it.normalized, {
+        id: `local_${uid()}`,
+        ingredientName: it.name,
+        ingredientNormalized: it.normalized,
+        qty,
+        unit,
+        source: it.source ?? "manual",
+      });
+    }
+  }
+  const next = Array.from(byKey.values());
+  writeLocalPantry(next);
+  return next;
+}
+
+export function setLocalPantryItemQty(id, qty, unit) {
+  const current = readLocalPantry();
+  const next = qty > 0
+    ? current.map((it) =>
+        it.id === id
+          ? { ...it, qty, ...(unit != null ? { unit } : {}) }
+          : it,
+      )
+    : current.filter((it) => it.id !== id);
+  writeLocalPantry(next);
+  return next;
+}
+
+export function removeLocalPantryItem(id) {
+  const next = readLocalPantry().filter((it) => it.id !== id);
+  writeLocalPantry(next);
+  return next;
+}
+
+export function clearLocalPantry() {
+  writeLocalPantry([]);
+  return [];
+}
+
+/**
+ * First-login backfill: folds whatever a "Entrar sin cuenta" user stocked up
+ * locally into their new account (same top-up-by-name merge addPantryItems
+ * already does for the cloud), then wipes the local copy — leaving it in
+ * place would silently double the quantities on the next login.
+ * @returns {Promise<boolean>} true when something was merged
+ */
+export async function mergeLocalPantryIntoCloud(userId) {
+  if (!supabase || !userId) return false;
+  const local = readLocalPantry();
+  if (local.length === 0) return false;
+  await addPantryItems(
+    userId,
+    local.map((it) => ({
+      name: it.ingredientName,
+      normalized: it.ingredientNormalized,
+      qty: it.qty,
+      unit: it.unit,
+      source: it.source,
+    })),
+  );
+  writeLocalPantry([]);
   return true;
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -612,9 +612,29 @@ function IngredientPickCard({ name, added, onToggle }) {
   );
 }
 
-function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNames, onToggle, onAddCustom }) {
+// Exported so PantryInput (src/components/PantryInput.jsx) can reuse the
+// exact same search/browse-by-category ingredient picker for its "Escrito"
+// mode instead of re-implementing it.
+//
+// `compact` (Pantry): narrower search + Categorías as icon+label button on
+// the right (dropdown keeps its usual width). The "+" lives outside the
+// selected-ingredients card, not next to the search. RecipePlanner keeps
+// the full non-compact button.
+export function IngredientPicker({
+  query,
+  onQueryChange,
+  aisle,
+  onAisleChange,
+  addedNames,
+  onToggle,
+  onAddCustom,
+  compact = false,
+  onPlus,
+  plusDisabled = false,
+}) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const catBtnRef = useRef(null);
   const q = normText(query);
 
   const setAisle = (a) => {
@@ -636,23 +656,38 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
 
   return (
     <div style={{ marginBottom: 14 }}>
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-            <div
-              style={{
-            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, height: 42, padding: "0 12px",
-            borderRadius: 12, background: "#fff", border: `2px solid ${GREEN}`,
+      <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            maxWidth: compact ? 200 : undefined,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            height: 42,
+            padding: "0 12px",
+            borderRadius: 12,
+            background: "#fff",
+            border: `2px solid ${GREEN}`,
           }}
         >
           <Search size={16} color={GREEN} style={{ flexShrink: 0 }} />
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Buscar ingrediente…"
-            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 16, color: INK }}
+            onKeyDown={(e) => {
+              if (compact && e.key === "Enter") {
+                e.preventDefault();
+                if (!plusDisabled) onPlus?.();
+              }
+            }}
+            placeholder="Buscar…"
+            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, color: INK }}
           />
           {query && (
-                <button
-                  type="button"
+            <button
+              type="button"
               onClick={() => onQueryChange("")}
               aria-label="Limpiar búsqueda"
               style={{ border: "none", background: "transparent", cursor: "pointer", color: "#9ab0a1", display: "flex", padding: 2 }}
@@ -661,47 +696,52 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
             </button>
           )}
         </div>
+        {compact && <div style={{ flex: 1, minWidth: 0 }} />}
         <button
+          ref={catBtnRef}
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
-                  style={{
-            position: "relative", display: "inline-flex", alignItems: "center", gap: 6,
-            height: 42, padding: "0 13px", borderRadius: 12, cursor: "pointer", flexShrink: 0,
+          aria-haspopup="listbox"
+          aria-expanded={filtersOpen}
+          aria-label="Categorías"
+          title="Categorías"
+          style={{
+            position: "relative",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 6,
+            height: 42,
+            padding: "0 12px",
+            borderRadius: 12,
+            cursor: "pointer",
+            flexShrink: 0,
             border: `1.5px solid ${filtersOpen || aisle ? GREEN : "#e8efe9"}`,
             background: filtersOpen || aisle ? GREEN : "#fff",
             color: filtersOpen || aisle ? "#fff" : "#5a7066",
-            fontSize: 12.5, fontWeight: 800, fontFamily: "inherit",
+            fontSize: 12.5,
+            fontWeight: 800,
+            fontFamily: "inherit",
+            boxShadow: compact && !filtersOpen && !aisle ? "0 1px 3px rgba(20,47,29,.08)" : undefined,
           }}
         >
           <SlidersHorizontal size={15} />
           Categorías
-          {filtersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </button>
+          {!compact && (filtersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+        </button>
       </div>
 
       {filtersOpen && (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7, marginBottom: 12 }}>
-          {SHOPPING_AISLES.map((a) => (
-            <AisleTile
-              key={a}
-              label={a}
-              icon={AISLE_ICONS[a] ?? UtensilsCrossed}
-              color={AISLE_COLORS[a] ?? GREEN}
-              active={aisle === a}
-              onClick={() => setAisle(aisle === a ? null : a)}
-            />
-              ))}
-            </div>
-          )}
+        <AisleDropdown
+          aisle={aisle}
+          anchorRef={catBtnRef}
+          onClose={() => setFiltersOpen(false)}
+          onSelect={(a) => setAisle(aisle === a ? null : a)}
+        />
+      )}
 
       {!filtersOpen && aisle && !q && (
         <SelectedAisleChip label={aisle} onClear={() => setAisle(null)} />
-      )}
-
-      {!q && !aisle && !filtersOpen && (
-        <p style={{ margin: "0 0 4px", fontSize: 12, color: "#9ab0a1" }}>
-          Escribe arriba o toca “Categorías” para explorar por tipo.
-        </p>
       )}
 
       {results.length > 0 && (
@@ -714,14 +754,14 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
               onToggle={onToggle}
             />
           ))}
-      </div>
+        </div>
       )}
 
       {hiddenCount > 0 && (
-      <button
-        type="button"
+        <button
+          type="button"
           onClick={() => setShowAll(true)}
-        style={{
+          style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
             marginTop: 10, padding: "10px 12px", borderRadius: 11,
             border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN, cursor: "pointer",
@@ -733,7 +773,7 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
         </button>
       )}
 
-      {q && !exactExists && (
+      {q && !exactExists && !compact && (
         <button
           type="button"
           onClick={() => onAddCustom(query.trim())}
@@ -741,14 +781,138 @@ function IngredientPicker({ query, onQueryChange, aisle, onAisleChange, addedNam
             display: "flex", alignItems: "center", justifyContent: "center", gap: 7, width: "100%",
             marginTop: results.length > 0 ? 10 : 0, padding: "11px 12px", borderRadius: 11,
             border: "1.5px dashed #bfe6cb", background: "#f2fbf5", color: GREEN, cursor: "pointer",
-          fontFamily: "inherit", fontSize: 13, fontWeight: 800,
-        }}
-      >
+            fontFamily: "inherit", fontSize: 13, fontWeight: 800,
+          }}
+        >
           <Plus size={15} strokeWidth={2.6} />
           Añadir “{query.trim()}”
-      </button>
+        </button>
       )}
     </div>
+  );
+}
+
+// Floating aisle list for the Categorías button — portaled so it isn't clipped
+// by overflow parents; icons + horizontal dividers match StorePicker's language.
+function AisleDropdown({ aisle, anchorRef, onSelect, onClose }) {
+  const menuRef = useRef(null);
+  const [pos, setPos] = useState(null);
+
+  useLayoutEffect(() => {
+    const reposition = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const spaceBelow = vh - r.bottom;
+      const openUp = spaceBelow < 280 && r.top > spaceBelow;
+      setPos({
+        left: Math.max(12, r.right - 220),
+        width: 220,
+        top: openUp ? null : r.bottom + 6,
+        bottom: openUp ? vh - r.top + 6 : null,
+        maxHeight: Math.max(180, (openUp ? r.top : spaceBelow) - 18),
+      });
+    };
+    reposition();
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [anchorRef]);
+
+  useEffect(() => {
+    const onPointerDown = (e) => {
+      if (menuRef.current?.contains(e.target) || anchorRef.current?.contains(e.target)) return;
+      onClose();
+    };
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [anchorRef, onClose]);
+
+  if (!pos) return null;
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      role="listbox"
+      style={{
+        position: "fixed",
+        left: pos.left,
+        width: pos.width,
+        top: pos.top ?? undefined,
+        bottom: pos.bottom ?? undefined,
+        maxHeight: pos.maxHeight,
+        overflowY: "auto",
+        background: "#fff",
+        borderRadius: 14,
+        border: "1px solid #d7e6dc",
+        boxShadow: "0 20px 48px -10px rgba(20,47,29,.32)",
+        zIndex: 400,
+        padding: 5,
+      }}
+    >
+      {SHOPPING_AISLES.map((a, i) => {
+        const selected = aisle === a;
+        const Icon = AISLE_ICONS[a] ?? UtensilsCrossed;
+        const color = AISLE_COLORS[a] ?? GREEN;
+        return (
+          <div key={a}>
+            {i > 0 && <div style={{ height: 1, margin: "3px 8px", background: "#d7e6dc" }} />}
+            <button
+              type="button"
+              role="option"
+              aria-selected={selected}
+              onClick={() => onSelect(a)}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "9px 10px",
+                border: "none",
+                borderRadius: 10,
+                background: selected ? "#eaf3ec" : "transparent",
+                color: selected ? GREEN : INK,
+                fontWeight: selected ? 800 : 600,
+                fontSize: 13,
+                textAlign: "left",
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              <span
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 8,
+                  background: selected ? color : "#f0f4f1",
+                  color: selected ? "#fff" : color,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Icon size={14} strokeWidth={2.2} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>{a}</span>
+              {selected && <Check size={15} strokeWidth={2.8} color={GREEN} style={{ flexShrink: 0 }} />}
+            </button>
+          </div>
+        );
+      })}
+    </div>,
+    document.body,
   );
 }
 

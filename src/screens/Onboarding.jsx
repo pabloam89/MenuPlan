@@ -1,4 +1,4 @@
-import React, { Fragment, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import React, { Fragment, Suspense, lazy, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   ArrowUpDown,
@@ -49,6 +49,7 @@ import {
   Salad,
   SlidersHorizontal,
   Sparkles,
+  Star,
   Tag,
   Trash2,
   Upload,
@@ -106,6 +107,10 @@ import {
 } from "../lib/planner.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
+
+const PantryScreen = lazy(() =>
+  import("./Pantry.jsx").then((m) => ({ default: m.PantryScreen })),
+);
 
 // Delegates to the single source of truth (lib/stages.js's resolveMemberAge,
 // re-exported via lib/groups.js) instead of re-deriving the birthDate math
@@ -1788,18 +1793,21 @@ function RestrictionTabCard({ Icon, title, subtitle, active, onClick }) {
   );
 }
 
-export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, onBack, onFinish, onReset }) {
+export function OnboardingRepeat({
+  data,
+  setData,
+  user = null,
+  priceObs = [],
+  pantryEpoch = 0,
+  onNext,
+  onBack,
+  onFinish,
+  onReset,
+}) {
   const mealOptions = getMeals(data);
-
-  // Logged-in users who already saved fixed dishes get a quick choice up front:
-  // keep their usual repeats (skip straight ahead) or adjust (reveal the
-  // catalog). Captured once on mount so editing dishes doesn't re-show it.
-  const [hadSavedFixed] = useState(
-    () => migrateFixedDishes(data.fixedDishes ?? []).length > 0,
-  );
-  const [repeatChoice, setRepeatChoice] = useState(null);
-  const showChoice = hasAccount && hadSavedFixed && repeatChoice === null;
-  const advance = onNext ?? onFinish;
+  // Same pattern as «¿Qué evitamos?» (Alergias / Salud): two top cards switch
+  // which panel is visible so the step stays scannable.
+  const [mainTab, setMainTab] = useState("casa");
 
   const updateFixedDish = (idx, patch) =>
     setData((d) => {
@@ -1877,10 +1885,12 @@ export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, on
     [data.recipeVotes],
   );
 
+  const useHomeStock = data.useHomeStock !== false;
+
   return (
     <OnboardingShell
       title="¿Qué repetimos?"
-      subtitle="Platos que ya cocináis y queréis ver cada semana"
+      subtitle="Lo que hay en casa y los platos que ya os gustan"
       bg="#f5f9f6"
       onBack={onBack}
       onReset={onReset}
@@ -1894,28 +1904,70 @@ export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, on
         }
       `}</style>
 
-      {showChoice ? (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, paddingTop: 4 }}>
-          <RepeatChoiceCard
-            Icon={Repeat}
-            title="Seguir con los de siempre"
-            accent="#2d5a3d"
-            bg="#e6f3ea"
-            border="#a8d5b5"
-            onClick={() => advance?.()}
-          />
-          <RepeatChoiceCard
-            Icon={SlidersHorizontal}
-            title="Ajustar mis platos fijos"
-            accent="#7a4e00"
-            bg="#fff8e7"
-            border="#f0d090"
-            onClick={() => setRepeatChoice("adjust")}
-          />
+      <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+        <RestrictionTabCard
+          Icon={House}
+          title="En casa"
+          subtitle="nevera y despensa"
+          active={mainTab === "casa"}
+          onClick={() => setMainTab("casa")}
+        />
+        <RestrictionTabCard
+          Icon={Star}
+          title="Favoritas"
+          subtitle="y platos fijos"
+          active={mainTab === "favoritas"}
+          onClick={() => setMainTab("favoritas")}
+        />
+      </div>
+
+      {mainTab === "casa" ? (
+        <div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 12,
+              padding: "12px 14px",
+              background: "#fff",
+              border: "1.5px solid #e5ebe7",
+              borderRadius: 14,
+              marginBottom: 14,
+              boxShadow: "0 2px 10px rgba(20,47,29,.04)",
+            }}
+          >
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>
+                Usar lo que hay en casa
+              </div>
+              <div style={{ fontSize: 11.5, fontWeight: 600, color: "#7a8a7f", marginTop: 2, lineHeight: 1.35 }}>
+                Al generar el menú, priorizar recetas con ingredientes mapeados de nevera y despensa
+              </div>
+            </div>
+            <ToggleSwitch
+              checked={useHomeStock}
+              onChange={(v) => setData((d) => ({ ...d, useHomeStock: v }))}
+            />
+          </div>
+
+          <Suspense
+            fallback={
+              <p style={{ margin: 0, padding: "12px 2px", fontSize: 13, color: "#9ab0a1" }}>
+                Cargando…
+              </p>
+            }
+          >
+            <PantryScreen
+              embedded
+              user={user}
+              priceObs={priceObs}
+              pantryEpoch={pantryEpoch}
+            />
+          </Suspense>
         </div>
       ) : (
         <>
-          {/* Platos ya elegidos — resumen editable arriba */}
           {fixedList.length > 0 && (
             <>
               <FixedDishTable
@@ -1929,8 +1981,6 @@ export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, on
             </>
           )}
 
-          {/* Catálogo/Favoritas — mismas pestañas que "Recetas", sin poder marcar
-              favoritas aquí (solo elegir de las que ya lo son). */}
           <div style={{ display: "flex", background: "#e8efe9", borderRadius: 12, padding: 3, marginBottom: 12 }}>
             {[
               { id: "catalogo", label: "Catálogo" },
@@ -1986,34 +2036,6 @@ export function OnboardingRepeat({ data, setData, hasAccount = false, onNext, on
         </>
       )}
     </OnboardingShell>
-  );
-}
-
-// Big tappable option card (icon bubble + title, no subcopy) — same visual
-// language as the "¿Para quién es el menú?" popup, rendered inline here.
-function RepeatChoiceCard({ Icon, title, accent, bg, border, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "flex", alignItems: "center", gap: 14, width: "100%",
-        padding: "18px 18px", borderRadius: 18, cursor: "pointer",
-        border: `2px solid ${border}`, background: "#fff", fontFamily: "inherit",
-        textAlign: "left", boxShadow: "0 6px 18px -12px rgba(0,0,0,.25)",
-      }}
-    >
-      <span
-        style={{
-          flex: "0 0 auto", width: 48, height: 48, borderRadius: 14,
-          display: "inline-flex", alignItems: "center", justifyContent: "center",
-          background: bg, border: `1.5px solid ${border}`,
-        }}
-      >
-        <Icon size={22} color={accent} strokeWidth={2.2} />
-      </span>
-      <span style={{ fontSize: 16, fontWeight: 800, color: "#1a3a24" }}>{title}</span>
-    </button>
   );
 }
 
@@ -2469,7 +2491,7 @@ const AFINAR_WIZARD_STEPS = [
   { step: 4, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
   { step: 5, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
   { step: 6, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
-  { step: 7, Icon: Repeat, label: "Platos fijos", desc: "Los que no pueden faltar" },
+  { step: 7, Icon: Repeat, label: "Repetimos", desc: "Casa, favoritas y platos fijos" },
   { step: 8, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
 ];
 

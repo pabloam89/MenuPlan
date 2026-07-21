@@ -26,14 +26,16 @@ import { getMenuInsights } from "../lib/menuInsights.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { tabDirection } from "../lib/motion.js";
+import { SpendPanel } from "./SpendPanel.jsx";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 const TAB_OPTIONS = [
   { id: "cocina", label: "Cocina" },
   { id: "objetivos", label: "Objetivos" },
+  { id: "gasto", label: "Gasto" },
 ];
 
-export function AnalyticsScreen({ data, menuPlan, shopping, onNav }) {
+export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, onUndoReceiptTachado, onNav, onToast }) {
   const [tab, setTab] = useState("cocina");
   const tabDirRef = useRef(0);
   const handleTabChange = (next) => {
@@ -79,50 +81,46 @@ export function AnalyticsScreen({ data, menuPlan, shopping, onNav }) {
             marginBottom: 16,
           }}
         >
-          <h2 style={titleStyle}>Tu semana</h2>
-          <WeekRangeBadge label={weekLabel} />
+          <h2 style={titleStyle}>{tab === "gasto" ? "Tu gasto" : "Tu semana"}</h2>
+          {tab !== "gasto" && <WeekRangeBadge label={weekLabel} />}
         </div>
 
-        {!insights.hasMenu ? (
-          <EmptyAnalytics onNav={onNav} />
-        ) : (
-          <>
-            {multiGroup && (
-              <GroupScopePicker groups={groups} scope={scope} onChange={setScope} />
-            )}
-
-            <SegmentedControl
-              value={tab}
-              onChange={handleTabChange}
-              options={TAB_OPTIONS}
-              activeDark
-              style={{ marginBottom: 10 }}
-            />
-            <TabDivider options={TAB_OPTIONS} value={tab} />
-            <div
-              key={tab}
-              className={tabDirRef.current >= 0 ? "mp-tab-fwd" : "mp-tab-back"}
-            >
-              {tab === "cocina" && <CookKpiStrip stats={cookView.cookStats} />}
-            </div>
-          </>
+        {/* Tabs are always available — Gasto works even without an active menú. */}
+        {multiGroup && insights.hasMenu && tab !== "gasto" && (
+          <GroupScopePicker groups={groups} scope={scope} onChange={setScope} />
         )}
-      </div>
 
-      {insights.hasMenu && (
+        <SegmentedControl
+          value={tab}
+          onChange={handleTabChange}
+          options={TAB_OPTIONS}
+          activeDark
+          style={{ marginBottom: 10 }}
+        />
+        <TabDivider options={TAB_OPTIONS} value={tab} />
         <div
           key={tab}
           className={tabDirRef.current >= 0 ? "mp-tab-fwd" : "mp-tab-back"}
-          style={{ padding: "0 16px", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}
         >
-          {tab === "cocina" && (
-            <CocinaTab cookView={cookView} meals={insights.meals} />
-          )}
-          {tab === "objetivos" && (
-            <ObjetivosTab viewConsumption={viewConsumption} meals={insights.meals} />
-          )}
+          {tab === "cocina" && insights.hasMenu && <CookKpiStrip stats={cookView.cookStats} />}
         </div>
-      )}
+      </div>
+
+      <div
+        key={`content-${tab}`}
+        className={tabDirRef.current >= 0 ? "mp-tab-fwd" : "mp-tab-back"}
+        style={{ padding: "0 16px", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}
+      >
+        {tab === "gasto" ? (
+          <SpendPanel data={data} setData={setData} shopping={shopping} setShopping={setShopping} onUndoReceiptTachado={onUndoReceiptTachado} onToast={onToast} />
+        ) : !insights.hasMenu ? (
+          <EmptyAnalytics onNav={onNav} />
+        ) : tab === "cocina" ? (
+          <CocinaTab cookView={cookView} meals={insights.meals} />
+        ) : (
+          <ObjetivosTab viewConsumption={viewConsumption} meals={insights.meals} />
+        )}
+      </div>
 
       <BottomNav active="analytics" onNav={onNav} />
     </div>

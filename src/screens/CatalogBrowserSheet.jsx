@@ -1357,34 +1357,36 @@ function RecipeCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 8 }}>
-        <button
-          type="button"
-          onClick={reference && onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
-          disabled={!reference || !onOpenRecipe}
-          style={{
-            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 12,
-            padding: 0, border: "none", background: "transparent",
-            cursor: reference && onOpenRecipe ? "pointer" : "default",
-            fontFamily: "inherit", textAlign: "left",
-          }}
-        >
-        {/* thumbnail — colored ring per category */}
+        {/* thumbnail — colored ring per category. Its own open-recipe button so
+            the favorite button below is a SIBLING, never nested inside another
+            <button> (invalid HTML → React hydration warning + flaky taps). */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <div
+          <button
+            type="button"
+            onClick={reference && onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
+            disabled={!reference || !onOpenRecipe}
+            aria-label={reference && onOpenRecipe ? `Ver ${recipe.name}` : undefined}
             style={{
-              width: 52, height: 52, borderRadius: 12, overflow: "hidden",
-              boxSizing: "border-box", border: `2.5px solid ${color}`,
-              background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center",
+              display: "block", padding: 0, border: "none", background: "transparent",
+              cursor: reference && onOpenRecipe ? "pointer" : "default",
             }}
           >
-            {photo ? (
-              <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            ) : (
-              <CategoryIcon category={recipe.category} size={22} />
-            )}
-          </div>
-          {/* Favorite badge — floats over the photo corner, outside the
-              owner/votes column so both stay visible at all times. */}
+            <div
+              style={{
+                width: 52, height: 52, borderRadius: 12, overflow: "hidden",
+                boxSizing: "border-box", border: `2.5px solid ${color}`,
+                background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center",
+              }}
+            >
+              {photo ? (
+                <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <CategoryIcon category={recipe.category} size={22} />
+              )}
+            </div>
+          </button>
+          {/* Favorite badge — floats over the photo corner, sibling of the
+              thumbnail button above. */}
           {reference && onSetFavoriteScope && (
             <button
               type="button"
@@ -1415,8 +1417,18 @@ function RecipeCard({
           )}
         </div>
 
-        {/* info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* info — its own open-recipe button (sibling of the thumbnail one) */}
+        <button
+          type="button"
+          onClick={reference && onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
+          disabled={!reference || !onOpenRecipe}
+          style={{
+            flex: 1, minWidth: 0, display: "block",
+            padding: 0, border: "none", background: "transparent",
+            cursor: reference && onOpenRecipe ? "pointer" : "default",
+            fontFamily: "inherit", textAlign: "left",
+          }}
+        >
           <p
             style={{
               margin: 0, fontSize: 13.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.25,
@@ -1461,7 +1473,6 @@ function RecipeCard({
               </span>
             </div>
           )}
-        </div>
         </button>
 
         {/* Reference mode: owner + votes column (+ optional garnish combo) */}

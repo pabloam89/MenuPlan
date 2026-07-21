@@ -243,7 +243,6 @@ export function HomeProfileScreen({
   onReset,
   onDeleteAccount,
   onEditMembers,
-  onOpenPantry,
 }) {
   const g = googleInfo(user);
   const fileInputRef = useRef(null);
@@ -479,9 +478,7 @@ export function HomeProfileScreen({
           <CookTimeEditor data={data} setData={setData} />
         </Section>
 
-        {/* ── Tu despensa — oculto de momento (feature en pausa) ── */}
-
-        {/* ── 6. Zona de peligro ─────────────────────── */}
+        {/* ── Zona de peligro ─────────────────────── */}
         <Card style={{ borderColor: "#f0d0cc", marginBottom: 8 }}>
           {/* Reiniciar datos */}
           <button

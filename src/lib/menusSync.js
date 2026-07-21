@@ -270,3 +270,33 @@ export function saveAndActivateMenu(userId, menu, recipes) {
   activationQueues.set(userId, next);
   return next;
 }
+
+// ── Live per-week upsert (shopping edits) ────────────────────────────────
+// saveMenu only writes user_menu_weeks at generation time, but the cloud
+// tables are the hydration read-preference (see App.jsx). So any edit made
+// to a week's shopping AFTER generation (check-offs, "ya en casa", manual
+// items, multi-week merges) has to be written back to its week row too —
+// otherwise a logged-in user loses every change on reload, because the stale
+// generation-time row wins over the fresher local copy.
+//
+// Check-offs fire many taps in a row, so coalesce to the latest payload per
+// (user, menu, week) with a short debounce instead of hammering the API.
+// Fire-and-forget; the user_state blob is still the belt-and-suspenders copy.
+const weekSaveTimers = new Map();
+
+export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200) {
+  if (!supabase || !userId || !menuId || !startISO || !week) return;
+  const key = `${userId}:${menuId}:${startISO}`;
+  const existing = weekSaveTimers.get(key);
+  if (existing) clearTimeout(existing);
+  const timer = setTimeout(async () => {
+    weekSaveTimers.delete(key);
+    const { error } = await supabase
+      .from("user_menu_weeks")
+      .upsert(weekToRow(userId, menuId, startISO, week), {
+        onConflict: "user_id,menu_id,week_start",
+      });
+    if (error) console.warn("[menusSync] save week (live) failed", error.message);
+  }, delay);
+  weekSaveTimers.set(key, timer);
+}

@@ -77,6 +77,28 @@ export function isWordSubsetOf(words, of) {
 
 let catalogIndexCache = null;
 
+// Bare supermarket words that rarely appear as ingredient names themselves
+// ("pasta" vs "Espaguetis" / "Macarrones"). When the strict word-subset
+// match finds nothing, we expand these into related catalog hits and ask
+// the user to pick — same "¿Cuál?" path as "queso" / "pechuga".
+const CATEGORY_SEEDS = {
+  pasta: ["pasta", "espagueti", "macarron", "fideo", "tallarin", "lasaña", "lasana", "ñoqui", "noqui", "noodle", "penne", "fusilli", "tortellini", "ravioli"],
+  arroz: ["arroz", "risotto", "basmati", "jazmin"],
+  carne: ["carne", "ternera", "cerdo", "pollo", "pavo", "cordero", "vacuno", "picada"],
+  pescado: ["pescado", "merluza", "salmon", "bacalao", "atun", "gamba", "langostino"],
+  queso: ["queso"],
+  leche: ["leche"],
+  yogur: ["yogur", "yogurt"],
+  pan: ["pan", "barra", "chapata", "baguette", "molde"],
+  zumo: ["zumo", "jugo"],
+  aceite: ["aceite"],
+  conserva: ["conserva", "enlatad", "bote", "lata"],
+  encurtido: ["encurtido", "pepini", "aceituna", "pepinillo"],
+  legumbre: ["lenteja", "garbanzo", "alubi", "judia", "habas", "legumbre"],
+  verdura: ["verdura", "hortaliza"],
+  fruta: ["fruta"],
+};
+
 /** Unique ingredient names across the whole catalog, pre-split into words. */
 function buildCatalogIndex() {
   const names = new Set();
@@ -101,6 +123,37 @@ export function _resetCatalogIndexCache() {
   catalogIndexCache = null;
 }
 
+function seedsForTokenWords(tokenWords) {
+  const seeds = new Set();
+  for (const w of tokenWords) {
+    const base = singularize(w);
+    if (CATEGORY_SEEDS[base]) {
+      for (const s of CATEGORY_SEEDS[base]) seeds.add(s);
+    }
+    // Also allow the bare word itself as a seed so "espagueti" still finds
+    // "Espaguetis" via singularization even outside CATEGORY_SEEDS keys.
+    seeds.add(base);
+    seeds.add(w);
+  }
+  return [...seeds];
+}
+
+function entryMatchesSeeds(entry, seeds) {
+  return entry.words.some((w) =>
+    seeds.some((s) => wordsEqual(w, s) || w.startsWith(s) || s.startsWith(w)),
+  );
+}
+
+function dedupeCatalogEntries(matches) {
+  const seen = new Set();
+  return matches.filter((m) => {
+    const key = m.words.map(singularize).join("_");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 // A match requires every word on the shorter side to appear on the longer
 // side ("pollo" ⊆ "pechuga de pollo", or "pechuga de pollo" ⊇ "pechuga").
 // Returns every catalog entry tied at the best score (word-count distance
@@ -122,19 +175,22 @@ function findCatalogMatches(tokenWords, catalogIndex) {
       matches.push(entry);
     }
   }
-  // Dedupe entries that are the same ingredient under singular/plural
-  // variance (catalog data has both "Contramuslo de pollo" and "Contramuslos
-  // de pollo") — those shouldn't look like two different candidates to
-  // choose between. Uses a looser singularized key than the stored
-  // `normalized` value just to detect this; genuinely different words
-  // ("pollo" vs "pavo") are untouched and still surface as real choices.
-  const seen = new Set();
-  return matches.filter((m) => {
-    const key = m.words.map(singularize).join("_");
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
+  return dedupeCatalogEntries(matches);
+}
+
+// When the strict match finds nothing, expand category-ish tokens ("pasta")
+// into related catalog ingredients and let the UI ask ¿Cuál?
+function findRelatedCatalogMatches(tokenWords, catalogIndex) {
+  if (tokenWords.length === 0) return [];
+  const seeds = seedsForTokenWords(tokenWords);
+  // Only fire the broad net when at least one token is a known category key
+  // (or equals a seed list name) — otherwise every unmatched word would dump
+  // half the catalog into a picker.
+  const hasCategoryKey = tokenWords.some((w) => CATEGORY_SEEDS[singularize(w)]);
+  if (!hasCategoryKey) return [];
+
+  const matches = catalogIndex.filter((entry) => entryMatchesSeeds(entry, seeds));
+  return dedupeCatalogEntries(matches).slice(0, 16);
 }
 
 function singularize(word) {
@@ -166,7 +222,10 @@ export function normalizePantryInput(input) {
 
   return splitIntoTokens(text).map((raw) => {
     const words = significantWords(raw);
-    const matches = findCatalogMatches(words, catalogIndex);
+    let matches = findCatalogMatches(words, catalogIndex);
+    if (matches.length === 0) {
+      matches = findRelatedCatalogMatches(words, catalogIndex);
+    }
 
     if (matches.length === 1) {
       return { raw, normalized: toKey(matches[0].words), matched: true, ambiguous: false };
@@ -174,7 +233,7 @@ export function normalizePantryInput(input) {
     if (matches.length > 1) {
       // Several equally-good catalog ingredients (e.g. "pechuga" matches both
       // "Pechuga de pollo" and "Pechuga de pavo") — let the user pick instead
-      // of guessing.
+      // of guessing. Same for bare categories like "pasta".
       return {
         raw,
         matched: true,

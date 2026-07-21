@@ -25,6 +25,34 @@ function matchesPantry(ingredientName, pantryNormalized, adapted = false) {
   return pantryNormalized.some((key) => wordsOverlapEither(key.split("_"), words));
 }
 
+/**
+ * Pick the first pantry stock row that matches a recipe/shopping ingredient
+ * name — same fuzzy rules as matchesPantry (or the stricter adapted rule).
+ * Used by Modo cocina «Marcar cocinado» so decrementing stock agrees with
+ * «Ya en casa» discounts.
+ *
+ * @param {string} ingredientName
+ * @param {{ ingredientNormalized: string }[]} pantryStock
+ * @param {{ adapted?: boolean }} [opts]
+ * @returns {object|null}
+ */
+export function findMatchingPantryItem(ingredientName, pantryStock, { adapted = false } = {}) {
+  if (!pantryStock?.length) return null;
+  const words = ingredientWords(ingredientName);
+  if (!words.length) return null;
+  for (const row of pantryStock) {
+    const keyWords = String(row.ingredientNormalized ?? "")
+      .split("_")
+      .filter(Boolean);
+    if (!keyWords.length) continue;
+    const ok = adapted
+      ? isWordSubsetOf(words, keyWords)
+      : wordsOverlapEither(keyWords, words);
+    if (ok) return row;
+  }
+  return null;
+}
+
 function scaleIngredient(ing, eaters, recipeServings) {
   if (isQualitativeUnit(ing.unit)) return { ...ing, qty: null, scaledPrice: 0 };
   const factor = Math.max(1, eaters) / recipeServings;
@@ -106,7 +134,7 @@ function formatQty(qty, unit) {
  * @param {{ ingredientName: string, ingredientNormalized: string }[]} [pantryIngredients]
  *   The signed-in user's saved pantry (see src/lib/pantry.js#loadPantry).
  *   Matched items are pulled out of `byCategory` into `pantryItems`
- *   ("Despensa") instead of being removed — the user may still want to check
+ *   ("Ya en casa") instead of being removed — the user may still want to check
  *   them off — and are excluded from `total`. No partial-quantity handling:
  *   a match discounts the whole line (see matchesPantry above).
  *
@@ -167,6 +195,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
               day,
               meal,
               group: group.label,
+              recipeId: rid,
               recipeName: recipe.name,
               qty: scaled.qty,
               unit: ing.unit,
@@ -203,7 +232,7 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
     };
   });
 
-  // Pantry matches move to their own "Despensa" bucket instead of sitting in
+  // Pantry matches move to their own "Ya en casa" bucket instead of sitting in
   // their normal aisle group — they still need checking off, per the spec,
   // so they aren't dropped entirely.
   const shoppingItems = items.filter((it) => !it.fromPantry);

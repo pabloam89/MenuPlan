@@ -23,6 +23,26 @@ select {
   font-size: 16px;
 }
 
+/* Uniform placeholder colour across every field (inputs render their own text in
+   the colour set inline; this keeps the greyed-out hints identical). */
+input::placeholder,
+textarea::placeholder {
+  color: #9aa8a0;
+  opacity: 1;
+}
+
+/* Hides the native up/down spinner buttons on <input type="number">, used for
+   compact numeric fields (e.g. ticket qty/price) where the arrows eat into an
+   already-tight width and overlap the digits. */
+.mp-no-spinner::-webkit-outer-spin-button,
+.mp-no-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+.mp-no-spinner {
+  -moz-appearance: textfield;
+}
+
 @keyframes rotate {
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }

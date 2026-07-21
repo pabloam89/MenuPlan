@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2 } from "lucide-react";
+import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -69,6 +69,7 @@ import {
   deleteMenu as deleteMenuRemote,
   toggleMenuFavorite as toggleMenuFavoriteRemote,
   saveAndActivateMenu,
+  queueSaveMenuWeek,
 } from "./lib/menusSync.js";
 const MenusScreen = lazy(() => import("./screens/MenusScreen.jsx").then(m => ({ default: m.MenusScreen })));
 const MenuHistoryView = lazy(() => import("./screens/MenuHistoryView.jsx").then(m => ({ default: m.MenuHistoryView })));
@@ -103,7 +104,7 @@ import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
-import { loadPantry } from "./lib/pantry.js";
+import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud } from "./lib/pantry.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -196,6 +197,9 @@ const INITIAL_DATA = {
   customAllergies: [],
   customDislikes: [],
   fixedDishes: [],
+  // When true, mapped «En casa» stock soft-biases menu generation (pantryScore
+  // + LLM nudge). Shopping still discounts stock either way.
+  useHomeStock: true,
   // Recipes created by the user via the recipe planner. Same shape as the
   // bundled catalog (see src/data/recipes/*.json) plus source:"user".
   userRecipes: [],
@@ -253,6 +257,17 @@ const INITIAL_DATA = {
   // { [menuId]: { id, createdAt, isFavorite, isActive, varietyPref, weeks } }
   menus: {},
   activeMenuId: null,
+  // ── Precios / Gasto (lib/priceHistory.js) ──
+  // Individual price observations, one per receipt/manual line that mapped to a
+  // canonical ingredient: { id, ingredientId, name, brand, store, price, qty,
+  // unit, purchasedAt, source: "receipt"|"manual", receiptId }.
+  priceObs: [],
+  // Learned mappings so a cryptic receipt line only needs confirming once:
+  // { [normalizedReceiptLine]: ingredientId }.
+  priceAliases: {},
+  // Uploaded receipts (the "facturas" inbox): { id, createdAt, store,
+  // purchasedAt, total, lineCount }.
+  receipts: [],
 };
 
 // Ad-hoc menus used to be labeled by the member's name ("Menú de X"); now
@@ -442,11 +457,16 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
+  if (typeof d.useHomeStock !== "boolean") d.useHomeStock = true;
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
   d.cookTime = migrateCookTime(d);
   d.menus = d.menus && typeof d.menus === "object" && !Array.isArray(d.menus) ? d.menus : {};
   d.activeMenuId = typeof d.activeMenuId === "string" ? d.activeMenuId : null;
+  // Precios / Gasto
+  d.priceObs = Array.isArray(d.priceObs) ? d.priceObs : [];
+  d.priceAliases = d.priceAliases && typeof d.priceAliases === "object" && !Array.isArray(d.priceAliases) ? d.priceAliases : {};
+  d.receipts = Array.isArray(d.receipts) ? d.receipts : [];
   // Legacy shape: a single consecutive count from week 1 → [0, 1, ..., n-1].
   if (!Array.isArray(d.menuWeekOffsets) || d.menuWeekOffsets.length === 0) {
     const legacyCount = clampWeekCount(d.menuWeekCount ?? 1);
@@ -508,6 +528,12 @@ export default function App() {
   const [screen, setScreen] = useState(
     DEV_DEMO_MENU ? (persisted?.screen ?? "menu") : "splash"
   );
+  // "pantry" is opened from Compra / nav Inicio — remembers which so "Atrás"
+  // returns there instead of always landing on dashboard.
+  const [pantryOrigin, setPantryOrigin] = useState("dashboard");
+  // Bumps after mergeLocalPantryIntoCloud so Pantry/Shopping/onboarding reload
+  // stock once the local→cloud fold finishes (avoids a stale empty list).
+  const [pantryEpoch, setPantryEpoch] = useState(0);
   const [onbStep, setOnbStep] = useState(persisted?.onbStep ?? 0);
   // Which history entry is open in the read-only viewer (screen "menuHistory").
   const [historyMenuId, setHistoryMenuId] = useState(null);
@@ -698,14 +724,20 @@ export default function App() {
     if (hydratedUserRef.current === user.id) return;
     hydratedUserRef.current = user.id;
 
-    // Captured now (effect runs the moment a session appears): these are the
-    // local-only items to reconcile with the cloud.
+    // Capture local-only blobs before any await so a mid-hydration edit
+    // isn't the source of truth for the union (same as before).
     const localRecipes = data.userRecipes ?? [];
     const localVotes = data.recipeVotes ?? {};
     const localMenus = data.menus ?? {};
     let cancelled = false;
 
+    // Fold signed-out stock into the account first, then bump pantryEpoch so
+    // any open En casa / Compra UI reloads after the merge (not mid-flight).
     (async () => {
+      await mergeLocalPantryIntoCloud(user.id);
+      if (cancelled) return;
+      setPantryEpoch((n) => n + 1);
+
       const [remoteState, remoteRecipes, remoteVotes] = await Promise.all([
         loadUserState(user.id),
         loadUserRecipes(user.id),
@@ -918,7 +950,10 @@ export default function App() {
     setIsGeneratingMenu(true);
     setMenuError(null);
     try {
-      const pantryIngredients = user ? await loadPantry(user.id) : [];
+      const pantryStock = user ? await loadPantry(user.id) : loadLocalPantry();
+      // Planning bias is opt-out via useHomeStock; shopping always sees stock
+      // so «Ya en casa» stays accurate.
+      const pantryIngredients = working.useHomeStock === false ? [] : pantryStock;
       const weekOffsets = (Array.isArray(working.menuWeekOffsets) && working.menuWeekOffsets.length
         ? [...new Set(working.menuWeekOffsets)]
         : [working.menuWeek?.offset ?? 0]
@@ -965,7 +1000,7 @@ export default function App() {
         // parallel workers.) The aggregate registerRecipes below is now belt-and-
         // suspenders for health-flags/UI, but harmless.
         registerRecipes(recipes);
-        const sh = buildShoppingList(plan, groups, getMeals(weekData), pantryIngredients);
+        const sh = buildShoppingList(plan, groups, getMeals(weekData), pantryStock);
         const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
         const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
         return { offset, startDayIdx, startISO, endISO, plan, weekShopping, weekSchedule, recipes };
@@ -1283,7 +1318,55 @@ export default function App() {
     });
     const wk = data.menus?.[menuId]?.weeks?.[weekStart];
     if (wk && wk.offset === data.menuWeek?.offset) setShopping(nextShopping);
-  }, [data.menus, data.activeMenuId, data.menuWeek?.offset]);
+    // Cloud tables are the hydration read-preference, so mirror this edit to
+    // the week's normalized row too — otherwise a logged-in user loses every
+    // shopping change on reload (the generation-time row would win). Debounced
+    // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
+    if (user && menuId && wk) {
+      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping });
+    }
+  }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user]);
+
+  // Undo a confirmed ticket's tachado. Deleting a ticket in Análisis → Gasto
+  // must reverse the exact "have: true" the receipt wizard set — and through
+  // the SAME write path (updateWeekShopping → archive + live mirror + cloud),
+  // otherwise a logged-in user would see the tachado reappear on reload.
+  // `weekStart` mirrors the SAME scoping the wizard tached with (a ticket is
+  // one real purchase, tached against one real week — see Shopping.jsx's
+  // targetWeekStart): when it names a week that's actually in the archive,
+  // undo touches ONLY that week, so it can't wipe out an unrelated tachado of
+  // the same ingredient sitting in a different week. Falls back to every
+  // week (old behaviour) when it's null/unknown/not archived — matching
+  // exactly the case where the wizard itself fell back to tach everywhere.
+  const undoReceiptTachado = useCallback((tachedKeys = [], weekStart = null) => {
+    if (!tachedKeys?.length) return;
+    const keySet = new Set(tachedKeys);
+    const untacha = (items) =>
+      (items ?? []).map((it) =>
+        keySet.has(normalizeIngredientKey(it.name, it.unit ?? "ud")) ? { ...it, have: false } : it,
+      );
+    const menuId = data.activeMenuId;
+    const weeks = data.menus?.[menuId]?.weeks ?? null;
+    const weekEntries = weeks ? Object.entries(weeks) : [];
+    const hasArchive = weekEntries.some(([, wk]) => wk?.shopping?.items?.length);
+    if (hasArchive) {
+      const scoped = weekStart && weekEntries.some(([ws]) => ws === weekStart)
+        ? weekEntries.filter(([ws]) => ws === weekStart)
+        : weekEntries;
+      for (const [ws, wk] of scoped) {
+        const items = wk?.shopping?.items;
+        if (!items?.length) continue;
+        const next = untacha(items);
+        // Only write weeks that actually held one of the tached keys, so we
+        // don't churn cloud rows for untouched weeks.
+        if (next.some((it, i) => it !== items[i])) {
+          updateWeekShopping(ws, { ...wk.shopping, items: next });
+        }
+      }
+    } else {
+      setShopping((s) => ({ ...s, items: untacha(s?.items) }));
+    }
+  }, [data.activeMenuId, data.menus, updateWeekShopping]);
 
   // Keep the active week's archived shopping in sync with the live list, so
   // switching weeks (or reloading) never loses the check-offs/edits made in
@@ -1477,9 +1560,19 @@ export default function App() {
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
+    if (id === "pantry") {
+      const origin =
+        screen === "shopping" ? "shopping"
+        : screen === "dashboard" ? "dashboard"
+        : screen === "profile" ? "profile"
+        : screen === "account" ? "account"
+        : screen === "pantry" ? pantryOrigin
+        : "dashboard";
+      setPantryOrigin(origin);
+    }
     setScreen(id);
     if (id === "shopping") trackEvent(user, "shopping_opened", "shopping");
-  }, [screen, user]);
+  }, [screen, user, pantryOrigin]);
 
   const goToOnboardingStep = useCallback((step) => {
     dirRef.current = "forward";
@@ -1534,6 +1627,14 @@ export default function App() {
     setSelectedSlot(selection);
     trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
   }, [user]);
+
+  // One-shot "jump to this dish" signal from the Menú availability dot →
+  // opens Compra straight into Modo Cocina with that recipe expanded.
+  const [cookFocus, setCookFocus] = useState(null);
+  const handleFocusCookDish = useCallback((focus) => {
+    setCookFocus(focus);
+    handleNav("shopping");
+  }, [handleNav]);
 
   // Public like/dislike rating — independent of favoriting. Feeds the
   // accumulated thumbs-up/down counts shown next to the recipe owner.
@@ -1623,7 +1724,7 @@ export default function App() {
       data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
     // Fetched before the state updater (which must stay synchronous) so the
     // rebuilt shopping list still discounts pantry ingredients after a swap.
-    const pantryIngredients = user ? await loadPantry(user.id) : [];
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
     setMenuPlan((plan) => {
       const slotKey = `${day}-${meal}`;
       const prevSlot = plan[groupId]?.[slotKey] ?? {};
@@ -1890,7 +1991,9 @@ export default function App() {
     <OnboardingRepeat
       data={data}
       setData={setData}
-      hasAccount={Boolean(user)}
+      user={user}
+      priceObs={data.priceObs ?? []}
+      pantryEpoch={pantryEpoch}
       onNext={nextOf(7)}
       onBack={backOf(7)}
       onFinish={() => fwd(goToMenu)}
@@ -2026,6 +2129,8 @@ export default function App() {
               onOpenMenus={openMenusScreen}
               autoOpenProfile={pendingProfileOpen}
               onAutoOpenProfileHandled={() => setPendingProfileOpen(false)}
+              shoppingItems={shopping.items}
+              onFocusCookDish={handleFocusCookDish}
             />
           </div>
         )}
@@ -2091,12 +2196,18 @@ export default function App() {
               <ShoppingScreen
                 shopping={shopping}
                 setShopping={setShopping}
+                data={data}
+                setData={setData}
                 onNav={handleNav}
                 onToast={showToast}
                 menuWeek={data.menuWeek}
                 menuWeeks={data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]) : null}
                 activeOffset={data.menuWeek?.offset ?? null}
                 onUpdateWeek={updateWeekShopping}
+                initialFocusDish={cookFocus}
+                onFocusDishHandled={() => setCookFocus(null)}
+                onOpenPantry={() => fwd(() => { setPantryOrigin("shopping"); setScreen("pantry"); })}
+                pantryEpoch={pantryEpoch}
               />
             </Suspense>
           </div>
@@ -2110,9 +2221,13 @@ export default function App() {
             <Suspense fallback={null}>
               <AnalyticsScreen
                 data={data}
+                setData={setData}
                 menuPlan={menuPlan}
                 shopping={shopping}
+                setShopping={setShopping}
+                onUndoReceiptTachado={undoReceiptTachado}
                 onNav={handleNav}
+                onToast={showToast}
               />
             </Suspense>
           </div>
@@ -2158,7 +2273,6 @@ export default function App() {
                 onSignIn={signInWithGoogle}
                 onSignOut={signOut}
                 onToast={showToast}
-                onOpenPantry={() => fwd(() => setScreen("pantry"))}
               />
             </Suspense>
           </div>
@@ -2172,8 +2286,18 @@ export default function App() {
             <Suspense fallback={null}>
               <PantryScreen
                 user={user}
-                onBack={() => back(() => setScreen("account"))}
-                onSignIn={signInWithGoogle}
+                onBack={() => back(() => setScreen(pantryOrigin))}
+                priceObs={data.priceObs ?? []}
+                pantryEpoch={pantryEpoch}
+                onNav={handleNav}
+                navActive={
+                  pantryOrigin === "shopping" ? "shopping"
+                  : pantryOrigin === "account" ? "settings"
+                  : "pantry"
+                }
+                navContext={
+                  pantryOrigin === "shopping" || pantryOrigin === "account" ? "menu" : "home"
+                }
               />
             </Suspense>
           </div>
@@ -2272,7 +2396,6 @@ export default function App() {
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
                 onEditMembers={() => fwd(() => setScreen("members"))}
-                onOpenPantry={() => fwd(() => setScreen("pantry"))}
               />
             </Suspense>
           </div>
@@ -2583,16 +2706,39 @@ export default function App() {
             bottom: 80,
             left: "50%",
             transform: "translateX(-50%)",
-            background: "#1a3a24",
-            color: "#fff",
-            padding: "10px 18px",
-            borderRadius: 24,
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            maxWidth: "calc(100% - 40px)",
+            // Same tinted-green wizard-sheet palette as the pop-ups, so a
+            // toast reads as "the same app" instead of a separate dark pill.
+            background: "#f3f8f4",
+            border: "1px solid #e2ede5",
+            color: "#142f1d",
+            padding: "9px 16px 9px 9px",
+            borderRadius: 18,
             fontSize: 13,
-            fontWeight: 600,
-            boxShadow: "0 6px 22px rgba(0,0,0,.2)",
+            fontWeight: 800,
+            lineHeight: 1.3,
+            boxShadow: "0 16px 40px rgba(0,0,0,.22)",
             zIndex: 200,
           }}
         >
+          <span
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 9,
+              background: "#2d5a3d",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+              boxShadow: "0 3px 8px rgba(45,90,61,.35)",
+            }}
+          >
+            <Check size={14} color="#fff" strokeWidth={2.6} />
+          </span>
           {toast}
         </div>
       )}

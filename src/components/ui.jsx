@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { BarChart3, BookOpen, Calendar, ClipboardList, CookingPot, Home, Settings, ShoppingCart, UserCircle } from "lucide-react";
+import { BarChart3, BookOpen, Calendar, ClipboardList, CookingPot, Home, House, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -81,7 +81,7 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
         ...style,
       }}
     >
-      {options.map(({ id, label }) => {
+      {options.map(({ id, label, Icon }) => {
         const sel = value === id;
         return (
           <button
@@ -90,6 +90,10 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
             onClick={() => onChange(id)}
             style={{
               flex: 1,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
               padding: "7px 0",
               borderRadius: 9,
               border: "none",
@@ -103,6 +107,7 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
               transition: "all .15s",
             }}
           >
+            {Icon && <Icon size={15} strokeWidth={2.4} />}
             {label}
           </button>
         );
@@ -168,6 +173,7 @@ const HOME_NAV_ITEMS = [
   { id: "dashboard", icon: Home, label: "Inicio" },
   { id: "recipes",   icon: BookOpen,    label: "Recetas" },
   { id: "menus",     icon: ClipboardList, label: "Menús" },
+  { id: "pantry",    icon: House, label: "En casa" },
   { id: "profile",   icon: Settings,    label: "Perfil" },
 ];
 
@@ -648,5 +654,145 @@ export function GroupScopePicker({ groups, scope, onChange, style }) {
         )}
       </div>
     </div>
+  );
+}
+
+// Centered popup with the same visual language as onboarding's big decision
+// moments ("¿Para quién es el menú?", "¿Cómo coméis en casa?"): rounded 26px
+// card, icon bubble + title/subtitle header, heavier shadow — for moments
+// where the user is choosing between a few clear paths, not filling a form.
+export function WizardSheet({ icon: Icon, iconColor = "#2d5a3d", title, subtitle, onClose, children, maxWidth = 380 }) {
+  return (
+    <div
+      className="mp-overlay-in"
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 300,
+        background: "rgba(0,0,0,.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 20px",
+      }}
+    >
+      <div
+        className="mp-sheet-up"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          // Tinted green, not plain white — so the white option cards/inputs
+          // inside actually stand out instead of blending into the sheet.
+          background: "#f3f8f4",
+          borderRadius: 26,
+          padding: "22px 20px 20px",
+          width: "100%",
+          maxWidth,
+          maxHeight: "88dvh",
+          overflowY: "auto",
+          boxSizing: "border-box",
+          boxShadow: "0 24px 60px rgba(0,0,0,.25)",
+          border: "1px solid #e2ede5",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            {Icon && (
+              <span
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 13,
+                  background: iconColor,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  boxShadow: `0 4px 12px ${iconColor}55`,
+                }}
+              >
+                <Icon size={21} color="#fff" strokeWidth={2.2} />
+              </span>
+            )}
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 900, color: "#142f1d" }}>{title}</h3>
+              {subtitle && (
+                <p style={{ margin: "2px 0 0", fontSize: 12.5, fontWeight: 600, color: "#4f6a5a", lineHeight: 1.3 }}>{subtitle}</p>
+              )}
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Cerrar"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 999,
+              border: "1px solid #cfe0d6",
+              background: "#fff",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              flexShrink: 0,
+              color: "#2d5a3d",
+            }}
+          >
+            <X size={16} />
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// Big tappable option row for WizardSheet — icon bubble + title (+ optional
+// subtitle), same shape as onboarding's RepeatChoiceCard so a "choose one of
+// these paths" moment always reads the same everywhere in the app.
+export function WizardOptionCard({ icon: Icon, iconColor, iconBg, title, subtitle, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        width: "100%",
+        padding: "14px 14px",
+        borderRadius: 18,
+        cursor: "pointer",
+        // White-on-tint, not white-on-white: the card needs to visibly lift
+        // off the WizardSheet's green background.
+        border: "1.5px solid #d7e6dc",
+        background: "#fff",
+        fontFamily: "inherit",
+        textAlign: "left",
+        boxShadow: "0 6px 16px -10px rgba(20,47,29,.35)",
+      }}
+    >
+      <span
+        style={{
+          flex: "0 0 auto",
+          width: 46,
+          height: 46,
+          borderRadius: 14,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: iconBg,
+        }}
+      >
+        <Icon size={21} color={iconColor} strokeWidth={2.2} />
+      </span>
+      <span style={{ minWidth: 0 }}>
+        <span style={{ display: "block", fontSize: 15, fontWeight: 800, color: "#142f1d" }}>{title}</span>
+        {subtitle && (
+          <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#7a8a7f", marginTop: 1 }}>{subtitle}</span>
+        )}
+      </span>
+    </button>
   );
 }

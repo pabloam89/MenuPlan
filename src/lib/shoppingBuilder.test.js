@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { buildShoppingList } from "./shoppingBuilder.js";
+import { buildShoppingList, findMatchingPantryItem } from "./shoppingBuilder.js";
 import { registerRecipes } from "../data/recipes.js";
 
 const GROUPS = [{ id: "g1", label: "Familia" }];
@@ -197,5 +197,32 @@ describe("buildShoppingList aggregation across recipes (Fase 5 audit)", () => {
       expect(Number.isInteger(it.qty)).toBe(true);
       expect(it.qty).toBeGreaterThanOrEqual(1);
     }
+  });
+});
+
+describe("findMatchingPantryItem", () => {
+  it("uses the same fuzzy subset rules as shopping pantry discount", () => {
+    const stock = [
+      { id: "1", ingredientName: "Pollo", ingredientNormalized: "pollo", qty: 500, unit: "g" },
+      { id: "2", ingredientName: "Tomate", ingredientNormalized: "tomate", qty: 400, unit: "g" },
+    ];
+    // Short pantry key is a subset of the recipe name words.
+    expect(findMatchingPantryItem("Pollo entero", stock)?.id).toBe("1");
+    expect(findMatchingPantryItem("Tomate maduro", stock)?.id).toBe("2");
+  });
+
+  it("matches when recipe words are a subset of a longer pantry key", () => {
+    const stock = [
+      { id: "3", ingredientName: "Pechuga de pollo", ingredientNormalized: "pechuga_pollo", qty: 300, unit: "g" },
+    ];
+    expect(findMatchingPantryItem("Pechuga de pollo", stock)?.id).toBe("3");
+  });
+
+  it("returns null when nothing overlaps", () => {
+    expect(
+      findMatchingPantryItem("Aceite de oliva", [
+        { id: "1", ingredientNormalized: "tomate", qty: 1, unit: "ud" },
+      ]),
+    ).toBeNull();
   });
 });

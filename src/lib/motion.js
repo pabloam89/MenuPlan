@@ -1,4 +1,4 @@
-export const MAIN_TABS = ["dashboard", "recipes", "menu", "shopping", "analytics", "profile"];
+export const MAIN_TABS = ["dashboard", "recipes", "menus", "pantry", "menu", "shopping", "analytics", "profile"];
 
 export function navDirection(from, to) {
   const a = MAIN_TABS.indexOf(from);

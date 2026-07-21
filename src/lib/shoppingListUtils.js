@@ -206,6 +206,96 @@ export function itemsByDay(items) {
   return byDay;
 }
 
+const MEAL_ORDER = { Desayuno: 0, Comida: 1, Cena: 2 };
+
+/**
+ * Cook-mode tree: day → meal → recipe → ingredients, with the qty each recipe
+ * actually uses (the "need", per-source — NOT the pack-snapped buy amount, which
+ * only makes sense aggregated in the shopping view). Items with no recipe
+ * sources (manually added lines) are returned separately in `extras`.
+ *
+ * Each ingredient keeps its parent item `id` so the caller can toggle purchase
+ * state against the same aggregated line the shopping view edits — checking off
+ * an onion under Tuesday marks it bought everywhere it appears, so the two views
+ * never disagree.
+ */
+export function itemsByDayMeal(items) {
+  const dayMap = new Map(); // day -> meal -> recipeName -> { recipeId, ings:Map(id->ing) }
+  const extras = [];
+  for (const it of items) {
+    if (!it.sources?.length) {
+      if (it.manual) extras.push(it);
+      continue;
+    }
+    for (const s of it.sources) {
+      if (!s.day || !s.meal) continue;
+      if (!dayMap.has(s.day)) dayMap.set(s.day, new Map());
+      const mealMap = dayMap.get(s.day);
+      if (!mealMap.has(s.meal)) mealMap.set(s.meal, new Map());
+      const recipeMap = mealMap.get(s.meal);
+      const rName = s.recipeName ?? "Otros";
+      if (!recipeMap.has(rName)) recipeMap.set(rName, { recipeId: s.recipeId ?? null, ings: new Map() });
+      const entry = recipeMap.get(rName);
+      if (!entry.recipeId && s.recipeId) entry.recipeId = s.recipeId;
+      if (!entry.ings.has(it.id)) {
+        entry.ings.set(it.id, {
+          id: it.id,
+          name: it.name,
+          unit: s.unit ?? it.unit ?? "ud",
+          qty: 0,
+          have: Boolean(it.have),
+          atHome: Boolean(it.atHome),
+          fromPantry: Boolean(it.fromPantry),
+        });
+      }
+      entry.ings.get(it.id).qty += s.qty ?? 0;
+    }
+  }
+
+  const days = DAYS.filter((d) => dayMap.has(d)).map((day) => {
+    const mealMap = dayMap.get(day);
+    const meals = Array.from(mealMap.keys())
+      .sort((a, b) => (MEAL_ORDER[a] ?? 1) - (MEAL_ORDER[b] ?? 1))
+      .map((meal) => ({
+        meal,
+        recipes: Array.from(mealMap.get(meal).entries())
+          .sort((a, b) => a[0].localeCompare(b[0]))
+          .map(([recipeName, entry]) => ({
+            recipeName,
+            recipeId: entry.recipeId,
+            ingredients: Array.from(entry.ings.values())
+              .map((g) => ({ ...g, displayQty: formatDisplay(g.qty, g.unit) }))
+              .sort((a, b) => a.name.localeCompare(b.name)),
+          })),
+      }));
+    return { day, meals };
+  });
+
+  return { days, extras };
+}
+
+/**
+ * Per-dish "do I have everything?" lookup for the Menú screen's availability
+ * badge: `${day}::${meal}::${recipeId}` -> { have, total }. Built on top of
+ * `itemsByDayMeal` so a dish's ratio always matches what Modo Cocina shows for
+ * the same recipe. Pantry matches count as "have" — same rule as CookDish's
+ * own counter.
+ */
+export function dishAvailabilityMap(items) {
+  const { days } = itemsByDayMeal(items);
+  const map = new Map();
+  for (const d of days) {
+    for (const m of d.meals) {
+      for (const r of m.recipes) {
+        if (!r.recipeId) continue;
+        const have = r.ingredients.filter((i) => i.have || i.atHome || i.fromPantry).length;
+        map.set(`${d.day}::${m.meal}::${r.recipeId}`, { have, total: r.ingredients.length });
+      }
+    }
+  }
+  return map;
+}
+
 export function enrichItem(item) {
   const recipeLines = recipeLinesFromSources(item.sources);
   const recipeUsage = recipeUsageFromSources(item.sources);

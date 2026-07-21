@@ -199,3 +199,123 @@ export function kitchenHint(name, qty, unit) {
 
   return null;
 }
+
+// ── "Unidades" (shopping) reading ──────────────────────────────────
+// Compact, buy-oriented label for the Peso/uds toggle: whole absolute counts
+// for countable pieces (you buy whole onions, not "¾"), a bottle-sized volume
+// in litres for liquids, and short dry-volume readings otherwise. Kept terse so
+// it fits the narrow quantity column without truncation. No "≈" — it's the
+// amount to put in the basket, not a cooking approximation.
+
+// Absolute whole count of buyable pieces ("3 cebollas", "1 calabacín").
+function pieceUnits(normalized, qty) {
+  if (SKIP_PIECE_RE.test(normalized)) return null;
+  for (const [regex, grams, singular, pluralForm] of PIECE_WEIGHTS) {
+    if (!regex.test(normalized)) continue;
+    const n = Math.max(1, Math.round(qty / grams));
+    if (n > 40) return null; // absurd counts read better as a weight
+    return `${n} ${plural(n, singular, pluralForm)}`;
+  }
+  return null;
+}
+
+// Short dry-volume reading ("2 tazas", "3 cdas") without the "≈".
+function dryVolumeUnits(normalized, qty) {
+  for (const [regex, gPerTbsp, gPerCup] of DRY_VOLUME) {
+    if (!regex.test(normalized)) continue;
+    if (gPerCup && qty >= gPerCup * 0.5) {
+      const cups = Math.round((qty / gPerCup) * 2) / 2;
+      if (cups >= 0.5) {
+        const text = Number.isInteger(cups) ? String(cups) : String(cups).replace(".", ",");
+        return `${text} ${plural(cups, "taza", "tazas")}`;
+      }
+    }
+    if (gPerTbsp) {
+      const n = Math.max(1, Math.round(qty / gPerTbsp));
+      return `${n} ${plural(n, "cda", "cdas")}`;
+    }
+    return null;
+  }
+  return null;
+}
+
+// Liquids as a bottle/can size: litres once it's bottle-sized, ml for a splash.
+function liquidUnits(qty) {
+  if (qty >= 100) {
+    const liters = qty / 1000;
+    const text =
+      liters >= 1
+        ? Number.isInteger(liters)
+          ? String(liters)
+          : liters.toFixed(1).replace(".", ",")
+        : liters.toFixed(2).replace(".", ",").replace(/0$/, "");
+    return `${text} L`;
+  }
+  return `${Math.round(qty)} ml`;
+}
+
+/**
+ * Compact human display for a stock amount stored in the canonical g/ml/ud
+ * domain (despensa, recipe ingredients) — "500 g" stays as-is, but anything
+ * ≥1000 g/ml reads as "1 kg"/"1,5 L" since that's how people actually buy and
+ * think about bulk stock. Plain "2 ud" for piece counts.
+ */
+export function formatStockQty(qty, unit) {
+  const n = Number(qty) || 0;
+  if (unit === "ud") return `${Number.isInteger(n) ? n : n.toFixed(1)} ud`;
+  if (unit === "g" || unit === "ml") {
+    const bigLabel = unit === "g" ? "kg" : "L";
+    if (n >= 1000) {
+      const big = n / 1000;
+      const text = Number.isInteger(big) ? String(big) : big.toFixed(1).replace(/\.0$/, "").replace(".", ",");
+      return `${text} ${bigLabel}`;
+    }
+    return `${Math.round(n)} ${unit}`;
+  }
+  return `${n}`;
+}
+
+/** Converts a friendly entry unit (kg/L) to despensa's canonical g/ml/ud + scaled qty. */
+export function toCanonicalStockQty(qty, entryUnit) {
+  const n = Number(qty) > 0 ? Number(qty) : 1;
+  if (entryUnit === "kg") return { qty: n * 1000, unit: "g" };
+  if (entryUnit === "l") return { qty: n * 1000, unit: "ml" };
+  if (entryUnit === "g" || entryUnit === "ml") return { qty: n, unit: entryUnit };
+  return { qty: n, unit: "ud" };
+}
+
+/**
+ * Grams-per-piece for ingredients typically bought/counted whole (a chicken
+ * breast, an onion, an apple…), or null when the ingredient isn't naturally
+ * piece-countable (rice, oil…) or is skipped (minced, canned, grated…).
+ * Lets any weight-based amount (recipe list OR a scanned ticket line) be
+ * converted to the same piece count under the "Unidades" lens.
+ */
+export function gramsPerPiece(name) {
+  const normalized = normalizeName(name);
+  if (SKIP_PIECE_RE.test(normalized)) return null;
+  for (const [regex, grams] of PIECE_WEIGHTS) {
+    if (regex.test(normalized)) return grams;
+  }
+  return null;
+}
+
+/**
+ * Buy-oriented "unidades" label for the shopping/cook quantity column.
+ * @returns {string|null} compact label, or null when the amount is best left
+ *   as its stored g/ml/ud reading (caller falls back to displayQty).
+ */
+export function shoppingUnitsLabel(name, qty, unit) {
+  if (typeof qty !== "number" || !Number.isFinite(qty) || qty <= 0) return null;
+  const normalized = normalizeName(name);
+
+  if (unit === "g") {
+    if (SALT_RE.test(normalized)) return "al gusto";
+    if (SPICE_RE.test(normalized)) return qty <= 2 ? "pizca" : "al gusto";
+    return pieceUnits(normalized, qty) ?? dryVolumeUnits(normalized, qty);
+  }
+
+  if (unit === "ml") return liquidUnits(qty);
+
+  return null;
+}

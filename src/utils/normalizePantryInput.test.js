@@ -49,6 +49,15 @@ describe("normalizePantryInput", () => {
     expect(result.ambiguous).toBe(false);
   });
 
+  it("asks which pasta when the user types a bare category word", () => {
+    const [pasta] = normalizePantryInput("pasta");
+    expect(pasta.matched).toBe(true);
+    expect(pasta.ambiguous).toBe(true);
+    expect(pasta.candidates.length).toBeGreaterThan(1);
+    const labels = pasta.candidates.map((c) => c.label.toLowerCase()).join(" ");
+    expect(labels).toMatch(/espagueti|macarron|fideo|lasaña|ñoqui/);
+  });
+
   it("flags ingredients not in the catalog as unmatched", () => {
     const result = normalizePantryInput("aguacate, quinoa, kale");
     // Aguacate and quinoa are actually in this catalog (guacamole, ensaladas);

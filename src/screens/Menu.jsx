@@ -69,6 +69,7 @@ import { OnboardingRestrictions, OnboardingMealStyle } from "./Onboarding.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, isLunchMeal, dayLabel, modeForGroupSlot } from "../lib/planner.js";
+import { dishAvailabilityMap } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import {
   MEAL_STYLES,
@@ -1483,6 +1484,10 @@ export function DishCard({
   group = null,
   showGroupBadge = false,
   kitchenTools = [],
+  // { have, total } from dishAvailabilityMap. Only rendered/clickable when
+  // something's still missing — a complete dish has nothing left to jump to.
+  availability = null,
+  onFocusShopping = null,
 }) {
   if (!slot) {
     return (
@@ -1533,7 +1538,40 @@ export function DishCard({
         fontFamily: "inherit",
       }}
     >
-      <DishIcon recipe={recipe} size={44} imageUrl={dishImageForRecipe(recipe)} />
+      {/* alignSelf: flex-start pins this to the icon's own 44px height — without
+          it, rows with extra badges (2º, alérgenos…) are taller than 44px and
+          the default flex `stretch` stretches this wrapper too, dragging the
+          bottom-anchored dot away from the thumbnail's actual corner. */}
+      <span style={{ position: "relative", flexShrink: 0, alignSelf: "flex-start" }}>
+        <DishIcon recipe={recipe} size={44} imageUrl={dishImageForRecipe(recipe)} />
+        {availability && availability.have < availability.total && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onFocusShopping?.();
+            }}
+            title={
+              availability.have === 0
+                ? "No tienes ningún ingrediente — ir a Modo Cocina"
+                : `Te faltan ${availability.total - availability.have} ingredientes — ir a Modo Cocina`
+            }
+            aria-label="Ver ingredientes que faltan en Modo Cocina"
+            style={{
+              position: "absolute",
+              bottom: -2,
+              left: -2,
+              width: 14,
+              height: 14,
+              borderRadius: 999,
+              border: "2px solid #fff",
+              background: availability.have === 0 ? "#d1483f" : "#e0a336",
+              padding: 0,
+              cursor: "pointer",
+            }}
+          />
+        )}
+      </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
           {showGroupBadge && group && <GroupMenuBadge group={group} />}
@@ -1727,10 +1765,19 @@ export const MenuScreen = memo(function MenuScreen({
   autoOpenProfile = false,
   onAutoOpenProfileHandled,
   initialViewMode = "dia",
+  // Live shopping list (active week) + jump-to-cook-mode callback, so each
+  // dish can show a "faltan ingredientes" dot instead of making you go check
+  // Compra yourself.
+  shoppingItems = null,
+  onFocusCookDish = null,
 }) {
   const [scope, setScope] = useState("all");
   const [showMenuHelp, setShowMenuHelp] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const dishAvailability = useMemo(
+    () => dishAvailabilityMap(shoppingItems ?? []),
+    [shoppingItems],
+  );
 
   // "Editar" desde la pantalla de Menús reutiliza este mismo sheet de "Tu
   // perfil" en vez de duplicar un flujo de edición aparte — es un signal
@@ -2233,6 +2280,10 @@ export const MenuScreen = memo(function MenuScreen({
                               group={card.group}
                               showGroupBadge={multiGroup && scope === "all"}
                               kitchenTools={data.kitchenTools ?? []}
+                              availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
+                              onFocusShopping={() =>
+                                onFocusCookDish?.({ day, meal, recipeId: card.dish.recipeId })
+                              }
                               onTap={() =>
                                 onDishTap({
                                   recipe: RECIPES_BY_ID[card.dish.recipeId],
