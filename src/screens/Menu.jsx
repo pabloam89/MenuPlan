@@ -1689,12 +1689,12 @@ export function DishCard({
                 {eaterMembers.map((member) => {
                   const color = memberAvatarColor(member.id, allMembers);
                   return (
-                    <PersonInitialBadge
+                    <Avatar
                       key={member.id}
-                      member={member}
+                      name={member.name}
+                      photo={member.photo}
                       color={color}
                       size={22}
-                      active
                     />
                   );
                 })}
