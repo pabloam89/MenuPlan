@@ -151,13 +151,15 @@ function CualPicker({ candidates, onSelect, ariaLabel }) {
         style={{
           ...editInputBase,
           flexShrink: 0,
-          width: 72,
+          // Match qty(42) + gap(6) + unit(56) so the ingredient textbox keeps
+          // the exact same width whether or not the row is ambiguous.
+          width: 104,
           height: 34,
-          padding: "0 4px 0 6px",
+          padding: "0 6px",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
-          gap: 2,
+          gap: 3,
           fontSize: 11.5,
           fontWeight: 800,
           color: INK,

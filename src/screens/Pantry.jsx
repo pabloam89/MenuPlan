@@ -114,13 +114,21 @@ const fieldStyle = {
   background: "#fff",
 };
 
-// name | categoría (icon) | peso | cantidad | precio | trash
+// name (wraps, gets all spare width) | categoría (icon) | valor (toggled:
+// cantidad/peso/precio) | trash. Collapsing the three data columns into one
+// toggled column is what frees the horizontal room the name needs on mobile.
 const ROW_GRID = {
   display: "grid",
-  gridTemplateColumns: "minmax(0,1.3fr) 28px minmax(52px,0.7fr) minmax(52px,0.75fr) minmax(52px,0.65fr) 28px",
-  gap: 6,
+  gridTemplateColumns: "minmax(0,1fr) 26px 78px 26px",
+  gap: 8,
   alignItems: "center",
 };
+
+const STOCK_VIEWS = [
+  ["cantidad", "Cantidad"],
+  ["peso", "Peso"],
+  ["precio", "Precio"],
+];
 
 function AisleIcon({ aisle, size = 26 }) {
   const meta = AISLE_UI[aisle] ?? { Icon: Package, color: "#64748b" };
@@ -169,6 +177,9 @@ export function PantryScreen({
   const [editingId, setEditingId] = useState(null);
   const [editQty, setEditQty] = useState(1);
   const [editUnit, setEditUnit] = useState("ud");
+  // Which reading the single value column shows (mobile: one column, toggled).
+  const [stockView, setStockView] = useState("cantidad");
+  const viewLabel = stockView === "peso" ? "Peso" : stockView === "precio" ? "Precio" : "Cantidad";
 
   useEffect(() => {
     if (!user) {
@@ -232,50 +243,72 @@ export function PantryScreen({
       )}
 
         {(loading || items.length > 0) && (
-          <div
-            style={{
-              background: "#fff",
-              border: "1.5px solid #e5ebe7",
-              borderRadius: 16,
-              overflow: "hidden",
-              marginBottom: 14,
-              boxShadow: cardShadow,
-            }}
-          >
+          <>
+            {!loading && items.length > 0 && (
+              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                <div
+                  style={{
+                    display: "inline-flex",
+                    gap: 2,
+                    padding: 2,
+                    borderRadius: 10,
+                    background: "#eef4ef",
+                    border: "1px solid #dce8e0",
+                  }}
+                >
+                  {STOCK_VIEWS.map(([id, label]) => {
+                    const on = stockView === id;
+                    return (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={() => setStockView(id)}
+                        aria-pressed={on}
+                        style={{
+                          padding: "5px 11px",
+                          borderRadius: 8,
+                          border: "none",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                          fontSize: 11.5,
+                          fontWeight: 800,
+                          background: on ? GREEN : "transparent",
+                          color: on ? "#fff" : "#5a7066",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            <div
+              style={{
+                background: "#fff",
+                border: "1.5px solid #e5ebe7",
+                borderRadius: 16,
+                overflow: "hidden",
+                marginBottom: 14,
+                boxShadow: cardShadow,
+              }}
+            >
               {loading ? (
                 <p style={{ margin: 0, padding: 14, fontSize: 13, color: MUTED }}>Cargando…</p>
               ) : (
                 <>
-                  <div
-                    style={{
-                      ...ROW_GRID,
-                      background: GREEN,
-                      padding: "9px 10px",
-                    }}
-                  >
+                  <div style={{ ...ROW_GRID, background: GREEN, padding: "9px 10px" }}>
                     <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", letterSpacing: ".2px" }}>
                       Ingrediente
                     </span>
                     <span
-                      style={{
-                        fontSize: 10,
-                        fontWeight: 800,
-                        color: "#fff",
-                        textAlign: "center",
-                        letterSpacing: ".2px",
-                      }}
+                      style={{ fontSize: 10, fontWeight: 800, color: "#fff", textAlign: "center", letterSpacing: ".2px" }}
                       title="Categoría"
                     >
                       Cat.
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", textAlign: "center", letterSpacing: ".2px" }}>
-                      Peso
-                    </span>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", textAlign: "center", letterSpacing: ".2px" }}>
-                      Cantidad
-                    </span>
-                    <span style={{ fontSize: 11, fontWeight: 800, color: "#fff", textAlign: "center", letterSpacing: ".2px" }}>
-                      Precio
+                      {viewLabel}
                     </span>
                     <span />
                   </div>
@@ -284,6 +317,8 @@ export function PantryScreen({
                     const aisle = guessShoppingAisle(item.ingredientName);
                     const { peso, cantidad } = splitStockDisplay(item.ingredientName, item.qty, item.unit);
                     const priceLabel = stockPriceLabel(item, priceObs);
+                    const valueText =
+                      stockView === "peso" ? peso : stockView === "precio" ? priceLabel : cantidad;
                     return (
                       <div
                         key={item.id}
@@ -293,23 +328,8 @@ export function PantryScreen({
                           borderBottom: i === items.length - 1 ? "none" : "1px solid #eef3f0",
                         }}
                       >
-                        <span
-                          style={{
-                            minWidth: 0,
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: INK,
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                            whiteSpace: "nowrap",
-                          }}
-                          title={item.ingredientName}
-                        >
-                          {item.ingredientName}
-                        </span>
-                        <AisleIcon aisle={aisle} />
                         {editing ? (
-                          <span style={{ gridColumn: "3 / 5", display: "flex", gap: 4, justifyContent: "center", minWidth: 0 }}>
+                          <span style={{ gridColumn: "1 / 4", display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
                             <input
                               type="text"
                               inputMode="decimal"
@@ -317,12 +337,14 @@ export function PantryScreen({
                               value={editQty}
                               onChange={(e) => setEditQty(e.target.value)}
                               onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
-                              style={{ ...fieldStyle, width: 36, flexShrink: 0, padding: "5px 2px", fontSize: 12, textAlign: "center" }}
+                              aria-label={`Cantidad de ${item.ingredientName}`}
+                              style={{ ...fieldStyle, width: 54, flexShrink: 0, padding: "6px 4px", fontSize: 13, textAlign: "center" }}
                             />
                             <select
                               value={editUnit}
                               onChange={(e) => setEditUnit(e.target.value)}
-                              style={{ ...fieldStyle, width: 48, flexShrink: 0, padding: "5px 2px", fontSize: 12 }}
+                              aria-label={`Unidad de ${item.ingredientName}`}
+                              style={{ ...fieldStyle, width: 62, flexShrink: 0, padding: "6px 4px", fontSize: 13 }}
                             >
                               <option value="ud">ud</option>
                               <option value="g">g</option>
@@ -336,12 +358,12 @@ export function PantryScreen({
                               aria-label={`Guardar ${item.ingredientName}`}
                               style={{
                                 flexShrink: 0,
-                                padding: "5px 7px",
+                                padding: "6px 14px",
                                 borderRadius: 8,
                                 border: "none",
                                 background: GREEN,
                                 color: "#fff",
-                                fontSize: 11,
+                                fontSize: 12,
                                 fontWeight: 800,
                                 fontFamily: "inherit",
                                 cursor: "pointer",
@@ -352,67 +374,65 @@ export function PantryScreen({
                           </span>
                         ) : (
                           <>
-                            <button
-                              type="button"
-                              onClick={() => startEdit(item)}
-                              aria-label={`Editar peso de ${item.ingredientName}`}
+                            <span
                               style={{
-                                justifySelf: "center",
-                                padding: "4px 6px",
-                                borderRadius: 8,
-                                border: "1.5px solid #e8efe9",
-                                background: "#f7faf8",
-                                color: peso === "—" ? MUTED : INK,
-                                fontSize: 12,
+                                minWidth: 0,
+                                fontSize: 13,
                                 fontWeight: 700,
-                                fontFamily: "inherit",
-                                cursor: "pointer",
-                                whiteSpace: "nowrap",
+                                color: INK,
+                                lineHeight: 1.25,
+                                whiteSpace: "normal",
+                                overflowWrap: "anywhere",
                               }}
                             >
-                              {peso}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => startEdit(item)}
-                              aria-label={`Editar cantidad de ${item.ingredientName}`}
-                              style={{
-                                justifySelf: "center",
-                                padding: "4px 6px",
-                                borderRadius: 8,
-                                border: "1.5px solid #e8efe9",
-                                background: "#f7faf8",
-                                color: cantidad === "—" ? MUTED : INK,
-                                fontSize: 12,
-                                fontWeight: 700,
-                                fontFamily: "inherit",
-                                cursor: "pointer",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {cantidad}
-                            </button>
+                              {item.ingredientName}
+                            </span>
+                            <AisleIcon aisle={aisle} />
+                            {stockView === "precio" ? (
+                              <span
+                                style={{
+                                  justifySelf: "center",
+                                  fontSize: 12.5,
+                                  fontWeight: 800,
+                                  color: valueText === "—" ? MUTED : INK,
+                                  textAlign: "center",
+                                }}
+                                title={valueText === "—" ? "Sin precio en tus tickets" : "Estimado con tus compras"}
+                              >
+                                {valueText}
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => startEdit(item)}
+                                aria-label={`Editar ${viewLabel.toLowerCase()} de ${item.ingredientName}`}
+                                title="Tocar para editar la cantidad"
+                                style={{
+                                  justifySelf: "stretch",
+                                  padding: "5px 6px",
+                                  borderRadius: 8,
+                                  border: "1.5px solid #e8efe9",
+                                  background: "#f7faf8",
+                                  color: valueText === "—" ? MUTED : INK,
+                                  fontSize: 12,
+                                  fontWeight: 700,
+                                  fontFamily: "inherit",
+                                  cursor: "pointer",
+                                  lineHeight: 1.2,
+                                }}
+                              >
+                                {valueText}
+                              </button>
+                            )}
                           </>
                         )}
-                        <span
-                          style={{
-                            fontSize: 12,
-                            fontWeight: 700,
-                            color: priceLabel === "—" ? MUTED : INK,
-                            textAlign: "center",
-                            whiteSpace: "nowrap",
-                          }}
-                          title={priceLabel === "—" ? "Sin precio en tus tickets" : "Estimado con tus compras"}
-                        >
-                          {priceLabel}
-                        </span>
                         <button
                           type="button"
                           onClick={() => handleRemove(item.id)}
                           aria-label={`Quitar ${item.ingredientName}`}
                           style={{
-                            width: 28,
-                            height: 28,
+                            width: 26,
+                            height: 26,
                             borderRadius: 8,
                             border: "none",
                             justifySelf: "end",
@@ -432,6 +452,7 @@ export function PantryScreen({
                 </>
               )}
             </div>
+          </>
         )}
 
         <div>
