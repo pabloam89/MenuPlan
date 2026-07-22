@@ -56,7 +56,7 @@ import { normalizeIngredientKey, isPerishableAisle, guessShoppingAisle, normaliz
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { formatISODateShort } from "../lib/menuArchive.js";
-import { shoppingUnitsLabel, gramsPerPiece, convertStockAmount } from "../lib/kitchenUnits.js";
+import { shoppingUnitsLabel, gramsPerPiece, convertStockAmount, formatStockQty } from "../lib/kitchenUnits.js";
 import { extractReceiptDetail } from "../lib/receiptParser.js";
 import { RECEIPT_FIXTURES } from "../lib/receiptFixtures.js";
 import { useAuth } from "../lib/useAuth.js";
@@ -453,14 +453,16 @@ export function ShoppingScreen({
     });
   const allRows = [...perishRows, ...aggToRows(stapleAgg, "")];
 
-  // Live, quantity-aware pantry coverage (mutates allRows in place): sets
-  // fromPantry on fully-covered rows and trims partially-covered ones.
+  // Live pantry match (mutates allRows in place): flags every buy row you
+  // already have something of in stock as fromPantry → the "Ya en casa" section.
   applyPantryCoverage(allRows, pantryStock);
 
   const enrichedItems = allRows.filter((r) => !r.fromPantry);
-  // Fully-covered rows form the "Ya en casa" section. Merge per-week perishable
-  // rows back into one line per ingredient (the old pantryAgg did this) so the
-  // section reads one row per stocked ingredient, not one per week.
+  // Matched rows form the "Ya en casa" section. Merge per-week perishable rows
+  // back into one line per ingredient so the section reads one row per stocked
+  // ingredient, not one per week. The `qty` here stays the recipe need (cook
+  // mode reuses these rows and must show what each dish uses); the shopping
+  // "Ya en casa" section overrides the DISPLAY with real stock (see below).
   const pantryMap = new Map();
   for (const r of allRows) {
     if (!r.fromPantry) continue;
@@ -482,6 +484,17 @@ export function ShoppingScreen({
   const pantryItems = [...pantryMap.values()]
     .map((r) => ({ ...r, __qtyLocked: (r.__sources?.length ?? 0) > 1 }))
     .sort((a, b) => a.name.localeCompare(b.name));
+
+  // For the shopping "Ya en casa" section only: show the REAL amount you have in
+  // the pantry for each ingredient (the stock from "En casa"), not the recipe's
+  // need. It shrinks on its own as dishes are marked cooked (handleMarkCooked
+  // decrements stock and reloads pantryStock).
+  const pantryStockView = pantryItems.map((r) => {
+    const stock = findMatchingPantryItem(r.name, pantryStock, { adapted: Boolean(r.adapted) });
+    const stockQty = stock ? Number(stock.qty) || 0 : Number(r.qty) || 0;
+    const stockUnit = stock?.unit ?? r.unit ?? "ud";
+    return { ...r, qty: stockQty, unit: stockUnit, displayQty: formatStockQty(stockQty, stockUnit) };
+  });
 
   const rowById = new Map();
   for (const r of [...enrichedItems, ...pantryItems]) rowById.set(r.id, r);
@@ -1373,7 +1386,7 @@ export function ShoppingScreen({
               </button>
               {open && (
                 <div style={aisleItemsStyle}>
-                  {pantryItems.map((item) => (
+                  {pantryStockView.map((item) => (
                     <ShoppingRow
                       key={`pantry-${item.id}`}
                       item={item}
