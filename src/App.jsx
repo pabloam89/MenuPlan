@@ -753,6 +753,12 @@ export default function App() {
     const localRecipes = data.userRecipes ?? [];
     const localVotes = data.recipeVotes ?? {};
     const localMenus = data.menus ?? {};
+    // Spend history is NOT part of the winner-takes-all profile adoption below:
+    // it's merged as a union both ways so a guest's tickets survive login and a
+    // returning user keeps the spend recorded on other devices.
+    const localPriceObs = data.priceObs ?? [];
+    const localReceipts = data.receipts ?? [];
+    const localAliases = data.priceAliases ?? {};
     let cancelled = false;
 
     // Fold signed-out stock into the account first, then bump pantryEpoch so
@@ -791,10 +797,25 @@ export default function App() {
       });
       if (useRemote) remoteData.groups = healAdhocGroupLabels(remoteData.groups);
 
+      // Union spend by id so neither side's tickets/observations are dropped by
+      // the profile adoption (which otherwise picks one whole `data` blob).
+      const unionById = (a = [], b = []) => {
+        const m = new Map();
+        for (const x of a) if (x && x.id != null) m.set(x.id, x);
+        for (const x of b) if (x && x.id != null) m.set(x.id, x);
+        return Array.from(m.values());
+      };
+      const mergedPriceObs = unionById(localPriceObs, remoteData?.priceObs);
+      const mergedReceipts = unionById(localReceipts, remoteData?.receipts);
+      const mergedAliases = { ...(remoteData?.priceAliases ?? {}), ...localAliases };
+
       setData((d) => ({
         ...(useRemote ? { ...INITIAL_DATA, ...remoteData } : d),
         userRecipes: mergedRecipes,
         recipeVotes: mergedVotes,
+        priceObs: mergedPriceObs,
+        receipts: mergedReceipts,
+        priceAliases: mergedAliases,
       }));
       if (useRemote) {
         if (remoteState.state.menuPlan) setMenuPlan(remoteState.state.menuPlan);

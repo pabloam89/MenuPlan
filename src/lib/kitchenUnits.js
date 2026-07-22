@@ -301,6 +301,38 @@ export function gramsPerPiece(name) {
 }
 
 /**
+ * Convert an amount between the stock/recipe unit domains, returning null when
+ * there's no safe conversion (never invents one). Handles:
+ *   - same unit (identity)
+ *   - kg↔g and l↔ml (pure scale)
+ *   - weight↔piece (g/kg ↔ ud) via gramsPerPiece for countable ingredients
+ * Deliberately NOT g↔ml (would need a per-ingredient density we don't track).
+ * Shared by stock decrement ("Marcar cocinado") and live pantry coverage.
+ *
+ * @param {number} qty
+ * @param {'g'|'kg'|'ml'|'l'|'ud'} fromUnit
+ * @param {'g'|'kg'|'ml'|'l'|'ud'} toUnit
+ * @param {string} name  Ingredient name (for the piece-weight lookup).
+ * @returns {number|null}
+ */
+export function convertStockAmount(qty, fromUnit, toUnit, name) {
+  if (typeof qty !== "number" || !Number.isFinite(qty)) return null;
+  if (fromUnit === toUnit) return qty;
+  const toBase = (q, u) =>
+    u === "kg" ? { q: q * 1000, u: "g" } : u === "l" ? { q: q * 1000, u: "ml" } : { q, u };
+  const a = toBase(qty, fromUnit);
+  const targetBase = toBase(1, toUnit).u; // g / ml / ud
+  const scaleOut = (grams) => (toUnit === "kg" || toUnit === "l" ? grams / 1000 : grams);
+  if (a.u === targetBase) return scaleOut(a.q);
+  const gpp = gramsPerPiece(name);
+  if (gpp) {
+    if (a.u === "g" && targetBase === "ud") return a.q / gpp;
+    if (a.u === "ud" && targetBase === "g") return scaleOut(a.q * gpp);
+  }
+  return null;
+}
+
+/**
  * Buy-oriented "unidades" label for the shopping/cook quantity column.
  * @returns {string|null} compact label, or null when the amount is best left
  *   as its stored g/ml/ud reading (caller falls back to displayQty).

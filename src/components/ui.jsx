@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { BarChart3, BookOpen, Calendar, ClipboardList, CookingPot, Home, House, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
+import { BarChart3, BookOpen, Calendar, ClipboardList, CookingPot, Home, Refrigerator, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -173,7 +173,7 @@ const HOME_NAV_ITEMS = [
   { id: "dashboard", icon: Home, label: "Inicio" },
   { id: "recipes",   icon: BookOpen,    label: "Recetas" },
   { id: "menus",     icon: ClipboardList, label: "Menús" },
-  { id: "pantry",    icon: House, label: "En casa" },
+  { id: "pantry",    icon: Refrigerator, label: "En casa" },
   { id: "profile",   icon: Settings,    label: "Perfil" },
 ];
 
@@ -488,7 +488,7 @@ export function AvatarStack({ names, size = 24, max = 4, color = "#2d5a3d" }) {
   );
 }
 
-export function WeekRangeBadge({ label, hideLabel = false }) {
+export function WeekRangeBadge({ label, hideLabel = false, topLabel = "Semana" }) {
   const weekLabel = label ?? formatWeekRangeLabel(getWeekDates());
 
   return (
@@ -545,7 +545,7 @@ export function WeekRangeBadge({ label, hideLabel = false }) {
               marginBottom: 3,
             }}
           >
-            Semana
+            {topLabel}
           </div>
           <div
             style={{

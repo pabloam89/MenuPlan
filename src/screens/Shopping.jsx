@@ -17,7 +17,7 @@ import {
   Egg,
   Fish,
   Hash,
-  Home,
+  Refrigerator,
   Leaf,
   Loader2,
   Milk,
@@ -37,7 +37,6 @@ import {
   Utensils,
   Wallet,
   Wheat,
-  House,
   X,
 } from "lucide-react";
 import {
@@ -57,11 +56,11 @@ import { normalizeIngredientKey, isPerishableAisle, guessShoppingAisle, normaliz
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { formatISODateShort } from "../lib/menuArchive.js";
-import { shoppingUnitsLabel, gramsPerPiece } from "../lib/kitchenUnits.js";
+import { shoppingUnitsLabel, gramsPerPiece, convertStockAmount } from "../lib/kitchenUnits.js";
 import { extractReceiptDetail } from "../lib/receiptParser.js";
 import { RECEIPT_FIXTURES } from "../lib/receiptFixtures.js";
 import { useAuth } from "../lib/useAuth.js";
-import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry, setPantryItemQty, setLocalPantryItemQty } from "../lib/pantry.js";
+import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry, setPantryItemQty, setLocalPantryItemQty, removePantryItem, removeLocalPantryItem } from "../lib/pantry.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import {
@@ -69,7 +68,6 @@ import {
   formatDisplay,
   isActiveItem,
   isDoneItem,
-  isPantryItem,
   itemsByAisle,
   itemsByDayMeal,
   mergeShoppingItems,
@@ -150,16 +148,58 @@ function readyRecipeKeys(items) {
 // A cooked recipe's ingredient amount is in the catalog's own g/ml/ud unit;
 // En casa stock can be in a different one of those three if the user chose
 // it that way when adding (e.g. "2 ud" of chicken breast instead of grams).
-// Converts via gramsPerPiece when the mismatch is a g↔ud one; returns null
-// (skip, don't guess) for anything else, e.g. ml↔ud or an ingredient with no
-// known piece weight.
+// Delegates to the shared convertStockAmount, which also normalizes kg↔g and
+// l↔ml and returns null (skip, don't guess) for unsafe mismatches (e.g. g↔ml).
 function convertIngredientToStockUnit(ing, stockUnit) {
-  if (ing.unit === stockUnit) return ing.qty;
-  const pieceG = gramsPerPiece(ing.name);
-  if (!pieceG) return null;
-  if (stockUnit === "ud" && ing.unit === "g") return ing.qty / pieceG;
-  if (stockUnit === "g" && ing.unit === "ud") return ing.qty * pieceG;
-  return null;
+  return convertStockAmount(ing.qty, ing.unit, stockUnit, ing.name);
+}
+
+// Live "Ya en casa" coverage. Recomputes each buy row against the CURRENT
+// pantry stock (never the fromPantry snapshot baked at generation) and is
+// quantity-aware:
+//   - stock ≥ need              → fully covered  (row.fromPantry = true)
+//   - 0 < stock < need          → partial: trim the row to just the shortfall
+//                                  and remember how much stock already covers it
+//   - no stock / no safe unit   → left to buy in full
+// Mutates the passed rows in place. A limited stock is allocated in calendar
+// order (earlier weeks first) across a working copy, so two weeks of the same
+// perishable draw from one shared amount instead of both seeing it whole.
+function applyPantryCoverage(rows, stock) {
+  for (const row of rows) {
+    row.fromPantry = false;
+    row.__stockCoveredQty = 0;
+  }
+  if (!stock?.length) return;
+  const working = stock.map((s) => ({ ...s, qty: Number(s.qty) || 0 }));
+  const ordered = [...rows].sort((a, b) => (a.__weekOffset ?? -1) - (b.__weekOffset ?? -1));
+  const EPS = 1e-6;
+  for (const row of ordered) {
+    if (!(row.qty > 0)) continue;
+    const match = findMatchingPantryItem(row.name, working, { adapted: Boolean(row.adapted) });
+    if (!match || !(match.qty > 0)) continue;
+    const needInStock = convertStockAmount(row.qty, row.unit, match.unit, row.name);
+    if (needInStock == null) {
+      // No safe unit conversion (e.g. g↔ml): fall back to binary presence, like
+      // the pre-quantity behaviour — mark covered without consuming a measurable
+      // amount so it can't wrongly starve other rows of the same stock.
+      row.fromPantry = true;
+      continue;
+    }
+    const take = Math.min(needInStock, match.qty);
+    match.qty -= take;
+    if (take >= needInStock - EPS) {
+      row.fromPantry = true;
+      continue;
+    }
+    // Partial coverage: buy only the shortfall, keep the covered part as a note.
+    const remainingRowUnit = convertStockAmount(needInStock - take, match.unit, row.unit, row.name);
+    const coveredRowUnit = convertStockAmount(take, match.unit, row.unit, row.name);
+    if (remainingRowUnit != null && remainingRowUnit > 0) {
+      row.__stockCoveredQty = coveredRowUnit ?? 0;
+      row.qty = remainingRowUnit;
+      row.displayQty = formatDisplay(remainingRowUnit, row.unit);
+    }
+  }
 }
 
 const AISLE_UI = {
@@ -177,7 +217,7 @@ const AISLE_UI = {
   // Not a real store aisle — «Ya en casa» (ingredients matched against En casa
   // stock; see src/lib/pantry.js). Distinct from the Compra macro "Despensa"
   // (non-perishable aisles still to buy).
-  __pantry: { Icon: House, color: "#2d5a3d" },
+  __pantry: { Icon: Refrigerator, color: "#2d5a3d" },
 };
 
 export function ShoppingScreen({
@@ -390,9 +430,11 @@ export function ShoppingScreen({
   // ── Combined, enriched view of the selected weeks ──
   // Perishables (Frescos) stay per week; staples (Despensa) and pantry matches
   // are merged/summed across the selected weeks.
+  // Build every buy row first WITHOUT trusting the stored `fromPantry` flag —
+  // "Ya en casa" is recomputed live below against the current stock, so the
+  // generation-time snapshot must not pre-exclude anything here.
   const perishRows = [];
   const stapleAgg = new Map(); // ikey -> { items:[], sources:[] }
-  const pantryAgg = new Map();
   const accumulate = (agg, ikey, it, weekStart) => {
     if (!agg.has(ikey)) agg.set(ikey, { items: [], sources: [] });
     const e = agg.get(ikey);
@@ -402,10 +444,6 @@ export function ShoppingScreen({
   for (const w of selectedWeeks) {
     for (const it of mergeShoppingItems(w.items ?? [])) {
       const ikey = it.id;
-      if (isPantryItem(it)) {
-        accumulate(pantryAgg, ikey, it, w.weekStart);
-        continue;
-      }
       if (isPerishableAisle(guessShoppingAisle(it.name))) {
         const row = enrichItem(it);
         row.id = multiWeek ? `${w.weekStart}::${ikey}` : ikey;
@@ -434,8 +472,37 @@ export function ShoppingScreen({
       if (items.length > 1) row.have = items.every((it) => it.have);
       return row;
     });
-  const enrichedItems = [...perishRows, ...aggToRows(stapleAgg, "")];
-  const pantryItems = aggToRows(pantryAgg, "p::").sort((a, b) => a.name.localeCompare(b.name));
+  const allRows = [...perishRows, ...aggToRows(stapleAgg, "")];
+
+  // Live, quantity-aware pantry coverage (mutates allRows in place): sets
+  // fromPantry on fully-covered rows and trims partially-covered ones.
+  applyPantryCoverage(allRows, pantryStock);
+
+  const enrichedItems = allRows.filter((r) => !r.fromPantry);
+  // Fully-covered rows form the "Ya en casa" section. Merge per-week perishable
+  // rows back into one line per ingredient (the old pantryAgg did this) so the
+  // section reads one row per stocked ingredient, not one per week.
+  const pantryMap = new Map();
+  for (const r of allRows) {
+    if (!r.fromPantry) continue;
+    const ikey = r.__sources?.[0]?.ikey ?? r.id;
+    if (!pantryMap.has(ikey)) {
+      pantryMap.set(ikey, {
+        ...r,
+        id: `p::${ikey}`,
+        __sources: [...(r.__sources ?? [])],
+        __weekLabel: null,
+      });
+    } else {
+      const ex = pantryMap.get(ikey);
+      ex.__sources.push(...(r.__sources ?? []));
+      ex.qty = (ex.qty ?? 0) + (r.qty ?? 0);
+      ex.displayQty = formatDisplay(ex.qty, ex.unit ?? "ud");
+    }
+  }
+  const pantryItems = [...pantryMap.values()]
+    .map((r) => ({ ...r, __qtyLocked: (r.__sources?.length ?? 0) > 1 }))
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   const rowById = new Map();
   for (const r of [...enrichedItems, ...pantryItems]) rowById.set(r.id, r);
@@ -476,6 +543,24 @@ export function ShoppingScreen({
       },
     ]);
   };
+  // "No lo tengo" on a "Ya en casa" row: coverage is now recomputed live from
+  // real stock, so flipping a flag would just get re-covered on the next render.
+  // The honest fix is to drop the disputed stock — the row then rejoins the buy
+  // list because nothing covers it anymore.
+  const rejectPantryMatch = async (item) => {
+    const match = findMatchingPantryItem(item.name, pantryStock, {
+      adapted: Boolean(item.adapted),
+    });
+    if (!match) return;
+    if (user) {
+      await removePantryItem(user.id, match.id);
+      setPantryStock(await loadPantry(user.id));
+    } else {
+      removeLocalPantryItem(match.id);
+      setPantryStock(loadLocalPantry());
+    }
+    onToast?.("Quitado de 'en casa'");
+  };
   const markPurchased = (ids, weekStart = null) => {
     for (const id of ids) {
       const row = rowById.get(id);
@@ -513,21 +598,33 @@ export function ShoppingScreen({
   const freshSections = sections.filter((s) => isPerishableAisle(s.key));
   const stapleSections = sections.filter((s) => !isPerishableAisle(s.key));
 
-  // Cook mode: pending/done filters apply to buy-list rows, but pantry
-  // matches are always attached so each dish shows stock coverage (casa +
-  // tachado) instead of silently dropping «Ya en casa» ingredients.
-  const cookBuyItems =
-    listScope === "done"
-      ? enrichedItems.filter(isDoneItem)
-      : listScope === "pending"
-        ? enrichedItems.filter(isActiveItem)
-        : enrichedItems;
-  const cookSourceItems = [...cookBuyItems, ...pantryItems];
+  // Cook mode always shows the full recipe: every ingredient stays visible and
+  // marking one as comprado/en casa just adds a tick (no filtering), so a dish
+  // never ends up with some lines vanished and others ticked. The pending/done
+  // scope only affects Modo compra.
+  const cookSourceItems = [...enrichedItems, ...pantryItems];
   const cookTree = itemsByDayMeal(cookSourceItems);
   // Cook rows carry the same two actions as the aisle rows: "En casa" (atHome)
   // and "Comprado" (have). Each clears the other so an item lands in one bucket.
   const toggleCookHome = (id, atHome) => patchItem(id, { atHome, have: false });
-  const toggleCookPurchased = (id, have) => patchItem(id, { have, atHome: false });
+  // Marking "Comprado" mirrors Modo compra: it opens the same PurchaseChoiceSheet
+  // (registrar precio / a mano / escanear ticket) instead of ticking silently.
+  // Un-marking just clears the flag.
+  const toggleCookPurchased = (id, have) => {
+    if (!have) {
+      patchItem(id, { have: false });
+      return;
+    }
+    const item = cookSourceItems.find((it) => it.id === id);
+    // "Ya en casa" ingredients are already stocked — don't offer the spend
+    // pop-up for them (Modo compra hides "Comprado" on these rows for the same
+    // reason); just tick without polluting spend/price data.
+    if (setData && item && !item.fromPantry) {
+      setPurchaseChoice(item);
+      return;
+    }
+    patchItem(id, { have: true, atHome: false });
+  };
 
   // "Marcar cocinado" state is scoped per week (so it naturally resets when a
   // new week's menú replaces this one) but lives in the generic `data` blob —
@@ -543,12 +640,17 @@ export function ShoppingScreen({
     const shortKey = `${day}::${meal}::${recipeId ?? recipeName}`;
     if (cookedKeys.has(shortKey)) return;
     let decremented = 0;
+    // Exact amount removed per stock row so "Deshacer cocinado" can restore it
+    // precisely (survives clamping at 0 and several ingredients hitting one row).
+    let deltas = [];
     if (pantryStock.length) {
       // Working copy so two ingredients that fuzzy-match the same stock row
       // (e.g. «Tomate» + «Tomate maduro») decrement sequentially instead of
       // both subtracting from the original qty.
       const working = pantryStock.map((p) => ({ ...p }));
+      const origById = new Map(pantryStock.map((p) => [p.id, Number(p.qty) || 0]));
       const updatesById = new Map();
+      const metaById = new Map();
       for (const ing of ingredients) {
         const stock = findMatchingPantryItem(ing.name, working, {
           adapted: Boolean(ing.adapted),
@@ -559,10 +661,22 @@ export function ShoppingScreen({
         const nextQty = Math.max(0, (Number(stock.qty) || 0) - consume);
         stock.qty = nextQty;
         updatesById.set(stock.id, nextQty);
+        metaById.set(stock.id, {
+          name: stock.ingredientName,
+          normalized: stock.ingredientNormalized,
+          unit: stock.unit,
+        });
         decremented++;
       }
       if (updatesById.size) {
         const updates = [...updatesById.entries()].map(([id, nextQty]) => ({ id, nextQty }));
+        deltas = updates
+          .map((u) => {
+            const removed = (origById.get(u.id) ?? 0) - u.nextQty;
+            const meta = metaById.get(u.id);
+            return removed > 0 && meta ? { ...meta, qty: removed } : null;
+          })
+          .filter(Boolean);
         if (user) {
           await Promise.all(updates.map((u) => setPantryItemQty(user.id, u.id, u.nextQty)));
         } else {
@@ -578,8 +692,49 @@ export function ShoppingScreen({
         );
       }
     }
-    setData?.((d) => ({ ...d, cookedDishes: [...(d?.cookedDishes ?? []), `${cookWeekKey}::${shortKey}`] }));
+    const fullKey = `${cookWeekKey}::${shortKey}`;
+    setData?.((d) => ({
+      ...d,
+      cookedDishes: [...(d?.cookedDishes ?? []), fullKey],
+      cookedDeltas: { ...(d?.cookedDeltas ?? {}), [fullKey]: deltas },
+    }));
     onToast?.(decremented ? `¡Cocinado! Stock en casa actualizado (${decremented})` : "¡Cocinado!");
+  };
+  // Reverse of handleMarkCooked: re-adds exactly what was subtracted (top-up
+  // recreates rows that had hit 0) and clears the cooked flag for that dish.
+  const handleUndoCooked = async (day, meal, recipeId, recipeName) => {
+    const shortKey = `${day}::${meal}::${recipeId ?? recipeName}`;
+    if (!cookedKeys.has(shortKey)) return;
+    const fullKey = `${cookWeekKey}::${shortKey}`;
+    const deltas = data?.cookedDeltas?.[fullKey] ?? [];
+    let restored = 0;
+    if (deltas.length) {
+      const items = deltas.map((d) => ({
+        name: d.name,
+        normalized: d.normalized,
+        qty: d.qty,
+        unit: d.unit,
+        source: "manual",
+      }));
+      if (user) {
+        await addPantryItems(user.id, items);
+        setPantryStock(await loadPantry(user.id));
+      } else {
+        addLocalPantryItems(items);
+        setPantryStock(loadLocalPantry());
+      }
+      restored = items.length;
+    }
+    setData?.((d) => {
+      const nextDeltas = { ...(d?.cookedDeltas ?? {}) };
+      delete nextDeltas[fullKey];
+      return {
+        ...d,
+        cookedDishes: (d?.cookedDishes ?? []).filter((k) => k !== fullKey),
+        cookedDeltas: nextDeltas,
+      };
+    });
+    onToast?.(restored ? `Cocinado deshecho · stock devuelto (${restored})` : "Cocinado deshecho");
   };
   // Calendar dates for the cook-mode day stripe (same "Lun 14" reading as Tu
   // menú). Anchored to the first selected week in menú mode, else the live week.
@@ -601,14 +756,17 @@ export function ShoppingScreen({
     if (menuMode && withISO.length) {
       const start = withISO.reduce((m, w) => (w.startISO < m ? w.startISO : m), withISO[0].startISO);
       const end = withISO.reduce((m, w) => (w.endISO > m ? w.endISO : m), withISO[0].endISO);
-      const range = `${formatISODateShort(start)} – ${formatISODateShort(end)}`;
-      return multiWeek ? `${selectedWeeks.length} semanas · ${range}` : range;
+      return `${formatISODateShort(start)} – ${formatISODateShort(end)}`;
     }
     const { dates: weekDates, activeDays } = menuWeek
       ? getWeekDatesByMenuWeek(menuWeek)
       : { dates: getWeekDates(), activeDays: undefined };
     return formatWeekRangeLabel(weekDates, activeDays);
   })();
+
+  // Badge top label: "N semanas" when several are selected, else the default
+  // "Semana". The date range below always spans the whole selection.
+  const weekTopLabel = multiWeek ? `${selectedWeeks.length} semanas` : undefined;
 
   // Real span of the currently selected week(s), used by the receipt wizard to
   // check the ticket's date against the shopping week it should belong to.
@@ -971,7 +1129,7 @@ export function ShoppingScreen({
                 aria-label="En casa"
                 title="En casa"
               >
-                <House size={18} strokeWidth={2.2} />
+                <Refrigerator size={18} strokeWidth={2.2} />
               </button>
             )}
             <button
@@ -1005,11 +1163,22 @@ export function ShoppingScreen({
           </div>
         </div>
         <div style={{ marginBottom: orderedAll.length > 1 ? 10 : 16 }}>
-          <WeekRangeBadge label={weekLabel} />
+          <WeekRangeBadge topLabel={weekTopLabel} label={weekLabel} />
         </div>
 
         {orderedAll.length > 1 && (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
+          <div
+            role="group"
+            aria-label="Semanas del menú"
+            style={{
+              display: "flex",
+              marginBottom: 16,
+              borderRadius: 12,
+              border: "1.5px solid #9cc7ab",
+              overflow: "hidden",
+              background: "#fff",
+            }}
+          >
             {orderedAll.map((w, i) => {
               const sel = selectedOffsets?.has(w.offset);
               return (
@@ -1019,22 +1188,39 @@ export function ShoppingScreen({
                   onClick={() => toggleWeek(w.offset)}
                   aria-pressed={sel}
                   style={{
+                    flex: 1,
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 6,
-                    padding: "7px 13px",
-                    borderRadius: 999,
-                    border: `1.5px solid ${sel ? "#2d5a3d" : "#dbe6df"}`,
-                    background: sel ? "#2d5a3d" : "#fff",
-                    color: sel ? "#fff" : "#3d5245",
+                    justifyContent: "center",
+                    gap: 7,
+                    padding: "9px 8px",
+                    border: "none",
+                    borderLeft: i === 0 ? "none" : "1.5px solid #9cc7ab",
+                    background: "#fff",
+                    color: sel ? "#1c4a2e" : "#3d5245",
                     fontSize: 13,
                     fontWeight: 800,
                     cursor: "pointer",
                     fontFamily: "inherit",
-                    transition: "background .15s, border-color .15s, color .15s",
+                    transition: "color .15s",
                   }}
                 >
-                  {sel && <Check size={14} strokeWidth={3} />}
+                  <span
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 5,
+                      flexShrink: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: `1.5px solid ${sel ? "#4cba6e" : "#bcd3c4"}`,
+                      background: sel ? "#4cba6e" : "transparent",
+                      transition: "background .15s, border-color .15s",
+                    }}
+                  >
+                    {sel && <Check size={11} strokeWidth={3.4} color="#fff" />}
+                  </span>
                   Sem {i + 1}
                 </button>
               );
@@ -1080,19 +1266,23 @@ export function ShoppingScreen({
           style={{ marginBottom: 10 }}
         />
 
-        <div style={toggleDividerStyle} />
-
-        {/* Pending/Comprado applies to both lenses now: in cocina you can also
-            tick items as bought straight from the dish cards. */}
-        <SegmentedControl
-          value={listScope}
-          onChange={setListScope}
-          options={[
-            { id: "pending", label: "Por comprar" },
-            { id: "done", label: "Comprado" },
-          ]}
-          style={{ marginBottom: 12 }}
-        />
+        {/* Pending/Comprado only makes sense in Modo compra. In Modo cocina the
+            whole recipe stays visible (ticking never hides a line), so the
+            filter would be a no-op and is hidden. */}
+        {viewMode !== "cocina" && (
+          <>
+            <div style={toggleDividerStyle} />
+            <SegmentedControl
+              value={listScope}
+              onChange={setListScope}
+              options={[
+                { id: "pending", label: "Por comprar" },
+                { id: "done", label: "Comprado" },
+              ]}
+              style={{ marginBottom: 12 }}
+            />
+          </>
+        )}
       </div>
 
       <div
@@ -1116,6 +1306,7 @@ export function ShoppingScreen({
             onFocusHandled={onFocusDishHandled}
             cookedKeys={cookedKeys}
             onMarkCooked={handleMarkCooked}
+            onUndoCooked={handleUndoCooked}
           />
         ) : (
         <>
@@ -1212,8 +1403,8 @@ export function ShoppingScreen({
                         setExpandedId(expandedId === item.id ? null : item.id)
                       }
                       // "No lo tengo" — the user disagrees with the pantry
-                      // match, so it rejoins the normal aisle-grouped list.
-                      onUndo={() => patchItem(item.id, { fromPantry: false })}
+                      // match, so drop the stock and let it rejoin the buy list.
+                      onUndo={() => rejectPantryMatch(item)}
                       onRemove={() => removeItem(item.id)}
                     />
                   ))}
@@ -1329,6 +1520,7 @@ function CookView({
   onFocusHandled = null,
   cookedKeys = null,
   onMarkCooked = null,
+  onUndoCooked = null,
 }) {
   if (tree.days.length === 0 && tree.extras.length === 0) {
     // Empty can mean three things now that the filter applies here too.
@@ -1380,6 +1572,7 @@ function CookView({
                   onAutoOpened={onFocusHandled}
                   isCooked={cookedKeys?.has(`${d.day}::${m.meal}::${r.recipeId ?? r.recipeName}`) ?? false}
                   onMarkCooked={onMarkCooked ? () => onMarkCooked(d.day, m.meal, r.recipeId, r.recipeName, r.ingredients) : null}
+                  onUndoCooked={onUndoCooked ? () => onUndoCooked(d.day, m.meal, r.recipeId, r.recipeName) : null}
                 />
               ))}
             </div>
@@ -1436,6 +1629,7 @@ function CookDish({
   onAutoOpened = null,
   isCooked = false,
   onMarkCooked = null,
+  onUndoCooked = null,
 }) {
   const [open, setOpen] = useState(false);
   const cardRef = useRef(null);
@@ -1461,7 +1655,7 @@ function CookDish({
         <DishTile recipe={recipe} name={recipeName} />
         <span style={cookDishNameStyle}>{recipeName}</span>
         <span style={cookDishCountStyle}>
-          {doneCount > 0 ? `${doneCount}/${ingredients.length}` : `${ingredients.length} ingr.`}
+          {doneCount}/{ingredients.length}
         </span>
         <ChevronDown
           size={17}
@@ -1488,14 +1682,14 @@ function CookDish({
               />
             ))}
           </div>
-          {onMarkCooked && (
+          {(onMarkCooked || onUndoCooked) && (
             <button
               type="button"
-              onClick={isCooked ? undefined : onMarkCooked}
-              disabled={isCooked}
+              onClick={isCooked ? onUndoCooked ?? undefined : onMarkCooked ?? undefined}
+              disabled={isCooked ? !onUndoCooked : !onMarkCooked}
               title={
                 isCooked
-                  ? "Ya marcado como cocinado esta semana"
+                  ? "Deshacer: devuelve estos ingredientes a lo que tienes en casa"
                   : "Descuenta estos ingredientes de lo que tienes en casa"
               }
               style={{
@@ -1512,12 +1706,12 @@ function CookDish({
                 color: "#2d5a3d",
                 fontSize: 12.5,
                 fontWeight: 800,
-                cursor: isCooked ? "default" : "pointer",
+                cursor: "pointer",
                 fontFamily: "inherit",
               }}
             >
-              {isCooked ? <Check size={14} strokeWidth={2.6} /> : <ChefHat size={14} strokeWidth={2.4} />}
-              {isCooked ? "Cocinado" : "Marcar cocinado"}
+              {isCooked ? <Undo2 size={14} strokeWidth={2.6} /> : <ChefHat size={14} strokeWidth={2.4} />}
+              {isCooked ? "Deshacer cocinado" : "Marcar cocinado"}
             </button>
           )}
         </div>
@@ -1606,13 +1800,29 @@ function CookIngredientRow({ ing, unitView, onToggleHome, onTogglePurchased }) {
   const qtyLabel = showUds ? unitsLabel || ing.displayQty : ing.displayQty;
   return (
     <div style={{ ...cookIngRowStyle, opacity: done ? 0.6 : 1 }}>
+      {done && (
+        <span
+          aria-hidden
+          style={{
+            width: 18,
+            height: 18,
+            borderRadius: 999,
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "#2d5a3d",
+          }}
+        >
+          <Check size={12} strokeWidth={3.2} color="#fff" />
+        </span>
+      )}
       <span
         style={{
           flex: 1,
           minWidth: 0,
           fontWeight: 700,
           color: "#15331c",
-          textDecoration: done ? "line-through" : "none",
           // Full ingredient name, wrapping to multiple lines when needed.
           whiteSpace: "normal",
           overflowWrap: "anywhere",
@@ -1622,18 +1832,27 @@ function CookIngredientRow({ ing, unitView, onToggleHome, onTogglePurchased }) {
         {ing.name}
       </span>
       <strong style={showUds ? cookIngQtyUdsStyle : cookIngQtyStyle}>{qtyLabel}</strong>
-      <ActionBtn
-        icon={Home}
-        label={atHome ? "Quitar de 'en casa'" : "Lo tengo en casa"}
-        active={atHome}
-        onClick={() => onToggleHome(ing.id, !atHome)}
-      />
-      <ActionBtn
-        icon={Check}
-        label={have ? "Marcar como no comprado" : "Comprado"}
-        active={have}
-        onClick={() => onTogglePurchased(ing.id, !have)}
-      />
+      {ing.fromPantry ? (
+        // Already stocked ("Ya en casa"): a read-only indicator, no "Comprado"
+        // action — you don't buy what you already have (matches Modo compra,
+        // which hides "Comprado" on pantry rows for the same reason).
+        <ActionBtn icon={Refrigerator} label="Ya en casa" active readOnly />
+      ) : (
+        <>
+          <ActionBtn
+            icon={Refrigerator}
+            label={atHome ? "Quitar de 'en casa'" : "Lo tengo en casa"}
+            active={atHome}
+            onClick={() => onToggleHome(ing.id, !atHome)}
+          />
+          <ActionBtn
+            icon={Check}
+            label={have ? "Marcar como no comprado" : "Comprado"}
+            active={have}
+            onClick={() => onTogglePurchased(ing.id, !have)}
+          />
+        </>
+      )}
     </div>
   );
 }
@@ -1792,6 +2011,20 @@ function ShoppingRow({
               Adaptado
             </span>
           )}
+          {item.__stockCoveredQty > 0 && (
+            <span
+              title="Ya tienes parte en casa — solo necesitas comprar lo que falta"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: 3,
+                fontSize: 10, fontWeight: 800, color: "#2d5a3d",
+                background: "#eef4ef", border: "1px solid #d7e6dc",
+                borderRadius: 999, padding: "1px 7px", marginTop: 2,
+              }}
+            >
+              <Refrigerator size={11} strokeWidth={2.6} />
+              Ya tienes {formatDisplay(item.__stockCoveredQty, item.unit ?? "ud")} en casa
+            </span>
+          )}
         </div>
         {isEditingQty ? (
           <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
@@ -1836,7 +2069,7 @@ function ShoppingRow({
           ) : doneView ? (
             <>
               {item.atHome ? (
-                <ActionBtn icon={Home} label="En casa" active readOnly />
+                <ActionBtn icon={Refrigerator} label="En casa" active readOnly />
               ) : (
                 <ActionBtn icon={Check} label="Comprado" active readOnly />
               )}
@@ -1852,7 +2085,7 @@ function ShoppingRow({
             </>
           ) : (
             <>
-              <ActionBtn icon={Home} label="En casa" onClick={onAtHome} active={item.atHome} coach="shop-athome" />
+              <ActionBtn icon={Refrigerator} label="En casa" onClick={onAtHome} active={item.atHome} coach="shop-athome" />
               <ActionBtn icon={Check} label="Comprado" onClick={onPurchased} active={item.have} coach="shop-purchased" />
               {item.recipeCount > 0 && (
                 <ActionBtn
@@ -2629,7 +2862,7 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
                         style={{ flexShrink: 0, display: "inline-flex", color: matched ? "#2d5a3d" : "#8a6d1f" }}
                         title={matched ? "En tu lista: cuenta para tus recetas" : "No estaba en tu lista: se guarda en casa"}
                       >
-                        {matched ? <ChefHat size={13} strokeWidth={2.4} /> : <Home size={13} strokeWidth={2.4} />}
+                        {matched ? <ChefHat size={13} strokeWidth={2.4} /> : <Refrigerator size={13} strokeWidth={2.4} />}
                       </span>
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.2 }}>

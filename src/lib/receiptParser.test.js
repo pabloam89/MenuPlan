@@ -1,22 +1,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { extractReceiptProducts } from "./receiptParser.js";
 
-// This suite runs under vitest's default "node" environment (no jsdom), so
-// `File`/`FileReader` aren't globally available. `File` ships with modern
-// Node, but `FileReader` doesn't — stub a minimal one that reads a File's
-// bytes into a base64 data URL, matching what receiptParser.js needs.
-class FakeFileReader {
-  readAsDataURL(file) {
-    file
-      .arrayBuffer()
-      .then((buf) => {
-        const base64 = Buffer.from(buf).toString("base64");
-        this.result = `data:${file.type};base64,${base64}`;
-        this.onload?.();
-      })
-      .catch((err) => this.onerror?.(err));
-  }
-}
+// Image prep (downscale + JPEG compress) relies on browser-only APIs
+// (`createImageBitmap`, canvas) that don't exist in vitest's "node"
+// environment. These tests exercise the *response parsing* path, not image
+// encoding, so we stub imageFileToVisionPayload to hand receiptParser.js a
+// ready-made base64 payload and go straight to the (mocked) fetch.
+vi.mock("./visionImage.js", () => ({
+  imageFileToVisionPayload: vi.fn(async () => ({ base64: "ZmFrZQ==", mediaType: "image/jpeg" })),
+}));
 
 function fakeReceiptFile() {
   return new File(["fake-image-bytes"], "ticket.jpg", { type: "image/jpeg" });
@@ -24,16 +16,13 @@ function fakeReceiptFile() {
 
 describe("extractReceiptProducts (Fase 5 — receipt parsing failure paths)", () => {
   const originalFetch = global.fetch;
-  const originalFileReader = global.FileReader;
 
   beforeEach(() => {
     global.fetch = vi.fn();
-    global.FileReader = FakeFileReader;
   });
 
   afterEach(() => {
     global.fetch = originalFetch;
-    global.FileReader = originalFileReader;
   });
 
   it("returns product names on a well-formed response", async () => {

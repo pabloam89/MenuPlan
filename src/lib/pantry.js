@@ -1,5 +1,6 @@
 import { supabase } from "./supabase.js";
 import { uid } from "./groups.js";
+import { convertStockAmount } from "./kitchenUnits.js";
 
 /**
  * Data access for user_pantry (see supabase/migrations/0002_user_pantry.sql +
@@ -67,10 +68,13 @@ export async function addPantryItems(userId, items) {
     const unit = it.unit ?? "ud";
     const found = existingByKey.get(it.normalized);
     if (found) {
-      // Same unit domain as the existing row → add on top; a mismatched unit
-      // (rare — e.g. dictated "leche" as "ud" when it's stored in "ml") is
-      // left as-is rather than mixing incompatible amounts.
-      const nextQty = found.unit === unit ? (Number(found.qty) || 0) + qty : Number(found.qty) || 0;
+      // Add on top of what's there, converting the incoming unit to the stored
+      // row's unit when they differ (e.g. 5 ud + 500 g of the same piece
+      // ingredient). Only a truly incompatible pair (g↔ml, no density) can't be
+      // merged — then we leave the row as-is rather than mixing bad amounts.
+      const addQty =
+        found.unit === unit ? qty : convertStockAmount(qty, unit, found.unit, it.name);
+      const nextQty = addQty != null ? (Number(found.qty) || 0) + addQty : Number(found.qty) || 0;
       toUpdate.push({ id: found.id, qty: nextQty });
     } else {
       toInsert.push({
@@ -186,7 +190,9 @@ export function addLocalPantryItems(items) {
     const unit = it.unit ?? "ud";
     const existing = byKey.get(it.normalized);
     if (existing) {
-      if (existing.unit === unit) existing.qty = (Number(existing.qty) || 0) + qty;
+      const addQty =
+        existing.unit === unit ? qty : convertStockAmount(qty, unit, existing.unit, it.name);
+      if (addQty != null) existing.qty = (Number(existing.qty) || 0) + addQty;
     } else {
       byKey.set(it.normalized, {
         id: `local_${uid()}`,

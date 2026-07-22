@@ -6,7 +6,6 @@ import {
   Drumstick,
   Egg,
   Fish,
-  House,
   Leaf,
   Milk,
   Package,
@@ -19,11 +18,9 @@ import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import {
   loadPantry,
   removePantryItem,
-  clearPantry,
   setPantryItemQty,
   loadLocalPantry,
   removeLocalPantryItem,
-  clearLocalPantry,
   setLocalPantryItemQty,
 } from "../lib/pantry.js";
 import {
@@ -71,7 +68,6 @@ function splitStockDisplay(name, qty, unit) {
 const PAGE_BG = "#f7f9f7";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
-const MINT_BG = "#eaf3ec";
 const MUTED = "#9ab0a1";
 
 // Same aisle icon language as Shopping.jsx.
@@ -193,14 +189,6 @@ export function PantryScreen({
     };
   }, [user, pantryEpoch]);
 
-  const handleClear = async () => {
-    if (items.length === 0) return;
-    if (!window.confirm("¿Vaciar todo lo que tienes en casa?")) return;
-    setItems([]);
-    if (user) await clearPantry(user.id);
-    else clearLocalPantry();
-  };
-
   const handleRemove = async (id) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
     if (editingId === id) setEditingId(null);
@@ -244,67 +232,16 @@ export function PantryScreen({
       )}
 
         {(loading || items.length > 0) && (
-          <>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 8,
-                padding: "0 2px",
-              }}
-            >
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                <span
-                  style={{
-                    width: 26,
-                    height: 26,
-                    borderRadius: 8,
-                    background: MINT_BG,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <House size={13} color={GREEN} />
-                </span>
-                <span style={{ fontSize: 13, fontWeight: 800, color: GREEN }}>
-                  {loading ? "…" : `${items.length} ${items.length === 1 ? "ingrediente" : "ingredientes"}`}
-                </span>
-              </span>
-              {items.length > 0 && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 5,
-                    border: "none",
-                    background: "transparent",
-                    color: "#c0392b",
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    padding: 0,
-                  }}
-                >
-                  <Trash2 size={13} /> Vaciar todo
-                </button>
-              )}
-            </div>
-
-            <div
-              style={{
-                background: "#fff",
-                border: "1.5px solid #e5ebe7",
-                borderRadius: 16,
-                overflow: "hidden",
-                marginBottom: 14,
-                boxShadow: cardShadow,
-              }}
-            >
+          <div
+            style={{
+              background: "#fff",
+              border: "1.5px solid #e5ebe7",
+              borderRadius: 16,
+              overflow: "hidden",
+              marginBottom: 14,
+              boxShadow: cardShadow,
+            }}
+          >
               {loading ? (
                 <p style={{ margin: 0, padding: 14, fontSize: 13, color: MUTED }}>Cargando…</p>
               ) : (
@@ -495,7 +432,6 @@ export function PantryScreen({
                 </>
               )}
             </div>
-          </>
         )}
 
         <div>

@@ -27,6 +27,7 @@ import {
   Expand,
   FileText,
   House,
+  Refrigerator,
   Layers2,
   Loader2,
   Minus,
@@ -1906,7 +1907,7 @@ export function OnboardingRepeat({
 
       <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
         <RestrictionTabCard
-          Icon={House}
+          Icon={Refrigerator}
           title="En casa"
           subtitle="nevera y despensa"
           active={mainTab === "casa"}
@@ -7640,13 +7641,6 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
     return () => window.removeEventListener("resize", measure);
   }, [weeks.length]);
 
-  // Active days count for hint — only the current week (offset 0) can be
-  // partial (it starts today, not on Monday).
-  const currentWeek = weeks[0];
-  const activeDayCount = selectedOffsets.includes(0)
-    ? currentWeek.days.filter((d) => d >= today).length
-    : 7;
-
   return (
     <OnboardingShell
       title="¿Para cuándo quieres el menú?"
@@ -7823,20 +7817,10 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
         </div>
       </div>
 
-      {/* Hint — only when current week and fewer than 7 days */}
-      {selectedOffsets.includes(0) && activeDayCount < 7 && (
-        <p style={{ fontSize: 12, color: "#9aaa9e", margin: "14px 0 0", textAlign: "center" }}>
-          {`Semana actual de ${activeDayCount} día${activeDayCount !== 1 ? "s" : ""} (desde hoy)`}
-        </p>
-      )}
-
       {selectedOffsets.length > 1 && (
         <div style={{ marginTop: 18, padding: 14, background: "#f7f9f7", borderRadius: 14 }}>
-          <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>
+          <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", marginBottom: 12 }}>
             Variedad entre semanas
-          </div>
-          <div style={{ fontSize: 11.5, color: "#9ab0a1", marginTop: 2, marginBottom: 12 }}>
-            Vas a generar {selectedOffsets.length} semanas de una vez
           </div>
           <div style={{ display: "flex", gap: 6 }}>
             {VARIETY_OPTIONS.map((opt) => {
