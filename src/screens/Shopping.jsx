@@ -167,38 +167,17 @@ function convertIngredientToStockUnit(ing, stockUnit) {
 function applyPantryCoverage(rows, stock) {
   for (const row of rows) {
     row.fromPantry = false;
-    row.__stockCoveredQty = 0;
   }
   if (!stock?.length) return;
-  const working = stock.map((s) => ({ ...s, qty: Number(s.qty) || 0 }));
-  const ordered = [...rows].sort((a, b) => (a.__weekOffset ?? -1) - (b.__weekOffset ?? -1));
-  const EPS = 1e-6;
-  for (const row of ordered) {
+  // Binary "Ya en casa" presence: any buy row that matches something you have
+  // in stock (qty > 0) is shown as already-at-home, so the section lists
+  // EVERYTHING you have that the menu needs — even when you only have part of
+  // it. (A quantity-aware split that trimmed partials into the buy list hid the
+  // table whenever coverage wasn't total, which isn't what users expect here.)
+  for (const row of rows) {
     if (!(row.qty > 0)) continue;
-    const match = findMatchingPantryItem(row.name, working, { adapted: Boolean(row.adapted) });
-    if (!match || !(match.qty > 0)) continue;
-    const needInStock = convertStockAmount(row.qty, row.unit, match.unit, row.name);
-    if (needInStock == null) {
-      // No safe unit conversion (e.g. g↔ml): fall back to binary presence, like
-      // the pre-quantity behaviour — mark covered without consuming a measurable
-      // amount so it can't wrongly starve other rows of the same stock.
-      row.fromPantry = true;
-      continue;
-    }
-    const take = Math.min(needInStock, match.qty);
-    match.qty -= take;
-    if (take >= needInStock - EPS) {
-      row.fromPantry = true;
-      continue;
-    }
-    // Partial coverage: buy only the shortfall, keep the covered part as a note.
-    const remainingRowUnit = convertStockAmount(needInStock - take, match.unit, row.unit, row.name);
-    const coveredRowUnit = convertStockAmount(take, match.unit, row.unit, row.name);
-    if (remainingRowUnit != null && remainingRowUnit > 0) {
-      row.__stockCoveredQty = coveredRowUnit ?? 0;
-      row.qty = remainingRowUnit;
-      row.displayQty = formatDisplay(remainingRowUnit, row.unit);
-    }
+    const match = findMatchingPantryItem(row.name, stock, { adapted: Boolean(row.adapted) });
+    if (match && Number(match.qty) > 0) row.fromPantry = true;
   }
 }
 
@@ -2009,20 +1988,6 @@ function ShoppingRow({
             >
               <Leaf size={11} strokeWidth={2.6} />
               Adaptado
-            </span>
-          )}
-          {item.__stockCoveredQty > 0 && (
-            <span
-              title="Ya tienes parte en casa — solo necesitas comprar lo que falta"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 3,
-                fontSize: 10, fontWeight: 800, color: "#2d5a3d",
-                background: "#eef4ef", border: "1px solid #d7e6dc",
-                borderRadius: 999, padding: "1px 7px", marginTop: 2,
-              }}
-            >
-              <Refrigerator size={11} strokeWidth={2.6} />
-              Ya tienes {formatDisplay(item.__stockCoveredQty, item.unit ?? "ud")} en casa
             </span>
           )}
         </div>
