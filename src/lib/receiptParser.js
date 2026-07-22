@@ -1,17 +1,5 @@
 import { FAST_MODEL } from "./aiModels.js";
-
-function fileToBase64(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = String(reader.result ?? "");
-      const base64 = result.includes(",") ? result.split(",")[1] : result;
-      resolve(base64);
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
+import { imageFileToVisionPayload } from "./visionImage.js";
 
 function extractJson(text) {
   const trimmed = String(text ?? "").trim();
@@ -25,13 +13,40 @@ function extractJson(text) {
   }
 }
 
+async function postVisionGenerate(body, { signal, failLabel } = {}) {
+  const response = await fetch("/api/generate", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    signal,
+  });
+
+  if (!response.ok) {
+    let detail = "";
+    try {
+      const errBody = await response.json();
+      detail = errBody?.error?.message || errBody?.error || "";
+    } catch {
+      // ignore
+    }
+    if (response.status === 413) {
+      throw new Error("La foto es demasiado grande. Inténtalo con otra más ligera.");
+    }
+    if (typeof detail === "string" && /image|media|base64|type/i.test(detail)) {
+      throw new Error("No se pudo procesar la imagen. Prueba con JPG o PNG.");
+    }
+    throw new Error(failLabel || "No se pudo leer la foto");
+  }
+
+  return response.json();
+}
+
 /**
  * Extract product names from a receipt photo via Claude vision.
  * @returns {Promise<string[]>}
  */
 export async function extractReceiptProducts(file, { signal } = {}) {
-  const base64 = await fileToBase64(file);
-  const mediaType = file.type?.startsWith("image/") ? file.type : "image/jpeg";
+  const { base64, mediaType } = await imageFileToVisionPayload(file);
 
   const body = {
     model: FAST_MODEL,
@@ -55,18 +70,10 @@ Responde SOLO JSON: {"products":["nombre1","nombre2"]}`,
     ],
   };
 
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  const data = await postVisionGenerate(body, {
     signal,
+    failLabel: "No se pudo leer el ticket",
   });
-
-  if (!response.ok) {
-    throw new Error("No se pudo leer el ticket");
-  }
-
-  const data = await response.json();
   const text = data.content?.find((c) => c.type === "text")?.text ?? "";
   const parsed = extractJson(text);
   const products = Array.isArray(parsed.products) ? parsed.products : [];
@@ -84,8 +91,7 @@ Responde SOLO JSON: {"products":["nombre1","nombre2"]}`,
  * }> }>}
  */
 export async function extractReceiptDetail(file, { signal } = {}) {
-  const base64 = await fileToBase64(file);
-  const mediaType = file.type?.startsWith("image/") ? file.type : "image/jpeg";
+  const { base64, mediaType } = await imageFileToVisionPayload(file);
 
   const body = {
     model: FAST_MODEL,
@@ -117,16 +123,10 @@ Responde SOLO JSON:
     ],
   };
 
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  const data = await postVisionGenerate(body, {
     signal,
+    failLabel: "No se pudo leer el ticket",
   });
-
-  if (!response.ok) throw new Error("No se pudo leer el ticket");
-
-  const data = await response.json();
   const text = data.content?.find((c) => c.type === "text")?.text ?? "";
   const parsed = extractJson(text);
   const rawLines = Array.isArray(parsed.lines) ? parsed.lines : [];
@@ -158,8 +158,7 @@ Responde SOLO JSON:
  * @returns {Promise<{ name: string, qty: number, unit: 'g'|'ml'|'ud' }[]>}
  */
 export async function extractPantryPhoto(file, { signal } = {}) {
-  const base64 = await fileToBase64(file);
-  const mediaType = file.type?.startsWith("image/") ? file.type : "image/jpeg";
+  const { base64, mediaType } = await imageFileToVisionPayload(file);
 
   const body = {
     model: FAST_MODEL,
@@ -187,16 +186,10 @@ Responde SOLO JSON: {"items":[{"name":"...","qty":1,"unit":"ud"}]}`,
     ],
   };
 
-  const response = await fetch("/api/generate", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body),
+  const data = await postVisionGenerate(body, {
     signal,
+    failLabel: "No se pudo leer la foto",
   });
-
-  if (!response.ok) throw new Error("No se pudo leer la foto");
-
-  const data = await response.json();
   const text = data.content?.find((c) => c.type === "text")?.text ?? "";
   const parsed = extractJson(text);
   const rawItems = Array.isArray(parsed.items) ? parsed.items : [];

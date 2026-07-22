@@ -688,17 +688,41 @@ export default function App() {
   const { user, signInWithGoogle, signOut } = useAuth();
 
   // Debounced: serializar todo el estado a localStorage en cada pulsación de
-  // tecla del onboarding es perceptible en móviles modestos.
+  // tecla del onboarding es perceptible en móviles modestos. Si la cuota está
+  // llena, saveState compacta historial/gasto y reintenta; sincronizamos ese
+  // recorte al estado React para no volver a fallar en el siguiente tick.
   useEffect(() => {
     const t = window.setTimeout(() => {
-      const ok = saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes });
-      if (!ok && !storageQuotaWarnedRef.current) {
+      const result = saveState({ screen, onbStep, data, menuPlan, shopping, aiRecipes });
+      if (result.ok && result.pruned && result.saved) {
+        const prunedData = result.saved.data;
+        setData((d) => {
+          const menusShrunk =
+            Object.keys(prunedData?.menus ?? {}).length < Object.keys(d.menus ?? {}).length;
+          const obsShrunk = (prunedData?.priceObs?.length ?? 0) < (d.priceObs?.length ?? 0);
+          const receiptsShrunk = (prunedData?.receipts?.length ?? 0) < (d.receipts?.length ?? 0);
+          if (!menusShrunk && !obsShrunk && !receiptsShrunk) return d;
+          return {
+            ...d,
+            menus: prunedData.menus ?? d.menus,
+            priceObs: prunedData.priceObs ?? d.priceObs,
+            receipts: prunedData.receipts ?? d.receipts,
+          };
+        });
+        const prunedAi = result.saved.aiRecipes ?? [];
+        setAiRecipes((cur) => (prunedAi.length < cur.length ? prunedAi : cur));
+      }
+      if (!result.ok && !storageQuotaWarnedRef.current) {
         storageQuotaWarnedRef.current = true;
-        showToast("No se ha podido guardar tu progreso en este dispositivo (memoria llena). Inicia sesión para no perderlo.");
+        showToast(
+          user
+            ? "Memoria del navegador llena: se ha intentado liberar historial antiguo. Si sigue fallando, borra datos del sitio o usa otra sesión."
+            : "No se ha podido guardar tu progreso en este dispositivo (memoria llena). Inicia sesión para no perderlo.",
+        );
       }
     }, 400);
     return () => window.clearTimeout(t);
-  }, [screen, onbStep, data, menuPlan, shopping, aiRecipes]);
+  }, [screen, onbStep, data, menuPlan, shopping, aiRecipes, user]);
 
   // ── Cloud sync (Supabase) ──────────────────────────────────────
   // localStorage stays the working source of truth; these effects mirror it to

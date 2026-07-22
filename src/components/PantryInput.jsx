@@ -504,8 +504,9 @@ export function PantryInput({ onSaved }) {
         }
       }
       if (!addedAny) setPhotoError("No reconocimos ningún alimento en las fotos.");
-    } catch {
-      setPhotoError("No se pudo leer la foto. Inténtalo de nuevo.");
+    } catch (err) {
+      const msg = err instanceof Error && err.message ? err.message : "";
+      setPhotoError(msg || "No se pudo leer la foto. Inténtalo de nuevo.");
     } finally {
       setPhotoLoading(false);
     }
