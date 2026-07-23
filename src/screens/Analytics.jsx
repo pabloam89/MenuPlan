@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   ChefHat,
@@ -7,6 +7,7 @@ import {
   Fish,
   Leaf,
   Moon,
+  Refrigerator,
   Soup,
   Sun,
   Utensils,
@@ -35,9 +36,17 @@ const TAB_OPTIONS = [
   { id: "gasto", label: "Gasto" },
 ];
 
-export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, onUndoReceiptTachado, onNav, onToast }) {
-  const [tab, setTab] = useState("cocina");
+export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null, onBackToPantry = null, navActive = "menu" }) {
+  const [tab, setTab] = useState(initialTab ?? "cocina");
   const tabDirRef = useRef(0);
+  // Deep link from "En casa" → Gastos: land directly on the requested tab.
+  useEffect(() => {
+    if (!initialTab) return;
+    tabDirRef.current = tabDirection(TAB_OPTIONS, tab, initialTab);
+    setTab(initialTab);
+    onInitialTabHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialTab]);
   const handleTabChange = (next) => {
     if (next === tab) return;
     tabDirRef.current = tabDirection(TAB_OPTIONS, tab, next);
@@ -83,6 +92,22 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
         >
           <h2 style={titleStyle}>{tab === "gasto" ? "Tu gasto" : "Tu semana"}</h2>
           {tab !== "gasto" && <WeekRangeBadge label={weekLabel} />}
+          {/* Quick jump to "En casa" from Gasto — the two are tightly linked
+              (tickets feed the pantry) so it's useful from every route into
+              this tab, not just the deep-link-from-Pantry case: falls back
+              to a plain forward nav when there's no "back to where you came
+              from" callback (i.e. reached via the bottom nav directly). */}
+          {tab === "gasto" && (
+            <button
+              type="button"
+              onClick={onBackToPantry ?? (() => onNav("pantry"))}
+              aria-label="Ir a En casa"
+              title="Ir a En casa"
+              style={backToPantryBtnStyle}
+            >
+              <Refrigerator size={17} strokeWidth={2.3} />
+            </button>
+          )}
         </div>
 
         {/* Tabs are always available — Gasto works even without an active menú. */}
@@ -122,7 +147,11 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
         )}
       </div>
 
-      <BottomNav active="analytics" onNav={onNav} />
+      {/* "Análisis" no longer has its own tab (see BottomNav) — it's an icon
+          hanging off whichever tab you opened it from, so that's what stays
+          lit here: "En casa" when opened from Pantry's ticket icon, "Menú"
+          from its Cocina-stats icon (the default). */}
+      <BottomNav active={navActive} onNav={onNav} />
     </div>
   );
 }
@@ -1407,6 +1436,25 @@ const titleStyle = {
   color: "#142f1d",
   margin: 0,
   letterSpacing: "-.7px",
+};
+
+// Same icon-button language as Pantry.jsx's own header actions
+// (pantryIconBtn) — smaller, since here it sits next to a big title instead
+// of alone in a header row.
+const backToPantryBtnStyle = {
+  width: 34,
+  height: 34,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 11,
+  border: "1.5px solid #dbe7df",
+  background: "#fff",
+  color: "#2d5a3d",
+  fontFamily: "inherit",
+  cursor: "pointer",
+  boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
+  flexShrink: 0,
 };
 
 const emptyTextStyle = {

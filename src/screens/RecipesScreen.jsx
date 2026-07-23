@@ -237,7 +237,7 @@ export function RecipesScreen({
         )}
       </div>
 
-      <BottomNav active="recipes" onNav={onNav} context="home" />
+      <BottomNav active="recipes" onNav={onNav} />
     </div>
   );
 }

@@ -45,6 +45,32 @@ export function getMeals(data) {
   return MEALS;
 }
 
+// ── Optional "off-menu" meals (desayuno / merienda / postre) ──────────────
+// These live OUTSIDE data.meals so they never inflate the AI slot budget or
+// reach the comida/cena LLM planner. They're stored in data.extraMeals and
+// planned deterministically from the off-menu recipe pool (see aiPlanner.js).
+export const EXTRA_MEAL_LABELS = ["Desayuno", "Merienda", "Postre"];
+
+/** Active optional meals as capitalized labels, in canonical day order. */
+export function getExtraMeals(data) {
+  const em = data?.extraMeals ?? {};
+  const out = [];
+  if (em.desayuno && em.desayuno !== "off") out.push("Desayuno");
+  if (em.merienda && em.merienda !== "off") out.push("Merienda");
+  if (em.postre && em.postre !== "off") out.push("Postre");
+  return out;
+}
+
+/**
+ * Every meal label to RENDER for a day (main + optional), in natural day order
+ * — Desayuno, Comida, Merienda, Cena, Postre. Renderers and the shopping list
+ * use this; the AI planner keeps using getMeals() so its budget is unchanged.
+ */
+export function getDayMeals(data) {
+  const active = new Set([...getMeals(data), ...getExtraMeals(data)]);
+  return ["Desayuno", "Comida", "Merienda", "Cena", "Postre"].filter((m) => active.has(m));
+}
+
 export function isLunchMeal(meal) {
   return meal === "Comida";
 }

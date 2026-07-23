@@ -5,6 +5,7 @@ import {
   BookOpen,
   Calendar,
   CalendarDays,
+  Camera,
   Check,
   ChefHat,
   ChevronDown,
@@ -50,30 +51,37 @@ import {
 } from "../components/ui.jsx";
 import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
 import { ManualEntryModal, StorePicker, SUPERMARKETS, appendManualSpend, appendReceiptSpend } from "./SpendPanel.jsx";
-import { ingredientDictionary, matchReceiptLine, classifyConfidence } from "../lib/priceHistory.js";
+import {
+  ingredientDictionary,
+  matchReceiptLine,
+  classifyConfidence,
+  stripQtyNoise,
+  expandAbbreviations,
+  toDisplayCase,
+} from "../lib/priceHistory.js";
 import { INGREDIENT_CATEGORIES, RECIPES_BY_ID } from "../data/recipes.js";
 import { normalizeIngredientKey, isPerishableAisle, guessShoppingAisle, normalizeName } from "../lib/ingredientCategories.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { formatISODateShort } from "../lib/menuArchive.js";
-import { shoppingUnitsLabel, gramsPerPiece, convertStockAmount, formatStockQty } from "../lib/kitchenUnits.js";
+import { shoppingUnitsLabel, pantryPieceCountLabel, gramsPerPiece } from "../lib/kitchenUnits.js";
 import { extractReceiptDetail } from "../lib/receiptParser.js";
 import { RECEIPT_FIXTURES } from "../lib/receiptFixtures.js";
 import { useAuth } from "../lib/useAuth.js";
-import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry, setPantryItemQty, setLocalPantryItemQty, removePantryItem, removeLocalPantryItem } from "../lib/pantry.js";
+import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry } from "../lib/pantry.js";
+import { consumeFromPantry, restoreToPantry } from "../lib/cookPantry.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import {
   enrichItem,
   formatDisplay,
   isActiveItem,
-  isDoneItem,
   itemsByAisle,
   itemsByDayMeal,
   mergeShoppingItems,
   matchReceiptProducts,
 } from "../lib/shoppingListUtils.js";
-import { calendarDayNumber, formatWeekRangeLabel, getWeekDates, getWeekDatesByMenuWeek, getWeekDatesFromStartISO } from "../lib/weekCalendar.js";
+import { calendarDayNumber, formatWeekRangeLabel, getWeekDates, getWeekDatesByMenuWeek } from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
@@ -145,15 +153,6 @@ function readyRecipeKeys(items) {
   return map;
 }
 
-// A cooked recipe's ingredient amount is in the catalog's own g/ml/ud unit;
-// En casa stock can be in a different one of those three if the user chose
-// it that way when adding (e.g. "2 ud" of chicken breast instead of grams).
-// Delegates to the shared convertStockAmount, which also normalizes kg↔g and
-// l↔ml and returns null (skip, don't guess) for unsafe mismatches (e.g. g↔ml).
-function convertIngredientToStockUnit(ing, stockUnit) {
-  return convertStockAmount(ing.qty, ing.unit, stockUnit, ing.name);
-}
-
 // Live "Ya en casa" coverage. Recomputes each buy row against the CURRENT
 // pantry stock (never the fromPantry snapshot baked at generation) and is
 // quantity-aware:
@@ -199,6 +198,11 @@ const AISLE_UI = {
   __pantry: { Icon: Refrigerator, color: "#2d5a3d" },
 };
 
+// Page background — same flat, card-free feel as "Recetas" (RecipesScreen's
+// BG = "#f4f8f5"), but noticeably more green so the two tabs still read as
+// distinct at a glance.
+const SHOPPING_BG = "#e8f5ec";
+
 export function ShoppingScreen({
   shopping,
   setShopping,
@@ -224,23 +228,20 @@ export function ShoppingScreen({
   // Writes one week's shopping back to the archive (and mirrors the live list
   // when it's the active week). Signature: (weekStart, { items }).
   onUpdateWeek = null,
-  // Optional demo hooks (first-run value-prop carousel): preset the list filter
-  // and pre-open one aisle so the category "zoom" is visible on mount. Default
-  // to the normal collapsed behaviour; never passed in the real app.
+  // Optional demo hooks (first-run value-prop carousel): pre-open one aisle so
+  // the category "zoom" is visible on mount. Defaults to the normal collapsed
+  // behaviour; never passed in the real app.
   initialOpenAisle = null,
-  initialListScope = null,
-  // One-shot deep link from the Menú screen's "faltan ingredientes" dot:
-  // { day, meal, recipeId }. Switches to Modo Cocina and auto-expands +
-  // scrolls to that exact dish. Cleared by the parent once consumed.
-  initialFocusDish = null,
-  onFocusDishHandled = null,
-  onOpenPantry = null,
+  // One-shot intent from "En casa": open the receipt/spend capture sheet on
+  // mount so "Subir ticket" from the pantry lands straight in the capture flow.
+  openCaptureOnMount = false,
+  onCaptureHandled = null,
   // Bumps after login merge so stock reloads once local→cloud fold finishes.
   pantryEpoch = 0,
 }) {
-  // Used to file un-matched ticket lines into En casa on receipt confirm
-  // (handleReceiptConfirm) and to look up/decrement real stock when a dish
-  // gets marked "Cocinado" in Modo cocina — guests use the localStorage mirror.
+  // Stock powers three things here: discounting the buy list against what you
+  // already have (applyPantryCoverage), filing ticket/manual purchases into En
+  // casa, and the undo of a "Comprado". Guests use the localStorage mirror.
   const { user } = useAuth();
   const [pantryStock, setPantryStock] = useState(() => (user ? [] : loadLocalPantry()));
   useEffect(() => {
@@ -256,32 +257,19 @@ export function ShoppingScreen({
       active = false;
     };
   }, [user, pantryEpoch]);
-  const [listScope, setListScope] = useState(initialListScope ?? "pending");
-  // "compra": aggregated by aisle (buy efficiently). "cocina": grouped by day →
-  // meal → recipe (plan what you'll cook). Same underlying items, two lenses.
-  const [viewMode, setViewMode] = useState(initialFocusDish ? "cocina" : "compra");
 
+  // "Subir ticket" from En casa: open the capture chooser as soon as we land.
   useEffect(() => {
-    if (!initialFocusDish) return;
-    setViewMode("cocina");
-    // The dish is only linkable while it's missing something, i.e. still
-    // "pending" — force that scope so the cook tree doesn't filter it out if
-    // the screen had been left on "Comprado".
-    setListScope("pending");
-  }, [initialFocusDish]);
-  // Cook mode lets you read quantities two ways: exact "peso" (175 g / 300 ml) or
-  // kitchen "uds" (≈ 1 lata, 2 muslos…). A mini toggle flips every row at once.
-  const [cookUnitView, setCookUnitView] = useState("peso");
+    if (!openCaptureOnMount) return;
+    if (setData) setShowCapture(true);
+    else openScan();
+    onCaptureHandled?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [openCaptureOnMount]);
+
   const [openSections, setOpenSections] = useState(
     initialOpenAisle ? { [initialOpenAisle]: true } : {},
   );
-
-  // Demo only (value-prop carousel): let the parent drive the tab from
-  // outside by changing `initialListScope`. Never happens in the real app,
-  // where this prop is passed once and never updated.
-  useEffect(() => {
-    if (initialListScope) setListScope(initialListScope);
-  }, [initialListScope]);
   const [expandedId, setExpandedId] = useState(null);
   const [showIconCoach, setShowIconCoach] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
@@ -485,17 +473,6 @@ export function ShoppingScreen({
     .map((r) => ({ ...r, __qtyLocked: (r.__sources?.length ?? 0) > 1 }))
     .sort((a, b) => a.name.localeCompare(b.name));
 
-  // For the shopping "Ya en casa" section only: show the REAL amount you have in
-  // the pantry for each ingredient (the stock from "En casa"), not the recipe's
-  // need. It shrinks on its own as dishes are marked cooked (handleMarkCooked
-  // decrements stock and reloads pantryStock).
-  const pantryStockView = pantryItems.map((r) => {
-    const stock = findMatchingPantryItem(r.name, pantryStock, { adapted: Boolean(r.adapted) });
-    const stockQty = stock ? Number(stock.qty) || 0 : Number(r.qty) || 0;
-    const stockUnit = stock?.unit ?? r.unit ?? "ud";
-    return { ...r, qty: stockQty, unit: stockUnit, displayQty: formatStockQty(stockQty, stockUnit) };
-  });
-
   const rowById = new Map();
   for (const r of [...enrichedItems, ...pantryItems]) rowById.set(r.id, r);
   const mergedItems = enrichedItems; // receipt matching / qty lookups
@@ -535,29 +512,57 @@ export function ShoppingScreen({
       },
     ]);
   };
-  // "No lo tengo" on a "Ya en casa" row: coverage is now recomputed live from
-  // real stock, so flipping a flag would just get re-covered on the next render.
-  // The honest fix is to drop the disputed stock — the row then rejoins the buy
-  // list because nothing covers it anymore.
-  const rejectPantryMatch = async (item) => {
-    const match = findMatchingPantryItem(item.name, pantryStock, {
-      adapted: Boolean(item.adapted),
-    });
-    if (!match) return;
-    if (user) {
-      await removePantryItem(user.id, match.id);
-      setPantryStock(await loadPantry(user.id));
-    } else {
-      removeLocalPantryItem(match.id);
-      setPantryStock(loadLocalPantry());
-    }
-    onToast?.("Quitado de 'en casa'");
-  };
   const markPurchased = (ids, weekStart = null) => {
     for (const id of ids) {
       const row = rowById.get(id);
       if (row) applyToSources(row, { have: true }, weekStart);
     }
+  };
+  const reloadStock = async () => {
+    setPantryStock(user ? await loadPantry(user.id) : loadLocalPantry());
+  };
+  // A shopping row → an "En casa" stock entry. Buying anything now tops up the
+  // real pantry (single source of truth): the item shows up in "En casa" and,
+  // once you cook the dish that needs it, gets discounted again.
+  const rowToPantryItem = (row) => {
+    if (!row) return null;
+    const parsed = normalizePantryInput(row.name)[0];
+    if (!parsed) return null;
+    return {
+      name: parsed.raw,
+      normalized: parsed.ambiguous ? parsed.candidates[0].normalized : parsed.normalized,
+      qty: Number(row.qty) > 0 ? Number(row.qty) : 1,
+      unit: row.unit ?? "ud",
+      source: "manual",
+    };
+  };
+  // Single "Comprado" tap: mark it bought (vanishes from the pending list — no
+  // "Comprado" sub-view anymore), top up "En casa", and offer a brief Deshacer
+  // that reverses BOTH the flag and the stock in case it was a misclick.
+  const markItemBought = async (id) => {
+    const row = rowById.get(id);
+    if (!row) return;
+    applyToSources(row, { have: true });
+    const item = rowToPantryItem(row);
+    if (item) {
+      await restoreToPantry([item], { user });
+      await reloadStock();
+    }
+    onToast?.(`«${row.name}» comprado`, {
+      label: "Deshacer",
+      onClick: async () => {
+        applyToSources(row, { have: false });
+        if (item) {
+          const stock = user ? await loadPantry(user.id) : loadLocalPantry();
+          await consumeFromPantry(
+            [{ name: item.name, qty: item.qty, unit: item.unit }],
+            stock,
+            { user },
+          );
+          await reloadStock();
+        }
+      },
+    });
   };
   const saveItemQty = (id, rawValue) => {
     const parsed = parseFloat(String(rawValue).replace(",", "."));
@@ -571,175 +576,17 @@ export function ShoppingScreen({
     setEditingQtyId(null);
   };
 
-  const shoppingOnlyItems = enrichedItems;
-  const totalCount = shoppingOnlyItems.length;
-  const doneCount = shoppingOnlyItems.filter(isDoneItem).length;
-  const progress = totalCount > 0 ? doneCount / totalCount : 0;
-  const visibleItems =
-    listScope === "pending"
-      ? enrichedItems.filter(isActiveItem)
-      : listScope === "done"
-        ? enrichedItems.filter(isDoneItem)
-        : enrichedItems;
+  // The buy list only ever shows what's still pending. Cooking (ingredient
+  // ticks + "Marcar cocinado", which discounts stock) moved to each dish's
+  // detail in "Menú", so this screen no longer builds a day→meal cook tree.
+  const visibleItems = enrichedItems.filter(isActiveItem);
   const sections = itemsByAisle(visibleItems).map((g) => ({
     key: g.aisle,
     title: g.aisle,
     items: g.items,
   }));
-  // Two always-visible macro-groups: Frescos (perishable aisles) vs Despensa.
-  const freshSections = sections.filter((s) => isPerishableAisle(s.key));
-  const stapleSections = sections.filter((s) => !isPerishableAisle(s.key));
 
-  // Cook mode always shows the full recipe: every ingredient stays visible and
-  // marking one as comprado/en casa just adds a tick (no filtering), so a dish
-  // never ends up with some lines vanished and others ticked. The pending/done
-  // scope only affects Modo compra.
-  const cookSourceItems = [...enrichedItems, ...pantryItems];
-  const cookTree = itemsByDayMeal(cookSourceItems);
-  // Cook rows carry the same two actions as the aisle rows: "En casa" (atHome)
-  // and "Comprado" (have). Each clears the other so an item lands in one bucket.
-  const toggleCookHome = (id, atHome) => patchItem(id, { atHome, have: false });
-  // Marking "Comprado" mirrors Modo compra: it opens the same PurchaseChoiceSheet
-  // (registrar precio / a mano / escanear ticket) instead of ticking silently.
-  // Un-marking just clears the flag.
-  const toggleCookPurchased = (id, have) => {
-    if (!have) {
-      patchItem(id, { have: false });
-      return;
-    }
-    const item = cookSourceItems.find((it) => it.id === id);
-    // "Ya en casa" ingredients are already stocked — don't offer the spend
-    // pop-up for them (Modo compra hides "Comprado" on these rows for the same
-    // reason); just tick without polluting spend/price data.
-    if (setData && item && !item.fromPantry) {
-      setPurchaseChoice(item);
-      return;
-    }
-    patchItem(id, { have: true, atHome: false });
-  };
-
-  // "Marcar cocinado" state is scoped per week (so it naturally resets when a
-  // new week's menú replaces this one) but lives in the generic `data` blob —
-  // no per-week archive plumbing needed, it already round-trips through
-  // localStorage + user_state on its own (see App.jsx's debounced saves).
-  const cookWeekKey = selectedWeeks[0]?.weekStart ?? "live";
-  const cookedKeys = new Set(
-    (data?.cookedDishes ?? [])
-      .filter((k) => k.startsWith(`${cookWeekKey}::`))
-      .map((k) => k.slice(cookWeekKey.length + 2)),
-  );
-  const handleMarkCooked = async (day, meal, recipeId, recipeName, ingredients) => {
-    const shortKey = `${day}::${meal}::${recipeId ?? recipeName}`;
-    if (cookedKeys.has(shortKey)) return;
-    let decremented = 0;
-    // Exact amount removed per stock row so "Deshacer cocinado" can restore it
-    // precisely (survives clamping at 0 and several ingredients hitting one row).
-    let deltas = [];
-    if (pantryStock.length) {
-      // Working copy so two ingredients that fuzzy-match the same stock row
-      // (e.g. «Tomate» + «Tomate maduro») decrement sequentially instead of
-      // both subtracting from the original qty.
-      const working = pantryStock.map((p) => ({ ...p }));
-      const origById = new Map(pantryStock.map((p) => [p.id, Number(p.qty) || 0]));
-      const updatesById = new Map();
-      const metaById = new Map();
-      for (const ing of ingredients) {
-        const stock = findMatchingPantryItem(ing.name, working, {
-          adapted: Boolean(ing.adapted),
-        });
-        if (!stock) continue;
-        const consume = convertIngredientToStockUnit(ing, stock.unit);
-        if (consume == null) continue;
-        const nextQty = Math.max(0, (Number(stock.qty) || 0) - consume);
-        stock.qty = nextQty;
-        updatesById.set(stock.id, nextQty);
-        metaById.set(stock.id, {
-          name: stock.ingredientName,
-          normalized: stock.ingredientNormalized,
-          unit: stock.unit,
-        });
-        decremented++;
-      }
-      if (updatesById.size) {
-        const updates = [...updatesById.entries()].map(([id, nextQty]) => ({ id, nextQty }));
-        deltas = updates
-          .map((u) => {
-            const removed = (origById.get(u.id) ?? 0) - u.nextQty;
-            const meta = metaById.get(u.id);
-            return removed > 0 && meta ? { ...meta, qty: removed } : null;
-          })
-          .filter(Boolean);
-        if (user) {
-          await Promise.all(updates.map((u) => setPantryItemQty(user.id, u.id, u.nextQty)));
-        } else {
-          for (const u of updates) setLocalPantryItemQty(u.id, u.nextQty);
-        }
-        setPantryStock((prev) =>
-          prev
-            .map((p) => {
-              if (!updatesById.has(p.id)) return p;
-              return { ...p, qty: updatesById.get(p.id) };
-            })
-            .filter((p) => p.qty > 0),
-        );
-      }
-    }
-    const fullKey = `${cookWeekKey}::${shortKey}`;
-    setData?.((d) => ({
-      ...d,
-      cookedDishes: [...(d?.cookedDishes ?? []), fullKey],
-      cookedDeltas: { ...(d?.cookedDeltas ?? {}), [fullKey]: deltas },
-    }));
-    onToast?.(decremented ? `¡Cocinado! Stock en casa actualizado (${decremented})` : "¡Cocinado!");
-  };
-  // Reverse of handleMarkCooked: re-adds exactly what was subtracted (top-up
-  // recreates rows that had hit 0) and clears the cooked flag for that dish.
-  const handleUndoCooked = async (day, meal, recipeId, recipeName) => {
-    const shortKey = `${day}::${meal}::${recipeId ?? recipeName}`;
-    if (!cookedKeys.has(shortKey)) return;
-    const fullKey = `${cookWeekKey}::${shortKey}`;
-    const deltas = data?.cookedDeltas?.[fullKey] ?? [];
-    let restored = 0;
-    if (deltas.length) {
-      const items = deltas.map((d) => ({
-        name: d.name,
-        normalized: d.normalized,
-        qty: d.qty,
-        unit: d.unit,
-        source: "manual",
-      }));
-      if (user) {
-        await addPantryItems(user.id, items);
-        setPantryStock(await loadPantry(user.id));
-      } else {
-        addLocalPantryItems(items);
-        setPantryStock(loadLocalPantry());
-      }
-      restored = items.length;
-    }
-    setData?.((d) => {
-      const nextDeltas = { ...(d?.cookedDeltas ?? {}) };
-      delete nextDeltas[fullKey];
-      return {
-        ...d,
-        cookedDishes: (d?.cookedDishes ?? []).filter((k) => k !== fullKey),
-        cookedDeltas: nextDeltas,
-      };
-    });
-    onToast?.(restored ? `Cocinado deshecho · stock devuelto (${restored})` : "Cocinado deshecho");
-  };
-  // Calendar dates for the cook-mode day stripe (same "Lun 14" reading as Tu
-  // menú). Anchored to the first selected week in menú mode, else the live week.
-  const cookDates = (() => {
-    const w = selectedWeeks[0];
-    if (menuMode && w?.startISO) return getWeekDatesFromStartISO(w.startISO, w.startDayIdx ?? 0).dates;
-    if (menuWeek) return getWeekDatesByMenuWeek(menuWeek).dates;
-    return getWeekDates();
-  })();
-
-  const isEmpty = sections.every((s) => s.items.length === 0) && pantryItems.length === 0;
-  const hasPendingItems = shoppingOnlyItems.some(isActiveItem);
-  const hasDoneItems = shoppingOnlyItems.some(isDoneItem);
+  const isEmpty = sections.every((s) => s.items.length === 0);
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.
@@ -780,13 +627,35 @@ export function ShoppingScreen({
     return detail.lines
       .filter((l) => l.kind !== "nonfood")
       .map((l) => {
+        // Prefab lines ("PAN DE MOLDE BLANCO", "PATATAS FRITAS CHURRERÍA"...)
+        // never go through matchReceiptLine (there's no ingredient to map
+        // them to — they ARE the product), so they used to keep the raw
+        // SHOUTY OCR casing verbatim all the way to "Repasa y confirma"
+        // instead of getting the same toDisplayCase cleanup every other
+        // unmatched line gets below.
+        //
+        // We deliberately do NOT fall back to a dictionary match here to
+        // "double check" the AI's prefab tag: almost every ready-made dish
+        // is literally named after its main ingredient ("Croquetas DE
+        // POLLO", "Pizza DE QUESO", "Patatas fritas"), so a whole-word
+        // containment match would confidently — and wrongly — resolve most
+        // real prefab dishes back to the raw ingredient ("Pollo", "Queso",
+        // "Patatas"). The real fix for staples that get mis-tagged as
+        // prefab (e.g. "Pan de molde") lives in the extraction prompt
+        // itself (receiptParser.js), which now favors "food" whenever a
+        // packaged product could plausibly also be a recipe ingredient.
         const m =
           l.kind === "prefab"
-            ? { ingredientId: null, name: l.name, confidence: 1 }
+            ? { ingredientId: null, name: toDisplayCase(stripQtyNoise(l.name)), confidence: 1 }
             : matchReceiptLine(l.name, dict, aliases);
         return {
           raw: l.name,
-          name: m.name ?? l.name,
+          // If we couldn't map it to a canonical ingredient, at least strip
+          // "500 GR"-style noise and normalize SHOUTY OCR casing on the
+          // editable name — the raw ticket text is still shown verbatim
+          // above ("En el ticket") for reference, and qty/unit are handled
+          // as their own fields below.
+          name: m.name ?? toDisplayCase(stripQtyNoise(l.name)),
           ingredientId: m.ingredientId,
           price: l.price ?? 0,
           qty: l.qty,
@@ -893,27 +762,32 @@ export function ShoppingScreen({
 
     markPurchased(tachIds, targetWeekStart);
 
-    // A ticket line that matched nothing on the list wasn't a pending need —
-    // it's something the user now has at home, so it goes straight into
-    // "Despensa" for future weeks instead of being left dangling. Resolved
-    // before appendReceiptSpend so the receipt record can carry the exact
-    // pantry ids it created (lets deleting the ticket undo just those).
+    // Everything the ticket accounts for now flows into "En casa" (single
+    // source of truth: buying — by ticket or by hand — tops up the pantry, and
+    // cooking discounts it again). Two sources:
+    //   • unmatched lines: something bought that wasn't a pending need → new stock
+    //   • matched lines (tachIds): a pending need just bought → also becomes stock
+    // Resolved before appendReceiptSpend so the receipt record can carry the
+    // exact pantry ids it created (lets deleting the ticket undo just those).
     let pantried = 0;
     let pantryIds = [];
-    if (pantryEntries.length) {
-      const items = pantryEntries
-        .map((entry) => {
-          const parsed = normalizePantryInput(entry.name)[0];
-          if (!parsed) return null;
-          return {
-            name: parsed.raw,
-            normalized: parsed.ambiguous ? parsed.candidates[0].normalized : parsed.normalized,
-            qty: entry.qty,
-            unit: entry.unit,
-            source: "manual",
-          };
-        })
-        .filter(Boolean);
+    {
+      const items = [
+        ...pantryEntries
+          .map((entry) => {
+            const parsed = normalizePantryInput(entry.name)[0];
+            if (!parsed) return null;
+            return {
+              name: parsed.raw,
+              normalized: parsed.ambiguous ? parsed.candidates[0].normalized : parsed.normalized,
+              qty: entry.qty,
+              unit: entry.unit,
+              source: "manual",
+            };
+          })
+          .filter(Boolean),
+        ...tachIds.map((id) => rowToPantryItem(rowById.get(id))).filter(Boolean),
+      ];
       if (items.length) {
         if (user) {
           const results = await addPantryItems(user.id, items);
@@ -956,11 +830,20 @@ export function ShoppingScreen({
   };
 
   // Record a gasto from the same "Añadir a mano" modal used in Análisis → Gasto.
-  // When opened from a row's "Comprado" wizard, also marks that row bought.
-  const handleAddManualSpend = (entry) => {
+  // When opened from a row's "Comprado" wizard, also marks that row bought AND
+  // tops up "En casa" (same single-source-of-truth rule as a plain Comprado).
+  const handleAddManualSpend = async (entry) => {
     if (!setData) return;
     appendManualSpend(setData, entry, ingredientDictionary(), data?.priceAliases ?? {});
-    if (purchaseChoice) patchItem(purchaseChoice.id, { have: true });
+    const boughtRow = purchaseChoice;
+    if (boughtRow) {
+      patchItem(boughtRow.id, { have: true });
+      const item = rowToPantryItem(boughtRow);
+      if (item) {
+        await restoreToPantry([item], { user });
+        await reloadStock();
+      }
+    }
     setShowManualSpend(false);
     setPurchaseChoice(null);
     onToast?.("Gasto añadido");
@@ -972,88 +855,84 @@ export function ShoppingScreen({
       // The per-product icons only exist in the DOM when a section is open, so
       // make sure the first available aisle is expanded before the spotlight
       // starts hunting for its targets.
-      const firstKey = freshSections[0]?.key ?? stapleSections[0]?.key;
+      const firstKey = sections[0]?.key;
       if (firstKey) setOpenSections((c) => ({ ...c, [firstKey]: true }));
       return true;
     });
   };
 
-  const renderAisleSection = (section) => {
-    if (section.items.length === 0) return null;
+  const renderAisleSection = (section, idx, total) => {
     const open = Boolean(openSections[section.key]);
+    const isLastSection = idx === total - 1;
     return (
-      <div key={section.key} style={{ marginBottom: 10 }}>
+      <div key={section.key}>
         <button
           type="button"
           onClick={() =>
             setOpenSections((c) => ({ ...c, [section.key]: !c[section.key] }))
           }
           style={{
-            ...sectionHeaderStyle,
-            ...sectionLabelCardStyle,
-            borderRadius: open ? "14px 14px 0 0" : 14,
-            borderBottom: open ? "none" : sectionLabelCardStyle.border,
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            padding: "10px 14px",
+            border: "none",
+            // Transparent, like the recipe catalog's category rows — no per-row
+            // card now that the list sits directly on the page background.
+            background: "transparent",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "left",
+            // Thin divider between collapsed rows, like the catalog category
+            // list; an open section's item panel provides its own separation.
+            borderBottom:
+              !open && !isLastSection ? "1px solid rgba(45,90,61,.1)" : "none",
           }}
         >
-          <AisleIcon aisle={section.key} />
+          <AisleIcon aisle={section.key} size={28} soft />
           <span
             style={{
               flex: 1,
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
               minWidth: 0,
-              textAlign: "left",
+              // Match the recipe catalog category label exactly (13.5px) so the
+              // font size is consistent across the whole app.
+              fontSize: 13.5,
+              fontWeight: 800,
+              color: "#142f1d",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
             }}
           >
-            {open ? (
-              <ChevronDown size={16} color="#7a8a7f" />
-            ) : (
-              <ChevronRight size={16} color="#7a8a7f" />
-            )}
-            <span
-              style={{
-                fontSize: 15,
-                fontWeight: 800,
-                color: "#142f1d",
-                letterSpacing: "-.2px",
-              }}
-            >
-              {section.title}
-            </span>
+            {section.title}
           </span>
           <span
             style={{
-              fontSize: 14,
-              fontWeight: 800,
-              color: "#7a8a7f",
-              minWidth: 28,
-              textAlign: "right",
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#9ab0a1",
+              flexShrink: 0,
               fontVariantNumeric: "tabular-nums",
             }}
           >
             {section.items.length}
           </span>
+          {open ? (
+            <ChevronDown size={16} color="#c2cfc7" style={{ flexShrink: 0 }} />
+          ) : (
+            <ChevronRight size={16} color="#c2cfc7" style={{ flexShrink: 0 }} />
+          )}
         </button>
         {open && (
           <div style={aisleItemsStyle}>
-            {/* Peso/uds switch sits directly ON TOP of this aisle's quantity
-                column (2nd grid track), not flush-right over the actions. The
-                3rd-track spacer reserves the actions width so the toggle lands
-                over the qty reading exactly like it does in Modo cocina. */}
-            <div style={aisleToggleRowStyle}>
-              <span />
-              <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <CookUnitToggle unitView={cookUnitView} onUnitView={setCookUnitView} />
-              </div>
-              <span style={{ width: AISLE_ACTIONS_WIDTH }} />
-            </div>
-            {section.items.map((item) => (
+            {/* No peso/uds toggle anymore — each row shows BOTH readings (uds and
+                peso) as two columns, like the "En casa" table. */}
+            {section.items.map((item, i) => (
               <ShoppingRow
                 key={`${section.key}-${item.id}`}
                 item={item}
-                unitView={cookUnitView}
-                doneView={listScope === "done"}
+                isLast={i === section.items.length - 1}
                 expanded={expandedId === item.id}
                 isEditingQty={editingQtyId === item.id}
                 onToggleRecipes={() =>
@@ -1062,20 +941,21 @@ export function ShoppingScreen({
                 onEditQty={() => setEditingQtyId(item.id)}
                 onSaveQty={(val) => saveItemQty(item.id, val)}
                 onCancelQty={() => setEditingQtyId(null)}
-                onAtHome={() => patchItem(item.id, { atHome: true, have: false })}
-                onPurchased={() => (setData ? setPurchaseChoice(item) : patchItem(item.id, { have: true }))}
-                onUndo={() => patchItem(item.id, { atHome: false, have: false })}
+                onPurchased={() => (setData ? setPurchaseChoice(item) : markItemBought(item.id))}
                 onRemove={() => removeItem(item.id)}
               />
             ))}
           </div>
+        )}
+        {open && !isLastSection && (
+          <div style={{ height: 1, background: "rgba(45,90,61,.1)" }} />
         )}
       </div>
     );
   };
 
   return (
-    <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
+    <div style={{ background: SHOPPING_BG, minHeight: "100dvh" }}>
       <input
         ref={fileRef}
         type="file"
@@ -1113,17 +993,9 @@ export function ShoppingScreen({
             </button>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            {onOpenPantry && (
-              <button
-                type="button"
-                onClick={onOpenPantry}
-                style={iconBtnStyle}
-                aria-label="En casa"
-                title="En casa"
-              >
-                <Refrigerator size={18} strokeWidth={2.2} />
-              </button>
-            )}
+            {/* The "En casa" quick-access icon lived here, but the pantry now has
+                its own permanent bottom-nav tab — a second entry point in this
+                header was just redundant, so it's gone. */}
             <button
               type="button"
               data-coach="shop-share"
@@ -1224,57 +1096,11 @@ export function ShoppingScreen({
           <ShoppingCoachTour onClose={() => setShowIconCoach(false)} />
         )}
 
-        {totalCount > 0 && (
-          <div style={{ marginBottom: 14 }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                fontSize: 13,
-                fontWeight: 800,
-                color: "#142f1d",
-                marginBottom: 8,
-              }}
-            >
-              <span>
-                {doneCount}/{totalCount}
-              </span>
-              <span style={{ color: "#2d5a3d" }}>{Math.round(progress * 100)}%</span>
-            </div>
-            <div style={progressTrackStyle}>
-              <div style={{ ...progressFillStyle, width: `${progress * 100}%` }} />
-            </div>
-          </div>
-        )}
-
-        <SegmentedControl
-          value={viewMode}
-          onChange={setViewMode}
-          activeDark
-          options={[
-            { id: "compra", label: "Modo compra", Icon: ShoppingCart },
-            { id: "cocina", label: "Modo cocina", Icon: ChefHat },
-          ]}
-          style={{ marginBottom: 10 }}
-        />
-
-        {/* Pending/Comprado only makes sense in Modo compra. In Modo cocina the
-            whole recipe stays visible (ticking never hides a line), so the
-            filter would be a no-op and is hidden. */}
-        {viewMode !== "cocina" && (
-          <>
-            <div style={toggleDividerStyle} />
-            <SegmentedControl
-              value={listScope}
-              onChange={setListScope}
-              options={[
-                { id: "pending", label: "Por comprar" },
-                { id: "done", label: "Comprado" },
-              ]}
-              style={{ marginBottom: 12 }}
-            />
-          </>
-        )}
+        {/* No more "Modo compra / Modo cocina" toggle: this screen is just the
+            shopping list now. Cooking (ingredient ticks + "Marcar cocinado")
+            lives in each dish's detail in "Menú". The old "Por comprar /
+            Comprado" filter is gone too — the list only shows what's pending,
+            and marking "Comprado" removes it (with an undo toast). */}
       </div>
 
       <div
@@ -1283,130 +1109,26 @@ export function ShoppingScreen({
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
-        {viewMode === "cocina" ? (
-          <CookView
-            tree={cookTree}
-            dates={cookDates}
-            scope={listScope}
-            hasAnyItems={enrichedItems.length > 0}
-            unitView={cookUnitView}
-            onUnitView={setCookUnitView}
-            onToggleHome={toggleCookHome}
-            onTogglePurchased={toggleCookPurchased}
-            onAdd={() => setShowAdd(true)}
-            focusDish={initialFocusDish}
-            onFocusHandled={onFocusDishHandled}
-            cookedKeys={cookedKeys}
-            onMarkCooked={handleMarkCooked}
-            onUndoCooked={handleUndoCooked}
-          />
-        ) : (
-        <>
-        {isEmpty && (
-          <EmptyList
-            onAdd={() => setShowAdd(true)}
-            scope={listScope}
-            hasPending={hasPendingItems}
-            hasDone={hasDoneItems}
-          />
-        )}
+        {isEmpty && <EmptyList onAdd={() => setShowAdd(true)} />}
 
-        {freshSections.length > 0 && (
-          <MacroHeader
-            icon={Apple}
-            title="Frescos"
-            count={freshSections.reduce((n, s) => n + s.items.length, 0)}
-            first
-          />
-        )}
-        {freshSections.map(renderAisleSection)}
-
-        {stapleSections.length > 0 && (
-          <MacroHeader
-            icon={Package}
-            title="Despensa"
-            count={stapleSections.reduce((n, s) => n + s.items.length, 0)}
-          />
-        )}
-        {stapleSections.map(renderAisleSection)}
-
-        {pantryItems.length > 0 && (() => {
-          const open = Boolean(openSections.__pantry);
+        {/* Flat list of aisle sections directly on the page background, styled
+            like the recipe catalog's category list (soft tinted icons, thin
+            dividers, count + chevron on the right) — no wrapping white card,
+            same flat feel as "Recetas". The old Frescos/Despensa macro-split
+            and the "Ya en casa" section are gone: perishable-vs-staple was
+            accurate but noisy, and "lo que ya tienes" is now owned entirely by
+            the "En casa" tab (no duplicated stock view inside the buy list). */}
+        {(() => {
+          const activeSections = sections.filter((s) => s.items.length > 0);
+          if (activeSections.length === 0) return null;
           return (
-            <div style={{ marginBottom: 10 }}>
-              <button
-                type="button"
-                onClick={() => setOpenSections((c) => ({ ...c, __pantry: !c.__pantry }))}
-                style={{
-                  ...sectionHeaderStyle,
-                  ...sectionLabelCardStyle,
-                  borderRadius: open ? "14px 14px 0 0" : 14,
-                  borderBottom: open ? "none" : sectionLabelCardStyle.border,
-                }}
-              >
-                <AisleIcon aisle="__pantry" />
-                <span
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    minWidth: 0,
-                    textAlign: "left",
-                  }}
-                >
-                  {open ? (
-                    <ChevronDown size={16} color="#7a8a7f" />
-                  ) : (
-                    <ChevronRight size={16} color="#7a8a7f" />
-                  )}
-                  <span
-                    style={{
-                      fontSize: 15,
-                      fontWeight: 800,
-                      color: "#142f1d",
-                      letterSpacing: "-.2px",
-                    }}
-                  >
-                    Ya en casa
-                  </span>
-                </span>
-                <span
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 800,
-                    color: "#7a8a7f",
-                    minWidth: 28,
-                    textAlign: "right",
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {pantryItems.length}
-                </span>
-              </button>
-              {open && (
-                <div style={aisleItemsStyle}>
-                  {pantryStockView.map((item) => (
-                    <ShoppingRow
-                      key={`pantry-${item.id}`}
-                      item={item}
-                      expanded={expandedId === item.id}
-                      onToggleRecipes={() =>
-                        setExpandedId(expandedId === item.id ? null : item.id)
-                      }
-                      // "No lo tengo" — the user disagrees with the pantry
-                      // match, so drop the stock and let it rejoin the buy list.
-                      onUndo={() => rejectPantryMatch(item)}
-                      onRemove={() => removeItem(item.id)}
-                    />
-                  ))}
-                </div>
+            <div>
+              {activeSections.map((section, i) =>
+                renderAisleSection(section, i, activeSections.length)
               )}
             </div>
           );
         })()}
-        </>
-        )}
       </div>
 
       {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={addItem} />}
@@ -1443,7 +1165,7 @@ export function ShoppingScreen({
           item={purchaseChoice}
           onClose={() => setPurchaseChoice(null)}
           onNoPrice={() => {
-            patchItem(purchaseChoice.id, { have: true });
+            markItemBought(purchaseChoice.id);
             setPurchaseChoice(null);
           }}
           onManual={() => setShowManualSpend(true)}
@@ -1469,6 +1191,10 @@ export function ShoppingScreen({
         <DemoReceiptSheet
           onClose={() => setShowReceiptDemo(false)}
           onPick={handleDemoTicket}
+          onUploadReal={() => {
+            setShowReceiptDemo(false);
+            fileRef.current?.click();
+          }}
         />
       )}
 
@@ -1478,11 +1204,9 @@ export function ShoppingScreen({
           onClose={() => setUnlockedDishes(null)}
           onGoCook={() => {
             setUnlockedDishes(null);
-            // A just-unlocked dish has every ingredient bought/at-home, so it
-            // only shows under the "Comprado" filter of the cook tree — force
-            // it so "Ir a Modo cocina" actually lands on the dish (H2).
-            setListScope("done");
-            setViewMode("cocina");
+            // Cooking now lives in each dish's detail in "Menú" (no more Modo
+            // cocina tab here) — send them there to open the unlocked dish.
+            onNav?.("menu");
           }}
         />
       )}
@@ -1849,7 +1573,7 @@ function CookIngredientRow({ ing, unitView, onToggleHome, onTogglePurchased }) {
   );
 }
 
-function AisleIcon({ aisle, size = 36 }) {
+function AisleIcon({ aisle, size = 36, soft = false }) {
   const meta = AISLE_UI[aisle] ?? { Icon: Package, color: "#64748b" };
   const Icon = meta.Icon;
   return (
@@ -1857,16 +1581,19 @@ function AisleIcon({ aisle, size = 36 }) {
       style={{
         width: size,
         height: size,
-        borderRadius: 11,
-        background: meta.color,
-        color: "#fff",
+        borderRadius: soft ? 9 : 11,
+        // Soft variant matches the recipe catalog category rows: a lightly
+        // tinted square with the icon in the category colour (vs. the solid
+        // colour block used elsewhere).
+        background: soft ? `${meta.color}1a` : meta.color,
+        color: soft ? meta.color : "#fff",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
       }}
     >
-      <Icon size={size * 0.48} strokeWidth={2.2} />
+      <Icon size={size * (soft ? 0.5 : 0.48)} strokeWidth={2.2} />
     </span>
   );
 }
@@ -1918,38 +1645,70 @@ function QtyInput({ item, onSave, onCancel }) {
   );
 }
 
+// A single quantity column cell. Shows a muted "—" when empty; renders as a
+// tappable button (to edit the amount) when it holds the item's real quantity.
+function QtyCell({ text, cellStyle, editable, onEdit, wrap = false }) {
+  const isEmpty = text === "—";
+  const style = {
+    ...cellStyle,
+    ...(wrap ? { whiteSpace: "normal", maxWidth: 68 } : null),
+    ...(isEmpty ? { color: "#c2cfc7", background: "transparent", minWidth: 22 } : null),
+  };
+  if (editable && !isEmpty) {
+    return (
+      <button
+        type="button"
+        onClick={onEdit}
+        title="Tocar para editar cantidad"
+        style={{ ...style, fontFamily: "inherit", cursor: "pointer" }}
+      >
+        {text}
+      </button>
+    );
+  }
+  return <span style={style}>{text}</span>;
+}
+
 function ShoppingRow({
   item,
-  unitView = "peso",
-  doneView,
+  isLast = false,
   expanded,
   isEditingQty,
   onToggleRecipes,
   onEditQty,
   onSaveQty,
   onCancelQty,
-  onAtHome,
   onPurchased,
-  onUndo,
   onRemove,
 }) {
-  const qty = item.displayQty ?? formatDisplay(item.qty ?? 0, item.unit ?? "ud");
-  // Compact, buy-oriented reading (whole pieces / litres) for the "uds" lens.
-  const unitsLabel = shoppingUnitsLabel(item.name, item.qty, item.unit);
-  // The peso/uds toggle flips the qty pill: exact weight vs. buyable units.
-  const showUds = unitView === "uds" && Boolean(unitsLabel);
-  const qtyText = showUds ? unitsLabel : qty;
-  // Pantry-matched rows are always struck through (the whole "Despensa"
-  // section is inherently "done"), independent of the doneView convention
-  // used elsewhere, which only dims within the mixed "all" scope.
-  const dimmed = item.fromPantry || (!doneView && (item.have || item.atHome));
+  // Two fixed columns like the "En casa" table: LEFT = uds (counts), RIGHT =
+  // peso (weight/volume). An item lives in exactly one of them depending on its
+  // stored unit, so a "ud" reading never lands in the weight column and vice
+  // versa. The other column shows "—".
+  const unit = item.unit ?? "ud";
+  const displayVal = item.displayQty ?? formatDisplay(item.qty ?? 0, unit);
+  const isUdUnit = unit === "ud";
+  // For weight-stored pieces (e.g. pechugas in g) the uds column shows the
+  // generic derived count ("11 ud"), same label as En casa. No "tazas".
+  const pieceCount = pantryPieceCountLabel(item.name, item.qty, item.unit);
+  const udsText = isUdUnit ? displayVal : pieceCount || "—";
+  const pesoText = isUdUnit ? "—" : displayVal;
+  // The editable value follows the real quantity: the uds cell for ud-stored
+  // items, the peso cell otherwise.
+  const udsEditable = isUdUnit;
+  const pesoEditable = !isUdUnit;
+  // The buy list only shows pending items now, so a row is only briefly "dimmed"
+  // in the instant between tapping Comprado and it filtering out of the list.
+  const dimmed = item.have || item.atHome;
   // Merged Despensa lines spanning several weeks have no single editable qty.
-  const canEditQty = !item.fromPantry && !dimmed && !item.__qtyLocked;
+  const canEditQty = !dimmed && !item.__qtyLocked;
 
   return (
     <div
       style={{
-        borderBottom: "1px solid #dde8e1",
+        // Drop the divider under the last item of the aisle — matches the
+        // "En casa" table where the final row has no bottom rule.
+        borderBottom: isLast ? "none" : "1px solid #dde8e1",
         opacity: dimmed ? 0.45 : 1,
         padding: "10px 4px 10px 4px",
       }}
@@ -1959,11 +1718,12 @@ function ShoppingRow({
           <span
             style={{
               display: "block",
-              fontSize: 13.5,
+              // Matches the "En casa" table's ingredient-name size (12px).
+              fontSize: 12,
               fontWeight: 700,
               color: "#142f1d",
               textDecoration: dimmed ? "line-through" : "none",
-              lineHeight: 1.2,
+              lineHeight: 1.25,
               // Read the full name — wrap to as many lines as needed rather than
               // truncating (the name is the most important part of the row).
               whiteSpace: "normal",
@@ -2007,76 +1767,41 @@ function ShoppingRow({
         {isEditingQty ? (
           <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
         ) : (
-          <button
-            type="button"
-            onClick={canEditQty && !showUds ? onEditQty : undefined}
-            style={{
-              ...qtyColStyle,
-              background: "transparent",
-              border: canEditQty && !showUds ? "1px dashed #c0cfc5" : "none",
-              borderRadius: 6,
-              cursor: canEditQty && !showUds ? "pointer" : "default",
-              padding: "2px 4px",
-              fontFamily: "inherit",
-              // In "uds" the label can be two words ("1 calabacín") — let it wrap
-              // instead of truncating in the narrow column.
-              ...(showUds ? { whiteSpace: "normal", fontSize: 12, lineHeight: 1.15 } : null),
-            }}
-            title={canEditQty && !showUds ? "Tocar para editar cantidad" : undefined}
-          >
-            {qtyText}
-          </button>
+          // Two colour-coded column cells (no pill border): LEFT = uds (soft
+          // green), RIGHT = peso (soft slate). The cell holding the real
+          // quantity is tappable to edit; the empty one shows a muted "—".
+          <div style={valueGroupStyle}>
+            <QtyCell
+              text={udsText}
+              cellStyle={udsCellStyle}
+              editable={udsEditable && canEditQty}
+              onEdit={onEditQty}
+              wrap
+            />
+            <QtyCell
+              text={pesoText}
+              cellStyle={pesoCellStyle}
+              editable={pesoEditable && canEditQty}
+              onEdit={onEditQty}
+            />
+          </div>
         )}
         <div style={actionsColStyle}>
-          {item.fromPantry ? (
-            // No purchase-status badge here — being in the pantry already
-            // means "I'm not buying this", so "Comprado"/"En casa" would be
-            // redundant. Just the two actions that actually apply.
-            <>
-              <ActionBtn icon={ShoppingCart} label="No lo tengo" onClick={onUndo} />
-              {item.recipeCount > 0 && (
-                <ActionBtn
-                  icon={BookOpen}
-                  label="Recetas"
-                  onClick={onToggleRecipes}
-                  active={expanded}
-                />
-              )}
-              <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted />
-            </>
-          ) : doneView ? (
-            <>
-              {item.atHome ? (
-                <ActionBtn icon={Refrigerator} label="En casa" active readOnly />
-              ) : (
-                <ActionBtn icon={Check} label="Comprado" active readOnly />
-              )}
-              <ActionBtn icon={Undo2} label="Deshacer" onClick={onUndo} />
-              {item.recipeCount > 0 && (
-                <ActionBtn
-                  icon={BookOpen}
-                  label="Recetas"
-                  onClick={onToggleRecipes}
-                  active={expanded}
-                />
-              )}
-            </>
-          ) : (
-            <>
-              <ActionBtn icon={Refrigerator} label="En casa" onClick={onAtHome} active={item.atHome} coach="shop-athome" />
-              <ActionBtn icon={Check} label="Comprado" onClick={onPurchased} active={item.have} coach="shop-purchased" />
-              {item.recipeCount > 0 && (
-                <ActionBtn
-                  icon={BookOpen}
-                  label="Recetas"
-                  onClick={onToggleRecipes}
-                  active={expanded}
-                  coach="shop-recipes"
-                />
-              )}
-              <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted coach="shop-remove" />
-            </>
+          {/* Three actions only. "En casa" (atHome) is gone: whether you already
+              have something lives in the "En casa" tab now, not as a flag on the
+              buy list. Left: Comprado, Recetas (when the item feeds >1 dish),
+              Quitar. */}
+          <ActionBtn icon={Check} label="Comprado" onClick={onPurchased} active={item.have} coach="shop-purchased" />
+          {item.recipeCount > 0 && (
+            <ActionBtn
+              icon={BookOpen}
+              label="Recetas"
+              onClick={onToggleRecipes}
+              active={expanded}
+              coach="shop-recipes"
+            />
           )}
+          <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted coach="shop-remove" />
         </div>
       </div>
 
@@ -2114,17 +1839,6 @@ function ShoppingRow({
                   }}
                 >
                   {slot.recipeName}
-                </span>
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 800,
-                    color: "#64748b",
-                    flexShrink: 0,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {slot.displayQty}
                 </span>
               </div>
             ))}
@@ -2248,9 +1962,10 @@ function ActionBtn({ icon: Icon, label, onClick, active, muted, readOnly, coach 
     width: 32,
     height: 32,
     borderRadius: 9,
-    border: `1px solid ${active ? "#2d5a3d" : "#e0eae3"}`,
-    background: active ? "#eef4ef" : "#fff",
-    color: muted ? "#b0bab4" : "#3d5245",
+    border: `1px solid ${active ? "#2d5a3d" : "#e3ede6"}`,
+    // Soft tinted fill so the icons contrast against the white ingredient rows.
+    background: active ? "#d9e9df" : "#f1f6f2",
+    color: muted ? "#a7b3ab" : "#3d5245",
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
@@ -2311,18 +2026,31 @@ function CaptureSheet({ onClose, onScan, onManual }) {
   );
 }
 
-// DEV-only: choose one of the synthetic demo tickets to run through the receipt
-// wizard without a photo. Never rendered in production (gated by openScan).
-function DemoReceiptSheet({ onClose, onPick }) {
+// DEV-only chooser: local dev has no camera hardware wired to a real ticket
+// flow by default, so this offers either a synthetic demo ticket (fast, no
+// photo needed) OR a real photo from disk (onUploadReal — lets you actually
+// test OCR/matching against your own ticket photos, same file input & vision
+// pipeline as production). Never rendered in production (gated by openScan).
+export function DemoReceiptSheet({ onClose, onPick, onUploadReal }) {
   return (
     <WizardSheet
       icon={Receipt}
       iconColor="#2d5a3d"
       title="Ticket de demo"
-      subtitle="Solo en local · elige uno para probar el flujo"
+      subtitle="Solo en local · elige un ticket de prueba o sube una foto real"
       onClose={onClose}
     >
       <div style={{ display: "grid", gap: 10 }}>
+        {onUploadReal && (
+          <WizardOptionCard
+            icon={Camera}
+            iconColor="#fff"
+            iconBg="#e07b39"
+            title="Subir foto real"
+            subtitle="Elige una foto de ticket de tu ordenador"
+            onClick={onUploadReal}
+          />
+        )}
         {RECEIPT_FIXTURES.map((f) => (
           <WizardOptionCard
             key={f.id}
@@ -2395,7 +2123,7 @@ function UnlockedDishesSheet({ dishes, onClose, onGoCook }) {
           Cerrar
         </button>
         <button type="button" onClick={onGoCook} style={{ ...wizNextBtnStyle, flex: 1 }}>
-          Ir a Modo cocina
+          Ver en el menú
         </button>
       </div>
     </WizardSheet>
@@ -2453,12 +2181,59 @@ function PurchaseChoiceSheet({ item, onClose, onNoPrice, onManual, onScan }) {
 //   4. Coincidencias — which of your list ingredients this ticket covers (→ tach)
 // The "Productos" step is skipped when every food line was matched with high
 // confidence. Confirming on the last step calls onConfirm({ store, date, lines }).
-function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, onConfirm }) {
+// Tickets print the legal entity ("MERCADONA, S.A.", "DIA RETAIL ESPAÑA S.A.")
+// rather than the plain chain name — an exact-match lookup against
+// SUPERMARKETS would never fire. Strip common legal suffixes and match by
+// containment in either direction instead.
+function normalizeStoreName(s) {
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[,.]/g, " ")
+    .replace(/\b(s\s?a|s\s?l|s\s?coop|s\s?l\s?u|s\s?a\s?u|sociedad anonima|sociedad limitada|retail espana|espana)\b/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+// Small live-recognition hint shown under a free-text product name — without
+// it, typing something the dictionary DOES already know (e.g. "Kefir") looked
+// identical to typing pure gibberish: no toast, no checkmark, nothing to show
+// it actually resolved to a real ingredient.
+function liveMatchHint(text) {
+  const t = String(text ?? "").trim();
+  if (t.length < 2) return null;
+  const m = matchReceiptLine(t);
+  if (!m.ingredientId || m.confidence < 0.55) return null;
+  return m.name;
+}
+
+function MatchHint({ text }) {
+  const hint = liveMatchHint(text);
+  if (!hint) return null;
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 800, color: "#2d5a3d", padding: "0 2px" }}>
+      <Check size={11} strokeWidth={3} />
+      <span>Reconocido como «{hint}»</span>
+    </div>
+  );
+}
+
+function findKnownStore(detected) {
+  const nd = normalizeStoreName(detected);
+  if (!nd) return null;
+  return SUPERMARKETS.find((s) => {
+    const ns = normalizeStoreName(s);
+    return ns && (nd === ns || nd.includes(ns) || ns.includes(nd));
+  });
+}
+
+export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, onConfirm }) {
   // Store picker mirrors "Añadir gasto"'s: a known chain (with logo/monogram)
   // or "__other" + free text for local shops. The ticket's OCR'd store name
   // seeds whichever of the two applies.
   const detectedStore = (detail.store ?? "").trim();
-  const knownStore = SUPERMARKETS.find((s) => s.toLowerCase() === detectedStore.toLowerCase());
+  const knownStore = findKnownStore(detectedStore);
   const [storeSel, setStoreSel] = useState(knownStore ?? (detectedStore ? "__other" : ""));
   const [storeOther, setStoreOther] = useState(knownStore ? "" : detectedStore);
   const store = storeSel === "__other" ? storeOther : storeSel;
@@ -2468,6 +2243,19 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
   // "Aclara productos" is answered one line at a time (select-a-candidate),
   // advancing through the unclear lines.
   const [prodStep, setProdStep] = useState(0);
+  // Free-text is hidden behind a "+ Escribir" toggle: showing an always-editable
+  // box made the answer "baila" (users kept re-typing). Default is pick one of
+  // the 3 suggestions; the box only appears on demand. Reset on line change.
+  const [writeMode, setWriteMode] = useState(false);
+  // Reset writeMode when moving to a different line — adjusted during render
+  // (React's recommended pattern for "state that depends on a prop/other
+  // state changing") instead of an effect, which would fire one render late
+  // and cause a visible flash of the previous line's write mode.
+  const [writeModeStep, setWriteModeStep] = useState(prodStep);
+  if (writeModeStep !== prodStep) {
+    setWriteModeStep(prodStep);
+    if (writeMode) setWriteMode(false);
+  }
   // Peso ⇄ Unidades lens for the review step's quantity column — converts
   // the ticket's own qty to a piece count when possible.
   const [unitView, setUnitView] = useState("peso");
@@ -2575,6 +2363,27 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
     return out;
   })();
 
+  // Whether a line has ANY Peso⇄Unidades conversion available, in either
+  // direction — independent of which lens is currently selected. A ticket is
+  // very often a mix of genuinely weight-only lines (arroz, carne, pasta —
+  // never sold/counted "per piece") and genuinely unit-only ones (a sauce
+  // bottle, a fixed pack — no meaningful per-piece weight either), in which
+  // case flipping the toggle changes literally nothing on screen and just
+  // looks broken. Used to hide the toggle entirely on tickets like that,
+  // instead of showing a control with no visible effect.
+  const lineHasUnitConversion = (name, qty, unit) => {
+    if (qty == null || !(Number(qty) > 0)) return false;
+    const u = String(unit ?? "ud").toLowerCase();
+    if (gramsPerPiece(name) && (u === "g" || u === "kg" || u === "ud" || u === "uds" || u === "u" || u === "unidad" || u === "unidades")) {
+      return true;
+    }
+    if (u === "ml" || u === "l") {
+      const ml = u === "l" ? qty * 1000 : qty;
+      return ml >= 100;
+    }
+    return false;
+  };
+
   // Ticket-side qty under the Peso ⇄ Unidades lens. Bidirectional so the
   // toggle actually changes what you see:
   //   - uds: weight → piece count (when the product is piece-countable)
@@ -2612,7 +2421,7 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
   const STEP_META = {
     fecha: { title: "Fecha del ticket", subtitle: "¿A qué compra corresponde?" },
     super: { title: "Supermercado", subtitle: "¿Dónde fue esta compra?" },
-    productos: { title: "Aclara estos productos", subtitle: "No los identificamos con seguridad" },
+    productos: { title: "Aclara estos productos" },
     coincidencias: { title: "Repasa y confirma", subtitle: "Revisa precio y cantidad, y descarta lo que no cuadre" },
   };
   const meta = STEP_META[stepId];
@@ -2660,7 +2469,16 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
       )}
 
       {stepId === "productos" && (() => {
-        const total = unclearIdx.length;
+        // Discarding a product here should make it vanish from this flow —
+        // not just render inertly underneath while the counter and the
+        // pager keep pretending it's still there. `unclearIdx` itself stays
+        // frozen (see its own comment above: candidates for an already-
+        // discarded line must not reshuffle), but the live pending queue the
+        // user actually pages through is filtered by `include` on every
+        // render, so a discard immediately shrinks "N de M" and slides the
+        // next item into view in its place.
+        const pendingIdx = unclearIdx.filter((idx) => lines[idx].include);
+        const total = pendingIdx.length;
         if (total === 0) {
           return (
             <div style={{ ...wizCardStyle, display: "flex", alignItems: "center", gap: 10 }}>
@@ -2680,17 +2498,49 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
                 <Check size={15} strokeWidth={2.8} />
               </span>
               <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#3d5245" }}>
-                Identificamos todos los productos del ticket con seguridad. Nada que aclarar.
+                {unclearIdx.length === 0
+                  ? "Identificamos todos los productos del ticket con seguridad. Nada que aclarar."
+                  : "No queda ningún producto pendiente de aclarar."}
               </p>
             </div>
           );
         }
         const pIdx = Math.min(prodStep, total - 1);
-        const i = unclearIdx[pIdx];
+        const i = pendingIdx[pIdx];
         const l = lines[i];
+        const hasList = listItems.length > 0;
         const activeListItems = listItems.filter((it) => !it.have && !it.atHome);
-        const candidates = receiptLineCandidates([l.raw, l.name], activeListItems, 3);
+        // Identify the product first (dictionary), independent of any list —
+        // list membership is a separate, automatic concern resolved later in
+        // "coincidencias". Prefer a list match when one exists (it's doubly
+        // useful: same name AND already known to be needed), otherwise fall
+        // back to the full ingredient catalog so common items are always
+        // recognisable even with nothing pending on the list (or no list at
+        // all, e.g. tickets uploaded from En casa).
+        // IMPORTANT: sourced from `initialLines[i]` (frozen at parse time),
+        // never from the live-edited `l` — these are "what the ticket text
+        // suggests", fixed options, and must NOT reshuffle while the user
+        // types in the free-text fallback below (which live-edits l.name).
+        const origLine = initialLines[i];
+        const listCandidates = receiptLineCandidates([origLine.raw, origLine.name], activeListItems, 3);
+        const candidatesFromList = listCandidates.length > 0;
+        const candidates = candidatesFromList
+          ? listCandidates
+          : dictionaryLineCandidates([origLine.raw, origLine.name], 3);
         const chosenKey = normalizeName(l.name);
+        // When there are truly zero candidates (not even from the full
+        // catalog), don't ask "¿es uno de estos?" — there's nothing to point
+        // at. Same uppercase label style either way (was a plain sentence in
+        // this branch only, which read as a jarring case-inconsistency right
+        // under an uppercase "EN EL TICKET").
+        const questionCopy =
+          candidates.length === 0
+            ? "No lo tenemos identificado. Escríbelo tú:"
+            : !hasList
+            ? "¿Qué producto es?"
+            : candidatesFromList
+            ? "¿Qué producto de tu lista es?"
+            : "No estaba en tu lista, pero ¿es uno de estos?";
         const advanceProd = () => setProdStep((s) => Math.min(s + 1, total - 1));
         return (
           <div style={{ display: "grid", gap: 12 }}>
@@ -2719,64 +2569,148 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
             </div>
 
             <div style={wizFieldLabelStyle}>En el ticket</div>
-            <div style={{ ...wizCardStyle, fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.35 }}>
-              {l.raw}
-            </div>
-
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#3d5245" }}>
-              ¿Qué producto de tu lista es?
-            </p>
-
-            <div style={{ display: "grid", gap: 8 }}>
-              {candidates.map((c) => {
-                const selected = l.include && normalizeName(c.name) === chosenKey;
-                return (
-                  <button
-                    key={c.id}
-                    type="button"
-                    onClick={() => { setLine(i, { name: c.name, include: true, pantry: false }); advanceProd(); }}
-                    style={receiptOptionBtnStyle(selected)}
-                  >
-                    <span style={{ fontSize: 14, fontWeight: 800, color: "#142f1d", overflowWrap: "anywhere" }}>
-                      {c.name}
-                    </span>
-                    {selected && <Check size={16} strokeWidth={3} color="#2d5a3d" style={{ flexShrink: 0 }} />}
-                  </button>
-                );
-              })}
-              {candidates.length === 0 && (
-                <p style={{ margin: 0, fontSize: 13, fontWeight: 700, color: "#3d5245" }}>
-                  No encontramos nada parecido en tu lista. Escríbelo tú:
-                </p>
-              )}
-            </div>
-
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <input
-                value={l.name}
-                onChange={(e) => setLine(i, { name: e.target.value })}
-                placeholder="Escribe otro nombre"
-                style={{ ...wizInputStyle, flex: 1 }}
-              />
+            {/* "Descartar" used to be the biggest, loudest button on screen for
+                what is a rare, low-stakes action — now a small icon right next
+                to the ticket line it discards, out of the way. */}
+            <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+              <div style={{ ...wizCardStyle, flex: 1, fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.35 }}>
+                {l.raw}
+              </div>
               <button
                 type="button"
-                aria-label="No está en mi lista"
-                title="No está en mi lista: se guarda en casa (y el gasto), sin tachar nada"
-                onClick={() => { setLine(i, { include: true, pantry: true }); advanceProd(); }}
-                style={prodActionIconStyle(false)}
-              >
-                <Check size={18} strokeWidth={2.6} />
-              </button>
-              <button
-                type="button"
-                aria-label="Descartar"
+                aria-label="Descartar esta línea"
                 title="Descartar: ignorar esta línea del ticket (no se tacha ni se guarda gasto)"
-                onClick={() => { setLine(i, { include: false }); advanceProd(); }}
+                // No advanceProd() here on purpose: discarding removes this
+                // line from `pendingIdx` outright, so the queue itself
+                // shrinks and the next pending item slides into this exact
+                // same pIdx — advancing on top of that would skip one.
+                onClick={() => setLine(i, { include: false })}
                 style={prodActionIconStyle(true)}
               >
-                <Trash2 size={17} strokeWidth={2.4} />
+                <Trash2 size={15} strokeWidth={2.4} />
               </button>
             </div>
+
+            {/* Same uppercase label treatment as "En el ticket" above — was a
+                plain sentence before, which read as a different hierarchy
+                level for no reason (homogeneity). */}
+            <div style={wizFieldLabelStyle}>{questionCopy}</div>
+
+            {/* Suggestions + the "Otro" escape hatch live in one 2-column grid
+                (was a single stacked column) — reads as one set of choices
+                instead of "3 options, then a separate button". Font size
+                matches the "En el ticket" card above for the same reason.
+                Tapping "Otro" turns that same tile into the free-text field
+                in place, instead of opening a disconnected section below. */}
+            {candidates.length > 0 && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                {candidates.map((c) => {
+                  const selected = l.include && !l.pantry && normalizeName(c.name) === chosenKey;
+                  return (
+                    <button
+                      key={c.id}
+                      type="button"
+                      onClick={() => { setLine(i, { name: c.name, include: true, pantry: false }); advanceProd(); }}
+                      style={receiptOptionBtnStyle(selected)}
+                    >
+                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere" }}>
+                        {c.name}
+                      </span>
+                      {selected && <Check size={16} strokeWidth={3} color="#2d5a3d" style={{ flexShrink: 0 }} />}
+                    </button>
+                  );
+                })}
+                {writeMode ? (
+                  // Stays IN the same grid cell "Otro" occupied (no gridColumn
+                  // span) so it doesn't reflow the whole grid into an extra
+                  // full-width row — same slot, same size, no UI jump.
+                  <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
+                    <div style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
+                      <input
+                        autoFocus
+                        value={l.name}
+                        onChange={(e) => setLine(i, { name: e.target.value })}
+                        placeholder="Escribe…"
+                        style={{ ...wizInputStyle, flex: 1, minWidth: 0, padding: "9px 8px", fontSize: 12.5 }}
+                      />
+                      <button
+                        type="button"
+                        aria-label="Usar este nombre"
+                        title="Usar el nombre escrito"
+                        onClick={() => {
+                          // Snap to the canonical dictionary spelling when we
+                          // recognised one ("Kefir" → "Kéfir") instead of
+                          // saving the raw typed text verbatim — keeps this
+                          // product consolidated with the same ingredient
+                          // elsewhere (pantry, other tickets) instead of
+                          // silently forking into a near-duplicate name.
+                          setLine(i, { name: liveMatchHint(l.name) ?? l.name, include: true, pantry: false });
+                          advanceProd();
+                        }}
+                        style={{ ...prodActionIconStyle(false), width: 32, height: 32, flexShrink: 0 }}
+                      >
+                        <Check size={16} strokeWidth={2.6} />
+                      </button>
+                    </div>
+                    <MatchHint text={l.name} />
+                  </div>
+                ) : (
+                  <button type="button" onClick={() => setWriteMode(true)} style={writeToggleStyle}>
+                    <Plus size={15} strokeWidth={2.8} />
+                    <span>Otro</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* No candidates at all (not even from the catalog) — go straight
+                to free text, there's no "Otro" tile to grow out of. The label
+                above already says "No lo tenemos identificado" — no second,
+                differently-styled copy line needed here. */}
+            {candidates.length === 0 && (
+              <div style={{ display: "grid", gap: 6 }}>
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                  <input
+                    autoFocus
+                    value={l.name}
+                    onChange={(e) => setLine(i, { name: e.target.value })}
+                    placeholder="Escribe el nombre del producto"
+                    style={{ ...wizInputStyle, flex: 1, fontSize: 12.5 }}
+                  />
+                  <button
+                    type="button"
+                    aria-label="Usar este nombre"
+                    title="Usar el nombre escrito"
+                    onClick={() => {
+                      setLine(i, { name: liveMatchHint(l.name) ?? l.name, include: true, pantry: false });
+                      advanceProd();
+                    }}
+                    style={prodActionIconStyle(false)}
+                  >
+                    <Check size={18} strokeWidth={2.6} />
+                  </button>
+                </div>
+                <MatchHint text={l.name} />
+              </div>
+            )}
+
+            {/* "No lo cuentes en mi lista" only makes sense when there IS a
+                list to opt out of — it's a manual override of the automatic
+                list-matching in "coincidencias", not a way to name the
+                product, so it's hidden for Despensa/Histórico tickets
+                (hasList === false). Descartar now lives up by the ticket card. */}
+            {hasList && (
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  title="No lo cuentes en mi lista de la compra: se guarda en casa (y el gasto), sin tachar nada"
+                  onClick={() => { setLine(i, { include: true, pantry: true }); advanceProd(); }}
+                  style={prodTextActionStyle(false)}
+                >
+                  No lo cuentes en mi lista
+                </button>
+              </div>
+            )}
           </div>
         );
       })()}
@@ -2795,9 +2729,11 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
                   is still resolved per-row (see `match` below) — just not
                   surfaced as its own column, it doesn't apply cleanly enough
                   to show. */}
-              <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-                <CookUnitToggle unitView={unitView} onUnitView={setUnitView} />
-              </div>
+              {reviewRows.some(({ line, match }) => lineHasUnitConversion(match ? match.name : line.name, line.qty, line.unit)) && (
+                <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                  <CookUnitToggle unitView={unitView} onUnitView={setUnitView} />
+                </div>
+              )}
               <div style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 7, marginBottom: 3, borderBottom: "1px solid #d7e6dc" }}>
                 <span style={{ flex: 1 }} />
                 <span style={{ ...reviewColHeaderStyle, width: 66, textAlign: "center" }}>Cantidad</span>
@@ -2808,6 +2744,15 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
                 {reviewRows.map(({ lineIdx, line, match }) => {
                   const matched = Boolean(match);
                   const name = matched ? match.name : line.name;
+                  // Several distinct ticket lines can resolve to the exact
+                  // same canonical name (e.g. two rice brands both mapping to
+                  // "Arroz redondo", or a matched-list item renamed to the
+                  // recipe's own wording) — show the original ticket text
+                  // underneath whenever it meaningfully differs, so two rows
+                  // with an identical bold name up top don't look like an
+                  // accidental duplicate.
+                  const rawDiffers =
+                    line.raw && normalizeName(stripQtyNoise(line.raw)) !== normalizeName(name);
                   const view = ticketQtyView(name, line.qty, line.unit);
                   const unitLabel = view ? view.label : receiptUnitLabel(line.unit);
                   const qtyValue = view ? view.value : line.qty;
@@ -2829,23 +2774,28 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
                     }
                   };
                   // Whether a line is on the list was already settled in
-                  // "Aclara productos" — this just marks WHERE it's headed:
-                  // a recipe (on the list) or straight to Despensa (not on it).
+                  // "Aclara productos" (recipe vs. straight-to-Despensa) —
+                  // no longer shown as its own icon here (dropped in favour
+                  // of the category icon, to keep the sheet at its normal
+                  // width instead of widening it for a second icon column).
+                  const aisle = guessShoppingAisle(name);
                   return (
                     <div
                       key={lineIdx}
                       style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 0", borderBottom: "1px solid #e2ede5" }}
                     >
-                      <span
-                        style={{ flexShrink: 0, display: "inline-flex", color: matched ? "#2d5a3d" : "#8a6d1f" }}
-                        title={matched ? "En tu lista: cuenta para tus recetas" : "No estaba en tu lista: se guarda en casa"}
-                      >
-                        {matched ? <ChefHat size={13} strokeWidth={2.4} /> : <Refrigerator size={13} strokeWidth={2.4} />}
+                      <span title={aisle || "Sin categoría"}>
+                        <AisleIcon aisle={aisle} size={20} />
                       </span>
                       <div style={{ minWidth: 0, flex: 1 }}>
                         <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.2 }}>
                           {name}
                         </div>
+                        {rawDiffers && (
+                          <div style={{ fontSize: 10.5, fontWeight: 600, color: "#8a9a90", overflowWrap: "anywhere", lineHeight: 1.2, marginTop: 1 }}>
+                            {toDisplayCase(line.raw)}
+                          </div>
+                        )}
                       </div>
                       <input
                         type="number"
@@ -2919,15 +2869,11 @@ function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, o
   );
 }
 
-function EmptyList({ onAdd, scope, hasPending, hasDone }) {
-  let message = "Sin productos";
-  if (scope === "pending" && hasDone) message = "Nada pendiente";
-  else if (scope === "done" && hasPending) message = "Nada comprado aún";
-
+function EmptyList({ onAdd }) {
   return (
     <div style={{ padding: "48px 0", textAlign: "center" }}>
       <p style={{ fontSize: 14, fontWeight: 600, color: "#7a8a7f", margin: "0 0 16px" }}>
-        {message}
+        Nada pendiente
       </p>
       <button type="button" onClick={onAdd} style={primaryBtnStyle}>
         Añadir
@@ -3034,19 +2980,47 @@ const primaryBtnStyle = {
 
 const rowGridStyle = {
   display: "grid",
-  gridTemplateColumns: "1fr 4.5rem auto",
+  gridTemplateColumns: "minmax(0, 1fr) auto auto",
   alignItems: "center",
   gap: 8,
   minHeight: 36,
 };
 
-const qtyColStyle = {
-  fontSize: 13,
-  fontWeight: 800,
-  color: "#64748b",
-  textAlign: "right",
+// Two-column quantity readout (uds + peso). Instead of a bordered white pill,
+// each reading is a filled cell in its own distinct colour so the two columns
+// read as columns against the white ingredient row.
+const valueGroupStyle = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "flex-end",
+  gap: 5,
+};
+
+const qtyCellBase = {
+  minWidth: 40,
+  textAlign: "center",
+  padding: "4px 7px",
+  borderRadius: 7,
+  border: "none",
+  fontSize: 11.5,
+  fontWeight: 700,
   fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
+  lineHeight: 1.2,
+};
+
+// uds column — soft green tint.
+const udsCellStyle = {
+  ...qtyCellBase,
+  background: "#e8f1ea",
+  color: "#2d5a3d",
+};
+
+// peso column — soft slate tint (a visibly different column colour).
+const pesoCellStyle = {
+  ...qtyCellBase,
+  background: "#eef2f6",
+  color: "#3f5568",
 };
 
 const actionsColStyle = {
@@ -3054,13 +3028,6 @@ const actionsColStyle = {
   alignItems: "center",
   justifyContent: "flex-end",
   gap: 4,
-};
-
-const sectionLabelCardStyle = {
-  background: "#fff",
-  border: "1px solid #e8f0ea",
-  padding: "4px 12px",
-  boxShadow: "0 1px 3px rgba(20, 47, 29, 0.04)",
 };
 
 // Day stripe — mirrors Tu menú's DaySectionHeader (Menu.jsx).
@@ -3151,14 +3118,6 @@ const cookDishCountStyle = {
   fontVariantNumeric: "tabular-nums",
 };
 
-// Thin separator between the two segmented controls (Modo compra/cocina and
-// Por comprar/Comprado) so they read as two distinct switches.
-const toggleDividerStyle = {
-  height: 1,
-  background: "#e0eae3",
-  margin: "0 6px 10px",
-};
-
 // Cook mode: the Peso/uds switch sits above the quantity column of each dish
 // (and the manual extras block). The right padding pulls it left off the two
 // "En casa / Comprado" action buttons so it lands over the qty reading itself.
@@ -3167,21 +3126,6 @@ const cookUnitToggleRowStyle = {
   justifyContent: "flex-end",
   marginBottom: 7,
   paddingRight: 84,
-};
-
-// Typical width of a row's action cluster (4 buttons of 32 + 3 gaps of 4 =
-// Home · Comprado · Recetas · Quitar). The Modo compra toggle row reserves this
-// on its 3rd grid track so the switch lands over the qty column, not the actions.
-const AISLE_ACTIONS_WIDTH = 140;
-
-// Aisle (Modo compra) view: matches the rows' grid so the switch aligns over the
-// middle quantity track instead of floating right over the actions.
-const aisleToggleRowStyle = {
-  display: "grid",
-  gridTemplateColumns: "1fr 4.5rem auto",
-  gap: 8,
-  alignItems: "center",
-  padding: "4px 4px 2px",
 };
 
 const cookUnitToggleStyle = {
@@ -3247,38 +3191,13 @@ const cookIngQtyUdsStyle = {
   color: "#15331c",
 };
 
+// Open section's item panel — transparent, sitting directly on the page
+// background (SHOPPING_BG below), same flat feel as the recipe catalog's
+// category list. The quantity cells and action icons carry their own tint/
+// colour, so they still pop without a white card behind the whole row.
 const aisleItemsStyle = {
-  background: "#eef4ef",
-  border: "1px solid #e8f0ea",
-  borderTop: "none",
-  borderRadius: "0 0 14px 14px",
-  padding: "2px 10px 6px",
-};
-
-const sectionHeaderStyle = {
-  width: "100%",
-  display: "flex",
-  alignItems: "center",
-  gap: 12,
-  padding: "12px 2px",
-  border: "none",
   background: "transparent",
-  cursor: "pointer",
-  fontFamily: "inherit",
-};
-
-const progressTrackStyle = {
-  height: 6,
-  borderRadius: 999,
-  background: "#e0eae3",
-  overflow: "hidden",
-};
-
-const progressFillStyle = {
-  height: "100%",
-  background: "#2d5a3d",
-  borderRadius: 999,
-  transition: "width .25s ease",
+  padding: "2px 12px 8px",
 };
 
 const inputStyle = {
@@ -3366,6 +3285,13 @@ function receiptUnitLabel(unit) {
 
 // How close a normalized list-item name (n) is to a normalized ticket text (p).
 // 3 = identical, 2 = one contains the other, else fractional token overlap.
+// Same cleanup matchReceiptLine applies (strip "500 GR"-style noise, expand
+// "SEMI"/"DESN" abbreviations) so the candidates shown here agree with
+// whatever matchReceiptLine already decided about the line's own confidence.
+function cleanForMatch(text) {
+  return expandAbbreviations(normalizeName(stripQtyNoise(text)));
+}
+
 function nameSimilarity(n, p) {
   if (!n || !p) return 0;
   if (n === p) return 3;
@@ -3382,11 +3308,11 @@ function nameSimilarity(n, p) {
 // The best 2-3 shopping-list items an unclear ticket line could be, scored
 // against both the raw ticket text and our parsed guess, deduped by name.
 function receiptLineCandidates(texts, items, limit = 3) {
-  const ps = texts.map(normalizeName).filter(Boolean);
+  const ps = texts.map(cleanForMatch).filter(Boolean);
   if (!ps.length) return [];
   const scored = [];
   for (const it of items) {
-    const n = normalizeName(it.name);
+    const n = cleanForMatch(it.name);
     if (!n) continue;
     let best = 0;
     for (const p of ps) best = Math.max(best, nameSimilarity(n, p));
@@ -3403,6 +3329,32 @@ function receiptLineCandidates(texts, items, limit = 3) {
     if (out.length >= limit) break;
   }
   return out;
+}
+
+// Fallback source of "¿qué producto es?" suggestions when nothing on the live
+// shopping list is close enough (or there IS no list — Despensa/Histórico
+// tickets pass listItems=[]). Fuzzy-matches against the FULL ingredient
+// catalog dictionary instead, so a common item like "Leche" is still
+// recognised even when it's not something you needed to buy this week. List
+// membership (tachar) is resolved separately and automatically afterwards
+// (see "coincidencias" below) — this step is only about naming the product.
+function dictionaryLineCandidates(texts, limit = 3) {
+  const ps = texts.map(cleanForMatch).filter(Boolean);
+  if (!ps.length) return [];
+  const scored = [];
+  const seen = new Set();
+  for (const d of ingredientDictionary()) {
+    const n = cleanForMatch(d.name);
+    if (!n || seen.has(n)) continue;
+    let best = 0;
+    for (const p of ps) best = Math.max(best, nameSimilarity(n, p));
+    if (best > 0) {
+      seen.add(n);
+      scored.push({ id: d.id, name: d.name, score: best });
+    }
+  }
+  scored.sort((a, b) => b.score - a.score);
+  return scored.slice(0, limit);
 }
 
 function prodNavBtnStyle(disabled) {
@@ -3451,6 +3403,46 @@ function prodActionIconStyle(danger) {
     display: "inline-flex",
     alignItems: "center",
     justifyContent: "center",
+    cursor: "pointer",
+  };
+}
+
+// "+ escribir a mano" fallback toggle — dashed, low-emphasis so it reads as a
+// secondary escape hatch under the 3 suggestions, not a primary action.
+const writeToggleStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 6,
+  width: "100%",
+  padding: "10px",
+  borderRadius: 10,
+  border: "1.5px dashed #bcd4c4",
+  background: "#f3f8f4",
+  color: "#3d5245",
+  fontFamily: "inherit",
+  fontSize: 12.5,
+  fontWeight: 800,
+  cursor: "pointer",
+};
+
+// Text buttons for the two line-level outcomes (pantry / discard). Font size
+// matches the suggestion grid / ticket card above for homogeneity.
+function prodTextActionStyle(danger) {
+  return {
+    flex: 1,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    padding: "9px 10px",
+    borderRadius: 10,
+    border: `1px solid ${danger ? "#eccaca" : "#cfe0d6"}`,
+    background: "#fff",
+    color: danger ? "#b23b3b" : "#2d5a3d",
+    fontFamily: "inherit",
+    fontSize: 12.5,
+    fontWeight: 800,
     cursor: "pointer",
   };
 }

@@ -15,6 +15,9 @@ import {
   Wheat,
   Soup,
   Salad,
+  Coffee,
+  Apple,
+  IceCream,
   Bean,
   Utensils,
   Tag,
@@ -53,6 +56,9 @@ const CATEGORY_META = {
   platos_unicos: { label: "Platos únicos", icon: Utensils, color: "#5a7066" },
   cenas_rapidas: { label: "Cenas rápidas", icon: Soup, color: "#d56b9a" },
   bebes: { label: "Bebés", icon: Baby, color: "#6cb4c4" },
+  desayunos: { label: "Desayunos", icon: Coffee, color: "#c98a3a" },
+  meriendas: { label: "Meriendas", icon: Apple, color: "#4a9d6b" },
+  postres: { label: "Postres", icon: IceCream, color: "#c463a0" },
 };
 
 const DEFAULT_COLOR = "#5a7066";
@@ -403,7 +409,8 @@ export function CatalogBrowserSheet({
             placeholder={gatePick ? "Buscar plato o guarnición…" : "Buscar plato…"}
             style={{
               flex: 1, border: "none", background: "transparent", outline: "none",
-              fontSize: 16, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
+              // Match the catalog category / Filtros text size (was 16 = oversized).
+              fontSize: 13.5, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
             }}
           />
           {query && (
@@ -514,8 +521,8 @@ export function CatalogBrowserSheet({
             onClick={() => setCats(new Set([catId]))}
             className="filter-opt-row catalog-card-enter"
             style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 12,
-              padding: "12px 4px", border: "none", background: "transparent",
+              width: "100%", display: "flex", alignItems: "center", gap: 10,
+              padding: "8px 4px", border: "none", background: "transparent",
               cursor: "pointer", fontFamily: "inherit", textAlign: "left",
               borderBottom: i === allCats.length - 1 ? "none" : "1px solid rgba(45,90,61,.1)",
               animationDelay: `${i < 14 ? i * 16 : 0}ms`,
@@ -523,20 +530,20 @@ export function CatalogBrowserSheet({
           >
             <span
               style={{
-                width: 32, height: 32, borderRadius: 9, flexShrink: 0,
+                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 background: `${color}18`,
               }}
             >
-              <Icon size={16} color={color} strokeWidth={2} />
+              <Icon size={14} color={color} strokeWidth={2} />
             </span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: 700, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 800, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {categoryLabel(catId)}
             </span>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: "#9ab0a1", flexShrink: 0 }}>
+            <span style={{ fontSize: 12, fontWeight: 700, color: "#9ab0a1", flexShrink: 0 }}>
               {categoryCounts[catId] ?? 0}
             </span>
-            <ChevronRight size={17} color="#c2cfc7" style={{ flexShrink: 0 }} />
+            <ChevronRight size={16} color="#c2cfc7" style={{ flexShrink: 0 }} />
           </button>
         );
       })}

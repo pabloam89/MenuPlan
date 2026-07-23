@@ -351,3 +351,32 @@ export function shoppingUnitsLabel(name, qty, unit) {
 
   return null;
 }
+
+/**
+ * Generic countable reading for the "Cantidad" column (Pantry) and the "uds"
+ * column of the shopping list, where the ingredient name is already shown in
+ * its own column. Repeating it there ("3 tomates" next to a row named
+ * "Tomate") is redundant — and for longer plurals ("melocotones", "pechugas")
+ * it doesn't fit the narrow column. Piece counts collapse to a generic "N ud".
+ *
+ * Dry-volume readings (tazas/cdas) are intentionally NOT produced here: the
+ * grams-per-cup constants are coarse and the result gets rounded to the nearest
+ * half-cup, so "3 tazas" for 600 g of rice is only an approximation (~555 g)
+ * that reads as wrong. Those weight-measured dry goods just show their exact
+ * weight in the Peso column and "—" here. Salt/spice ("al gusto"/"pizca") stay.
+ * @returns {string|null}
+ */
+export function pantryPieceCountLabel(name, qty, unit) {
+  if (typeof qty !== "number" || !Number.isFinite(qty) || qty <= 0 || unit !== "g") return null;
+  const normalized = normalizeName(name);
+  if (SALT_RE.test(normalized)) return "al gusto";
+  if (SPICE_RE.test(normalized)) return qty <= 2 ? "pizca" : "al gusto";
+  if (!SKIP_PIECE_RE.test(normalized)) {
+    for (const [regex, grams] of PIECE_WEIGHTS) {
+      if (!regex.test(normalized)) continue;
+      const n = Math.max(1, Math.round(qty / grams));
+      return n > 40 ? null : `${n} ud`;
+    }
+  }
+  return null;
+}

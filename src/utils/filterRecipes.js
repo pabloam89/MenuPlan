@@ -6,6 +6,11 @@ import { recipeHitsIntolerances } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 
+// Off-menu categories: the optional desayuno/merienda/postre pool. They live in
+// the same catalog but must never be picked by the comida/cena planner (see the
+// isolation filter in filterRecipes()). Kept as a Set for O(1) membership.
+const OFF_MENU_CATEGORIES = new Set(["desayunos", "meriendas", "postres"]);
+
 // Shared with the hasKids alcohol check inside filterRecipes() below.
 const ALCOHOL_RE =
   /\b(vino|cerveza|sidra|brandy|ron|whisky|vodka|licor|cava|champan|jerez|oporto|vermut|ginebra|cointreau|amaretto)\b/;
@@ -56,6 +61,51 @@ export function recipeViolatesHardSafety(
   if (isBabyGroup !== (recipe.category === "bebes")) return true;
 
   return false;
+}
+
+/**
+ * Pool for the OPTIONAL off-menu meals (desayuno/merienda/postre). It's the
+ * inverse of filterRecipes' off-menu isolation: keep ONLY the given off-menu
+ * category, and apply the same hard-safety rules (allergens, non-adaptable
+ * intolerances, alcohol-for-kids). Dislikes and kid-friendly are applied as
+ * SOFT filters — if they'd empty the pool we fall back so the optional meal is
+ * never left blank (a light breakfast/snack/dessert should always be pickable).
+ *
+ * @param {"desayunos"|"meriendas"|"postres"} category
+ * @param {Object} opts
+ * @param {string[]} [opts.allergies]
+ * @param {string[]} [opts.intolerances]
+ * @param {string[]} [opts.dislikes]
+ * @param {boolean}  [opts.hasKids]
+ * @returns {Object[]} catalog recipes safe for this group
+ */
+export function filterOffMenuRecipes(
+  category,
+  { allergies = [], intolerances = [], dislikes = [], hasKids = false } = {},
+) {
+  let pool = recipeCatalog.filter((r) => r.category === category);
+
+  // Hard safety — allergens + non-adaptable intolerances + alcohol-for-kids.
+  pool = pool.filter(
+    (r) => !recipeViolatesHardSafety(r, { allergies, intolerances, hasKids, isBabyGroup: false }),
+  );
+
+  // Soft: dislikes (with fallback so we never empty the pool).
+  const dislikeLower = dislikes.map((d) => String(d).toLowerCase()).filter(Boolean);
+  if (dislikeLower.length > 0) {
+    const noDislike = pool.filter(
+      (r) => !r.ingredients.some((ing) => dislikeLower.some((d) => ing.name.toLowerCase().includes(d))),
+    );
+    if (noDislike.length > 0) pool = noDislike;
+  }
+
+  // Soft: kid-friendly (with fallback).
+  if (hasKids) {
+    const kf = pool.filter((r) => r.kidFriendly);
+    if (kf.length > 0) pool = kf;
+  }
+
+  return pool;
 }
 
 function currentSeason() {
@@ -144,6 +194,11 @@ export function filterRecipes({
 
   // 0b. Baby group isolation — baby recipes only for baby groups, excluded otherwise
   pool = pool.filter((r) => isBabyGroup ? r.category === "bebes" : r.category !== "bebes");
+
+  // 0c. Off-menu isolation — desayuno/merienda/postre are an optional light pool
+  // (fruit, yogur, kéfir, pan), never candidates for the comida/cena planner.
+  // Same guard style as the baby isolation above.
+  pool = pool.filter((r) => !OFF_MENU_CATEGORIES.has(r.category));
 
   // 1. Allergens — exclude any recipe containing a blocked allergen. Declared
   // `allergens` cover 8 of the 14 UE allergens; the ingredient-name safety net

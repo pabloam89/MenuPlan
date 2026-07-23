@@ -23,15 +23,19 @@ function mapRow(row) {
     qty: Number(row.qty) || 0,
     unit: row.unit ?? "ud",
     source: row.source,
+    // Proxy for "fecha de compra" (see 0009_user_pantry_updated_at.sql):
+    // bumped by a DB trigger on every qty change, so it's naturally "last
+    // time this stock was touched" — new tickets, top-ups, manual edits.
+    updatedAt: row.updated_at ?? row.created_at ?? null,
   };
 }
 
-/** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string }[]>} */
+/** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
 export async function loadPantry(userId) {
   if (!supabase || !userId) return [];
   const { data, error } = await supabase
     .from("user_pantry")
-    .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at")
+    .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at, updated_at")
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
   if (error) {
@@ -93,7 +97,7 @@ export async function addPantryItems(userId, items) {
     const { data, error } = await supabase
       .from("user_pantry")
       .insert(toInsert)
-      .select("id, ingredient_name, ingredient_normalized, qty, unit, source");
+      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, updated_at");
     if (error) console.error("[pantry] insert failed", error);
     else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
   }
@@ -103,7 +107,7 @@ export async function addPantryItems(userId, items) {
       .update({ qty: u.qty })
       .eq("user_id", userId)
       .eq("id", u.id)
-      .select("id, ingredient_name, ingredient_normalized, qty, unit, source");
+      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, updated_at");
     if (error) console.error("[pantry] top-up failed", error);
     else if (data?.[0]) rows.push({ ...mapRow(data[0]), isNew: false });
   }
@@ -185,6 +189,7 @@ export function loadLocalPantry() {
 export function addLocalPantryItems(items) {
   const current = readLocalPantry();
   const byKey = new Map(current.map((it) => [it.ingredientNormalized, it]));
+  const now = new Date().toISOString();
   for (const it of items) {
     const qty = Number(it.qty) > 0 ? Number(it.qty) : 1;
     const unit = it.unit ?? "ud";
@@ -192,7 +197,10 @@ export function addLocalPantryItems(items) {
     if (existing) {
       const addQty =
         existing.unit === unit ? qty : convertStockAmount(qty, unit, existing.unit, it.name);
-      if (addQty != null) existing.qty = (Number(existing.qty) || 0) + addQty;
+      if (addQty != null) {
+        existing.qty = (Number(existing.qty) || 0) + addQty;
+        existing.updatedAt = now;
+      }
     } else {
       byKey.set(it.normalized, {
         id: `local_${uid()}`,
@@ -201,6 +209,7 @@ export function addLocalPantryItems(items) {
         qty,
         unit,
         source: it.source ?? "manual",
+        updatedAt: now,
       });
     }
   }
@@ -211,10 +220,11 @@ export function addLocalPantryItems(items) {
 
 export function setLocalPantryItemQty(id, qty, unit) {
   const current = readLocalPantry();
+  const now = new Date().toISOString();
   const next = qty > 0
     ? current.map((it) =>
         it.id === id
-          ? { ...it, qty, ...(unit != null ? { unit } : {}) }
+          ? { ...it, qty, ...(unit != null ? { unit } : {}), updatedAt: now }
           : it,
       )
     : current.filter((it) => it.id !== id);

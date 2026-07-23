@@ -8,6 +8,10 @@ const CATEGORIES = [
   "bebes", "carnes", "cenas_rapidas", "ensaladas_verduras", "guarniciones",
   "huevos", "legumbres", "pasta_arroces", "pescados", "platos_unicos",
   "sopas_cremas",
+  // Off-menu categories: not part of comida/cena generation (isolated in
+  // utils/filterRecipes.js, like "bebes"). They power the optional
+  // desayuno/merienda/postre pool that unlocks fruit/yogur/kéfir/pan ingredients.
+  "desayunos", "meriendas", "postres",
 ];
 
 const MAIN_PROTEINS = [
@@ -17,7 +21,11 @@ const MAIN_PROTEINS = [
 
 const TYPES = ["completo", "principal", "guarnicion"];
 
-const MEAL_ROLES = ["cena", "guarnicion", "plato_unico", "primero", "segundo"];
+const MEAL_ROLES = [
+  "cena", "guarnicion", "plato_unico", "primero", "segundo",
+  // Off-menu roles for the optional light pool (see CATEGORIES note).
+  "desayuno", "merienda", "postre",
+];
 
 const DIFFICULTIES = ["elaborada", "facil", "normal"];
 
@@ -87,6 +95,16 @@ export const RecipeSchema = z
     steps: z.array(z.string().min(1)).min(1),
     description: z.string().min(1),
     methods: z.array(MethodSchema).optional(),
+    // Names this dish is commonly sold as a ready-made product under (e.g.
+    // "Natillas caseras" -> ["Natillas", "Natillas de vainilla"]; "Gazpacho
+    // andaluz" -> ["Gazpacho"]). A recipe's own ingredient list never contains
+    // its own name (Natillas caseras lists leche/huevo/azúcar, never
+    // "Natillas"), so without this the store-bought version of a dish that's
+    // normally cooked from scratch could never be recognised on a receipt or
+    // in the pantry. See ingredientDictionary() in lib/priceHistory.js, which
+    // folds these in alongside every recipe's real ingredients. Only set on
+    // dishes genuinely common as a finished supermarket product.
+    productAliases: z.array(z.string().min(1)).optional(),
   })
   .superRefine((recipe, ctx) => {
     const { type, mealRole, id } = recipe;

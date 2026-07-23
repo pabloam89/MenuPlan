@@ -306,7 +306,8 @@
         "difficulty": "facil",
         "prepSummary": "La Thermomix es perfecta para el gazpacho. Introduce todos los ingredientes troceados y tritura a velocidad progresiva 1-10 durante 2-3 minutos hasta obtener una textura muy fina. Sirve bien frío."
       }
-    ]
+    ],
+    "productAliases": ["Gazpacho"]
   },
   {
     "id": "sopas_cremas_005",
@@ -384,7 +385,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce los tomates, pan, ajo, vinagre y sal en el vaso y tritura a velocidad progresiva hasta obtener una crema muy fina. Añade el aceite en hilo mientras sigues batiendo a velocidad media para emulsionar perfectamente."
       }
-    ]
+    ],
+    "productAliases": ["Salmorejo"]
   },
   {
     "id": "sopas_cremas_006",
@@ -1029,7 +1031,8 @@
         "difficulty": "facil",
         "prepSummary": "Pincha las patatas enteras o trocéalas y cocínalas en el microondas a máxima potencia durante 10-12 minutos, volteando a mitad, hasta que estén muy tiernas. Luego machaca y mezcla con el resto de ingredientes para un puré exprés."
       }
-    ]
+    ],
+    "productAliases": ["Puré de patatas"]
   },
   {
     "id": "sopas_cremas_014",

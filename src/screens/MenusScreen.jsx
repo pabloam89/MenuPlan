@@ -427,6 +427,7 @@ export function MenusScreen({
   data,
   hasAccount,
   onNav,
+  onBack,
   onOpenCurrent,
   onGenerateMenu,
   onReuseMenu,
@@ -453,9 +454,26 @@ export function MenusScreen({
   return (
     <div style={{ background: "#f7f9f7", minHeight: "100dvh", paddingBottom: bottomNavSpacer() }}>
       <div style={{ padding: "20px 20px 0" }}>
-        <h2 style={{ fontSize: 26, fontWeight: 900, color: "#142f1d", margin: "0 0 20px", letterSpacing: "-.7px" }}>
-          Menús
-        </h2>
+        {/* No longer a bottom-nav tab (see BottomNav in ui.jsx) — reached as a
+            header icon from "Menú", so it needs its own explicit way back. */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              style={{
+                border: "1px solid #e0eae3", background: "#fff", color: "#2d5a3d",
+                borderRadius: 10, padding: "7px 12px", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              Atrás
+            </button>
+          )}
+          <h2 style={{ fontSize: 26, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.7px" }}>
+            Menús
+          </h2>
+        </div>
       </div>
 
       <div style={{ padding: "0 20px" }}>
@@ -521,7 +539,7 @@ export function MenusScreen({
 
       <style>{`@keyframes mp-spin { to { transform: rotate(360deg); } }`}</style>
 
-      <BottomNav active="menus" onNav={onNav} context="home" />
+      <BottomNav active="menu" onNav={onNav} />
     </div>
   );
 }

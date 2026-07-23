@@ -80,7 +80,8 @@ lines.push("insert into recipes (");
 lines.push("  id, name, category, main_protein, main_base, meal_roles, type,");
 lines.push("  base_dish_id, required_appliance, time_minutes, difficulty, season,");
 lines.push("  kcal, protein_g, carbs_g, fat_g, base_servings, kid_friendly,");
-lines.push("  tupper_friendly, allergens, ingredients, steps, description, methods");
+lines.push("  tupper_friendly, allergens, ingredients, steps, description, methods,");
+lines.push("  product_aliases");
 lines.push(") values");
 
 const recipeRows = recipes.map((r) => {
@@ -90,7 +91,7 @@ const recipeRows = recipes.map((r) => {
     `${sqlString(r.season)}, ${sqlNumber(r.kcal)}, ${sqlNumber(r.protein_g)}, ${sqlNumber(r.carbs_g)}, ` +
     `${sqlNumber(r.fat_g)}, ${sqlNumber(r.baseServings)}, ${sqlBool(r.kidFriendly)}, ${sqlBool(r.tupperFriendly)}, ` +
     `${sqlTextArray(r.allergens)}, ${sqlJsonb(r.ingredients)}, ${sqlTextArray(r.steps)}, ${sqlString(r.description)}, ` +
-    `${sqlJsonb(r.methods)})`;
+    `${sqlJsonb(r.methods)}, ${sqlTextArray(r.productAliases)})`;
 });
 lines.push(recipeRows.join(",\n") + ";");
 lines.push("");

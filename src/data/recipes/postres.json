@@ -1,0 +1,223 @@
+[
+  {
+    "id": "postres_001",
+    "name": "Macedonia de fruta fresca",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 140,
+    "protein_g": 2,
+    "carbs_g": 33,
+    "fat_g": 1,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Manzana", "amount": 1, "unit": "ud" },
+      { "name": "Plátano", "amount": 1, "unit": "ud" },
+      { "name": "Naranja", "amount": 2, "unit": "ud" },
+      { "name": "Fresas", "amount": 150, "unit": "g" },
+      { "name": "Zumo de limón", "amount": 15, "unit": "ml" }
+    ],
+    "steps": [
+      "Pela y trocea la manzana, el plátano y una naranja",
+      "Limpia y parte las fresas",
+      "Exprime la otra naranja y el limón sobre la fruta",
+      "Mezcla con cuidado y enfría antes de servir"
+    ],
+    "description": "Macedonia fresca de manzana, plátano, naranja y fresas con un toque de cítrico"
+  },
+  {
+    "id": "postres_002",
+    "name": "Yogur con miel y nueces",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 4,
+    "difficulty": "facil",
+    "kcal": 280,
+    "protein_g": 11,
+    "carbs_g": 28,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": ["lactosa", "frutos_secos"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Yogur natural", "amount": 250, "unit": "g" },
+      { "name": "Miel", "amount": 20, "unit": "ml" },
+      { "name": "Nueces", "amount": 40, "unit": "g" }
+    ],
+    "steps": [
+      "Reparte el yogur en dos cuencos",
+      "Trocea ligeramente las nueces",
+      "Reparte las nueces sobre el yogur",
+      "Termina con un hilo de miel"
+    ],
+    "description": "Yogur natural con nueces troceadas y miel, un postre sencillo y saciante"
+  },
+  {
+    "id": "postres_003",
+    "name": "Fruta de temporada",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 3,
+    "difficulty": "facil",
+    "kcal": 90,
+    "protein_g": 1,
+    "carbs_g": 22,
+    "fat_g": 0,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Manzana", "amount": 1, "unit": "ud" },
+      { "name": "Naranja", "amount": 1, "unit": "ud" }
+    ],
+    "steps": [
+      "Lava la fruta",
+      "Pela o trocea según la pieza",
+      "Sirve"
+    ],
+    "description": "Pieza de fruta fresca de temporada como postre ligero"
+  },
+  {
+    "id": "postres_004",
+    "name": "Natillas caseras",
+    "category": "postres",
+    "mainProtein": "huevo",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "normal",
+    "kcal": 260,
+    "protein_g": 9,
+    "carbs_g": 34,
+    "fat_g": 9,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["lactosa", "huevo"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Leche", "amount": 500, "unit": "ml" },
+      { "name": "Huevo", "amount": 3, "unit": "ud" },
+      { "name": "Azúcar", "amount": 90, "unit": "g" },
+      { "name": "Maicena", "amount": 20, "unit": "g" }
+    ],
+    "steps": [
+      "Bate las yemas con el azúcar y la maicena",
+      "Añade la leche caliente poco a poco sin dejar de remover",
+      "Cocina a fuego suave hasta que espese, sin que hierva",
+      "Reparte en cuencos y enfría"
+    ],
+    "description": "Natillas caseras de huevo y leche",
+    "productAliases": ["Natillas", "Natillas de vainilla", "Natillas de chocolate"]
+  },
+  {
+    "id": "postres_005",
+    "name": "Flan de huevo",
+    "category": "postres",
+    "mainProtein": "huevo",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "kcal": 240,
+    "protein_g": 8,
+    "carbs_g": 32,
+    "fat_g": 8,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["lactosa", "huevo"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Leche", "amount": 500, "unit": "ml" },
+      { "name": "Huevo", "amount": 4, "unit": "ud" },
+      { "name": "Azúcar", "amount": 120, "unit": "g" }
+    ],
+    "steps": [
+      "Prepara un caramelo con parte del azúcar y forra los moldes",
+      "Bate los huevos con el resto del azúcar y la leche",
+      "Reparte en los moldes y cuece al baño maría en el horno",
+      "Enfría bien antes de desmoldar"
+    ],
+    "description": "Flan de huevo casero al baño maría",
+    "productAliases": ["Flan", "Flan de huevo", "Flan de vainilla"]
+  },
+  {
+    "id": "postres_006",
+    "name": "Arroz con leche",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "kcal": 300,
+    "protein_g": 7,
+    "carbs_g": 54,
+    "fat_g": 6,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Arroz", "amount": 150, "unit": "g" },
+      { "name": "Leche", "amount": 800, "unit": "ml" },
+      { "name": "Azúcar", "amount": 100, "unit": "g" },
+      { "name": "Limón", "amount": 1, "unit": "ud" }
+    ],
+    "steps": [
+      "Cuece el arroz con la leche y la piel de limón a fuego suave",
+      "Remueve a menudo durante unos 35-40 minutos",
+      "Añade el azúcar al final y mezcla",
+      "Reparte en cuencos y enfría"
+    ],
+    "description": "Arroz con leche tradicional aromatizado con limón",
+    "productAliases": ["Arroz con leche"]
+  },
+  {
+    "id": "postres_007",
+    "name": "Manzana asada",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "kcal": 160,
+    "protein_g": 1,
+    "carbs_g": 38,
+    "fat_g": 1,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "invierno",
+    "ingredients": [
+      { "name": "Manzana", "amount": 4, "unit": "ud" },
+      { "name": "Azúcar", "amount": 40, "unit": "g" },
+      { "name": "Limón", "amount": 1, "unit": "ud" }
+    ],
+    "steps": [
+      "Descorazona las manzanas y colócalas en una fuente",
+      "Reparte azúcar y unas gotas de limón sobre cada una",
+      "Hornea a 180°C unos 35 minutos hasta que estén tiernas"
+    ],
+    "description": "Manzanas asadas al horno con azúcar y limón"
+  }
+]

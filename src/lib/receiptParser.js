@@ -110,9 +110,9 @@ export async function extractReceiptDetail(file, { signal } = {}) {
 Para cada línea da:
 - "name": nombre del producto tal cual (mantén la marca si aparece).
 - "price": importe TOTAL de la línea en euros (número, punto decimal). null si no lo ves.
-- "qty": cantidad comprada (número; 1 si no se indica).
+- "qty": cantidad TOTAL comprada, ya multiplicada si el producto viene en pack. Si la línea indica un formato tipo "6x1,5L" o "pack 6 x 330ml", NO pongas el número de envases (6) como qty en unidades — multiplica envases × tamaño y da el total en la unidad de "unit" (ej. "AGUA 6x1,5L" -> qty=9, unit="l"; "YOGUR PACK 4x125G" -> qty=500, unit="g"). Si el producto se cuenta por piezas sin tamaño propio (huevos, latas, piezas de fruta...), qty sí es el nº de piezas y unit="ud". 1 si no se indica cantidad.
 - "unit": "ud", "g", "kg", "ml" o "l" según corresponda; "ud" por defecto.
-- "kind": "food" para alimentos crudos/básicos, "prefab" para platos preparados/precocinados, "nonfood" para no-alimentación (limpieza, droguería, bolsas...).
+- "kind": "food" para alimentos crudos o básicos — incluye productos envasados/de marca que se siguen usando como INGREDIENTE de una receta o del desayuno (pan de molde, patatas para freír, pasta, arroz, conservas, embutido, queso...); "prefab" SOLO para platos ya cocinados y listos para calentar o comer tal cual, sin ser ingrediente de nada más (croquetas, pizza, lasaña precocinada, sushi, tortilla de patata ya hecha, ensaladilla rusa envasada, sopa de sobre); "nonfood" para no-alimentación (limpieza, droguería, bolsas...). Ante la duda entre "food" y "prefab", elige "food" — un producto envasado casi siempre es también un ingrediente.
 Extrae también "store" (nombre del súper) y "date" (fecha del ticket en formato YYYY-MM-DD) si aparecen; null si no.
 Ignora subtotales, IVA, total y forma de pago.
 Responde SOLO JSON:

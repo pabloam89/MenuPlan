@@ -3,7 +3,7 @@ import { isBabyMenuGroup, membersOfGroup, resolveMemberAge } from "./groups.js";
 import { DAYS, getMeals, modeForGroupSlot, slotKey } from "./planner.js";
 import { stageForAge } from "./stages.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
-import { filterRecipes, filterGarnishes, decisionCatalog } from "../utils/filterRecipes.js";
+import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes } from "../utils/filterRecipes.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import {
@@ -323,7 +323,10 @@ export function buildGroupContext(data, group) {
       // User-marked exception for this exact day+meal ("unico" | "rapida").
       const slotTypeSel = data.slotType?.[`${day}|${meal}`];
 
-      const mealStructure = data.mealStructureByGroup?.[group.id] ?? "primero_segundo";
+      // Per-group override first; si no hay, la estructura global (modo básico);
+      // si no, primero+segundo.
+      const mealStructure =
+        data.mealStructureByGroup?.[group.id] ?? data.mealStructure ?? "primero_segundo";
 
       if (mealType === "comida") {
         if (isBabyGroup) {
@@ -402,7 +405,7 @@ export function buildGroupContext(data, group) {
 }
 
 // Exported for tests only — not used elsewhere outside this module.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = []) {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryStrict = false) {
   const includeHealth = Array.isArray(config?.healthProfiles) && config.healthProfiles.length > 0;
   const catalog = decisionCatalog(filteredRecipes, { includeHealth });
   const slotsForLLM = slots.map((s) => {
@@ -429,9 +432,12 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   }
 
   if (pantryNames.length > 0) {
+    const pantryInstruction = pantryStrict
+      ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): Construye el menú usando SOBRE TODO ingredientes de esta lista. Para cada hueco, elige preferentemente recetas cuyos ingredientes principales estén ya en casa; solo recurre a recetas con ingredientes fuera de esta lista cuando no haya ninguna opción razonable que encaje con las demás reglas (complementación escolar, variedad, alergias, tipo de plato). Esta preferencia es FUERTE, pero nunca rompas esas reglas ni fuerces combinaciones que no tengan sentido culinario.`
+      : `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`;
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
-        `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`,
+        pantryInstruction,
     );
   }
 
@@ -633,7 +639,7 @@ export function poolForWeek(pool, crossWeek, slotCount) {
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL) {
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryStrict = false) {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -692,6 +698,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     ctx.schoolMenuByDay,
     data.fixedDishes,
     pantryIngredients.map((p) => p.ingredientName),
+    pantryStrict,
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
@@ -958,7 +965,88 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
   };
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL } = {}) {
+// ── Deterministic optional meals (desayuno / merienda / postre) ──────────────
+//
+// These are NEVER AI-picked. They come from the isolated off-menu pool
+// (fruit/yogur/pan…) and are assigned here with simple rotation so the week has
+// variety without a model call. Babies are skipped (own curated path).
+//
+// Returns [{ planKey: "Lun-Desayuno", recipeId, eaters, mealKey, when? }].
+function planExtraMealsForGroup(group, data) {
+  const out = [];
+  if (isBabyMenuGroup(group)) return out;
+  const em = data.extraMeals ?? {};
+  const members = membersOfGroup(group, data.members);
+  if (members.length === 0) return out;
+
+  const eaters = members.length;
+  const kids = members.filter((m) => {
+    const s = stageForAge(resolveMemberAge(m)).id;
+    return s === "infantil" || s === "primaria";
+  });
+  const hasKids = kids.length > 0;
+
+  const safety = {
+    allergies: [...new Set(members.flatMap((m) => m.allergies ?? []))],
+    intolerances: [
+      ...new Set(members.flatMap((m) => [...(m.intolerances ?? []), ...(m.dietaryStates ?? [])])),
+    ],
+    dislikes: [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])],
+  };
+
+  const weekendIdx = (i) => i >= 5; // Sáb/Dom
+
+  // Desayuno — off | variado | findes | igual
+  if (em.desayuno && em.desayuno !== "off") {
+    const pool = filterOffMenuRecipes("desayunos", { ...safety, hasKids });
+    if (pool.length) {
+      DAYS.forEach((day, i) => {
+        let r;
+        if (em.desayuno === "igual") r = pool[0];
+        else if (em.desayuno === "findes") r = weekendIdx(i) ? pool[1 % pool.length] : pool[0];
+        else r = pool[i % pool.length]; // variado
+        out.push({ planKey: `${day}-Desayuno`, recipeId: r.id, eaters, mealKey: "desayuno" });
+      });
+    }
+  }
+
+  // Merienda — kids only. off | semana (7d) | laborables (L-V)
+  if (hasKids && em.merienda && em.merienda !== "off") {
+    const pool = filterOffMenuRecipes("meriendas", { ...safety, hasKids: true });
+    if (pool.length) {
+      const days = em.merienda === "laborables" ? DAYS.slice(0, 5) : DAYS;
+      days.forEach((day, i) => {
+        out.push({
+          planKey: `${day}-Merienda`,
+          recipeId: pool[i % pool.length].id,
+          eaters: kids.length,
+          mealKey: "merienda",
+        });
+      });
+    }
+  }
+
+  // Postre — always offerable. off | comida | cena | ambas (v1: one dessert/day,
+  // `when` records the intended slot for the UI subtitle).
+  if (em.postre && em.postre !== "off") {
+    const pool = filterOffMenuRecipes("postres", { ...safety, hasKids });
+    if (pool.length) {
+      DAYS.forEach((day, i) => {
+        out.push({
+          planKey: `${day}-Postre`,
+          recipeId: pool[i % pool.length].id,
+          eaters,
+          mealKey: "postre",
+          when: em.postre,
+        });
+      });
+    }
+  }
+
+  return out;
+}
+
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryStrict = false, crossWeek = null, plannerModel = DEFAULT_MODEL } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -972,7 +1060,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
 
   const results = await Promise.all(
     activeGroups.map((group) =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel),
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryStrict),
     ),
   );
 
@@ -1073,6 +1161,33 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         plan[group.id][key] = slot;
         placedSlots++;
       }
+    }
+  }
+
+  // Deterministic optional meals — injected AFTER the AI comida/cena plan so
+  // they never touch the model. Same hydration/prefix rules as main dishes.
+  for (const group of activeGroups) {
+    for (const a of planExtraMealsForGroup(group, data)) {
+      const catalogRecipe = recipeCatalogById[a.recipeId];
+      if (!catalogRecipe) continue;
+      const frontendId = (multi ? `${group.id}__` : "") + a.recipeId;
+      if (!seenRecipeIds.has(frontendId)) {
+        seenRecipeIds.add(frontendId);
+        const fr = catalogToFrontendRecipe(catalogRecipe, a.eaters, []);
+        if (multi) fr.id = frontendId;
+        fr.baseRecipeId = a.recipeId;
+        allRecipes.push(fr);
+      }
+      plan[group.id][a.planKey] = {
+        recipeId: frontendId,
+        firstRecipeId: null,
+        eaters: a.eaters,
+        mode: "casa",
+        warnings: [],
+        extraMeal: a.mealKey,
+        ...(a.when ? { when: a.when } : {}),
+      };
+      placedSlots++;
     }
   }
 

@@ -322,11 +322,13 @@ function CookTimePeriodBlock({
   );
 }
 
-export function CookTimeEditor({ data, setData }) {
+export function CookTimeEditor({ data, setData, simple = false }) {
   const [unit, setUnit] = useState("day");
   const cookTime = migrateCookTime(data);
   const targets = plannedMealTargets(getMeals(data));
-  const dual = targets.includes("Comida") && targets.includes("Cena");
+  // En modo básico (simple) comida y cena comparten tiempo siempre: sin el
+  // toggle "Igual para ambos / Por separado".
+  const dual = !simple && targets.includes("Comida") && targets.includes("Cena");
   const dayCounts = cookDayCounts(data);
 
   // Only show a period that actually requires cooking in the real schedule.

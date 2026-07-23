@@ -354,7 +354,7 @@ export function SettingsScreen({
         </button>
       </div>
 
-      <BottomNav active="settings" onNav={onNav} />
+      <BottomNav active="dashboard" onNav={onNav} />
     </div>
   );
 }
@@ -807,7 +807,7 @@ export function AccountScreen({
         )}
       </div>
 
-      <BottomNav active="settings" onNav={onNav} />
+      <BottomNav active="dashboard" onNav={onNav} />
     </div>
   );
 }

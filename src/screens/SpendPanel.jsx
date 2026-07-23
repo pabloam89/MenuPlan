@@ -3,8 +3,11 @@ import { createPortal } from "react-dom";
 import {
   Apple,
   Bean,
+  CalendarDays,
   Check,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Croissant,
   Drumstick,
   Egg,
@@ -14,24 +17,36 @@ import {
   Milk,
   Package,
   Plus,
+  Receipt,
+  Repeat,
   ShoppingBag,
+  SlidersHorizontal,
   Sprout,
   Store,
   Trash2,
+  TrendingUp,
   Wallet,
   Wheat,
   X,
 } from "lucide-react";
 import { WizardSheet } from "../components/ui.jsx";
 import {
-  estimateListCost,
+  DATE_BUCKET_OPTIONS,
+  filterByDays,
+  filterByRange,
   formatEuro,
   formatEuro0,
   ingredientIdFor,
+  matchesDateBucket,
   matchReceiptLine,
+  measureLabel,
   spendByAisle,
   spendByAisleDetail,
+  spendByStore,
+  spendOverTime,
+  spendStats,
 } from "../lib/priceHistory.js";
+import { guessShoppingAisle } from "../lib/ingredientCategories.js";
 import { useAuth } from "../lib/useAuth.js";
 import { removePantryItem } from "../lib/pantry.js";
 
@@ -133,17 +148,20 @@ function storeLogoUrl(name) {
   return key ? STORE_LOGOS[key] : null;
 }
 
-function StoreBadge({ name, size = 24 }) {
+// `maxWidth` caps how wide a real (often wordmark-shaped, e.g. Mercadona's is
+// ~7:1) logo is allowed to get. Real logos are NOT forced into a square like
+// the monogram fallback below — squashing a wide wordmark into a size×size
+// box via object-fit:contain shrank it down to a barely-visible sliver a few
+// px tall. Instead we fix the height at `size` and let width be natural,
+// only capped by `maxWidth` (default a generous 2.8×size) so it stays
+// legible without blowing out tight layouts.
+function StoreBadge({ name, size = 24, maxWidth = size * 2.8 }) {
   const url = storeLogoUrl(name);
   if (url) {
     return (
-      <img
-        src={url}
-        alt={name}
-        width={size}
-        height={size}
-        style={{ width: size, height: size, borderRadius: 6, objectFit: "contain", flexShrink: 0, background: "#fff" }}
-      />
+      <span style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", height: size, maxWidth, flexShrink: 0 }}>
+        <img src={url} alt={name} style={{ height: "100%", width: "auto", maxWidth: "100%", objectFit: "contain", display: "block" }} />
+      </span>
     );
   }
   const b = STORE_BADGE[name] ?? { bg: "#e0eae3", fg: "#4a5a50", short: name.slice(0, 2) };
@@ -294,7 +312,12 @@ function StoreDropdown({ value, anchorRef, onSelect, onClose }) {
                   {opt.special === "other" ? <Plus size={13} strokeWidth={2.6} /> : <Store size={13} strokeWidth={2.2} />}
                 </span>
               ) : (
-                <StoreBadge name={opt.value} size={24} />
+                // Same 24×24 footprint as the "special" icon above, so every
+                // row's leading element lines up — and a wide wordmark logo
+                // (Mercadona, etc.) can't spill out past its row's icon slot.
+                <span style={{ width: 24, height: 24, flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                  <StoreBadge name={opt.value} size={22} maxWidth={24} />
+                </span>
               )}
               <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                 {opt.label}
@@ -316,7 +339,11 @@ function StoreDropdown({ value, anchorRef, onSelect, onClose }) {
 // wizard's "Súper" step (Shopping.jsx).
 // Own little box for the chain's logo, kept visually separate from the
 // name/dropdown pill next to it — the badge is just a preview of the
-// selection, not itself an interactive control.
+// selection, not itself an interactive control. `overflow: hidden` is a
+// safety net: StoreBadge itself is told to fit within `logoMaxWidth` below,
+// but this catches it regardless if a future logo asset comes in wider than
+// expected (a wordmark like Mercadona's real logo overflowed this exact box
+// before that cap existed — it has to actually fit, not just clip).
 const storeLogoBoxStyle = {
   width: 42,
   height: 42,
@@ -327,7 +354,10 @@ const storeLogoBoxStyle = {
   alignItems: "center",
   justifyContent: "center",
   flexShrink: 0,
+  overflow: "hidden",
 };
+// Inner usable width of storeLogoBoxStyle (42px box minus border/breathing room).
+const logoMaxWidth = 34;
 
 export function StorePicker({ value, otherValue, onChange, onOtherChange }) {
   const [open, setOpen] = useState(false);
@@ -364,7 +394,7 @@ export function StorePicker({ value, otherValue, onChange, onOtherChange }) {
           only the latter opens the list, so tapping the badge itself does
           nothing surprising. */}
       <span style={storeLogoBoxStyle}>
-        {value ? <StoreBadge name={value} size={26} /> : <Store size={18} color="#9aa8a0" strokeWidth={2} />}
+        {value ? <StoreBadge name={value} size={24} maxWidth={logoMaxWidth} /> : <Store size={18} color="#9aa8a0" strokeWidth={2} />}
       </span>
       <button
         ref={anchorRef}
@@ -557,37 +587,86 @@ export function appendReceiptSpend(setData, { store, date, lines, tachedKeys = [
  * Everything persists in the local `data` blob via setData (priceObs, receipts,
  * priceAliases) — the SQL tables land later without changing this UI.
  */
-export function SpendPanel({ data, setData, shopping, onUndoReceiptTachado, onToast }) {
-  const { user } = useAuth();
-  const obs = data.priceObs ?? [];
-  const receipts = data.receipts ?? [];
-  const [openReceiptId, setOpenReceiptId] = useState(null);
+const PERIOD_OPTIONS = [
+  { id: "30", label: "30 días" },
+  { id: "90", label: "90 días" },
+  { id: "365", label: "Año" },
+  { id: "all", label: "Todo" },
+  { id: "custom", label: "Fechas" },
+];
 
+export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast }) {
+  const { user } = useAuth();
+  const allObs = data.priceObs ?? [];
+  const allReceipts = data.receipts ?? [];
+  // "Resumen" (dashboard cards) vs "Histórico" (the ticket-by-ticket table) —
+  // tickets used to live at the very bottom of Resumen, easy to miss; now
+  // it's its own destination instead of one more card to scroll past.
+  const [subTab, setSubTab] = useState("resumen");
+  // Time lens applied to every Resumen section below (spend, stores,
+  // categories). "all" by default so sparse early data isn't hidden.
+  // "custom" swaps the day-count buckets for an explicit ad-hoc [from, to].
+  const [period, setPeriod] = useState("all");
+  const [periodFrom, setPeriodFrom] = useState("");
+  const [periodTo, setPeriodTo] = useState("");
+  // "Mes" used to be the default, but early on (or with a short date range)
+  // all your spend usually falls inside a single month — that collapsed the
+  // trend to one bucket and hid the whole card with no explanation. "Semana"
+  // is much likelier to actually show a trend for a new account.
+  const [trendGran, setTrendGran] = useState("week");
+
+  const periodDays = period === "all" || period === "custom" ? null : period;
+  const obs = useMemo(
+    () => (period === "custom" ? filterByRange(allObs, periodFrom, periodTo) : filterByDays(allObs, periodDays)),
+    [allObs, period, periodDays, periodFrom, periodTo],
+  );
+  const periodReceipts = useMemo(
+    () =>
+      period === "custom"
+        ? filterByRange(allReceipts, periodFrom, periodTo)
+        : filterByDays(allReceipts, periodDays),
+    [allReceipts, period, periodDays, periodFrom, periodTo],
+  );
+
+  const stats = useMemo(() => spendStats(obs, periodReceipts), [obs, periodReceipts]);
   const byAisle = useMemo(() => spendByAisle(obs), [obs]);
   const aisleDetail = useMemo(() => spendByAisleDetail(obs), [obs]);
   const maxAisle = byAisle[0]?.total ?? 0;
+  const byStore = useMemo(() => spendByStore(obs), [obs]);
+  const maxStore = byStore[0]?.total ?? 0;
+  const trend = useMemo(() => spendOverTime(obs, trendGran), [obs, trendGran]);
 
-  const menuEstimate = useMemo(
-    () => estimateListCost(shopping?.items ?? [], obs),
-    [shopping, obs],
+  // Histórico has its own independent Fecha/Supermercado filters — same look
+  // as Pantry's "En casa" — instead of piggybacking on the Resumen period.
+  const [ticketDateFilter, setTicketDateFilter] = useState("all");
+  const [ticketFrom, setTicketFrom] = useState("");
+  const [ticketTo, setTicketTo] = useState("");
+  const [ticketStoreFilters, setTicketStoreFilters] = useState(() => new Set());
+  const [showTicketFilters, setShowTicketFilters] = useState(false);
+
+  const availableTicketStores = useMemo(
+    () => [...new Set(allReceipts.map((r) => r.store || "Sin súper"))],
+    [allReceipts],
   );
-  // Days the current shopping list actually spans (distinct days across item
-  // sources), so "por día / por mes" scale off the real menu length, not a
-  // hardcoded 7. Falls back to a week when there's no day info.
-  const menuDays = useMemo(() => {
-    const days = new Set();
-    for (const it of shopping?.items ?? []) {
-      for (const s of it.sources ?? []) if (s.day) days.add(s.day);
-    }
-    return days.size > 0 ? days.size : 7;
-  }, [shopping]);
-  const [estScope, setEstScope] = useState("semana");
-  const estValue =
-    estScope === "dia"
-      ? menuEstimate.total / menuDays
-      : estScope === "mes"
-        ? (menuEstimate.total / menuDays) * 30
-        : menuEstimate.total;
+  const effectiveTicketStoreFilters = useMemo(
+    () => new Set([...ticketStoreFilters].filter((s) => availableTicketStores.includes(s))),
+    [ticketStoreFilters, availableTicketStores],
+  );
+  const ticketDateActive = ticketDateFilter === "custom" ? Boolean(ticketFrom) : ticketDateFilter !== "all";
+  const ticketFilterCount = (ticketDateActive ? 1 : 0) + effectiveTicketStoreFilters.size;
+  const filteredReceipts = useMemo(
+    () =>
+      allReceipts.filter((r) => {
+        if (ticketDateActive && !matchesDateBucket(r.purchasedAt, ticketDateFilter, { from: ticketFrom, to: ticketTo })) {
+          return false;
+        }
+        if (effectiveTicketStoreFilters.size > 0 && !effectiveTicketStoreFilters.has(r.store || "Sin súper")) {
+          return false;
+        }
+        return true;
+      }),
+    [allReceipts, ticketDateActive, ticketDateFilter, ticketFrom, ticketTo, effectiveTicketStoreFilters],
+  );
 
   // Deleting a ticket undoes everything it caused, not just its spend
   // numbers: un-tacha the list items it marked bought (through the same
@@ -595,7 +674,7 @@ export function SpendPanel({ data, setData, shopping, onUndoReceiptTachado, onTo
   // every week the ticket touched — see App.undoReceiptTachado) and removes
   // the pantry entries it created (leaves anything the user added separately).
   const deleteReceipt = (receiptId) => {
-    const receipt = receipts.find((r) => r.id === receiptId);
+    const receipt = allReceipts.find((r) => r.id === receiptId);
     const tachedKeys = receipt?.tachedKeys ?? [];
     if (tachedKeys.length) onUndoReceiptTachado?.(tachedKeys, receipt?.tachedWeekStart ?? null);
     if (receipt?.pantryIds?.length && user) {
@@ -608,11 +687,11 @@ export function SpendPanel({ data, setData, shopping, onUndoReceiptTachado, onTo
       receipts: (d.receipts ?? []).filter((r) => r.id !== receiptId),
       priceObs: (d.priceObs ?? []).filter((o) => o.receiptId !== receiptId),
     }));
-    setOpenReceiptId((cur) => (cur === receiptId ? null : cur));
     onToast?.(tachedKeys.length || receipt?.pantryIds?.length ? "Ticket eliminado · deshecho de la lista y de En casa" : "Ticket eliminado");
   };
 
-  const empty = obs.length === 0;
+  const empty = allObs.length === 0;
+  const noneInPeriod = !empty && obs.length === 0;
 
   return (
     <div style={{ padding: "4px 0 0" }}>
@@ -628,111 +707,593 @@ export function SpendPanel({ data, setData, shopping, onUndoReceiptTachado, onTo
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {/* Estimated cost of current menu — ONLY from prices the user recorded.
-              Metric-in-circle KPI + day/week/month toggle, inside a card. */}
-          {menuEstimate.matched > 0 && (
-            <Card>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                <KpiStat color="#e07b39" value={formatEuro0(estValue)} label="Coste del menú" />
-                <ScopeToggle value={estScope} onChange={setEstScope} />
-              </div>
-            </Card>
-          )}
+          {/* Resumen ⇄ Histórico first — each manages its own filters below. */}
+          <GastoSubTabs value={subTab} onChange={setSubTab} ticketCount={allReceipts.length} />
 
-          {/* Spend by aisle — category icon + colour + colour-matched bar. */}
-          {byAisle.length > 0 && (
-            <Card title="Dónde se va el dinero">
-              <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                {byAisle.slice(0, 8).map((a) => (
-                  <AisleSpendRow
-                    key={a.aisle}
-                    aisle={a.aisle}
-                    total={a.total}
-                    max={maxAisle}
-                    detail={aisleDetail[a.aisle] ?? []}
-                  />
-                ))}
+          {subTab === "historico" ? (
+            <>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button type="button" onClick={() => setShowTicketFilters(true)} style={ticketFilterBtn}>
+                  <SlidersHorizontal size={13} />
+                  Filtros
+                  {ticketFilterCount > 0 && <span style={ticketFilterBadge}>{ticketFilterCount}</span>}
+                </button>
               </div>
-            </Card>
-          )}
+              <TicketHistoryTable receipts={filteredReceipts} obs={allObs} onDelete={deleteReceipt} />
+              {showTicketFilters && (
+                <TicketFiltersSheet
+                  onClose={() => setShowTicketFilters(false)}
+                  availableStores={availableTicketStores}
+                  dateFilter={ticketDateFilter}
+                  setDateFilter={setTicketDateFilter}
+                  customFrom={ticketFrom}
+                  customTo={ticketTo}
+                  setCustomFrom={setTicketFrom}
+                  setCustomTo={setTicketTo}
+                  storeFilters={effectiveTicketStoreFilters}
+                  setStoreFilters={setTicketStoreFilters}
+                  resultCount={filteredReceipts.length}
+                  activeFilterCount={ticketFilterCount}
+                  onClear={() => {
+                    setTicketDateFilter("all");
+                    setTicketFrom("");
+                    setTicketTo("");
+                    setTicketStoreFilters(new Set());
+                  }}
+                />
+              )}
+            </>
+          ) : (
+            <>
+              {/* Time lens applied to every Resumen section below. */}
+              <PeriodFilter value={period} onChange={setPeriod} />
+              {period === "custom" && (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input type="date" value={periodFrom} onChange={(e) => setPeriodFrom(e.target.value)} aria-label="Desde" style={{ ...inputStyle, flex: 1 }} />
+                  <input type="date" value={periodTo} onChange={(e) => setPeriodTo(e.target.value)} aria-label="Hasta" min={periodFrom || undefined} style={{ ...inputStyle, flex: 1 }} />
+                </div>
+              )}
+              {noneInPeriod ? (
+                <div style={emptyCard}>
+                  <CalendarDays size={26} color="#9bb0a3" strokeWidth={1.8} />
+                  <p style={{ fontSize: 13.5, fontWeight: 700, color: "#3d5245", margin: "10px 0 0" }}>
+                    Sin gasto en este periodo
+                  </p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: "#7a8a7f", margin: "6px 0 0" }}>
+                    Prueba con <strong style={{ color: "#3d5245" }}>Todo</strong> para ver tu histórico completo.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  {/* Headline totals for the selected period. */}
+                  <SummaryStrip stats={stats} />
 
-          {/* Receipts inbox */}
-          {receipts.length > 0 && (
-            <Card title={`Tickets subidos · ${receipts.length}`}>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                {receipts.map((r) => {
-                  const open = openReceiptId === r.id;
-                  const lines = open ? obs.filter((o) => o.receiptId === r.id) : [];
-                  return (
-                    <div key={r.id} style={{ borderBottom: "1px solid #eef2ef" }}>
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setOpenReceiptId(open ? null : r.id)}
-                        onKeyDown={(e) => e.key === "Enter" && setOpenReceiptId(open ? null : r.id)}
-                        style={{ ...receiptRow, borderBottom: "none", cursor: "pointer" }}
-                      >
-                        {r.store ? (
-                          <StoreBadge name={r.store} size={34} />
-                        ) : (
-                          <span style={receiptIcon}>
-                            <Store size={16} color={GREEN} strokeWidth={2.2} />
-                          </span>
-                        )}
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div style={{ fontSize: 13.5, fontWeight: 800, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                            {r.store || "Ticket"}
-                          </div>
-                          <div style={{ fontSize: 11.5, fontWeight: 600, color: "#7a8a7f" }}>
-                            {formatDate(r.purchasedAt)} · {r.lineCount} productos
-                          </div>
-                        </div>
-                        <span style={{ fontSize: 14, fontWeight: 900, color: GREEN, fontVariantNumeric: "tabular-nums" }}>
-                          {formatEuro(r.total)}
-                        </span>
-                        <ChevronDown
-                          size={15}
-                          color="#9db3a4"
-                          style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .15s", flexShrink: 0 }}
-                        />
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteReceipt(r.id);
-                          }}
-                          style={smallIconBtn}
-                          aria-label="Eliminar ticket"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                      {open && (
-                        <div style={{ padding: "0 0 12px 44px", display: "flex", flexDirection: "column", gap: 6 }}>
-                          {lines.length === 0 ? (
-                            <div style={{ fontSize: 12, fontWeight: 600, color: "#9db3a4" }}>Sin líneas guardadas</div>
-                          ) : (
-                            lines.map((l) => (
-                              <div key={l.id} style={{ display: "flex", justifyContent: "space-between", gap: 10, fontSize: 12.5 }}>
-                                <span style={{ color: "#3a4a3f", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                                  {l.name}
-                                </span>
-                                <span style={{ color: "#7a8a7f", fontWeight: 600, flexShrink: 0 }}>
-                                  {l.qty} {l.unit} · {formatEuro(l.price)}
-                                </span>
-                              </div>
-                            ))
+                  {/* Spend trend over time — day / week / month buckets, as a
+                      line. Needs a real history to be worth showing at all
+                      (a 2-point line from just 2 tickets isn't a "trend"),
+                      so it only appears once there are ≥5 tickets recorded. */}
+                  {stats.ticketCount >= 5 && (
+                    <Card
+                      title="Evolución del gasto"
+                      headerRight={<GranToggle value={trendGran} onChange={setTrendGran} />}
+                    >
+                      {trend.length > 1 ? (
+                        <TrendLine rows={trend} />
+                      ) : (
+                        <p style={{ margin: 0, padding: "18px 6px", fontSize: 12.5, fontWeight: 600, color: "#7a8a7f", textAlign: "center", lineHeight: 1.4 }}>
+                          Todo tu gasto cae en un solo periodo.
+                          {trendGran !== "day" && (
+                            <>
+                              {" "}
+                              Prueba con <strong style={{ color: "#3d5245" }}>{trendGran === "month" ? "Semana" : "Día"}</strong>, o sigue
+                              registrando gasto para ver la evolución.
+                            </>
                           )}
-                        </div>
+                        </p>
                       )}
-                    </div>
-                  );
-                })}
-              </div>
-            </Card>
+                    </Card>
+                  )}
+
+                  {/* Compare supermarkets — total spent + tickets per chain. */}
+                  {byStore.length > 0 && (
+                    <Card title="Por supermercado">
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {byStore.slice(0, 6).map((s) => (
+                          <StoreSpendRow key={s.store} store={s.store} total={s.total} max={maxStore} />
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Spend by aisle — category icon + colour + colour-matched bar. */}
+                  {byAisle.length > 0 && (
+                    <Card title="Dónde se va el dinero">
+                      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                        {byAisle.slice(0, 8).map((a) => (
+                          <AisleSpendRow
+                            key={a.aisle}
+                            aisle={a.aisle}
+                            total={a.total}
+                            max={maxAisle}
+                            detail={aisleDetail[a.aisle] ?? []}
+                          />
+                        ))}
+                      </div>
+                    </Card>
+                  )}
+
+                  {/* Spending habits — leading store / category / staple + ticket avg. */}
+                  {stats.total > 0 && <HabitsCard stats={stats} />}
+                </>
+              )}
+            </>
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// Resumen ⇄ Histórico — same full-width segmented look as PeriodFilter,
+// living above whichever set of filters/content applies to each.
+function GastoSubTabs({ value, onChange, ticketCount }) {
+  const opts = [
+    { id: "resumen", label: "Resumen" },
+    { id: "historico", label: ticketCount > 0 ? `Histórico (${ticketCount})` : "Histórico" },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 8 }}>
+      {opts.map((o) => {
+        const active = value === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange(o.id)}
+            style={{
+              flex: 1,
+              height: 38,
+              borderRadius: 11,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              border: `1.5px solid ${active ? GREEN : "#e0eae3"}`,
+              background: active ? GREEN : "#fff",
+              color: active ? "#fff" : "#5a7066",
+              fontSize: 12.5,
+              fontWeight: 800,
+              transition: "all .15s",
+            }}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Fecha | súper (badge+name) | total | chevron | trash. Tapping a row
+// expands it into that ticket's line items — the same shape as "En casa"'s
+// table (category icon, name, cantidad, precio) minus the per-row trash
+// icon, since these are historical lines, not editable live stock.
+const TICKET_ROW_GRID = {
+  display: "grid",
+  // Fecha widened from 56 to 68px — "23 jul 26" (with year) didn't fit as
+  // comfortably as the old day+month-only "23 jul".
+  gridTemplateColumns: "68px minmax(0,1fr) 76px 20px 28px",
+  gap: 8,
+  alignItems: "center",
+};
+
+const TICKET_ITEM_GRID = {
+  display: "grid",
+  gridTemplateColumns: "22px minmax(0,1fr) auto 58px",
+  gap: 8,
+  alignItems: "center",
+};
+
+// Name, cantidad and precio all read as one sentence, same weight — the
+// cantidad column used to be a smaller, muted grey and stood out as "less
+// important" next to the other two for no real reason.
+const ticketLineTextStyle = { fontSize: 12, fontWeight: 700, color: "#142f1d" };
+
+// One line of a ticket's contents — read-only, so no trash icon (unlike the
+// live Pantry table this mirrors: you can delete the whole ticket above, not
+// pick apart a receipt that already happened). `last` skips the divider so
+// the final row sits flush against the box's own bottom border.
+function TicketLineRow({ o, last }) {
+  const aisle = o.name ? guessShoppingAisle(o.name) : "Otros";
+  const { Icon, color } = aisleMeta(aisle);
+  return (
+    <div style={{ ...TICKET_ITEM_GRID, padding: "8px 12px", borderBottom: last ? "none" : "1px solid #d7e3db" }}>
+      <span
+        style={{
+          width: 22,
+          height: 22,
+          borderRadius: 7,
+          background: `${color}18`,
+          color,
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Icon size={12} strokeWidth={2.3} />
+      </span>
+      <span style={{ ...ticketLineTextStyle, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+        {o.name || "Producto"}
+      </span>
+      <span style={{ ...ticketLineTextStyle, whiteSpace: "nowrap" }}>{measureLabel(o)}</span>
+      <span style={{ ...ticketLineTextStyle, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+        {formatEuro(o.price)}
+      </span>
+    </div>
+  );
+}
+
+// No outer <Card> here on purpose — this table already has its own border,
+// header band and rounding, so a Card around it was just a second frame
+// doubling up the padding/shadow for no reason (the Filtros button above
+// already gives it a "section" feel).
+function TicketHistoryTable({ receipts, obs, onDelete }) {
+  const [expanded, setExpanded] = useState(null);
+  return (
+    <div style={{ border: "1.5px solid #e5ebe7", borderRadius: 14, overflow: "hidden", background: "#fff" }}>
+      <div style={{ ...TICKET_ROW_GRID, background: "#dcebe1", borderBottom: "1px solid #c9ddd0", padding: "9px 12px" }}>
+        <span style={{ ...ticketHeadCell, textAlign: "center" }}>Fecha</span>
+        <span style={{ ...ticketHeadCell, textAlign: "center" }}>Supermercado</span>
+        <span style={{ ...ticketHeadCell, textAlign: "center" }}>Total</span>
+        <span />
+        <span />
+      </div>
+
+      {receipts.length === 0 ? (
+        <p style={{ margin: 0, padding: 18, fontSize: 12.5, fontWeight: 600, color: "#9db3a4", textAlign: "center" }}>
+          Ningún ticket con estos filtros.
+        </p>
+      ) : (
+        receipts.map((r, i) => {
+          const last = i === receipts.length - 1;
+          const isOpen = expanded === r.id;
+          const lines = isOpen ? (obs ?? []).filter((o) => o.receiptId === r.id) : [];
+          return (
+            <div key={r.id} style={{ borderBottom: last ? "none" : "1px solid #eef3f0" }}>
+              <div
+                onClick={() => setExpanded(isOpen ? null : r.id)}
+                style={{ ...TICKET_ROW_GRID, padding: "11px 12px", cursor: "pointer" }}
+              >
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#5a7066", textAlign: "center" }}>{formatDate(r.purchasedAt)}</span>
+                <span style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, minWidth: 0 }}>
+                  <StoreBadge name={r.store || "?"} size={22} maxWidth={48} />
+                  <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {r.store || "Ticket"}
+                  </span>
+                </span>
+                <span style={{ fontSize: 13, fontWeight: 900, color: GREEN, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>
+                  {formatEuro(r.total)}
+                </span>
+                <ChevronDown
+                  size={15}
+                  strokeWidth={2.4}
+                  color="#9db3a4"
+                  style={{ transform: isOpen ? "rotate(180deg)" : "none", transition: "transform .2s ease", justifySelf: "center" }}
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(r.id);
+                  }}
+                  aria-label="Eliminar ticket"
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 8,
+                    border: "none",
+                    background: "transparent",
+                    color: "#c0392b",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    flexShrink: 0,
+                    justifySelf: "center",
+                  }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              {isOpen && (
+                <div style={{ background: "#eef4f0", borderTop: "1px solid #d7e3db", padding: "10px 10px 12px" }}>
+                  {/* Its own bordered box (same idea as the Alergias table) —
+                      a flat list on the tinted background didn't read as a
+                      distinct group of rows. */}
+                  <div style={{ border: "1.5px solid #d7e3db", borderRadius: 12, overflow: "hidden", background: "#fff" }}>
+                    {lines.length === 0 ? (
+                      <p style={{ margin: 0, padding: "10px 12px", fontSize: 11.5, fontWeight: 600, color: "#9db3a4" }}>
+                        Sin detalle de productos para este ticket.
+                      </p>
+                    ) : (
+                      lines.map((o, i) => <TicketLineRow key={o.id} o={o} last={i === lines.length - 1} />)
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+}
+
+const ticketHeadCell = {
+  fontSize: 10,
+  fontWeight: 800,
+  color: "#1c4a2e",
+  letterSpacing: ".2px",
+  textTransform: "uppercase",
+};
+
+const ticketFilterBtn = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  height: 32,
+  padding: "0 12px",
+  borderRadius: 10,
+  border: "1.5px solid #dbe7df",
+  background: "#fff",
+  color: GREEN,
+  fontSize: 12.5,
+  fontWeight: 800,
+  cursor: "pointer",
+  fontFamily: "inherit",
+};
+
+const ticketFilterBadge = {
+  minWidth: 16,
+  height: 16,
+  padding: "0 4px",
+  borderRadius: 999,
+  background: GREEN,
+  color: "#fff",
+  fontSize: 10,
+  fontWeight: 900,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+// Same list → sub-view drill-down sheet as Pantry's PantryFiltersSheet
+// (icons, horizontal dividers, checkPop/sheetUp animations) — Fecha reuses
+// the exact same bucket vocabulary (DATE_BUCKET_OPTIONS/matchesDateBucket
+// from priceHistory.js) so "En casa" and "Histórico" read identically.
+const TICKET_FILTER_ROWS = [
+  { key: "date", label: "Fecha", icon: CalendarDays },
+  { key: "store", label: "Supermercado", icon: Store },
+];
+
+function formatShortDay(iso) {
+  const d = iso ? new Date(iso) : null;
+  if (!d || isNaN(d.getTime())) return null;
+  return new Intl.DateTimeFormat("es-ES", { day: "numeric", month: "short" }).format(d).replace(".", "");
+}
+
+function TicketCheckRow({ icon: Icon, label, checked, single, onToggle, last }) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="ticket-filter-opt-row"
+      style={{
+        width: "100%",
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "13px 10px",
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        borderRadius: 10,
+        textAlign: "left",
+        borderBottom: last ? "none" : "1px solid rgba(45,90,61,.1)",
+      }}
+    >
+      {Icon && (
+        <span style={{ flexShrink: 0, display: "flex", width: 20, justifyContent: "center" }}>
+          <Icon size={17} color={GREEN} strokeWidth={2.2} />
+        </span>
+      )}
+      <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: checked ? 800 : 600, color: checked ? GREEN : "#142f1d" }}>
+        {label}
+      </span>
+      <span
+        className="ticket-filter-check"
+        style={{
+          width: 22,
+          height: 22,
+          flexShrink: 0,
+          borderRadius: single ? 999 : 6,
+          border: `1.5px solid ${checked ? GREEN : "#cdd8d0"}`,
+          background: checked ? GREEN : "#fff",
+          color: "#fff",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        {checked && <Check className="ticket-filter-check-icon" size={14} strokeWidth={3} />}
+      </span>
+    </button>
+  );
+}
+
+const ticketFilterIconBtn = {
+  border: "none",
+  background: "#f0f4f1",
+  borderRadius: 999,
+  width: 32,
+  height: 32,
+  cursor: "pointer",
+  flexShrink: 0,
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+function TicketFiltersSheet({
+  onClose,
+  availableStores,
+  dateFilter,
+  setDateFilter,
+  customFrom,
+  customTo,
+  setCustomFrom,
+  setCustomTo,
+  storeFilters,
+  setStoreFilters,
+  resultCount,
+  activeFilterCount,
+  onClear,
+}) {
+  const [view, setView] = useState("list");
+  const current = TICKET_FILTER_ROWS.find((r) => r.key === view);
+
+  const toggleStore = (s) =>
+    setStoreFilters((prev) => {
+      const next = new Set(prev);
+      next.has(s) ? next.delete(s) : next.add(s);
+      return next;
+    });
+
+  const dateSummary =
+    dateFilter === "custom"
+      ? customFrom
+        ? `${formatShortDay(customFrom)}${customTo ? ` – ${formatShortDay(customTo)}` : " →"}`
+        : "Fecha concreta"
+      : (DATE_BUCKET_OPTIONS.find(([id]) => id === dateFilter)?.[1] ?? "Todas");
+
+  const summary = {
+    date: dateSummary,
+    store:
+      storeFilters.size === 0 ? "Todos" : storeFilters.size === 1 ? [...storeFilters][0] : `${storeFilters.size} elegidos`,
+  };
+  const rowActive = {
+    date: dateFilter === "custom" ? Boolean(customFrom) : dateFilter !== "all",
+    store: storeFilters.size > 0,
+  };
+
+  return (
+    <div
+      onClick={onClose}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 210, display: "flex", alignItems: "flex-end", justifyContent: "center" }}
+    >
+      <style>{`
+        @keyframes ticketSheetUp {
+          from { transform: translateY(28px); opacity: 0; }
+          to   { transform: translateY(0);    opacity: 1; }
+        }
+        @keyframes ticketCheckPop {
+          0%   { transform: scale(0.5); opacity: .4; }
+          55%  { transform: scale(1.18); opacity: 1; }
+          100% { transform: scale(1); }
+        }
+        .ticket-filter-sheet-inner { animation: ticketSheetUp .22s cubic-bezier(.25,.9,.4,1) both; }
+        .ticket-filter-opt-row { transition: background .16s ease; }
+        .ticket-filter-opt-row:hover { background: rgba(45,90,61,.06); }
+        .ticket-filter-opt-row:active { background: rgba(45,90,61,.11); }
+        .ticket-filter-check-icon { animation: ticketCheckPop .22s cubic-bezier(.34,1.5,.6,1) both; }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="ticket-filter-sheet-inner"
+        style={{ background: "#f5f9f6", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420, maxHeight: "72dvh", display: "flex", flexDirection: "column", overflow: "hidden" }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 8, flexShrink: 0 }}>
+          <span style={{ width: 38, height: 4, borderRadius: 999, background: "#dde7e0" }} />
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px 12px", flexShrink: 0 }}>
+          {view !== "list" ? (
+            <button type="button" onClick={() => setView("list")} aria-label="Volver" style={ticketFilterIconBtn}>
+              <ChevronLeft size={18} />
+            </button>
+          ) : null}
+          <h3 style={{ flex: 1, margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>
+            {view === "list" ? "Filtros" : current?.label}
+          </h3>
+          {view === "list" && activeFilterCount > 0 && (
+            <button type="button" onClick={onClear} style={{ border: "none", background: "transparent", color: GREEN, fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", padding: "4px 6px" }}>
+              Limpiar
+            </button>
+          )}
+          <button type="button" onClick={onClose} aria-label="Cerrar" style={ticketFilterIconBtn}>
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "0 16px" }}>
+          {view === "list" && (
+            <div>
+              {TICKET_FILTER_ROWS.map((row, i) => (
+                <button
+                  key={row.key}
+                  type="button"
+                  onClick={() => setView(row.key)}
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 2px", border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", borderTop: i === 0 ? "none" : "1px solid #eef3f0" }}
+                >
+                  <row.icon size={18} color={GREEN} />
+                  <span style={{ flex: 1, textAlign: "left", fontSize: 14.5, fontWeight: 700, color: "#142f1d" }}>{row.label}</span>
+                  <span style={{ fontSize: 12.5, fontWeight: 700, color: rowActive[row.key] ? GREEN : "#9ab0a1", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {summary[row.key]}
+                  </span>
+                  <ChevronRight size={17} color="#c2cfc7" />
+                </button>
+              ))}
+            </div>
+          )}
+
+          {view === "date" && (
+            <div style={{ paddingTop: 4 }}>
+              {DATE_BUCKET_OPTIONS.map(([id, label]) => (
+                <TicketCheckRow key={id} icon={CalendarDays} label={label} single checked={dateFilter === id} onToggle={() => setDateFilter(id)} />
+              ))}
+              <TicketCheckRow
+                icon={CalendarDays}
+                label="Fecha concreta"
+                single
+                checked={dateFilter === "custom"}
+                last={dateFilter !== "custom"}
+                onToggle={() => setDateFilter("custom")}
+              />
+              {dateFilter === "custom" && (
+                <div style={{ display: "flex", gap: 8, padding: "2px 10px 16px 42px" }}>
+                  <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} aria-label="Desde" style={{ ...inputStyle, background: "#fff" }} />
+                  <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} aria-label="Hasta" min={customFrom || undefined} style={{ ...inputStyle, background: "#fff" }} />
+                </div>
+              )}
+            </div>
+          )}
+
+          {view === "store" && (
+            <div style={{ paddingTop: 4 }}>
+              <TicketCheckRow label="Todos" checked={storeFilters.size === 0} onToggle={() => setStoreFilters(new Set())} />
+              {availableStores.map((s, i) => (
+                <TicketCheckRow key={s} icon={Store} label={s} checked={storeFilters.has(s)} last={i === availableStores.length - 1} onToggle={() => toggleStore(s)} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div style={{ padding: "12px 16px calc(14px + env(safe-area-inset-bottom, 0px))", borderTop: "1px solid #eef3f0", flexShrink: 0 }}>
+          <button type="button" onClick={onClose} style={{ width: "100%", height: 48, borderRadius: 14, border: "none", background: GREEN, color: "#fff", fontSize: 14.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}>
+            Ver {resultCount} {resultCount === 1 ? "ticket" : "tickets"}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -857,88 +1418,66 @@ const fieldLabelStyle = {
   marginBottom: 6,
 };
 
-// KPI with the metric INSIDE the coloured ring and the name OUTSIDE — the exact
-// model used by Cocina's CookKpiStrip.
-function KpiStat({ color, value, label }) {
+// White rounded panel matching Analytics' Card (Cocina/Objetivos) — but with
+// a tinted header band (same idea as the Pantry table's "En casa" header)
+// instead of a plain small caption, so a title like "Hábitos de gasto" reads
+// as a section, not just another line of text. Also actually wires up
+// `headerRight` now — it was accepted as a prop everywhere it's used
+// (GranToggle on "Evolución del gasto", etc.) but silently dropped, so that
+// toggle never rendered at all.
+function Card({ title, headerRight, children }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-      <span
-        style={{
-          width: 52,
-          height: 52,
-          borderRadius: 999,
-          background: "#fff",
-          border: `2.5px solid ${color}`,
-          color,
-          fontSize: 14,
-          fontWeight: 900,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {value}
-      </span>
-      <span style={{ fontSize: 12, fontWeight: 800, color, lineHeight: 1.25, letterSpacing: "-.1px" }}>{label}</span>
-    </div>
-  );
-}
-
-// Compact day/week/month lens for the estimate (lives outside any card).
-function ScopeToggle({ value, onChange }) {
-  const opts = [
-    { id: "dia", label: "Día" },
-    { id: "semana", label: "Sem" },
-    { id: "mes", label: "Mes" },
-  ];
-  return (
-    <div style={{ display: "inline-flex", background: "#f0f4f1", borderRadius: 9, padding: 2, gap: 2, flexShrink: 0 }}>
-      {opts.map((o) => {
-        const active = value === o.id;
-        return (
-          <button
-            key={o.id}
-            type="button"
-            onClick={() => onChange(o.id)}
-            style={{
-              height: 28,
-              padding: "0 11px",
-              borderRadius: 7,
-              border: "none",
-              background: active ? GREEN : "transparent",
-              color: active ? "#fff" : "#7a8a7f",
-              fontSize: 11.5,
-              fontWeight: 800,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >
-            {o.label}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-// White rounded panel matching Analytics' Card (Cocina/Objetivos).
-function Card({ title, children }) {
-  return (
-    <div style={{ background: "#fff", borderRadius: 16, border: "1px solid #e8f0ea", padding: "16px 14px", boxShadow: "0 1px 4px rgba(20, 47, 29, 0.04)" }}>
-      {title && (
-        <div style={{ fontSize: 13, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px", marginBottom: 12 }}>
-          {title}
+    <div
+      style={{
+        background: "#fff",
+        borderRadius: 16,
+        border: "1px solid #e8f0ea",
+        overflow: "hidden",
+        boxShadow: "0 1px 4px rgba(20, 47, 29, 0.04)",
+      }}
+    >
+      {(title || headerRight) && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+            padding: "11px 14px",
+            background: "#eaf4ee",
+            borderBottom: "1px solid #d8e9de",
+          }}
+        >
+          {title && (
+            <span style={{ fontSize: 14, fontWeight: 900, color: "#1c4a2e", letterSpacing: "-.2px", minWidth: 0 }}>
+              {title}
+            </span>
+          )}
+          {headerRight}
         </div>
       )}
-      {children}
+      <div style={{ padding: "14px 14px 16px" }}>{children}</div>
     </div>
   );
 }
 
-// One aisle in "Dónde se va el dinero": category icon badge + name + amount + a
-// colour-matched bar, plus a chevron that reveals the product-level breakdown.
+// Fixed-width, right-aligned column so every euro amount in a list — aisles,
+// stores — lands on the exact same vertical line regardless of how long the
+// label next to it is. Plain dark text on purpose (no pill, no per-category
+// colour): the colour-coded icon + bar already carry the category, repeating
+// it on the number too just made it noisier.
+const spendAmountCellStyle = {
+  fontSize: 13.5,
+  fontWeight: 900,
+  color: "#142f1d",
+  textAlign: "right",
+  fontVariantNumeric: "tabular-nums",
+};
+
+// One aisle in "Dónde se va el dinero": category icon badge + name + amount +
+// a colour-matched bar, plus a chevron that reveals the product-level
+// breakdown. Grid (not flex) so the amount column stays fixed-width and the
+// trailing chevron gets its own column instead of fighting the amount for space.
 function AisleSpendRow({ aisle, total, max, detail }) {
   const [open, setOpen] = useState(false);
   const { Icon, color } = aisleMeta(aisle);
@@ -946,7 +1485,7 @@ function AisleSpendRow({ aisle, total, max, detail }) {
   const canExpand = detail.length > 0;
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "34px minmax(0,1fr) 60px 28px", alignItems: "center", gap: 10 }}>
         <span
           style={{
             width: 34,
@@ -962,15 +1501,13 @@ function AisleSpendRow({ aisle, total, max, detail }) {
         >
           <Icon size={17} strokeWidth={2.2} />
         </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 4 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>{aisle}</span>
-            <span style={{ fontSize: 13, fontWeight: 900, color, fontVariantNumeric: "tabular-nums" }}>{formatEuro0(total)}</span>
-          </div>
-          <div style={{ height: 8, borderRadius: 999, background: "#eef4ef", overflow: "hidden" }}>
+        <div style={{ minWidth: 0 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>{aisle}</span>
+          <div style={{ height: 8, borderRadius: 999, background: "#eef4ef", overflow: "hidden", marginTop: 6 }}>
             <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: color, transition: "width .35s ease" }} />
           </div>
         </div>
+        <span style={spendAmountCellStyle}>{formatEuro0(total)}</span>
         <button
           type="button"
           onClick={() => canExpand && setOpen((o) => !o)}
@@ -989,6 +1526,7 @@ function AisleSpendRow({ aisle, total, max, detail }) {
             justifyContent: "center",
             cursor: canExpand ? "pointer" : "default",
             padding: 0,
+            justifySelf: "center",
           }}
         >
           <ChevronDown size={16} strokeWidth={2.4} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .2s ease" }} />
@@ -1027,6 +1565,385 @@ function AisleSpendRow({ aisle, total, max, detail }) {
   );
 }
 
+// Full-width time lens at the top of the Gasto view.
+function PeriodFilter({ value, onChange }) {
+  return (
+    <div style={{ display: "flex", background: "#eef4ef", borderRadius: 11, padding: 3, gap: 3 }}>
+      {PERIOD_OPTIONS.map((o) => {
+        const active = value === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange(o.id)}
+            style={{
+              flex: 1,
+              height: 34,
+              borderRadius: 8,
+              border: "none",
+              background: active ? "#fff" : "transparent",
+              color: active ? GREEN : "#7a8a7f",
+              fontSize: 12,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: active ? "0 1px 3px rgba(20,47,29,.12)" : "none",
+              transition: "all .15s",
+            }}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Three headline circles: total spent, tickets, average per ticket.
+function SummaryStrip({ stats }) {
+  const items = [
+    { value: formatEuro0(stats.total), label: "Gastado", color: GREEN },
+    { value: String(stats.ticketCount), label: stats.ticketCount === 1 ? "Ticket" : "Tickets", color: "#2b7cd3" },
+    { value: stats.avgTicket > 0 ? formatEuro0(stats.avgTicket) : "—", label: "Media/ticket", color: "#e07b39" },
+  ];
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+      {items.map((it) => (
+        <div
+          key={it.label}
+          style={{
+            background: "#fff",
+            borderRadius: 16,
+            border: "1px solid #e8f0ea",
+            boxShadow: "0 1px 4px rgba(20,47,29,.04)",
+            padding: "14px 6px",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <span
+            style={{
+              width: 46,
+              height: 46,
+              borderRadius: 999,
+              background: "#fff",
+              border: `2.5px solid ${it.color}`,
+              color: it.color,
+              fontSize: it.value.length > 4 ? 12 : 14,
+              fontWeight: 900,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontVariantNumeric: "tabular-nums",
+            }}
+          >
+            {it.value}
+          </span>
+          <span style={{ fontSize: 10.5, fontWeight: 800, color: it.color, textAlign: "center", lineHeight: 1.2 }}>
+            {it.label}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// Day / week / month lens for the trend chart.
+function GranToggle({ value, onChange }) {
+  const opts = [
+    { id: "day", label: "Día" },
+    { id: "week", label: "Sem" },
+    { id: "month", label: "Mes" },
+  ];
+  return (
+    <div style={{ display: "inline-flex", background: "#f0f4f1", borderRadius: 9, padding: 2, gap: 2, flexShrink: 0 }}>
+      {opts.map((o) => {
+        const active = value === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange(o.id)}
+            style={{
+              height: 28,
+              padding: "0 11px",
+              borderRadius: 7,
+              border: "none",
+              background: active ? GREEN : "transparent",
+              color: active ? "#fff" : "#7a8a7f",
+              fontSize: 11.5,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Line chart of spend per time bucket (last 12 shown). SVG viewBox is a
+// fixed 300×100 "design space" — actual pixel width comes from the
+// container (viewBox scales via `width:100%`), so the maths below never
+// needs to know real pixel sizes. Purely visual (no tap-to-inspect) — the
+// axes now carry the scale directly instead of hiding it behind a tap.
+const TREND_W = 300;
+const TREND_H = 100;
+const TREND_PAD_Y = 8;
+// Real (non-viewBox) pixel height of the plot area — needed for the Y-axis
+// labels, which live outside the SVG so they never get the non-uniform
+// horizontal stretch `preserveAspectRatio="none"` applies to everything
+// inside it (text inside that SVG would end up squashed/stretched).
+const TREND_PLOT_PX = 128;
+
+function TrendLine({ rows }) {
+  const shown = rows.slice(-12);
+  const max = Math.max(...shown.map((r) => r.total), 1);
+  const n = shown.length;
+  const stepX = n > 1 ? TREND_W / (n - 1) : 0;
+  const points = shown.map((r, i) => ({
+    x: n > 1 ? i * stepX : TREND_W / 2,
+    y: TREND_PAD_Y + (1 - r.total / max) * (TREND_H - TREND_PAD_Y * 2),
+    r,
+  }));
+  const linePath = points.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(" ");
+  const areaPath =
+    points.length > 1
+      ? `${linePath} L ${points[points.length - 1].x.toFixed(2)} ${TREND_H} L ${points[0].x.toFixed(2)} ${TREND_H} Z`
+      : "";
+  // Where the axis labels/gridlines sit, as a % of the plot's real height —
+  // matches the same TREND_PAD_Y inset the points themselves are plotted
+  // within, so "max €" lines up with a point that actually hits the top.
+  const topPct = (TREND_PAD_Y / TREND_H) * 100;
+  const bottomPct = ((TREND_H - TREND_PAD_Y) / TREND_H) * 100;
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8 }}>
+        {/* Y-axis: just the two reference values (top/bottom of the plotted
+            range) — real HTML text, not SVG, so it stays sharp. */}
+        <div style={{ position: "relative", width: 32, height: TREND_PLOT_PX, flexShrink: 0 }}>
+          <span style={{ position: "absolute", top: `${topPct}%`, right: 0, transform: "translateY(-50%)", fontSize: 9.5, fontWeight: 800, color: "#9db3a4", whiteSpace: "nowrap" }}>
+            {formatEuro0(max)}
+          </span>
+          <span style={{ position: "absolute", top: `${bottomPct}%`, right: 0, transform: "translateY(-50%)", fontSize: 9.5, fontWeight: 800, color: "#9db3a4", whiteSpace: "nowrap" }}>
+            0 €
+          </span>
+        </div>
+
+        <div style={{ position: "relative", flex: 1, minWidth: 0, height: TREND_PLOT_PX }}>
+          <svg
+            viewBox={`0 0 ${TREND_W} ${TREND_H}`}
+            preserveAspectRatio="none"
+            style={{ width: "100%", height: "100%", display: "block", overflow: "visible" }}
+          >
+            <defs>
+              <linearGradient id="trendFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor={GREEN} stopOpacity="0.2" />
+                <stop offset="100%" stopColor={GREEN} stopOpacity="0" />
+              </linearGradient>
+            </defs>
+            {/* Axes — a left (Y) and bottom (X) reference line, so the curve
+                isn't floating with no frame of reference. */}
+            <line x1="0" y1="0" x2="0" y2={TREND_H} stroke="#d7e3db" strokeWidth={1.2} vectorEffect="non-scaling-stroke" />
+            <line x1="0" y1={TREND_H} x2={TREND_W} y2={TREND_H} stroke="#d7e3db" strokeWidth={1.2} vectorEffect="non-scaling-stroke" />
+            {areaPath && <path d={areaPath} fill="url(#trendFill)" stroke="none" />}
+            {areaPath && (
+              <path d={linePath} fill="none" stroke={GREEN} strokeWidth={2.4} strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke" />
+            )}
+            {points.map((p) => (
+              <circle
+                key={p.r.key}
+                cx={p.x}
+                cy={p.y}
+                r={3}
+                fill={p.r.total > 0 ? GREEN : "#cdd8d0"}
+                stroke="#fff"
+                strokeWidth={1.4}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+          </svg>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: 5, marginTop: 6, paddingLeft: 40 }}>
+        {shown.map((r) => (
+          <span
+            key={r.key}
+            style={{
+              flex: 1,
+              textAlign: "center",
+              fontSize: 9,
+              fontWeight: 800,
+              color: "#9db3a4",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              minWidth: 0,
+            }}
+          >
+            {r.label}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// One supermarket in "Por supermercado": badge + name + total spent + a
+// full-width colour-matched bar (item count intentionally dropped — it read
+// as noise and didn't tell the user anything useful).
+function StoreSpendRow({ store, total, max }) {
+  const pct = max > 0 ? Math.max(6, Math.round((total / max) * 100)) : 0;
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "34px minmax(0,1fr) 60px", alignItems: "center", gap: 10 }}>
+      {/* This is a fixed 34px grid track — cap the logo's width to match so
+          a wide wordmark (Mercadona) can't spill into the name column next
+          to it the way it did in the store picker before it got this cap. */}
+      <StoreBadge name={store} size={34} maxWidth={32} />
+      <div style={{ minWidth: 0 }}>
+        <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "block" }}>
+          {store}
+        </span>
+        <div style={{ height: 8, borderRadius: 999, background: "#eef4ef", overflow: "hidden", marginTop: 6 }}>
+          <div style={{ height: "100%", width: `${pct}%`, borderRadius: 999, background: GREEN, transition: "width .35s ease" }} />
+        </div>
+      </div>
+      <span style={spendAmountCellStyle}>{formatEuro0(total)}</span>
+    </div>
+  );
+}
+
+// Small tinted circle badge for the rows that don't have a real logo (aisle,
+// frequency, avg ticket) — same footprint (34px) as StoreBadge below, so
+// every row's leading element lines up regardless of which kind it is.
+function habitIconBadge(color) {
+  return {
+    width: 34,
+    height: 34,
+    borderRadius: 11,
+    background: `${color}18`,
+    color,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  };
+}
+
+// Smaller version for the "which one exactly" confirmation badge parked at
+// the far right of a HabitsCard row (category icon next to "Categoría top").
+function habitIconBadgeSmall(color) {
+  return {
+    width: 22,
+    height: 22,
+    borderRadius: 7,
+    background: `${color}18`,
+    color,
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  };
+}
+
+const habitValueTextStyle = {
+  fontSize: 13.5,
+  fontWeight: 900,
+  color: "#142f1d",
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  whiteSpace: "nowrap",
+};
+
+// Leading store / category / staple + ticket average, from the user's data.
+// No separate amount column on purpose — "Mercadona 38€" / "Aceites y
+// conservas 9€" already duplicated the exact totals "Por supermercado" and
+// "Dónde se va el dinero" show a few cards up; this one's just "who/what".
+// "Día que más gastas" got dropped too — in practice it's just whichever day
+// you do the weekly shop, not a real habit — swapped for "Más comprado", the
+// ingredient bought the most separate times (your actual staple).
+// Each row: generic "dimension" icon on the left (same language as every
+// other icon+label row in the app) + a flexible right-hand slot. "Súper
+// favorito" shows ONLY the real store logo, sized to actually read — text +
+// a thumbnail-squashed logo was redundant AND illegible (Mercadona's file is
+// a ~7:1 wordmark; forcing it into a tiny square crushed it to a sliver, see
+// StoreBadge). "Categoría top" keeps text + a small category-icon badge.
+function HabitsCard({ stats }) {
+  const aisleIcon = stats.topAisle ? aisleMeta(stats.topAisle.aisle) : null;
+  const rows = [
+    stats.topStore && {
+      key: "store",
+      Icon: Store,
+      color: "#2b7cd3",
+      label: "Súper favorito",
+      right: <StoreBadge name={stats.topStore.store} size={30} maxWidth={130} />,
+    },
+    stats.topAisle && {
+      key: "aisle",
+      Icon: Package,
+      color: "#7c5cbf",
+      label: "Categoría top",
+      right: (
+        <>
+          <span style={habitValueTextStyle}>{stats.topAisle.aisle}</span>
+          <span style={habitIconBadgeSmall(aisleIcon.color)}>
+            <aisleIcon.Icon size={13} strokeWidth={2.3} />
+          </span>
+        </>
+      ),
+    },
+    stats.topIngredient && {
+      key: "ingredient",
+      Icon: Repeat,
+      color: "#c463a0",
+      label: "Más comprado",
+      right: <span style={habitValueTextStyle}>{stats.topIngredient.name}</span>,
+    },
+    stats.avgTicket > 0 && {
+      key: "ticket",
+      Icon: Receipt,
+      color: "#e07b39",
+      label: "Ticket medio",
+      right: <span style={habitValueTextStyle}>{formatEuro(stats.avgTicket)}</span>,
+    },
+  ].filter(Boolean);
+  if (!rows.length) return null;
+  return (
+    <Card title="Hábitos de gasto">
+      <div style={{ display: "flex", flexDirection: "column" }}>
+        {rows.map((r, i) => (
+          <div
+            key={r.key}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "34px minmax(0, 1fr) auto",
+              alignItems: "center",
+              gap: 12,
+              padding: "10px 0",
+              borderTop: i === 0 ? "none" : "1px solid #eef2ef",
+            }}
+          >
+            <span style={habitIconBadge(r.color)}>
+              <r.Icon size={17} strokeWidth={2.2} />
+            </span>
+            <span style={{ fontSize: 12.5, fontWeight: 700, color: "#7a8a7f", minWidth: 0 }}>{r.label}</span>
+            <span style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 8, minWidth: 0 }}>
+              {r.right}
+            </span>
+          </div>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 const measureChipStyle = {
   flexShrink: 0,
   fontSize: 11.5,
@@ -1043,7 +1960,12 @@ const measureChipStyle = {
 function formatDate(iso) {
   const d = iso ? new Date(iso) : null;
   if (!d || isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+  // DD/MM/AA ("23/07/26") — compact enough for the narrow Fecha column while
+  // still telling two tickets from different years apart.
+  const dd = String(d.getDate()).padStart(2, "0");
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const yy = String(d.getFullYear()).slice(-2);
+  return `${dd}/${mm}/${yy}`;
 }
 
 const primaryBtn = {
@@ -1069,40 +1991,6 @@ const emptyCard = {
   background: "#fff",
   border: "1px solid #e8f0ea",
   borderRadius: 16,
-};
-
-const receiptRow = {
-  display: "flex",
-  alignItems: "center",
-  gap: 10,
-  padding: "10px 0",
-  borderBottom: "1px solid #eef2ef",
-};
-
-const receiptIcon = {
-  width: 34,
-  height: 34,
-  borderRadius: 10,
-  background: "#eef4ef",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexShrink: 0,
-};
-
-const smallIconBtn = {
-  width: 32,
-  height: 32,
-  borderRadius: 9,
-  border: "1px solid #e0eae3",
-  background: "#fff",
-  color: "#7a8a7f",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-  fontFamily: "inherit",
-  flexShrink: 0,
 };
 
 const inputStyle = {

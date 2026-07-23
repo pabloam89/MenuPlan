@@ -7,6 +7,7 @@ import {
   OnboardingRepeat,
   OnboardingMenuModel,
   OnboardingMealStyle,
+  OnboardingMealExtras,
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
@@ -32,7 +33,7 @@ import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getMeals } from "./lib/planner.js";
+import { getMeals, getDayMeals } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
@@ -103,8 +104,10 @@ import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
+import { ModeSelectSheet } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud } from "./lib/pantry.js";
+import { applyConsumption, consumeFromPantry, restoreToPantry } from "./lib/cookPantry.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -200,6 +203,34 @@ const INITIAL_DATA = {
   // When true, mapped «En casa» stock soft-biases menu generation (pantryScore
   // + LLM nudge). Shopping still discounts stock either way.
   useHomeStock: true,
+  // How «En casa» stock feeds menu generation:
+  //   "only"   → strong bias: build the menu mostly from what's at home
+  //   "prefer" → soft, secondary preference (the historical useHomeStock:true)
+  //   "off"    → ignore the pantry when planning
+  // useHomeStock is kept in sync as a legacy boolean (off ⇄ false).
+  pantryMode: "prefer",
+  // ── Modo básico vs avanzado (progressive disclosure) ──
+  // false = modo básico (por defecto): asumimos los ajustes más sencillos y
+  // ocultamos los controles avanzados. true = modo avanzado: el usuario ve y
+  // controla todo. La elección se pide una vez, tras el spotlight de Inicio.
+  expertMode: false,
+  // Si ya se ha mostrado el selector básico/avanzado (para no repetirlo).
+  modePrompted: false,
+  // Decisiones "finas" de despensa (solo modo avanzado). En básico se fuerzan
+  // los defaults de más abajo. Ver el cuestionario de 4 preguntas en «En casa».
+  //   apply:     "snapshot" (se calcula al generar y no cambia) | "onShop" | "live"
+  //   multiWeek: "nearest"  (la despensa va a la semana más cercana) | "all" | "spread"
+  //   lifecycle: "weekly"   (se resetea cada semana) | "persist"
+  //   consume:   "onGenerate" (descuenta el menú de golpe) | "onCook" | "endOfDay" | "none"
+  pantryPrefs: { apply: "snapshot", multiWeek: "nearest", lifecycle: "weekly", consume: "onGenerate" },
+  // Si el usuario ya respondió el cuestionario de despensa (modo avanzado).
+  pantryPrefsSet: false,
+  // Si ya se ha mostrado el cuestionario de despensa al menos una vez (para no
+  // volver a abrirlo solo aunque respondan "más tarde"; el icono lo reabre).
+  pantryPrefsSeen: false,
+  // Deltas reversibles de la bajada "al generar el menú" (decisión D), por
+  // semana — ver migración arriba para la explicación completa.
+  pantryGenDeltas: {},
   // Recipes created by the user via the recipe planner. Same shape as the
   // bundled catalog (see src/data/recipes/*.json) plus source:"user".
   userRecipes: [],
@@ -209,6 +240,14 @@ const INITIAL_DATA = {
   menuModel: "same",
   groups: [],
   meals: ["Comida", "Cena"],
+  // Optional "off-menu" meals, planned deterministically from the light pool
+  // (fruit/yogur/pan…), never by the AI. desayuno: off|variado|findes|igual ·
+  // merienda (kids only): off|semana|laborables · postre: off|comida|cena|ambas.
+  extraMeals: { desayuno: "off", merienda: "off", postre: "off" },
+  // Estructura de plato global (fallback del per-grupo mealStructureByGroup).
+  // En modo básico se elige aquí (un solo control, aplica a todos). "1_plato" o
+  // "primero_segundo".
+  mealStructure: "primero_segundo",
   schedule: {},
   // schoolMenus: { shared: { "Lun-Primero": "...", "Lun-Segundo": "...", "Lun-Postre": "..." },
   //                byMember: { [memberId]: { ... } } }
@@ -284,6 +323,57 @@ function healAdhocGroupLabels(groups) {
   );
 }
 
+// Ajustes que el modo básico da por sentados (progressive disclosure). Se
+// aplican SOLO al generar el menú, sin tocar lo que el usuario tenga guardado,
+// para que al pasar a avanzado recupere sus elecciones intactas.
+const BASIC_PANTRY_PREFS = {
+  apply: "snapshot",      // se calcula al generar y no cambia solo
+  multiWeek: "nearest",   // en multisemana, la despensa va a la más cercana
+  lifecycle: "weekly",    // el ciclo de vida se resetea cada semana
+  consume: "onGenerate",  // se descuenta el menú de golpe al generar
+};
+
+// Devuelve una copia de `data` con los ajustes del modo básico forzados.
+// En modo avanzado (expertMode) devuelve `data` tal cual.
+function resolveModeData(data) {
+  if (!data || data.expertMode) return data;
+  // Cenas rápidas viven en data.slotType como entradas "…|Cena": "rapida".
+  const slotType = data.slotType ?? {};
+  const cleanedSlotType = {};
+  for (const [k, v] of Object.entries(slotType)) {
+    if (v !== "rapida") cleanedSlotType[k] = v;
+  }
+  // Tiempo de cocina compartido (comida = cena) en básico.
+  const ct = data.cookTime?.weekday ? data.cookTime : COOK_TIME_DEFAULTS;
+  const syncBlock = (b) => {
+    const v = Math.max(b?.Comida ?? 30, b?.Cena ?? 30);
+    return { Comida: v, Cena: v };
+  };
+  return {
+    ...data,
+    // Solo comidas y cenas: sin desayuno, merienda ni postre.
+    extraMeals: { desayuno: "off", merienda: "off", postre: "off" },
+    // Sin cenas rápidas.
+    slotType: cleanedSlotType,
+    // Nivel de cocina normal.
+    cookLevel: "normal",
+    // Despensa: usar lo que haya (preferencia blanda).
+    pantryMode: "prefer",
+    useHomeStock: true,
+    // Multisemana: cosas distintas cada semana (sin repetir platos).
+    menuVarietyPref: "strict",
+    // Estilo de comida: equilibrado, sin diferenciar por grupo.
+    mealStyleByGroup: {},
+    // Estructura de plato única para todos (la global elegida en «¿Qué comidas
+    // quieres organizar?»); ignora overrides por grupo del modo avanzado.
+    mealStructureByGroup: {},
+    // Tiempo de cocina igual para comida y cena.
+    cookTime: { mode: "shared", weekday: syncBlock(ct.weekday), weekend: syncBlock(ct.weekend) },
+    // Decisiones finas de despensa: los defaults sencillos.
+    pantryPrefs: { ...BASIC_PANTRY_PREFS },
+  };
+}
+
 function migrate(state) {
   if (!state) return null;
   const d = state.data ?? INITIAL_DATA;
@@ -337,6 +427,15 @@ function migrate(state) {
   if (!d.menuModel) d.menuModel = "same";
   if (!Array.isArray(d.meals) || d.meals.length === 0) {
     d.meals = ["Comida", "Cena"];
+  }
+  if (!d.extraMeals || typeof d.extraMeals !== "object") {
+    d.extraMeals = { desayuno: "off", merienda: "off", postre: "off" };
+  } else {
+    d.extraMeals = {
+      desayuno: d.extraMeals.desayuno ?? "off",
+      merienda: d.extraMeals.merienda ?? "off",
+      postre: d.extraMeals.postre ?? "off",
+    };
   }
   if (!d.freqs || typeof d.freqs !== "object") {
     d.freqs = { legumbres: 2, verdura: 3, pescado: 2 };
@@ -458,6 +557,39 @@ function migrate(state) {
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
   if (typeof d.useHomeStock !== "boolean") d.useHomeStock = true;
+  // pantryMode is the richer 3-way successor to the useHomeStock boolean; seed
+  // it from the legacy flag for existing saves (false → "off", true → "prefer").
+  if (!["only", "prefer", "off"].includes(d.pantryMode)) {
+    d.pantryMode = d.useHomeStock === false ? "off" : "prefer";
+  }
+  // ── Modo básico / avanzado ──
+  const looksEstablished =
+    (Array.isArray(d.members) && d.members.length > 0) ||
+    (d.menus && Object.keys(d.menus).length > 0) ||
+    planHasDishes(state.menuPlan);
+  if (typeof d.expertMode !== "boolean") d.expertMode = false;
+  if (typeof d.modePrompted !== "boolean") {
+    // Cuentas ya en marcha no deben ver de repente el selector de modo: se da
+    // por respondido (quedan en básico). Los usuarios nuevos lo verán una vez.
+    d.modePrompted = Boolean(looksEstablished);
+  }
+  if (!d.pantryPrefs || typeof d.pantryPrefs !== "object") d.pantryPrefs = {};
+  d.pantryPrefs = {
+    apply: ["snapshot", "onShop", "live"].includes(d.pantryPrefs.apply) ? d.pantryPrefs.apply : "snapshot",
+    multiWeek: ["nearest", "all", "spread"].includes(d.pantryPrefs.multiWeek) ? d.pantryPrefs.multiWeek : "nearest",
+    lifecycle: ["weekly", "persist"].includes(d.pantryPrefs.lifecycle) ? d.pantryPrefs.lifecycle : "weekly",
+    consume: ["endOfDay", "onGenerate", "onCook", "none"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onGenerate",
+  };
+  if (typeof d.pantryPrefsSet !== "boolean") d.pantryPrefsSet = false;
+  if (typeof d.pantryPrefsSeen !== "boolean") d.pantryPrefsSeen = false;
+  // Deltas reversibles de la última bajada "al generar el menú" (decisión D),
+  // por semana (clave = startISO). Permiten deshacer al regenerar la misma
+  // semana sin descontar dos veces, y se limpian por Q3 (lifecycle) tras cada
+  // generación. Nunca se muestran en UI, es solo contabilidad interna.
+  if (!d.pantryGenDeltas || typeof d.pantryGenDeltas !== "object" || Array.isArray(d.pantryGenDeltas)) {
+    d.pantryGenDeltas = {};
+  }
+  if (!["primero_segundo", "1_plato"].includes(d.mealStructure)) d.mealStructure = "primero_segundo";
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
   d.cookTime = migrateCookTime(d);
@@ -534,6 +666,15 @@ export default function App() {
   // Bumps after mergeLocalPantryIntoCloud so Pantry/Shopping/onboarding reload
   // stock once the local→cloud fold finishes (avoids a stale empty list).
   const [pantryEpoch, setPantryEpoch] = useState(0);
+  // Cross-screen intents fired from "En casa": open the receipt capture flow in
+  // Tu compra, and land on Análisis → Gasto. Cleared by the target once consumed.
+  const [shoppingCaptureIntent, setShoppingCaptureIntent] = useState(false);
+  const [analyticsInitialTab, setAnalyticsInitialTab] = useState(null);
+  // Whether "Tu gasto" should show a "volver a En casa" shortcut in its own
+  // header — only true right after the deep link from Pantry's "histórico y
+  // analítica" button, not on a plain bottom-nav tap into Analytics/Gasto
+  // (which has no particular screen to "go back" to).
+  const [gastoFromPantry, setGastoFromPantry] = useState(false);
   const [onbStep, setOnbStep] = useState(persisted?.onbStep ?? 0);
   // Which history entry is open in the read-only viewer (screen "menuHistory").
   const [historyMenuId, setHistoryMenuId] = useState(null);
@@ -971,14 +1112,21 @@ export default function App() {
   };
 
   const toastTimer = useRef(null);
-  const showToast = useCallback((msg) => {
-    setToast(msg);
+  // `action` (optional) renders a trailing button in the toast — e.g. a
+  // "Deshacer" for a just-marked "Comprado". When present the toast lingers a
+  // bit longer so there's time to actually tap it. All other callers pass a
+  // plain string and keep the old short, action-less behaviour.
+  const showToast = useCallback((msg, action = null) => {
+    setToast(action ? { msg, action } : msg);
     window.clearTimeout(toastTimer.current);
-    toastTimer.current = window.setTimeout(() => setToast(null), 1800);
+    toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 1800);
   }, []);
 
   const regenerateMenu = useCallback(async (nextData) => {
-    const working = nextData ?? data;
+    // En modo básico forzamos los ajustes sencillos (comidas/cenas, cocina
+    // normal, despensa "usar lo que haya", menú equilibrado, decisiones de
+    // despensa por defecto) sin tocar lo guardado del usuario.
+    const working = resolveModeData(nextData ?? data);
     let groups = working.groups;
     if (groups.length === 0 && working.members.length > 0) {
       groups = groupsFromModel(working.members, working.menuModel);
@@ -995,16 +1143,56 @@ export default function App() {
     setIsGeneratingMenu(true);
     setMenuError(null);
     try {
-      const pantryStock = user ? await loadPantry(user.id) : loadLocalPantry();
-      // Planning bias is opt-out via useHomeStock; shopping always sees stock
-      // so «Ya en casa» stays accurate.
-      const pantryIngredients = working.useHomeStock === false ? [] : pantryStock;
       const weekOffsets = (Array.isArray(working.menuWeekOffsets) && working.menuWeekOffsets.length
         ? [...new Set(working.menuWeekOffsets)]
         : [working.menuWeek?.offset ?? 0]
       ).sort((a, b) => a - b);
       const weekCount = weekOffsets.length;
       const baseStartDayIdx = working.menuWeek?.startDayIdx ?? 0;
+      // startISO/endISO por semana, calculados antes de generar — se usan como
+      // clave estable para deshacer/rehacer la bajada "al generar" (decisión D)
+      // y para la limpieza semanal (decisión C).
+      const weekMeta = weekOffsets.map((offset, w) => {
+        const startDayIdx = offset === weekOffsets[0] ? baseStartDayIdx : 0;
+        const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
+        return { offset, w, startDayIdx, startISO, endISO };
+      });
+
+      // D (consumo): si alguna de las semanas que vamos a regenerar ya tenía
+      // una bajada "al generar" de una generación anterior, la deshacemos
+      // ANTES de recargar la despensa — así regenerar la misma semana varias
+      // veces nunca descuenta dos veces lo mismo.
+      const staleGenDeltas = working.pantryGenDeltas ?? {};
+      const weeksBeingRegenerated = new Set(weekMeta.map((m) => m.startISO));
+      const restoreKeys = Object.keys(staleGenDeltas).filter(
+        (k) => weeksBeingRegenerated.has(k) && staleGenDeltas[k]?.length
+      );
+      for (const key of restoreKeys) {
+        await restoreToPantry(staleGenDeltas[key], { user });
+      }
+
+      const pantryStock = user ? await loadPantry(user.id) : loadLocalPantry();
+      // Planning bias is controlled by pantryMode ("only"/"prefer"/"off");
+      // shopping always sees the stock so «Ya en casa» stays accurate.
+      // Fall back to the legacy useHomeStock boolean for older saves.
+      const pantryMode = ["only", "prefer", "off"].includes(working.pantryMode)
+        ? working.pantryMode
+        : working.useHomeStock === false ? "off" : "prefer";
+      const pantryIngredients = pantryMode === "off" ? [] : pantryStock;
+      const pantryStrict = pantryMode === "only";
+      // Decisión B (multisemana): "nearest" → la despensa solo sesga la semana
+      // más cercana; "all" → todas las semanas ven la despensa completa
+      // (histórico); "spread" → cada semana ve la despensa menos lo que ya
+      // "gastó" la semana anterior (resta en cascada, nunca duplica).
+      const pantryMultiWeek = ["nearest", "all", "spread"].includes(working.pantryPrefs?.multiWeek)
+        ? working.pantryPrefs.multiWeek
+        : "nearest";
+      // Decisión D (consumo): cuándo se baja el stock real. "onGenerate" se
+      // resuelve aquí mismo (bloque tras la generación); "onCook" lo gestiona
+      // DishDetail/"Marcar cocinado"; "endOfDay"/"none" no bajan stock aquí.
+      const consumeMode = ["endOfDay", "onGenerate", "onCook", "none"].includes(working.pantryPrefs?.consume)
+        ? working.pantryPrefs.consume
+        : "onGenerate";
       const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref)
         ? working.menuVarietyPref
         : "strict";
@@ -1013,14 +1201,16 @@ export default function App() {
       // so every week/group of the same menú uses the same variant.
       const planner = resolvePlannerModel();
 
-      // Weeks are generated in parallel (bounded by WEEK_CONCURRENCY). Cross-week
-      // variety is deterministic per week (aiPlanner#poolForWeek), so there's no
-      // dependency on a previous week's result — "strict"/"moderate" bias the
-      // pool, "relaxed" applies none.
-      const weekResults = await mapWithConcurrency(weekOffsets, WEEK_CONCURRENCY, async (offset, w) => {
-        // Only the earliest selected week can be partial (starts today, not
-        // Monday) — any other offset is always a full 7-day week.
-        const startDayIdx = offset === weekOffsets[0] ? baseStartDayIdx : 0;
+      // "spread" necesita que cada semana vea el resultado de la anterior (no
+      // hay independencia entre semanas), así que se genera en serie —
+      // concurrencia 1 en mapWithConcurrency procesa la cola en orden. El
+      // resto de modos sigue en paralelo (bounded by WEEK_CONCURRENCY).
+      // Cross-week variety es determinista por semana (aiPlanner#poolForWeek):
+      // "strict"/"moderate" sesgan el pool, "relaxed" no aplica ninguno.
+      let spreadPantry = pantryIngredients;
+      const effectiveConcurrency = pantryMultiWeek === "spread" ? 1 : WEEK_CONCURRENCY;
+      const weekResults = await mapWithConcurrency(weekOffsets, effectiveConcurrency, async (offset, w) => {
+        const { startDayIdx, startISO, endISO } = weekMeta[w];
         const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
           ? working.schedule
           : (working.menuWeekOverrides?.[offset] ?? working.schedule);
@@ -1029,9 +1219,18 @@ export default function App() {
           ? null
           : { weekIndex: w, weekCount, varietyPref };
 
+        // B: en "nearest" solo la semana más cercana recibe despensa como
+        // sesgo; en "all" todas ven la despensa completa; en "spread" cada
+        // semana ve lo que queda tras restar lo que gastó la anterior.
+        const weekPantry =
+          pantryMultiWeek === "all" ? pantryIngredients
+          : pantryMultiWeek === "spread" ? spreadPantry
+          : offset === weekOffsets[0] ? pantryIngredients : [];
+
         const { plan, recipes } = await generateMenuWithAI(weekData, {
           signal: ctrl.signal,
-          pantryIngredients,
+          pantryIngredients: weekPantry,
+          pantryStrict,
           crossWeek,
           plannerModel: planner.model,
         });
@@ -1045,13 +1244,62 @@ export default function App() {
         // parallel workers.) The aggregate registerRecipes below is now belt-and-
         // suspenders for health-flags/UI, but harmless.
         registerRecipes(recipes);
-        const sh = buildShoppingList(plan, groups, getMeals(weekData), pantryStock);
+        const sh = buildShoppingList(plan, groups, getDayMeals(weekData), pantryStock);
+        if (pantryMultiWeek === "spread" && pantryMode !== "off") {
+          // Proyección en memoria únicamente (nunca escribe en BD): lo que esta
+          // semana cubrió con despensa deja de estar disponible para la
+          // siguiente. La resta real en BD (si consumeMode === "onGenerate")
+          // se hace más abajo, después de que todas las semanas terminen.
+          spreadPantry = applyConsumption(
+            sh.pantryItems.map((it) => ({ name: it.name, qty: it.qty, unit: it.unit })),
+            spreadPantry
+          ).workingStock;
+        }
         const weekShopping = { items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems] };
-        const { startISO, endISO } = computeWeekRange(offset, startDayIdx);
-        return { offset, startDayIdx, startISO, endISO, plan, weekShopping, weekSchedule, recipes };
+        return {
+          offset, startDayIdx, startISO, endISO, plan, weekShopping, weekSchedule, recipes,
+          pantryItems: sh.pantryItems,
+        };
       });
 
       if (ctrl.signal.aborted) return;
+
+      // D (consumo, "al generar el menú"): baja de la despensa real, semana a
+      // semana y EN SERIE (recargando stock entre cada una), lo que esa
+      // semana cubrió con despensa. En serie evita que dos semanas resten a
+      // la vez del mismo stock ya cargado en memoria (double-count). Guarda
+      // los deltas por semana para poder deshacer si se regenera otra vez.
+      const genDeltasPatch = {};
+      if (consumeMode === "onGenerate") {
+        for (const res of weekResults) {
+          const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
+          if (!used.length) continue;
+          const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
+          const { deltas } = await consumeFromPantry(used, freshStock, { user });
+          if (deltas.length) genDeltasPatch[res.startISO] = deltas;
+        }
+      }
+      // Decisión C (ciclo de vida): en "weekly" no arrastramos indefinidamente
+      // el historial de deshacer de semanas ya terminadas — solo afecta a esta
+      // contabilidad interna, nunca borra ni toca el stock real.
+      const lifecycleMode = ["weekly", "persist"].includes(working.pantryPrefs?.lifecycle)
+        ? working.pantryPrefs.lifecycle
+        : "weekly";
+      const nextGenDeltas = { ...(working.pantryGenDeltas ?? {}) };
+      for (const key of restoreKeys) delete nextGenDeltas[key];
+      for (const m of weekMeta) delete nextGenDeltas[m.startISO];
+      Object.assign(nextGenDeltas, genDeltasPatch);
+      if (lifecycleMode === "weekly") {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        for (const key of Object.keys(nextGenDeltas)) {
+          const weekEnd = new Date(key);
+          if (Number.isNaN(weekEnd.getTime())) continue;
+          weekEnd.setDate(weekEnd.getDate() + 6);
+          weekEnd.setHours(23, 59, 59, 999);
+          if (weekEnd < today) delete nextGenDeltas[key];
+        }
+      }
 
       const weeks = {};
       const allRecipes = [];
@@ -1109,6 +1357,7 @@ export default function App() {
         menus: foldedMenus,
         activeMenuId: newMenu.id,
         menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
+        pantryGenDeltas: nextGenDeltas,
       }));
       // Fase 2 (multi-week-menus plan): best-effort dual write to the
       // normalized tables, fire-and-forget. Never awaited — the localStorage/
@@ -1615,6 +1864,10 @@ export default function App() {
         : "dashboard";
       setPantryOrigin(origin);
     }
+    // A plain bottom-nav tap into Analytics is not the pantry deep link —
+    // drop any leftover "volver a En casa" shortcut from an earlier visit so
+    // it doesn't linger into an unrelated visit to Gasto.
+    if (id === "analytics") setGastoFromPantry(false);
     setScreen(id);
     if (id === "shopping") trackEvent(user, "shopping_opened", "shopping");
   }, [screen, user, pantryOrigin]);
@@ -1626,16 +1879,18 @@ export default function App() {
     setScreen("onboarding");
   }, []);
 
-  // "Editar preferencias" from Settings/Account used to just jump into step 6
-  // of the full onboarding wizard — "Atrás" then stepped backward through the
-  // whole wizard instead of returning to where the user came from, and
-  // finishing it regenerated the entire menú (goToMenu → regenerateMenu) just
-  // to save an allergy edit. This tracks which screen to return to so the
-  // restrictions step can behave as a self-contained mini-editor instead.
+  // "Editar preferencias" from Settings/Account used to just jump into the
+  // restrictions step of the full onboarding wizard — "Atrás" then stepped
+  // backward through the whole wizard instead of returning to where the user
+  // came from, and finishing it regenerated the entire menú (goToMenu →
+  // regenerateMenu) just to save an allergy edit. This tracks which screen to
+  // return to so the restrictions step can behave as a self-contained
+  // mini-editor instead. NOTE: keep the index in sync with OnboardingRestrictions'
+  // position in `onbScreens` below (currently 3).
   const [editPreferencesOrigin, setEditPreferencesOrigin] = useState(null);
   const openEditPreferences = useCallback((origin) => {
     setEditPreferencesOrigin(origin);
-    goToOnboardingStep(6);
+    goToOnboardingStep(3);
   }, [goToOnboardingStep]);
 
   // "¿Para quién es el menú?" — when the profile already has members, offer to
@@ -1672,14 +1927,6 @@ export default function App() {
     setSelectedSlot(selection);
     trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
   }, [user]);
-
-  // One-shot "jump to this dish" signal from the Menú availability dot →
-  // opens Compra straight into Modo Cocina with that recipe expanded.
-  const [cookFocus, setCookFocus] = useState(null);
-  const handleFocusCookDish = useCallback((focus) => {
-    setCookFocus(focus);
-    handleNav("shopping");
-  }, [handleNav]);
 
   // Public like/dislike rating — independent of favoriting. Feeds the
   // accumulated thumbs-up/down counts shown next to the recipe owner.
@@ -1785,7 +2032,7 @@ export default function App() {
           [slotKey]: nextSlot,
         },
       };
-      const sh = buildShoppingList(next, groups, getMeals(data), pantryIngredients);
+      const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
       setShopping((prev) => {
         const flags = Object.fromEntries(
           prev.items.map((i) => [
@@ -1891,24 +2138,32 @@ export default function App() {
     await signOut();
   }, [signOut, user]);
 
-  // Order: Members → Menu Model → School Menu → Week → Schedule → Meal Style → Restrictions → Repeat → Cooking.
+  // Order: Members → Menu Model → School Menu → Restrictions → Week → Schedule →
+  // Meal Style → Meal Extras (structure/desayuno/merienda/postre/cenas rápidas)
+  // → Repeat → Cooking.
   // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
   // real choice: no split possible if everyone's an adult, nothing to upload
   // if nobody in the house is underage (baby or child).
-  const ONB_STEP_COUNT = 9;
+  const ONB_STEP_COUNT = 10;
   const skipMenuModel = !canSplitMenus(data.members);
   const skipSchoolMenu = !hasUnderageMember(data.members);
+  // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (6, se asume
+  // equilibrado), "¿Cómo completamos el menú?" (7, la estructura de plato se
+  // pregunta ya en "¿Qué comidas quieres organizar?") y "¿Qué repetimos?" (8)
+  // se ocultan.
+  const basicMode = !data.expertMode;
   const isStepHidden = useCallback(
     (i) =>
       (i === 1 && skipMenuModel) ||
       (i === 2 && skipSchoolMenu) ||
+      (basicMode && (i === 6 || i === 7 || i === 8)) ||
       // "Mi familia habitual" only ever skips Familia (0) — it's the one
       // thing already known. Everything else (modelo de menú, semana,
       // horario, estilo, restricciones, qué repetimos, cocina) can change
       // from una generación a otra, so it's asked in full every time, same
       // as a brand-new family or "Otro grupo".
       (quickMenu && i === 0),
-    [skipMenuModel, skipSchoolMenu, quickMenu]
+    [skipMenuModel, skipSchoolMenu, quickMenu, basicMode]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -1992,38 +2247,14 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingWeek
-      data={data}
-      setData={setData}
-      onNext={nextOf(3)}
-      onBack={backOf(3)}
-      onFinish={() => fwd(goToMenu)}
-      onReset={handleAbandonOnboarding}
-    />,
-    <OnboardingSchedule
-      data={data}
-      setData={setData}
-      onNext={nextOf(4)}
-      onBack={backOf(4)}
-      onFinish={() => fwd(goToMenu)}
-      onReset={handleAbandonOnboarding}
-    />,
-    <OnboardingMealStyle
-      data={data}
-      setData={setData}
-      onNext={nextOf(5)}
-      onBack={backOf(5)}
-      onFinish={() => fwd(goToMenu)}
-      onReset={handleAbandonOnboarding}
-    />,
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      onNext={editPreferencesOrigin ? undefined : nextOf(6)}
+      onNext={editPreferencesOrigin ? undefined : nextOf(3)}
       onBack={
         editPreferencesOrigin
           ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
-          : backOf(6)
+          : backOf(3)
       }
       onFinish={
         editPreferencesOrigin
@@ -2033,22 +2264,54 @@ export default function App() {
       onReset={handleAbandonOnboarding}
       {...(editPreferencesOrigin ? { finishLabel: "Guardar" } : {})}
     />,
+    <OnboardingWeek
+      data={data}
+      setData={setData}
+      onNext={nextOf(4)}
+      onBack={backOf(4)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingSchedule
+      data={data}
+      setData={setData}
+      onNext={nextOf(5)}
+      onBack={backOf(5)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingMealStyle
+      data={data}
+      setData={setData}
+      onNext={nextOf(6)}
+      onBack={backOf(6)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingMealExtras
+      data={data}
+      setData={setData}
+      onNext={nextOf(7)}
+      onBack={backOf(7)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
     <OnboardingRepeat
       data={data}
       setData={setData}
       user={user}
       priceObs={data.priceObs ?? []}
       pantryEpoch={pantryEpoch}
-      onNext={nextOf(7)}
-      onBack={backOf(7)}
+      onNext={nextOf(8)}
+      onBack={backOf(8)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onNext={nextOf(8)}
-      onBack={backOf(8)}
+      onNext={nextOf(9)}
+      onBack={backOf(9)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
@@ -2172,10 +2435,14 @@ export default function App() {
               activeMenu={data.menus?.[data.activeMenuId] ?? null}
               onSwitchWeek={switchActiveWeek}
               onOpenMenus={openMenusScreen}
+              onOpenAnalytics={() => {
+                setGastoFromPantry(false);
+                setAnalyticsInitialTab(null);
+                fwd(() => setScreen("analytics"));
+              }}
               autoOpenProfile={pendingProfileOpen}
               onAutoOpenProfileHandled={() => setPendingProfileOpen(false)}
               shoppingItems={shopping.items}
-              onFocusCookDish={handleFocusCookDish}
             />
           </div>
         )}
@@ -2198,6 +2465,7 @@ export default function App() {
                 data={data}
                 hasAccount={Boolean(user)}
                 onNav={handleNav}
+                onBack={() => back(() => setScreen("menu"))}
                 onOpenCurrent={() => fwd(() => setScreen("menu"))}
                 onGenerateMenu={handleGenerateMenu}
                 onReuseMenu={reuseMenu}
@@ -2249,9 +2517,8 @@ export default function App() {
                 menuWeeks={data.activeMenuId ? orderedWeeks(data.menus?.[data.activeMenuId]) : null}
                 activeOffset={data.menuWeek?.offset ?? null}
                 onUpdateWeek={updateWeekShopping}
-                initialFocusDish={cookFocus}
-                onFocusDishHandled={() => setCookFocus(null)}
-                onOpenPantry={() => fwd(() => { setPantryOrigin("shopping"); setScreen("pantry"); })}
+                openCaptureOnMount={shoppingCaptureIntent}
+                onCaptureHandled={() => setShoppingCaptureIntent(false)}
                 pantryEpoch={pantryEpoch}
               />
             </Suspense>
@@ -2273,6 +2540,12 @@ export default function App() {
                 onUndoReceiptTachado={undoReceiptTachado}
                 onNav={handleNav}
                 onToast={showToast}
+                initialTab={analyticsInitialTab}
+                onInitialTabHandled={() => setAnalyticsInitialTab(null)}
+                onBackToPantry={
+                  gastoFromPantry ? () => back(() => { setGastoFromPantry(false); setScreen("pantry"); }) : null
+                }
+                navActive={gastoFromPantry ? "pantry" : "menu"}
               />
             </Suspense>
           </div>
@@ -2335,14 +2608,19 @@ export default function App() {
                 priceObs={data.priceObs ?? []}
                 pantryEpoch={pantryEpoch}
                 onNav={handleNav}
-                navActive={
-                  pantryOrigin === "shopping" ? "shopping"
-                  : pantryOrigin === "account" ? "settings"
-                  : "pantry"
-                }
-                navContext={
-                  pantryOrigin === "shopping" || pantryOrigin === "account" ? "menu" : "home"
-                }
+                // One unified nav now (see BottomNav in ui.jsx): "En casa" is always
+                // its own permanent tab, so it's always the one lit up here — no
+                // more borrowing "shopping"/"settings" depending on where you came
+                // from. `pantryOrigin` still matters for the Atrás button below.
+                data={data}
+                setData={setData}
+                shopping={shopping}
+                onToast={showToast}
+                onOpenAnalytics={() => {
+                  setAnalyticsInitialTab("gasto");
+                  setGastoFromPantry(true);
+                  fwd(() => setScreen("analytics"));
+                }}
               />
             </Suspense>
           </div>
@@ -2358,6 +2636,11 @@ export default function App() {
                 user={user}
                 data={data}
                 menuPlan={menuPlan}
+                expertMode={Boolean(data.expertMode)}
+                onToggleMode={() => {
+                  setData((d) => ({ ...d, expertMode: !d.expertMode, modePrompted: true }));
+                  showToast(data.expertMode ? "Modo sencillo activado" : "Modo avanzado activado");
+                }}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
@@ -2373,6 +2656,19 @@ export default function App() {
 
         {screen === "dashboard" && !homeCoachSeen && (
           <HomeCoachTour onClose={markHomeCoachSeen} />
+        )}
+
+        {/* Selector básico/avanzado: una sola vez, tras el spotlight de Inicio.
+            Cerrar sin elegir = modo básico. */}
+        {screen === "dashboard" && homeCoachSeen && !data.modePrompted && (
+          <ModeSelectSheet
+            onChoose={(expert) =>
+              setData((d) => ({ ...d, expertMode: Boolean(expert), modePrompted: true }))
+            }
+            onDismiss={() =>
+              setData((d) => ({ ...d, expertMode: false, modePrompted: true }))
+            }
+          />
         )}
 
         {screen === "recipes" && (
@@ -2436,6 +2732,7 @@ export default function App() {
                 data={data}
                 setData={setData}
                 onNav={handleNav}
+                onBack={() => back(() => setScreen("dashboard"))}
                 onSignIn={signInWithGoogle}
                 onSignOut={signOut}
                 onReset={handleSoftReset}
@@ -2517,6 +2814,14 @@ export default function App() {
           onSetFavoriteScope={(scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
           onClose={() => setSelectedSlot(null)}
           onReject={selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
+          day={selectedSlot.day ?? null}
+          meal={selectedSlot.meal ?? null}
+          cookWeekKey={`${data.activeMenuId ?? "live"}:${data.menuWeek?.offset ?? 0}`}
+          user={user}
+          data={data}
+          setData={setData}
+          onToast={showToast}
+          onPantryChanged={() => setPantryEpoch((n) => n + 1)}
         />
       )}
 
@@ -2753,38 +3058,64 @@ export default function App() {
             transform: "translateX(-50%)",
             display: "flex",
             alignItems: "center",
-            gap: 10,
-            maxWidth: "calc(100% - 40px)",
-            // Same tinted-green wizard-sheet palette as the pop-ups, so a
-            // toast reads as "the same app" instead of a separate dark pill.
+            gap: 12,
+            maxWidth: "calc(100% - 32px)",
+            // Mirror the WizardSheet card tokens (tinted-green fill, 22px radius,
+            // 44px icon bubble, deep shadow) so a save confirmation reads as the
+            // same surface family as the pop-ups, just smaller.
             background: "#f3f8f4",
-            border: "1px solid #e2ede5",
+            border: "1.5px solid #e2ede5",
             color: "#142f1d",
-            padding: "9px 16px 9px 9px",
-            borderRadius: 18,
-            fontSize: 13,
+            padding: "11px 18px 11px 11px",
+            borderRadius: 22,
+            fontSize: 13.5,
             fontWeight: 800,
             lineHeight: 1.3,
-            boxShadow: "0 16px 40px rgba(0,0,0,.22)",
-            zIndex: 200,
+            boxShadow: "0 24px 60px -16px rgba(20,47,29,.5)",
+            zIndex: 320,
           }}
         >
           <span
             style={{
-              width: 28,
-              height: 28,
-              borderRadius: 9,
+              width: 38,
+              height: 38,
+              borderRadius: 13,
               background: "#2d5a3d",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,
-              boxShadow: "0 3px 8px rgba(45,90,61,.35)",
+              boxShadow: "0 6px 14px -4px rgba(45,90,61,.5)",
             }}
           >
-            <Check size={14} color="#fff" strokeWidth={2.6} />
+            <Check size={18} color="#fff" strokeWidth={2.8} />
           </span>
-          {toast}
+          <span style={{ minWidth: 0 }}>{typeof toast === "string" ? toast : toast.msg}</span>
+          {typeof toast !== "string" && toast.action && (
+            <button
+              type="button"
+              onClick={() => {
+                toast.action.onClick?.();
+                window.clearTimeout(toastTimer.current);
+                setToast(null);
+              }}
+              style={{
+                flexShrink: 0,
+                marginLeft: 4,
+                border: "none",
+                background: "#2d5a3d",
+                color: "#fff",
+                borderRadius: 999,
+                padding: "6px 14px",
+                fontSize: 13,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              {toast.action.label}
+            </button>
+          )}
         </div>
       )}
     </div>

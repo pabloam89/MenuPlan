@@ -107,22 +107,38 @@ export function guessIngredientCategory(name) {
 
 const SHOPPING_AISLE_HINTS = [
   [
-    /manzana|platano|naranja|limon|lima|pera|melon|sandia|fresa|frambuesa|arandano|uvas|mandarina|kiwi|mango|pina|granada|ciruela|melocoton|albaricoque|higo|chirimoya/,
+    // `\b`-bounded for "pera"/"mora"/"pina": all three are also short
+    // mid-word fragments of very common, very much NOT fruit ingredients —
+    // "eMPERAdor" (swordfish), "cebolla moRAda" (red onion), "esPINAcas"
+    // (spinach) — all three used to silently resolve to "Frutas" because
+    // this group is checked before Pescado/the Verduras default even runs,
+    // and a bare substring match doesn't care where in the word it hits.
+    /manzana|platano|naranja|limon|lima|\bperas?\b|melon|sandia|fresa|frambuesa|\bmoras?\b|cerez|arandano|uvas|mandarina|kiwi|mango|\bpinas?\b|granada|ciruela|melocoton|albaricoque|higo|chirimoya|pitaya|papaya|maracuya|lichi|caqui|nispero/,
     "Frutas",
   ],
   // Pescado antes que Carne: "lomos de salmón" contiene "lomo" (Carne) y
   // "salmón" (Pescado); la primera coincidencia gana, así que el pez va primero.
   [
-    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina/,
+    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina|rodaja|ventresca|cogote|suprema|pescadilla|gallo|panga|perca|tilapia|mero|congrio|raya|chipiron|chopito|vieira|zamburi|carabinero|cigala|necora|centoll|bogavante|cangrejo|buey de mar|surimi|jurel|salmonete|cazon|abadejo|halibut|corvina|palometa|pez espada|marisco/,
     "Pescado",
   ],
   [
-    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|beicon|panceta|tocino|cordero|solomillo|chuleta|morcilla|picada|costilla|entrecot|hamburgues|albondig|butifarra|fuet|mortadela|fiambre/,
+    /pollo|pavo|ternera|cerdo|carne|lomo|chorizo|salchich|jamon|bacon|beicon|panceta|tocino|cordero|solomillo|chuleta|chuleton|morcilla|picada|costilla|entrecot|hamburgues|albondig|butifarra|fuet|mortadela|fiambre|entrana|entraña|aguja|secreto|presa|pluma|carrillera|morcillo|jarrete|osobuco|redondo|cadera|babilla|espaldilla|contramuslo|muslo|pechuga|magro|escalop|filete|conejo|pato|codorniz|higado|churrasco|villagodio|lacon|manitas/,
     "Carne",
   ],
-  [/lentej|garbanz|alubi|judia verde|habas|soja|tofu/, "Legumbres"],
-  [/pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa|noodle|lasaña/, "Pasta y arroz"],
-  [/leche|nata|queso|yogur|mantequilla|requeson|mozzarella|parmesano|cuajada/, "Lácteos"],
+  [/lentej|garbanz|alubi|judia verde|habas|soja|tofu|judion|judias? pintas?|garrofon|fabes/, "Legumbres"],
+  // "lasaña" (with ñ) never actually matched anything: `normalizeName` runs
+  // NFD + strips combining marks, which turns "ñ" into a plain "n" ("lasaña"
+  // -> "lasana") before this regex ever sees it — dead alternative, silently
+  // falling through to the Verduras default instead. Also filled in the
+  // pasta *shapes* (fusilli/penne/tallarín/tirabuzón/lacitos/canelones/
+  // raviolis) added to the ingredient dictionary in the receipt-matching
+  // pass but never wired into this separate aisle list.
+  [
+    /pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa|noodle|lasan|fusilli|penne|tallarin|tirabuzon|lacito|canelon|raviol|tortellini/,
+    "Pasta y arroz",
+  ],
+  [/leche|nata|queso|yogur|mantequilla|requeson|mozzarella|parmesano|cuajada|quesito/, "Lácteos"],
   [/huevo/, "Huevos"],
   [/pan |harina|avena|cereales|tostada|boller|pan rallado|panko/, "Panadería"],
   [

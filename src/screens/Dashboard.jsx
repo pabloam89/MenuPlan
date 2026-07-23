@@ -13,19 +13,24 @@ import {
   PersonStanding,
   Baby,
   CookingPot,
+  Refrigerator,
+  Settings,
+  Leaf,
+  SlidersHorizontal,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { countMenusGenerated } from "../lib/menuStats.js";
 import { planHasDishes } from "../lib/menuArchive.js";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
-import { DAYS, getMeals } from "../lib/planner.js";
+import { DAYS, getMeals, getDayMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor } from "../lib/stages.js";
 import menuCardPhoto from "../assets/dashboard/menu-card.jpg";
 import recipesCardPhoto from "../assets/dashboard/recipes-card.jpg";
+import pantryCardPhoto from "../assets/dashboard/pantry-card.jpg";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 
 const PAGE_BG = "#f4f8f5";
@@ -204,7 +209,7 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
 
 // ── Quick action: full-bleed photo card with the title embedded ────────────
 
-function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", onClick, id }) {
+function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", aspectRatio = "4 / 5", onClick, id }) {
   return (
     <button
       type="button"
@@ -213,7 +218,7 @@ function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = 
       style={{
         flex: 1,
         position: "relative",
-        aspectRatio: "4 / 5",
+        aspectRatio,
         borderRadius: 20,
         overflow: "hidden",
         border: "none",
@@ -238,10 +243,22 @@ function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = 
           background: "linear-gradient(190deg, rgba(15,35,22,0) 38%, rgba(13,32,20,.55) 72%, rgba(10,26,16,.86) 100%)",
         }}
       />
-      <div style={{ position: "absolute", left: 12, right: 12, bottom: 12, textAlign: "left" }}>
+      {/* Fixed-height + top-anchored (not bottom-flow): the 3 titles/subtitles
+          wrap to a different number of lines ("Actualizar despensa" wraps,
+          "Generar menú" doesn't), so letting the block just hug its own
+          content while pinned to `bottom` made the icon sit at a different
+          height on each card. Reserving a constant height and starting the
+          flex column from its top means the icon lands at the exact same Y
+          on all 3 regardless of how many lines the copy below it takes. */}
+      <div
+        style={{
+          position: "absolute", left: 12, right: 12, bottom: 12, textAlign: "left",
+          minHeight: 112, display: "flex", flexDirection: "column", justifyContent: "flex-start",
+        }}
+      >
         <div
           style={{
-            width: 32, height: 32, borderRadius: 10, marginBottom: 8,
+            width: 32, height: 32, borderRadius: 10, marginBottom: 8, flexShrink: 0,
             background: "rgba(255,255,255,.22)", backdropFilter: "blur(6px)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
@@ -252,7 +269,7 @@ function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = 
           {title}
         </p>
         {subtitle && (
-          <p style={{ margin: "3px 0 0", fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,.8)" }}>{subtitle}</p>
+          <p style={{ margin: "3px 0 0", fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,.8)", lineHeight: 1.3 }}>{subtitle}</p>
         )}
       </div>
     </button>
@@ -273,6 +290,9 @@ export function DashboardScreen({
   onGenerateNewMenu,
   onOpenRecipePlanner,
   onOpenStreak,
+  onOpenAccount,
+  expertMode = false,
+  onToggleMode,
 }) {
   const g = googleInfo(user);
   // Real dishes, not just key count: a plan always carries `_warnings`, so an
@@ -302,7 +322,7 @@ export function DashboardScreen({
     if (!selectedGroup || !hasMenu) return [];
     const day = todayShort();
     const out = [];
-    for (const meal of getMeals(data)) {
+    for (const meal of getDayMeals(data)) {
       const slot = menuPlan[selectedGroup.id]?.[`${day}-${meal}`];
       if (!slot?.recipeId) continue;
       const recipe = RECIPES_BY_ID[slot.recipeId];
@@ -362,6 +382,52 @@ export function DashboardScreen({
               background: "linear-gradient(180deg, rgba(12,34,21,.5) 0%, rgba(12,34,21,.32) 32%, rgba(10,28,18,.68) 100%)",
             }}
           />
+
+          {/* Interruptor de modo (básico ⇄ avanzado). El spotlight lo señala
+              para que quien se quede en básico sepa que puede subir de nivel. */}
+          {onToggleMode && (
+            <button
+              type="button"
+              data-coach="home-mode"
+              onClick={onToggleMode}
+              aria-label={expertMode ? "Modo avanzado (toca para modo sencillo)" : "Modo sencillo (toca para modo avanzado)"}
+              title={expertMode ? "Modo avanzado" : "Modo sencillo"}
+              style={{
+                position: "absolute", top: 14, left: 14, zIndex: 1,
+                display: "inline-flex", alignItems: "center", gap: 6,
+                height: 34, padding: "0 12px", borderRadius: 999,
+                border: "none", background: "rgba(255,255,255,.22)",
+                backdropFilter: "blur(6px)",
+                cursor: "pointer", color: "#fff",
+                fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+              }}
+            >
+              {expertMode ? <SlidersHorizontal size={14} color="#fff" strokeWidth={2.4} /> : <Leaf size={14} color="#fff" strokeWidth={2.4} />}
+              {expertMode ? "Avanzado" : "Sencillo"}
+            </button>
+          )}
+
+          {/* "Perfil" lost its bottom-nav tab (see BottomNav in ui.jsx) —
+              it's reached from here now, the "Inicio" it always stays under. */}
+          {onOpenAccount && (
+            <button
+              type="button"
+              data-coach="dashboard-profile"
+              onClick={onOpenAccount}
+              aria-label="Tu perfil"
+              title="Tu perfil"
+              style={{
+                position: "absolute", top: 14, right: 14, zIndex: 1,
+                width: 34, height: 34, borderRadius: "50%",
+                border: "none", background: "rgba(255,255,255,.22)",
+                backdropFilter: "blur(6px)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer",
+              }}
+            >
+              <Settings size={16} color="#fff" strokeWidth={2.3} />
+            </button>
+          )}
 
           {/* avatar circle */}
           <div style={{ padding: 3, borderRadius: "50%", background: "rgba(255,255,255,.3)", position: "relative" }}>
@@ -437,23 +503,37 @@ export function DashboardScreen({
         </div>
 
         {/* ── Acciones rápidas ──────────────────────────── */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+        {/* 3 tiles now share the row, so a squatter ratio (3/4 instead of 4/5)
+            keeps the block from growing taller than with just 2. */}
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <QuickActionTile
+            id="coach-update-pantry"
+            icon={Refrigerator}
+            title="Actualizar despensa"
+            subtitle="Foto, ticket o a mano"
+            photo={pantryCardPhoto}
+            objectPosition="center 40%"
+            aspectRatio="3 / 4"
+            onClick={() => onNav("pantry")}
+          />
           <QuickActionTile
             id="coach-generate-menu"
             icon={RotateCw}
             title="Generar menú"
-            subtitle="Para toda la semana"
+            subtitle="Para la semana"
             photo={menuCardPhoto}
             objectPosition="center 38%"
+            aspectRatio="3 / 4"
             onClick={onGenerateNewMenu}
           />
           <QuickActionTile
             id="coach-generate-recipes"
             icon={Sparkles}
             title="Generar recetas"
-            subtitle="Con lo que tengas en casa"
+            subtitle="Con lo que hay en casa"
             photo={recipesCardPhoto}
             objectPosition="center 62%"
+            aspectRatio="3 / 4"
             onClick={onOpenRecipePlanner}
           />
         </div>
@@ -488,7 +568,7 @@ export function DashboardScreen({
         )}
       </div>
 
-      <BottomNav active="dashboard" onNav={onNav} context="home" />
+      <BottomNav active="dashboard" onNav={onNav} />
     </div>
   );
 }

@@ -683,7 +683,7 @@ export function IngredientPicker({
               }
             }}
             placeholder="Buscar…"
-            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, color: INK }}
+            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: compact ? 11.5 : 12.5, fontWeight: 800, color: INK }}
           />
           {query && (
             <button
@@ -719,13 +719,13 @@ export function IngredientPicker({
             border: `1.5px solid ${filtersOpen || aisle ? GREEN : "#e8efe9"}`,
             background: filtersOpen || aisle ? GREEN : "#fff",
             color: filtersOpen || aisle ? "#fff" : "#5a7066",
-            fontSize: 12.5,
+            fontSize: compact ? 11.5 : 12.5,
             fontWeight: 800,
             fontFamily: "inherit",
             boxShadow: compact && !filtersOpen && !aisle ? "0 1px 3px rgba(20,47,29,.08)" : undefined,
           }}
         >
-          <SlidersHorizontal size={15} />
+          <SlidersHorizontal size={compact ? 14 : 15} />
           Categorías
           {!compact && (filtersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
         </button>

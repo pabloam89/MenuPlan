@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
+  BarChart3,
   Blend,
   BookOpen,
   BookOpenCheck,
@@ -14,8 +15,12 @@ import {
   Clock,
   Clock3,
   CircleHelp,
+  Apple,
   Coffee,
   CookingPot,
+  History,
+  IceCream,
+  Layers2,
   Download,
   Droplets,
   Drumstick,
@@ -39,6 +44,7 @@ import {
   Sparkles,
   Heart,
   Sun,
+  Undo2,
   Users,
   Utensils,
   UtensilsCrossed,
@@ -56,6 +62,10 @@ import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { kitchenHint } from "../lib/kitchenUnits.js";
+import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
+import { consumeFromPantry, restoreToPantry } from "../lib/cookPantry.js";
+import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry } from "../lib/pantry.js";
+import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
@@ -65,10 +75,10 @@ import { RestrictionConflictBanner } from "../components/RestrictionConflictBann
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
-import { OnboardingRestrictions, OnboardingMealStyle } from "./Onboarding.jsx";
+import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtras } from "./Onboarding.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
-import { DAYS, getMeals, isLunchMeal, dayLabel, modeForGroupSlot } from "../lib/planner.js";
+import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel, modeForGroupSlot } from "../lib/planner.js";
 import { dishAvailabilityMap } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import {
@@ -125,7 +135,9 @@ function tagPalette(recipe) {
 const MEAL_META = {
   Desayuno: { label: "Desayuno", Icon: Coffee },
   Comida:   { label: "Comida",   Icon: Sun    },
+  Merienda: { label: "Merienda", Icon: Apple  },
   Cena:     { label: "Cena",     Icon: Moon   },
+  Postre:   { label: "Postre",   Icon: IceCream },
 };
 
 /** Structural colors — not used by recipe families in dishVisuals.js */
@@ -133,7 +145,9 @@ const DAY_STYLE = { bg: "#f1f5f9", bar: "#64748b", text: "#334155" };
 const MEAL_STYLE = {
   Desayuno: { color: "#a16207", bg: "#fef9c3" },
   Comida:   { color: "#0d9488", bg: "#ccfbf1" },
+  Merienda: { color: "#15803d", bg: "#dcfce7" },
   Cena:     { color: "#6366f1", bg: "#e0e7ff" },
+  Postre:   { color: "#be185d", bg: "#fce7f3" },
 };
 
 function DaySectionHeader({ day, dayNumber }) {
@@ -553,6 +567,9 @@ function scaledIngredients(recipe, eaters) {
     const scaledQty = isQualitativeUnit(ing.unit) ? null : ing.qty * factor;
     return {
       ...ing,
+      // Kept for cook-mode consumption (what THIS dish, for these eaters, spends
+      // from the pantry). null for qualitative units (al gusto) → skipped.
+      qtyScaled: scaledQty,
       label: formatQty(scaledQty, ing.unit),
       hint: kitchenHint(ing.name, scaledQty, ing.unit),
     };
@@ -950,6 +967,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const [confirmRegen, setConfirmRegen] = useState(false);
   const [editingAvoid, setEditingAvoid] = useState(false);
   const [editingStyle, setEditingStyle] = useState(false);
+  const [editingExtras, setEditingExtras] = useState(false);
 
   const wrappedSetData = (updater) => {
     setData(updater);
@@ -1020,6 +1038,25 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             setData={wrappedSetData}
             onNext={() => setEditingStyle(false)}
             onBack={() => setEditingStyle(false)}
+            nextLabel="Guardar"
+          />
+        </div>
+      </div>,
+      document.body
+    );
+  }
+
+  // "Estructura y extras": platos por comida, desayuno, merienda, postre y
+  // cenas rápidas — same standalone-editor pattern as "A tu gusto" above.
+  if (editingExtras) {
+    return createPortal(
+      <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(20,47,29,.28)", display: "flex", justifyContent: "center" }}>
+        <div style={{ width: "100%", maxWidth: 420, height: "100dvh", background: "#f5f9f6", boxShadow: "0 0 40px rgba(0,0,0,.18)" }}>
+          <OnboardingMealExtras
+            data={data}
+            setData={wrappedSetData}
+            onNext={() => setEditingExtras(false)}
+            onBack={() => setEditingExtras(false)}
             nextLabel="Guardar"
           />
         </div>
@@ -1375,6 +1412,39 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
           })()}
         </AccordionSection>
 
+        {/* ── Estructura y extras: platos por comida, desayuno, merienda,
+              postre, cenas rápidas — its own screen so it doesn't crowd the
+              food-frequency editor above. */}
+        <AccordionSection title="Estructura y extras" icon={Layers2}>
+          <button
+            type="button"
+            onClick={() => setEditingExtras(true)}
+            style={{
+              display: "flex", alignItems: "center", gap: 12, width: "100%",
+              padding: "12px 14px", borderRadius: 14, cursor: "pointer",
+              border: "1.5px solid #e3ebe6", background: "#f4f7f5",
+              fontFamily: "inherit", textAlign: "left",
+            }}
+          >
+            <div style={{
+              width: 36, height: 36, borderRadius: 10, flexShrink: 0,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "#eef5f0", color: "#2d5a3d",
+            }}>
+              <Coffee size={17} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>
+                Platos, desayuno, merienda y postre
+              </div>
+              <div style={{ fontSize: 11.5, color: "#6b7d70", marginTop: 1 }}>
+                Y noches de cena rápida
+              </div>
+            </div>
+            <ChevronRight size={18} color="#b6c4bb" />
+          </button>
+        </AccordionSection>
+
         {/* ── Nivel de cocina ── */}
         <AccordionSection title="Nivel de cocina" icon={ChefHat}>
           <div style={{ display: "flex", gap: 8 }}>
@@ -1486,8 +1556,9 @@ export function DishCard({
   kitchenTools = [],
   // { have, total } from dishAvailabilityMap. Only rendered/clickable when
   // something's still missing — a complete dish has nothing left to jump to.
+  // Tapping the dot just opens the dish (its detail now shows what's missing
+  // and lets you mark cooked — the old "Modo Cocina" tab is gone).
   availability = null,
-  onFocusShopping = null,
 }) {
   if (!slot) {
     return (
@@ -1549,14 +1620,14 @@ export function DishCard({
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              onFocusShopping?.();
+              onTap?.();
             }}
             title={
               availability.have === 0
-                ? "No tienes ningún ingrediente — ir a Modo Cocina"
-                : `Te faltan ${availability.total - availability.have} ingredientes — ir a Modo Cocina`
+                ? "No tienes ningún ingrediente — abrir el plato"
+                : `Te faltan ${availability.total - availability.have} ingredientes — abrir el plato`
             }
-            aria-label="Ver ingredientes que faltan en Modo Cocina"
+            aria-label="Ver ingredientes que faltan"
             style={{
               position: "absolute",
               bottom: -2,
@@ -1762,6 +1833,7 @@ export const MenuScreen = memo(function MenuScreen({
   activeMenu = null,
   onSwitchWeek,
   onOpenMenus,
+  onOpenAnalytics,
   autoOpenProfile = false,
   onAutoOpenProfileHandled,
   initialViewMode = "dia",
@@ -1769,7 +1841,6 @@ export const MenuScreen = memo(function MenuScreen({
   // dish can show a "faltan ingredientes" dot instead of making you go check
   // Compra yourself.
   shoppingItems = null,
-  onFocusCookDish = null,
 }) {
   const [scope, setScope] = useState("all");
   const [showMenuHelp, setShowMenuHelp] = useState(false);
@@ -1934,6 +2005,33 @@ export const MenuScreen = memo(function MenuScreen({
             </button>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {/* Análisis (Cocina/Objetivos) and Menús (histórico) lost their own
+                bottom-nav tab — see BottomNav in ui.jsx — so they hang here as
+                header icons off the tab they conceptually belong to. */}
+            {onOpenAnalytics && (
+              <button
+                type="button"
+                data-coach="menu-analytics"
+                onClick={onOpenAnalytics}
+                aria-label="Análisis de tu menú"
+                title="Análisis de tu menú"
+                style={iconChipButtonStyle}
+              >
+                <BarChart3 size={16} strokeWidth={2.2} />
+              </button>
+            )}
+            {onOpenMenus && (
+              <button
+                type="button"
+                data-coach="menu-menus"
+                onClick={onOpenMenus}
+                aria-label="Menús guardados"
+                title="Menús guardados"
+                style={iconChipButtonStyle}
+              >
+                <History size={16} strokeWidth={2.2} />
+              </button>
+            )}
             {hasMenu && (
               <div style={{ position: "relative" }}>
                 <button
@@ -2223,7 +2321,7 @@ export const MenuScreen = memo(function MenuScreen({
           {(viewMode === "dia" ? [selectedDay] : activeDays).map((day) => {
             const members = data.members ?? [];
             const schedule = data.schedule ?? {};
-            const meals = getMeals(data);
+            const meals = getDayMeals(data);
             const dayHasContent = meals.some((meal) =>
               visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`])
             );
@@ -2281,9 +2379,6 @@ export const MenuScreen = memo(function MenuScreen({
                               showGroupBadge={multiGroup && scope === "all"}
                               kitchenTools={data.kitchenTools ?? []}
                               availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
-                              onFocusShopping={() =>
-                                onFocusCookDish?.({ day, meal, recipeId: card.dish.recipeId })
-                              }
                               onTap={() =>
                                 onDishTap({
                                   recipe: RECIPES_BY_ID[card.dish.recipeId],
@@ -2472,6 +2567,18 @@ export function DishDetail({
   initialAppliance = null,
   stepsByAppliance = null,
   autoDemo = null,
+  // Cook context — only present when opened from the weekly menu. Enables the
+  // per-ingredient "lo tengo" ticks and "Marcar cocinado" (which discounts the
+  // dish from the real pantry). day/meal/cookWeekKey identify this exact slot's
+  // cooked flag; user/data/setData/onPantryChanged wire the pantry + persistence.
+  day = null,
+  meal = null,
+  cookWeekKey = null,
+  user = null,
+  data = null,
+  setData = null,
+  onToast = null,
+  onPantryChanged = null,
 }) {
   const isFavorite = favoriteScope != null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
@@ -2489,6 +2596,110 @@ export function DishDetail({
   );
   const stepsCacheRef = useRef({});
   const ingredients = scaledIngredients(recipe, slot.eaters);
+
+  // ── Cook mode (moved here from the old "Modo cocina" tab in Compra) ──
+  // Only when opened from the weekly menu with a real slot. Pantry is the single
+  // source of truth: a tick means "you already have it in En casa"; "Marcar
+  // cocinado" discounts the dish's ingredients from that stock (undo restores).
+  const cookable = !browse && day != null && meal != null && cookWeekKey != null && setData != null;
+  const cookedKey = cookable ? `${cookWeekKey}::${day}::${meal}::${recipe.id}` : null;
+  const isCooked = cookedKey ? (data?.cookedDishes ?? []).includes(cookedKey) : false;
+  const [pantryStock, setPantryStock] = useState([]);
+  const [cookBusy, setCookBusy] = useState(false);
+  useEffect(() => {
+    if (!cookable) return;
+    let active = true;
+    (async () => {
+      const stock = user ? await loadPantry(user.id) : loadLocalPantry();
+      if (active) setPantryStock(stock);
+    })();
+    return () => { active = false; };
+  }, [cookable, user]);
+  const reloadCookStock = async () => {
+    setPantryStock(user ? await loadPantry(user.id) : loadLocalPantry());
+    onPantryChanged?.();
+  };
+  // Which ingredients are already covered by real stock (drives the tick).
+  const haveByIngId = useMemo(() => {
+    const map = {};
+    if (cookable) {
+      for (const ing of ingredients) {
+        const stock = findMatchingPantryItem(ing.name, pantryStock, { adapted: Boolean(ing.adapted) });
+        map[ing.id] = Boolean(stock && Number(stock.qty) > 0);
+      }
+    }
+    return map;
+  }, [cookable, ingredients, pantryStock]);
+  // "Lo tengo": you have this even though it's not registered — add it to En
+  // casa (the override we agreed on), so the tick lights up and cooking can
+  // later discount it. Uses the dish's scaled need as the stocked amount.
+  const markIngredientOwned = async (ing) => {
+    const parsed = normalizePantryInput(ing.name)[0];
+    if (!parsed) return;
+    const item = {
+      name: parsed.raw,
+      normalized: parsed.ambiguous ? parsed.candidates[0].normalized : parsed.normalized,
+      qty: Number(ing.qtyScaled) > 0 ? Number(ing.qtyScaled) : 1,
+      unit: ing.unit ?? "ud",
+      source: "manual",
+    };
+    if (user) await addPantryItems(user.id, [item]);
+    else addLocalPantryItems([item]);
+    await reloadCookStock();
+  };
+  const cookIngredients = () =>
+    ingredients.map((ing) => ({
+      name: ing.name,
+      qty: ing.qtyScaled,
+      unit: ing.unit,
+      adapted: ing.adapted,
+    }));
+  // Decisión D (cuándo se descuenta): "Marcar cocinado" solo resta de la
+  // despensa real si el usuario eligió "Al darle a «Cocinado»" (onCook, el
+  // default). Si eligió "Al generar el menú" o "Al final del día", esa resta
+  // ya ocurrió (o la hará el barrido automático) — marcar cocinado aquí es
+  // solo un tick informativo y no debe descontar dos veces. "No descontar"
+  // tampoco resta nunca.
+  const shouldConsumeOnCook = (data?.pantryPrefs?.consume ?? "onGenerate") === "onCook";
+  const handleMarkCooked = async () => {
+    if (!cookable || isCooked || cookBusy) return;
+    setCookBusy(true);
+    try {
+      const { deltas, decremented } = shouldConsumeOnCook
+        ? await consumeFromPantry(cookIngredients(), pantryStock, { user })
+        : { deltas: [], decremented: 0 };
+      setData((d) => ({
+        ...d,
+        cookedDishes: [...(d?.cookedDishes ?? []), cookedKey],
+        cookedDeltas: { ...(d?.cookedDeltas ?? {}), [cookedKey]: deltas },
+      }));
+      if (shouldConsumeOnCook) await reloadCookStock();
+      onToast?.(decremented ? `¡Cocinado! Stock en casa actualizado (${decremented})` : "¡Cocinado!");
+    } finally {
+      setCookBusy(false);
+    }
+  };
+  const handleUndoCooked = async () => {
+    if (!cookable || !isCooked || cookBusy) return;
+    setCookBusy(true);
+    try {
+      const deltas = data?.cookedDeltas?.[cookedKey] ?? [];
+      const restored = await restoreToPantry(deltas, { user });
+      setData((d) => {
+        const nextDeltas = { ...(d?.cookedDeltas ?? {}) };
+        delete nextDeltas[cookedKey];
+        return {
+          ...d,
+          cookedDishes: (d?.cookedDishes ?? []).filter((k) => k !== cookedKey),
+          cookedDeltas: nextDeltas,
+        };
+      });
+      await reloadCookStock();
+      onToast?.(restored ? `Cocinado deshecho · stock devuelto (${restored})` : "Cocinado deshecho");
+    } finally {
+      setCookBusy(false);
+    }
+  };
   // Fall back to the flat protein_g/carbs_g/fat_g shape (raw catalog / user
   // recipes) and finally to 0, so a recipe without a hydrated `macros` object
   // never crashes the detail view.
@@ -2973,20 +3184,80 @@ export function DishDetail({
               />
             </button>
             {ingredientsOpen && (
-              <div style={{ display: "grid", gap: 7, marginBottom: 16 }}>
-                {ingredients.map((ing) => (
-                  <div key={ing.id} style={ingredientRowStyle}>
-                    <span style={{ flex: 1, minWidth: 0 }}>{ing.name}</span>
-                    {ing.hint && (
-                      <>
-                        <span style={ingredientHintStyle}>{ing.hint}</span>
-                        <span style={ingredientDividerStyle} />
-                      </>
-                    )}
-                    <strong style={ingredientQtyStyle}>{ing.label}</strong>
-                  </div>
-                ))}
+              <div style={{ display: "grid", gap: 7, marginBottom: cookable ? 12 : 16 }}>
+                {ingredients.map((ing) => {
+                  const owned = cookable && haveByIngId[ing.id];
+                  return (
+                    <div key={ing.id} style={ingredientRowStyle}>
+                      {cookable && (
+                        owned ? (
+                          <span
+                            title="Ya lo tienes en casa"
+                            style={{
+                              width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              background: "#4cba6e",
+                            }}
+                          >
+                            <Check size={12} strokeWidth={3.2} color="#fff" />
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => markIngredientOwned(ing)}
+                            title="Marcar que ya lo tienes (lo añade a En casa)"
+                            style={{
+                              width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                              background: "#fff", border: "1.5px solid #cdddd2", cursor: "pointer",
+                              padding: 0,
+                            }}
+                          />
+                        )
+                      )}
+                      <span
+                        style={{
+                          flex: 1, minWidth: 0,
+                          ...(owned ? { color: "#9aa89f", textDecoration: "line-through" } : null),
+                        }}
+                      >
+                        {ing.name}
+                      </span>
+                      {ing.hint && (
+                        <>
+                          <span style={ingredientHintStyle}>{ing.hint}</span>
+                          <span style={ingredientDividerStyle} />
+                        </>
+                      )}
+                      <strong style={ingredientQtyStyle}>{ing.label}</strong>
+                    </div>
+                  );
+                })}
               </div>
+            )}
+            {cookable && (
+              <button
+                type="button"
+                onClick={isCooked ? handleUndoCooked : handleMarkCooked}
+                disabled={cookBusy}
+                title={
+                  isCooked
+                    ? "Deshacer: devuelve estos ingredientes a lo que tienes en casa"
+                    : "Descuenta estos ingredientes de lo que tienes en casa"
+                }
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                  width: "100%", marginBottom: 16, padding: "11px 12px", borderRadius: 12,
+                  border: isCooked ? "1.5px solid #bcdcc7" : "1.5px solid #2d5a3d",
+                  background: isCooked ? "#eaf3ec" : "#fff",
+                  color: "#2d5a3d", fontSize: 13, fontWeight: 800,
+                  cursor: cookBusy ? "default" : "pointer", fontFamily: "inherit",
+                  opacity: cookBusy ? 0.6 : 1,
+                }}
+              >
+                {isCooked ? <Undo2 size={15} strokeWidth={2.6} /> : <ChefHat size={15} strokeWidth={2.4} />}
+                {isCooked ? "Deshacer cocinado" : "Marcar cocinado"}
+              </button>
             )}
             <div style={{ fontSize: 12, fontWeight: 900, color: "#15331c", marginBottom: 8 }}>
               Paso a paso

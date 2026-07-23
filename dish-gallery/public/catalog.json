@@ -2,154 +2,154 @@
   {
     "combo_id": "bebes_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_001.jpg",
-    "name": "Puré de calabacín con pollo",
+    "name": "Puré de calabacín con pollo y cuscús",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_002",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_002.jpg",
-    "name": "Puré de zanahoria con merluza",
+    "name": "Puré de zanahoria con merluza y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_003",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_003.jpg",
-    "name": "Puré de calabaza con pavo",
+    "name": "Puré de calabaza con pavo y boniato",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_004.jpg",
-    "name": "Puré de patata y judías verdes con ternera",
+    "name": "Puré de judías verdes con ternera y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_005.jpg",
-    "name": "Puré de guisantes con pollo",
+    "name": "Puré de guisantes con pollo y arroz",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_006",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_006.jpg",
-    "name": "Puré de brócoli con merluza",
+    "name": "Puré de brócoli con merluza y arroz",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_007",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_007.jpg",
-    "name": "Papilla de arroz con pollo",
+    "name": "Papilla de arroz con pollo y zanahoria",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_008",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_008.jpg",
-    "name": "Puré de lentejas con verduras",
+    "name": "Puré de lentejas rojas con zanahoria y calabacín",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_009",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_009.jpg",
-    "name": "Puré de boniato con pavo",
+    "name": "Puré de boniato con pavo y calabacín",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_010",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_010.jpg",
-    "name": "Puré de puerro y patata con merluza",
+    "name": "Puré de puerro con salmón y arroz",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_011",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_011.jpg",
-    "name": "Sopa fina de pollo con arroz",
+    "name": "Sopa de fideos con ternera y zanahoria",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_012",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_012.jpg",
-    "name": "Puré de garbanzos con verduras",
+    "name": "Puré de garbanzos con calabaza",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_013",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_013.jpg",
-    "name": "Tortilla francesa suave",
+    "name": "Revuelto de huevo con boniato y tomate",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_014",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_014.jpg",
-    "name": "Puré de espinacas con patata",
+    "name": "Papilla de avena con ternera y espinacas",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_015",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_015.jpg",
-    "name": "Puré de calabacín y patata",
+    "name": "Crema de calabacín con huevo y sémola",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_016",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_016.jpg",
-    "name": "Compota de manzana y pera",
+    "name": "Puré de coliflor con pollo y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_017.jpg",
-    "name": "Compota de plátano y manzana",
+    "name": "Sopa de cuscús con merluza y calabacín",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_018",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_018.jpg",
-    "name": "Puré de melocotón y plátano",
+    "name": "Puré de remolacha con pavo y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_019",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_019.jpg",
-    "name": "Compota de pera y ciruela",
+    "name": "Puré de espinacas con salmón y boniato",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_020",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_020.jpg",
-    "name": "Puré de mango y plátano",
+    "name": "Fideos con huevo y calabacín",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_021",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_021.jpg",
-    "name": "Compota de manzana con canela",
+    "name": "Puré de garbanzos con pollo y espinacas",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_022.jpg",
-    "name": "Puré de frutas del bosque",
+    "name": "Puré de lentejas con ternera y zanahoria",
     "family": "bebes",
     "type": "dish"
   },
@@ -5061,6 +5061,62 @@
     "type": "dish"
   },
   {
+    "combo_id": "desayunos_001",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_001.jpg",
+    "name": "Bol de yogur con fruta y avena",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "desayunos_002",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_002.jpg",
+    "name": "Tostada de tomate y aceite",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "desayunos_003",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_003.jpg",
+    "name": "Tostada con mantequilla y mermelada",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "desayunos_004",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_004.jpg",
+    "name": "Tostada de jamón serrano y aceite",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "desayunos_005",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_005.jpg",
+    "name": "Tostada de pavo y queso",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "desayunos_006",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_006.jpg",
+    "name": "Tostada de aguacate",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "desayunos_007",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_007.jpg",
+    "name": "Leche con cereales",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "desayunos_008",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_008.jpg",
+    "name": "Porridge de avena con plátano",
+    "family": "desayunos",
+    "type": "dish"
+  },
+  {
     "combo_id": "ensaladas_verduras_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_001.jpg",
     "name": "Ensalada mixta",
@@ -7242,6 +7298,48 @@
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_020.jpg",
     "name": "Lentejas pardinas en ensalada templada",
     "family": "legumbres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "meriendas_001",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_001.jpg",
+    "name": "Smoothie de kéfir y fruta",
+    "family": "meriendas",
+    "type": "dish"
+  },
+  {
+    "combo_id": "meriendas_002",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_002.jpg",
+    "name": "Tostada de plátano y miel",
+    "family": "meriendas",
+    "type": "dish"
+  },
+  {
+    "combo_id": "meriendas_003",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_003.jpg",
+    "name": "Bocadillo de jamón serrano",
+    "family": "meriendas",
+    "type": "dish"
+  },
+  {
+    "combo_id": "meriendas_004",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_004.jpg",
+    "name": "Bocadillo de pavo y queso",
+    "family": "meriendas",
+    "type": "dish"
+  },
+  {
+    "combo_id": "meriendas_005",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_005.jpg",
+    "name": "Fruta con frutos secos",
+    "family": "meriendas",
+    "type": "dish"
+  },
+  {
+    "combo_id": "meriendas_006",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_006.jpg",
+    "name": "Batido de leche y cacao",
+    "family": "meriendas",
     "type": "dish"
   },
   {
@@ -10525,6 +10623,55 @@
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/platos_unicos_020.jpg",
     "name": "Huevos a la riojana",
     "family": "platos_unicos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_001",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_001.jpg",
+    "name": "Macedonia de fruta fresca",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_002",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_002.jpg",
+    "name": "Yogur con miel y nueces",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_003",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_003.jpg",
+    "name": "Fruta de temporada",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_004",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_004.jpg",
+    "name": "Natillas caseras",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_005",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_005.jpg",
+    "name": "Flan de huevo",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_006",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_006.jpg",
+    "name": "Arroz con leche",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_007",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_007.jpg",
+    "name": "Manzana asada",
+    "family": "postres",
     "type": "dish"
   },
   {

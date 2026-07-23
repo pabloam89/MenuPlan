@@ -1,0 +1,185 @@
+[
+  {
+    "id": "meriendas_001",
+    "name": "Smoothie de kéfir y fruta",
+    "category": "meriendas",
+    "mainProtein": "none",
+    "mealRole": ["merienda"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 210,
+    "protein_g": 9,
+    "carbs_g": 34,
+    "fat_g": 4,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Kéfir", "amount": 300, "unit": "ml" },
+      { "name": "Plátano", "amount": 1, "unit": "ud" },
+      { "name": "Fresas", "amount": 120, "unit": "g" },
+      { "name": "Miel", "amount": 10, "unit": "ml" }
+    ],
+    "steps": [
+      "Pela el plátano y limpia las fresas",
+      "Pon el kéfir y la fruta en la batidora",
+      "Añade la miel y tritura hasta que quede cremoso",
+      "Sirve bien frío"
+    ],
+    "description": "Batido cremoso de kéfir con plátano y fresas endulzado con miel"
+  },
+  {
+    "id": "meriendas_002",
+    "name": "Tostada de plátano y miel",
+    "category": "meriendas",
+    "mainProtein": "none",
+    "mealRole": ["merienda"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 260,
+    "protein_g": 6,
+    "carbs_g": 46,
+    "fat_g": 5,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan", "amount": 160, "unit": "g" },
+      { "name": "Plátano", "amount": 2, "unit": "ud" },
+      { "name": "Miel", "amount": 20, "unit": "ml" }
+    ],
+    "steps": [
+      "Tuesta ligeramente las rebanadas de pan",
+      "Corta el plátano en rodajas finas",
+      "Coloca el plátano sobre las tostadas",
+      "Termina con un hilo de miel"
+    ],
+    "description": "Merienda rápida de tostada con plátano en rodajas y miel"
+  },
+  {
+    "id": "meriendas_003",
+    "name": "Bocadillo de jamón serrano",
+    "category": "meriendas",
+    "mainProtein": "none",
+    "mealRole": ["merienda"],
+    "type": "completo",
+    "time": 6,
+    "difficulty": "facil",
+    "kcal": 380,
+    "protein_g": 20,
+    "carbs_g": 44,
+    "fat_g": 13,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan de barra", "amount": 200, "unit": "g" },
+      { "name": "Jamón serrano", "amount": 80, "unit": "g" },
+      { "name": "Tomate maduro", "amount": 80, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+    ],
+    "steps": [
+      "Abre el pan y frota con tomate",
+      "Añade un hilo de aceite de oliva",
+      "Rellena con el jamón serrano"
+    ],
+    "description": "Bocadillo de jamón serrano con tomate y aceite"
+  },
+  {
+    "id": "meriendas_004",
+    "name": "Bocadillo de pavo y queso",
+    "category": "meriendas",
+    "mainProtein": "none",
+    "mealRole": ["merienda"],
+    "type": "completo",
+    "time": 6,
+    "difficulty": "facil",
+    "kcal": 360,
+    "protein_g": 22,
+    "carbs_g": 42,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["gluten", "lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan de barra", "amount": 200, "unit": "g" },
+      { "name": "Pechuga de pavo", "amount": 90, "unit": "g" },
+      { "name": "Queso en lonchas", "amount": 50, "unit": "g" }
+    ],
+    "steps": [
+      "Abre el pan",
+      "Coloca el queso en lonchas",
+      "Rellena con la pechuga de pavo y cierra"
+    ],
+    "description": "Bocadillo de fiambre de pavo con queso"
+  },
+  {
+    "id": "meriendas_005",
+    "name": "Fruta con frutos secos",
+    "category": "meriendas",
+    "mainProtein": "none",
+    "mealRole": ["merienda"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 250,
+    "protein_g": 6,
+    "carbs_g": 34,
+    "fat_g": 11,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": ["frutos_secos"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Manzana", "amount": 1, "unit": "ud" },
+      { "name": "Plátano", "amount": 1, "unit": "ud" },
+      { "name": "Nueces", "amount": 40, "unit": "g" }
+    ],
+    "steps": [
+      "Trocea la manzana y el plátano",
+      "Reparte en dos cuencos",
+      "Añade las nueces por encima"
+    ],
+    "description": "Merienda de fruta troceada con nueces"
+  },
+  {
+    "id": "meriendas_006",
+    "name": "Batido de leche y cacao",
+    "category": "meriendas",
+    "mainProtein": "none",
+    "mealRole": ["merienda"],
+    "type": "completo",
+    "time": 3,
+    "difficulty": "facil",
+    "kcal": 220,
+    "protein_g": 9,
+    "carbs_g": 32,
+    "fat_g": 6,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Leche", "amount": 400, "unit": "ml" },
+      { "name": "Cacao en polvo", "amount": 30, "unit": "g" }
+    ],
+    "steps": [
+      "Calienta o enfría la leche a tu gusto",
+      "Disuelve bien el cacao en polvo",
+      "Remueve y sirve"
+    ],
+    "description": "Vaso de leche con cacao, la merienda clásica de la infancia"
+  }
+]

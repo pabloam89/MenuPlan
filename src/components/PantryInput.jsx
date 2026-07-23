@@ -381,7 +381,7 @@ function ModeToggle({ mode, onSelect, voiceDisabled }) {
               ...(disabled ? { opacity: 0.4, cursor: "not-allowed" } : {}),
             }}
           >
-            <Icon size={14} strokeWidth={2.4} />
+            <Icon size={13} strokeWidth={2.4} />
             {label}
           </button>
         );
@@ -760,13 +760,13 @@ const modeToggleBtnStyle = {
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  gap: 6,
-  padding: "8px 0",
+  gap: 5,
+  padding: "7px 0",
   borderRadius: 9,
   border: "none",
   background: "transparent",
   color: "#5a7066",
-  fontSize: 12.5,
+  fontSize: 11.5,
   fontWeight: 800,
   fontFamily: "inherit",
   cursor: "pointer",

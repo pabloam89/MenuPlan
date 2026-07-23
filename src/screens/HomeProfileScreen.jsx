@@ -238,6 +238,7 @@ export function HomeProfileScreen({
   data,
   setData,
   onNav,
+  onBack,
   onSignIn,
   onSignOut,
   onReset,
@@ -277,10 +278,25 @@ export function HomeProfileScreen({
       }}>
 
         {/* ── Header ─────────────────────────────────── */}
+        {/* No longer a bottom-nav tab (see BottomNav in ui.jsx) — reached as a
+            header icon from "Inicio", so it needs its own explicit way back. */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+          {onBack && (
+            <button
+              type="button"
+              onClick={onBack}
+              style={{
+                border: "1px solid #e0eae3", background: "#fff", color: GREEN,
+                borderRadius: 10, padding: "7px 12px", fontSize: 13, fontWeight: 700,
+                cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+              }}
+            >
+              Atrás
+            </button>
+          )}
           <div style={{
             width: 38, height: 38, borderRadius: 12, background: "#e6f3ea",
-            display: "flex", alignItems: "center", justifyContent: "center",
+            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
           }}>
             <User size={18} color={GREEN} />
           </div>
@@ -523,7 +539,7 @@ export function HomeProfileScreen({
         </div>
       </div>
 
-      <BottomNav active="profile" onNav={onNav} context="home" />
+      <BottomNav active="dashboard" onNav={onNav} />
     </div>
   );
 }

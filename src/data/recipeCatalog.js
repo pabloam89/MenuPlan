@@ -8,6 +8,9 @@ import ensaladasVerduras from "./recipes/ensaladas_verduras.json";
 import platosUnicos from "./recipes/platos_unicos.json";
 import cenasRapidas from "./recipes/cenas_rapidas.json";
 import bebes from "./recipes/bebes.json";
+import desayunos from "./recipes/desayunos.json";
+import meriendas from "./recipes/meriendas.json";
+import postres from "./recipes/postres.json";
 import guarniciones from "./recipes/guarniciones.json";
 import { validateRecipes } from "./recipeSchema.js";
 import { deriveHealthFlags } from "../lib/healthFlags.js";
@@ -31,6 +34,9 @@ const JSON_RECIPES = [
   ...platosUnicos,
   ...cenasRapidas,
   ...bebes,
+  ...desayunos,
+  ...meriendas,
+  ...postres,
 ];
 
 function validateCatalog(recipes, guarnicionesData) {
@@ -90,6 +96,7 @@ function rowToRecipe(row) {
     steps: row.steps,
     description: row.description,
     ...(row.methods ? { methods: row.methods } : {}),
+    ...(row.product_aliases?.length ? { productAliases: row.product_aliases } : {}),
   };
 }
 

@@ -1,0 +1,251 @@
+[
+  {
+    "id": "desayunos_001",
+    "name": "Bol de yogur con fruta y avena",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 320,
+    "protein_g": 13,
+    "carbs_g": 52,
+    "fat_g": 7,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["lactosa", "gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Yogur natural", "amount": 250, "unit": "g" },
+      { "name": "Plátano", "amount": 1, "unit": "ud" },
+      { "name": "Fresas", "amount": 100, "unit": "g" },
+      { "name": "Copos de avena", "amount": 40, "unit": "g" },
+      { "name": "Miel", "amount": 15, "unit": "ml" }
+    ],
+    "steps": [
+      "Reparte el yogur en dos boles",
+      "Añade el plátano en rodajas y las fresas troceadas",
+      "Reparte los copos de avena por encima",
+      "Termina con un hilo de miel"
+    ],
+    "description": "Bol de yogur natural con plátano, fresas, avena y un toque de miel"
+  },
+  {
+    "id": "desayunos_002",
+    "name": "Tostada de tomate y aceite",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 6,
+    "difficulty": "facil",
+    "kcal": 230,
+    "protein_g": 6,
+    "carbs_g": 34,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan", "amount": 160, "unit": "g" },
+      { "name": "Tomate maduro", "amount": 120, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
+      { "name": "Sal", "amount": 1, "unit": "g" }
+    ],
+    "steps": [
+      "Tuesta las rebanadas de pan",
+      "Ralla el tomate maduro",
+      "Reparte el tomate sobre las tostadas",
+      "Añade un hilo de aceite de oliva y una pizca de sal"
+    ],
+    "description": "Clásica tostada de pan con tomate rallado, aceite de oliva y sal"
+  },
+  {
+    "id": "desayunos_003",
+    "name": "Tostada con mantequilla y mermelada",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 290,
+    "protein_g": 6,
+    "carbs_g": 44,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten", "lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan", "amount": 160, "unit": "g" },
+      { "name": "Mantequilla", "amount": 20, "unit": "g" },
+      { "name": "Mermelada", "amount": 40, "unit": "g" }
+    ],
+    "steps": [
+      "Tuesta el pan",
+      "Unta la mantequilla mientras está caliente",
+      "Extiende la mermelada por encima"
+    ],
+    "description": "Tostada clásica con mantequilla y mermelada"
+  },
+  {
+    "id": "desayunos_004",
+    "name": "Tostada de jamón serrano y aceite",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 6,
+    "difficulty": "facil",
+    "kcal": 300,
+    "protein_g": 15,
+    "carbs_g": 32,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan", "amount": 160, "unit": "g" },
+      { "name": "Jamón serrano", "amount": 60, "unit": "g" },
+      { "name": "Tomate maduro", "amount": 100, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+    ],
+    "steps": [
+      "Tuesta el pan y frota o unta con tomate rallado",
+      "Añade un hilo de aceite de oliva",
+      "Coloca las lonchas de jamón serrano por encima"
+    ],
+    "description": "Tostada con tomate, aceite y jamón serrano"
+  },
+  {
+    "id": "desayunos_005",
+    "name": "Tostada de pavo y queso",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 6,
+    "difficulty": "facil",
+    "kcal": 310,
+    "protein_g": 18,
+    "carbs_g": 33,
+    "fat_g": 11,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten", "lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan", "amount": 160, "unit": "g" },
+      { "name": "Pechuga de pavo", "amount": 80, "unit": "g" },
+      { "name": "Queso en lonchas", "amount": 40, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+    ],
+    "steps": [
+      "Tuesta el pan",
+      "Coloca el queso en lonchas y deja que temple",
+      "Añade la pechuga de pavo y un hilo de aceite"
+    ],
+    "description": "Tostada de fiambre de pavo con queso"
+  },
+  {
+    "id": "desayunos_006",
+    "name": "Tostada de aguacate",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 7,
+    "difficulty": "facil",
+    "kcal": 340,
+    "protein_g": 7,
+    "carbs_g": 36,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Pan", "amount": 160, "unit": "g" },
+      { "name": "Aguacate", "amount": 1, "unit": "ud" },
+      { "name": "Limón", "amount": 1, "unit": "ud" },
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" },
+      { "name": "Sal", "amount": 1, "unit": "g" }
+    ],
+    "steps": [
+      "Tuesta el pan",
+      "Machaca el aguacate con unas gotas de limón y sal",
+      "Extiende sobre la tostada y añade un hilo de aceite"
+    ],
+    "description": "Tostada de aguacate machacado con limón y aceite de oliva"
+  },
+  {
+    "id": "desayunos_007",
+    "name": "Leche con cereales",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 3,
+    "difficulty": "facil",
+    "kcal": 280,
+    "protein_g": 10,
+    "carbs_g": 46,
+    "fat_g": 6,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["lactosa", "gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Leche", "amount": 400, "unit": "ml" },
+      { "name": "Cereales", "amount": 80, "unit": "g" }
+    ],
+    "steps": [
+      "Reparte los cereales en dos boles",
+      "Vierte la leche por encima",
+      "Sirve al momento para que no se ablanden"
+    ],
+    "description": "Bol de leche con cereales, desayuno rápido de siempre"
+  },
+  {
+    "id": "desayunos_008",
+    "name": "Porridge de avena con plátano",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": ["desayuno"],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 330,
+    "protein_g": 12,
+    "carbs_g": 54,
+    "fat_g": 7,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["lactosa", "gluten"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Copos de avena", "amount": 80, "unit": "g" },
+      { "name": "Leche", "amount": 350, "unit": "ml" },
+      { "name": "Plátano", "amount": 1, "unit": "ud" },
+      { "name": "Miel", "amount": 15, "unit": "ml" }
+    ],
+    "steps": [
+      "Calienta la leche con la avena a fuego suave, removiendo",
+      "Cocina 4-5 minutos hasta que espese",
+      "Sirve con el plátano en rodajas y un hilo de miel"
+    ],
+    "description": "Gachas de avena con leche, plátano y miel"
+  }
+]

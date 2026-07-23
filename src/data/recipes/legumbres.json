@@ -873,7 +873,8 @@
         "difficulty": "facil",
         "prepSummary": "Introduce todos los ingredientes en el vaso de la Thermomix y tritura a velocidad progresiva 5-10 durante 2-3 minutos, o hasta obtener una crema homogénea. Para un hummus extra suave, puedes añadir un chorrito de agua fría o hielo durante el triturado si la textura es muy densa."
       }
-    ]
+    ],
+    "productAliases": ["Hummus"]
   },
   {
     "id": "legumbres_011",

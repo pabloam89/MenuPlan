@@ -1340,17 +1340,17 @@ function AvoidSection({ icon: Icon, accent, title, subtitle, right, children }) 
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 10,
-          padding: "10px 14px",
+          gap: 9,
+          padding: "9px 14px",
           background: "#dcebe1",
           borderBottom: "1px solid #c9ddd0",
         }}
       >
         <span
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: 10,
+            width: 27,
+            height: 27,
+            borderRadius: 9,
             background: "#2d5a3d",
             color: "#fff",
             display: "flex",
@@ -1360,11 +1360,11 @@ function AvoidSection({ icon: Icon, accent, title, subtitle, right, children }) 
             boxShadow: "0 2px 6px rgba(45,90,61,.3)",
           }}
         >
-          <Icon size={17} strokeWidth={2.2} />
+          <Icon size={14} strokeWidth={2.2} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 14.5, fontWeight: 800, color: "#1a3a24", lineHeight: 1.2 }}>{title}</p>
-          {subtitle && <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "#5e7a68", fontWeight: 600 }}>{subtitle}</p>}
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: "#1a3a24", lineHeight: 1.2 }}>{title}</p>
+          {subtitle && <p style={{ margin: "1px 0 0", fontSize: 11, color: "#5e7a68", fontWeight: 600 }}>{subtitle}</p>}
         </div>
         {right}
       </div>
@@ -1886,8 +1886,6 @@ export function OnboardingRepeat({
     [data.recipeVotes],
   );
 
-  const useHomeStock = data.useHomeStock !== false;
-
   return (
     <OnboardingShell
       title="¿Qué repetimos?"
@@ -1924,34 +1922,6 @@ export function OnboardingRepeat({
 
       {mainTab === "casa" ? (
         <div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 12,
-              padding: "12px 14px",
-              background: "#fff",
-              border: "1.5px solid #e5ebe7",
-              borderRadius: 14,
-              marginBottom: 14,
-              boxShadow: "0 2px 10px rgba(20,47,29,.04)",
-            }}
-          >
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>
-                Usar lo que hay en casa
-              </div>
-              <div style={{ fontSize: 11.5, fontWeight: 600, color: "#7a8a7f", marginTop: 2, lineHeight: 1.35 }}>
-                Al generar el menú, priorizar recetas con ingredientes mapeados de nevera y despensa
-              </div>
-            </div>
-            <ToggleSwitch
-              checked={useHomeStock}
-              onChange={(v) => setData((d) => ({ ...d, useHomeStock: v }))}
-            />
-          </div>
-
           <Suspense
             fallback={
               <p style={{ margin: 0, padding: "12px 2px", fontSize: 13, color: "#9ab0a1" }}>
@@ -1959,6 +1929,9 @@ export function OnboardingRepeat({
               </p>
             }
           >
+            {/* El toggle "usar despensa" vive ahora en «¿Cómo completamos el
+                menú?» (segmented control de despensa), no aquí, para no
+                duplicarlo. */}
             <PantryScreen
               embedded
               user={user}
@@ -3064,7 +3037,14 @@ function inferQuickFillValue(schedule, memberIds, members, days, meal) {
 }
 
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
-  const meals = getMeals(data);
+  // Desayuno is optional (stored in data.extraMeals, not data.meals, so the AI
+  // planner never treats it as a comida). But when it's on we DO want its row in
+  // the "¿dónde coméis?" grid, so people can say who has breakfast at home.
+  const baseMeals = getMeals(data);
+  const desayunoOn = Boolean(data.extraMeals?.desayuno && data.extraMeals.desayuno !== "off");
+  const meals = desayunoOn
+    ? ["Desayuno", ...baseMeals.filter((m) => m !== "Desayuno")]
+    : baseMeals;
   const memberList = useMemo(() => data.members ?? [], [data.members]);
   const [sheetSlot, setSheetSlot] = useState(null);
   const [quickFillOpen, setQuickFillOpen] = useState(false);
@@ -3262,6 +3242,17 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     });
   };
 
+  // Desayuno lives in data.extraMeals (optional, deterministic pool), NOT in
+  // data.meals, so it never inflates the AI comida/cena budget. Turning it on
+  // seeds the default "variado" variety; the variety picker lives in the meal-
+  // styles step and only shows once desayuno is on here.
+  const toggleDesayuno = () => {
+    setData((d) => {
+      const on = d.extraMeals?.desayuno && d.extraMeals.desayuno !== "off";
+      return { ...d, extraMeals: { ...(d.extraMeals ?? {}), desayuno: on ? "off" : "variado" } };
+    });
+  };
+
   if (data.members.length === 0) {
     return (
       <OnboardingShell title="Planificación" onBack={onBack}>
@@ -3290,14 +3281,18 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
       <SectionTitle>¿Qué comidas quieres organizar?</SectionTitle>
       <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
-        {ALL_DAY_MEALS.filter((meal) => meal !== "Desayuno").map((meal) => {
-          const sel = meals.includes(meal);
-          const MealIcon = meal === "Comida" ? Sun : Moon;
+        {/* En modo básico solo comidas y cenas (sin desayuno). */}
+        {(data.expertMode ? ALL_DAY_MEALS : ALL_DAY_MEALS.filter((m) => m !== "Desayuno")).map((meal) => {
+          const isDesayuno = meal === "Desayuno";
+          const sel = isDesayuno
+            ? Boolean(data.extraMeals?.desayuno && data.extraMeals.desayuno !== "off")
+            : meals.includes(meal);
+          const MealIcon = meal === "Comida" ? Sun : meal === "Cena" ? Moon : Coffee;
           return (
             <button
               key={meal}
               type="button"
-              onClick={() => toggleDayMeal(meal)}
+              onClick={() => (isDesayuno ? toggleDesayuno() : toggleDayMeal(meal))}
               style={{
                 flex: 1,
                 display: "flex",
@@ -3320,6 +3315,49 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
           );
         })}
       </div>
+
+      {/* Estructura de plato: en modo básico se decide aquí mismo (una sola vez,
+          para todos) en lugar de en una pantalla aparte. Solo tiene sentido si
+          se organiza la comida. */}
+      {!data.expertMode && meals.includes("Comida") && (
+        <>
+          <div style={{ height: 1, background: "#d6e9dc", margin: "0 0 20px" }} />
+          <SectionTitle>¿Uno o dos platos en la comida?</SectionTitle>
+          <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
+            {[
+              { id: "primero_segundo", label: "Primero y segundo", Icon: Layers2 },
+              { id: "1_plato", label: "Un solo plato", Icon: CircleDot },
+            ].map(({ id, label, Icon }) => {
+              const sel = (data.mealStructure ?? "primero_segundo") === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setData((d) => ({ ...d, mealStructure: id }))}
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "14px 8px 12px",
+                    borderRadius: 14,
+                    cursor: "pointer",
+                    background: sel ? "#2d5a3d" : "#f4f7f5",
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                    color: sel ? "#fff" : "#9ab0a1",
+                    transition: "all .15s ease",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  <Icon size={20} />
+                  <span style={{ fontSize: 12, fontWeight: 700 }}>{label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </>
+      )}
 
       {hasSchoolMenuLoaded && allowCole && (
         <div
@@ -5835,42 +5873,12 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
     });
   };
 
-  // ── Cenas rápidas (weekly exceptions) ──
-  // Live on the household week (data.slotType), independent of the menu tab.
-  // Edited from a dedicated pop-up so the main screen stays focused on styles.
-  const slotTypeMap = data.slotType ?? {};
-  const hasCena = getMeals(data).includes("Cena");
-  const rapidaDays = DAYS.filter((d) => slotTypeMap[`${d}|Cena`] === "rapida");
-  const anyRapida = rapidaDays.length > 0;
-  const [cenasSheetOpen, setCenasSheetOpen] = useState(false);
   const [overBudgetInfoOpen, setOverBudgetInfoOpen] = useState(false);
 
-  const toggleCenaRapida = (day) => {
-    setData((d) => {
-      const key = `${day}|Cena`;
-      const next = { ...(d.slotType ?? {}) };
-      if (next[key]) delete next[key];
-      else next[key] = "rapida";
-      return { ...d, slotType: next };
-    });
-  };
-
-  const WEEKEND_DAYS = ["Vie", "Sáb", "Dom"];
-  const weekendActive =
-    WEEKEND_DAYS.every((d) => slotTypeMap[`${d}|Cena`] === "rapida") &&
-    rapidaDays.length === WEEKEND_DAYS.length;
-
-  const setWeekendRapidas = () => {
-    setData((d) => {
-      const next = { ...(d.slotType ?? {}) };
-      DAYS.forEach((day) => {
-        if (next[`${day}|Cena`] === "rapida") delete next[`${day}|Cena`];
-      });
-      if (!weekendActive) WEEKEND_DAYS.forEach((day) => (next[`${day}|Cena`] = "rapida"));
-      return { ...d, slotType: next };
-    });
-  };
-
+  // Estructura de la comida, desayuno/merienda/postre y cenas rápidas now
+  // live in their own screen (OnboardingMealExtras, right after this one) —
+  // this screen is just the food×veces table so it doesn't grow unbounded
+  // every time we add another optional meal.
   const selectStyle = (styleId) => {
     const preset = MEAL_STYLES.find((s) => s.id === styleId);
     if (!preset) return;
@@ -5991,54 +5999,6 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
         })}
       </div>
 
-      {/* ── Estructura de la comida ── */}
-      {!!subjectId && (
-        <div style={{ margin: "16px 0 4px" }}>
-          <p style={{ fontSize: 12, fontWeight: 700, color: "#7a9080", letterSpacing: ".04em", textTransform: "uppercase", margin: "0 0 8px" }}>
-            Estructura de la comida
-          </p>
-          <div style={{ display: "flex", gap: 8 }}>
-            {[
-              { id: "primero_segundo", label: "Primero y segundo", Icon: Layers2 },
-              { id: "1_plato",        label: "Un solo plato",      Icon: CircleDot },
-            ].map(({ id, label, Icon }) => {
-              const sel = (data.mealStructureByGroup?.[subjectId] ?? "primero_segundo") === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() =>
-                    setData((d) => ({
-                      ...d,
-                      mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: id },
-                    }))
-                  }
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    padding: "13px 8px",
-                    borderRadius: 12,
-                    border: sel ? "2px solid #2d5a3d" : "1.5px solid #dde8e1",
-                    background: sel ? "#2d5a3d" : "#fff",
-                    color: sel ? "#fff" : "#142f1d",
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    textAlign: "center",
-                    transition: "all .15s ease",
-                  }}
-                >
-                  <Icon size={17} color={sel ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
-                  <span style={{ fontSize: 12.5, fontWeight: 800, lineHeight: 1.2 }}>{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
       {(() => {
         const activeStyleObj = MEAL_STYLES.find((s) => s.id === activeStyle);
         if (!activeStyleObj) return null;
@@ -6064,7 +6024,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
               const comidaSlots = Math.max(0, slotBudget.comidaDays * 2 - slotBudget.platoUnicoDays);
               const cenaSlots = Math.max(0, slotBudget.cenaDays);
               const showComida = getMeals(data).includes("Comida");
-              const showCena = hasCena;
+              const showCena = getMeals(data).includes("Cena");
               const slotCard = (Icon, value, label) => (
                 <div
                   style={{
@@ -6445,248 +6405,352 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
         );
       })()}
 
-      {hasCena && (
-        <div style={{ marginTop: 26 }}>
-          <SectionTitle>Otras opciones</SectionTitle>
+    </OnboardingShell>
+  );
+}
+
+// ── Estructura de la comida, desayuno/merienda/postre y cenas rápidas ──
+// Split out of OnboardingMealStyle (which was turning into a very long single
+// screen every time we added another optional meal type) into its own step,
+// right after it. Desayuno/merienda were a card that opened a modal with a
+// vertical list of bordered options + subcopy under each ("horroroso" per
+// feedback — heavy contrast, popup for a 3-way choice); now inline segmented
+// controls, same visual language as "Estructura de la comida" and "Postre"
+// (which already worked this way and read fine). "Cenas rápidas" keeps its
+// own sheet since it's a per-day pick, not a single 2-4 way choice.
+export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+  // Structure can vary per family group, same groups as the food×times table
+  // in the previous step.
+  useEffect(() => {
+    if (!Array.isArray(data.groups) || data.groups.length === 0) {
+      const seeded = groupsFromModel(data.members ?? [], data.menuModel ?? "same");
+      if (seeded.length > 0) setData((d) => ({ ...d, groups: seeded }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const groups = useMemo(() => (Array.isArray(data.groups) ? data.groups : []), [data.groups]);
+  const styleableGroups = useMemo(
+    () => groups.filter((g) => !isBabyMenuGroup(g, data.members ?? [])),
+    [groups, data.members],
+  );
+  const hasMultipleGroups = styleableGroups.length > 1;
+  const [activeGroupId, setActiveGroupId] = useState(null);
+  const autoSelectedGroupRef = useRef(false);
+  useEffect(() => {
+    if (!autoSelectedGroupRef.current && styleableGroups.length > 0) {
+      autoSelectedGroupRef.current = true;
+      setActiveGroupId(styleableGroups[0].id);
+      return;
+    }
+    if (activeGroupId != null && !styleableGroups.some((g) => g.id === activeGroupId)) {
+      setActiveGroupId(styleableGroups[0]?.id ?? null);
+    }
+  }, [styleableGroups, activeGroupId]);
+  const subjectId = activeGroupId;
+
+  // ── Cenas rápidas (weekly exceptions) ──
+  // Live on the household week (data.slotType), independent of the menu tab.
+  const slotTypeMap = data.slotType ?? {};
+  const hasCena = getMeals(data).includes("Cena");
+  const toggleCenaRapida = (day) => {
+    setData((d) => {
+      const key = `${day}|Cena`;
+      const next = { ...(d.slotType ?? {}) };
+      if (next[key]) delete next[key];
+      else next[key] = "rapida";
+      return { ...d, slotType: next };
+    });
+  };
+
+  // ── Desayuno / merienda / postre ── state lives in data.extraMeals;
+  // desayuno on/off itself is set upstream in "¿Dónde coméis?".
+  const em = data.extraMeals ?? {};
+  const setExtraMeal = (key, val) =>
+    setData((d) => ({ ...d, extraMeals: { ...(d.extraMeals ?? {}), [key]: val } }));
+  const optDesayunoOn = Boolean(em.desayuno && em.desayuno !== "off");
+  const optHasKids = (data.members ?? []).some((m) =>
+    ["infantil", "primaria"].includes(stageForAge(memberAge(m)).id),
+  );
+
+  // Postre is a multi-select of comida/cena mapped onto the enum the planner
+  // already understands (off | comida | cena | ambas) — no separate "ambas" UI.
+  const postreHas = (slot) => em.postre === slot || em.postre === "ambas";
+  const togglePostre = (slot) => {
+    const c = slot === "comida" ? !postreHas("comida") : postreHas("comida");
+    const n = slot === "cena" ? !postreHas("cena") : postreHas("cena");
+    setExtraMeal("postre", c && n ? "ambas" : c ? "comida" : n ? "cena" : "off");
+  };
+
+  // One shared segmented-control look for every choice on this screen —
+  // fixed height, icon on top, label below, no per-option subcopy — so
+  // "Estructura", "Desayuno", "Merienda" and "Postre" all read as the exact
+  // same kind of control regardless of whether they're single-select
+  // (`isSelected` picks exactly one) or multi-select like Postre (both can
+  // be on at once).
+  const SEG_HEIGHT = 68;
+  const segmented = (options, isSelected, onSelect) => (
+    <div style={{ display: "flex", gap: 8 }}>
+      {options.map(({ id, label, Icon }) => {
+        const sel = isSelected(id);
+        return (
           <button
+            key={id}
             type="button"
-            onClick={() => setCenasSheetOpen(true)}
+            onClick={() => onSelect(id)}
             style={{
+              flex: 1,
+              minHeight: SEG_HEIGHT,
               display: "flex",
+              flexDirection: "column",
               alignItems: "center",
-              gap: 12,
-              width: "100%",
-              padding: "12px 14px",
-              borderRadius: 16,
-              border: "1.5px solid #e0eae3",
-              background: "#fff",
+              justifyContent: "center",
+              gap: 6,
+              padding: "10px 6px",
+              borderRadius: 14,
+              border: sel ? "2px solid #2d5a3d" : "1.5px solid #dde8e1",
+              background: sel ? "#2d5a3d" : "#fff",
+              color: sel ? "#fff" : "#142f1d",
               cursor: "pointer",
               fontFamily: "inherit",
+              textAlign: "center",
               transition: "all .15s ease",
-              boxShadow: "0 1px 2px rgba(0,0,0,.04)",
             }}
           >
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 12,
-                flexShrink: 0,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: anyRapida ? "#2f7dc0" : "#eef5f0",
-                color: anyRapida ? "#fff" : "#2d5a3d",
-              }}
-            >
-              <Zap size={20} />
-            </div>
-            <div style={{ flex: 1, textAlign: "left" }}>
-              <div style={{ fontSize: 14, fontWeight: 800, color: "#142f1d" }}>
-                Cenas rápidas
-              </div>
-              <div style={{ fontSize: 12, color: "#6b7d70", marginTop: 2, lineHeight: 1.35 }}>
-                {anyRapida
-                  ? `${rapidaDays.length} ${rapidaDays.length === 1 ? "noche marcada" : "noches marcadas"} · algo ligero`
-                  : "Marca noches ligeras y sin complicaciones"}
-              </div>
-            </div>
-            <ChevronRight size={18} color="#b6c4bb" />
+            <Icon size={18} color={sel ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
+            <span style={{ fontSize: 11.5, fontWeight: 800, lineHeight: 1.2 }}>{label}</span>
           </button>
-        </div>
-      )}
+        );
+      })}
+    </div>
+  );
 
-      {cenasSheetOpen && (
+  // Notorious horizontal rule between sections — was just top-margin before,
+  // which read as one long undifferentiated block.
+  const Divider = () => <div style={{ height: 1, background: "#d7e6dc", margin: "22px 0" }} />;
+
+  // Modo avanzado revela despensa, desayuno, merienda, postre y cenas rápidas.
+  // En modo básico solo quedan comidas y cenas (+ estructura de plato).
+  const expert = Boolean(data.expertMode);
+  const blocks = [];
+  if (hasMultipleGroups) {
+    blocks.push(
+      <div key="menu">
+        <SectionTitle>Menú</SectionTitle>
+        <GroupScopePicker
+          groups={styleableGroups}
+          scope={activeGroupId ?? "all"}
+          onChange={(id) => setActiveGroupId(id === "all" ? null : id)}
+        />
+      </div>,
+    );
+  }
+  // Pantry usage lens for menu generation — sits before the plate structure so
+  // "what we cook with" is decided before "how many courses". Writes the 3-way
+  // data.pantryMode and keeps the legacy useHomeStock boolean in sync (off ⇄
+  // false) so the "En casa" toggle in "¿Qué repetimos?" stays consistent.
+  // Solo en modo avanzado: en básico se asume "usar la despensa".
+  if (expert) {
+    blocks.push(
+      <div key="despensa">
+        <SectionTitle>Despensa</SectionTitle>
+        {segmented(
+          [
+            { id: "only", label: "Solo la despensa", Icon: Refrigerator },
+            { id: "prefer", label: "Usar la despensa", Icon: Sparkles },
+            { id: "off", label: "Sin despensa", Icon: X },
+          ],
+          (id) => (data.pantryMode ?? "prefer") === id,
+          (id) =>
+            setData((d) => ({ ...d, pantryMode: id, useHomeStock: id !== "off" })),
+        )}
+      </div>,
+    );
+  }
+  if (subjectId) {
+    blocks.push(
+      <div key="estructura">
+        <SectionTitle>Estructura de la comida</SectionTitle>
+        {segmented(
+          [
+            { id: "primero_segundo", label: "Primero y segundo", Icon: Layers2 },
+            { id: "1_plato", label: "Un solo plato", Icon: CircleDot },
+          ],
+          (id) => (data.mealStructureByGroup?.[subjectId] ?? "primero_segundo") === id,
+          (id) =>
+            setData((d) => ({
+              ...d,
+              mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: id },
+            })),
+        )}
+      </div>,
+    );
+  }
+  if (expert && optDesayunoOn) {
+    blocks.push(
+      <div key="desayuno">
+        <SectionTitle>Desayuno</SectionTitle>
+        {segmented(
+          [
+            { id: "variado", label: "Variado", Icon: Shuffle },
+            { id: "findes", label: "Igual entre semana", Icon: CalendarDays },
+            { id: "igual", label: "Siempre igual", Icon: Repeat },
+          ],
+          (id) => (em.desayuno ?? "variado") === id,
+          (id) => setExtraMeal("desayuno", id),
+        )}
+      </div>,
+    );
+  }
+  if (expert && optHasKids) {
+    blocks.push(
+      <div key="merienda">
+        <SectionTitle>Merienda</SectionTitle>
+        {segmented(
+          [
+            { id: "off", label: "Sin merienda", Icon: X },
+            { id: "semana", label: "Toda la semana", Icon: CalendarDays },
+            { id: "laborables", label: "Solo L–V", Icon: BriefcaseBusiness },
+          ],
+          (id) => (em.merienda ?? "off") === id,
+          (id) => setExtraMeal("merienda", id),
+        )}
+      </div>,
+    );
+  }
+  if (expert) {
+    blocks.push(
+    <div key="postre">
+      <SectionTitle>Postre</SectionTitle>
+      {segmented(
+        [
+          { id: "comida", label: "Comida", Icon: Sun },
+          { id: "cena", label: "Cena", Icon: Moon },
+          { id: "ambas", label: "Ambos", Icon: UtensilsCrossed },
+        ],
+        // "Ambos" only lights up once both individual ones are true — it's a
+        // shortcut, not a fourth independent state — so it's derived rather
+        // than tracked separately.
+        (id) => (id === "ambas" ? em.postre === "ambas" : postreHas(id)),
+        (id) => (id === "ambas" ? setExtraMeal("postre", em.postre === "ambas" ? "off" : "ambas") : togglePostre(id)),
+      )}
+    </div>,
+    );
+  }
+  if (expert && hasCena) {
+    blocks.push(
+      <div key="cenas-rapidas">
+        <SectionTitle>Cenas rápidas</SectionTitle>
+        <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.45 }}>
+          Toca las noches que quieras <b>ligeras y sin complicaciones</b>.
+        </p>
+
         <div
-          onClick={() => setCenasSheetOpen(false)}
           style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,.45)",
-            zIndex: 150,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: "24px 16px",
-            animation: "cenasFadeIn .2s ease both",
+            background: "#fafcfb",
+            border: "1px solid #e8efe9",
+            borderRadius: 18,
+            padding: 12,
           }}
         >
           <div
-            onClick={(e) => e.stopPropagation()}
             style={{
-              background: "#fff",
-              borderRadius: 20,
-              width: "100%",
-              maxWidth: 420,
-              padding: "14px 16px 18px",
-              maxHeight: "70dvh",
-              overflowY: "auto",
-              animation: "cenasSlideUp .28s cubic-bezier(.32,1,.28,1) both",
+              display: "grid",
+              gridTemplateColumns: "auto repeat(7, 1fr)",
+              gap: 5,
+              alignItems: "center",
             }}
           >
+            <div />
+            {DAYS.map((d) => {
+              const isWeekend = d === "Sáb" || d === "Dom";
+              return (
+                <div
+                  key={`h-${d}`}
+                  style={{ display: "flex", justifyContent: "center", paddingBottom: 6 }}
+                >
+                  <span
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: 10,
+                      fontWeight: 800,
+                      background: isWeekend ? "#2d5a3d" : "rgba(45,90,61,.1)",
+                      color: isWeekend ? "#a8d5b5" : "#2d5a3d",
+                    }}
+                  >
+                    {d.slice(0, 2)}
+                  </span>
+                </div>
+              );
+            })}
+
             <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "space-between",
-                marginBottom: 6,
+                justifyContent: "center",
+                paddingRight: 7,
+                color: "#7a9080",
               }}
+              title="Cena"
             >
-              <h3 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#1a3a24" }}>
-                Cenas rápidas
-              </h3>
-              <button
-                type="button"
-                onClick={() => setCenasSheetOpen(false)}
-                style={{
-                  background: "none",
-                  border: "none",
-                  cursor: "pointer",
-                  color: "#aaa",
-                  padding: 4,
-                  display: "flex",
-                }}
-              >
-                <X size={18} />
-              </button>
+              <Moon size={15} />
             </div>
-            <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 14px", lineHeight: 1.45 }}>
-              Toca las noches que quieras <b>ligeras y sin complicaciones</b>.
-            </p>
-
-            <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 10 }}>
-              <button
-                type="button"
-                onClick={setWeekendRapidas}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "7px 11px",
-                  borderRadius: 9,
-                  border: `1px solid ${weekendActive ? "#2d5a3d" : "#d7e1db"}`,
-                  background: weekendActive ? "#2d5a3d" : "#fff",
-                  color: weekendActive ? "#fff" : "#2d5a3d",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  transition: "all .15s ease",
-                }}
-              >
-                <CalendarDays size={13} /> Solo findes
-              </button>
-            </div>
-
-            <div
-              style={{
-                background: "#fafcfb",
-                border: "1px solid #e8efe9",
-                borderRadius: 18,
-                padding: 12,
-              }}
-            >
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "auto repeat(7, 1fr)",
-                  gap: 5,
-                  alignItems: "center",
-                }}
-              >
-                <div />
-                {DAYS.map((d) => {
-                  const isWeekend = d === "Sáb" || d === "Dom";
-                  return (
-                    <div
-                      key={`h-${d}`}
-                      style={{ display: "flex", justifyContent: "center", paddingBottom: 6 }}
-                    >
-                      <span
-                        style={{
-                          width: 28,
-                          height: 28,
-                          borderRadius: "50%",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          fontSize: 10,
-                          fontWeight: 800,
-                          background: isWeekend ? "#2d5a3d" : "rgba(45,90,61,.1)",
-                          color: isWeekend ? "#a8d5b5" : "#2d5a3d",
-                        }}
-                      >
-                        {d.slice(0, 2)}
-                      </span>
-                    </div>
-                  );
-                })}
-
-                <div
+            {DAYS.map((d) => {
+              const active = slotTypeMap[`${d}|Cena`] === "rapida";
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  onClick={() => toggleCenaRapida(d)}
+                  title={`Cena del ${dayLabel(d).toLowerCase()}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    paddingRight: 7,
-                    color: "#7a9080",
+                    width: "100%",
+                    minHeight: 44,
+                    borderRadius: 12,
+                    border: active ? "none" : "1.5px solid #e6efe9",
+                    background: active ? "#2f7dc0" : "#fff",
+                    color: active ? "#fff" : "#c0ccc4",
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    transition: "all .15s ease",
+                    boxShadow: active ? "0 3px 10px rgba(47,125,192,.32)" : "none",
                   }}
-                  title="Cena"
                 >
-                  <Moon size={15} />
-                </div>
-                {DAYS.map((d) => {
-                  const active = slotTypeMap[`${d}|Cena`] === "rapida";
-                  return (
-                    <button
-                      key={d}
-                      type="button"
-                      onClick={() => toggleCenaRapida(d)}
-                      title={`Cena del ${dayLabel(d).toLowerCase()}`}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        width: "100%",
-                        minHeight: 44,
-                        borderRadius: 12,
-                        border: active ? "none" : "1.5px solid #e6efe9",
-                        background: active ? "#2f7dc0" : "#fff",
-                        color: active ? "#fff" : "#c0ccc4",
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                        transition: "all .15s ease",
-                        boxShadow: active ? "0 3px 10px rgba(47,125,192,.32)" : "none",
-                      }}
-                    >
-                      {active ? <Zap size={17} /> : <Moon size={14} />}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => setCenasSheetOpen(false)}
-              style={{
-                marginTop: 16,
-                width: "100%",
-                height: 46,
-                borderRadius: 12,
-                border: "none",
-                background: "#2d5a3d",
-                color: "#fff",
-                fontSize: 14,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              Listo
-            </button>
+                  {active ? <Zap size={17} /> : <Moon size={14} />}
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
+      </div>,
+    );
+  }
+
+  return (
+    <OnboardingShell
+      title="¿Cómo completamos el menú?"
+      subtitle={expert ? "Platos, desayuno, merienda, postre y cenas rápidas." : "Estructura de tus comidas y cenas."}
+      nextLabel={nextLabel}
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      bg="#f5f9f6"
+    >
+      {blocks.map((block, idx) => (
+        <Fragment key={block.key ?? idx}>
+          {idx > 0 && <Divider />}
+          {block}
+        </Fragment>
+      ))}
     </OnboardingShell>
   );
 }
@@ -7388,39 +7452,44 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
       onFinish={onFinish}
       finishLabel={finishLabel}
     >
-      {/* Nivel de cocina — mismo estilo que comida/cena/desayuno */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-        {levels.map((l) => {
-          const sel = data.cookLevel === l.id;
-          return (
-            <button
-              type="button"
-              key={l.id}
-              onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
-              style={{
-                flex: 1,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 6,
-                padding: "14px 8px 12px",
-                borderRadius: 14,
-                cursor: "pointer",
-                background: sel ? "#2d5a3d" : "#f4f7f5",
-                border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                color: sel ? "#fff" : "#9ab0a1",
-                transition: "all .15s ease",
-                fontFamily: "inherit",
-              }}
-            >
-              {l.icon}
-              <span style={{ fontWeight: 700, fontSize: 12 }}>{l.label}</span>
-            </button>
-          );
-        })}
-      </div>
+      {/* Nivel de cocina — mismo estilo que comida/cena/desayuno.
+          En modo básico se asume "normal" y se oculta el selector. */}
+      {data.expertMode && (
+        <>
+          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+            {levels.map((l) => {
+              const sel = data.cookLevel === l.id;
+              return (
+                <button
+                  type="button"
+                  key={l.id}
+                  onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 6,
+                    padding: "14px 8px 12px",
+                    borderRadius: 14,
+                    cursor: "pointer",
+                    background: sel ? "#2d5a3d" : "#f4f7f5",
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                    color: sel ? "#fff" : "#9ab0a1",
+                    transition: "all .15s ease",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {l.icon}
+                  <span style={{ fontWeight: 700, fontSize: 12 }}>{l.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
-      <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 20px" }} />
+          <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 20px" }} />
+        </>
+      )}
 
       {/* Despensa — oculto de momento (feature en pausa) */}
 
@@ -7506,7 +7575,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
 
       {/* Tiempo */}
       <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
-      <CookTimeEditor data={data} setData={setData} />
+      <CookTimeEditor data={data} setData={setData} simple={!data.expertMode} />
     </OnboardingShell>
   );
 }
@@ -7817,7 +7886,9 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
         </div>
       </div>
 
-      {selectedOffsets.length > 1 && (
+      {/* Variedad entre semanas: solo modo avanzado. En básico se asume
+          "equilibrado" (moderate). */}
+      {data.expertMode && selectedOffsets.length > 1 && (
         <div style={{ marginTop: 18, padding: 14, background: "#f7f9f7", borderRadius: 14 }}>
           <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", marginBottom: 12 }}>
             Variedad entre semanas

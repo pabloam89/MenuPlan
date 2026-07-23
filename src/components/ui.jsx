@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { BarChart3, BookOpen, Calendar, ClipboardList, CookingPot, Home, Refrigerator, Settings, ShoppingCart, UserCircle, X } from "lucide-react";
+import { BookOpen, Calendar, ClipboardList, CookingPot, Home, Refrigerator, ShoppingCart, UserCircle, X } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -116,20 +116,27 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
   );
 }
 
-export function ToggleSwitch({ checked, onChange, label }) {
+// size="sm" is an opt-in compact variant (e.g. inline next to a segmented
+// control where there's no room for the full-size 48×28 switch) — default
+// stays exactly as before for every existing caller.
+export function ToggleSwitch({ checked, onChange, label, size = "md" }) {
+  const sm = size === "sm";
+  const trackW = sm ? 34 : 48;
+  const trackH = sm ? 20 : 28;
+  const thumb = sm ? 16 : 24;
   return (
     <label
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 12,
+        gap: sm ? 6 : 12,
         cursor: "pointer",
         userSelect: "none",
       }}
     >
       {label ? (
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#142f1d" }}>{label}</span>
+        <span style={{ fontSize: sm ? 12 : 14, fontWeight: 700, color: "#142f1d" }}>{label}</span>
       ) : null}
       <button
         type="button"
@@ -137,8 +144,8 @@ export function ToggleSwitch({ checked, onChange, label }) {
         aria-checked={checked}
         onClick={() => onChange(!checked)}
         style={{
-          width: 48,
-          height: 28,
+          width: trackW,
+          height: trackH,
           borderRadius: 999,
           border: "none",
           padding: 2,
@@ -151,11 +158,11 @@ export function ToggleSwitch({ checked, onChange, label }) {
         <span
           style={{
             display: "block",
-            width: 24,
-            height: 24,
+            width: thumb,
+            height: thumb,
             borderRadius: 999,
             background: "#fff",
-            transform: checked ? "translateX(20px)" : "translateX(0)",
+            transform: checked ? `translateX(${trackW - thumb - 4}px)` : "translateX(0)",
             transition: "transform .2s",
             boxShadow: "0 1px 4px rgba(0,0,0,.12)",
           }}
@@ -169,24 +176,24 @@ export function bottomNavSpacer() {
   return `calc(${BOTTOM_NAV_HEIGHT}px + env(safe-area-inset-bottom, 0px))`;
 }
 
-const HOME_NAV_ITEMS = [
-  { id: "dashboard", icon: Home, label: "Inicio" },
-  { id: "recipes",   icon: BookOpen,    label: "Recetas" },
-  { id: "menus",     icon: ClipboardList, label: "Menús" },
-  { id: "pantry",    icon: Refrigerator, label: "En casa" },
-  { id: "profile",   icon: Settings,    label: "Perfil" },
-];
-
-const MENU_NAV_ITEMS = [
+// One single bar everywhere in the app — it used to swap its 4-5 items
+// depending on a "home"/"menu" context prop, which meant the tabs under your
+// thumb silently changed screen to screen (a real source of "me pierdo" —
+// see product discussion 2026-07-23). Now it's always these 5, in this order,
+// full stop. Screens that lost their tab (Menús, Análisis, Perfil) are still
+// reachable — just as a header icon from the tab they conceptually belong to
+// (Menús + Análisis-cocina from "Menú"; Análisis-gasto + tickets from
+// "En casa"; Perfil from "Inicio") instead of competing for one of 5 slots.
+const NAV_ITEMS = [
   { id: "dashboard", icon: Home,          label: "Inicio" },
-  { id: "menu",      icon: ClipboardList, label: "Menú" },
+  { id: "pantry",    icon: Refrigerator,  label: "En casa" },
+  { id: "menu",      icon: ClipboardList, label: "Menú", highlight: true },
+  { id: "recipes",   icon: BookOpen,      label: "Recetas" },
   { id: "shopping",  icon: ShoppingCart,  label: "Compra" },
-  { id: "analytics", icon: BarChart3,     label: "Análisis" },
 ];
 
-// context: "home" (Inicio + Recetas) | "menu" (Menú + Compra + Análisis + Ajustes)
-export function BottomNav({ active, onNav, context = "menu" }) {
-  const items = context === "home" ? HOME_NAV_ITEMS : MENU_NAV_ITEMS;
+export function BottomNav({ active, onNav }) {
+  const items = NAV_ITEMS;
   const nav = (
     <nav
       aria-label="Navegación principal"
@@ -246,16 +253,36 @@ export function BottomNav({ active, onNav, context = "menu" }) {
                 boxShadow: sel ? "inset 0 0 0 1px #d4e6da" : "none",
               }}
             >
-              <it.icon
-                size={20}
-                color={sel ? "#2d5a3d" : "#9ab0a1"}
-                strokeWidth={sel ? 2.4 : 2}
-              />
+              {it.highlight ? (
+                // The core "Menú" tab is elevated in a solid green circle so it
+                // stands out as the primary destination in the nav.
+                <span
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: "50%",
+                    background: "#2d5a3d",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "0 3px 10px rgba(45,90,61,.35)",
+                    marginTop: -2,
+                  }}
+                >
+                  <it.icon size={19} color="#fff" strokeWidth={2.4} />
+                </span>
+              ) : (
+                <it.icon
+                  size={20}
+                  color={sel ? "#2d5a3d" : "#9ab0a1"}
+                  strokeWidth={sel ? 2.4 : 2}
+                />
+              )}
               <span
                 style={{
                   fontSize: 10,
-                  fontWeight: sel ? 800 : 600,
-                  color: sel ? "#1a3a24" : "#9ab0a1",
+                  fontWeight: sel || it.highlight ? 800 : 600,
+                  color: sel || it.highlight ? "#1a3a24" : "#9ab0a1",
                   letterSpacing: ".2px",
                   lineHeight: 1,
                 }}

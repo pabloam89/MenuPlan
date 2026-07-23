@@ -597,8 +597,6 @@ const SHOPPING_CHECK_IDS = ["cebolla|ud", "calabacin|ud"];
 
 function ShoppingDemo() {
   const [shopping, setShopping] = useState({ items: SHOPPING_ITEMS });
-  const [scope, setScope] = useState("pending");
-
   useEffect(() => {
     let cancelled = false;
     const timers = [];
@@ -615,20 +613,17 @@ function ShoppingDemo() {
 
     const run = async () => {
       while (!cancelled) {
-        setScope("pending");
         SHOPPING_CHECK_IDS.forEach((id) => setHave(id, false));
         await wait(900);
         if (cancelled) return;
-        // Toca "Comprado" en un par de productos, uno tras otro.
+        // Toca "Comprado" en un par de productos, uno tras otro: cada uno sale
+        // de la lista al marcarlo (ya no hay sub-vista de "Comprado").
         for (const id of SHOPPING_CHECK_IDS) {
           setHave(id, true);
           // eslint-disable-next-line no-await-in-loop
           await wait(480);
           if (cancelled) return;
         }
-        await wait(650);
-        if (cancelled) return;
-        setScope("done");
         await wait(2000);
         if (cancelled) return;
       }
@@ -648,7 +643,6 @@ function ShoppingDemo() {
         onNav={() => {}}
         onToast={() => {}}
         initialOpenAisle="Verduras"
-        initialListScope={scope}
       />
     </Frame>
   );

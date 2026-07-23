@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import { createPortal } from "react-dom";
 import {
   CalendarDays,
+  Leaf,
   Sparkles,
   BookOpen,
   ClipboardList,
@@ -17,7 +18,6 @@ import {
   ArrowRight,
   Share2,
   Receipt,
-  Home,
   Check,
   Trash2,
   X,
@@ -31,6 +31,13 @@ import {
 
 // Home: the two action tiles + the meaningful nav tabs.
 export const HOME_COACH_STEPS = [
+  {
+    selector: '[data-coach="home-mode"]',
+    Icon: Leaf,
+    title: "Modo sencillo",
+    desc: "Estás en modo sencillo: solo lo esencial y decidimos el resto por ti. Toca aquí cuando quieras pasar a avanzado y controlarlo todo.",
+    place: "below",
+  },
   {
     selector: "#coach-generate-menu",
     Icon: CalendarDays,
@@ -53,18 +60,13 @@ export const HOME_COACH_STEPS = [
     place: "above",
   },
   {
-    selector: '[data-coach="nav-menus"]',
-    Icon: ClipboardList,
-    title: "Menús",
-    desc: "Consulta tu menú actual y todo el histórico de menús que has ido generando.",
-    place: "above",
-  },
-  {
-    selector: '[data-coach="nav-profile"]',
+    // "Perfil" moved off the bottom nav (now a single, always-consistent bar
+    // — see BottomNav in ui.jsx) onto this icon in the Inicio hero.
+    selector: '[data-coach="dashboard-profile"]',
     Icon: UserRound,
     title: "Perfil",
     desc: "Ajusta tu familia, tus preferencias y tu cuenta siempre que quieras.",
-    place: "above",
+    place: "below",
   },
 ];
 
@@ -138,11 +140,21 @@ export const MENU_COACH_STEPS = [
     place: "above",
   },
   {
-    selector: '[data-coach="nav-analytics"]',
+    // "Análisis" and "Menús" moved off the bottom nav onto these two header
+    // icons — Análisis (Cocina/Objetivos) and Menús (histórico) both belong
+    // conceptually to "Tu menú", not to a 5th permanent tab slot.
+    selector: '[data-coach="menu-analytics"]',
     Icon: BarChart3,
     title: "Análisis",
     desc: "Consulta el equilibrio nutricional y la variedad de vuestra semana.",
-    place: "above",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="menu-menus"]',
+    Icon: ClipboardList,
+    title: "Menús",
+    desc: "Consulta tu menú actual y todo el histórico de menús que has ido generando.",
+    place: "below",
   },
 ];
 
@@ -173,17 +185,10 @@ export const SHOPPING_COACH_STEPS = [
     place: "below",
   },
   {
-    selector: '[data-coach="shop-athome"]',
-    Icon: Home,
-    title: "En casa",
-    desc: "Ya lo tienes: sale de la lista sin contar como compra.",
-    place: "above",
-  },
-  {
     selector: '[data-coach="shop-purchased"]',
     Icon: Check,
     title: "Comprado",
-    desc: "Lo acabas de comprar: se tacha y suma al progreso.",
+    desc: "Lo acabas de comprar: sale de la lista (puedes deshacerlo al momento).",
     place: "above",
   },
   {
