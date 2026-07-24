@@ -20,14 +20,14 @@ import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { countMenusGenerated } from "../lib/menuStats.js";
 import { planHasDishes } from "../lib/menuArchive.js";
-import { DAYS, getMeals, getDayMeals } from "../lib/planner.js";
+import { DAYS, getDayMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor } from "../lib/stages.js";
 import menuCardPhoto from "../assets/dashboard/menu-card.png";
-import recipesCardPhoto from "../assets/dashboard/recipes-card.jpg";
-import pantryCardPhoto from "../assets/dashboard/pantry-card.jpg";
+import recipesCardPhoto from "../assets/dashboard/recipes-card.png";
+import pantryCardPhoto from "../assets/dashboard/pantry-card.png";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 
 const PAGE_BG = "#f4f8f5";
