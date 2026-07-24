@@ -2537,169 +2537,6 @@ function ConfirmExitSheet({ onStay, onLeave }) {
   );
 }
 
-// Swipe-left-to-reveal wrapper for a "Repasa y confirma" row — replaces the
-// old always-visible trash icon with two hidden actions (Renombrar/
-// Descartar) that only show up on an intentional drag, keeping the row
-// itself clean. Built on Pointer Events (not touch-only) so it also works by
-// dragging with a mouse in local dev. Horizontal vs. vertical intent is
-// decided from the first few pixels of movement so it never fights the
-// list's own vertical scroll.
-const SWIPE_ACTION_W = 78;
-const SWIPE_OPEN_TX = -SWIPE_ACTION_W * 2;
-
-function SwipeRevealRow({ open, onOpenChange, onRename, onDiscard, children }) {
-  const [tx, setTx] = useState(open ? SWIPE_OPEN_TX : 0);
-  const [dragging, setDragging] = useState(false);
-  const dragRef = useRef(null);
-
-  useEffect(() => {
-    if (!dragging) setTx(open ? SWIPE_OPEN_TX : 0);
-  }, [open, dragging]);
-
-  const onPointerDown = (e) => {
-    dragRef.current = { x: e.clientX, y: e.clientY, startTx: tx, axis: null };
-    setDragging(true);
-  };
-  const onPointerMove = (e) => {
-    const d = dragRef.current;
-    if (!d) return;
-    const dx = e.clientX - d.x;
-    const dy = e.clientY - d.y;
-    if (d.axis === null) {
-      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
-      d.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
-    }
-    if (d.axis !== "x") return;
-    setTx(Math.min(0, Math.max(SWIPE_OPEN_TX - 16, d.startTx + dx)));
-  };
-  const endDrag = () => {
-    const d = dragRef.current;
-    dragRef.current = null;
-    setDragging(false);
-    if (!d || d.axis !== "x") return;
-    onOpenChange(tx < SWIPE_OPEN_TX / 2);
-  };
-
-  return (
-    <div style={{ position: "relative", overflow: "hidden" }}>
-      <div style={{ position: "absolute", inset: 0, display: "flex", justifyContent: "flex-end" }}>
-        <button
-          type="button"
-          onClick={() => { onOpenChange(false); onRename(); }}
-          style={{ width: SWIPE_ACTION_W, border: "none", background: "#2d5a3d", color: "#fff", fontSize: 11.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
-        >
-          Renombrar
-        </button>
-        <button
-          type="button"
-          onClick={() => { onOpenChange(false); onDiscard(); }}
-          style={{ width: SWIPE_ACTION_W, border: "none", background: "#c0392b", color: "#fff", fontSize: 11.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
-        >
-          Descartar
-        </button>
-      </div>
-      <div
-        onPointerDown={onPointerDown}
-        onPointerMove={onPointerMove}
-        onPointerUp={endDrag}
-        onPointerCancel={endDrag}
-        style={{
-          position: "relative",
-          background: "#f3f8f4",
-          transform: `translateX(${tx}px)`,
-          transition: dragging ? "none" : "transform .22s cubic-bezier(.2,.8,.2,1)",
-          touchAction: "pan-y",
-        }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-
-// What "Renombrar" expands into, in place of the row's normal read view — the
-// exact same candidates-grid + "Otro" pattern as "Aclara productos" (step 3),
-// just anchored to a single already-reviewed line instead of paging through
-// all of them. Never opens a new sheet/overlay: it's still the same list,
-// same scroll container as every other row here.
-function InlineRenameRow({ line, lineIdx, setLine, listItems, writeMode, onWriteMode, onCancel }) {
-  const activeListItems = listItems.filter((it) => !it.have && !it.atHome);
-  const listCandidates = receiptLineCandidates([line.raw, line.name], activeListItems, 3);
-  const candidates = listCandidates.length > 0 ? listCandidates : dictionaryLineCandidates([line.raw, line.name], 3);
-  const chosenKey = normalizeName(line.name);
-  const pick = (name) => { setLine(lineIdx, { name }); onCancel(); };
-  const confirmFree = () => { setLine(lineIdx, { name: liveMatchHint(line.name) ?? line.name }); onCancel(); };
-
-  return (
-    <div className="mp-rename-in" style={{ padding: "10px 2px", borderBottom: "1px solid #e2ede5", display: "grid", gap: 8, background: "#eef4ef", borderRadius: 12 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={wizFieldLabelStyle}>Cambiar nombre</span>
-        <button
-          type="button"
-          aria-label="Cancelar"
-          onClick={onCancel}
-          style={{ width: 24, height: 24, borderRadius: 8, border: "none", background: "transparent", color: "#8a9a90", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
-        >
-          <X size={15} strokeWidth={2.4} />
-        </button>
-      </div>
-      {candidates.length > 0 ? (
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-          {candidates.map((c) => {
-            const selected = normalizeName(c.name) === chosenKey;
-            return (
-              <button key={c.id} type="button" onClick={() => pick(c.name)} style={receiptOptionBtnStyle(selected)}>
-                <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere" }}>{c.name}</span>
-                {selected && <Check size={16} strokeWidth={3} color="#2d5a3d" style={{ flexShrink: 0 }} />}
-              </button>
-            );
-          })}
-          {writeMode ? (
-            <div style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
-              <input
-                autoFocus
-                value={line.name}
-                onChange={(e) => setLine(lineIdx, { name: e.target.value })}
-                placeholder="Escribe…"
-                style={{ ...wizInputStyle, flex: 1, minWidth: 0, padding: "9px 8px", fontSize: 12.5, background: "#fff" }}
-              />
-              <button
-                type="button"
-                aria-label="Usar este nombre"
-                onClick={confirmFree}
-                style={{ ...prodActionIconStyle(false), width: 38, height: 38, flexShrink: 0 }}
-              >
-                <Check size={16} strokeWidth={2.6} />
-              </button>
-            </div>
-          ) : (
-            <button type="button" onClick={() => onWriteMode(true)} style={writeToggleStyle}>
-              <Plus size={15} strokeWidth={2.8} />
-              <span>Otro</span>
-            </button>
-          )}
-        </div>
-      ) : (
-        <div style={{ display: "grid", gap: 6 }}>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <input
-              autoFocus
-              value={line.name}
-              onChange={(e) => setLine(lineIdx, { name: e.target.value })}
-              placeholder="Escribe el nombre del producto"
-              style={{ ...wizInputStyle, flex: 1, fontSize: 12.5, background: "#fff" }}
-            />
-            <button type="button" aria-label="Usar este nombre" onClick={confirmFree} style={prodActionIconStyle(false)}>
-              <Check size={18} strokeWidth={2.6} />
-            </button>
-          </div>
-        </div>
-      )}
-      {writeMode && <MatchHint text={line.name} />}
-    </div>
-  );
-}
-
 export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, onConfirm }) {
   // Store picker mirrors "Añadir gasto"'s: a known chain (with logo/monogram)
   // or "__other" + free text for local shops. The ticket's OCR'd store name
@@ -2740,13 +2577,6 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   // Guard against an accidental tap outside throwing away a half-reviewed
   // ticket — dismissing asks for confirmation first.
   const [confirmExit, setConfirmExit] = useState(false);
-  // "Repasa y confirma" row actions: swipe-left reveals Renombrar/Descartar
-  // (only one row's actions open at a time), and "Renombrar" expands that
-  // same row in place into the candidates picker — no textbox/pencil sitting
-  // in the row by default, and no second sheet stacked on top of this one.
-  const [swipeOpenIdx, setSwipeOpenIdx] = useState(null);
-  const [renameIdx, setRenameIdx] = useState(null);
-  const [renameWriteMode, setRenameWriteMode] = useState(false);
 
   const setLine = (i, patch) =>
     setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
@@ -3252,33 +3082,10 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
                 <span />
                 <span style={{ ...reviewColHeaderStyle, gridColumn: "3 / span 2", textAlign: "center" }}>Cantidad</span>
                 <span style={{ ...reviewColHeaderStyle, gridColumn: "5 / span 2", textAlign: "center" }}>Precio</span>
+                <span />
               </div>
-              {/* Nombre del ingrediente ⇄ tocar y arrastrar: desliza la fila a
-                  la izquierda para revelar Renombrar/Descartar (sustituye al
-                  icono de papelera fijo de antes). "Renombrar" no abre nada
-                  por encima — despliega la propia fila con los mismos
-                  candidatos que "Aclara productos", igual que ya hacéis con
-                  "Otro" ahí: nunca sales de este mismo sheet. */}
-              <style>{`
-                @keyframes mp-rename-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
-                .mp-rename-in { animation: mp-rename-in .16s ease; }
-              `}</style>
               <div style={{ display: "grid", maxHeight: "52dvh", overflowY: "auto" }}>
                 {reviewRows.map(({ lineIdx, line, match }) => {
-                  if (renameIdx === lineIdx) {
-                    return (
-                      <InlineRenameRow
-                        key={lineIdx}
-                        line={line}
-                        lineIdx={lineIdx}
-                        setLine={setLine}
-                        listItems={listItems}
-                        writeMode={renameWriteMode}
-                        onWriteMode={setRenameWriteMode}
-                        onCancel={() => { setRenameIdx(null); setRenameWriteMode(false); }}
-                      />
-                    );
-                  }
                   const matched = Boolean(match);
                   const name = matched ? match.name : line.name;
                   // Several distinct ticket lines can resolve to the exact
@@ -3317,57 +3124,72 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
                   // width instead of widening it for a second icon column).
                   const aisle = guessShoppingAisle(name);
                   return (
-                    <SwipeRevealRow
+                    <div
                       key={lineIdx}
-                      open={swipeOpenIdx === lineIdx}
-                      onOpenChange={(o) => setSwipeOpenIdx(o ? lineIdx : null)}
-                      onRename={() => { setRenameIdx(lineIdx); setRenameWriteMode(false); }}
-                      onDiscard={() => setLine(lineIdx, { include: false })}
+                      style={{ display: "grid", gridTemplateColumns: REVIEW_GRID_COLS, alignItems: "center", gap: 6, padding: "7px 0", borderBottom: "1px solid #e2ede5" }}
                     >
-                      <div
-                        style={{ display: "grid", gridTemplateColumns: REVIEW_GRID_COLS, alignItems: "center", gap: 6, padding: "7px 0", borderBottom: "1px solid #e2ede5" }}
-                      >
-                        <span title={aisle || "Sin categoría"}>
-                          <AisleIcon aisle={aisle} size={20} />
-                        </span>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.2 }}>
-                            {name}
-                          </div>
-                          {rawDiffers && (
-                            <div style={{ fontSize: 10.5, fontWeight: 600, color: "#8a9a90", overflowWrap: "anywhere", lineHeight: 1.2, marginTop: 1 }}>
-                              {toDisplayCase(line.raw)}
-                            </div>
-                          )}
+                      <span title={aisle || "Sin categoría"}>
+                        <AisleIcon aisle={aisle} size={20} />
+                      </span>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.2 }}>
+                          {name}
                         </div>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          min="0"
-                          step="0.1"
-                          aria-label="Cantidad"
-                          className="mp-no-spinner"
-                          value={qtyValue ?? ""}
-                          onChange={onQtyChange}
-                          style={{ ...miniInputStyle, textAlign: "center" }}
-                        />
-                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#7a8a7f", textAlign: "center" }}>
-                          {unitLabel}
-                        </span>
-                        <input
-                          type="number"
-                          inputMode="decimal"
-                          min="0"
-                          step="0.01"
-                          aria-label="Precio"
-                          className="mp-no-spinner"
-                          value={line.price || ""}
-                          onChange={(e) => setLine(lineIdx, { price: Number(e.target.value) || 0 })}
-                          style={{ ...miniInputStyle, textAlign: "right" }}
-                        />
-                        <span style={{ fontSize: 10.5, fontWeight: 800, color: "#2d5a3d", textAlign: "left" }}>€</span>
+                        {rawDiffers && (
+                          <div style={{ fontSize: 10.5, fontWeight: 600, color: "#8a9a90", overflowWrap: "anywhere", lineHeight: 1.2, marginTop: 1 }}>
+                            {toDisplayCase(line.raw)}
+                          </div>
+                        )}
                       </div>
-                    </SwipeRevealRow>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.1"
+                        aria-label="Cantidad"
+                        className="mp-no-spinner"
+                        value={qtyValue ?? ""}
+                        onChange={onQtyChange}
+                        style={{ ...miniInputStyle, textAlign: "center" }}
+                      />
+                      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#7a8a7f", textAlign: "center" }}>
+                        {unitLabel}
+                      </span>
+                      <input
+                        type="number"
+                        inputMode="decimal"
+                        min="0"
+                        step="0.01"
+                        aria-label="Precio"
+                        className="mp-no-spinner"
+                        value={line.price || ""}
+                        onChange={(e) => setLine(lineIdx, { price: Number(e.target.value) || 0 })}
+                        style={{ ...miniInputStyle, textAlign: "right" }}
+                      />
+                      <span style={{ fontSize: 10.5, fontWeight: 800, color: "#2d5a3d", textAlign: "left" }}>€</span>
+                      <button
+                        type="button"
+                        onClick={() => setLine(lineIdx, { include: false })}
+                        aria-label="Descartar"
+                        title="Descartar esta línea del ticket"
+                        style={{
+                          width: 26,
+                          height: 26,
+                          borderRadius: 8,
+                          flexShrink: 0,
+                          border: "none",
+                          background: "transparent",
+                          color: "#b0bab4",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      >
+                        <Trash2 size={14} strokeWidth={2.2} />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -3773,11 +3595,10 @@ const wizCardStyle = {
 
 // Shared column template for the "Repasa y confirma" header row and every
 // item row below it — icon, name (flexible), qty input, unit label, price
-// input, € sign. Using the SAME grid on both guarantees the "Cantidad"/
-// "Precio" labels sit exactly above their real columns instead of drifting
-// whenever flex-basis math (gaps, auto-width text) doesn't line up. No
-// trailing discard-icon column — Descartar lives in the swipe actions now.
-const REVIEW_GRID_COLS = "20px minmax(0,1fr) 40px 20px 56px 16px";
+// input, € sign, discard button. Using the SAME grid on both guarantees the
+// "Cantidad"/"Precio" labels sit exactly above their real columns instead of
+// drifting whenever flex-basis math (gaps, auto-width text) doesn't line up.
+const REVIEW_GRID_COLS = "20px minmax(0,1fr) 40px 20px 56px 16px 26px";
 
 const reviewColHeaderStyle = {
   fontSize: 9.5,
