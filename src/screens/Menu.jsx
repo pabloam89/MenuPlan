@@ -14,7 +14,7 @@ import {
   ChevronRight,
   Clock,
   Clock3,
-  CircleHelp,
+  ClipboardList,
   Apple,
   Coffee,
   CookingPot,
@@ -71,6 +71,7 @@ import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
+import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
@@ -197,21 +198,6 @@ const MENU_VIEW_OPTIONS = [
 ];
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", "Bebé": "B", Familia: "F" };
 
-const menuHelpIconBtnStyle = {
-  width: 32,
-  height: 32,
-  borderRadius: 999,
-  border: "1px solid #e0eae3",
-  background: "#fff",
-  color: "#2d5a3d",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  cursor: "pointer",
-  fontFamily: "inherit",
-  flexShrink: 0,
-};
-
 function GroupMenuBadge({ group, size = 22 }) {
   const abbrev = GROUP_ABBREV[group.label] ?? group.label.charAt(0);
   const displayLabel = group.adHoc ? adhocReasonLabel(group.reason) : group.label;
@@ -268,88 +254,6 @@ function MealSectionLabel({ meal, activeGroups = null }) {
         </span>
       )}
       <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
-    </div>
-  );
-}
-
-function MenuHelpBubble({ onClose, multiGroup }) {
-  const rows = [
-    {
-      title: "Menú",
-      text: multiGroup
-        ? "T = todos los menús. A, N y B filtran adultos, niños y bebé. Los círculos con borde son menús."
-        : "Un solo menú para la familia. Los bebés pueden tener menú aparte si lo configuraste.",
-    },
-    {
-      title: "Personas",
-      text: "Toca a alguien para ver su menú: el de la familia, o el suyo aparte si tiene uno individual.",
-    },
-    {
-      title: "En cada plato",
-      text: multiGroup
-        ? "La letra A, N o B indica a qué menú pertenece. Las iniciales junto a los alérgenos muestran quién come si no come todo el grupo."
-        : "Las iniciales junto a los alérgenos muestran quién come ese plato si no come todo el grupo.",
-    },
-    {
-      title: "Vista",
-      text: "Por día recorres un día; Semana muestra toda la semana con cabecera por día.",
-    },
-  ];
-
-  return (
-    <div
-      style={{
-        marginBottom: 12,
-        padding: "14px 14px 12px",
-        borderRadius: 14,
-        background: "#fff",
-        border: "1px solid #e0eae3",
-        boxShadow: "0 8px 28px rgba(20,47,29,.1)",
-      }}
-    >
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 10,
-        }}
-      >
-        <span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>Cómo leer tu menú</span>
-        <button
-          type="button"
-          onClick={onClose}
-          style={{ ...menuHelpIconBtnStyle, width: 28, height: 28 }}
-          aria-label="Cerrar ayuda"
-        >
-          <X size={14} />
-        </button>
-      </div>
-      {rows.map((row, idx) => (
-        <div
-          key={row.title}
-          style={{
-            padding: idx > 0 ? "10px 0 0" : 0,
-            borderTop: idx > 0 ? "1px solid #f0f4f1" : "none",
-          }}
-        >
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 800,
-              color: "#2d5a3d",
-              textTransform: "uppercase",
-              letterSpacing: ".04em",
-              marginBottom: 4,
-            }}
-          >
-            {row.title}
-          </div>
-          <p style={{ margin: 0, fontSize: 12, fontWeight: 500, color: "#5a7262", lineHeight: 1.45 }}>
-            {row.text}
-          </p>
-        </div>
-      ))}
     </div>
   );
 }
@@ -1843,8 +1747,8 @@ export const MenuScreen = memo(function MenuScreen({
   shoppingItems = null,
 }) {
   const [scope, setScope] = useState("all");
-  const [showMenuHelp, setShowMenuHelp] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [showIconCoach, setShowIconCoach] = useState(false);
   const dishAvailability = useMemo(
     () => dishAvailabilityMap(shoppingItems ?? []),
     [shoppingItems],
@@ -1929,7 +1833,7 @@ export const MenuScreen = memo(function MenuScreen({
   };
 
   return (
-    <div style={{ background: "#f7f9f7", minHeight: "100dvh" }}>
+    <div style={{ background: "#fff", minHeight: "100dvh" }}>
       <style>{`
         @keyframes menuViewFromRight {
           from { opacity: 0; transform: translateX(14px); }
@@ -1985,24 +1889,27 @@ export const MenuScreen = memo(function MenuScreen({
         }
       `}</style>
       {/* ── Top header: title + actions ── */}
-      <div style={{ padding: "20px 20px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", gap: 12, marginBottom: 14 }}>
+      <div style={{ background: "#e9f4ed", padding: "20px 20px 14px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <h2 style={{ fontSize: 26, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.7px" }}>
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 11,
+                background: "#c3e6d1",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <ClipboardList size={18} color="#1f4a30" strokeWidth={2.4} />
+            </span>
+            <h2 style={{ fontSize: 20, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.3px" }}>
               Tu menú
             </h2>
-            <button
-              type="button"
-              onClick={() => setShowMenuHelp((v) => !v)}
-              style={{
-                ...menuHelpIconBtnStyle,
-                background: showMenuHelp ? "#e8f0ea" : "#fff",
-              }}
-              aria-label="Ayuda del menú"
-              aria-expanded={showMenuHelp}
-            >
-              <CircleHelp size={17} strokeWidth={2.2} />
-            </button>
+            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {/* Análisis (Cocina/Objetivos) and Menús (histórico) lost their own
@@ -2017,7 +1924,7 @@ export const MenuScreen = memo(function MenuScreen({
                 title="Análisis de tu menú"
                 style={iconChipButtonStyle}
               >
-                <BarChart3 size={16} strokeWidth={2.2} />
+                <BarChart3 size={17} strokeWidth={2.2} />
               </button>
             )}
             {onOpenMenus && (
@@ -2029,7 +1936,7 @@ export const MenuScreen = memo(function MenuScreen({
                 title="Menús guardados"
                 style={iconChipButtonStyle}
               >
-                <History size={16} strokeWidth={2.2} />
+                <History size={17} strokeWidth={2.2} />
               </button>
             )}
             {hasMenu && (
@@ -2045,7 +1952,7 @@ export const MenuScreen = memo(function MenuScreen({
                   }}
                 >
                   <span className={`share-chip-icon${showShareDropdown ? " open" : ""}`}>
-                    <Share2 size={16} />
+                    <Share2 size={17} />
                   </span>
                 </button>
                 {showShareDropdown && (
@@ -2111,15 +2018,11 @@ export const MenuScreen = memo(function MenuScreen({
                 title="Regenerar menú"
                 style={regenerateIconButtonStyle}
               >
-                <RotateCw size={16} strokeWidth={2.2} />
+                <RotateCw size={17} strokeWidth={2.2} />
               </button>
             )}
           </div>
         </div>
-
-        {showMenuHelp && (
-          <MenuHelpBubble onClose={() => setShowMenuHelp(false)} multiGroup={multiGroup} />
-        )}
       </div>
 
       {/* ── Filter panel: collapsible con animación ── */}
@@ -2418,6 +2321,8 @@ export const MenuScreen = memo(function MenuScreen({
           }}
         />
       )}
+
+      {showIconCoach && <MenuCoachTour onClose={() => setShowIconCoach(false)} />}
 
       <BottomNav active="menu" onNav={onNav} />
     </div>
@@ -3391,13 +3296,14 @@ const iconChipButtonStyle = {
   width: 36,
   height: 36,
   padding: 0,
-  borderRadius: 999,
-  border: "1px solid #e6eee8",
+  borderRadius: 12,
+  border: "1.5px solid #dbe7df",
   background: "#fff",
   color: "#2d5a3d",
   cursor: "pointer",
   flexShrink: 0,
   fontFamily: "inherit",
+  boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
 };
 
 const regenerateIconButtonStyle = {

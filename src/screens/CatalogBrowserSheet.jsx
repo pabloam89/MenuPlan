@@ -432,7 +432,7 @@ export function CatalogBrowserSheet({
               position: "relative", display: "inline-flex", alignItems: "center", gap: 7,
               height: 42, padding: "0 14px", borderRadius: 12, cursor: "pointer",
               border: `1.5px solid ${showFilters || activeFilterCount ? GREEN : "#e8efe9"}`,
-              background: showFilters || activeFilterCount ? GREEN : "#fff",
+              background: showFilters || activeFilterCount ? GREEN : "#f4f7f5",
               color: showFilters || activeFilterCount ? "#fff" : "#5a7066",
               fontSize: 13, fontWeight: 800, fontFamily: "inherit", flexShrink: 0,
             }}
@@ -456,14 +456,12 @@ export function CatalogBrowserSheet({
     </>
   );
 
-  const countRow = (
+  const countRow = results.length === 0 ? null : (
     <div style={{ padding: `10px ${px}px 6px`, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
       <p style={{ margin: 0, fontSize: 12, fontWeight: 700, color: "#7a9485", minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-        {results.length === 0
-          ? "Sin resultados — prueba a quitar filtros"
-          : gatePick
-            ? `${results.length} ${results.length === 1 ? "resultado" : "resultados"}`
-            : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
+        {gatePick
+          ? `${results.length} ${results.length === 1 ? "resultado" : "resultados"}`
+          : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
       </p>
       {results.length > PAGE_SIZES[0] && (
         <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#f0f4f1", borderRadius: 9, padding: 2, flexShrink: 0 }}>
@@ -524,7 +522,7 @@ export function CatalogBrowserSheet({
               width: "100%", display: "flex", alignItems: "center", gap: 10,
               padding: "8px 4px", border: "none", background: "transparent",
               cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-              borderBottom: i === allCats.length - 1 ? "none" : "1px solid rgba(45,90,61,.1)",
+              borderBottom: i === allCats.length - 1 ? "none" : "1px solid rgba(45,110,70,.2)",
               animationDelay: `${i < 14 ? i * 16 : 0}ms`,
             }}
           >
@@ -616,9 +614,21 @@ export function CatalogBrowserSheet({
             />
           ))}
       {results.length === 0 && (
-        <div style={{ textAlign: "center", padding: "40px 20px", color: "#9ab0a1" }}>
-          {favoriteIds ? <Heart size={32} color="#cdd8d0" /> : <Search size={32} color="#cdd8d0" />}
-          <p style={{ margin: "10px 0 0", fontSize: 13, lineHeight: 1.5, maxWidth: 260, marginInline: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "50px 20px", textAlign: "center" }}>
+          <div
+            style={{
+              width: 60,
+              height: 60,
+              borderRadius: 18,
+              background: favoriteIds ? "#fdecef" : "#eef4f0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {favoriteIds ? <Heart size={26} color="#e0668a" /> : <Search size={26} color="#2d5a3d" />}
+          </div>
+          <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5, maxWidth: 260 }}>
             {emptyLabel
               ? emptyLabel
               : gatePick
@@ -711,7 +721,7 @@ export function CatalogBrowserSheet({
     return (
       <div>
         {styleBlock}
-        <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#f4f8f5", paddingTop: 12 }}>
+        <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#fff", paddingTop: 12 }}>
           {searchRow}
           {selectedRow}
           {categoryBackRow}
@@ -1087,7 +1097,7 @@ function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle, las
         width: "100%", display: "flex", alignItems: "center", gap: 12,
         padding: "13px 10px", border: "none", background: "transparent",
         cursor: "pointer", fontFamily: "inherit", borderRadius: 10, textAlign: "left",
-        borderBottom: last ? "none" : "1px solid rgba(45,90,61,.1)",
+        borderBottom: last ? "none" : "1px solid rgba(45,110,70,.2)",
       }}
     >
       {Icon && (

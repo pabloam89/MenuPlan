@@ -24,7 +24,6 @@ import {
   Moon,
   Flame,
   ListOrdered,
-  ShieldAlert,
   Check,
   Wind,
   Microwave,
@@ -40,6 +39,10 @@ import {
   Milk,
   Croissant,
   Droplet,
+  Leaf,
+  Drumstick,
+  Sprout,
+  Package,
   ChevronDown,
   ChevronUp,
   ThumbsUp,
@@ -67,7 +70,7 @@ import {
   generateDishPhotoWithAI,
   suggestRecipeIngredients,
 } from "../lib/userRecipes.js";
-import { SHOPPING_AISLES, isQualitativeUnit } from "../lib/ingredientCategories.js";
+import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle } from "../lib/ingredientCategories.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -109,6 +112,38 @@ const AISLE_COLORS = {
   Especias: "#a8452e",
   "Aceites y conservas": "#6b8e23",
 };
+
+// Category chip look for the ingredient edit-list — kept 1:1 with the Pantry
+// ("En casa") AISLE_UI (same icons + colors) so an ingredient reads with the
+// exact same category glyph across both screens.
+const PANTRY_AISLE_UI = {
+  Verduras: { Icon: Leaf, color: "#3d9b5f" },
+  Frutas: { Icon: Apple, color: "#e07b39" },
+  Carne: { Icon: Drumstick, color: "#c45c4a" },
+  Pescado: { Icon: Fish, color: "#2072b8" },
+  Legumbres: { Icon: Bean, color: "#8b6914" },
+  "Pasta y arroz": { Icon: Wheat, color: "#c9922a" },
+  Lácteos: { Icon: Milk, color: "#4a9ec5" },
+  Huevos: { Icon: Egg, color: "#ca9a14" },
+  Panadería: { Icon: Croissant, color: "#a67c52" },
+  Especias: { Icon: Sprout, color: "#7c5cbf" },
+  "Aceites y conservas": { Icon: Package, color: "#64748b" },
+};
+
+function PantryCategoryIcon({ name, size = 26 }) {
+  const meta = PANTRY_AISLE_UI[guessShoppingAisle(name)] ?? { Icon: Package, color: "#64748b" };
+  const Icon = meta.Icon;
+  return (
+    <span
+      style={{
+        width: size, height: size, borderRadius: 8, background: meta.color, color: "#fff",
+        display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+      }}
+    >
+      <Icon size={size * 0.5} strokeWidth={2.2} />
+    </span>
+  );
+}
 
 const USAGE_TAG_ICONS = {
   plato_unico: UtensilsCrossed,
@@ -275,7 +310,7 @@ function FieldLabel({ icon: Icon, color = GREEN, children }) {
           <Icon size={12.5} color={color} />
         </span>
       )}
-      <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: INK }}>{children}</p>
+      <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: INK }}>{children}</p>
     </div>
   );
 }
@@ -299,8 +334,8 @@ function TextField({ value, onChange, placeholder, type = "text", suffix, ...res
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         style={{
-          width: "100%", boxSizing: "border-box", padding: suffix ? "12px 44px 12px 14px" : "12px 14px",
-          borderRadius: 12, border: "1.5px solid #e8efe9", background: "#fff", fontSize: 16,
+          width: "100%", boxSizing: "border-box", padding: suffix ? "11px 44px 11px 14px" : "11px 14px",
+          borderRadius: 12, border: "1.5px solid #e8efe9", background: "#fff", fontSize: 13.5,
           color: INK, fontFamily: "inherit", outline: "none",
         }}
         {...rest}
@@ -325,7 +360,7 @@ function OptionSection({ icon: Icon, title, subtitle, children }) {
           <Icon size={14} strokeWidth={2.2} />
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: "#1a3a24" }}>{title}</p>
+          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: "#1a3a24" }}>{title}</p>
           {subtitle && <p style={{ margin: "1px 0 0", fontSize: 11.5, color: "#5e7a68", fontWeight: 600, lineHeight: 1.3 }}>{subtitle}</p>}
         </div>
       </div>
@@ -419,7 +454,7 @@ function GridNumberPicker({ values, value, onChange }) {
           style={{
             height: 40, width: "100%", boxSizing: "border-box", borderRadius: 11, textAlign: "center",
             fontFamily: "inherit", border: `1.5px solid ${GREEN}`, outline: "none",
-            fontSize: 16, fontWeight: 750, color: INK,
+            fontSize: 13.5, fontWeight: 750, color: INK,
           }}
         />
       ) : (
@@ -916,6 +951,129 @@ function AisleDropdown({ aisle, anchorRef, onSelect, onClose }) {
   );
 }
 
+// Custom unit selector — the native <select> looked out of place (system
+// styling). This mirrors the app's dropdown language (AisleDropdown /
+// StorePicker): a rounded trigger + a portaled floating list with rounded
+// corners, thin horizontal dividers and a check on the selected unit.
+function UnitDropdown({ value, anchorRef, onSelect, onClose }) {
+  const menuRef = useRef(null);
+  const [pos, setPos] = useState(null);
+
+  useLayoutEffect(() => {
+    const reposition = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const width = Math.max(r.width, 124);
+      const spaceBelow = vh - r.bottom;
+      const openUp = spaceBelow < 240 && r.top > spaceBelow;
+      setPos({
+        left: Math.min(r.left, window.innerWidth - width - 12),
+        width,
+        top: openUp ? null : r.bottom + 6,
+        bottom: openUp ? vh - r.top + 6 : null,
+        maxHeight: Math.max(180, (openUp ? r.top : spaceBelow) - 18),
+      });
+    };
+    reposition();
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [anchorRef]);
+
+  useEffect(() => {
+    const onPointerDown = (e) => {
+      if (menuRef.current?.contains(e.target) || anchorRef.current?.contains(e.target)) return;
+      onClose();
+    };
+    const onKeyDown = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [anchorRef, onClose]);
+
+  if (!pos) return null;
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      role="listbox"
+      style={{
+        position: "fixed", left: pos.left, width: pos.width,
+        top: pos.top ?? undefined, bottom: pos.bottom ?? undefined,
+        maxHeight: pos.maxHeight, overflowY: "auto",
+        background: "#fff", borderRadius: 14, border: "1px solid #d7e6dc",
+        boxShadow: "0 20px 48px -10px rgba(20,47,29,.32)", zIndex: 400, padding: 5,
+      }}
+    >
+      {INGREDIENT_UNITS.map((u, i) => {
+        const selected = value === u;
+        return (
+          <div key={u}>
+            {i > 0 && <div style={{ height: 1, margin: "3px 8px", background: "#d7e6dc" }} />}
+            <button
+              type="button"
+              role="option"
+              aria-selected={selected}
+              onClick={() => onSelect(u)}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+                gap: 10, padding: "9px 11px", border: "none", borderRadius: 10,
+                background: selected ? "#eaf3ec" : "transparent",
+                color: selected ? GREEN : INK, fontWeight: selected ? 800 : 600,
+                fontSize: 13, textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              <span>{u}</span>
+              {selected && <Check size={15} strokeWidth={2.8} color={GREEN} style={{ flexShrink: 0 }} />}
+            </button>
+          </div>
+        );
+      })}
+    </div>,
+    document.body,
+  );
+}
+
+function UnitPicker({ value, onChange, width }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          ...inputBase, flexShrink: 0, width, height: 34, padding: "0 8px",
+          display: "inline-flex", alignItems: "center", justifyContent: "space-between", gap: 4,
+          background: "#fff", cursor: "pointer", fontSize: 13, fontWeight: 700, color: INK,
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{value}</span>
+        {open ? <ChevronUp size={14} color="#9ab0a1" style={{ flexShrink: 0 }} /> : <ChevronDown size={14} color="#9ab0a1" style={{ flexShrink: 0 }} />}
+      </button>
+      {open && (
+        <UnitDropdown
+          value={value}
+          anchorRef={btnRef}
+          onSelect={(u) => { onChange(u); setOpen(false); }}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
 function IngredientEditList({ items, onUpdate, onRemove }) {
   if (items.length === 0) {
     return (
@@ -925,16 +1083,17 @@ function IngredientEditList({ items, onUpdate, onRemove }) {
     );
   }
   return (
-    <div style={{ marginTop: 12, background: "#fff", border: "1px solid #ebf0ed", borderRadius: 14, overflow: "hidden" }}>
+    <div style={{ marginTop: 12 }}>
       {items.map((it, i) => (
         <div
           key={`${it.name}-${i}`}
           style={{
-            display: "flex", alignItems: "center", gap: 8, padding: "10px 12px",
-            borderBottom: i === items.length - 1 ? "none" : "1px solid #eef3f0",
+            display: "flex", alignItems: "center", gap: 8, padding: "9px 2px",
+            borderBottom: i === items.length - 1 ? "none" : "1px solid rgba(45,110,70,.2)",
           }}
         >
-          <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <PantryCategoryIcon name={it.name} />
+          <span style={{ flex: 1, minWidth: 0, fontSize: 13, fontWeight: 700, color: INK, lineHeight: 1.25, overflowWrap: "anywhere" }}>
             {it.name}
           </span>
           {!isQualitativeUnit(it.unit) && (
@@ -943,37 +1102,29 @@ function IngredientEditList({ items, onUpdate, onRemove }) {
               onChange={(e) => onUpdate(i, { amount: e.target.value })}
               inputMode="decimal"
               placeholder="0"
-              style={{ ...inputBase, width: 52, flexShrink: 0, padding: "8px 4px", fontSize: 16, textAlign: "center" }}
+              style={{ ...inputBase, width: 50, height: 34, flexShrink: 0, padding: "0 4px", fontSize: 13, fontWeight: 700, textAlign: "center" }}
             />
           )}
-          <select
+          <UnitPicker
             value={it.unit}
-            onChange={(e) => {
-              const unit = e.target.value;
-              // These units don't carry a fixed number — drop any amount so
-              // the ingredient isn't left with a stale/meaningless quantity.
-              onUpdate(i, isQualitativeUnit(unit) ? { unit, amount: "" } : { unit });
-            }}
-            style={{
-              ...inputBase, flexShrink: 0, padding: "8px 4px", fontSize: 16, background: "#fff",
-              width: isQualitativeUnit(it.unit) ? 108 : 92,
-            }}
-          >
-            {INGREDIENT_UNITS.map((u) => (
-              <option key={u} value={u}>{u}</option>
-            ))}
-          </select>
+            width={isQualitativeUnit(it.unit) ? 100 : 84}
+            onChange={(unit) =>
+              // Qualitative units don't carry a fixed number — drop any amount
+              // so the ingredient isn't left with a stale/meaningless quantity.
+              onUpdate(i, isQualitativeUnit(unit) ? { unit, amount: "" } : { unit })
+            }
+          />
           <button
             type="button"
             onClick={() => onRemove(i)}
             aria-label="Quitar ingrediente"
             style={{
-              width: 30, height: 30, borderRadius: 9, border: "none", flexShrink: 0,
+              width: 28, height: 28, borderRadius: 8, border: "none", flexShrink: 0,
               background: "#fdf1ef", color: "#c0392b", cursor: "pointer",
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
-            <Trash2 size={14} />
+            <Trash2 size={13} />
           </button>
         </div>
       ))}
@@ -1016,7 +1167,7 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
               style={{
                 flex: 1, minWidth: 0, resize: "none", overflow: "hidden", boxSizing: "border-box",
                 border: "none", background: "#fff", borderRadius: 10, padding: "6px 8px",
-                fontSize: 16, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
+                fontSize: 13.5, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
               }}
             />
             <button
@@ -1176,9 +1327,9 @@ function VisibilitySheet({ onConfirm, onClose }) {
           type="button"
           onClick={() => onConfirm(selected)}
           style={{
-            width: "100%", padding: 14, borderRadius: 13, border: "none",
+            width: "100%", padding: 13, borderRadius: 13, border: "none",
             background: "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
-            color: "#fff", fontSize: 15, fontWeight: 800, cursor: "pointer",
+            color: "#fff", fontSize: 14, fontWeight: 800, cursor: "pointer",
             fontFamily: "inherit",
           }}
         >
@@ -1558,16 +1709,16 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
       <div style={{ padding: "10px 20px 26px", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, flexShrink: 0 }}>
         <span
           style={{
-            width: 38, height: 38, borderRadius: 12, background: `${STEP_META[step].color}17`,
+            width: 34, height: 34, borderRadius: 11, background: `${STEP_META[step].color}17`,
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
           {(() => {
             const StepIcon = STEP_META[step].icon;
-            return <StepIcon size={19} color={STEP_META[step].color} />;
+            return <StepIcon size={17} color={STEP_META[step].color} />;
           })()}
         </span>
-        <p style={{ margin: 0, fontSize: 19, fontWeight: 900, color: INK, letterSpacing: "-.3px", position: "relative" }}>
+        <p style={{ margin: 0, fontSize: 17, fontWeight: 900, color: INK, letterSpacing: "-.3px", position: "relative" }}>
           {STEP_META[step].title}
           <span
             style={{
@@ -1677,11 +1828,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
               onToggle={toggleIngredient}
               onAddCustom={addCustomIngredient}
             />
-            {form.ingredients.length > 0 && (
-              <p style={{ margin: "2px 0 0", fontSize: 12, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
-                AÑADIDOS ({form.ingredients.length}) · AJUSTA CANTIDADES
-              </p>
-            )}
             <IngredientEditList
               items={form.ingredients}
               onUpdate={updateIngredientAt}
@@ -1691,33 +1837,38 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
         )}
 
         {step === 2 && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <div style={{ marginBottom: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 26 }}>
+            <div>
               <FieldLabel icon={UtensilsCrossed}>¿Cómo se sirve?</FieldLabel>
               <UsageSegmentedControl value={form.usageTags} onChange={setUsage} />
-                </div>
+            </div>
 
-            <div style={{ height: 1, background: "#e3ebe6", margin: "4px 0 8px" }} />
+            <div style={{ height: 1, background: "#e3ebe6" }} />
 
-            <OptionSection icon={Clock} title="¿Cuándo se sirve?">
-                    <OptionRow
-                icon={Soup}
-                color="#2d8659"
-                label="Comida"
-                checked={comidaChecked}
-                onToggle={toggleComida}
-              />
-                    <OptionRow
-                icon={MEAL_ROLE_ICONS.cena}
-                color={MEAL_ROLE_COLORS.cena}
-                label="Cena"
-                checked={form.mealRole.includes("cena")}
-                onToggle={() => toggleMealRole("cena")}
-                last
-              />
-                </OptionSection>
+            <div>
+              <OptionSection icon={Clock} title="¿Cuándo se sirve?">
+                <OptionRow
+                  icon={Soup}
+                  color="#2d8659"
+                  label="Comida"
+                  checked={comidaChecked}
+                  onToggle={toggleComida}
+                  last
+                />
+                <OptionRow
+                  icon={MEAL_ROLE_ICONS.cena}
+                  color={MEAL_ROLE_COLORS.cena}
+                  label="Cena"
+                  checked={form.mealRole.includes("cena")}
+                  onToggle={() => toggleMealRole("cena")}
+                  last
+                />
+              </OptionSection>
+            </div>
 
-            <div style={{ margin: "12px 0" }}>
+            <div style={{ height: 1, background: "#e3ebe6" }} />
+
+            <div>
               <FieldLabel icon={Users}>¿Apto para niños?</FieldLabel>
               <SegmentedControl
                 options={[
@@ -1730,30 +1881,6 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
                 activeDark
               />
             </div>
-
-            <OptionSection
-              icon={ShieldAlert}
-              title="Alergias"
-              subtitle="Márcalo si lo sabes seguro — la IA añadirá cualquier otro que detecte en los ingredientes"
-            >
-              {ALLERGEN_OPTIONS.map((a, i) => (
-                <OptionRow
-                  key={a.id}
-                  icon={a.Icon}
-                  color={a.color}
-                  label={a.label}
-                  checked={form.allergens.includes(a.id)}
-                  onToggle={() =>
-                    updateForm({
-                      allergens: form.allergens.includes(a.id)
-                        ? form.allergens.filter((x) => x !== a.id)
-                        : [...form.allergens, a.id],
-                    })
-                  }
-                  last={optionRowIsLast(i, ALLERGEN_OPTIONS.length)}
-                />
-              ))}
-            </OptionSection>
           </div>
         )}
 
@@ -1771,7 +1898,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
                 rows={4}
                 style={{
                   width: "100%", boxSizing: "border-box", padding: 12, borderRadius: 12,
-                  border: "1.5px solid #e8efe9", fontSize: 16, fontFamily: "inherit", color: INK,
+                  border: "1.5px solid #e8efe9", fontSize: 13.5, fontFamily: "inherit", color: INK,
                   outline: "none", resize: "vertical",
                 }}
               />
@@ -1860,9 +1987,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
             onClick={goNext}
             disabled={!canNext[step]}
             style={{
-              width: "100%", padding: 14, borderRadius: 12, border: "none",
+              width: "100%", padding: 13, borderRadius: 12, border: "none",
               background: canNext[step] ? GREEN : "#c8d9ce", color: "#fff",
-              fontSize: 14.5, fontWeight: 800, cursor: canNext[step] ? "pointer" : "not-allowed",
+              fontSize: 14, fontWeight: 800, cursor: canNext[step] ? "pointer" : "not-allowed",
               fontFamily: "inherit",
             }}
           >
@@ -1873,8 +2000,8 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
             type="button"
             onClick={onClose}
             style={{
-              width: "100%", padding: 14, borderRadius: 12, border: "none",
-              background: GREEN, color: "#fff", fontSize: 14.5, fontWeight: 800,
+              width: "100%", padding: 13, borderRadius: 12, border: "none",
+              background: GREEN, color: "#fff", fontSize: 14, fontWeight: 800,
               cursor: "pointer", fontFamily: "inherit",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}
@@ -1887,9 +2014,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
             onClick={() => setShowVisibilitySheet(true)}
             disabled={aiState !== "done"}
             style={{
-              width: "100%", padding: 14, borderRadius: 12, border: "none",
+              width: "100%", padding: 13, borderRadius: 12, border: "none",
               background: aiState === "done" ? "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)" : "#c8d9ce",
-              color: "#fff", fontSize: 14.5, fontWeight: 800,
+              color: "#fff", fontSize: 14, fontWeight: 800,
               cursor: aiState === "done" ? "pointer" : "not-allowed", fontFamily: "inherit",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
             }}

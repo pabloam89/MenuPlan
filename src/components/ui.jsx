@@ -523,9 +523,9 @@ export function WeekRangeBadge({ label, hideLabel = false, topLabel = "Semana" }
       style={{
         display: "inline-flex",
         alignItems: "center",
-        gap: 8,
-        padding: hideLabel ? "7px 10px" : "7px 11px",
-        borderRadius: 12,
+        gap: hideLabel ? 7 : 8,
+        padding: hideLabel ? "6px 10px" : "7px 11px",
+        borderRadius: hideLabel ? 10 : 12,
         background: "#f4f8f5",
         border: "1px solid #e0eae3",
         flexShrink: 0,
@@ -533,9 +533,9 @@ export function WeekRangeBadge({ label, hideLabel = false, topLabel = "Semana" }
     >
       <span
         style={{
-          width: 28,
-          height: 28,
-          borderRadius: 8,
+          width: hideLabel ? 22 : 28,
+          height: hideLabel ? 22 : 28,
+          borderRadius: hideLabel ? 7 : 8,
           background: "#2d5a3d",
           color: "#fff",
           display: "inline-flex",
@@ -544,7 +544,7 @@ export function WeekRangeBadge({ label, hideLabel = false, topLabel = "Semana" }
           flexShrink: 0,
         }}
       >
-        <Calendar size={14} />
+        <Calendar size={hideLabel ? 13 : 14} />
       </span>
       {hideLabel ? (
         <span

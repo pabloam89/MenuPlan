@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import { ChefHat, BookOpen, Plus } from "lucide-react";
 import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
+import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
-const BG = "#f4f8f5";
+// Shared title-band tint across En casa / Menú / Recetas / Compra — a soft
+// green (accent-tinted), distinct from the white body below.
+const HEADER_BAND = "#e9f4ed";
 
 /**
  * Recetas screen — three internal tabs, all backed by CatalogBrowserSheet so
@@ -36,12 +39,13 @@ export function RecipesScreen({
   // thumbnails show instead of the category grid.
   catalogInitialCategory = null,
 }) {
-  const [tab, setTab] = useState(initialTab ?? "catalog");
+  const [tab, setTab] = useState(initialTab ?? "mine");
+  const [showIconCoach, setShowIconCoach] = useState(false);
 
   useEffect(() => {
     if (!autoplay) return undefined;
-    const tabs = ["catalog", "favorites", "mine"];
-    let k = tabs.indexOf(initialTab ?? "catalog");
+    const tabs = ["mine", "catalog", "favorites"];
+    let k = tabs.indexOf(initialTab ?? "mine");
     if (k < 0) k = 0;
     const id = setInterval(() => {
       k = (k + 1) % tabs.length;
@@ -56,22 +60,22 @@ export function RecipesScreen({
   );
 
   const TABS = [
+    { id: "mine", label: "Mis recetas", count: userRecipes.length },
     { id: "catalog", label: "Catálogo" },
     { id: "favorites", label: "Favoritas", count: favoriteIds.size },
-    { id: "mine", label: "Mis recetas", count: userRecipes.length },
   ];
 
   return (
-    <div style={{ minHeight: "100dvh", background: BG, display: "flex", flexDirection: "column" }}>
-      {/* Header */}
-      <div
-        style={{
-          padding: "20px 18px 0",
-          background: BG,
-          maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
+    <div style={{ minHeight: "100dvh", background: "#fff", display: "flex", flexDirection: "column" }}>
+      {/* Title band (Menú color) */}
+      <div style={{ background: HEADER_BAND }}>
+        <div
+          style={{
+            padding: "20px 18px 14px",
+            maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+          }}
+        >
           <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
             <div
               style={{
@@ -84,6 +88,7 @@ export function RecipesScreen({
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
               Recetas
             </h1>
+            <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
           <button
             type="button"
@@ -98,12 +103,18 @@ export function RecipesScreen({
             <Plus size={14} strokeWidth={2.8} /> Crear
           </button>
         </div>
+      </div>
 
-        {/* Tab switcher */}
+      {/* Tab switcher (white) */}
+      <div
+        style={{
+          padding: "14px 18px 6px", background: "#fff",
+          maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
+        }}
+      >
         <div
           style={{
             display: "flex", background: "#e8efe9", borderRadius: 12, padding: 3,
-            marginBottom: 6,
           }}
         >
           {TABS.map((t) => {
@@ -236,6 +247,8 @@ export function RecipesScreen({
           )
         )}
       </div>
+
+      {showIconCoach && <RecipesCoachTour onClose={() => setShowIconCoach(false)} />}
 
       <BottomNav active="recipes" onNav={onNav} />
     </div>

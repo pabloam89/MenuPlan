@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Camera, ChevronDown, Loader2, Mic, Pencil, Plus, Square, Trash2 } from "lucide-react";
+import { Camera, ChevronDown, Loader2, Pencil, Plus, Receipt, Trash2 } from "lucide-react";
 import { useAuth } from "../lib/useAuth.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { addPantryItems, addLocalPantryItems } from "../lib/pantry.js";
@@ -340,11 +340,6 @@ function PantryEditList({
   );
 }
 
-function getSpeechRecognitionCtor() {
-  if (typeof window === "undefined") return null;
-  return window.SpeechRecognition ?? window.webkitSpeechRecognition ?? null;
-}
-
 // A photo-detected canonical amount (g/ml) reads better scaled up for
 // editing — "1000 g de arroz" is really "1 kg" to a person filling the field.
 function toDisplayUnit(qty, unit) {
@@ -353,32 +348,32 @@ function toDisplayUnit(qty, unit) {
   return { qty, unit };
 }
 
-// Three ways in, each landing in the same chip list below for quantity/unit
-// review — only how a chip gets there changes with the mode.
-const MODES = [
-  { id: "text", label: "Escrito", Icon: Pencil },
-  { id: "voice", label: "Voz", Icon: Mic },
-  { id: "photo", label: "Foto", Icon: Camera },
-];
+// Ways in, each landing in the same chip list below for quantity/unit review —
+// only how a chip gets there changes. "Ticket" is an action (opens the receipt
+// wizard) rather than a persistent panel, so it's only offered when the parent
+// wires onUploadReceipt.
+function modesFor(hasReceipt) {
+  const list = [{ id: "photo", label: "Subir foto", Icon: Camera }];
+  if (hasReceipt) list.push({ id: "ticket", label: "Subir ticket", Icon: Receipt });
+  list.push({ id: "text", label: "Añadir a mano", Icon: Pencil });
+  return list;
+}
 
-function ModeToggle({ mode, onSelect, voiceDisabled }) {
+function ModeToggle({ mode, onSelect, modes }) {
   return (
     <div style={modeToggleStyle}>
-      {MODES.map(({ id, label, Icon }) => {
+      {modes.map(({ id, label, Icon }) => {
         const selected = mode === id;
-        const disabled = id === "voice" && voiceDisabled;
         return (
           <button
             key={id}
             type="button"
-            disabled={disabled}
             onClick={() => onSelect(id)}
             aria-pressed={selected}
-            title={disabled ? "Dictado no disponible en este navegador" : label}
+            title={id === "ticket" ? "Subir ticket de compra" : label}
             style={{
               ...modeToggleBtnStyle,
               ...(selected ? modeToggleBtnOnStyle : {}),
-              ...(disabled ? { opacity: 0.4, cursor: "not-allowed" } : {}),
             }}
           >
             <Icon size={13} strokeWidth={2.4} />
@@ -402,21 +397,18 @@ function ModeToggle({ mode, onSelect, voiceDisabled }) {
  * lib/pantry.js instead (mergeLocalPantryIntoCloud folds it into the account
  * on first login).
  */
-export function PantryInput({ onSaved }) {
+export function PantryInput({ onSaved, onUploadReceipt = null }) {
   const { user } = useAuth();
   const [mode, setMode] = useState("text");
-  const [text, setText] = useState("");
   const [chips, setChips] = useState([]);
-  const [listening, setListening] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const [pickQuery, setPickQuery] = useState("");
   const [pickAisle, setPickAisle] = useState(null);
   const [focusQtyIndex, setFocusQtyIndex] = useState(null);
-  const debounceRef = useRef(null);
-  const recognitionRef = useRef(null);
   const fileInputRef = useRef(null);
+  const modes = modesFor(Boolean(onUploadReceipt));
 
   const addChips = (parsedList, source, qtyUnitByRaw) => {
     setChips((prev) => {
@@ -430,57 +422,6 @@ export function PantryInput({ onSaved }) {
       return next;
     });
   };
-
-  const mergeParsedIntoChips = (raw, source = "manual") => {
-    const parsed = normalizePantryInput(raw);
-    if (parsed.length === 0) return;
-    addChips(parsed, source);
-    setText("");
-  };
-
-  const onTextChange = (value) => {
-    setText(value);
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      if (value.trim()) mergeParsedIntoChips(value, "manual");
-    }, 600);
-  };
-
-  useEffect(() => () => debounceRef.current && clearTimeout(debounceRef.current), []);
-
-  // ── Voice input: a textbox that fills in live as you speak ──
-  const speechSupported = Boolean(getSpeechRecognitionCtor());
-
-  const toggleListening = () => {
-    if (listening) {
-      recognitionRef.current?.stop();
-      return;
-    }
-    const Ctor = getSpeechRecognitionCtor();
-    if (!Ctor) return;
-    const recognition = new Ctor();
-    recognition.lang = "es-ES";
-    recognition.interimResults = true;
-    recognition.continuous = true;
-    recognition.maxAlternatives = 1;
-    recognition.onresult = (event) => {
-      let combined = "";
-      for (let i = 0; i < event.results.length; i++) combined += event.results[i][0].transcript;
-      onTextChange(combined);
-    };
-    recognition.onend = () => setListening(false);
-    recognition.onerror = () => setListening(false);
-    recognitionRef.current = recognition;
-    setText("");
-    setListening(true);
-    recognition.start();
-  };
-
-  useEffect(() => () => recognitionRef.current?.stop(), []);
-  // Leaving "Voz" mid-dictation shouldn't leave the mic hot in the background.
-  useEffect(() => {
-    if (mode !== "voice" && listening) recognitionRef.current?.stop();
-  }, [mode, listening]);
 
   // ── Photo input (OCR) — multi-select so several fridge shots can go in one go ──
   const handlePhotoFiles = async (files) => {
@@ -520,10 +461,16 @@ export function PantryInput({ onSaved }) {
     if (files.length > 0) handlePhotoFiles(files);
   };
 
-  // Selecting "Foto" IS the trigger — no extra tap on a camera button.
+  // Selecting "Subir foto" IS the trigger — no extra tap on a camera button.
   // Called straight from the segment's own click handler (not an effect) so
   // it still counts as a direct user gesture and reliably opens the picker.
+  // "Subir ticket" is a one-shot action: it opens the receipt wizard and
+  // leaves the current panel untouched.
   const selectMode = (id) => {
+    if (id === "ticket") {
+      onUploadReceipt?.();
+      return;
+    }
     setMode(id);
     if (id === "photo") fileInputRef.current?.click();
   };
@@ -647,7 +594,7 @@ export function PantryInput({ onSaved }) {
 
   return (
     <div>
-      <ModeToggle mode={mode} onSelect={selectMode} voiceDisabled={!speechSupported} />
+      <ModeToggle mode={mode} onSelect={selectMode} modes={modes} />
 
       {mode === "text" && (
         <IngredientPicker
@@ -662,35 +609,6 @@ export function PantryInput({ onSaved }) {
           onPlus={handlePlus}
           plusDisabled={!pickQuery.trim()}
         />
-      )}
-
-      {mode === "voice" && (
-        <div style={{ position: "relative" }}>
-          <textarea
-            value={text}
-            onChange={(e) => onTextChange(e.target.value)}
-            placeholder="Aquí aparecerá lo que dictes…"
-            rows={3}
-            style={{ ...textareaStyle, width: "100%", boxSizing: "border-box", paddingRight: 52 }}
-          />
-          <button
-            type="button"
-            onClick={toggleListening}
-            disabled={!speechSupported}
-            aria-label={listening ? "Detener grabación" : "Dictar por voz"}
-            title="Dictar por voz"
-            style={{
-              ...voiceBtnStyle,
-              position: "absolute",
-              right: 8,
-              bottom: 8,
-              background: listening ? "#c0392b" : GREEN,
-              animation: listening ? "pantryPulse 1.1s ease-in-out infinite" : "none",
-            }}
-          >
-            {listening ? <Square size={16} /> : <Mic size={18} />}
-          </button>
-        </div>
       )}
 
       {mode === "photo" && (
@@ -720,10 +638,6 @@ export function PantryInput({ onSaved }) {
       />
 
       <style>{`
-        @keyframes pantryPulse {
-          0%, 100% { box-shadow: 0 0 0 0 rgba(192,57,43,.35); }
-          50% { box-shadow: 0 0 0 8px rgba(192,57,43,0); }
-        }
         @keyframes mpSpin { to { transform: rotate(360deg); } }
         .mp-spin { animation: mpSpin 0.8s linear infinite; }
       `}</style>
@@ -773,32 +687,6 @@ const modeToggleBtnStyle = {
 };
 
 const modeToggleBtnOnStyle = { background: GREEN, color: "#fff" };
-
-const textareaStyle = {
-  flex: 1,
-  padding: "10px 12px",
-  borderRadius: 12,
-  border: "1.5px solid #d7e6dc",
-  background: "#fff",
-  fontSize: 12.5,
-  fontWeight: 800,
-  fontFamily: "inherit",
-  resize: "none",
-  outline: "none",
-};
-
-const voiceBtnStyle = {
-  width: 42,
-  height: 42,
-  borderRadius: 12,
-  border: "none",
-  cursor: "pointer",
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  color: "#fff",
-  flexShrink: 0,
-};
 
 const photoCardStyle = {
   display: "flex",

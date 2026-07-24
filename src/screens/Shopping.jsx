@@ -198,10 +198,9 @@ const AISLE_UI = {
   __pantry: { Icon: Refrigerator, color: "#2d5a3d" },
 };
 
-// Page background — same flat, card-free feel as "Recetas" (RecipesScreen's
-// BG = "#f4f8f5"), but noticeably more green so the two tabs still read as
-// distinct at a glance.
-const SHOPPING_BG = "#e8f5ec";
+// Title-band tint shared across En casa / Menú / Recetas / Compra — a soft
+// green (accent-tinted), distinct from the white list body below it.
+const HEADER_BAND = "#e9f4ed";
 
 export function ShoppingScreen({
   shopping,
@@ -603,10 +602,6 @@ export function ShoppingScreen({
     return formatWeekRangeLabel(weekDates, activeDays);
   })();
 
-  // Badge top label: "N semanas" when several are selected, else the default
-  // "Semana". The date range below always spans the whole selection.
-  const weekTopLabel = multiWeek ? `${selectedWeeks.length} semanas` : undefined;
-
   // Real span of the currently selected week(s), used by the receipt wizard to
   // check the ticket's date against the shopping week it should belong to.
   const receiptWeek = (() => {
@@ -887,7 +882,7 @@ export function ShoppingScreen({
             // Thin divider between collapsed rows, like the catalog category
             // list; an open section's item panel provides its own separation.
             borderBottom:
-              !open && !isLastSection ? "1px solid rgba(45,90,61,.1)" : "none",
+              !open && !isLastSection ? "1px solid rgba(45,110,70,.2)" : "none",
           }}
         >
           <AisleIcon aisle={section.key} size={28} soft />
@@ -948,14 +943,14 @@ export function ShoppingScreen({
           </div>
         )}
         {open && !isLastSection && (
-          <div style={{ height: 1, background: "rgba(45,90,61,.1)" }} />
+          <div style={{ height: 1, background: "rgba(45,110,70,.2)" }} />
         )}
       </div>
     );
   };
 
   return (
-    <div style={{ background: SHOPPING_BG, minHeight: "100dvh" }}>
+    <div style={{ background: "#fff", minHeight: "100dvh" }}>
       <input
         ref={fileRef}
         type="file"
@@ -965,16 +960,29 @@ export function ShoppingScreen({
         onChange={(e) => handleReceiptPick(e.target.files?.[0])}
       />
 
-      <div style={{ padding: "20px 16px 0", position: "relative" }}>
+      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
         <div
           style={{
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            marginBottom: 4,
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 11,
+                background: "#fbeecd",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <ShoppingCart size={18} color="#b7791f" strokeWidth={2.4} />
+            </span>
             <h2 style={titleStyle}>Tu compra</h2>
             <button
               type="button"
@@ -1007,7 +1015,7 @@ export function ShoppingScreen({
               aria-label="Compartir lista"
               title="Compartir lista"
             >
-              <Share2 size={18} strokeWidth={2.2} />
+              <Share2 size={17} strokeWidth={2.2} />
             </button>
             <button
               type="button"
@@ -1021,76 +1029,88 @@ export function ShoppingScreen({
               {receiptBusy ? (
                 <Loader2 size={18} className="rotating" color="#fff" />
               ) : (
-                <Wallet size={18} strokeWidth={2.4} color="#fff" />
+                <Wallet size={17} strokeWidth={2.4} color="#fff" />
               )}
             </button>
           </div>
         </div>
-        <div style={{ marginBottom: orderedAll.length > 1 ? 10 : 16 }}>
-          <WeekRangeBadge topLabel={weekTopLabel} label={weekLabel} />
-        </div>
+      </div>
 
-        {orderedAll.length > 1 && (
-          <div
-            role="group"
-            aria-label="Semanas del menú"
-            style={{
-              display: "flex",
-              marginBottom: 16,
-              borderRadius: 12,
-              border: "1.5px solid #9cc7ab",
-              overflow: "hidden",
-              background: "#fff",
-            }}
-          >
-            {orderedAll.map((w, i) => {
-              const sel = selectedOffsets?.has(w.offset);
-              return (
-                <button
-                  key={w.weekStart}
-                  type="button"
-                  onClick={() => toggleWeek(w.offset)}
-                  aria-pressed={sel}
-                  style={{
-                    flex: 1,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 7,
-                    padding: "9px 8px",
-                    border: "none",
-                    borderLeft: i === 0 ? "none" : "1.5px solid #9cc7ab",
-                    background: "#fff",
-                    color: sel ? "#1c4a2e" : "#3d5245",
-                    fontSize: 13,
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    transition: "color .15s",
-                  }}
-                >
-                  <span
+      <div style={{ padding: "16px 16px 0", position: "relative" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            rowGap: 10,
+            flexWrap: "wrap",
+            marginBottom: 16,
+          }}
+        >
+          <WeekRangeBadge label={weekLabel} hideLabel />
+          {orderedAll.length > 1 && (
+            <div
+              role="group"
+              aria-label="Semanas del menú"
+              style={{
+                display: "flex",
+                marginLeft: "auto",
+                borderRadius: 12,
+                border: "1.5px solid #9cc7ab",
+                overflow: "hidden",
+                background: "#fff",
+                flexShrink: 0,
+              }}
+            >
+              {orderedAll.map((w, i) => {
+                const sel = selectedOffsets?.has(w.offset);
+                return (
+                  <button
+                    key={w.weekStart}
+                    type="button"
+                    onClick={() => toggleWeek(w.offset)}
+                    aria-pressed={sel}
+                    title={`Semana ${i + 1}`}
                     style={{
-                      width: 16,
-                      height: 16,
-                      borderRadius: 5,
-                      flexShrink: 0,
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      border: `1.5px solid ${sel ? "#4cba6e" : "#bcd3c4"}`,
-                      background: sel ? "#4cba6e" : "transparent",
-                      transition: "background .15s, border-color .15s",
+                      gap: 5,
+                      padding: "8px 10px",
+                      border: "none",
+                      borderLeft: i === 0 ? "none" : "1.5px solid #9cc7ab",
+                      background: "#fff",
+                      color: sel ? "#1c4a2e" : "#3d5245",
+                      fontSize: 12.5,
+                      fontWeight: 800,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      transition: "color .15s",
                     }}
                   >
-                    {sel && <Check size={11} strokeWidth={3.4} color="#fff" />}
-                  </span>
-                  Sem {i + 1}
-                </button>
-              );
-            })}
-          </div>
-        )}
+                    <span
+                      style={{
+                        width: 15,
+                        height: 15,
+                        borderRadius: 5,
+                        flexShrink: 0,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        border: `1.5px solid ${sel ? "#4cba6e" : "#bcd3c4"}`,
+                        background: sel ? "#4cba6e" : "transparent",
+                        transition: "background .15s, border-color .15s",
+                      }}
+                    >
+                      {sel && <Check size={10} strokeWidth={3.4} color="#fff" />}
+                    </span>
+                    S{i + 1}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {showIconCoach && (
           <ShoppingCoachTour onClose={() => setShowIconCoach(false)} />
@@ -2935,16 +2955,16 @@ function AddItemModal({ onClose, onAdd }) {
 }
 
 const titleStyle = {
-  fontSize: 26,
+  fontSize: 20,
   fontWeight: 900,
   color: "#142f1d",
   margin: 0,
-  letterSpacing: "-.7px",
+  letterSpacing: "-.3px",
 };
 
 const iconBtnStyle = {
-  width: 40,
-  height: 40,
+  width: 36,
+  height: 36,
   borderRadius: 12,
   border: "1px solid #e0eae3",
   background: "#fff",

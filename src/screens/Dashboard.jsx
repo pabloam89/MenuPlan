@@ -3,8 +3,6 @@ import {
   ChevronRight,
   ClipboardList,
   RotateCw,
-  Heart,
-  ChefHat,
   CalendarDays,
   UtensilsCrossed,
   Sparkles,
@@ -22,13 +20,12 @@ import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { countMenusGenerated } from "../lib/menuStats.js";
 import { planHasDishes } from "../lib/menuArchive.js";
-import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { DAYS, getMeals, getDayMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor } from "../lib/stages.js";
-import menuCardPhoto from "../assets/dashboard/menu-card.jpg";
+import menuCardPhoto from "../assets/dashboard/menu-card.png";
 import recipesCardPhoto from "../assets/dashboard/recipes-card.jpg";
 import pantryCardPhoto from "../assets/dashboard/pantry-card.jpg";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
@@ -41,58 +38,6 @@ const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 
 const GROUP_ICONS = { Familia: Users, Adultos: User, Niños: PersonStanding, Bebé: Baby };
 
 const todayShort = () => DAYS[(new Date().getDay() + 6) % 7];
-
-// ── Liquid-glass stat pill ──────────────────────────────────────────────────
-
-function GlassStat({ icon: Icon, value, label, tint, onClick }) {
-  const Tag = onClick ? "button" : "div";
-  return (
-    <Tag
-      type={onClick ? "button" : undefined}
-      onClick={onClick}
-      style={{
-        flex: 1,
-        minWidth: 0,
-        position: "relative",
-        borderRadius: 20,
-        padding: "15px 8px 13px",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 8,
-        textAlign: "center",
-        fontFamily: "inherit",
-        cursor: onClick ? "pointer" : "default",
-        // Liquid glass: translucent fill + blur + a strong green rim and a
-        // top inner highlight so it reads as frosted glass over the page.
-        background:
-          "linear-gradient(180deg, rgba(255,255,255,.85) 0%, rgba(240,247,242,.6) 100%)",
-        backdropFilter: "blur(14px)",
-        WebkitBackdropFilter: "blur(14px)",
-        border: "2px solid rgba(45,90,61,.55)",
-        boxShadow:
-          "inset 0 1px 0 rgba(255,255,255,.9), 0 10px 22px -14px rgba(31,74,48,.5)",
-      }}
-    >
-      <div
-        style={{
-          width: 38,
-          height: 38,
-          borderRadius: 12,
-          background: tint,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: "inset 0 1px 0 rgba(255,255,255,.7)",
-        }}
-      >
-        <Icon size={18} color={GREEN} strokeWidth={2.3} />
-      </div>
-      <span style={{ fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1 }}>{value}</span>
-      <span style={{ fontSize: 10.5, color: "#5f7568", fontWeight: 700, lineHeight: 1.2 }}>{label}</span>
-    </Tag>
-  );
-}
 
 // ── Today's dish row ────────────────────────────────────────────────────────
 
@@ -207,6 +152,73 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
   );
 }
 
+// ── Menu hero: the app is about generating menus, so this is the single, big,
+// full-width action that owns the home. Horizontal banner, left-anchored copy,
+// action arrow on the right over the photo. ────────────────────────────────
+function MenuHeroCard({ photo, onClick, id }) {
+  return (
+    <button
+      type="button"
+      id={id}
+      onClick={onClick}
+      style={{
+        position: "relative",
+        width: "100%",
+        aspectRatio: "16 / 7",
+        borderRadius: 22,
+        overflow: "hidden",
+        border: "none",
+        cursor: "pointer",
+        padding: 0,
+        fontFamily: "inherit",
+        display: "block",
+        boxShadow: "0 16px 30px -14px rgba(20,47,29,.5)",
+      }}
+    >
+      <img
+        src={photo}
+        alt=""
+        style={{
+          position: "absolute", inset: 0, width: "100%", height: "100%",
+          objectFit: "cover", objectPosition: "center 45%",
+        }}
+      />
+      {/* Darken only the top band (behind the copy) and let the rest of the
+          photo show whole, so the dish stays the centre of attention. */}
+      <div
+        style={{
+          position: "absolute", inset: 0,
+          background: "linear-gradient(180deg, rgba(10,26,16,.8) 0%, rgba(10,26,16,.46) 34%, rgba(10,26,16,.08) 62%, rgba(10,26,16,0) 100%)",
+        }}
+      />
+      <div
+        style={{
+          position: "absolute", left: 0, right: 0, top: 0, padding: "14px 18px 0", textAlign: "left",
+          display: "flex", alignItems: "center", gap: 11,
+        }}
+      >
+        <div
+          style={{
+            width: 40, height: 40, borderRadius: 13, flexShrink: 0,
+            background: "rgba(255,255,255,.22)", backdropFilter: "blur(6px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <RotateCw size={20} color="#fff" strokeWidth={2.4} />
+        </div>
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-.4px", lineHeight: 1.05 }}>
+            Generar menú
+          </p>
+          <p style={{ margin: "4px 0 0", fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,.9)", lineHeight: 1.3 }}>
+            Tu menú de la (o las) semanas, en segundos
+          </p>
+        </div>
+      </div>
+    </button>
+  );
+}
+
 // ── Quick action: full-bleed photo card with the title embedded ────────────
 
 function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", aspectRatio = "4 / 5", onClick, id }) {
@@ -308,11 +320,6 @@ export function DashboardScreen({
   const { count: menusGenerated, isCapped } = useMemo(
     () => countMenusGenerated(data.menuHistory),
     [data.menuHistory],
-  );
-  const recipesCreated = data.userRecipes?.length ?? 0;
-  const favoritesCount = useMemo(
-    () => favoriteRecipeIds(data.recipeVotes).length,
-    [data.recipeVotes],
   );
 
   // Today's planned dishes for the selected group (home shows only HOY).
@@ -477,35 +484,42 @@ export function DashboardScreen({
               )}
             </div>
           )}
+
+          {/* Racha / menús generados. Vive aquí (identidad/logro) ahora que los
+              stats desaparecieron; sigue siendo el único acceso a "account". */}
+          {menusGenerated > 0 && onOpenStreak && (
+            <button
+              type="button"
+              onClick={onOpenStreak}
+              aria-label="Tu racha de menús"
+              style={{
+                position: "relative", marginTop: 14,
+                display: "inline-flex", alignItems: "center", gap: 7,
+                height: 30, padding: "0 13px", borderRadius: 999,
+                border: "none", background: "rgba(255,255,255,.2)",
+                backdropFilter: "blur(6px)", cursor: "pointer",
+                color: "#fff", fontFamily: "inherit",
+              }}
+            >
+              <ClipboardList size={14} color="#fff" strokeWidth={2.4} />
+              <span style={{ fontSize: 12.5, fontWeight: 800 }}>
+                {menusGenerated}{isCapped ? "+" : ""} {menusGenerated === 1 ? "menú generado" : "menús generados"}
+              </span>
+            </button>
+          )}
         </div>
 
-        {/* ── Stats (liquid glass) ──────────────────────── */}
-        <div style={{ display: "flex", gap: 9, marginBottom: 16 }}>
-          <GlassStat
-            icon={ChefHat}
-            value={recipesCreated > 0 ? recipesCreated : "—"}
-            label={recipesCreated === 1 ? "receta creada" : "recetas creadas"}
-            tint="#e6f3ea"
-          />
-          <GlassStat
-            icon={ClipboardList}
-            value={menusGenerated > 0 ? `${menusGenerated}${isCapped ? "+" : ""}` : "—"}
-            label={menusGenerated === 1 ? "menú generado" : "menús generados"}
-            tint="#e5eff9"
-            onClick={onOpenStreak}
-          />
-          <GlassStat
-            icon={Heart}
-            value={favoritesCount > 0 ? favoritesCount : "—"}
-            label={favoritesCount === 1 ? "favorita" : "favoritas"}
-            tint="#fdeef1"
+        {/* ── Acción principal: generar menú (el corazón de la app) ─────── */}
+        <div style={{ marginBottom: 12 }}>
+          <MenuHeroCard
+            id="coach-generate-menu"
+            photo={menuCardPhoto}
+            onClick={onGenerateNewMenu}
           />
         </div>
 
-        {/* ── Acciones rápidas ──────────────────────────── */}
-        {/* 3 tiles now share the row, so a squatter ratio (3/4 instead of 4/5)
-            keeps the block from growing taller than with just 2. */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {/* ── Acciones secundarias: despensa + recetas ──────────────────── */}
+        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
           <QuickActionTile
             id="coach-update-pantry"
             icon={Refrigerator}
@@ -513,18 +527,8 @@ export function DashboardScreen({
             subtitle="Foto, ticket o a mano"
             photo={pantryCardPhoto}
             objectPosition="center 40%"
-            aspectRatio="3 / 4"
+            aspectRatio="4 / 5"
             onClick={() => onNav("pantry")}
-          />
-          <QuickActionTile
-            id="coach-generate-menu"
-            icon={RotateCw}
-            title="Generar menú"
-            subtitle="Para la semana"
-            photo={menuCardPhoto}
-            objectPosition="center 38%"
-            aspectRatio="3 / 4"
-            onClick={onGenerateNewMenu}
           />
           <QuickActionTile
             id="coach-generate-recipes"
@@ -533,7 +537,7 @@ export function DashboardScreen({
             subtitle="Con lo que hay en casa"
             photo={recipesCardPhoto}
             objectPosition="center 62%"
-            aspectRatio="3 / 4"
+            aspectRatio="4 / 5"
             onClick={onOpenRecipePlanner}
           />
         </div>

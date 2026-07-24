@@ -20,6 +20,8 @@ import {
   Receipt,
   Check,
   Trash2,
+  Settings,
+  CircleHelp,
   X,
 } from "lucide-react";
 
@@ -204,6 +206,40 @@ export const SHOPPING_COACH_STEPS = [
     title: "Quitar",
     desc: "Elimina el producto de la lista por completo.",
     place: "above",
+  },
+];
+
+// En casa (Pantry) screen: the input CTA + the header action icons. Some icons
+// are conditional (receipt needs a signed-in user, settings only in advanced
+// mode), so PantryCoachTour filters to the ones actually on screen.
+export const PANTRY_COACH_STEPS = [
+  {
+    selector: '[data-coach="pantry-add"]',
+    Icon: Plus,
+    title: "Añadir a tu despensa",
+    desc: "Suma lo que tienes en casa: por foto, subiendo el ticket o a mano. Lo usaremos en tus recetas y tu lista de la compra.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="pantry-receipt"]',
+    Icon: Receipt,
+    title: "Subir ticket",
+    desc: "Sube una foto del ticket de la compra y llenamos tu despensa por ti, con sus precios.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="pantry-analytics"]',
+    Icon: BarChart3,
+    title: "Gastos y tickets",
+    desc: "Consulta cuánto gastas, en qué y el histórico de todos tus tickets.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="pantry-settings"]',
+    Icon: Settings,
+    title: "Ajustes de despensa",
+    desc: "Decide cómo influye tu despensa en el menú: cuándo se descuenta lo que usas y cómo se reparte entre semanas.",
+    place: "below",
   },
 ];
 
@@ -507,4 +543,39 @@ export function MenuCoachTour({ onClose }) {
 
 export function ShoppingCoachTour({ onClose }) {
   return <CoachTour steps={SHOPPING_COACH_STEPS} onClose={onClose} />;
+}
+
+export function PantryCoachTour({ onClose }) {
+  // Drop steps whose target isn't on screen (receipt/settings are conditional)
+  // so the spotlight never lands on an empty selector.
+  const steps = PANTRY_COACH_STEPS.filter(
+    (s) => typeof document !== "undefined" && document.querySelector(s.selector),
+  );
+  if (steps.length === 0) {
+    onClose();
+    return null;
+  }
+  return <CoachTour steps={steps} onClose={onClose} />;
+}
+
+// Round help button that (re)launches a screen's spotlight tour on demand —
+// same idea as Compra's "?", so users aren't limited to the first-run tour.
+// Round on purpose (the other header icons are squared) to break the monotony.
+export function CoachHelpButton({ active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label="Explicar los iconos de esta pantalla"
+      aria-pressed={active}
+      style={{
+        width: 32, height: 32, borderRadius: 999, flexShrink: 0,
+        border: "1px solid #e0eae3", background: active ? "#e8f0ea" : "#fff",
+        color: GREEN, cursor: "pointer", fontFamily: "inherit",
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+      }}
+    >
+      <CircleHelp size={17} strokeWidth={2.2} />
+    </button>
+  );
 }

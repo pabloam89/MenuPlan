@@ -25,11 +25,13 @@ import {
   BarChart3,
   SlidersHorizontal,
   Settings,
+  Refrigerator,
 } from "lucide-react";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
 import { BottomNav, bottomNavSpacer, ToggleSwitch } from "../components/ui.jsx";
 import { PantryPrefsWizard } from "../components/ModeSheets.jsx";
+import { PantryCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import {
   loadPantry,
   removePantryItem,
@@ -125,11 +127,9 @@ function splitStockDisplay(name, qty, unit) {
   };
 }
 
-// Soft pale blue — same card-free, flat-list feel as "Recetas" (pale
-// green-grey) and "Compra" (mint green), but a different, cool-toned pastel
-// so "En casa" still reads as its own tab without clashing (terracotta read
-// too far off-brand). Kept very light so it stays a background, not a block.
-const PAGE_BG = "#e9f2f6";
+// Title-band tint shared across En casa / Menú / Recetas / Compra — a soft
+// green (accent-tinted), distinct from the white body below it.
+const HEADER_BAND = "#e9f4ed";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const MUTED = "#9ab0a1";
@@ -149,29 +149,26 @@ const AISLE_UI = {
   "Aceites y conservas": { Icon: Package, color: "#64748b" },
 };
 
-const headerBtn = {
+const pageTitle = { fontSize: 20, fontWeight: 900, color: INK, margin: 0, letterSpacing: "-.3px" };
+
+// Empty-state tiles (nevera + despensa) shown when there's no stock yet —
+// filled tinted tiles with saturated icons, matching the "Recetas" empty state.
+const emptyTile = {
+  width: 60,
+  height: 60,
+  borderRadius: 18,
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
-  padding: "8px 14px",
-  borderRadius: 10,
-  border: "1.5px solid #2d5a3d",
-  background: "#fff",
-  color: GREEN,
-  fontSize: 13,
-  fontWeight: 700,
-  cursor: "pointer",
-  fontFamily: "inherit",
+  background: "#e0eef5",
 };
-
-const pageTitle = { fontSize: 22, fontWeight: 900, color: INK, margin: 0, letterSpacing: "-.5px" };
 
 // Compact icon buttons in the "En casa" header (top-right): upload a ticket
 // and open the spend/tickets analytics. Square so two sit neatly beside the
 // title without competing with it.
 const pantryIconBtn = {
-  width: 40,
-  height: 40,
+  width: 36,
+  height: 36,
   display: "inline-flex",
   alignItems: "center",
   justifyContent: "center",
@@ -282,7 +279,7 @@ function PantryCheckRow({ icon: Icon, iconColor, label, checked, single, onToggl
         fontFamily: "inherit",
         borderRadius: 10,
         textAlign: "left",
-        borderBottom: last ? "none" : "1px solid rgba(45,90,61,.1)",
+        borderBottom: last ? "none" : "1px solid rgba(45,110,70,.2)",
       }}
     >
       {Icon && (
@@ -675,7 +672,6 @@ function PantryFiltersSheet({
  */
 export function PantryScreen({
   user,
-  onBack,
   priceObs = [],
   onNav,
   navActive = "pantry",
@@ -712,6 +708,7 @@ export function PantryScreen({
   const [stockView, setStockView] = useState("cantidad");
   // "Subir ticket" overlay (receipt capture + intent chooser), launched in place.
   const [showReceiptFlow, setShowReceiptFlow] = useState(false);
+  const [showIconCoach, setShowIconCoach] = useState(false);
   // Cuestionario de despensa (solo modo avanzado): 4 decisiones sobre cómo la
   // despensa interactúa con el menú. Se abre solo la primera vez, y el icono de
   // ajustes del header lo reabre cuando se quiera.
@@ -864,43 +861,54 @@ export function PantryScreen({
     else setLocalPantryItemQty(id, qty, unit);
   };
 
+  const header = (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
+        <span
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 11,
+            background: "#e0eef5",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <Refrigerator size={18} color="#2f6d8a" strokeWidth={2.4} />
+        </span>
+        <h2 style={pageTitle}>En casa</h2>
+        {!embedded && (
+          <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
+        )}
+      </div>
+      {(canUploadReceipt || onOpenAnalytics || canEditPantryPrefs) && (
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+          {canUploadReceipt && (
+            <button type="button" data-coach="pantry-receipt" onClick={() => setShowReceiptFlow(true)} style={pantryIconBtn} aria-label="Subir ticket" title="Subir ticket">
+              <Receipt size={17} color={GREEN} strokeWidth={2.2} />
+            </button>
+          )}
+          {onOpenAnalytics && (
+            <button type="button" data-coach="pantry-analytics" onClick={onOpenAnalytics} style={pantryIconBtn} aria-label="Gastos y tickets" title="Gastos y tickets">
+              <BarChart3 size={17} color={GREEN} strokeWidth={2.2} />
+            </button>
+          )}
+          {canEditPantryPrefs && (
+            <button type="button" data-coach="pantry-settings" onClick={() => setShowPantryPrefs(true)} style={pantryIconBtn} aria-label="Ajustes de despensa" title="Ajustes de despensa">
+              <Settings size={17} color={GREEN} strokeWidth={2.2} />
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+
+  const pantryIsEmpty = !embedded && !loading && items.length === 0;
+
   const content = (
     <>
-      {!embedded && (
-        <>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 4 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-              <button type="button" onClick={onBack} style={headerBtn}>
-                Atrás
-              </button>
-              <h2 style={pageTitle}>En casa</h2>
-            </div>
-            {(canUploadReceipt || onOpenAnalytics || canEditPantryPrefs) && (
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                {canUploadReceipt && (
-                  <button type="button" onClick={() => setShowReceiptFlow(true)} style={pantryIconBtn} aria-label="Subir ticket" title="Subir ticket">
-                    <Receipt size={18} color={GREEN} strokeWidth={2.2} />
-                  </button>
-                )}
-                {onOpenAnalytics && (
-                  <button type="button" onClick={onOpenAnalytics} style={pantryIconBtn} aria-label="Gastos y tickets" title="Gastos y tickets">
-                    <BarChart3 size={18} color={GREEN} strokeWidth={2.2} />
-                  </button>
-                )}
-                {canEditPantryPrefs && (
-                  <button type="button" onClick={() => setShowPantryPrefs(true)} style={pantryIconBtn} aria-label="Ajustes de despensa" title="Ajustes de despensa">
-                    <Settings size={18} color={GREEN} strokeWidth={2.2} />
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-          <p style={{ margin: "0 0 14px 2px", fontSize: 12.5, color: "#7a8a7f", lineHeight: 1.4 }}>
-            Nevera y despensa, listo para tus recetas.
-          </p>
-        </>
-      )}
-
         {embedded && (onToggleHomeStock || (!loading && items.length > 0)) && (
           // Breathing room + a soft rule below the "En casa / Favoritas"
           // tab cards (rendered by the onboarding parent right above this)
@@ -1086,7 +1094,7 @@ export function PantryScreen({
                           padding: "10px",
                           // Same thin divider as the Recetas category list and
                           // the Compra aisle rows, for a consistent flat look.
-                          borderBottom: i === visibleItems.length - 1 ? "none" : "1px solid rgba(45,90,61,.1)",
+                          borderBottom: i === visibleItems.length - 1 ? "none" : "1px solid rgba(45,110,70,.2)",
                         }}
                       >
                         {editing ? (
@@ -1233,58 +1241,107 @@ export function PantryScreen({
           </>
         )}
 
-        <div>
-          <button
-            type="button"
-            onClick={() => setShowAddInput((v) => !v)}
-            aria-expanded={showAddInput}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              boxSizing: "border-box",
-              padding: "6px 10px",
-              borderRadius: 10,
-              border: `1.5px solid ${showAddInput ? "#c7ddce" : "#e5ebe7"}`,
-              background: showAddInput ? "#eef5f0" : "#fff",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              textAlign: "left",
-            }}
-          >
-            <span
+        {pantryIsEmpty && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 20px 4px", textAlign: "center" }}>
+            <div style={{ display: "inline-flex", gap: 14 }}>
+              <span style={emptyTile}>
+                <Refrigerator size={26} color="#2f6d8a" strokeWidth={2} />
+              </span>
+              <span style={{ ...emptyTile, background: "#f3ecdf" }}>
+                <Package size={26} color="#bf9256" strokeWidth={2} />
+              </span>
+            </div>
+            <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: INK }}>
+              Tu nevera y tu despensa están vacías
+            </p>
+            <p style={{ margin: 0, maxWidth: 280, fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
+              Añade lo que tienes en casa y lo usaremos en tus recetas y en tu lista de la compra.
+            </p>
+          </div>
+        )}
+
+        <div style={pantryIsEmpty ? { textAlign: "center", marginTop: 12 } : undefined}>
+          {pantryIsEmpty ? (
+            <button
+              type="button"
+              data-coach="pantry-add"
+              onClick={() => setShowAddInput((v) => !v)}
+              aria-expanded={showAddInput}
               style={{
-                width: 18,
-                height: 18,
-                borderRadius: 6,
-                flexShrink: 0,
-                display: "flex",
+                display: "inline-flex",
                 alignItems: "center",
-                justifyContent: "center",
-                // Embedded: this is a secondary/utility action sitting under an
-                // already green-heavy screen, so it's an outline instead of a
-                // 6th solid-green block. Standalone "En casa" (Nav) keeps the
-                // original solid fill — it's the only accent on that screen.
-                ...(embedded
-                  ? { border: "1.5px solid #2d5a3d", color: "#2d5a3d", background: "transparent" }
-                  : { background: GREEN, color: "#fff" }),
+                gap: 7,
+                padding: "11px 20px",
+                borderRadius: 13,
+                border: "none",
+                background: GREEN,
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
               }}
             >
-              <Plus size={11} strokeWidth={2.8} />
-            </span>
-            <span style={{ minWidth: 0, fontSize: 12, fontWeight: 800, color: INK }}>
+              <Plus size={15} strokeWidth={2.8} />
               Añadir ingredientes
-            </span>
-            <ChevronDown
-              size={14}
-              color="#8aa092"
-              style={{ transform: showAddInput ? "rotate(180deg)" : "none", transition: "transform .15s", flexShrink: 0 }}
-            />
-          </button>
+            </button>
+          ) : (
+            <button
+              type="button"
+              data-coach="pantry-add"
+              onClick={() => setShowAddInput((v) => !v)}
+              aria-expanded={showAddInput}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                boxSizing: "border-box",
+                padding: "6px 10px",
+                borderRadius: 10,
+                border: `1.5px solid ${showAddInput ? "#c7ddce" : "#e5ebe7"}`,
+                background: showAddInput ? "#eef5f0" : "#fff",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textAlign: "left",
+              }}
+            >
+              <span
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 6,
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  // Embedded: this is a secondary/utility action sitting under an
+                  // already green-heavy screen, so it's an outline instead of a
+                  // 6th solid-green block. Standalone "En casa" (Nav) keeps the
+                  // original solid fill — it's the only accent on that screen.
+                  ...(embedded
+                    ? { border: "1.5px solid #2d5a3d", color: "#2d5a3d", background: "transparent" }
+                    : { background: GREEN, color: "#fff" }),
+                }}
+              >
+                <Plus size={11} strokeWidth={2.8} />
+              </span>
+              <span style={{ minWidth: 0, fontSize: 12, fontWeight: 800, color: INK }}>
+                Añadir ingredientes
+              </span>
+              <ChevronDown
+                size={14}
+                color="#8aa092"
+                style={{ transform: showAddInput ? "rotate(180deg)" : "none", transition: "transform .15s", flexShrink: 0 }}
+              />
+            </button>
+          )}
 
           {showAddInput && (
             <div style={{ marginTop: 12 }}>
-              <PantryInput onSaved={handleSaved} />
+              <PantryInput
+                onSaved={handleSaved}
+                onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
+              />
             </div>
           )}
         </div>
@@ -1296,8 +1353,11 @@ export function PantryScreen({
   }
 
   return (
-    <div style={{ background: PAGE_BG, minHeight: "100dvh" }}>
-      <div style={{ padding: `20px 16px calc(${bottomNavSpacer()} + 28px)` }}>
+    <div style={{ background: "#fff", minHeight: "100dvh" }}>
+      <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
+        {header}
+      </div>
+      <div style={{ padding: `16px 16px calc(${bottomNavSpacer()} + 28px)` }}>
         {content}
       </div>
       {onNav && <BottomNav active={navActive} onNav={onNav} />}
@@ -1325,6 +1385,7 @@ export function PantryScreen({
           }}
         />
       )}
+      {showIconCoach && <PantryCoachTour onClose={() => setShowIconCoach(false)} />}
     </div>
   );
 }
