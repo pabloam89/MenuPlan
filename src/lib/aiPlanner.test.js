@@ -604,6 +604,70 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
   });
 });
 
+// Regression test for a bug where planExtraMealsForGroup called
+// isBabyMenuGroup(group) with only one argument (missing `data.members`),
+// which crashed with "Cannot read properties of undefined (reading 'filter')"
+// inside membersOfGroup for EVERY non-baby group — i.e. on virtually every
+// real menu generation, since baby groups are the only ones that short-circuit
+// before reaching membersOfGroup. Covered end-to-end via generateMenuWithAI
+// (the function App.jsx actually calls) so a regression here fails loudly.
+describe("generateMenuWithAI extra meals (desayuno/merienda/postre) for a normal group", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("plans desayuno/merienda/postre for a regular (non-baby) group instead of crashing", async () => {
+    const group = { id: "g1", label: "Familia", memberIds: ["m1", "kid1"], days: 1 };
+    const data = {
+      members: [
+        { id: "m1", age: 35 },
+        { id: "kid1", age: 8 },
+      ],
+      groups: [group],
+      schedule: {},
+      extraMeals: { desayuno: "variado", merienda: "semana", postre: "cena" },
+    };
+
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
+    const segundo = pool.find((r) => r.mealRole.includes("segundo") && r.id !== primero?.id);
+    const cena = pool.find((r) => r.mealRole.includes("cena"));
+    expect(primero && segundo && cena, "fixture setup: expected primero/segundo/cena candidates").toBeTruthy();
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          content: [
+            {
+              text: JSON.stringify({
+                slots: [
+                  { slotId: "lun_comida_1", recipeId: primero.id },
+                  { slotId: "lun_comida_2", recipeId: segundo.id },
+                  { slotId: "lun_cena", recipeId: cena.id },
+                ],
+              }),
+            },
+          ],
+        }),
+      }),
+    );
+
+    const { plan } = await generateMenuWithAI(data);
+    const groupPlan = plan[group.id];
+    // Extra meals are planned for the full week regardless of group.days, so
+    // every day should have Desayuno + Postre; Merienda too since the group
+    // has a child.
+    expect(groupPlan["Lun-Desayuno"]).toBeTruthy();
+    expect(groupPlan["Lun-Merienda"]).toBeTruthy();
+    expect(groupPlan["Lun-Postre"]).toBeTruthy();
+    expect(groupPlan["Dom-Desayuno"]).toBeTruthy();
+    expect(groupPlan["Dom-Postre"]).toBeTruthy();
+  });
+});
+
 describe("callModel retry on transient overload", () => {
   beforeEach(() => {
     vi.useFakeTimers();

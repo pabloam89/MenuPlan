@@ -974,7 +974,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
 // Returns [{ planKey: "Lun-Desayuno", recipeId, eaters, mealKey, when? }].
 function planExtraMealsForGroup(group, data) {
   const out = [];
-  if (isBabyMenuGroup(group)) return out;
+  if (isBabyMenuGroup(group, data.members)) return out;
   const em = data.extraMeals ?? {};
   const members = membersOfGroup(group, data.members);
   if (members.length === 0) return out;
