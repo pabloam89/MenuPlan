@@ -79,7 +79,7 @@ import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
 import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtras } from "./Onboarding.jsx";
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
-import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel, modeForGroupSlot } from "../lib/planner.js";
+import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
 import { dishAvailabilityMap } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import {
@@ -100,7 +100,6 @@ import {
 import {
   calendarDayNumber,
   formatWeekRangeLabel,
-  getWeekDates,
   getWeekDatesByMenuWeek,
   todayDayIdx,
 } from "../lib/weekCalendar.js";
@@ -737,15 +736,6 @@ const FREQ_OPTIONS = [
   { id: "pescado", label: "Pescado" },
   { id: "legumbres", label: "Legumbres" },
 ];
-
-const profileLabelStyle = {
-  fontSize: 10,
-  fontWeight: 800,
-  color: "#8d978f",
-  textTransform: "uppercase",
-  letterSpacing: 1,
-  marginBottom: 6,
-};
 
 function FreqStepper({ label, value, onChange }) {
   return (
@@ -1454,7 +1444,6 @@ export function DishCard({
   showDivider = true,
   eaterMembers = null,
   allMembers = [],
-  groups = [],
   group = null,
   showGroupBadge = false,
   kitchenTools = [],
@@ -1732,7 +1721,6 @@ export const MenuScreen = memo(function MenuScreen({
   onRegenerate,
   onRetry,
   onToast,
-  user,
   onTrackEvent,
   activeMenu = null,
   onSwitchWeek,
@@ -2659,7 +2647,6 @@ export function DishDetail({
       setActiveAppliance(methodOptions[i].appliance);
     }, 1700);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoDemo, methodOptions]);
 
   useEffect(() => {
@@ -3274,23 +3261,6 @@ export function DishDetail({
   );
 }
 
-const shoppingButtonStyle = {
-  flex: 1,
-  padding: "14px",
-  borderRadius: 14,
-  border: "none",
-  background: "#1a3a24",
-  color: "#fff",
-  fontSize: 13,
-  fontWeight: 900,
-  cursor: "pointer",
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 8,
-  fontFamily: "inherit",
-};
-
 const iconChipButtonStyle = {
   display: "inline-flex",
   alignItems: "center",
@@ -3453,15 +3423,3 @@ const ingredientQtyStyle = {
   whiteSpace: "nowrap",
 };
 
-const replaceButtonStyle = {
-  width: "100%",
-  padding: "14px",
-  borderRadius: 12,
-  border: "none",
-  background: "#c67030",
-  color: "#fff",
-  fontSize: 14,
-  fontWeight: 900,
-  cursor: "pointer",
-  fontFamily: "inherit",
-};

@@ -33,7 +33,7 @@ import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getMeals, getDayMeals } from "./lib/planner.js";
+import { getDayMeals } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,

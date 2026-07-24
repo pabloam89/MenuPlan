@@ -334,7 +334,6 @@ function MembersDemo() {
       for (let i = 1; i <= word.length; i += 1) {
         if (cancelled) return;
         setTyped(word.slice(0, i));
-        // eslint-disable-next-line no-await-in-loop
         await wait(90);
       }
     };
@@ -416,7 +415,6 @@ function MenuDemo() {
       while (!cancelled) {
         for (const y of [0, -480, -960, -1440]) {
           setFocusY(y);
-          // eslint-disable-next-line no-await-in-loop
           await wait(2500);
           if (cancelled) return;
         }
@@ -620,7 +618,6 @@ function ShoppingDemo() {
         // de la lista al marcarlo (ya no hay sub-vista de "Comprado").
         for (const id of SHOPPING_CHECK_IDS) {
           setHave(id, true);
-          // eslint-disable-next-line no-await-in-loop
           await wait(480);
           if (cancelled) return;
         }

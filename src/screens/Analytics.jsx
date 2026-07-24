@@ -588,7 +588,7 @@ function DayCookChart({ rows, meals, mealFilter }) {
           paddingTop: 4,
         }}
       >
-        {chartRows.map(({ day, minutes, row }) => {
+        {chartRows.map(({ day, minutes }) => {
           const weekend = day === "Sáb" || day === "Dom";
           const h = minutes > 0 ? Math.max(16, (minutes / chartMax) * 100) : 8;
           const isHover = hoverDay === day;

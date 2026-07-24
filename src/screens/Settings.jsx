@@ -181,8 +181,6 @@ function formatDate(ts) {
 
 export function SettingsScreen({
   user,
-  data,
-  setData,
   onNav,
   onOpenAccount,
   onOpenDashboard,

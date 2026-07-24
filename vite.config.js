@@ -95,7 +95,7 @@ export default defineConfig(({ mode }) => {
           secure: false,
           rewrite: () => '/v1/messages',
           configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq, req) => {
+            proxy.on('proxyReq', (proxyReq) => {
               proxyReq.setHeader('anthropic-dangerous-direct-browser-access', 'true');
               proxyReq.setHeader('anthropic-version', '2023-06-01');
               proxyReq.setHeader('anthropic-beta', 'pdfs-2024-09-25');

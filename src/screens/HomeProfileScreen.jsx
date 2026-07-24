@@ -114,7 +114,7 @@ const VIS_MODES = [
 
 // ── Collapsible section with optional action button in header ──────────────
 
-function Section({ iconEl, iconColor = GREEN, iconBg = "#e6f3ea", title, defaultOpen = false, action, children }) {
+function Section({ iconEl, iconBg = "#e6f3ea", title, defaultOpen = false, action, children }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
     <div style={{ marginBottom: 14 }}>

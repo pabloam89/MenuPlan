@@ -269,7 +269,7 @@ export function groupsFromModel(members, model) {
 }
 
 /** Keep babies only in Bebé and everyone else out of it (any menu model). */
-export function migrateGroupsForBabies(members, groups, menuModel) {
+export function migrateGroupsForBabies(members, groups, _menuModel) {
   if (!Array.isArray(groups) || groups.length === 0) return groups;
 
   const babyIds = new Set(members.filter((m) => memberIsBaby(m)).map((m) => m.id));

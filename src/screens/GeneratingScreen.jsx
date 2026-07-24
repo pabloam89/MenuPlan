@@ -11,7 +11,7 @@ export const GENERATING_PHRASES = [
   "Poniendo orden en la nevera imaginaria…",
 ];
 
-export function GeneratingScreen({ onStop }) {
+export function GeneratingScreen() {
   const [phraseIdx, setPhraseIdx] = useState(0);
   const [visible, setVisible] = useState(true);
 

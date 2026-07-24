@@ -23,7 +23,7 @@ import {
 // and returns `this`; awaiting the chain at any point resolves to whatever
 // result was configured for that table (each `from(table)` call pops the
 // next queued result, defaulting to `{ data: null, error: null }`).
-function makeQuery(result, log, table, method) {
+function makeQuery(result, log, table, _method) {
   const q = {
     select: (...a) => (log.push({ table, method: "select", args: a }), q),
     eq: (...a) => (log.push({ table, method: "eq", args: a }), q),

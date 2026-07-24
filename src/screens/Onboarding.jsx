@@ -1324,7 +1324,7 @@ function AllergenRow({ Icon, color, label, checked, checkColor, onToggle, last }
   );
 }
 
-function AvoidSection({ icon: Icon, accent, title, subtitle, right, children }) {
+function AvoidSection({ icon: Icon, title, subtitle, right, children }) {
   return (
     <div
       style={{
@@ -1455,7 +1455,6 @@ export function OnboardingRestrictions({
       apply();
     }, 2100);
     return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [autoplay, data.members]);
 
   // Edit target: a real member, or FAMILIA_TARGET to edit everyone at once.
@@ -3105,7 +3104,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
   // Sheet state: { day, meal | null } — when meal is null, the sheet is in
   // "day mode" (only row-level actions, no per-member edition for a slot).
-  const [toast, setToast] = useState(null);
   const mainMeal = primaryDayMeal(data);
 
   const hasSchoolMenuLoaded = useMemo(() => {
@@ -3113,12 +3111,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     if (hasAnySchoolDish(sm.shared)) return true;
     return Object.values(sm.byMember ?? {}).some((m) => hasAnySchoolDish(m));
   }, [data.schoolMenus]);
-
-  const showToast = (msg) => {
-    setToast(msg);
-    window.clearTimeout(showToast._t);
-    showToast._t = window.setTimeout(() => setToast(null), 2400);
-  };
 
   const setSlots = (memberIds, day, meal, value) => {
     if (memberIds.length === 0) return;
@@ -3138,57 +3130,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   const openCell = (day, meal) => {
     if (subjectMemberIds.length === 0) return;
     setSheetSlot({ day, meal });
-  };
-
-  const countMixedCells = (memberIds, schedule) => {
-    if (memberIds.length <= 1) return 0;
-    let count = 0;
-    for (const day of DAYS) {
-      for (const meal of meals) {
-        const states = memberIds.map((id) => schedule[`${id}|${day}|${meal}`] ?? "casa");
-        if (states.some((s) => s !== states[0])) count += 1;
-      }
-    }
-    return count;
-  };
-
-  const applyPreset = (preset) => {
-    if (subjectMemberIds.length === 0) return;
-    const overwritten =
-      subjectMemberIds.length > 1 ? countMixedCells(subjectMemberIds, effectiveSchedule) : 0;
-    updateSchedule((prev) => {
-      const next = { ...prev };
-      const colable = subjectMembers.some(
-        (m) => stageForAge(memberAge(m)).id !== "adulto"
-      );
-      const main = primaryDayMeal(data);
-      const dayMeals = getMeals(data);
-      for (const day of DAYS) {
-        const isWeekday = !["Sáb", "Dom"].includes(day);
-        for (const meal of dayMeals) {
-          const isMain = meal === main;
-          let value;
-          if (preset === "casa-todo") value = "casa";
-          else if (preset === "tupper-laborable")
-            value = isWeekday && isMain ? "tupper" : "casa";
-          else if (preset === "cole-laborable")
-            value = isWeekday && isMain ? (colable ? "cole" : "fuera") : "casa";
-          else if (preset === "fuera-finde") value = !isWeekday ? "fuera" : "casa";
-          else continue;
-          for (const id of subjectMemberIds) {
-            next[`${id}|${day}|${meal}`] = value;
-          }
-        }
-      }
-      return next;
-    });
-    if (overwritten > 0) {
-      showToast(
-        `Se igualaron ${overwritten} ${
-          overwritten === 1 ? "celda con variaciones" : "celdas con variaciones"
-        }`
-      );
-    }
   };
 
   const applyQuickFill = () => {
@@ -3260,8 +3201,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       </OnboardingShell>
     );
   }
-
-  const subjectLabel = "la familia";
 
   const openDay = (day) => {
     if (subjectMemberIds.length === 0) return;
@@ -3702,29 +3641,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         />
       )}
 
-      {toast && (
-        <div
-          style={{
-            position: "fixed",
-            bottom: 80,
-            left: "50%",
-            transform: "translateX(-50%)",
-            background: "#1a3a24",
-            color: "#fff",
-            padding: "10px 18px",
-            borderRadius: 24,
-            fontSize: 13,
-            fontWeight: 600,
-            boxShadow: "0 6px 22px rgba(0,0,0,.2)",
-            zIndex: 200,
-            maxWidth: 320,
-            textAlign: "center",
-          }}
-        >
-          {toast}
-        </div>
-      )}
-
       {dayViewOpen && (
         <DayView
           days={activeDays}
@@ -3974,24 +3890,6 @@ function SlotIconRow({ columns, value, onPick, memberIsKid = true }) {
       })}
     </div>
   );
-}
-
-function tabButtonStyle(selected) {
-  return {
-    flex: 1,
-    padding: "9px 10px",
-    borderRadius: 10,
-    border: `1.5px solid ${selected ? "#2d5a3d" : "#ddd"}`,
-    background: selected ? "rgba(45,90,61,.08)" : "#fff",
-    color: "#2d5a3d",
-    fontSize: 12,
-    fontWeight: 700,
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-  };
 }
 
 function QuickFillSegment({ value, onChange, options }) {
@@ -4521,20 +4419,6 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick, act
     </div>
   );
 }
-
-const presetStyle = {
-  border: "1px solid #d7e1db",
-  background: "#fff",
-  color: "#2d5a3d",
-  padding: "8px 10px",
-  borderRadius: 9,
-  fontSize: 12,
-  fontWeight: 700,
-  cursor: "pointer",
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 6,
-};
 
 // ─── School menu ───────────────────────────────────────────────
 
@@ -7155,24 +7039,6 @@ export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onRes
       )}
     </OnboardingShell>
   );
-}
-
-function chipStyle(selected) {
-  return {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 6,
-    padding: "6px 14px",
-    borderRadius: 20,
-    fontSize: 13,
-    cursor: "pointer",
-    fontWeight: 500,
-    transition: "all .2s",
-    background: selected ? "#2d5a3d" : "rgba(45,90,61,.08)",
-    color: selected ? "#fff" : "#2d5a3d",
-    border: `1.5px solid ${selected ? "#2d5a3d" : "rgba(45,90,61,.2)"}`,
-    fontFamily: "inherit",
-  };
 }
 
 function subjectPillStyle(selected, color = "#2d5a3d") {
