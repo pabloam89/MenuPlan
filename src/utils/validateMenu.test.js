@@ -647,3 +647,93 @@ describe("splitAchievableFreqs", () => {
     expect(warnings).toHaveLength(2);
   });
 });
+
+describe("legumbres_en_cena por mainProtein (no solo por category)", () => {
+  it("flags a legume-based dish filed under another category (crema de lentejas en sopas)", () => {
+    const pool = [
+      recipe({ id: "crema", category: "sopas_cremas", mainProtein: "legumbre", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena")];
+    const assignments = [{ slotId: "lun_cena", recipeId: "crema" }];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("legumbres_en_cena");
+  });
+
+  it("applyFallback no reintroduce una legumbre (por mainProtein) al arreglar una cena", () => {
+    const pool = [
+      recipe({ id: "crema", category: "sopas_cremas", mainProtein: "legumbre", mealRole: ["cena"] }),
+      // Alternativa segura para cena que NO es legumbre.
+      recipe({ id: "pescado_cena", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena")];
+    const assignments = [{ slotId: "lun_cena", recipeId: "crema" }];
+    const { violations } = validateMenu(assignments, pool, slots);
+    const fixed = applyFallback(assignments, violations, pool, slots);
+    const cena = fixed.find((s) => s.slotId === "lun_cena")?.recipeId;
+    expect(cena).toBe("pescado_cena");
+    expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("legumbres_en_cena");
+  });
+});
+
+describe("proteina_repetida_en_dia (primero con proteína ↔ cena el mismo día, por grupo)", () => {
+  it("flags a legume primero + legume cena the same day", () => {
+    const pool = [
+      recipe({ id: "crema_lentejas", category: "sopas_cremas", mainProtein: "legumbre", mealRole: ["primero"] }),
+      // Otra legumbre en cena, category no-legumbres para que no la pare la regla 2.
+      recipe({ id: "hummus_cena", category: "ensaladas_verduras", mainProtein: "legumbre", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "crema_lentejas" },
+      { slotId: "lun_cena", recipeId: "hummus_cena" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("proteina_repetida_en_dia");
+    expect(violations.find((v) => v.rule === "proteina_repetida_en_dia").slotId).toBe("lun_cena");
+  });
+
+  it("flags pollo primero + ternera cena the same day (mismo grupo carne)", () => {
+    const pool = [
+      recipe({ id: "pollo_primero", category: "carnes", mainProtein: "pollo", mealRole: ["primero"] }),
+      recipe({ id: "ternera_cena", category: "carnes", mainProtein: "ternera", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "pollo_primero" },
+      { slotId: "lun_cena", recipeId: "ternera_cena" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("proteina_repetida_en_dia");
+  });
+
+  it("does NOT flag a neutral primero (mainProtein none) + any cena", () => {
+    const pool = [
+      recipe({ id: "ensalada", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "pollo_cena", category: "carnes", mainProtein: "pollo", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "ensalada" },
+      { slotId: "lun_cena", recipeId: "pollo_cena" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("proteina_repetida_en_dia");
+  });
+
+  it("applyFallback swaps the cena to a different protein group than the day's primero", () => {
+    const pool = [
+      recipe({ id: "pollo_primero", category: "carnes", mainProtein: "pollo", mealRole: ["primero"] }),
+      recipe({ id: "ternera_cena", category: "carnes", mainProtein: "ternera", mealRole: ["cena"] }),
+      recipe({ id: "pescado_cena", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "pollo_primero" },
+      { slotId: "lun_cena", recipeId: "ternera_cena" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    const fixed = applyFallback(assignments, violations, pool, slots);
+    expect(fixed.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("pescado_cena");
+    expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("proteina_repetida_en_dia");
+  });
+});

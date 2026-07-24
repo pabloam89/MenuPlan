@@ -65,7 +65,7 @@
   },
   {
     "id": "postres_003",
-    "name": "Fruta de temporada",
+    "name": "Fruta fresca",
     "category": "postres",
     "mainProtein": "none",
     "mealRole": ["postre"],
@@ -123,7 +123,7 @@
       "Reparte en cuencos y enfría"
     ],
     "description": "Natillas caseras de huevo y leche",
-    "productAliases": ["Natillas", "Natillas de vainilla", "Natillas de chocolate"]
+    "productAliases": ["Natillas", "Natillas de vainilla"]
   },
   {
     "id": "postres_005",
@@ -155,7 +155,7 @@
       "Enfría bien antes de desmoldar"
     ],
     "description": "Flan de huevo casero al baño maría",
-    "productAliases": ["Flan", "Flan de huevo", "Flan de vainilla"]
+    "productAliases": ["Flan"]
   },
   {
     "id": "postres_006",
@@ -188,7 +188,7 @@
       "Reparte en cuencos y enfría"
     ],
     "description": "Arroz con leche tradicional aromatizado con limón",
-    "productAliases": ["Arroz con leche"]
+    "productAliases": []
   },
   {
     "id": "postres_007",
@@ -218,6 +218,14 @@
       "Reparte azúcar y unas gotas de limón sobre cada una",
       "Hornea a 180°C unos 35 minutos hasta que estén tiernas"
     ],
-    "description": "Manzanas asadas al horno con azúcar y limón"
+    "description": "Manzanas asadas al horno con azúcar y limón",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Descorazona las manzanas, colócalas en una fuente con un poco de azúcar y unas gotas de limón, y hornea unos 35-40 minutos hasta que estén tiernas."
+      }
+    ]
   }
 ]

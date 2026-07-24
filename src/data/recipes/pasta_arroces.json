@@ -301,13 +301,7 @@
         "appliance": "horno",
         "time": 65,
         "difficulty": "normal",
-        "prepSummary": "Prepara un sofrito con la costilla y el tomate, añade el arroz y el caldo (o agua con pimentón) en una cazuela de barro. Hornea a 190°C durante 45-50 minutos, incorporando la morcilla y las patatas cortadas a mitad de cocción para que se doren y el arroz quede suelto y con socarr"
-      },
-      {
-        "appliance": "airfryer",
-        "time": 50,
-        "difficulty": "normal",
-        "prepSummary": "Realiza el sofrito y mezcla con el arroz y el caldo en un recipiente apto para airfryer. Cocina a 180°C durante 35-40 minutos, añadiendo la morcilla y las patatas cortadas a mitad de cocción. Es ideal para raciones individuales o dobles, logrando un arroz meloso y con un buen gra"
+        "prepSummary": "Prepara un sofrito con la costilla y el tomate, añade el arroz y el caldo (o agua con pimentón) en una cazuela de barro. Hornea a 190°C durante 45-50 minutos, incorporando la morcilla y las patatas cortadas a mitad de cocción para que se doren y el arroz quede suelto y con socarrat en el fondo."
       }
     ]
   },
@@ -369,14 +363,7 @@
       "Juntar pasta caliente con panceta y mezcla de huevo fuera del fuego"
     ],
     "description": "Espaguetis carbonara con panceta, huevo y parmesano",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "La Thermomix permite cocer la pasta, sofreír la panceta y emulsionar la salsa de huevo y queso con el calor residual de la pasta, todo en el mismo vaso. Es clave no sobrecalentar para evitar que el huevo cuaje."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "pasta_arroces_006",
@@ -1163,14 +1150,7 @@
       "Añadir arroz y soja, saltear a fuego fuerte 3 min"
     ],
     "description": "Arroz salteado con tortilla, guisantes, zanahoria y jamón",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Cocina el arroz en el cestillo, cuece los guisantes y la zanahoria al vapor en el Varoma. Prepara los huevos revueltos en el vaso y, finalmente, mezcla todos los ingredientes con el jamón y la salsa de soja para integrar los sabores."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "pasta_arroces_016",
@@ -1191,7 +1171,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "soja"
     ],
     "season": "all",
     "ingredients": [
@@ -1498,14 +1479,7 @@
       "Cocer 5 min más hasta que se abran las almejas"
     ],
     "description": "Arroz caldoso con gambas, almejas y sepia",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 50,
-        "difficulty": "normal",
-        "prepSummary": "Prepara el sofrito y la sepia en el vaso. Añade el arroz y el caldo, cocinando en giro inverso a temperatura Varoma o 100°C. Incorpora las gambas y almejas al final para que se cocinen con el calor residual, logrando un arroz caldoso perfecto."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "pasta_arroces_020",
@@ -1660,19 +1634,13 @@
         "appliance": "horno",
         "time": 45,
         "difficulty": "normal",
-        "prepSummary": "Prepara el sofrito en una cazuela apta para horno. Añade el arroz y el caldo de pescado caliente. Cocina en el horno precalentado a 190°C durante 18-20 minutos, incorporando el rape y las gambas en los últimos 5-7 minutos para que no se sequen. El horno asegura una cocción unifor"
+        "prepSummary": "Prepara el sofrito en una cazuela apta para horno. Añade el arroz y el caldo de pescado caliente. Cocina en el horno precalentado a 190°C durante 18-20 minutos, incorporando el rape y las gambas en los últimos 5-7 minutos para que no se sequen. El horno asegura una cocción uniforme."
       },
       {
         "appliance": "thermomix",
         "time": 35,
         "difficulty": "normal",
         "prepSummary": "Sofríe el ajo y el tomate en la Thermomix. Añade el arroz, pimentón y caldo, programando 18-20 minutos, 100°C, giro inverso, velocidad cuchara. Incorpora el rape y las gambas los últimos 5 minutos para una cocción perfecta y sin pegarse."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Realiza el sofrito en la olla abierta. Añade el arroz, pimentón y caldo, cierra la olla y cocina a presión durante 7-8 minutos desde que sube la válvula. Despresuriza, incorpora el rape y las gambas y deja reposar unos minutos para que se terminen de cocinar con el calor residual"
       }
     ]
   },
@@ -1895,14 +1863,7 @@
       "Aliñar con aceite y vinagre"
     ],
     "description": "Ensalada fría de pasta con tomate, aceitunas y maíz",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Cuece la pasta en el vaso con agua y sal (aprox. 12-15 min a 100°C, velocidad cuchara). Escurre, enfría y luego mezcla con el resto de ingredientes en el vaso a velocidad baja para combinar sin triturar."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "pasta_arroces_025",
@@ -1977,12 +1938,6 @@
         "time": 28,
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y los champiñones, luego tuesta el arroz con el vino. Incorpora el caldo y cocina 15-18 min a 100°C, velocidad cuchara, giro inverso, hasta obtener la cremosidad deseada, finalizando con mantequilla y parmesano."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 20,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe la cebolla y los champiñones, tuesta el arroz y desglasa con vino. Añade el caldo, cierra la olla y cocina a presión 5-7 minutos; despresuriza, remueve vigorosamente y manteca con queso y mantequilla."
       }
     ]
   }

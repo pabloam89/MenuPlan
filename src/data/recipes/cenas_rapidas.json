@@ -286,7 +286,7 @@
   },
   {
     "id": "cenas_rapidas_005",
-    "name": "Tostada de aguacate",
+    "name": "Tostada de aguacate y tomate",
     "category": "cenas_rapidas",
     "mainProtein": "none",
     "mealRole": [
@@ -503,12 +503,6 @@
         "time": 12,
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 180°C y extiende los nachos en una bandeja. Caliéntalos durante 4-5 minutos hasta que estén ligeramente tostados y crujientes. El guacamole se prepara aparte de forma tradicional."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 7,
-        "difficulty": "facil",
-        "prepSummary": "Utiliza la Thermomix para picar finamente la cebolla, el tomate y el cilantro (unos segundos a velocidad 5). Luego, añade el aguacate y el zumo de limón, y mezcla a velocidad 3-4 hasta obtener la consistencia deseada para el guacamole. Los nachos se sirven directamente."
       }
     ]
   },
@@ -629,20 +623,7 @@
       "Servir fríos como picoteo o cena ligera"
     ],
     "description": "Lonchas de jamón cocido enrolladas con queso y pepinillo",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Precalienta la airfryer a 180°C. Coloca los rollitos y cocina durante 8-10 minutos, dándoles la vuelta a mitad, hasta que estén dorados y el queso fundido. Para un acabado más crujiente, pincela con un poco de mantequilla derretida."
-      },
-      {
-        "appliance": "horno",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 190°C. Coloca los rollitos en una bandeja con papel de horno y hornea durante 10-12 minutos, o hasta que estén dorados y el queso se haya fundido. Un truco es añadir un toque de orégano o pimienta negra antes de hornear."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "cenas_rapidas_010",

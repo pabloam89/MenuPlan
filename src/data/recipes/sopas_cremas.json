@@ -767,19 +767,19 @@
         "appliance": "horno",
         "time": 45,
         "difficulty": "facil",
-        "prepSummary": "Comienza caramelizando las cebollas lentamente en una olla a fuego medio-bajo. Luego, añade el vino y el caldo, y cocina a fuego suave. Sirve la sopa en cuencos individuales aptos para horno, cubre con el pan y el queso, y gratina a 200°C durante 5-10 minutos hasta que el queso e"
+        "prepSummary": "Comienza caramelizando las cebollas lentamente en una olla a fuego medio-bajo. Luego, añade el vino y el caldo, y cocina a fuego suave. Sirve la sopa en cuencos individuales aptos para horno, cubre con el pan y el queso, y gratina a 200°C durante 5-10 minutos hasta que el queso esté fundido y dorado."
       },
       {
         "appliance": "thermomix",
         "time": 45,
         "difficulty": "facil",
-        "prepSummary": "Pica las cebollas y sofríelas con la mantequilla a 120°C, velocidad cuchara, durante 20 minutos. Añade el vino y el caldo, y cocina a 100°C, velocidad cuchara, durante 15 minutos. Sirve la sopa en cuencos aptos para horno, cubre con pan y queso, y gratina en el horno precalentado"
+        "prepSummary": "Pica las cebollas y sofríelas con la mantequilla a 120°C, velocidad cuchara, durante 20 minutos. Añade el vino y el caldo, y cocina a 100°C, velocidad cuchara, durante 15 minutos. Sirve la sopa en cuencos aptos para horno, cubre con pan y queso, y gratina en el horno precalentado a 200°C durante 5-10 minutos hasta que el queso se funda y dore."
       },
       {
         "appliance": "olla_express",
         "time": 40,
         "difficulty": "normal",
-        "prepSummary": "Sofríe las cebollas con la mantequilla en la olla express abierta a fuego medio hasta que estén bien caramelizadas (aprox. 15-20 min). Añade el vino y el caldo, cierra la olla y cocina a presión durante 10-12 minutos. Sirve la sopa en cuencos individuales, cubre con pan y queso, "
+        "prepSummary": "Sofríe las cebollas con la mantequilla en la olla express abierta a fuego medio hasta que estén bien caramelizadas (aprox. 15-20 min). Añade el vino y el caldo, cierra la olla y cocina a presión durante 10-12 minutos. Sirve la sopa en cuencos individuales, cubre con pan y queso, y gratina en el horno a 200°C durante 5-10 minutos hasta que el queso se funda y dore."
       }
     ]
   },
@@ -951,7 +951,7 @@
   },
   {
     "id": "sopas_cremas_013",
-    "name": "Puré de patatas",
+    "name": "Puré de patatas gratinado",
     "category": "sopas_cremas",
     "mainProtein": "none",
     "mealRole": [
@@ -1032,7 +1032,7 @@
         "prepSummary": "Pincha las patatas enteras o trocéalas y cocínalas en el microondas a máxima potencia durante 10-12 minutos, volteando a mitad, hasta que estén muy tiernas. Luego machaca y mezcla con el resto de ingredientes para un puré exprés."
       }
     ],
-    "productAliases": ["Puré de patatas"]
+    "productAliases": []
   },
   {
     "id": "sopas_cremas_014",

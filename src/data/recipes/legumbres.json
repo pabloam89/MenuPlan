@@ -1030,14 +1030,7 @@
       "Dejar reposar 10 min en nevera antes de servir"
     ],
     "description": "Ensalada fría de lentejas con verduras de temporada",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Pica las verduras (tomate, cebolla, pimiento, pepino) en el vaso del Thermomix durante unos segundos a velocidad 4. Añade las lentejas cocidas, el aceite y el vinagre, y mezcla suavemente a velocidad cuchara para integrar todos los ingredientes sin triturar."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "legumbres_013",
@@ -1285,14 +1278,7 @@
       "Aliñar con aceite y vinagre de Jerez"
     ],
     "description": "Ensalada fría de garbanzos con verduras y aceitunas",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Utiliza la Thermomix para picar el tomate, pepino y cebolla morada en el vaso (unos segundos a velocidad 4-5). Luego, añade los garbanzos, aceitunas, aceite y vinagre, y mezcla suavemente a velocidad cuchara durante unos segundos para integrar todos los ingredientes."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "legumbres_016",
@@ -1368,7 +1354,7 @@
         "appliance": "horno",
         "time": 70,
         "difficulty": "normal",
-        "prepSummary": "Prepara un sofrito inicial con cebolla, ajo, zanahoria y tomate en una olla apta para horno. Añade las alubias, patata, laurel y caldo/agua. Cocina tapado en el horno a 180°C durante unos 50-60 minutos, o hasta que las alubias estén tiernas, removiendo ocasionalmente y ajustando "
+        "prepSummary": "Prepara un sofrito inicial con cebolla, ajo, zanahoria y tomate en una olla apta para horno. Añade las alubias, patata, laurel y caldo/agua. Cocina tapado en el horno a 180°C durante unos 50-60 minutos, o hasta que las alubias estén tiernas, removiendo ocasionalmente y ajustando el líquido si es necesario."
       },
       {
         "appliance": "thermomix",
@@ -1380,7 +1366,7 @@
         "appliance": "olla_express",
         "time": 45,
         "difficulty": "facil",
-        "prepSummary": "Realiza un sofrito con la cebolla, ajo, zanahoria y tomate en la olla a presión. Incorpora las alubias (remojadas), patata, laurel y suficiente agua/caldo. Cierra la olla y cocina a fuego medio-alto durante 20-25 minutos desde que sube la válvula, dejando despresurizar de forma n"
+        "prepSummary": "Realiza un sofrito con la cebolla, ajo, zanahoria y tomate en la olla a presión. Incorpora las alubias (remojadas), patata, laurel y suficiente agua/caldo. Cierra la olla y cocina a fuego medio-alto durante 20-25 minutos desde que sube la válvula, dejando despresurizar de forma natural."
       }
     ]
   },
@@ -1665,7 +1651,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "mostaza"
+    ],
     "season": "all",
     "ingredients": [
       {

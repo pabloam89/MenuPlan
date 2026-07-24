@@ -566,6 +566,7 @@
     "id": "carnes_008",
     "name": "Guiso de ternera con patatas",
     "category": "carnes",
+    "baseDishId": "carnes_005",
     "mainProtein": "ternera",
     "mealRole": [
       "plato_unico"
@@ -1158,6 +1159,7 @@
     "id": "carnes_015",
     "name": "Ternera guisada con zanahorias",
     "category": "carnes",
+    "baseDishId": "carnes_005",
     "mainProtein": "ternera",
     "mealRole": [
       "segundo",
@@ -1651,6 +1653,7 @@
     "id": "carnes_021",
     "name": "Carne guisada con verduras",
     "category": "carnes",
+    "baseDishId": "carnes_005",
     "mainProtein": "ternera",
     "mealRole": [
       "segundo",
@@ -1896,7 +1899,7 @@
         "appliance": "horno",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 200°C. Enharina los escalopines y colócalos en una bandeja de horno ligeramente engrasada. Hornea durante 15-20 minutos, volteándolos una vez, hasta que estén dorados y cocidos. Prepara la salsa de limón y mantequilla en una sartén y viértela sobre los esca"
+        "prepSummary": "Precalienta el horno a 200°C. Enharina los escalopines y colócalos en una bandeja de horno ligeramente engrasada. Hornea durante 15-20 minutos, volteándolos una vez, hasta que estén dorados y cocidos. Prepara la salsa de limón y mantequilla en una sartén y viértela sobre los escalopines justo antes de servir."
       }
     ]
   },
@@ -1904,7 +1907,7 @@
     "id": "carnes_024",
     "name": "Pavo a la plancha",
     "category": "carnes",
-    "mainProtein": "pollo",
+    "mainProtein": "pavo",
     "mealRole": [
       "segundo",
       "cena"
@@ -2671,7 +2674,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "apio"
+    ],
     "season": "invierno",
     "ingredients": [
       {

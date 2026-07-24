@@ -155,13 +155,13 @@
         "appliance": "airfryer",
         "time": 25,
         "difficulty": "facil",
-        "prepSummary": "Corta las patatas en dados finos, rocíalas con un poco de aceite y sal, y cocínalas en la airfryer a 190°C durante 18-20 minutos, agitando a mitad. Fríe los huevos en una sartén aparte hasta que la clara cuaje y la yema quede líquida. Sirve las patatas con los huevos rotos y el j"
+        "prepSummary": "Corta las patatas en dados finos, rocíalas con un poco de aceite y sal, y cocínalas en la airfryer a 190°C durante 18-20 minutos, agitando a mitad. Fríe los huevos en una sartén aparte hasta que la clara cuaje y la yema quede líquida. Sirve las patatas con los huevos rotos y el jamón por encima."
       },
       {
         "appliance": "horno",
         "time": 40,
         "difficulty": "facil",
-        "prepSummary": "Corta las patatas en dados, mézclalas con aceite de oliva y sal, y extiéndelas en una bandeja de horno. Hornea a 200°C durante 25-30 minutos, hasta que estén tiernas y doradas. Retira, haz huecos y casca los huevos, horneando 5-8 minutos más hasta que la clara cuaje y la yema est"
+        "prepSummary": "Corta las patatas en dados, mézclalas con aceite de oliva y sal, y extiéndelas en una bandeja de horno. Hornea a 200°C durante 25-30 minutos, hasta que estén tiernas y doradas. Retira, haz huecos y casca los huevos, horneando 5-8 minutos más hasta que la clara cuaje y la yema esté al gusto. Rompe los huevos sobre las patatas y reparte el jamón por encima."
       }
     ]
   },
@@ -791,7 +791,7 @@
         "appliance": "microondas",
         "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Prepara el sofrito en un bol apto para microondas. Distribúyelo en tazas o ramequines individuales con el resto de ingredientes. Casca los huevos, pincha ligeramente las yemas y cocina a media potencia (500W) en intervalos de 1 minuto hasta que las claras cuajen, vigilando para n"
+        "prepSummary": "Prepara el sofrito en un bol apto para microondas. Distribúyelo en tazas o ramequines individuales con el resto de ingredientes. Casca los huevos, pincha ligeramente las yemas y cocina a media potencia (500W) en intervalos de 1 minuto hasta que las claras cuajen, vigilando para no sobrecocer las yemas."
       }
     ]
   },

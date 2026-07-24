@@ -16,7 +16,7 @@
     "fat_g": 17,
     "baseServings": 2,
     "kidFriendly": true,
-    "tupperFriendly": true,
+    "tupperFriendly": false,
     "allergens": [
       "lactosa"
     ],
@@ -165,7 +165,7 @@
   },
   {
     "id": "ensaladas_verduras_003",
-    "name": "Menestra de verduras",
+    "name": "Menestra de verduras con jamón",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mealRole": [
@@ -407,12 +407,6 @@
     "description": "Espinacas salteadas con pasas y piñones al estilo catalán",
     "methods": [
       {
-        "appliance": "horno",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Combina las espinacas, ajo picado, pasas, piñones y aceite de oliva en una fuente apta para horno. Hornea a 180-200°C durante 15-20 minutos, removiendo a mitad, hasta que las espinacas estén tiernas y los piñones dorados."
-      },
-      {
         "appliance": "thermomix",
         "time": 18,
         "difficulty": "facil",
@@ -498,13 +492,13 @@
         "appliance": "airfryer",
         "time": 45,
         "difficulty": "normal",
-        "prepSummary": "Preparar el relleno sofriéndolo previamente en una sartén. Rellenar los pimientos cortados por la mitad y cocinar en la airfryer a 185°C durante 25-35 minutos, hasta que los pimientos estén tiernos y el relleno caliente. Un truco es rociar con un poco de aceite para un mejor dora"
+        "prepSummary": "Preparar el relleno sofriéndolo previamente en una sartén. Rellenar los pimientos cortados por la mitad y cocinar en la airfryer a 185°C durante 25-35 minutos, hasta que los pimientos estén tiernos y el relleno caliente. Un truco es rociar con un poco de aceite para un mejor dorado."
       },
       {
         "appliance": "thermomix",
         "time": 55,
         "difficulty": "normal",
-        "prepSummary": "Preparar el relleno en el vaso de la Thermomix (picar cebolla/ajo, sofreír, añadir carne y tomate, cocinar). Rellenar los pimientos y cocinarlos al vapor en el Varoma durante 25-35 minutos, velocidad Varoma, hasta que estén tiernos. El truco es asegurarse de que los pimientos no "
+        "prepSummary": "Preparar el relleno en el vaso de la Thermomix (picar cebolla/ajo, sofreír, añadir carne y tomate, cocinar). Rellenar los pimientos y cocinarlos al vapor en el Varoma durante 25-35 minutos, velocidad Varoma, hasta que estén tiernos. El truco es asegurarse de que los pimientos no se deshagan durante la cocción al vapor."
       }
     ]
   },
@@ -787,18 +781,6 @@
     "description": "Judías verdes cocidas y rehogadas con ajo y jamón",
     "methods": [
       {
-        "appliance": "airfryer",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Precalienta la airfryer a 190°C. Cocina las judías verdes con un poco de aceite durante 10-12 minutos, removiendo. Añade el ajo picado y el jamón serrano y cocina 3-5 minutos más hasta que estén tiernas y ligeramente doradas."
-      },
-      {
-        "appliance": "horno",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Asa las judías verdes con aceite, ajo picado y el jamón serrano en una bandeja de horno. Hornea a 190°C durante 20-25 minutos, removiendo ocasionalmente, hasta que estén tiernas y ligeramente doradas."
-      },
-      {
         "appliance": "thermomix",
         "time": 25,
         "difficulty": "normal",
@@ -1067,7 +1049,7 @@
     "carbs_g": 4,
     "fat_g": 10,
     "baseServings": 2,
-    "kidFriendly": true,
+    "kidFriendly": false,
     "tupperFriendly": false,
     "allergens": [],
     "season": "all",
@@ -1105,26 +1087,7 @@
       "Saltear 5 min y servir con perejil"
     ],
     "description": "Champiñones laminados salteados con ajo y perejil",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Mezcla los champiñones con el ajo, aceite, perejil y guindilla. Cocina en la airfryer precalentada a 190°C durante 15-18 minutos, agitando la cesta a mitad para un dorado uniforme y jugoso."
-      },
-      {
-        "appliance": "horno",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Extiende los champiñones mezclados con ajo, aceite, perejil y guindilla en una bandeja de horno. Asa a 200°C durante 15-20 minutos, removiendo a mitad, hasta que estén tiernos y ligeramente dorados."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Trocea el ajo y la guindilla, sofríe con el aceite. Añade los champiñones y el perejil, y cocina a temperatura Varoma, velocidad cuchara, giro inverso, hasta que estén tiernos y hayan soltado y reabsorbido su líquido."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_015",
@@ -1365,7 +1328,7 @@
   },
   {
     "id": "ensaladas_verduras_018",
-    "name": "Espárragos a la plancha",
+    "name": "Espárragos a la plancha con ajo",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mealRole": [
@@ -1471,20 +1434,7 @@
       "Salar con sal gorda y servir"
     ],
     "description": "Pimientos de padrón fritos con sal gorda",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Rocía los pimientos con aceite de oliva y sal gorda. Cocina en la airfryer precalentada a 190°C durante 12-15 minutos, agitando la cesta a mitad para un dorado uniforme y que queden tiernos."
-      },
-      {
-        "appliance": "horno",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Mezcla los pimientos con aceite de oliva y sal gorda. Extiéndelos en una bandeja y ásalos en el horno precalentado a 200°C durante 15-20 minutos, volteando a mitad para que se doren y ablanden por igual."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_020",
@@ -1572,7 +1522,7 @@
     "fat_g": 12,
     "baseServings": 2,
     "kidFriendly": true,
-    "tupperFriendly": true,
+    "tupperFriendly": false,
     "allergens": [],
     "season": "verano",
     "ingredients": [
@@ -1661,18 +1611,6 @@
     ],
     "description": "Lombarda estofada con manzana y vinagre",
     "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Corta la lombarda, manzana y cebolla. Mezcla con aceite y sal, y cocina en la airfryer a 185°C durante 20-25 minutos, removiendo a mitad. Añade el vinagre al final para un toque brillante."
-      },
-      {
-        "appliance": "horno",
-        "time": 45,
-        "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 190°C. Mezcla la lombarda, manzana y cebolla troceadas con aceite, sal y vinagre. Extiende en una bandeja y hornea durante 35-40 minutos, removiendo ocasionalmente hasta que esté tierna y ligeramente caramelizada."
-      },
       {
         "appliance": "thermomix",
         "time": 30,

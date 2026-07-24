@@ -56,6 +56,20 @@ export function getCarbType(recipe) {
 // comida day N+1).
 const DAY_ORDER = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
 
+// Coarse protein grouping shared by the school-conflict rule (4), the new
+// same-day clash rule (3c) and applyFallback, so "no repetir carne/pescado el
+// mismo día" means the same thing everywhere. Anything not mapped (e.g.
+// "none") falls through to its raw value.
+const PROTEIN_GROUP_MAP = {
+  pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+  pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
+  legumbre: "legumbres", huevo: "huevos",
+};
+
+function proteinGroup(mainProtein) {
+  return PROTEIN_GROUP_MAP[mainProtein] ?? mainProtein;
+}
+
 function buildMealOrder(slotAssignments) {
   const mealOrder = [];
   for (const { slotId, recipeId } of slotAssignments) {
@@ -189,12 +203,15 @@ export function validateMenu(
     }
   }
 
-  // 2. No legumbres in cena slots
+  // 2. No legumbres in cena slots — matched by category OR mainProtein, so a
+  // legume-based dish filed under another category (e.g. "Crema de lentejas"
+  // in sopas_cremas, mainProtein "legumbre") is caught too, aligning with the
+  // SYSTEM_PROMPT and with FREQ_KEY_MATCHERS.legumbres.
   for (const { slotId, recipeId, mealType } of mealOrder) {
     if (mealType !== "cena") continue;
     const recipe = poolById[recipeId];
     if (!recipe) continue;
-    if (recipe.category === "legumbres") {
+    if (recipe.category === "legumbres" || recipe.mainProtein === "legumbre") {
       violations.push({
         rule: "legumbres_en_cena",
         slotId,
@@ -264,6 +281,34 @@ export function validateMenu(
     }
   }
 
+  // 3c. Same-day protein-group clash from the comida_1 primero. Rule 3 filters
+  // comida_1 primeros out of the consecutive sequence and rule 3b only compares
+  // the two halves of a comida by *exact* protein — so a primero that actually
+  // carries a protein (e.g. "Crema de lentejas", mainProtein "legumbre") could
+  // share the day with a same-group cena undetected. Compared by protein GROUP
+  // (carne/pescado/legumbres/huevos), scoped to comida_1 ↔ cena of the same day
+  // so it never re-flags the comida_1-vs-cena "light starter" case rule 3
+  // intentionally allows for a *neutral* (mainProtein "none") primero.
+  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
+    const primero = positions["1"];
+    if (!primero) continue;
+    const r1 = poolById[primero.recipeId];
+    if (!r1 || r1.mainProtein === "none") continue;
+    const g1 = proteinGroup(r1.mainProtein);
+    for (const m of mealOrder) {
+      if (m.daySlug !== daySlug || m.mealType !== "cena") continue;
+      const r2 = poolById[m.recipeId];
+      if (!r2 || r2.mainProtein === "none") continue;
+      if (proteinGroup(r2.mainProtein) === g1) {
+        violations.push({
+          rule: "proteina_repetida_en_dia",
+          slotId: m.slotId,
+          message: `"${r2.name}" repite el grupo de proteína "${g1}" del primero ("${r1.name}") el mismo día (${daySlug})`,
+        });
+      }
+    }
+  }
+
   // 4. schoolProteinsToAvoid respected in cena
   for (const { slotId, recipeId, mealType } of mealOrder) {
     if (mealType !== "cena") continue;
@@ -271,12 +316,7 @@ export function validateMenu(
     if (!ctx?.schoolProteinsToAvoid?.length) continue;
     const recipe = poolById[recipeId];
     if (!recipe) continue;
-    const proteinMap = {
-      pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-      pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-      legumbre: "legumbres", huevo: "huevos",
-    };
-    const recipeProteinGroup = proteinMap[recipe.mainProtein] ?? recipe.mainProtein;
+    const recipeProteinGroup = proteinGroup(recipe.mainProtein);
     if (ctx.schoolProteinsToAvoid.includes(recipeProteinGroup)) {
       violations.push({
         rule: "school_protein_conflict",
@@ -597,6 +637,20 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
     }
 
+    // Same-day comida_1 primero protein GROUP — mirrors rule 3c: when replacing
+    // a cena, never reintroduce the protein group already carried by that day's
+    // primero (e.g. don't pick a legumbre cena when the comida_1 is a lentil
+    // cream). Enforced unconditionally for the same cross-rule-safety reason as
+    // the guards above.
+    let sameDayPrimeroGroup = null;
+    if (mealType === "cena") {
+      const primeroRecipeId = result.find((s) => s.slotId === `${daySlug}_comida_1`)?.recipeId;
+      const primeroRecipe = primeroRecipeId ? poolById[primeroRecipeId] : null;
+      if (primeroRecipe && primeroRecipe.mainProtein !== "none") {
+        sameDayPrimeroGroup = proteinGroup(primeroRecipe.mainProtein);
+      }
+    }
+
     const replacement = filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
@@ -611,7 +665,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       // replacement picked to fix violation N must never reintroduce a
       // violation of rule M that was already resolved (or never triggered)
       // earlier in this same pass.
-      if (mealType === "cena" && r.category === "legumbres") return false;
+      if (mealType === "cena" && (r.category === "legumbres" || r.mainProtein === "legumbre")) return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
       if (ctx?.preferType !== "cena_rapida" && r.category === "cenas_rapidas") return false;
 
@@ -625,13 +679,13 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (ctx?.mode === "tupper" && !r.tupperFriendly) return false;
 
       if (mealType === "cena" && ctx?.schoolProteinsToAvoid) {
-        const proteinMap = {
-          pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
-          pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
-          legumbre: "legumbres", huevo: "huevos",
-        };
-        const group = proteinMap[r.mainProtein] ?? r.mainProtein;
-        if (ctx.schoolProteinsToAvoid.includes(group)) return false;
+        if (ctx.schoolProteinsToAvoid.includes(proteinGroup(r.mainProtein))) return false;
+      }
+
+      // Rule 3c cross-safety: a cena replacement must not share the protein
+      // group of the same day's comida_1 primero.
+      if (sameDayPrimeroGroup && r.mainProtein !== "none" && proteinGroup(r.mainProtein) === sameDayPrimeroGroup) {
+        return false;
       }
 
       if (mealType === "cena" && ctx?.schoolCarbsToAvoid) {

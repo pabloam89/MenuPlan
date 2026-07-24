@@ -498,10 +498,14 @@ function enforceSlotTypes(slotAssignments, slotsContext, poolById) {
       return true;
     };
 
+    // Only ever force a recipe that survived the group's allergy/preference
+    // filter (poolById). Falling back to the unfiltered catalog here could
+    // inject an allergen/alcohol/baby-only dish to honor a soft preferType —
+    // safety wins, so if nothing safe fits we leave the LLM's original (valid)
+    // pick untouched rather than swapping in something unfiltered.
     const candidate =
       Object.values(poolById).find((r) => fits(r) && !used.has(r.id)) ??
-      Object.values(poolById).find(fits) ??
-      Object.values(recipeCatalogById).find(fits);
+      Object.values(poolById).find(fits);
     if (!candidate) continue;
 
     if (!poolById[candidate.id]) poolById[candidate.id] = candidate;
@@ -845,6 +849,46 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
   //    User-pinned combos (dish chosen from the catalog) take priority.
   slotAssignments = pairGarnishes(slotAssignments, poolById, pinnedGarnishMap(data.fixedDishes), safeGarnishes);
+
+  // 6. Re-validate the FULLY-enforced menu. Steps 4/4b run AFTER the
+  //    validate+fallback loop and can, in principle, reintroduce a rule
+  //    violation (a fixed dish forced onto adjacent days, a forced cena rápida
+  //    that clashes with the day, etc.). We deliberately do NOT auto-swap here
+  //    — that could undo the very fixed/forced choices those steps just
+  //    guaranteed — but anything unexpected is surfaced as a warning so it
+  //    never ships silently. Consequences that are intentional (a fixed dish
+  //    legitimately repeating, or a violation on a user-forced slot) are
+  //    filtered out first.
+  {
+    const postCheck = validateMenu(
+      slotAssignments,
+      filteredPool,
+      ctx.slots,
+      ctx.config.healthProfiles,
+      achievableFreqs,
+    );
+    if (!postCheck.valid) {
+      const fixedIds = new Set(
+        (data.fixedDishes ?? [])
+          .map((f) => f?.recipeId ?? f?.id)
+          .filter(Boolean),
+      );
+      const forcedSlotIds = new Set(
+        ctx.slots.filter((s) => s.preferType).map((s) => s.slotId),
+      );
+      const assignBySlot = Object.fromEntries(slotAssignments.map((s) => [s.slotId, s.recipeId]));
+      const unexpected = postCheck.violations.filter((v) => {
+        if (v.rule === "recipeId_repetido" && fixedIds.has(assignBySlot[v.slotId])) return false;
+        if (forcedSlotIds.has(v.slotId)) return false;
+        return true;
+      });
+      for (const v of unexpected) {
+        warnings.push(
+          `${group.label}: tras fijar platos y slots forzados, "${v.slotId}" incumple una regla (${v.rule}). ${v.message}`,
+        );
+      }
+    }
+  }
 
   return {
     group,

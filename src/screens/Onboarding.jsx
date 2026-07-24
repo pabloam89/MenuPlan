@@ -5655,6 +5655,14 @@ function computeGroupSlotBudget(data, group) {
   const schedule = data.schedule ?? {};
   const slotType = data.slotType ?? {};
   const effectiveGroup = group ?? { memberIds: members.map((m) => m.id) };
+  // Effective single-plate structure for this group — must mirror
+  // buildGroupContext (aiPlanner.js): a comida becomes a single dish when the
+  // per-day slotType is "unico" OR the group's meal structure is "1_plato"
+  // (per-group override first, then the global "modo básico" default). Without
+  // the "1_plato" branch the budget over-counts comida days as 2 slots while
+  // the generator only produces 1, making the scaled freqs impossible to meet.
+  const mealStructure =
+    data.mealStructureByGroup?.[group?.id] ?? data.mealStructure ?? "primero_segundo";
   let comidaDays = 0;
   let cenaDays = 0;
   let platoUnicoDays = 0;
@@ -5663,7 +5671,7 @@ function computeGroupSlotBudget(data, group) {
       const mode = modeForGroupSlot(effectiveGroup, members, schedule, day, "Comida");
       if (mode.cook) {
         comidaDays += 1;
-        if (slotType[`${day}|Comida`] === "unico") platoUnicoDays += 1;
+        if (slotType[`${day}|Comida`] === "unico" || mealStructure === "1_plato") platoUnicoDays += 1;
       }
     }
     if (meals.includes("Cena")) {
@@ -5678,7 +5686,7 @@ function computeGroupSlotBudget(data, group) {
 export function useGroupSlotBudget(data, group) {
   return useMemo(
     () => computeGroupSlotBudget(data, group),
-    [data.meals, data.members, data.schedule, data.slotType, group],
+    [data.meals, data.members, data.schedule, data.slotType, data.mealStructure, data.mealStructureByGroup, group],
   );
 }
 

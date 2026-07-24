@@ -22,11 +22,12 @@
       { "name": "Calabacín", "amount": 80, "unit": "g" },
       { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
       { "name": "Cuscús", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" },
+      { "name": "Caldo casero sin sal", "amount": 200, "unit": "ml" }
     ],
     "steps": [
       "Cocer el calabacín troceado al vapor 10 min",
-      "Hidratar el cuscús con caldo de pollo caliente 5 min, añadir el pollo cocido desmenuzado",
+      "Hidratar el cuscús con caldo casero sin sal (o agua) caliente 5 min, añadir el pollo cocido desmenuzado",
       "Triturar todo con aceite de oliva hasta textura suave"
     ],
     "description": "Puré suave de calabacín con pollo y cuscús, sin sal"
@@ -342,12 +343,13 @@
       { "name": "Fideos finos", "amount": 25, "unit": "g" },
       { "name": "Ternera magra", "amount": 30, "unit": "g" },
       { "name": "Zanahoria", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" },
+      { "name": "Caldo casero sin sal", "amount": 300, "unit": "ml" }
     ],
     "steps": [
-      "Hervir caldo casero con zanahoria rallada y ternera picada 8 min",
+      "Hervir caldo casero sin sal (o agua) con zanahoria rallada y ternera picada 8 min",
       "Añadir fideos finos y cocer 5 min más",
-      "Triturar o servir tal cual según textura deseada"
+      "Tritura o chafa bien hasta lograr una textura adecuada y segura para la edad del bebé"
     ],
     "description": "Sopa de fideos con ternera y zanahoria, ideal para cena"
   },
@@ -411,7 +413,7 @@
     "steps": [
       "Cocer boniato troceado 10 min, chafar con tenedor",
       "Batir huevo y cuajar en sartén con aceite y tomate rallado",
-      "Mezclar revuelto con el puré de boniato y servir en trocitos"
+      "Mezclar el revuelto con el puré de boniato y triturar o chafar bien hasta lograr una textura adecuada y segura para la edad del bebé"
     ],
     "description": "Revuelto de huevo bien cuajado con puré de boniato y tomate, sin sal"
   },
@@ -438,10 +440,11 @@
       { "name": "Copos de avena", "amount": 20, "unit": "g" },
       { "name": "Ternera magra", "amount": 30, "unit": "g" },
       { "name": "Espinacas frescas", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" },
+      { "name": "Caldo casero sin sal", "amount": 200, "unit": "ml" }
     ],
     "steps": [
-      "Cocer avena con ternera picada en caldo 10 min",
+      "Cocer avena con ternera picada en caldo casero sin sal (o agua) 10 min",
       "Añadir espinacas los últimos 2 min",
       "Triturar todo con aceite hasta textura suave"
     ],
@@ -534,12 +537,13 @@
       { "name": "Cuscús", "amount": 20, "unit": "g" },
       { "name": "Merluza", "amount": 40, "unit": "g" },
       { "name": "Calabacín", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" },
+      { "name": "Caldo casero sin sal", "amount": 300, "unit": "ml" }
     ],
     "steps": [
-      "Cocer calabacín troceado con merluza en caldo 10 min",
+      "Cocer calabacín troceado con merluza en caldo casero sin sal (o agua) 10 min",
       "Retirar espinas, añadir cuscús y dejar reposar 5 min tapado",
-      "Triturar o chafar según textura deseada, añadir aceite"
+      "Tritura o chafa bien hasta lograr una textura adecuada y segura para la edad del bebé, añade aceite"
     ],
     "description": "Sopa suave de cuscús con merluza y calabacín, sin sal"
   },
@@ -635,7 +639,7 @@
     "steps": [
       "Cocer fideos con calabacín rallado 8 min",
       "Batir huevo y añadir a la sartén, cuajar bien revolviendo",
-      "Triturar o chafar según textura del bebé"
+      "Tritura o chafa bien hasta lograr una textura adecuada y segura para la edad del bebé"
     ],
     "description": "Fideos con huevo revuelto y calabacín, sin sal"
   },

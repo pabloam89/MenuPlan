@@ -235,7 +235,7 @@
         "appliance": "thermomix",
         "time": 40,
         "difficulty": "normal",
-        "prepSummary": "La Thermomix es ideal para la bechamel: funde la mantequilla, sofríe la harina y añade la leche progresivamente a 90°C, velocidad 4, durante unos 7-8 minutos hasta obtener una crema perfecta y sin grumos. Luego, se enfría la masa, se forman las croquetas y se fríen de forma tradi"
+        "prepSummary": "La Thermomix es ideal para la bechamel: funde la mantequilla, sofríe la harina y añade la leche progresivamente a 90°C, velocidad 4, durante unos 7-8 minutos hasta obtener una crema perfecta y sin grumos. Luego, se enfría la masa, se forman las croquetas y se fríen de forma tradicional en abundante aceite caliente."
       },
       {
         "appliance": "airfryer",
@@ -901,14 +901,7 @@
       "Remover a fuego medio hasta que las migas queden sueltas"
     ],
     "description": "Migas de pan con chorizo, panceta y uvas",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe el chorizo y la panceta en el vaso, luego añade el ajo y pimentón. Incorpora el pan troceado y cocina a 120°C, velocidad cuchara, giro inverso, removiendo constantemente hasta que las migas estén sueltas y doradas."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "platos_unicos_012",
@@ -1292,18 +1285,6 @@
         "time": 50,
         "difficulty": "facil",
         "prepSummary": "Asa las patatas y cebolla cortadas en el horno a 190°C con un chorrito de aceite durante 20-25 minutos hasta que estén tiernas. Mezcla con el huevo batido y hornea en un molde a 180°C durante 20-25 minutos, hasta que cuaje y se dore ligeramente por encima."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 40,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe las patatas y cebolla en el vaso con aceite. Luego, mezcla con los huevos batidos y cuaja la tortilla en el recipiente Varoma, usando un molde adecuado, durante 20-25 minutos a temperatura Varoma, velocidad 2, para una versión más ligera."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 50,
-        "difficulty": "facil",
-        "prepSummary": "Cuece al vapor las patatas y cebolla troceadas hasta que estén tiernas (unos 20-25 minutos). Mezcla con los huevos batidos y cocina la mezcla en un molde apto para vaporera durante 20-25 minutos, hasta que esté completamente cuajada, obteniendo una tortilla más saludable."
       }
     ]
   },
@@ -1575,6 +1556,11 @@
         "unit": "ud"
       },
       {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
         "name": "Pimiento choricero",
         "amount": 2,
         "unit": "ud"
@@ -1607,11 +1593,12 @@
     ],
     "steps": [
       "Sofreír cebolla, ajo y chorizo en rodajas",
+      "Freír la patata cortada en dados hasta que esté tierna e incorporarla a la salsa",
       "Añadir pimiento choricero y tomate, cocer 15 min",
       "Hacer huecos en la salsa y cascar los huevos",
       "Tapar y cocer 5 min hasta que la clara cuaje"
     ],
-    "description": "Huevos escalfados en salsa de tomate con chorizo y pimiento",
+    "description": "Huevos escalfados en salsa de tomate con chorizo, pimiento y patata en dados",
     "methods": [
       {
         "appliance": "horno",
