@@ -160,7 +160,7 @@ export default function App() {
   const [rejectTarget, setRejectTarget] = useState(null); // dish being rejected
 
   useEffect(() => {
-    fetch("/catalog.json")
+    fetch(`/catalog.json?t=${Date.now()}`, { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => { setCatalog(d); setCatalogLoading(false); })
       .catch(() => setCatalogLoading(false));
