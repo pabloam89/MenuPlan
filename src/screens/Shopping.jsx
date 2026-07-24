@@ -1,5 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
+  AlertTriangle,
   Apple,
   Bean,
   BookOpen,
@@ -2242,10 +2244,460 @@ function MatchHint({ text }) {
 function findKnownStore(detected) {
   const nd = normalizeStoreName(detected);
   if (!nd) return null;
-  return SUPERMARKETS.find((s) => {
+  // Hipercor/Supercor are El Corte Inglés brands — a ticket can print both the
+  // fascia ("HIPERCOR") and the parent legal name. Match the specific brand
+  // first so "El Corte Inglés" never wins over "Hipercor" on a Hipercor ticket.
+  if (/\bhipercor\b/.test(nd)) return SUPERMARKETS.find((s) => normalizeStoreName(s) === "hipercor") ?? "Hipercor";
+  if (/\bsupercor\b/.test(nd)) return SUPERMARKETS.find((s) => normalizeStoreName(s) === "supercor") ?? "Supercor";
+  // Otherwise pick the most specific (longest) store name that matches, so a
+  // short generic substring can't shadow a better, longer match.
+  let best = null;
+  let bestLen = 0;
+  for (const s of SUPERMARKETS) {
     const ns = normalizeStoreName(s);
-    return ns && (nd === ns || nd.includes(ns) || ns.includes(nd));
+    if (!ns) continue;
+    if (nd === ns || nd.includes(ns) || ns.includes(nd)) {
+      if (ns.length > bestLen) { best = s; bestLen = ns.length; }
+    }
+  }
+  return best;
+}
+
+// ── Custom date picker (replaces the native, OS-styled <input type="date">
+// in the wizard's "fecha" step) — a green-accented calendar popover in the
+// app's own language, with soft open/month-change animations. ───────────────
+const CAL_MONTHS = [
+  "enero", "febrero", "marzo", "abril", "mayo", "junio",
+  "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+];
+const CAL_WEEKDAYS = ["L", "M", "X", "J", "V", "S", "D"];
+
+function parseYMD(s) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(s || ""));
+  return m ? { y: +m[1], mo: +m[2] - 1, d: +m[3] } : null;
+}
+function toYMD(y, mo, d) {
+  return `${y}-${String(mo + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+}
+function todayYMD() {
+  const n = new Date();
+  return { y: n.getFullYear(), mo: n.getMonth(), d: n.getDate() };
+}
+function formatLongDate(s) {
+  const p = parseYMD(s);
+  if (!p) return "Selecciona una fecha";
+  return `${String(p.d).padStart(2, "0")}/${String(p.mo + 1).padStart(2, "0")}/${String(p.y).slice(-2)}`;
+}
+
+function CalendarPopover({ value, anchorRef, onSelect, onClose }) {
+  const menuRef = useRef(null);
+  const [pos, setPos] = useState(null);
+  const sel = parseYMD(value);
+  const today = todayYMD();
+  const [view, setView] = useState({ y: (sel ?? today).y, mo: (sel ?? today).mo });
+
+  useLayoutEffect(() => {
+    const reposition = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const width = Math.max(r.width, 300);
+      const spaceBelow = vh - r.bottom;
+      const openUp = spaceBelow < 360 && r.top > spaceBelow;
+      setPos({
+        left: Math.min(r.left, window.innerWidth - width - 12),
+        width,
+        top: openUp ? null : r.bottom + 8,
+        bottom: openUp ? vh - r.top + 8 : null,
+      });
+    };
+    reposition();
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [anchorRef]);
+
+  useEffect(() => {
+    const onPointerDown = (e) => {
+      if (menuRef.current?.contains(e.target) || anchorRef.current?.contains(e.target)) return;
+      onClose();
+    };
+    const onKeyDown = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [anchorRef, onClose]);
+
+  if (!pos) return null;
+
+  const firstDow = (new Date(view.y, view.mo, 1).getDay() + 6) % 7; // Mon-first
+  const daysInMonth = new Date(view.y, view.mo + 1, 0).getDate();
+  const cells = [...Array(firstDow).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
+  const shift = (delta) => setView((v) => {
+    const m = v.mo + delta;
+    return { y: v.y + Math.floor(m / 12), mo: ((m % 12) + 12) % 12 };
   });
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      className="mp-cal-pop"
+      style={{
+        position: "fixed", left: pos.left, width: pos.width,
+        top: pos.top ?? undefined, bottom: pos.bottom ?? undefined,
+        background: "#fff", borderRadius: 18, border: "1px solid #d7e6dc",
+        boxShadow: "0 24px 56px -12px rgba(20,47,29,.36)", zIndex: 420, padding: 14,
+        boxSizing: "border-box",
+      }}
+    >
+      <style>{`
+        @keyframes mp-cal-in { from { opacity: 0; transform: translateY(-6px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes mp-cal-fade { from { opacity: 0; } to { opacity: 1; } }
+        .mp-cal-pop { animation: mp-cal-in .16s cubic-bezier(.2,.8,.2,1); transform-origin: top center; }
+        .mp-cal-grid { animation: mp-cal-fade .18s ease; }
+        .mp-cal-day { transition: background .13s ease, color .13s ease, transform .1s ease; }
+        .mp-cal-day:hover:not(:disabled) { background: #eef6f0; }
+        .mp-cal-day:active:not(:disabled) { transform: scale(.9); }
+      `}</style>
+
+      {/* Month header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <button type="button" aria-label="Mes anterior" onClick={() => shift(-1)} style={calNavBtnStyle}>
+          <ChevronLeft size={17} strokeWidth={2.6} />
+        </button>
+        <span style={{ fontSize: 14, fontWeight: 900, color: "#142f1d", textTransform: "capitalize" }}>
+          {CAL_MONTHS[view.mo]} {view.y}
+        </span>
+        <button type="button" aria-label="Mes siguiente" onClick={() => shift(1)} style={calNavBtnStyle}>
+          <ChevronRight size={17} strokeWidth={2.6} />
+        </button>
+      </div>
+
+      {/* Weekday header */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2, marginBottom: 4 }}>
+        {CAL_WEEKDAYS.map((w) => (
+          <span key={w} style={{ textAlign: "center", fontSize: 10.5, fontWeight: 800, color: "#9ab0a1", letterSpacing: ".3px" }}>
+            {w}
+          </span>
+        ))}
+      </div>
+
+      {/* Day grid */}
+      <div key={`${view.y}-${view.mo}`} className="mp-cal-grid" style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+        {cells.map((d, idx) => {
+          if (d === null) return <span key={`e${idx}`} />;
+          const isSel = sel && sel.y === view.y && sel.mo === view.mo && sel.d === d;
+          const isToday = today.y === view.y && today.mo === view.mo && today.d === d;
+          return (
+            <button
+              key={d}
+              type="button"
+              className="mp-cal-day"
+              onClick={() => onSelect(toYMD(view.y, view.mo, d))}
+              style={{
+                height: 36, borderRadius: 10, cursor: "pointer", fontFamily: "inherit",
+                border: isToday && !isSel ? "1.5px solid #bcd6c4" : "1.5px solid transparent",
+                background: isSel ? "#2d5a3d" : "transparent",
+                color: isSel ? "#fff" : "#142f1d",
+                fontSize: 13, fontWeight: isSel ? 800 : 600,
+              }}
+            >
+              {d}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Footer */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 12, paddingTop: 10, borderTop: "1px solid #eef3f0" }}>
+        <button
+          type="button"
+          onClick={() => { const t = todayYMD(); setView({ y: t.y, mo: t.mo }); onSelect(toYMD(t.y, t.mo, t.d)); }}
+          style={{ border: "none", background: "transparent", color: "#2d5a3d", fontWeight: 800, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+        >
+          Hoy
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          style={{ border: "none", background: "transparent", color: "#7a8a7f", fontWeight: 700, fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+const calNavBtnStyle = {
+  width: 30, height: 30, borderRadius: 9, border: "1px solid #d7e6dc", background: "#fff",
+  color: "#2d5a3d", display: "inline-flex", alignItems: "center", justifyContent: "center",
+  cursor: "pointer", flexShrink: 0, fontFamily: "inherit",
+};
+
+function WizardDatePicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const anchorRef = useRef(null);
+  return (
+    <>
+      <button
+        ref={anchorRef}
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        style={{
+          ...wizInputStyle, flex: 1, display: "flex", alignItems: "center", gap: 8,
+          cursor: "pointer", textAlign: "left",
+        }}
+      >
+        <Calendar size={16} color="#2d5a3d" strokeWidth={2.2} style={{ flexShrink: 0 }} />
+        <span style={{ flex: 1, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          {formatLongDate(value)}
+        </span>
+        <ChevronDown size={15} color="#9ab0a1" style={{ flexShrink: 0 }} />
+      </button>
+      {open && (
+        <CalendarPopover
+          value={value}
+          anchorRef={anchorRef}
+          onSelect={(v) => { onChange(v); setOpen(false); }}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
+
+// Confirmation shown when the user tries to dismiss the receipt wizard (tap
+// outside / X) so an accidental tap doesn't throw away a half-reviewed ticket.
+function ConfirmExitSheet({ onStay, onLeave }) {
+  return (
+    <div
+      className="mp-overlay-in"
+      onClick={onStay}
+      style={{
+        position: "fixed", inset: 0, zIndex: 360, background: "rgba(0,0,0,.5)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "0 28px",
+      }}
+    >
+      <div
+        className="mp-sheet-up"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#f3f8f4", borderRadius: 22, padding: "22px 20px 18px", width: "100%",
+          maxWidth: 320, boxSizing: "border-box", border: "1px solid #e2ede5",
+          boxShadow: "0 24px 60px rgba(0,0,0,.25)", textAlign: "center",
+        }}
+      >
+        <span
+          style={{
+            width: 46, height: 46, borderRadius: 14, background: "#fbe7e4", color: "#c0392b",
+            display: "inline-flex", alignItems: "center", justifyContent: "center", marginBottom: 12,
+          }}
+        >
+          <AlertTriangle size={22} strokeWidth={2.2} />
+        </span>
+        <p style={{ margin: "0 0 4px", fontSize: 16, fontWeight: 900, color: "#142f1d" }}>¿Salir del ticket?</p>
+        <p style={{ margin: "0 0 18px", fontSize: 13, fontWeight: 600, color: "#5e7a68", lineHeight: 1.4 }}>
+          Perderás lo que has revisado hasta ahora.
+        </p>
+        <div style={{ display: "flex", gap: 10 }}>
+          <button
+            type="button"
+            onClick={onStay}
+            style={{
+              flex: 1, padding: "12px 10px", borderRadius: 12, border: "1.5px solid #cfe0d6",
+              background: "#fff", color: "#2d5a3d", fontWeight: 800, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Seguir aquí
+          </button>
+          <button
+            type="button"
+            onClick={onLeave}
+            style={{
+              flex: 1, padding: "12px 10px", borderRadius: 12, border: "none",
+              background: "#c0392b", color: "#fff", fontWeight: 800, fontSize: 13.5, cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Salir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Swipe-left-to-reveal wrapper for a "Repasa y confirma" row — replaces the
+// old always-visible trash icon with two hidden actions (Renombrar/
+// Descartar) that only show up on an intentional drag, keeping the row
+// itself clean. Built on Pointer Events (not touch-only) so it also works by
+// dragging with a mouse in local dev. Horizontal vs. vertical intent is
+// decided from the first few pixels of movement so it never fights the
+// list's own vertical scroll.
+const SWIPE_ACTION_W = 78;
+const SWIPE_OPEN_TX = -SWIPE_ACTION_W * 2;
+
+function SwipeRevealRow({ open, onOpenChange, onRename, onDiscard, children }) {
+  const [tx, setTx] = useState(open ? SWIPE_OPEN_TX : 0);
+  const [dragging, setDragging] = useState(false);
+  const dragRef = useRef(null);
+
+  useEffect(() => {
+    if (!dragging) setTx(open ? SWIPE_OPEN_TX : 0);
+  }, [open, dragging]);
+
+  const onPointerDown = (e) => {
+    dragRef.current = { x: e.clientX, y: e.clientY, startTx: tx, axis: null };
+    setDragging(true);
+  };
+  const onPointerMove = (e) => {
+    const d = dragRef.current;
+    if (!d) return;
+    const dx = e.clientX - d.x;
+    const dy = e.clientY - d.y;
+    if (d.axis === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      d.axis = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    }
+    if (d.axis !== "x") return;
+    setTx(Math.min(0, Math.max(SWIPE_OPEN_TX - 16, d.startTx + dx)));
+  };
+  const endDrag = () => {
+    const d = dragRef.current;
+    dragRef.current = null;
+    setDragging(false);
+    if (!d || d.axis !== "x") return;
+    onOpenChange(tx < SWIPE_OPEN_TX / 2);
+  };
+
+  return (
+    <div style={{ position: "relative", overflow: "hidden" }}>
+      <div style={{ position: "absolute", inset: 0, display: "flex", justifyContent: "flex-end" }}>
+        <button
+          type="button"
+          onClick={() => { onOpenChange(false); onRename(); }}
+          style={{ width: SWIPE_ACTION_W, border: "none", background: "#2d5a3d", color: "#fff", fontSize: 11.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
+        >
+          Renombrar
+        </button>
+        <button
+          type="button"
+          onClick={() => { onOpenChange(false); onDiscard(); }}
+          style={{ width: SWIPE_ACTION_W, border: "none", background: "#c0392b", color: "#fff", fontSize: 11.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit" }}
+        >
+          Descartar
+        </button>
+      </div>
+      <div
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={endDrag}
+        onPointerCancel={endDrag}
+        style={{
+          position: "relative",
+          background: "#f3f8f4",
+          transform: `translateX(${tx}px)`,
+          transition: dragging ? "none" : "transform .22s cubic-bezier(.2,.8,.2,1)",
+          touchAction: "pan-y",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// What "Renombrar" expands into, in place of the row's normal read view — the
+// exact same candidates-grid + "Otro" pattern as "Aclara productos" (step 3),
+// just anchored to a single already-reviewed line instead of paging through
+// all of them. Never opens a new sheet/overlay: it's still the same list,
+// same scroll container as every other row here.
+function InlineRenameRow({ line, lineIdx, setLine, listItems, writeMode, onWriteMode, onCancel }) {
+  const activeListItems = listItems.filter((it) => !it.have && !it.atHome);
+  const listCandidates = receiptLineCandidates([line.raw, line.name], activeListItems, 3);
+  const candidates = listCandidates.length > 0 ? listCandidates : dictionaryLineCandidates([line.raw, line.name], 3);
+  const chosenKey = normalizeName(line.name);
+  const pick = (name) => { setLine(lineIdx, { name }); onCancel(); };
+  const confirmFree = () => { setLine(lineIdx, { name: liveMatchHint(line.name) ?? line.name }); onCancel(); };
+
+  return (
+    <div className="mp-rename-in" style={{ padding: "10px 2px", borderBottom: "1px solid #e2ede5", display: "grid", gap: 8, background: "#eef4ef", borderRadius: 12 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+        <span style={wizFieldLabelStyle}>Cambiar nombre</span>
+        <button
+          type="button"
+          aria-label="Cancelar"
+          onClick={onCancel}
+          style={{ width: 24, height: 24, borderRadius: 8, border: "none", background: "transparent", color: "#8a9a90", display: "inline-flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}
+        >
+          <X size={15} strokeWidth={2.4} />
+        </button>
+      </div>
+      {candidates.length > 0 ? (
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          {candidates.map((c) => {
+            const selected = normalizeName(c.name) === chosenKey;
+            return (
+              <button key={c.id} type="button" onClick={() => pick(c.name)} style={receiptOptionBtnStyle(selected)}>
+                <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere" }}>{c.name}</span>
+                {selected && <Check size={16} strokeWidth={3} color="#2d5a3d" style={{ flexShrink: 0 }} />}
+              </button>
+            );
+          })}
+          {writeMode ? (
+            <div style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
+              <input
+                autoFocus
+                value={line.name}
+                onChange={(e) => setLine(lineIdx, { name: e.target.value })}
+                placeholder="Escribe…"
+                style={{ ...wizInputStyle, flex: 1, minWidth: 0, padding: "9px 8px", fontSize: 12.5, background: "#fff" }}
+              />
+              <button
+                type="button"
+                aria-label="Usar este nombre"
+                onClick={confirmFree}
+                style={{ ...prodActionIconStyle(false), width: 38, height: 38, flexShrink: 0 }}
+              >
+                <Check size={16} strokeWidth={2.6} />
+              </button>
+            </div>
+          ) : (
+            <button type="button" onClick={() => onWriteMode(true)} style={writeToggleStyle}>
+              <Plus size={15} strokeWidth={2.8} />
+              <span>Otro</span>
+            </button>
+          )}
+        </div>
+      ) : (
+        <div style={{ display: "grid", gap: 6 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <input
+              autoFocus
+              value={line.name}
+              onChange={(e) => setLine(lineIdx, { name: e.target.value })}
+              placeholder="Escribe el nombre del producto"
+              style={{ ...wizInputStyle, flex: 1, fontSize: 12.5, background: "#fff" }}
+            />
+            <button type="button" aria-label="Usar este nombre" onClick={confirmFree} style={prodActionIconStyle(false)}>
+              <Check size={18} strokeWidth={2.6} />
+            </button>
+          </div>
+        </div>
+      )}
+      {writeMode && <MatchHint text={line.name} />}
+    </div>
+  );
 }
 
 export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, onConfirm }) {
@@ -2254,7 +2706,11 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   // seeds whichever of the two applies.
   const detectedStore = (detail.store ?? "").trim();
   const knownStore = findKnownStore(detectedStore);
-  const [storeSel, setStoreSel] = useState(knownStore ?? (detectedStore ? "__other" : ""));
+  // When the OCR'd store doesn't map to a known chain we no longer jump the
+  // user straight into the free-text field (which hid the chain list): we
+  // start on the dropdown seeded from the SUPERMARKETS DB so they can pick
+  // one, and keep the detected name pre-filled for the "Otra tienda…" path.
+  const [storeSel, setStoreSel] = useState(knownStore ?? "");
   const [storeOther, setStoreOther] = useState(knownStore ? "" : detectedStore);
   const store = storeSel === "__other" ? storeOther : storeSel;
   const [date, setDate] = useState(detail.date ?? new Date().toISOString().slice(0, 10));
@@ -2277,8 +2733,20 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
     if (writeMode) setWriteMode(false);
   }
   // Peso ⇄ Unidades lens for the review step's quantity column — converts
-  // the ticket's own qty to a piece count when possible.
-  const [unitView, setUnitView] = useState("peso");
+  // the ticket's own qty to a piece count when possible. Defaults to "uds"
+  // (counts) since that's how people read a shopping ticket ("6 aguas", not
+  // "9 L").
+  const [unitView, setUnitView] = useState("uds");
+  // Guard against an accidental tap outside throwing away a half-reviewed
+  // ticket — dismissing asks for confirmation first.
+  const [confirmExit, setConfirmExit] = useState(false);
+  // "Repasa y confirma" row actions: swipe-left reveals Renombrar/Descartar
+  // (only one row's actions open at a time), and "Renombrar" expands that
+  // same row in place into the candidates picker — no textbox/pencil sitting
+  // in the row by default, and no second sheet stacked on top of this one.
+  const [swipeOpenIdx, setSwipeOpenIdx] = useState(null);
+  const [renameIdx, setRenameIdx] = useState(null);
+  const [renameWriteMode, setRenameWriteMode] = useState(false);
 
   const setLine = (i, patch) =>
     setLines((ls) => ls.map((l, j) => (j === i ? { ...l, ...patch } : l)));
@@ -2291,6 +2759,12 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
     .map((l, i) => ({ l, i }))
     .filter(({ l }) => l.kind !== "prefab" && classifyConfidence(l.confidence) !== "auto")
     .map(({ i }) => i);
+
+  // Live queue of products still pending clarification (a discard shrinks it).
+  // Lifted out of the "productos" render block so the footer's "Siguiente" can
+  // page through products one at a time before advancing to the next step.
+  const pendingIdx = unclearIdx.filter((idx) => lines[idx].include);
+  const pendingTotal = pendingIdx.length;
 
   // Always 4 fixed steps — fecha → súper → productos → cantidades y precios —
   // regardless of whether anything needs clarifying in "productos" (that step
@@ -2446,11 +2920,18 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   };
   const meta = STEP_META[stepId];
 
-  const next = () =>
+  // On "Aclara productos", "Siguiente" pages through the pending products one
+  // at a time; only once we're on the last one (or there are none) does it
+  // move on to the review step.
+  const prodCanAdvance = stepId === "productos" && pendingTotal > 0 && prodStep < pendingTotal - 1;
+  const next = () => {
+    if (prodCanAdvance) { setProdStep((s) => s + 1); return; }
     isLast ? onConfirm({ store, date, lines, tachIds, pantryEntries }) : setStep((s) => s + 1);
+  };
 
   return (
-    <WizardSheet icon={Receipt} title={meta.title} subtitle={meta.subtitle} onClose={onCancel}>
+    <>
+    <WizardSheet icon={Receipt} title={meta.title} subtitle={meta.subtitle} onClose={() => setConfirmExit(true)}>
       <div style={{ marginBottom: 16 }}>
         <ProgressDots current={step} total={steps.length} onJump={(i) => setStep(i)} compact />
       </div>
@@ -2459,13 +2940,7 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
         <div style={wizCardStyle}>
           <div style={wizFieldLabelStyle}>Fecha detectada</div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Calendar size={18} color="#2d5a3d" strokeWidth={2.2} />
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
-              style={{ ...wizInputStyle, flex: 1 }}
-            />
+            <WizardDatePicker value={date} onChange={setDate} />
           </div>
           {weekRange.label && (
             <div style={{ marginTop: 10, paddingTop: 10, borderTop: "1px solid #e2ede5" }}>
@@ -2480,12 +2955,19 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
       )}
 
       {stepId === "super" && (
-        <StorePicker
-          value={storeSel}
-          otherValue={storeOther}
-          onChange={setStoreSel}
-          onOtherChange={setStoreOther}
-        />
+        <>
+          <StorePicker
+            value={storeSel}
+            otherValue={storeOther}
+            onChange={setStoreSel}
+            onOtherChange={setStoreOther}
+          />
+          {detectedStore && !knownStore && storeSel !== "__other" && (
+            <p style={{ margin: "10px 2px 0", fontSize: 12, color: "#7a8a7f", fontWeight: 600, lineHeight: 1.4 }}>
+              En el ticket leímos «{detectedStore}». Elige tu súper de la lista o pulsa «Otra tienda…».
+            </p>
+          )}
+        </>
       )}
 
       {stepId === "productos" && (() => {
@@ -2497,8 +2979,7 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
         // user actually pages through is filtered by `include` on every
         // render, so a discard immediately shrinks "N de M" and slides the
         // next item into view in its place.
-        const pendingIdx = unclearIdx.filter((idx) => lines[idx].include);
-        const total = pendingIdx.length;
+        const total = pendingTotal;
         if (total === 0) {
           return (
             <div style={{ ...wizCardStyle, display: "flex", alignItems: "center", gap: 10 }}>
@@ -2593,9 +3074,15 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
                 what is a rare, low-stakes action — now a small icon right next
                 to the ticket line it discards, out of the way. */}
             <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
-              <div style={{ ...wizCardStyle, flex: 1, fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.35 }}>
-                {l.raw}
-              </div>
+              {/* Editable: OCR sometimes misreads a letter ("U. LONCHAS" for
+                  "Q. LONCHAS") — let the user fix the ticket text itself. */}
+              <input
+                value={l.raw}
+                onChange={(e) => setLine(i, { raw: e.target.value })}
+                aria-label="Texto leído del ticket"
+                title="Corrige lo que leyó el ticket si no se entiende"
+                style={{ ...wizCardStyle, flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 700, color: "#142f1d", fontFamily: "inherit", outline: "none" }}
+              />
               <button
                 type="button"
                 aria-label="Descartar esta línea"
@@ -2623,28 +3110,30 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
                 Tapping "Otro" turns that same tile into the free-text field
                 in place, instead of opening a disconnected section below. */}
             {candidates.length > 0 && (
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-                {candidates.map((c) => {
-                  const selected = l.include && !l.pantry && normalizeName(c.name) === chosenKey;
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => { setLine(i, { name: c.name, include: true, pantry: false }); advanceProd(); }}
-                      style={receiptOptionBtnStyle(selected)}
-                    >
-                      <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere" }}>
-                        {c.name}
-                      </span>
-                      {selected && <Check size={16} strokeWidth={3} color="#2d5a3d" style={{ flexShrink: 0 }} />}
-                    </button>
-                  );
-                })}
-                {writeMode ? (
-                  // Stays IN the same grid cell "Otro" occupied (no gridColumn
-                  // span) so it doesn't reflow the whole grid into an extra
-                  // full-width row — same slot, same size, no UI jump.
-                  <div style={{ display: "grid", gap: 4, minWidth: 0 }}>
+              <div style={{ display: "grid", gap: 6 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, alignItems: "stretch" }}>
+                  {candidates.map((c) => {
+                    const selected = l.include && !l.pantry && normalizeName(c.name) === chosenKey;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => { setLine(i, { name: c.name, include: true, pantry: false }); advanceProd(); }}
+                        style={receiptOptionBtnStyle(selected)}
+                      >
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere" }}>
+                          {c.name}
+                        </span>
+                        {selected && <Check size={16} strokeWidth={3} color="#2d5a3d" style={{ flexShrink: 0 }} />}
+                      </button>
+                    );
+                  })}
+                  {writeMode ? (
+                    // Stays IN the same grid cell "Otro" occupied (no gridColumn
+                    // span) so it doesn't reflow the whole grid into an extra
+                    // full-width row — same slot, same height as a candidate
+                    // tile (the recognised-as hint moved OUT, below the grid,
+                    // so this cell doesn't grow taller than its neighbours).
                     <div style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
                       <input
                         autoFocus
@@ -2667,19 +3156,19 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
                           setLine(i, { name: liveMatchHint(l.name) ?? l.name, include: true, pantry: false });
                           advanceProd();
                         }}
-                        style={{ ...prodActionIconStyle(false), width: 32, height: 32, flexShrink: 0 }}
+                        style={{ ...prodActionIconStyle(false), width: 38, height: 38, flexShrink: 0 }}
                       >
                         <Check size={16} strokeWidth={2.6} />
                       </button>
                     </div>
-                    <MatchHint text={l.name} />
-                  </div>
-                ) : (
-                  <button type="button" onClick={() => setWriteMode(true)} style={writeToggleStyle}>
-                    <Plus size={15} strokeWidth={2.8} />
-                    <span>Otro</span>
-                  </button>
-                )}
+                  ) : (
+                    <button type="button" onClick={() => setWriteMode(true)} style={writeToggleStyle}>
+                      <Plus size={15} strokeWidth={2.8} />
+                      <span>Otro</span>
+                    </button>
+                  )}
+                </div>
+                {writeMode && <MatchHint text={l.name} />}
               </div>
             )}
 
@@ -2754,14 +3243,42 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
                   <CookUnitToggle unitView={unitView} onUnitView={setUnitView} />
                 </div>
               )}
-              <div style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 7, marginBottom: 3, borderBottom: "1px solid #d7e6dc" }}>
-                <span style={{ flex: 1 }} />
-                <span style={{ ...reviewColHeaderStyle, width: 66, textAlign: "center" }}>Cantidad</span>
-                <span style={{ ...reviewColHeaderStyle, width: 67, textAlign: "right" }}>Precio</span>
-                <span style={{ width: 26, flexShrink: 0 }} />
+              {/* Same grid template as each row below (see REVIEW_GRID_COLS)
+                  so "Cantidad"/"Precio" sit exactly above their real value
+                  columns instead of drifting relative to flex-sized content.
+                  One divider only — rows carry their own below. */}
+              <div style={{ display: "grid", gridTemplateColumns: REVIEW_GRID_COLS, alignItems: "center", gap: 6, paddingBottom: 6, marginBottom: 3, borderBottom: "1px solid rgba(45,110,70,.2)" }}>
+                <span />
+                <span />
+                <span style={{ ...reviewColHeaderStyle, gridColumn: "3 / span 2", textAlign: "center" }}>Cantidad</span>
+                <span style={{ ...reviewColHeaderStyle, gridColumn: "5 / span 2", textAlign: "center" }}>Precio</span>
               </div>
+              {/* Nombre del ingrediente ⇄ tocar y arrastrar: desliza la fila a
+                  la izquierda para revelar Renombrar/Descartar (sustituye al
+                  icono de papelera fijo de antes). "Renombrar" no abre nada
+                  por encima — despliega la propia fila con los mismos
+                  candidatos que "Aclara productos", igual que ya hacéis con
+                  "Otro" ahí: nunca sales de este mismo sheet. */}
+              <style>{`
+                @keyframes mp-rename-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+                .mp-rename-in { animation: mp-rename-in .16s ease; }
+              `}</style>
               <div style={{ display: "grid", maxHeight: "52dvh", overflowY: "auto" }}>
                 {reviewRows.map(({ lineIdx, line, match }) => {
+                  if (renameIdx === lineIdx) {
+                    return (
+                      <InlineRenameRow
+                        key={lineIdx}
+                        line={line}
+                        lineIdx={lineIdx}
+                        setLine={setLine}
+                        listItems={listItems}
+                        writeMode={renameWriteMode}
+                        onWriteMode={setRenameWriteMode}
+                        onCancel={() => { setRenameIdx(null); setRenameWriteMode(false); }}
+                      />
+                    );
+                  }
                   const matched = Boolean(match);
                   const name = matched ? match.name : line.name;
                   // Several distinct ticket lines can resolve to the exact
@@ -2800,72 +3317,57 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
                   // width instead of widening it for a second icon column).
                   const aisle = guessShoppingAisle(name);
                   return (
-                    <div
+                    <SwipeRevealRow
                       key={lineIdx}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 0", borderBottom: "1px solid #e2ede5" }}
+                      open={swipeOpenIdx === lineIdx}
+                      onOpenChange={(o) => setSwipeOpenIdx(o ? lineIdx : null)}
+                      onRename={() => { setRenameIdx(lineIdx); setRenameWriteMode(false); }}
+                      onDiscard={() => setLine(lineIdx, { include: false })}
                     >
-                      <span title={aisle || "Sin categoría"}>
-                        <AisleIcon aisle={aisle} size={20} />
-                      </span>
-                      <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.2 }}>
-                          {name}
-                        </div>
-                        {rawDiffers && (
-                          <div style={{ fontSize: 10.5, fontWeight: 600, color: "#8a9a90", overflowWrap: "anywhere", lineHeight: 1.2, marginTop: 1 }}>
-                            {toDisplayCase(line.raw)}
-                          </div>
-                        )}
-                      </div>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="0.1"
-                        aria-label="Cantidad"
-                        className="mp-no-spinner"
-                        value={qtyValue ?? ""}
-                        onChange={onQtyChange}
-                        style={{ ...miniInputStyle, width: 38, textAlign: "center", flexShrink: 0 }}
-                      />
-                      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#7a8a7f", width: 18, flexShrink: 0 }}>
-                        {unitLabel}
-                      </span>
-                      <input
-                        type="number"
-                        inputMode="decimal"
-                        min="0"
-                        step="0.01"
-                        aria-label="Precio"
-                        className="mp-no-spinner"
-                        value={line.price || ""}
-                        onChange={(e) => setLine(lineIdx, { price: Number(e.target.value) || 0 })}
-                        style={{ ...miniInputStyle, width: 54, textAlign: "right", flexShrink: 0 }}
-                      />
-                      <span style={{ fontSize: 10.5, fontWeight: 800, color: "#2d5a3d", flexShrink: 0 }}>€</span>
-                      <button
-                        type="button"
-                        onClick={() => setLine(lineIdx, { include: false })}
-                        aria-label="Descartar"
-                        title="Descartar esta línea del ticket"
-                        style={{
-                          width: 26,
-                          height: 26,
-                          borderRadius: 8,
-                          flexShrink: 0,
-                          border: "none",
-                          background: "transparent",
-                          color: "#b0bab4",
-                          display: "inline-flex",
-                          alignItems: "center",
-                          justifyContent: "center",
-                          cursor: "pointer",
-                          padding: 0,
-                        }}
+                      <div
+                        style={{ display: "grid", gridTemplateColumns: REVIEW_GRID_COLS, alignItems: "center", gap: 6, padding: "7px 0", borderBottom: "1px solid #e2ede5" }}
                       >
-                        <Trash2 size={14} strokeWidth={2.2} />
-                      </button>
-                    </div>
+                        <span title={aisle || "Sin categoría"}>
+                          <AisleIcon aisle={aisle} size={20} />
+                        </span>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", overflowWrap: "anywhere", lineHeight: 1.2 }}>
+                            {name}
+                          </div>
+                          {rawDiffers && (
+                            <div style={{ fontSize: 10.5, fontWeight: 600, color: "#8a9a90", overflowWrap: "anywhere", lineHeight: 1.2, marginTop: 1 }}>
+                              {toDisplayCase(line.raw)}
+                            </div>
+                          )}
+                        </div>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.1"
+                          aria-label="Cantidad"
+                          className="mp-no-spinner"
+                          value={qtyValue ?? ""}
+                          onChange={onQtyChange}
+                          style={{ ...miniInputStyle, textAlign: "center" }}
+                        />
+                        <span style={{ fontSize: 10.5, fontWeight: 700, color: "#7a8a7f", textAlign: "center" }}>
+                          {unitLabel}
+                        </span>
+                        <input
+                          type="number"
+                          inputMode="decimal"
+                          min="0"
+                          step="0.01"
+                          aria-label="Precio"
+                          className="mp-no-spinner"
+                          value={line.price || ""}
+                          onChange={(e) => setLine(lineIdx, { price: Number(e.target.value) || 0 })}
+                          style={{ ...miniInputStyle, textAlign: "right" }}
+                        />
+                        <span style={{ fontSize: 10.5, fontWeight: 800, color: "#2d5a3d", textAlign: "left" }}>€</span>
+                      </div>
+                    </SwipeRevealRow>
                   );
                 })}
               </div>
@@ -2882,10 +3384,18 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
           </button>
         )}
         <button type="button" onClick={next} style={{ ...wizNextBtnStyle, flex: 1 }}>
-          {isLast ? (tachIds.length ? `Confirmar y tachar ${tachIds.length}` : "Confirmar") : "Siguiente"}
+          {isLast
+            ? (tachIds.length ? `Confirmar y tachar ${tachIds.length}` : "Confirmar")
+            : prodCanAdvance
+            ? "Siguiente producto"
+            : "Siguiente"}
         </button>
       </div>
     </WizardSheet>
+    {confirmExit && (
+      <ConfirmExitSheet onStay={() => setConfirmExit(false)} onLeave={onCancel} />
+    )}
+    </>
   );
 }
 
@@ -3260,6 +3770,14 @@ const wizCardStyle = {
   padding: "12px 14px",
   boxShadow: "0 6px 16px -10px rgba(20,47,29,.35)",
 };
+
+// Shared column template for the "Repasa y confirma" header row and every
+// item row below it — icon, name (flexible), qty input, unit label, price
+// input, € sign. Using the SAME grid on both guarantees the "Cantidad"/
+// "Precio" labels sit exactly above their real columns instead of drifting
+// whenever flex-basis math (gaps, auto-width text) doesn't line up. No
+// trailing discard-icon column — Descartar lives in the swipe actions now.
+const REVIEW_GRID_COLS = "20px minmax(0,1fr) 40px 20px 56px 16px";
 
 const reviewColHeaderStyle = {
   fontSize: 9.5,

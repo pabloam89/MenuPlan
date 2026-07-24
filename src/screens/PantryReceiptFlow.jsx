@@ -205,25 +205,20 @@ export function PantryReceiptFlow({ data, setData, shopping = null, onToast, onC
         <WizardSheet
           icon={Receipt}
           iconColor={GREEN}
-          title="Subir ticket"
-          subtitle="¿Qué quieres hacer con este ticket?"
+          title={busy ? "Leyendo el ticket…" : "Subir ticket"}
+          subtitle={busy ? "Puede tardar unos segundos" : "¿Qué quieres hacer?"}
           onClose={onClose}
         >
           {busy ? (
             <div
               style={{
                 display: "flex",
-                flexDirection: "column",
                 alignItems: "center",
-                gap: 10,
-                padding: "26px 0 22px",
+                justifyContent: "center",
+                padding: "30px 0 26px",
               }}
             >
-              <Loader2 size={26} className="rotating" color={GREEN} />
-              <span style={{ fontSize: 13.5, fontWeight: 700, color: "#3d5245" }}>Leyendo el ticket…</span>
-              <span style={{ fontSize: 11.5, fontWeight: 600, color: "#7a9485" }}>
-                Puede tardar unos segundos
-              </span>
+              <Loader2 size={28} className="rotating" color={GREEN} />
             </div>
           ) : (
             <div style={{ display: "grid", gap: 10 }}>

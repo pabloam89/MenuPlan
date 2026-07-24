@@ -112,8 +112,8 @@ Para cada línea da:
 - "price": importe TOTAL de la línea en euros (número, punto decimal). null si no lo ves.
 - "qty": cantidad TOTAL comprada, ya multiplicada si el producto viene en pack. Si la línea indica un formato tipo "6x1,5L" o "pack 6 x 330ml", NO pongas el número de envases (6) como qty en unidades — multiplica envases × tamaño y da el total en la unidad de "unit" (ej. "AGUA 6x1,5L" -> qty=9, unit="l"; "YOGUR PACK 4x125G" -> qty=500, unit="g"). Si el producto se cuenta por piezas sin tamaño propio (huevos, latas, piezas de fruta...), qty sí es el nº de piezas y unit="ud". 1 si no se indica cantidad.
 - "unit": "ud", "g", "kg", "ml" o "l" según corresponda; "ud" por defecto.
-- "kind": "food" para alimentos crudos o básicos — incluye productos envasados/de marca que se siguen usando como INGREDIENTE de una receta o del desayuno (pan de molde, patatas para freír, pasta, arroz, conservas, embutido, queso...); "prefab" SOLO para platos ya cocinados y listos para calentar o comer tal cual, sin ser ingrediente de nada más (croquetas, pizza, lasaña precocinada, sushi, tortilla de patata ya hecha, ensaladilla rusa envasada, sopa de sobre); "nonfood" para no-alimentación (limpieza, droguería, bolsas...). Ante la duda entre "food" y "prefab", elige "food" — un producto envasado casi siempre es también un ingrediente.
-Extrae también "store" (nombre del súper) y "date" (fecha del ticket en formato YYYY-MM-DD) si aparecen; null si no.
+- "kind": "food" para alimentos crudos o básicos — incluye productos envasados/de marca que se siguen usando como INGREDIENTE de una receta o del desayuno (pan de molde, patatas para freír, pasta, arroz, conservas, embutido, queso...); "prefab" SOLO para platos ya cocinados y listos para calentar o comer tal cual, sin ser ingrediente de nada más (croquetas, pizza, lasaña precocinada, sushi, tortilla de patata ya hecha, ensaladilla rusa envasada, sopa de sobre); "nonfood" para TODO lo que no sea alimentación: limpieza y droguería, higiene personal, bolsas, y también ropa/textil (pijama, camiseta, calcetines...), juguetes, menaje, pilas, etc. Ante la duda entre "food" y "prefab", elige "food" — un producto envasado casi siempre es también un ingrediente.
+Extrae también "store" (nombre del súper) y "date" (fecha del ticket en formato YYYY-MM-DD) si aparecen; null si no. Para "store" usa el nombre comercial del rótulo/cabecera, NO la razón social del pie. Importante: "Hipercor" y "Supercor" son marcas propias con su propio nombre — si ves "HIPERCOR" o "SUPERCOR" en el ticket, usa ese, aunque el ticket también mencione "El Corte Inglés" (su empresa matriz).
 Ignora subtotales, IVA, total y forma de pago.
 Responde SOLO JSON:
 {"store":"...","date":"YYYY-MM-DD","lines":[{"name":"...","price":0.00,"qty":1,"unit":"ud","kind":"food"}]}`,
@@ -131,13 +131,21 @@ Responde SOLO JSON:
   const parsed = extractJson(text);
   const rawLines = Array.isArray(parsed.lines) ? parsed.lines : [];
   const lines = rawLines
-    .map((l) => ({
-      name: String(l?.name ?? "").trim(),
-      price: numOrNull(l?.price),
-      qty: Number(l?.qty) > 0 ? Number(l.qty) : 1,
-      unit: normUnit(l?.unit),
-      kind: ["food", "prefab", "nonfood"].includes(l?.kind) ? l.kind : "food",
-    }))
+    .map((l) => {
+      const name = String(l?.name ?? "").trim();
+      let kind = ["food", "prefab", "nonfood"].includes(l?.kind) ? l.kind : "food";
+      // Safety net for obvious non-food the vision model sometimes tags as
+      // "food" (clothing, toys, drugstore...) — e.g. "PIJAMA DE BEBE". These
+      // must never reach the food clarify/pantry flow.
+      if (kind !== "nonfood" && isObviousNonFood(name)) kind = "nonfood";
+      return {
+        name,
+        price: numOrNull(l?.price),
+        qty: Number(l?.qty) > 0 ? Number(l.qty) : 1,
+        unit: normUnit(l?.unit),
+        kind,
+      };
+    })
     .filter((l) => l.name.length > 0);
 
   return {
@@ -209,6 +217,20 @@ Responde SOLO JSON: {"items":[{"name":"...","qty":1,"unit":"ud"}]}`,
 function numOrNull(v) {
   const n = parseFloat(String(v ?? "").replace(",", "."));
   return isNaN(n) ? null : n;
+}
+
+// Keyword guard for clearly non-food lines the vision model occasionally
+// mislabels as "food" (clothing/textile, toys, drugstore, household). Kept
+// conservative — only unambiguous non-food words — so it never drops an
+// actual grocery item.
+const NON_FOOD_RE = /\b(pijama|camiset|calcetin|calzoncill|braga|pantalon|sujetador|bufanda|guante|gorro|zapatilla|calzado|toalla|sabana|manta|juguete|pila\b|pilas\b|bombilla|detergent|suavizant|lejia|amoniaco|friegasuelos|lavavajill|estropajo|bayeta|papel higienic|servilleta|panuelo|panal|compresa|tampon|champu|gel de bano|jabon|desodorante|maquinilla|cuchilla|pasta de dient|cepillo|colonia|perfume|maquillaje|crema hidratante|bolsa reutiliz)/i;
+
+function isObviousNonFood(name) {
+  const n = String(name ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+  return NON_FOOD_RE.test(n);
 }
 
 function normUnit(u) {

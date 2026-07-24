@@ -94,6 +94,10 @@ const SUPPLEMENTAL_INGREDIENTS = [
   "Aceite de oliva virgen",
   "Aceite de oliva suave",
   "Aceite de girasol",
+  // Sweet potato: "batata" and "boniato" are the same tuber but "batata"
+  // fuzzy-matched to "patata" before it existed as its own dictionary entry.
+  "Batata",
+  "Boniato",
   // Pork cuts.
   "Chuleta de aguja de cerdo",
   "Chuleta de lomo de cerdo",
