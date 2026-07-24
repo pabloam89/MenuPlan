@@ -1379,17 +1379,11 @@ export default function App() {
           })),
         };
       });
-      // plan._warnings collects non-blocking issues from generation (slots
-      // dropped by the 3b safety net, weekly freqs targets the filtered pool
-      // couldn't achieve, etc.) — surface them instead of the generic success
-      // toast so "no bloquea, pero informa" actually reaches the user instead
-      // of a warning that was computed and then silently discarded.
-      if (firstWeekPlan._warnings?.length > 0) {
-        const [first, ...rest] = firstWeekPlan._warnings;
-        showToast(rest.length > 0 ? `${first} (+${rest.length} aviso${rest.length === 1 ? "" : "s"} más)` : first);
-      } else {
-        showToast(weekCount > 1 ? `Menú generado con IA (${weekCount} semanas)` : "Menú generado con IA");
-      }
+      // plan._warnings still collects non-blocking issues from generation, but
+      // we no longer surface their raw internal text as a toast — it read as a
+      // confusing "toast rarísimo" on success. Always show the plain success
+      // message; the warnings remain on the plan for anyone who needs them.
+      showToast(weekCount > 1 ? `Menú generado con IA (${weekCount} semanas)` : "Menú generado con IA");
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
