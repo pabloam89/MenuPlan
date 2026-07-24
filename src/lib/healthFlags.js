@@ -20,7 +20,7 @@ export const HEALTH_FLAGS = [
 ];
 
 const PATTERNS = {
-  frito: /\b(frito|frita|rebozad|empanad|bunuelo|croqueta|tempura|fritura|churro|rebozado|a la romana)/,
+  frito: /\b(frito|frita|rebozad|empanad|bunuelo|croqueta|tempura|fritura|churro|a la romana|a la andaluza|san ?jacobo|escalope|flamenqu|milanesa|varita|nugget|bravas|padron|palitos de merluza|palitos de pescado|huevos rotos)/,
   embutido: /\b(chorizo|salchichon|salchicha|bacon|panceta|fuet|salami|mortadela|jamon|sobrasada|butifarra|morcilla|cecina|lomo embuchado)/,
   picante: /\b(picante|guindilla|chili|jalapeno|cayena|tabasco|sriracha|pimenton picante|salsa brava|harissa)/,
   acido: /\b(vinagre|escabeche|encurtido|limon|lima|salsa de tomate|tomate frito|citric)/,

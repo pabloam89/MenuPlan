@@ -815,7 +815,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "season": "verano",
     "ingredients": [

@@ -89,6 +89,9 @@
     "name": "Lentejas con chorizo",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -266,6 +269,11 @@
     "name": "Cocido madrileño",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "ternera",
+      "cerdo",
+      "pollo"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -356,6 +364,9 @@
     "name": "Potaje de garbanzos con bacalao",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "pescado_blanco"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -448,6 +459,9 @@
     "name": "Fabada asturiana",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -629,6 +643,9 @@
     "name": "Garbanzos con chorizo",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -881,6 +898,9 @@
     "name": "Judiones de la Granja",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -984,7 +1004,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "verano",
     "ingredients": [
       {
@@ -1232,7 +1254,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "verano",
     "ingredients": [
       {
@@ -1375,6 +1399,9 @@
     "name": "Lentejas con pollo",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "pollo"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -1551,6 +1578,9 @@
     "name": "Alubias blancas con almejas",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "extraProteins": [
+      "marisco"
+    ],
     "mealRole": [
       "plato_unico"
     ],
@@ -1652,7 +1682,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "mostaza"
+      "mostaza",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [

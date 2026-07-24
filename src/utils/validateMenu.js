@@ -70,6 +70,47 @@ function proteinGroup(mainProtein) {
   return PROTEIN_GROUP_MAP[mainProtein] ?? mainProtein;
 }
 
+// All protein GROUPS a dish carries — its mainProtein PLUS any secondary
+// animal proteins declared in `extraProteins`. This is what lets a compound
+// legume dish keep mainProtein "legumbre" (for frequency + the no-legumbre-in-
+// cena rule) while its ternera/cerdo/pollo still block a same-day meat dish in
+// the variety rules (3c, 4). "none" contributes nothing.
+function proteinGroupsOf(recipe) {
+  const groups = new Set();
+  const add = (p) => {
+    if (p && p !== "none") groups.add(proteinGroup(p));
+  };
+  add(recipe?.mainProtein);
+  for (const p of recipe?.extraProteins ?? []) add(p);
+  return groups;
+}
+
+// Normalize a dish name for keyword scans (lowercase, strip accents), matching
+// carbTypeFromText's approach so the "plato de cuchara" detector below stays
+// consistent with the carb classifier.
+function normName(text) {
+  return String(text ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+// A "frito" dish carries the derived/declared health flag (see
+// lib/healthFlags.js). Used by rule 12 to avoid two fried mains in a row.
+function isFrito(recipe) {
+  return (recipe?.healthFlags ?? []).includes("frito");
+}
+
+// "Plato de cuchara": soups/creams, legume stews, and any name that reads as a
+// stew/broth. Used by rule 13 to avoid two spoon dishes on the same day.
+const CUCHARA_NAME_RE = /\b(guiso|estofad|potaje|cocido|caldo|fabada|marmitako|puchero|olla)/;
+function isPlatoCuchara(recipe) {
+  if (!recipe) return false;
+  if (recipe.category === "sopas_cremas" || recipe.category === "legumbres") return true;
+  if (recipe.mainProtein === "legumbre") return true;
+  return CUCHARA_NAME_RE.test(normName(recipe.name));
+}
+
 function buildMealOrder(slotAssignments) {
   const mealOrder = [];
   for (const { slotId, recipeId } of slotAssignments) {
@@ -293,17 +334,22 @@ export function validateMenu(
     const primero = positions["1"];
     if (!primero) continue;
     const r1 = poolById[primero.recipeId];
-    if (!r1 || r1.mainProtein === "none") continue;
-    const g1 = proteinGroup(r1.mainProtein);
+    if (!r1) continue;
+    // Group SET (mainProtein + extraProteins) so a compound legume primero
+    // like "Cocido madrileño" (legumbre + ternera/cerdo/pollo) also blocks a
+    // same-day meat cena, not just another legume.
+    const g1set = proteinGroupsOf(r1);
+    if (g1set.size === 0) continue;
     for (const m of mealOrder) {
       if (m.daySlug !== daySlug || m.mealType !== "cena") continue;
       const r2 = poolById[m.recipeId];
-      if (!r2 || r2.mainProtein === "none") continue;
-      if (proteinGroup(r2.mainProtein) === g1) {
+      if (!r2) continue;
+      const shared = [...proteinGroupsOf(r2)].find((g) => g1set.has(g));
+      if (shared) {
         violations.push({
           rule: "proteina_repetida_en_dia",
           slotId: m.slotId,
-          message: `"${r2.name}" repite el grupo de proteína "${g1}" del primero ("${r1.name}") el mismo día (${daySlug})`,
+          message: `"${r2.name}" repite el grupo de proteína "${shared}" del primero ("${r1.name}") el mismo día (${daySlug})`,
         });
       }
     }
@@ -316,12 +362,12 @@ export function validateMenu(
     if (!ctx?.schoolProteinsToAvoid?.length) continue;
     const recipe = poolById[recipeId];
     if (!recipe) continue;
-    const recipeProteinGroup = proteinGroup(recipe.mainProtein);
-    if (ctx.schoolProteinsToAvoid.includes(recipeProteinGroup)) {
+    const clash = [...proteinGroupsOf(recipe)].find((g) => ctx.schoolProteinsToAvoid.includes(g));
+    if (clash) {
       violations.push({
         rule: "school_protein_conflict",
         slotId,
-        message: `"${recipe.name}" tiene proteína "${recipeProteinGroup}" que el menú escolar ya cubrió`,
+        message: `"${recipe.name}" tiene proteína "${clash}" que el menú escolar ya cubrió`,
       });
     }
   }
@@ -514,6 +560,40 @@ export function validateMenu(
     }
   }
 
+  // 12. No two fried mains in consecutive meals — soft style backstop. Uses the
+  // same mainMeals chronological sequence as rule 3 so "seguidos" means the same
+  // thing (across the day boundary too). The `frito` flag is derived/declared in
+  // lib/healthFlags.js.
+  for (let i = 1; i < mainMeals.length; i++) {
+    const prevR = poolById[mainMeals[i - 1].recipeId];
+    const currR = poolById[mainMeals[i].recipeId];
+    if (!prevR || !currR) continue;
+    if (isFrito(prevR) && isFrito(currR)) {
+      violations.push({
+        rule: "dos_fritos_seguidos",
+        slotId: mainMeals[i].slotId,
+        message: `"${currR.name}" es un frito justo después de otro frito ("${prevR.name}")`,
+      });
+    }
+  }
+
+  // 13. No two "platos de cuchara" (soups/stews/legumes) on the same day — soft
+  // style backstop so a day doesn't end up all spoon dishes.
+  const dayCuchara = {};
+  for (const m of mealOrder) {
+    const recipe = poolById[m.recipeId];
+    if (!recipe || !isPlatoCuchara(recipe)) continue;
+    if (dayCuchara[m.daySlug]) {
+      violations.push({
+        rule: "dos_cuchara_mismo_dia",
+        slotId: m.slotId,
+        message: `"${recipe.name}" es un segundo plato de cuchara el ${m.daySlug} (también en ${dayCuchara[m.daySlug]})`,
+      });
+    } else {
+      dayCuchara[m.daySlug] = m.slotId;
+    }
+  }
+
   return { valid: violations.length === 0, violations };
 }
 
@@ -551,10 +631,14 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
 
     // Carb types already used this day (to avoid creating new guarnicion_repetida)
     const dayCarbsUsed = new Set();
+    let dayHasCuchara = false;
     for (const s of result) {
       if (!s.slotId.startsWith(daySlug + "_")) continue;
       const r = poolById[s.recipeId];
-      if (r) { const c = getCarbType(r); if (c) dayCarbsUsed.add(c); }
+      if (r) {
+        const c = getCarbType(r); if (c) dayCarbsUsed.add(c);
+        if (isPlatoCuchara(r)) dayHasCuchara = true;
+      }
     }
 
     const candidate = filteredPool.find((r) => {
@@ -564,6 +648,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (ctx.preferType !== "cena_rapida" && r.category === "cenas_rapidas") return false;
       const carb = getCarbType(r);
       if (carb && dayCarbsUsed.has(carb)) return false;
+      if (dayHasCuchara && isPlatoCuchara(r)) return false;
 
       if (mealType === "cena") return r.mealRole.includes("cena");
       if (position === "1") return r.mealRole.some((role) => role === "primero" || role === "plato_unico");
@@ -597,11 +682,17 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // pass, every candidate search has to independently respect every
     // context-derived constraint, regardless of which rule triggered it.
     const dayCarbsUsed = new Set();
+    // Rule 13 cross-safety: does another dish this day already read as a plato
+    // de cuchara? If so, the replacement must not be one too.
+    let dayHasCuchara = false;
     for (const s of result) {
       if (s.slotId === slot.slotId) continue;
       if (!s.slotId.startsWith(daySlug + "_")) continue;
       const r = poolById[s.recipeId];
-      if (r) { const c = getCarbType(r); if (c) dayCarbsUsed.add(c); }
+      if (r) {
+        const c = getCarbType(r); if (c) dayCarbsUsed.add(c);
+        if (isPlatoCuchara(r)) dayHasCuchara = true;
+      }
     }
 
     // Same rationale as dayCarbsUsed above, for rule 3 (proteina_consecutiva):
@@ -611,6 +702,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // enforced below so fixing an unrelated later violation can never
     // reintroduce a same-protein collision that already passed.
     const neighborProteins = new Set();
+    // Rule 12 cross-safety: is a consecutive main-meal neighbor fried? If so,
+    // the replacement must not be fried either.
+    let neighborFrito = false;
     {
       const order = mainMealsOf(buildMealOrder(result), poolById);
       const orderIdx = order.findIndex((m) => m.slotId === slot.slotId);
@@ -618,7 +712,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         for (const neighbor of [order[orderIdx - 1], order[orderIdx + 1]]) {
           if (!neighbor) continue;
           const nr = poolById[neighbor.recipeId];
-          if (nr && nr.mainProtein !== "none") neighborProteins.add(nr.mainProtein);
+          if (!nr) continue;
+          if (nr.mainProtein !== "none") neighborProteins.add(nr.mainProtein);
+          if (isFrito(nr)) neighborFrito = true;
         }
       }
     }
@@ -642,12 +738,13 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // primero (e.g. don't pick a legumbre cena when the comida_1 is a lentil
     // cream). Enforced unconditionally for the same cross-rule-safety reason as
     // the guards above.
-    let sameDayPrimeroGroup = null;
+    let sameDayPrimeroGroups = null;
     if (mealType === "cena") {
       const primeroRecipeId = result.find((s) => s.slotId === `${daySlug}_comida_1`)?.recipeId;
       const primeroRecipe = primeroRecipeId ? poolById[primeroRecipeId] : null;
-      if (primeroRecipe && primeroRecipe.mainProtein !== "none") {
-        sameDayPrimeroGroup = proteinGroup(primeroRecipe.mainProtein);
+      if (primeroRecipe) {
+        const g = proteinGroupsOf(primeroRecipe);
+        if (g.size) sameDayPrimeroGroups = g;
       }
     }
 
@@ -679,12 +776,12 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (ctx?.mode === "tupper" && !r.tupperFriendly) return false;
 
       if (mealType === "cena" && ctx?.schoolProteinsToAvoid) {
-        if (ctx.schoolProteinsToAvoid.includes(proteinGroup(r.mainProtein))) return false;
+        if ([...proteinGroupsOf(r)].some((g) => ctx.schoolProteinsToAvoid.includes(g))) return false;
       }
 
-      // Rule 3c cross-safety: a cena replacement must not share the protein
-      // group of the same day's comida_1 primero.
-      if (sameDayPrimeroGroup && r.mainProtein !== "none" && proteinGroup(r.mainProtein) === sameDayPrimeroGroup) {
+      // Rule 3c cross-safety: a cena replacement must not share any protein
+      // group of the same day's comida_1 primero (mainProtein OR extraProteins).
+      if (sameDayPrimeroGroups && [...proteinGroupsOf(r)].some((g) => sameDayPrimeroGroups.has(g))) {
         return false;
       }
 
@@ -699,6 +796,11 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
 
       if (neighborProteins.has(r.mainProtein)) return false;
+
+      // Rule 12/13 cross-safety: don't reintroduce two-fritos-in-a-row or two
+      // spoon dishes the same day while fixing an unrelated violation.
+      if (neighborFrito && isFrito(r)) return false;
+      if (dayHasCuchara && isPlatoCuchara(r)) return false;
 
       if (v.rule === "freq_target_not_met" && v.targetKey) {
         const matcher = FREQ_KEY_MATCHERS[v.targetKey];

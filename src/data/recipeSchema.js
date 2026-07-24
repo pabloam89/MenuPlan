@@ -71,6 +71,12 @@ export const RecipeSchema = z
     name: z.string().min(1),
     category: z.enum(CATEGORIES),
     mainProtein: z.enum(MAIN_PROTEINS),
+    // Secondary animal proteins present in a dish whose mainProtein stays a
+    // non-animal base for frequency/cena purposes — e.g. "Cocido madrileño"
+    // keeps mainProtein "legumbre" (so it still counts as a legume serving and
+    // is blocked from cena) but also carries ternera/cerdo/pollo, which the
+    // same-day protein-variety rules must see (validateMenu.js proteinGroupsOf).
+    extraProteins: z.array(z.enum(MAIN_PROTEINS)).optional(),
     mainBase: z.string().optional(),
     mealRole: z.array(z.enum(MEAL_ROLES)).min(1),
     type: z.enum(TYPES),

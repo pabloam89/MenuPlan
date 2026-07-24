@@ -9,6 +9,7 @@ import {
   pickCatalogReplacement,
   selectReplacementCandidates,
   callModel,
+  poolForWeek,
 } from "./aiPlanner.js";
 import { getCarbType, validateMenu, splitAchievableFreqs, FREQ_KEY_MATCHERS } from "../utils/validateMenu.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
@@ -436,9 +437,9 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
       usedIds.add(r.id);
       return r;
     };
-    const primero = (day) =>
+    const primero = () =>
       pick((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico") && getCarbType(r) !== "arroz");
-    const segundoNoPescado = (day) =>
+    const segundoNoPescado = () =>
       pick(
         (r) =>
           r.mealRole.includes("segundo") &&
@@ -598,8 +599,17 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     // appearing timesPerWeek > 1 times is an intentional, sanctioned repeat
     // that validateMenu's generic rule 6 has no way to distinguish from an
     // accidental one.
+    // recipeId_repetido (sanctioned fixed-dish repeat) and the soft style
+    // backstops (dos_fritos_seguidos / dos_cuchara_mismo_dia) are best-effort
+    // and can survive the post-enforcement steps as warnings; they aren't the
+    // domains under test here, so they're excluded like recipeId_repetido.
+    const TOLERATED = new Set([
+      "recipeId_repetido",
+      "dos_fritos_seguidos",
+      "dos_cuchara_mismo_dia",
+    ]);
     const finalCheck = validateMenu(result.slotAssignments, pool, ctx.slots, [], {});
-    const unexpected = finalCheck.violations.filter((v) => v.rule !== "recipeId_repetido");
+    const unexpected = finalCheck.violations.filter((v) => !TOLERATED.has(v.rule));
     expect(unexpected).toEqual([]);
   });
 });
@@ -714,5 +724,44 @@ describe("callModel retry on transient overload", () => {
       callModel({ model: "m", max_tokens: 10, system: "s", messages: [] }),
     ).rejects.toThrow(AIPlannerError);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+});
+
+// D4c (Fase 5): "strict" ("cosas distintas cada semana") reparte el pool en
+// buckets disjuntos best-effort, sin dependencia entre semanas (paralelizable).
+describe("poolForWeek — variedad multi-semana", () => {
+  const pool = Array.from({ length: 60 }, (_, i) => ({ id: `r${i}` }));
+  const slotCount = 6;
+
+  it("no toca el pool sin crossWeek o con una sola semana", () => {
+    expect(poolForWeek(pool, null, slotCount)).toBe(pool);
+    expect(poolForWeek(pool, { weekIndex: 0, weekCount: 1, varietyPref: "strict" }, slotCount)).toBe(pool);
+    expect(poolForWeek(pool, { weekIndex: 0, weekCount: 3, varietyPref: "relaxed" }, slotCount)).toBe(pool);
+  });
+
+  it("strict: las semanas quedan disjuntas cuando el pool es holgado", () => {
+    const weekCount = 3;
+    const weeks = [0, 1, 2].map((weekIndex) =>
+      new Set(poolForWeek(pool, { weekIndex, weekCount, varietyPref: "strict" }, slotCount).map((r) => r.id)),
+    );
+    for (let a = 0; a < weeks.length; a++) {
+      for (let b = a + 1; b < weeks.length; b++) {
+        const overlap = [...weeks[a]].filter((id) => weeks[b].has(id));
+        expect(overlap).toEqual([]);
+      }
+    }
+    // Cada semana conserva bastantes recetas para tener margen de elección.
+    for (const w of weeks) expect(w.size).toBeGreaterThanOrEqual(slotCount);
+  });
+
+  it("strict con pool ajustado: hace top-up best-effort sin fallar (no lanza)", () => {
+    const small = Array.from({ length: 14 }, (_, i) => ({ id: `s${i}` }));
+    expect(() =>
+      [0, 1].map((weekIndex) =>
+        poolForWeek(small, { weekIndex, weekCount: 2, varietyPref: "strict" }, slotCount),
+      ),
+    ).not.toThrow();
+    const w0 = poolForWeek(small, { weekIndex: 0, weekCount: 2, varietyPref: "strict" }, slotCount);
+    expect(w0.length).toBeGreaterThanOrEqual(slotCount);
   });
 });

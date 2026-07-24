@@ -252,7 +252,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "season": "verano",
     "ingredients": [
@@ -331,7 +332,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "huevo"
+      "huevo",
+      "sulfitos"
     ],
     "season": "verano",
     "ingredients": [
@@ -1139,7 +1141,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "frutos_secos"
+      "frutos_secos",
+      "sulfitos"
     ],
     "season": "verano",
     "ingredients": [

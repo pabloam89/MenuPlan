@@ -637,7 +637,23 @@ export function poolForWeek(pool, crossWeek, slotCount) {
     else rest.push(r);
   }
   if (own.length >= floor) return own;
-  return own.concat(rest.slice(0, floor - own.length));
+
+  const need = floor - own.length;
+  // "strict" ("cosas distintas cada semana") wants weeks as disjoint as the pool
+  // allows. Buckets are already disjoint by construction; the only cross-week
+  // overlap comes from this top-up. So borrow a WEEK-SPECIFIC slice of `rest`
+  // (staggered by weekIndex) instead of every under-filled week grabbing the
+  // same first recipes — best-effort disjointness without any inter-week
+  // dependency (weeks still generate in parallel). "moderate" keeps the milder
+  // shared top-up.
+  if (varietyPref === "strict" && rest.length > 0) {
+    const start = (weekIndex * need) % rest.length;
+    const slice = rest.slice(start, start + need);
+    const wrapped =
+      slice.length < need ? slice.concat(rest.slice(0, need - slice.length)) : slice;
+    return own.concat(wrapped);
+  }
+  return own.concat(rest.slice(0, need));
 }
 
 // ── Generation ──────────────────────────────────────────────────

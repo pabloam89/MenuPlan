@@ -18,7 +18,8 @@
     "kidFriendly": true,
     "tupperFriendly": false,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -954,7 +955,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "verano",
     "ingredients": [
       {

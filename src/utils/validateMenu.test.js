@@ -737,3 +737,146 @@ describe("proteina_repetida_en_dia (primero con proteína ↔ cena el mismo día
     expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("proteina_repetida_en_dia");
   });
 });
+
+// D2 (Fase 5): legumbres compuestas conservan mainProtein "legumbre" pero
+// registran su proteína animal en extraProteins para las reglas de variedad.
+describe("extraProteins en legumbres compuestas (variedad mismo día / escolar)", () => {
+  it("flags cocido (legumbre + carne) primero + carne cena el mismo día", () => {
+    const pool = [
+      recipe({
+        id: "cocido",
+        category: "legumbres",
+        mainProtein: "legumbre",
+        extraProteins: ["ternera", "cerdo", "pollo"],
+        mealRole: ["primero", "plato_unico"],
+      }),
+      recipe({ id: "pollo_cena", category: "carnes", mainProtein: "pollo", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "cocido" },
+      { slotId: "lun_cena", recipeId: "pollo_cena" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    const v = violations.find((x) => x.rule === "proteina_repetida_en_dia");
+    expect(v).toBeTruthy();
+    expect(v.slotId).toBe("lun_cena");
+  });
+
+  it("NO flags cuando la cena es de otro grupo (pescado) que el cocido no cubre", () => {
+    const pool = [
+      recipe({
+        id: "cocido",
+        category: "legumbres",
+        mainProtein: "legumbre",
+        extraProteins: ["ternera", "cerdo", "pollo"],
+        mealRole: ["primero", "plato_unico"],
+      }),
+      recipe({ id: "merluza_cena", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "cocido" },
+      { slotId: "lun_cena", recipeId: "merluza_cena" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((x) => x.rule)).not.toContain("proteina_repetida_en_dia");
+  });
+
+  it("school_protein_conflict detecta la proteína animal secundaria en cena", () => {
+    const pool = [
+      recipe({
+        id: "potaje_bacalao",
+        category: "legumbres",
+        mainProtein: "legumbre",
+        extraProteins: ["pescado_blanco"],
+        mealRole: ["cena"],
+      }),
+    ];
+    // El colegio ya cubrió pescado ese día → la cena con bacalao debe chocar,
+    // aunque mainProtein siga siendo "legumbre".
+    const slots = [slot("lun_cena", { schoolProteinsToAvoid: ["pescado"] })];
+    const assignments = [{ slotId: "lun_cena", recipeId: "potaje_bacalao" }];
+    const { violations } = validateMenu(assignments, pool, slots);
+    // Nota: rule 2 (legumbres_en_cena) también dispara aquí; comprobamos el escolar.
+    expect(violations.map((v) => v.rule)).toContain("school_protein_conflict");
+  });
+});
+
+// D4a (Fase 5): no dos fritos en comidas consecutivas.
+describe("dos_fritos_seguidos", () => {
+  it("flags dos platos fritos en comidas consecutivas (mismo día)", () => {
+    const pool = [
+      recipe({ id: "croquetas", category: "platos_unicos", mainProtein: "cerdo", mealRole: ["primero", "plato_unico"], healthFlags: ["frito"] }),
+      recipe({ id: "merluza_reboz", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"], healthFlags: ["frito"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "croquetas" },
+      { slotId: "lun_cena", recipeId: "merluza_reboz" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_fritos_seguidos");
+  });
+
+  it("NO flags cuando solo uno de los dos es frito", () => {
+    const pool = [
+      recipe({ id: "croquetas", category: "platos_unicos", mainProtein: "cerdo", mealRole: ["primero", "plato_unico"], healthFlags: ["frito"] }),
+      recipe({ id: "merluza_plancha", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"], healthFlags: [] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "croquetas" },
+      { slotId: "lun_cena", recipeId: "merluza_plancha" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("dos_fritos_seguidos");
+  });
+
+  it("applyFallback sustituye por una alternativa no frita", () => {
+    const pool = [
+      recipe({ id: "croquetas", category: "platos_unicos", mainProtein: "cerdo", mealRole: ["primero", "plato_unico"], healthFlags: ["frito"] }),
+      recipe({ id: "merluza_reboz", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"], healthFlags: ["frito"] }),
+      recipe({ id: "merluza_plancha", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"], healthFlags: [] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_cena")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "croquetas" },
+      { slotId: "lun_cena", recipeId: "merluza_reboz" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    const fixed = applyFallback(assignments, violations, pool, slots);
+    expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("dos_fritos_seguidos");
+  });
+});
+
+// D4b (Fase 5): no dos platos de cuchara el mismo día.
+describe("dos_cuchara_mismo_dia", () => {
+  it("flags sopa (primero) + guiso (segundo) el mismo día", () => {
+    const pool = [
+      recipe({ id: "sopa", category: "sopas_cremas", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "guiso", name: "Guiso de ternera", category: "carnes", mainProtein: "ternera", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "sopa" },
+      { slotId: "lun_comida_2", recipeId: "guiso" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_cuchara_mismo_dia");
+  });
+
+  it("NO flags un solo plato de cuchara al día", () => {
+    const pool = [
+      recipe({ id: "sopa", category: "sopas_cremas", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "filete", category: "carnes", mainProtein: "ternera", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "sopa" },
+      { slotId: "lun_comida_2", recipeId: "filete" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("dos_cuchara_mismo_dia");
+  });
+});

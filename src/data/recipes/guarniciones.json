@@ -439,7 +439,9 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": [],
+    "allergens": [
+      "sulfitos"
+    ],
     "season": "all",
     "ingredients": [
       { "name": "Lechuga", "amount": 150, "unit": "g" },

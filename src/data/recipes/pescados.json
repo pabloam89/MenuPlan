@@ -1711,7 +1711,8 @@
     "kidFriendly": false,
     "tupperFriendly": true,
     "allergens": [
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "season": "verano",
     "ingredients": [

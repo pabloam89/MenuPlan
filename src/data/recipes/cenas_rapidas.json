@@ -756,7 +756,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "season": "verano",
     "ingredients": [
