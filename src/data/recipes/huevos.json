@@ -52,26 +52,7 @@
       "Cuajar en sartén 3 min por cada lado"
     ],
     "description": "Tortilla de patata con cebolla, jugosa por dentro",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 35,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe las patatas y cebolla en la airfryer a 180°C durante 15-20 minutos hasta que estén tiernas. Luego, mezcla con el huevo batido y cuaja en un molde apto para airfryer a 180°C durante otros 15-20 minutos, dándole la vuelta a mitad para dorar ambos lados."
-      },
-      {
-        "appliance": "horno",
-        "time": 45,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe las patatas y cebolla en una sartén hasta que estén blandas. Mezcla con el huevo batido, vierte en un molde engrasado y hornea a 180°C durante 25-30 minutos hasta que esté cuajada y ligeramente dorada."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 45,
-        "difficulty": "facil",
-        "prepSummary": "Pocha las patatas y cebolla en la Thermomix con aceite. Mezcla con los huevos batidos y cuaja la mezcla en un molde apto para Varoma, cocinándolo a temperatura Varoma durante 20-25 minutos para una tortilla jugosa y sin freír."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "huevos_002",
@@ -241,14 +222,7 @@
       "Servir con perejil picado"
     ],
     "description": "Revuelto cremoso de huevos con champiñones y ajo",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y los champiñones con el aceite a 120°C durante unos minutos. Luego, añade los huevos y cocina a 90°C con la mariposa o giro inverso hasta lograr una textura cremosa y jugosa."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "huevos_005",
@@ -303,14 +277,7 @@
       "Remover a fuego suave hasta cuajar cremoso"
     ],
     "description": "Revuelto cremoso de ajetes tiernos con gambas",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe los ajetes y las gambas con el aceite a temperatura Varoma. Luego añade los huevos batidos y cocina a 90°C, velocidad cuchara, hasta obtener un revuelto cremoso y jugoso."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "huevos_006",
@@ -364,38 +331,7 @@
       "Cuajar en sartén 3 min por cada lado"
     ],
     "description": "Tortilla de calabacín y cebolla pochada",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe las verduras en una sartén o en la airfryer hasta que estén tiernas. Mezcla con el huevo batido y cocina en un molde apto para airfryer a 180°C durante 20-25 minutos, hasta que cuaje y dore."
-      },
-      {
-        "appliance": "horno",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Sofreír las verduras en una sartén apta para horno. Añadir los huevos batidos y hornear a 180°C durante 20-25 minutos hasta que la tortilla esté cuajada y ligeramente dorada."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 35,
-        "difficulty": "normal",
-        "prepSummary": "Pochar la cebolla y el calabacín en el vaso con aceite. Mezclar con los huevos batidos y cocinar al vapor en el Varoma, en un molde engrasado, durante 20-25 minutos a temperatura Varoma."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 35,
-        "difficulty": "facil",
-        "prepSummary": "Cocer al vapor el calabacín y la cebolla hasta que estén tiernos. Mezclar con los huevos batidos y verter en un molde. Cocinar al vapor durante 20-25 minutos hasta que la tortilla esté cuajada."
-      },
-      {
-        "appliance": "microondas",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Cocinar el calabacín y la cebolla en el microondas hasta que estén tiernos. Mezclar con los huevos batidos y cocinar en un recipiente apto para microondas a máxima potencia durante 8-10 minutos, parando y removiendo si es necesario, hasta que cuaje."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "huevos_007",
@@ -493,14 +429,7 @@
       "Remover a fuego suave hasta cuajar cremoso"
     ],
     "description": "Revuelto cremoso de huevos con espárragos trigueros",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Pica el ajo, sofríe con los espárragos y el aceite. Añade los huevos batidos y cocina a temperatura controlada con la mariposa para un revuelto cremoso."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "huevos_009",
@@ -716,14 +645,7 @@
       "Retirar cuando estén cremosos y servir con perejil"
     ],
     "description": "Revuelto cremoso de huevos con gambas al ajillo",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y las gambas con aceite a temperatura Varoma. Luego, añade los huevos y cocina a 90°C con la mariposa y velocidad cuchara hasta obtener la textura cremosa deseada."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "huevos_012",
@@ -777,38 +699,7 @@
       "Cuajar en sartén con aceite 3 min por lado"
     ],
     "description": "Tortilla jugosa de espinacas salteadas con ajo",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe las espinacas y el ajo aparte. Mezcla con los huevos y vierte en un molde apto para airfryer. Cocina a 180°C durante 12-15 minutos hasta que esté dorada y cuajada."
-      },
-      {
-        "appliance": "horno",
-        "time": 30,
-        "difficulty": "facil",
-        "prepSummary": "Pocha las espinacas y el ajo aparte. Mezcla con los huevos y hornea en un molde a 190°C durante 15-20 minutos hasta que cuaje y dore."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 25,
-        "difficulty": "normal",
-        "prepSummary": "Sofríe el ajo y las espinacas en el vaso. Vierte la mezcla de huevo en un molde apto para Varoma y cocina al vapor (Varoma, Vel. 2) durante 15-20 minutos hasta que esté cuajada."
-      },
-      {
-        "appliance": "vaporera",
-        "time": 22,
-        "difficulty": "facil",
-        "prepSummary": "Pocha las espinacas y el ajo aparte. Mezcla con los huevos y cocina al vapor en un molde durante 15-20 minutos hasta que la tortilla esté completamente cuajada."
-      },
-      {
-        "appliance": "microondas",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe las espinacas y el ajo en el microondas. Mezcla con los huevos y cocina en un recipiente apto para microondas a máxima potencia durante 5-7 minutos, removiendo a mitad, hasta que cuaje."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "huevos_013",
@@ -1055,13 +946,6 @@
       "Retirar cuando estén cremosos y añadir perejil"
     ],
     "description": "Revuelto cremoso de setas de temporada con ajo y perejil",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Pica el ajo y sofríe las setas con el aceite a temperatura Varoma. Luego, añade los huevos batidos con la mariposa y programa a 90°C, velocidad 2-3, hasta obtener la textura deseada del revuelto, unos 5-7 minutos."
-      }
-    ]
+    "methods": []
   }
 ]

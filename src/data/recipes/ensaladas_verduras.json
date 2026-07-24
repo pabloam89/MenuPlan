@@ -10,14 +10,16 @@
     "type": "completo",
     "time": 10,
     "difficulty": "facil",
-    "kcal": 142,
-    "protein_g": 3,
-    "carbs_g": 8,
-    "fat_g": 12,
+    "kcal": 218,
+    "protein_g": 9,
+    "carbs_g": 10,
+    "fat_g": 17,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
       {
@@ -31,8 +33,18 @@
         "unit": "g"
       },
       {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
         "name": "Cebolla",
         "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Queso fresco",
+        "amount": 80,
         "unit": "g"
       },
       {
@@ -53,19 +65,12 @@
     ],
     "steps": [
       "Lavar y trocear la lechuga",
-      "Cortar el tomate en gajos y la cebolla en aros",
-      "Añadir aceitunas",
+      "Cortar el tomate en gajos, el pepino en rodajas y la cebolla en aros",
+      "Añadir las aceitunas y el queso fresco en dados",
       "Aliñar con aceite, vinagre y sal"
     ],
-    "description": "Ensalada básica de lechuga, tomate, cebolla y aceitunas",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Utiliza la Thermomix para picar finamente la cebolla (3-5 seg, vel 5) y emulsionar el aliño de aceite y vinagre. Luego, combina todos los ingredientes cortados en un bol, mezclando con cuidado para no dañar la lechuga."
-      }
-    ]
+    "description": "Ensalada mixta de lechuga, tomate, pepino, cebolla, aceitunas y queso fresco",
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_002",
@@ -1599,14 +1604,7 @@
       "Dejar reposar 5 min antes de servir"
     ],
     "description": "Ensalada simple de tomate maduro con cebolla y orégano",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 3,
-        "difficulty": "facil",
-        "prepSummary": "Pica la cebolla y el tomate en el vaso a velocidad 4-5 durante unos segundos. Luego añade el aceite y el orégano y mezcla a velocidad cuchara para combinar, manteniendo la frescura de la ensalada."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_022",

@@ -117,7 +117,7 @@ export const MENU_COACH_STEPS = [
     selector: '[data-coach="menu-filters"]',
     Icon: ListFilter,
     title: "Filtros y personas",
-    desc: "Despliega para ver el menú de cada persona o grupo, o colapsa para ver más de un vistazo.",
+    desc: "Despliega para ver el menú de cada persona o grupo, o ciérralo para ver más de un vistazo.",
     place: "below",
   },
   {

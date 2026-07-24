@@ -240,6 +240,30 @@ export function validateMenu(
     }
   }
 
+  // 3b. Same mainProtein for BOTH primero and segundo of the SAME comida —
+  // e.g. a huevo-based primero (revuelto) followed by a huevo-based segundo
+  // (tortilla) on the exact same meal. Rule 3 above deliberately keeps a
+  // genuine primero (soup/salad) out of the cross-meal/cross-day sequence
+  // (see mainMealsOf) so a light starter never blocks an unrelated dinner —
+  // but that relaxation was never meant to allow the identical protein twice
+  // within ONE comida. Scoped to same-day primero+segundo only, so it can
+  // never re-flag the comida_1-vs-cena case rule 3 intentionally allows.
+  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
+    const slot1 = positions["1"];
+    const slot2 = positions["2"];
+    if (!slot1 || !slot2) continue;
+    const r1 = poolById[slot1.recipeId];
+    const r2 = poolById[slot2.recipeId];
+    if (!r1 || !r2) continue;
+    if (r1.mainProtein !== "none" && r1.mainProtein === r2.mainProtein) {
+      violations.push({
+        rule: "proteina_repetida_en_comida",
+        slotId: slot2.slotId,
+        message: `"${r2.name}" repite la proteína "${r2.mainProtein}" del primero ("${r1.name}") de la misma comida (${daySlug})`,
+      });
+    }
+  }
+
   // 4. schoolProteinsToAvoid respected in cena
   for (const { slotId, recipeId, mealType } of mealOrder) {
     if (mealType !== "cena") continue;
@@ -559,9 +583,25 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
     }
 
+    // Same-comida sibling (primero<->segundo) protein — mirrors rule 3b: a
+    // replacement for either half of a comida must never reintroduce the
+    // exact protein its sibling already carries this same meal.
+    let siblingProtein = null;
+    {
+      const pos = slot.slotId.split("_")[2];
+      if (mealType === "comida" && (pos === "1" || pos === "2")) {
+        const siblingSlotId = `${daySlug}_comida_${pos === "1" ? "2" : "1"}`;
+        const siblingRecipeId = result.find((s) => s.slotId === siblingSlotId)?.recipeId;
+        const siblingRecipe = siblingRecipeId ? poolById[siblingRecipeId] : null;
+        if (siblingRecipe && siblingRecipe.mainProtein !== "none") siblingProtein = siblingRecipe.mainProtein;
+      }
+    }
+
     const replacement = filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
+
+      if (siblingProtein && r.mainProtein === siblingProtein) return false;
 
       if (ctx?.maxTime && r.time > ctx.maxTime) return false;
       // legumbres_en_cena, school_protein_conflict, school_carb_conflict,

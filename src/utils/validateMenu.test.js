@@ -233,6 +233,71 @@ describe("validateMenu", () => {
     });
   });
 
+  describe("proteina_repetida_en_comida (same-meal primero+segundo, e.g. revuelto + tortilla)", () => {
+    it("flags a huevo-based primero followed by a huevo-based segundo in the same comida", () => {
+      const pool = [
+        recipe({ id: "revuelto", mainProtein: "huevo", mealRole: ["primero"], name: "Revuelto de champiñones" }),
+        recipe({ id: "tortilla", mainProtein: "huevo", mealRole: ["segundo"], name: "Tortilla de patatas" }),
+      ];
+      const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+      const assignments = [
+        { slotId: "lun_comida_1", recipeId: "revuelto" },
+        { slotId: "lun_comida_2", recipeId: "tortilla" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots);
+      expect(violations.map((v) => v.rule)).toContain("proteina_repetida_en_comida");
+      expect(violations.find((v) => v.rule === "proteina_repetida_en_comida").slotId).toBe("lun_comida_2");
+    });
+
+    it("does not flag a neutral primero (soup/salad) paired with any segundo", () => {
+      const pool = [
+        recipe({ id: "ensalada", mainProtein: "none", mealRole: ["primero"] }),
+        recipe({ id: "tortilla", mainProtein: "huevo", mealRole: ["segundo"] }),
+      ];
+      const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+      const assignments = [
+        { slotId: "lun_comida_1", recipeId: "ensalada" },
+        { slotId: "lun_comida_2", recipeId: "tortilla" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots);
+      expect(violations.map((v) => v.rule)).not.toContain("proteina_repetida_en_comida");
+    });
+
+    it("still ignores a same-protein primero vs. CENA the same day (rule 3's intentional relaxation stays intact)", () => {
+      const pool = [
+        recipe({ id: "sopa", mainProtein: "legumbre", mealRole: ["primero"] }),
+        recipe({ id: "legumbre_cena", mainProtein: "legumbre", mealRole: ["cena"] }),
+      ];
+      const slots = [slot("lun_comida_1"), slot("lun_cena")];
+      const assignments = [
+        { slotId: "lun_comida_1", recipeId: "sopa" },
+        { slotId: "lun_cena", recipeId: "legumbre_cena" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots);
+      expect(violations.map((v) => v.rule)).not.toContain("proteina_repetida_en_comida");
+      expect(violations.map((v) => v.rule)).not.toContain("proteina_consecutiva");
+    });
+
+    it("applyFallback replaces the segundo with something that doesn't repeat the primero's protein", () => {
+      const pool = [
+        recipe({ id: "revuelto", mainProtein: "huevo", mealRole: ["primero"] }),
+        recipe({ id: "tortilla", mainProtein: "huevo", mealRole: ["segundo"] }),
+        recipe({ id: "pollo_segundo", mainProtein: "pollo", mealRole: ["segundo"] }),
+      ];
+      const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+      const assignments = [
+        { slotId: "lun_comida_1", recipeId: "revuelto" },
+        { slotId: "lun_comida_2", recipeId: "tortilla" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots);
+      const fixed = applyFallback(assignments, violations, pool, slots);
+      const finalSegundo = fixed.find((s) => s.slotId === "lun_comida_2");
+      expect(finalSegundo.recipeId).toBe("pollo_segundo");
+      const { violations: revalidated } = validateMenu(fixed, pool, slots);
+      expect(revalidated.map((v) => v.rule)).not.toContain("proteina_repetida_en_comida");
+    });
+  });
+
   describe("weekly frequency targets (rule 11, config.freqs)", () => {
     it("flags a category whose weekly target isn't met", () => {
       const pool = [

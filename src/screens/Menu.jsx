@@ -2642,9 +2642,11 @@ export function DishDetail({
     return [base, ...others];
   }, [recipe, kitchenTools]);
 
-  const [activeAppliance, setActiveAppliance] = useState(
-    () => initialAppliance ?? selectedMethod?.appliance ?? "base",
-  );
+  // Siempre abre en "Tradicional" (base): el electrodoméstico más rápido del
+  // usuario solo se destaca como sugerencia (chip "isYours" más abajo), nunca
+  // reemplaza el método por defecto — así la ficha no "salta" de método según
+  // qué tenga cada uno en casa.
+  const [activeAppliance, setActiveAppliance] = useState(() => initialAppliance ?? "base");
   const activeMethod =
     methodOptions.find((o) => o.appliance === activeAppliance) ?? methodOptions[0];
 

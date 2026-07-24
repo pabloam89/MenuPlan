@@ -67,12 +67,6 @@
         "time": 25,
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo, luego añade el tomate triturado y el orégano para la salsa. Incorpora los macarrones y el agua, cocinando a 100°C, velocidad cuchara, giro inverso, hasta que la pasta esté al dente."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el ajo en la olla, añade el tomate, los macarrones y el agua (o caldo). Cierra y cocina a presión alta durante 5-7 minutos, liberando la presión de forma natural o rápida."
       }
     ]
   },
@@ -159,12 +153,6 @@
         "time": 45,
         "difficulty": "facil",
         "prepSummary": "Pica las verduras en el vaso, sofríelas con aceite, añade la carne y el vino para dorar. Incorpora el tomate y cocina la salsa a temperatura y velocidad controladas. Los espaguetis se pueden cocer en el vaso o cestillo."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 30,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe las verduras y dora la carne en la olla. Añade el resto de ingredientes de la salsa, cierra la olla y cocina a presión durante 10-15 minutos. Los espaguetis se pueden cocer en la misma olla o de forma tradicional."
       }
     ]
   },
@@ -212,7 +200,7 @@
     ],
     "steps": [
       "Rehogar el ajo en aceite",
-      "Añadir el arroz y nacarar 1 min",
+      "Añadir el arroz y sofreírlo 1 min sin dejar de remover",
       "Incorporar tomate y agua, salpimentar",
       "Cocer tapado 18 min a fuego lento"
     ],
@@ -464,12 +452,6 @@
         "time": 25,
         "difficulty": "facil",
         "prepSummary": "Pica la cebolla y el ajo, sofríelos con aceite. Añade el tomate triturado, orégano y un poco de agua, cocina unos minutos. Incorpora los macarrones y cocina el tiempo indicado en el paquete. Finalmente, añade el atún escurrido y mezcla."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla y el ajo en la olla con aceite. Añade el tomate triturado y orégano, cocina brevemente. Incorpora los macarrones, agua (o caldo) hasta cubrir, cierra la olla y cocina a presión 3-5 minutos. Despresuriza, añade el atún escurrido y mezcla."
       }
     ]
   },
@@ -538,7 +520,7 @@
     "steps": [
       "Dorar el pollo troceado y reservar",
       "Sofreír cebolla, pimiento y tomate con pimentón",
-      "Añadir arroz, nacarar, incorporar caldo y pollo",
+      "Añadir arroz, sofreír removiendo 1 min, incorporar caldo y pollo",
       "Cocer 18 min a fuego lento sin remover"
     ],
     "description": "Arroz caldoso con trozos de pollo, pimiento y guisantes",
@@ -640,12 +622,6 @@
         "time": 35,
         "difficulty": "facil",
         "prepSummary": "Pica la cebolla, pimiento y ajo. Sofríe con aceite, añade la carne y sofríe. Incorpora el tomate, pimentón, fideos y agua/caldo. Cocina a temperatura y tiempo indicados para los fideos."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe la cebolla, pimiento, ajo y carne en la olla. Añade el tomate, pimentón, fideos y agua/caldo. Cierra y cocina a presión durante 5-7 minutos. Deja despresurizar."
       }
     ]
   },
@@ -951,12 +927,6 @@
         "time": 25,
         "difficulty": "facil",
         "prepSummary": "Cocina la pasta en el vaso con agua y sal. Luego, en el mismo vaso, sofríe el ajo y la guindilla, añade las gambas y el vino blanco para hacer la salsa, y finalmente mezcla todo."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y la guindilla en la olla, añade las gambas y el vino. Incorpora los espaguetis y agua, cierra la olla y cocina a presión por el tiempo indicado para la pasta."
       }
     ]
   },
@@ -1122,12 +1092,6 @@
         "time": 20,
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo y los champiñones en el vaso. Añade la pasta, el agua y la sal, cocinando el tiempo indicado en el paquete. Finalmente, incorpora la nata y el perejil, mezclando a baja velocidad hasta integrar la salsa."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 15,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y los champiñones en la olla abierta. Añade los macarrones, agua o caldo (justo para cubrir) y sal. Cierra la olla y cocina a presión el tiempo indicado para la pasta (generalmente la mitad). Libera la presión, incorpora la nata y el perejil, y mezcla bien."
       }
     ]
   },
@@ -1280,12 +1244,6 @@
         "time": 30,
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo, pollo y verduras en el vaso. Añade los tallarines, agua (o caldo) y salsa de soja, y cocina a la temperatura y tiempo indicados para la pasta, usando la mariposa para remover."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo, pollo y verduras en la olla. Incorpora los tallarines, agua (la justa para cubrir) y salsa de soja, cierra y cocina a presión alta durante 5-7 minutos."
       }
     ]
   },
@@ -1535,7 +1493,7 @@
     ],
     "steps": [
       "Sofreír sepia con ajo y tomate",
-      "Añadir arroz, nacarar, verter caldo caliente",
+      "Añadir arroz, sofreír removiendo 1 min, verter caldo caliente",
       "Cocer 15 min, añadir gambas y almejas",
       "Cocer 5 min más hasta que se abran las almejas"
     ],
@@ -1622,12 +1580,6 @@
         "time": 25,
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo y las verduras con aceite en el vaso. Luego, añade el agua y la pasta, cocinando a la temperatura y tiempo indicados para la pasta, logrando un plato completo y sabroso sin esfuerzo."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 18,
-        "difficulty": "facil",
-        "prepSummary": "Primero, sofríe el ajo y las verduras en la olla con aceite. Después, añade la pasta y el agua, cierra la olla y cocina a presión por el tiempo recomendado para la pasta, obteniendo una cocción rápida y uniforme."
       }
     ]
   },
@@ -1699,7 +1651,7 @@
     "steps": [
       "Hacer caldo con las cabezas de gamba y recortes de rape",
       "Sofreír ajo, tomate y pimentón",
-      "Añadir arroz, nacarar y verter caldo",
+      "Añadir arroz, sofreír removiendo 1 min y verter caldo",
       "Cocer 18 min, servir pescado y arroz aparte"
     ],
     "description": "Arroz seco cocinado en caldo de pescado, servido aparte",
@@ -1787,12 +1739,6 @@
         "time": 20,
         "difficulty": "facil",
         "prepSummary": "Pica el ajo y la guindilla, sofríelos con aceite en el vaso. Después, añade el agua y la sal, calienta y cocina los espaguetis al dente, integrando todo al finalizar."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 12,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y la guindilla con aceite en la olla abierta. Incorpora los espaguetis, agua caliente y sal, cierra y cocina a presión por el tiempo mínimo recomendado para pasta."
       }
     ]
   },
@@ -1879,12 +1825,6 @@
         "time": 35,
         "difficulty": "facil",
         "prepSummary": "Sofreír el pollo y las verduras en el vaso. Incorporar los fideos y el caldo, programar temperatura Varoma, giro inverso y velocidad cuchara durante el tiempo necesario para que la pasta absorba el líquido."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Sofreír el pollo y las verduras en la olla. Añadir los fideos y el caldo, cerrar la olla y cocinar a presión alta durante 3-4 minutos. Retirar del fuego y dejar despresurizar antes de abrir."
       }
     ]
   },
@@ -2026,7 +1966,7 @@
     ],
     "steps": [
       "Sofreír cebolla y champiñones en mantequilla",
-      "Añadir arroz, nacarar y verter vino",
+      "Añadir arroz, sofreír removiendo 1 min y verter vino",
       "Ir añadiendo caldo caliente cucharón a cucharón removiendo",
       "Fuera del fuego añadir parmesano y mantequilla"
     ],
