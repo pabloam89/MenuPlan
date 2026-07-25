@@ -594,6 +594,30 @@ export function validateMenu(
     }
   }
 
+  // 14. Same carb type in consecutive cenas across days — e.g. pasta Monday
+  // cena followed by pasta Tuesday cena. Uses DAY_ORDER adjacency so only
+  // back-to-back days are compared, not arbitrary pairings.
+  const cenaByDay = {};
+  for (const m of mealOrder) {
+    if (m.mealType !== "cena") continue;
+    const recipe = poolById[m.recipeId];
+    if (!recipe) continue;
+    const carb = getCarbType(recipe);
+    if (carb) cenaByDay[m.daySlug] = { carb, slotId: m.slotId, name: recipe.name };
+  }
+  for (let i = 1; i < DAY_ORDER.length; i++) {
+    const prev = cenaByDay[DAY_ORDER[i - 1]];
+    const curr = cenaByDay[DAY_ORDER[i]];
+    if (!prev || !curr) continue;
+    if (prev.carb === curr.carb) {
+      violations.push({
+        rule: "guarnicion_cena_consecutiva",
+        slotId: curr.slotId,
+        message: `"${curr.name}" tiene base "${curr.carb}" igual que la cena del ${DAY_ORDER[i - 1]} ("${prev.name}")`,
+      });
+    }
+  }
+
   return { valid: violations.length === 0, violations };
 }
 
@@ -692,6 +716,24 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (r) {
         const c = getCarbType(r); if (c) dayCarbsUsed.add(c);
         if (isPlatoCuchara(r)) dayHasCuchara = true;
+      }
+    }
+    // Rule 14 cross-safety: also forbid carb types used by the immediately
+    // adjacent cenas (prev/next day) so a cena replacement never reintroduces
+    // guarnicion_cena_consecutiva while fixing an unrelated violation.
+    if (mealType === "cena") {
+      const dayIdx = DAY_ORDER.indexOf(daySlug);
+      for (const delta of [-1, 1]) {
+        const neighborDay = DAY_ORDER[dayIdx + delta];
+        if (!neighborDay) continue;
+        const neighborCena = result.find((s) => {
+          const p = s.slotId.split("_");
+          return p[0] === neighborDay && p[1] === "cena";
+        });
+        if (!neighborCena) continue;
+        const nr = poolById[neighborCena.recipeId];
+        const carb = nr && getCarbType(nr);
+        if (carb) dayCarbsUsed.add(carb);
       }
     }
 

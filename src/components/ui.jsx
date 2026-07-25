@@ -350,14 +350,28 @@ function GoogleGlyph({ size = 18 }) {
 export function GoogleButton({ onClick, label = "Continuar con Google", variant = "light" }) {
   const dark = variant === "dark";
   const [pressed, setPressed] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleClick = async () => {
+    if (loading) return;
+    setLoading(true);
+    try {
+      await onClick?.();
+    } catch {
+      setLoading(false);
+    }
+    // On success the page redirects — no need to reset loading
+  };
+
   return (
     <button
       type="button"
-      onClick={onClick}
-      onMouseDown={() => setPressed(true)}
+      onClick={handleClick}
+      disabled={loading}
+      onMouseDown={() => { if (!loading) setPressed(true); }}
       onMouseUp={() => setPressed(false)}
       onMouseLeave={() => setPressed(false)}
-      onTouchStart={() => setPressed(true)}
+      onTouchStart={() => { if (!loading) setPressed(true); }}
       onTouchEnd={() => setPressed(false)}
       style={{
         width: "100%",
@@ -372,15 +386,30 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
         color: "#1a3a24",
         fontSize: 15,
         fontWeight: 800,
-        cursor: "pointer",
+        cursor: loading ? "default" : "pointer",
         fontFamily: "inherit",
         boxShadow: dark ? "0 10px 28px rgba(0,0,0,.35)" : "0 2px 10px rgba(20,47,29,.08)",
         transform: pressed ? "scale(.97)" : "scale(1)",
         transition: "transform .15s ease",
+        opacity: loading ? 0.75 : 1,
       }}
     >
-      <GoogleGlyph size={18} />
-      {label}
+      {loading ? (
+        <svg
+          width={18}
+          height={18}
+          viewBox="0 0 18 18"
+          className="rotating"
+          style={{ flexShrink: 0 }}
+          aria-hidden="true"
+        >
+          <circle cx="9" cy="9" r="7" fill="none" stroke="#dbe5de" strokeWidth="2.5" />
+          <path d="M9 2 A7 7 0 0 1 16 9" fill="none" stroke="#2d5a3d" strokeWidth="2.5" strokeLinecap="round" />
+        </svg>
+      ) : (
+        <GoogleGlyph size={18} />
+      )}
+      {loading ? "Redirigiendo…" : label}
     </button>
   );
 }
