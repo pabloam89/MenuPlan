@@ -23,11 +23,12 @@ const NEUTRAL_WEEK = { startISO: null, endISO: null, label: "" };
  * can mean two different things:
  *   - "pantry": restock — add what was bought to En casa AND log the spend.
  *   - "spend":  just accumulate spend history, without touching the pantry.
- * The wizard itself is reused with listItems=[] (nothing to reconcile), so
- * every kept line becomes a pantry candidate; we only actually write them to
- * En casa when the intent is "pantry".
+ * The wizard is reused with the live shopping list, so a ticket uploaded here
+ * still tachs what it proves you bought (same as from Tu compra); every kept
+ * line becomes a pantry candidate, but we only write them to En casa when the
+ * intent is "pantry".
  */
-export function PantryReceiptFlow({ data, setData, shopping = null, onToast, onClose, onPantryChanged }) {
+export function PantryReceiptFlow({ data, setData, shopping = null, setShopping = null, onToast, onClose, onPantryChanged }) {
   const { user } = useAuth();
   const [intent, setIntent] = useState(null); // "pantry" | "spend"
   const [busy, setBusy] = useState(false);
@@ -133,7 +134,7 @@ export function PantryReceiptFlow({ data, setData, shopping = null, onToast, onC
     return [...recipes];
   };
 
-  const confirm = async ({ store, date, lines, pantryEntries = [] }) => {
+  const confirm = async ({ store, date, lines, tachIds = [], pantryEntries = [] }) => {
     const included = lines.filter((l) => l.include);
     let pantryIds = [];
     let pantried = 0;
@@ -170,8 +171,18 @@ export function PantryReceiptFlow({ data, setData, shopping = null, onToast, onC
       }
     }
 
-    // Spend is always recorded (both intents). tachedKeys stays empty — there's
-    // no shopping list to reconcile from En casa.
+    // A ticket proves those items were bought, so tach them off the pending
+    // list regardless of which screen uploaded it — otherwise the user has to
+    // go to Tu compra and uncheck them by hand.
+    if (setShopping && tachIds.length) {
+      const tached = new Set(tachIds);
+      setShopping((s) => ({
+        ...s,
+        items: (s?.items ?? []).map((it) => (tached.has(it.id) ? { ...it, have: true } : it)),
+      }));
+    }
+
+    // Spend is always recorded (both intents).
     if (setData && included.length) {
       appendReceiptSpend(setData, { store, date, lines: included, pantryIds }, data?.priceAliases ?? {});
     }
@@ -180,12 +191,13 @@ export function PantryReceiptFlow({ data, setData, shopping = null, onToast, onC
     const coverageSuffix = covered.length
       ? ` · cubre ${covered.length === 1 ? covered[0] : `${covered.length} platos de tu menú`}`
       : "";
+    const tachSuffix = tachIds.length ? ` · ${tachIds.length} tachados de tu compra` : "";
     onToast?.(
       intent === "pantry"
         ? pantried > 0
-          ? `${pantried} ${pantried === 1 ? "producto añadido" : "productos añadidos"} a En casa · gasto guardado${coverageSuffix}`
-          : "Gasto guardado"
-        : `Gasto guardado · ${included.length} ${included.length === 1 ? "producto" : "productos"}`,
+          ? `${pantried} ${pantried === 1 ? "producto añadido" : "productos añadidos"} a En casa · gasto guardado${tachSuffix}${coverageSuffix}`
+          : `Gasto guardado${tachSuffix}`
+        : `Gasto guardado · ${included.length} ${included.length === 1 ? "producto" : "productos"}${tachSuffix}`,
     );
     onClose?.();
   };
@@ -260,7 +272,7 @@ export function PantryReceiptFlow({ data, setData, shopping = null, onToast, onC
           detail={wizard.detail}
           initialLines={wizard.lines}
           weekRange={NEUTRAL_WEEK}
-          listItems={[]}
+          listItems={shopping?.items ?? []}
           onCancel={() => {
             setWizard(null);
             onClose?.();

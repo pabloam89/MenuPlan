@@ -867,12 +867,6 @@
     "description": "Huevos revueltos cremosos sobre pan tostado con tomate",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Para los huevos revueltos, bate los huevos con un chorrito de aceite y sal en el vaso. Cocina con la mariposa a 90°C, velocidad 2-3, durante 5-7 minutos, ajustando al gusto para una textura cremosa. Las tostadas se prepararían por separado."
-      },
-      {
         "appliance": "microondas",
         "time": 5,
         "difficulty": "facil",

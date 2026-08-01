@@ -568,12 +568,6 @@
     "description": "Huevos cocidos rellenos de atún y mayonesa con tomate",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 25,
-        "difficulty": "facil",
-        "prepSummary": "Cocina los huevos en el vaso con agua (13-15 min, Varoma/100°C, vel 1). Pela, retira las yemas y mézclalas con el atún y la mayonesa en el vaso (unos segundos, vel 4) para un relleno homogéneo."
-      },
-      {
         "appliance": "vaporera",
         "time": 22,
         "difficulty": "facil",
@@ -865,28 +859,10 @@
     "description": "Huevos cocidos en cuartos sobre ensalada mixta aliñada",
     "methods": [
       {
-        "appliance": "airfryer",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Coloca los huevos directamente en la cesta de la airfryer. Cocina a 135°C durante 14-16 minutos para huevos duros perfectos, luego enfría en agua helada para un pelado fácil."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Pon 500g de agua en el vaso y coloca los huevos en el cestillo. Programa 15-18 minutos/Varoma/velocidad 1 para huevos duros, luego enfría rápidamente para parar la cocción."
-      },
-      {
         "appliance": "vaporera",
         "time": 20,
         "difficulty": "facil",
         "prepSummary": "Calienta agua en la base de la vaporera hasta que hierva. Coloca los huevos en la cesta y cocina al vapor durante 12-15 minutos para huevos duros fáciles de pelar."
-      },
-      {
-        "appliance": "olla_express",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Coloca los huevos en la rejilla de la olla express con 1 vaso de agua. Cocina 5-7 minutos a alta presión, luego libera la presión y enfría los huevos para un resultado perfecto."
       }
     ]
   },

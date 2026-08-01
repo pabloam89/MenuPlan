@@ -308,7 +308,9 @@
         "prepSummary": "La Thermomix es perfecta para el gazpacho. Introduce todos los ingredientes troceados y tritura a velocidad progresiva 1-10 durante 2-3 minutos hasta obtener una textura muy fina. Sirve bien frío."
       }
     ],
-    "productAliases": ["Gazpacho"]
+    "productAliases": [
+      "Gazpacho"
+    ]
   },
   {
     "id": "sopas_cremas_005",
@@ -388,7 +390,9 @@
         "prepSummary": "Introduce los tomates, pan, ajo, vinagre y sal en el vaso y tritura a velocidad progresiva hasta obtener una crema muy fina. Añade el aceite en hilo mientras sigues batiendo a velocidad media para mezclar bien perfectamente."
       }
     ],
-    "productAliases": ["Salmorejo"]
+    "productAliases": [
+      "Salmorejo"
+    ]
   },
   {
     "id": "sopas_cremas_006",
@@ -547,12 +551,6 @@
         "time": 30,
         "difficulty": "facil",
         "prepSummary": "En una cazuela apta para horno, sofríe el ajo y el jamón. Añade el pimentón y el caldo, luego hornea a 180°C durante 20 minutos para que los sabores se integren, añadiendo los huevos al final para que se escalfen con el calor residual."
-      },
-      {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y el jamón en el vaso a 120°C, velocidad cuchara. Incorpora el pimentón, el caldo y el pan, cocinando a 100°C, velocidad cuchara, durante 15 minutos. Añade los huevos al final y cocina 2-3 minutos más."
       },
       {
         "appliance": "olla_express",
@@ -1420,15 +1418,7 @@
       "Verter caldo caliente y cocer 10 min",
       "Cascar los huevos encima y dejar cuajar 3 min"
     ],
-    "description": "Sopa de ajo tradicional con pan, pimentón y huevo",
-    "methods": [
-      {
-        "appliance": "thermomix",
-        "time": 20,
-        "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo con aceite, incorpora el pan y el pimentón brevemente. Añade el caldo y cocina a 100°C. Al final, escalfa los huevos directamente en el vaso hasta que estén a tu gusto."
-      }
-    ]
+    "description": "Sopa de ajo tradicional con pan, pimentón y huevo"
   },
   {
     "id": "sopas_cremas_019",

@@ -689,8 +689,10 @@ export function PantryScreen({
   setData = null,
   onToast = null,
   // Current week's live shopping list — lets the ticket flow tell you when a
-  // restocked item covers something your active menú needs.
+  // restocked item covers something your active menú needs, and tach the items
+  // the ticket proves you already bought.
   shopping = null,
+  setShopping = null,
   // Onboarding's "¿Qué repetimos?" passes these two so the "usar despensa al
   // generar el menú" preference can live inline here (next to the
   // cantidad/peso/precio segmented control) instead of its own bulky card
@@ -1366,6 +1368,7 @@ export function PantryScreen({
           data={data}
           setData={setData}
           shopping={shopping}
+          setShopping={setShopping}
           onToast={onToast}
           onClose={() => setShowReceiptFlow(false)}
           onPantryChanged={handleSaved}

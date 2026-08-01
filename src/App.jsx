@@ -1064,14 +1064,27 @@ export default function App() {
         // subsequent hydration's network cost) grows without bound.
         const prunedCloudMenus = pruneMenuHistory(cloudMenus);
 
-        setData((d) => ({
-          ...d,
-          menus: prunedCloudMenus,
-          activeMenuId: activeSummary?.id ?? null,
-          ...(activeWeek
-            ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0 } }
-            : {}),
-        }));
+        setData((d) => {
+          // Cloud wins for menús it knows about, but a menú that exists only
+          // locally must survive: saveAndActivateMenu is fire-and-forget, so a
+          // menú generated minutes ago (or while offline) may not have reached
+          // the cloud yet. Replacing the map outright would delete it — the
+          // "mi menú desapareció de un día para otro" bug.
+          const merged = { ...prunedCloudMenus };
+          for (const [id, localMenu] of Object.entries(d.menus ?? {})) {
+            if (!merged[id]) merged[id] = localMenu;
+          }
+          return {
+            ...d,
+            menus: merged,
+            // Same reasoning for the pointer: only follow the cloud's idea of
+            // "active" when it actually has one, otherwise keep the local one.
+            activeMenuId: activeSummary?.id ?? d.activeMenuId ?? null,
+            ...(activeWeek
+              ? { menuWeek: { offset: activeWeek.offset, startDayIdx: activeWeek.startDayIdx ?? 0 } }
+              : {}),
+          };
+        });
       }
 
       cloudReadyRef.current = true;
@@ -2609,6 +2622,7 @@ export default function App() {
                 data={data}
                 setData={setData}
                 shopping={shopping}
+                setShopping={setShopping}
                 onToast={showToast}
                 onOpenAnalytics={() => {
                   setAnalyticsInitialTab("gasto");
