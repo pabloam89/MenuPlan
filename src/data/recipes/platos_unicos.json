@@ -1273,20 +1273,7 @@
       "Presionar ligeramente y servir"
     ],
     "description": "Bocadillo de pan crujiente con tortilla de patata jugosa",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 40,
-        "difficulty": "facil",
-        "prepSummary": "Prepara las patatas y cebolla en la airfryer a 180°C durante 15-20 minutos hasta que estén tiernas y doradas. Luego, mezcla con el huevo batido y cocina la tortilla en un molde apto para airfryer a 170°C durante 15-20 minutos, volteándola a mitad para un dorado uniforme."
-      },
-      {
-        "appliance": "horno",
-        "time": 50,
-        "difficulty": "facil",
-        "prepSummary": "Asa las patatas y cebolla cortadas en el horno a 190°C con un chorrito de aceite durante 20-25 minutos hasta que estén tiernas. Mezcla con el huevo batido y hornea en un molde a 180°C durante 20-25 minutos, hasta que cuaje y se dore ligeramente por encima."
-      }
-    ]
+    "methods": []
   },
   {
     "id": "platos_unicos_017",
