@@ -296,7 +296,7 @@
     "steps": [
       "Remojar el pan en agua",
       "Triturar tomate, pepino, pimiento y ajo con el pan",
-      "Añadir aceite y vinagre emulsionando",
+      "Añadir aceite y vinagre mezclando bien",
       "Colar si se desea, servir muy frío"
     ],
     "description": "Sopa fría de tomate, pepino y pimiento al estilo andaluz",
@@ -385,7 +385,7 @@
         "appliance": "thermomix",
         "time": 10,
         "difficulty": "facil",
-        "prepSummary": "Introduce los tomates, pan, ajo, vinagre y sal en el vaso y tritura a velocidad progresiva hasta obtener una crema muy fina. Añade el aceite en hilo mientras sigues batiendo a velocidad media para emulsionar perfectamente."
+        "prepSummary": "Introduce los tomates, pan, ajo, vinagre y sal en el vaso y tritura a velocidad progresiva hasta obtener una crema muy fina. Añade el aceite en hilo mientras sigues batiendo a velocidad media para mezclar bien perfectamente."
       }
     ],
     "productAliases": ["Salmorejo"]
@@ -1179,7 +1179,7 @@
     ],
     "steps": [
       "Remojar pan y almendras peladas en agua fría",
-      "Triturar con ajo, aceite y vinagre hasta emulsionar",
+      "Triturar con ajo, aceite y vinagre hasta mezclar bien",
       "Ajustar consistencia con agua fría",
       "Servir muy frío con uvas peladas"
     ],
@@ -1488,12 +1488,12 @@
       }
     ],
     "steps": [
-      "Cortar todas las verduras en juliana fina",
+      "Cortar todas las verduras en tiras finas",
       "Rehogar en aceite 3 min",
       "Añadir caldo caliente",
       "Cocer 15 min hasta que las verduras estén tiernas"
     ],
-    "description": "Sopa ligera de verduras cortadas en juliana fina",
+    "description": "Sopa ligera de verduras cortadas en tiras finas",
     "methods": [
       {
         "appliance": "thermomix",

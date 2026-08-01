@@ -731,7 +731,7 @@
         "appliance": "thermomix",
         "time": 20,
         "difficulty": "normal",
-        "prepSummary": "Confitar el bacalao a baja temperatura (aprox. 80°C) con el aceite, ajo y guindilla durante unos 15 minutos. Retirar el bacalao y emulsionar el aceite restante a velocidad progresiva (3-4) hasta obtener la salsa pil-pil, unos 5 minutos."
+        "prepSummary": "Confitar el bacalao a baja temperatura (aprox. 80°C) con el aceite, ajo y guindilla durante unos 15 minutos. Retirar el bacalao y mezclar bien el aceite restante a velocidad progresiva (3-4) hasta obtener la salsa pil-pil, unos 5 minutos."
       }
     ]
   },
@@ -1338,7 +1338,7 @@
       }
     ],
     "steps": [
-      "Cortar verduras en juliana fina",
+      "Cortar verduras en tiras finas",
       "Colocar cada lomo sobre papel de horno con las verduras",
       "Aliñar con aceite, limón y eneldo, cerrar el paquete",
       "Hornear a 200°C durante 18 min"
