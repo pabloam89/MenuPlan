@@ -27,16 +27,20 @@ function buildPhotoPrompt(dishName) {
 // smooth, homogeneous, spoon-ready texture the recipe steps actually describe.
 function buildBabyPureePrompt(dishName) {
   return (
-    `Fotografía gastronómica cenital a exactamente 90 grados (vista de pájaro perfecta) de ${dishName}, ` +
-    `presentado como puré/papilla para bebé: textura completamente triturada, lisa y homogénea, sin ` +
-    `ningún trozo sólido, filete entero, pieza de pasta entera ni ingrediente identificable por separado — ` +
-    `todos los ingredientes están mezclados y triturados juntos en una única masa cremosa. ` +
-    `El color del puré refleja de forma realista la mezcla de sus ingredientes principales. ` +
+    `Fotografía cenital de un tarrito/papilla de bebé de "${dishName}", tipo potito comercial de bebé. ` +
+    `TODO el contenido del bol es UNA SOLA masa triturada, lisa, cremosa y completamente homogénea, ` +
+    `de un único color uniforme resultante de mezclar y batir juntos TODOS los ingredientes — como si se ` +
+    `hubiera pasado entero por una batidora hasta quedar sin grumos. ` +
+    `PROHIBIDO ABSOLUTAMENTE: ningún filete ni trozo de pescado o carne reconocible, ninguna pieza de ` +
+    `verdura entera o en dados, ningún grano de arroz, pasta o legumbre suelto, nada crujiente ni tostado, ` +
+    `ninguna textura, capa o elemento diferenciado sobre la superficie — ni un solo ingrediente debe ser ` +
+    `identificable a simple vista, todo forma una crema lisa de un solo color. ` +
+    `Superficie totalmente lisa y mate, como un puré de bebé recién batido, sin ningún relieve. ` +
     `Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ` +
     `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
-    `Iluminación natural difusa y suave, estética minimalista y rústica, calidad de libro de cocina infantil. ` +
-    `SOLO el bol con el puré en el encuadre: sin cubiertos, sin servilletas, sin manteles, ` +
-    `sin cuencos adicionales, sin ingredientes sueltos alrededor, sin ningún objeto fuera del bol.`
+    `Iluminación natural difusa y suave, estética minimalista y rústica. ` +
+    `SOLO el bol con la papilla en el encuadre: sin cubiertos, sin servilletas, sin manteles, ` +
+    `sin cuencos adicionales, sin ningún objeto fuera del bol.`
   );
 }
 
