@@ -651,6 +651,10 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
   // `unfixedViolations` so aiPlanner can warn instead of silently shipping a
   // menu that still breaks a rule.
   const unfixed = [];
+  // Slots filled by reusing a dish already in the menu because no distinct
+  // compatible recipe was left. Surfaced so the UI can suggest relaxing the
+  // constraint that caused it instead of the repetition looking like a bug.
+  const repeatedForCompleteness = [];
 
   // Fill missing slots first
   const missingViolations = violations.filter((v) => v.rule === "slot_faltante");
@@ -709,9 +713,34 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (candidate) break;
     }
 
+    // Last resort: reuse a dish already in the menu. With a tight time budget
+    // the catalog can genuinely lack enough DISTINCT recipes for the week —
+    // e.g. a 20-min comida leaves the segundo ~10 min, and only 3 segundos in
+    // the whole catalog are that quick, against 7 slots to fill. Repeating a
+    // dish is normal in a real household; an empty slot reads as a broken app.
+    // Hard constraints still apply — only the "no repeats" rule is dropped.
+    if (!candidate) {
+      const timesUsed = new Map();
+      for (const s of result) timesUsed.set(s.recipeId, (timesUsed.get(s.recipeId) ?? 0) + 1);
+      const reusable = filteredPool
+        .filter((r) => {
+          const wasUsed = usedIds.has(r.id);
+          usedIds.delete(r.id);            // temporarily ignore the no-repeat rule
+          const ok = satisfiesHard(r);
+          if (wasUsed) usedIds.add(r.id);
+          return ok;
+        })
+        // Spread repeats: pick whichever compatible dish appears least so far.
+        .sort((a, b) => (timesUsed.get(a.id) ?? 0) - (timesUsed.get(b.id) ?? 0));
+      candidate = reusable[0];
+      if (candidate) repeatedForCompleteness.push({ slotId: v.slotId, recipeId: candidate.id });
+    }
+
     if (candidate) {
       result.push({ slotId: v.slotId, recipeId: candidate.id });
       usedIds.add(candidate.id);
+    } else {
+      unfixed.push(v);
     }
   }
 
@@ -937,6 +966,10 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
   // metadata riding along, not part of the list.
   Object.defineProperty(result, "unfixedViolations", {
     value: unfixed,
+    enumerable: false,
+  });
+  Object.defineProperty(result, "repeatedForCompleteness", {
+    value: repeatedForCompleteness,
     enumerable: false,
   });
   return result;

@@ -841,6 +841,13 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     for (const v of slotAssignments.unfixedViolations ?? []) {
       warnings.push(`${group.label}: no se pudo corregir "${v.rule}" en ${v.slotId} (no hay ninguna receta alternativa compatible).`);
     }
+    // Repetition used as a last resort to avoid an empty slot: tell the user
+    // WHY a dish repeats so it reads as a consequence of their constraints,
+    // not as a bug.
+    const repeated = slotAssignments.repeatedForCompleteness ?? [];
+    if (repeated.length > 0) {
+      warnings.push(`${group.label}: se han repetido ${repeated.length} plato(s) porque no hay suficientes recetas distintas que cumplan tus restricciones (prueba a subir el tiempo de cocina).`);
+    }
   }
 
   // 3b. Last-resort safety net: hydration (generateMenuWithAI) resolves each
