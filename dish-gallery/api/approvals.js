@@ -1,6 +1,18 @@
 import { Redis } from "@upstash/redis";
 
-const redis = Redis.fromEnv();
+// Redis.fromEnv() only looks for UPSTASH_REDIS_REST_URL/_TOKEN. The Vercel
+// integration for this project provisioned them as UPSTASH_REDIS_KV_REST_API_*
+// instead (name picked when the Redis resource was connected), so fromEnv()
+// silently found nothing and every request 500'd. Read explicitly, falling
+// back to the standard names in case a future/other env uses them.
+const redis = new Redis({
+  url:
+    process.env.UPSTASH_REDIS_KV_REST_API_URL ??
+    process.env.UPSTASH_REDIS_REST_URL,
+  token:
+    process.env.UPSTASH_REDIS_KV_REST_API_TOKEN ??
+    process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 const KEY_STATE  = "dish:approvals"; // hash: combo_id → "approved" | "rejected"
 const KEY_REASON = "dish:reasons";   // hash: combo_id → reason string
 
