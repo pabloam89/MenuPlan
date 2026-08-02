@@ -1598,7 +1598,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
     const ctrl = new AbortController();
     photoAbortRef.current = ctrl;
     try {
-      const dataUrl = await generateDishPhotoWithAI(form.name.trim(), { signal: ctrl.signal });
+      const dataUrl = await generateDishPhotoWithAI(form.name.trim(), { signal: ctrl.signal, category: form.category });
       setPhoto(dataUrl);
       setPhotoGenState("idle");
     } catch (err) {

@@ -19,6 +19,27 @@ function buildPhotoPrompt(dishName) {
   );
 }
 
+// Every recipe in the "bebes" category ends its steps with "triturar" or
+// "chafar" (blend/mash) — it's a baby purée, never plated as discrete pieces.
+// The general prompt above produces adult-style plating (a salmon fillet
+// resting on top, whole pasta shapes, individual chickpeas) which a baby
+// literally cannot eat and misrepresents the dish. This variant asks for the
+// smooth, homogeneous, spoon-ready texture the recipe steps actually describe.
+function buildBabyPureePrompt(dishName) {
+  return (
+    `Fotografía gastronómica cenital a exactamente 90 grados (vista de pájaro perfecta) de ${dishName}, ` +
+    `presentado como puré/papilla para bebé: textura completamente triturada, lisa y homogénea, sin ` +
+    `ningún trozo sólido, filete entero, pieza de pasta entera ni ingrediente identificable por separado — ` +
+    `todos los ingredientes están mezclados y triturados juntos en una única masa cremosa. ` +
+    `El color del puré refleja de forma realista la mezcla de sus ingredientes principales. ` +
+    `Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ` +
+    `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
+    `Iluminación natural difusa y suave, estética minimalista y rústica, calidad de libro de cocina infantil. ` +
+    `SOLO el bol con el puré en el encuadre: sin cubiertos, sin servilletas, sin manteles, ` +
+    `sin cuencos adicionales, sin ingredientes sueltos alrededor, sin ningún objeto fuera del bol.`
+  );
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -33,10 +54,11 @@ export default async function handler(req, res) {
   if (!dishName) {
     return res.status(400).json({ error: "dishName is required" });
   }
+  const category = String(req.body?.category ?? "").trim();
 
   try {
     const ai = new GoogleGenAI({ apiKey });
-    const prompt = buildPhotoPrompt(dishName);
+    const prompt = category === "bebes" ? buildBabyPureePrompt(dishName) : buildPhotoPrompt(dishName);
 
     const stream = await ai.models.generateContentStream({
       model: MODEL,
