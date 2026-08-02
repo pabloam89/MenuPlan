@@ -5,7 +5,10 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "cuscús",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -16,14 +19,36 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Calabacín", "amount": 80, "unit": "g" },
-      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
-      { "name": "Cuscús", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" },
-      { "name": "Caldo casero sin sal", "amount": 200, "unit": "ml" }
+      {
+        "name": "Calabacín",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Cuscús",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo casero sin sal",
+        "amount": 200,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer el calabacín troceado al vapor 10 min",
@@ -38,7 +63,10 @@
     "category": "bebes",
     "mainProtein": "pescado_blanco",
     "mainBase": "patata",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -49,13 +77,31 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Merluza", "amount": 40, "unit": "g" },
-      { "name": "Patata", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Merluza",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pelar y trocear zanahoria y patata, cocer 12 min",
@@ -70,7 +116,10 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -84,10 +133,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Calabaza", "amount": 80, "unit": "g" },
-      { "name": "Pechuga de pavo", "amount": 30, "unit": "g" },
-      { "name": "Boniato", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Calabaza",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pavo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Boniato",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pelar y trocear calabaza y boniato",
@@ -102,7 +167,9 @@
     "category": "bebes",
     "mainProtein": "ternera",
     "mainBase": "patata",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -116,10 +183,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Judías verdes", "amount": 60, "unit": "g" },
-      { "name": "Ternera magra", "amount": 30, "unit": "g" },
-      { "name": "Patata", "amount": 70, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Judías verdes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ternera magra",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Trocear patata, judías verdes y ternera",
@@ -134,7 +217,9 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -148,10 +233,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Guisantes", "amount": 60, "unit": "g" },
-      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
-      { "name": "Arroz", "amount": 15, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Guisantes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer arroz 10 min, añadir guisantes y pollo troceado",
@@ -166,7 +267,10 @@
     "category": "bebes",
     "mainProtein": "pescado_blanco",
     "mainBase": "arroz",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -177,13 +281,31 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Brócoli", "amount": 70, "unit": "g" },
-      { "name": "Merluza", "amount": 40, "unit": "g" },
-      { "name": "Arroz", "amount": 15, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Brócoli",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Merluza",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer arroz 10 min",
@@ -198,7 +320,9 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "arroz",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 15,
     "difficulty": "facil",
@@ -212,10 +336,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 25, "unit": "g" },
-      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
-      { "name": "Zanahoria", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      {
+        "name": "Arroz",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 3,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer arroz con zanahoria rallada y pollo troceado 12 min",
@@ -230,7 +370,9 @@
     "category": "bebes",
     "mainProtein": "legumbre",
     "mainBase": "lentejas",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -244,10 +386,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Lentejas rojas", "amount": 30, "unit": "g" },
-      { "name": "Zanahoria", "amount": 50, "unit": "g" },
-      { "name": "Calabacín", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Lentejas rojas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Trocear verduras y cocer con las lentejas 18 min",
@@ -262,7 +420,10 @@
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "boniato",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -276,10 +437,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Boniato", "amount": 80, "unit": "g" },
-      { "name": "Pechuga de pavo", "amount": 30, "unit": "g" },
-      { "name": "Calabacín", "amount": 50, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Boniato",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pavo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Pelar y trocear boniato y calabacín",
@@ -294,7 +471,10 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "arroz",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -305,13 +485,31 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Puerro", "amount": 50, "unit": "g" },
-      { "name": "Salmón fresco", "amount": 30, "unit": "g" },
-      { "name": "Arroz", "amount": 20, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      {
+        "name": "Puerro",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salmón fresco",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 3,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer arroz con puerro limpio y troceado 12 min",
@@ -326,7 +524,10 @@
     "category": "bebes",
     "mainProtein": "ternera",
     "mainBase": "pasta",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 15,
     "difficulty": "facil",
@@ -337,14 +538,36 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Fideos finos", "amount": 25, "unit": "g" },
-      { "name": "Ternera magra", "amount": 30, "unit": "g" },
-      { "name": "Zanahoria", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" },
-      { "name": "Caldo casero sin sal", "amount": 300, "unit": "ml" }
+      {
+        "name": "Fideos finos",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Ternera magra",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 3,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo casero sin sal",
+        "amount": 300,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Hervir caldo casero sin sal (o agua) con zanahoria rallada y ternera picada 8 min",
@@ -359,7 +582,9 @@
     "category": "bebes",
     "mainProtein": "legumbre",
     "mainBase": "garbanzos",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -373,10 +598,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Garbanzos cocidos", "amount": 60, "unit": "g" },
-      { "name": "Calabaza", "amount": 60, "unit": "g" },
-      { "name": "Zanahoria", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer calabaza y zanahoria troceadas 12 min",
@@ -391,7 +632,10 @@
     "category": "bebes",
     "mainProtein": "huevo",
     "mainBase": "boniato",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 12,
     "difficulty": "facil",
@@ -402,13 +646,31 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["huevo"],
+    "allergens": [
+      "huevo"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Boniato", "amount": 60, "unit": "g" },
-      { "name": "Tomate natural", "amount": 30, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Boniato",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate natural",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 3,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer boniato troceado 10 min, chafar con tenedor",
@@ -423,7 +685,9 @@
     "category": "bebes",
     "mainProtein": "ternera",
     "mainBase": "avena",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 15,
     "difficulty": "facil",
@@ -434,14 +698,36 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Copos de avena", "amount": 20, "unit": "g" },
-      { "name": "Ternera magra", "amount": 30, "unit": "g" },
-      { "name": "Espinacas frescas", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" },
-      { "name": "Caldo casero sin sal", "amount": 200, "unit": "ml" }
+      {
+        "name": "Copos de avena",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Ternera magra",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo casero sin sal",
+        "amount": 200,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer avena con ternera picada en caldo casero sin sal (o agua) 10 min",
@@ -456,7 +742,10 @@
     "category": "bebes",
     "mainProtein": "huevo",
     "mainBase": "sémola",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 15,
     "difficulty": "facil",
@@ -467,13 +756,32 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["huevo", "gluten"],
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Calabacín", "amount": 100, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Sémola de trigo", "amount": 15, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Sémola de trigo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 3,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer calabacín troceado 10 min, añadir sémola y cocer 3 min",
@@ -488,7 +796,9 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "patata",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -502,10 +812,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Coliflor", "amount": 70, "unit": "g" },
-      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
-      { "name": "Patata", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Coliflor",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer patata troceada 8 min",
@@ -515,45 +841,14 @@
     "description": "Puré de coliflor y patata con pollo cocido, sin sal"
   },
   {
-    "id": "bebes_017",
-    "name": "Sopa de cuscús con merluza y calabacín",
-    "category": "bebes",
-    "mainProtein": "pescado_blanco",
-    "mainBase": "cuscús",
-    "mealRole": ["plato_unico", "cena"],
-    "type": "completo",
-    "time": 15,
-    "difficulty": "facil",
-    "kcal": 160,
-    "protein_g": 9,
-    "carbs_g": 19,
-    "fat_g": 5,
-    "baseServings": 1,
-    "kidFriendly": true,
-    "tupperFriendly": true,
-    "allergens": ["pescado", "gluten"],
-    "season": "all",
-    "ingredients": [
-      { "name": "Cuscús", "amount": 20, "unit": "g" },
-      { "name": "Merluza", "amount": 40, "unit": "g" },
-      { "name": "Calabacín", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" },
-      { "name": "Caldo casero sin sal", "amount": 300, "unit": "ml" }
-    ],
-    "steps": [
-      "Cocer calabacín troceado con merluza en caldo casero sin sal (o agua) 10 min",
-      "Retirar espinas, añadir cuscús y dejar reposar 5 min tapado",
-      "Tritura o chafa bien hasta lograr una textura adecuada y segura para la edad del bebé, añade aceite"
-    ],
-    "description": "Sopa suave de cuscús con merluza y calabacín, sin sal"
-  },
-  {
     "id": "bebes_018",
     "name": "Puré de remolacha con pavo y patata",
     "category": "bebes",
     "mainProtein": "pavo",
     "mainBase": "patata",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -567,10 +862,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Remolacha cocida", "amount": 60, "unit": "g" },
-      { "name": "Pechuga de pavo", "amount": 30, "unit": "g" },
-      { "name": "Patata", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Remolacha cocida",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pavo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer patata troceada con pavo picado 15 min",
@@ -585,7 +896,10 @@
     "category": "bebes",
     "mainProtein": "pescado_azul",
     "mainBase": "boniato",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 18,
     "difficulty": "facil",
@@ -596,13 +910,31 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["pescado"],
+    "allergens": [
+      "pescado"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Espinacas frescas", "amount": 50, "unit": "g" },
-      { "name": "Salmón fresco", "amount": 30, "unit": "g" },
-      { "name": "Boniato", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      {
+        "name": "Espinacas frescas",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salmón fresco",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Boniato",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 3,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer boniato troceado 10 min",
@@ -617,7 +949,10 @@
     "category": "bebes",
     "mainProtein": "huevo",
     "mainBase": "pasta",
-    "mealRole": ["plato_unico", "cena"],
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
     "type": "completo",
     "time": 15,
     "difficulty": "facil",
@@ -628,13 +963,32 @@
     "baseServings": 1,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["huevo", "gluten"],
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Fideos finos", "amount": 25, "unit": "g" },
-      { "name": "Huevo", "amount": 1, "unit": "ud" },
-      { "name": "Calabacín", "amount": 60, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 3, "unit": "ml" }
+      {
+        "name": "Fideos finos",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 3,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer fideos con calabacín rallado 8 min",
@@ -649,7 +1003,9 @@
     "category": "bebes",
     "mainProtein": "pollo",
     "mainBase": "garbanzos",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -663,10 +1019,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Garbanzos cocidos", "amount": 60, "unit": "g" },
-      { "name": "Pechuga de pollo", "amount": 30, "unit": "g" },
-      { "name": "Espinacas frescas", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer pollo troceado 10 min",
@@ -681,7 +1053,9 @@
     "category": "bebes",
     "mainProtein": "ternera",
     "mainBase": "lentejas",
-    "mealRole": ["plato_unico"],
+    "mealRole": [
+      "plato_unico"
+    ],
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -695,10 +1069,26 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Lentejas rojas", "amount": 30, "unit": "g" },
-      { "name": "Ternera magra", "amount": 30, "unit": "g" },
-      { "name": "Zanahoria", "amount": 50, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Lentejas rojas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ternera magra",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
       "Cocer lentejas con ternera picada y zanahoria troceada 18 min",

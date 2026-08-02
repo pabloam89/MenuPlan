@@ -290,19 +290,20 @@ export function buildGarnishComboRecipe(recipe, garnish) {
  * consistent with the rest of MenuPlan.
  *
  * @param {string} dishName
- * @param {{ signal?: AbortSignal, category?: string }} [opts] - `category`
- *   "bebes" switches the server to a purée-texture prompt: every baby recipe
- *   ends its steps in "triturar"/"chafar", so the photo must show a smooth
- *   blended papilla, never a plated adult-style dish with discrete pieces.
+ * @param {{ signal?: AbortSignal, category?: string, steps?: string[] }} [opts]
+ *   `category` "bebes" switches the server to a baby-texture prompt: every
+ *   baby recipe ends its steps in "triturar" (smooth blend) or "chafar"
+ *   (fork-mash) — `steps` lets the server pick the matching texture instead
+ *   of forcing a liquid-smooth purée on a dish that should look mashed.
  * @returns {Promise<string>} a data: URL with the generated JPEG
  */
-export async function generateDishPhotoWithAI(dishName, { signal, category } = {}) {
+export async function generateDishPhotoWithAI(dishName, { signal, category, steps } = {}) {
   let response;
   try {
     response = await fetch("/api/generate-dish-photo", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ dishName, category }),
+      body: JSON.stringify({ dishName, category, steps }),
       signal,
     });
   } catch (err) {

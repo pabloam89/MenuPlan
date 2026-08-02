@@ -112,13 +112,6 @@
     "type": "dish"
   },
   {
-    "combo_id": "bebes_017",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_017.jpg?v=2",
-    "name": "Sopa de cuscús con merluza y calabacín",
-    "family": "bebes",
-    "type": "dish"
-  },
-  {
     "combo_id": "bebes_018",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_018.jpg?v=2",
     "name": "Puré de remolacha con pavo y patata",
