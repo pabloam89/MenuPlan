@@ -4,6 +4,14 @@ function familyLabel(raw) {
   return raw.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+// Accent/case-insensitive so "cuscus" matches "cuscús" and "pure" matches "puré".
+function normalize(s) {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase();
+}
+
 // ── API helpers ──────────────────────────────────────────────────────────────
 
 async function fetchApprovals() {
@@ -155,6 +163,7 @@ export default function App() {
   const [approvalsLoading, setApprovalsLoading] = useState(true);
   const [activeFamily, setActiveFamily] = useState("all");
   const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [exported, setExported] = useState(false);
   const [syncError, setSyncError] = useState(false);
   const [rejectTarget, setRejectTarget] = useState(null); // dish being rejected
@@ -213,6 +222,8 @@ export default function App() {
     [catalog]
   );
 
+  const normalizedSearch = useMemo(() => normalize(search.trim()), [search]);
+
   const visible = useMemo(() => {
     return catalog.filter((c) => {
       const matchFamily = activeFamily === "all" || c.family === activeFamily;
@@ -220,9 +231,13 @@ export default function App() {
         filter === "all" ||
         (filter === "pending" && !approvals[c.combo_id]) ||
         approvals[c.combo_id]?.state === filter;
-      return matchFamily && matchFilter;
+      const matchSearch =
+        !normalizedSearch ||
+        normalize(c.name).includes(normalizedSearch) ||
+        normalize(c.combo_id).includes(normalizedSearch);
+      return matchFamily && matchFilter && matchSearch;
     });
-  }, [catalog, activeFamily, filter, approvals]);
+  }, [catalog, activeFamily, filter, approvals, normalizedSearch]);
 
   const stats = useMemo(() => {
     const approved = Object.values(approvals).filter((v) => v?.state === "approved").length;
@@ -311,6 +326,24 @@ export default function App() {
       </header>
 
       <nav className="filters">
+        <div className="filters__search">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Buscar por nombre o ID (ej: tortilla, carnes_024)…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          {search && (
+            <button
+              className="search-clear"
+              aria-label="Borrar búsqueda"
+              onClick={() => setSearch("")}
+            >
+              ✕
+            </button>
+          )}
+        </div>
         <div className="filters__families">
           <button
             className={`pill ${activeFamily === "all" ? "pill--active" : ""}`}

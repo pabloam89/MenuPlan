@@ -181,6 +181,40 @@ button { cursor: pointer; border: none; background: none; font: inherit; }
   align-items: center;
 }
 
+.filters__search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  max-width: 360px;
+}
+
+.search-input {
+  width: 100%;
+  padding: .5rem .75rem;
+  padding-right: 2rem;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-1);
+  font: 13px/1.4 var(--font-ui);
+  outline: none;
+  transition: border-color var(--trans);
+}
+
+.search-input::placeholder { color: var(--text-3); }
+.search-input:focus { border-color: var(--amber); }
+
+.search-clear {
+  position: absolute;
+  right: .5rem;
+  color: var(--text-3);
+  font-size: 11px;
+  padding: .2rem;
+  transition: color var(--trans);
+}
+
+.search-clear:hover { color: var(--text-1); }
+
 .pill {
   padding: .3rem .75rem;
   border-radius: 100px;
