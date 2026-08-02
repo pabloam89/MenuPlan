@@ -1,4 +1,5 @@
 import guarniciones from "../data/recipes/guarniciones.json";
+import { getCarbType } from "./validateMenu.js";
 
 const CENA_MAX_GARNISH_TIME = 15;
 
@@ -23,27 +24,11 @@ function carbOfGarnish(g) {
   return null;
 }
 
-// Carb detection from a full catalog recipe (same logic as validateMenu getCarbType)
-const RECIPE_CARB_PATTERNS = [
-  [/arroz|paella|risotto/, "arroz"],
-  [/pasta|macarr[oó]n|espagueti|tallar[íi]n|fideo|penne|lasa[ñn]a|canelones|ravioli/, "pasta"],
-  [/patata|papa\b/, "patatas"],
-  [/quinoa/, "quinoa"],
-  [/c[uú]sc[uú]s|couscous/, "cuscus"],
-  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|rebanada/, "pan"],
-];
-
-function carbOfRecipe(recipe) {
-  const text = [recipe.name, ...recipe.ingredients.map((i) => i.name)]
-    .join(" ")
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
-  for (const [pat, carb] of RECIPE_CARB_PATTERNS) {
-    if (pat.test(text)) return carb;
-  }
-  return null;
-}
+// Carb detection for full catalog recipes reuses validateMenu's taxonomy
+// directly. It used to be a verbatim copy of that pattern list, which meant
+// every taxonomy fix had to be made twice or the two would silently disagree
+// about what counts as the same base.
+const carbOfRecipe = getCarbType;
 
 /**
  * For each "principal" recipe in a comida_2 or cena slot, picks a garnish

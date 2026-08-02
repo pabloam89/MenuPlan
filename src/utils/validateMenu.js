@@ -23,10 +23,14 @@ const CORRECTABLE_HEALTH_PROFILES = new Set(
 const CARB_PATTERNS = [
   [/arroz|paella|risotto/, "arroz"],
   [/pasta|macarr[oó]n|espagueti|tallar[íi]n|fideo|penne|lasa[ñn]a|canelones|ravioli/, "pasta"],
-  [/patata|papa\b/, "patatas"],
+  [/patata|papa\b|boniato|batata/, "patatas"],
   [/quinoa/, "quinoa"],
-  [/c[uú]sc[uú]s|couscous/, "cuscus"],
-  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|rebanada/, "pan"],
+  [/c[uú]sc[uú]s|couscous|s[ée]mola|bulgur/, "cuscus"],
+  // Wheat-flour bases all count as "pan": a pizza for lunch and a bocadillo
+  // for dinner is the same repetition the rule exists to prevent, but until
+  // these were listed the menu could serve both on the same day undetected.
+  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|rebanada|picatoste|pizza|wrap|quesadilla|masa quebrada|hojaldre/, "pan"],
+  [/avena|porridge/, "avena"],
 ];
 
 // Text-only carb classifier — exported so aiPlanner.js can classify the
@@ -643,6 +647,10 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     slotsContext.map((s) => [s.slotId, s]),
   );
   const usedIds = new Set(result.map((s) => s.recipeId));
+  // Violations this pass could not repair — attached to the returned array as
+  // `unfixedViolations` so aiPlanner can warn instead of silently shipping a
+  // menu that still breaks a rule.
+  const unfixed = [];
 
   // Fill missing slots first
   const missingViolations = violations.filter((v) => v.rule === "slot_faltante");
@@ -811,23 +819,61 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
     }
 
-    const replacement = filteredPool.find((r) => {
+    // Cross-safety guards are split out from the hard constraints so they can
+    // be relaxed if — and only if — insisting on all of them at once would
+    // otherwise leave the offending dish in place. Keeping a KNOWN violation
+    // (e.g. arroz de primero + arroz de segundo, reported by a tester) is worse
+    // than a replacement that's merely suboptimal on an unrelated axis.
+    // The guard that corresponds to the violation being fixed is never relaxed
+    // — relaxing it would defeat the whole repair.
+    const softGuards = {
+      carb: (r) => {
+        const carb = getCarbType(r);
+        return !(carb && dayCarbsUsed.has(carb));
+      },
+      protein: (r) => !neighborProteins.has(r.mainProtein),
+      sibling: (r) => !(siblingProtein && r.mainProtein === siblingProtein),
+      primeroGroup: (r) =>
+        !(sameDayPrimeroGroups && [...proteinGroupsOf(r)].some((g) => sameDayPrimeroGroups.has(g))),
+      frito: (r) => !(neighborFrito && isFrito(r)),
+      cuchara: (r) => !(dayHasCuchara && isPlatoCuchara(r)),
+      cenaRapida: (r) => ctx?.preferType === "cena_rapida" || r.category !== "cenas_rapidas",
+    };
+
+    // Which guard IS the violation being repaired — mandatory in every tier.
+    const GUARD_FOR_RULE = {
+      guarnicion_repetida: "carb",
+      guarnicion_cena_consecutiva: "carb",
+      school_carb_conflict: "carb",
+      proteina_consecutiva: "protein",
+      proteina_misma_comida: "sibling",
+      plato_frito_consecutivo: "frito",
+      legumbres_en_cena: null,
+    };
+    const mandatoryGuard = GUARD_FOR_RULE[v.rule] ?? null;
+
+    // Progressively drop the optional guards, most-expendable last-resort last.
+    const RELAX_ORDER = ["cenaRapida", "frito", "cuchara", "primeroGroup", "sibling", "protein", "carb"];
+    const guardTiers = [];
+    for (let drop = 0; drop <= RELAX_ORDER.length; drop++) {
+      const dropped = new Set(RELAX_ORDER.slice(RELAX_ORDER.length - drop));
+      dropped.delete(mandatoryGuard);
+      guardTiers.push(dropped);
+    }
+
+    const findReplacement = (droppedGuards) => filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
 
-      if (siblingProtein && r.mainProtein === siblingProtein) return false;
+      for (const [key, ok] of Object.entries(softGuards)) {
+        if (droppedGuards.has(key)) continue;
+        if (!ok(r)) return false;
+      }
 
+      // ── Hard constraints: never relaxed ──────────────────────────────
       if (ctx?.maxTime && r.time > ctx.maxTime) return false;
-      // legumbres_en_cena, school_protein_conflict, school_carb_conflict,
-      // guarnicion_repetida and proteina_consecutiva below are enforced
-      // unconditionally (not gated to `v.rule === "..."`) for the same
-      // cross-rule-safety reason as dayCarbsUsed/neighborProteins above: a
-      // replacement picked to fix violation N must never reintroduce a
-      // violation of rule M that was already resolved (or never triggered)
-      // earlier in this same pass.
       if (mealType === "cena" && (r.category === "legumbres" || r.mainProtein === "legumbre")) return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
-      if (ctx?.preferType !== "cena_rapida" && r.category === "cenas_rapidas") return false;
 
       if (mealType === "cena" && !r.mealRole.includes("cena")) return false;
       if (mealType === "comida") {
@@ -842,28 +888,10 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         if ([...proteinGroupsOf(r)].some((g) => ctx.schoolProteinsToAvoid.includes(g))) return false;
       }
 
-      // Rule 3c cross-safety: a cena replacement must not share any protein
-      // group of the same day's comida_1 primero (mainProtein OR extraProteins).
-      if (sameDayPrimeroGroups && [...proteinGroupsOf(r)].some((g) => sameDayPrimeroGroups.has(g))) {
-        return false;
-      }
-
       if (mealType === "cena" && ctx?.schoolCarbsToAvoid) {
         const carb = getCarbType(r);
         if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return false;
       }
-
-      {
-        const carb = getCarbType(r);
-        if (carb && dayCarbsUsed.has(carb)) return false;
-      }
-
-      if (neighborProteins.has(r.mainProtein)) return false;
-
-      // Rule 12/13 cross-safety: don't reintroduce two-fritos-in-a-row or two
-      // spoon dishes the same day while fixing an unrelated violation.
-      if (neighborFrito && isFrito(r)) return false;
-      if (dayHasCuchara && isPlatoCuchara(r)) return false;
 
       if (v.rule === "freq_target_not_met" && v.targetKey) {
         const matcher = FREQ_KEY_MATCHERS[v.targetKey];
@@ -885,12 +913,31 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       return true;
     });
 
+    let replacement;
+    for (const dropped of guardTiers) {
+      replacement = findReplacement(dropped);
+      if (replacement) break;
+    }
+
     if (replacement) {
       usedIds.delete(slot.recipeId);
       slot.recipeId = replacement.id;
       usedIds.add(replacement.id);
+    } else {
+      // Nothing in the pool can fix this slot even with every optional guard
+      // dropped. The offending dish stays (removing it would leave a hole),
+      // but record it so the caller can surface the gap instead of shipping a
+      // known-violating menu silently.
+      unfixed.push(v);
     }
   }
 
+  // Non-enumerable so the return value still compares as a plain array of
+  // assignments (callers and tests treat it as one); this is extra diagnostic
+  // metadata riding along, not part of the list.
+  Object.defineProperty(result, "unfixedViolations", {
+    value: unfixed,
+    enumerable: false,
+  });
   return result;
 }

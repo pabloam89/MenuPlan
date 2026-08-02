@@ -835,6 +835,12 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       ctx.slots,
       ctx.config.healthProfiles,
     );
+    // A violation the fallback could not repair leaves the offending dish in
+    // the menu (dropping it would open a hole). It used to do so with no trace
+    // at all — that's how "arroz de primero y arroz de segundo" reached a user.
+    for (const v of slotAssignments.unfixedViolations ?? []) {
+      warnings.push(`${group.label}: no se pudo corregir "${v.rule}" en ${v.slotId} (no hay ninguna receta alternativa compatible).`);
+    }
   }
 
   // 3b. Last-resort safety net: hydration (generateMenuWithAI) resolves each

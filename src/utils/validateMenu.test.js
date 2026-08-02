@@ -154,6 +154,16 @@ describe("validateMenu", () => {
     expect(violations.map((v) => v.rule)).toContain("tiempo_excedido");
   });
 
+  it("treats wheat-flour bases (pizza, wrap, quesadilla) as the same base as pan", () => {
+    // These were invisible to the taxonomy, so a pizza lunch + bocadillo
+    // dinner the same day was never flagged as a repeated base.
+    expect(carbTypeFromText("Pizza casera")).toBe("pan");
+    expect(carbTypeFromText("Wrap de pollo")).toBe("pan");
+    expect(carbTypeFromText("Quesadillas caseras")).toBe("pan");
+    expect(carbTypeFromText("Crema con sémola")).toBe("cuscus");
+    expect(carbTypeFromText("Puré de boniato")).toBe("patatas");
+  });
+
   it("flags arroz as primero and arroz as segundo in the same meal", () => {
     // Reported by a tester: "arroz de primero y arroz de segundo". The rule
     // existed but was only covered for comida vs cena, never for the two
@@ -448,6 +458,44 @@ describe("applyFallback", () => {
       violations, pool, slots,
     );
     expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("segundo");
+  });
+
+  it("relaxes an unrelated guard rather than leaving arroz+arroz in the menu", () => {
+    // The core of the tester's "arroz de primero y arroz de segundo" report:
+    // the rule DID fire, but applyFallback found no replacement satisfying
+    // every cross-guard at once and silently kept the offending dish.
+    const pool = [
+      recipe({ id: "primero", mealRole: ["primero"], name: "Arroz blanco", ingredients: [{ name: "Arroz" }] }),
+      recipe({ id: "malo", mealRole: ["segundo"], name: "Paella", ingredients: [{ name: "Arroz" }] }),
+      // Only alternative: fixes the carb clash but is a plato de cuchara like
+      // the primero — previously rejected, leaving "Paella" in place.
+      recipe({ id: "bueno", mealRole: ["segundo"], name: "Lentejas guisadas", category: "legumbres", ingredients: [{ name: "Lentejas" }] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "primero" },
+      { slotId: "lun_comida_2", recipeId: "malo" },
+    ];
+    const violations = [{ rule: "guarnicion_repetida", slotId: "lun_comida_2", message: "" }];
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("bueno");
+  });
+
+  it("reports a violation it could not repair instead of keeping it silently", () => {
+    const pool = [
+      recipe({ id: "primero", mealRole: ["primero"], name: "Arroz blanco", ingredients: [{ name: "Arroz" }] }),
+      recipe({ id: "malo", mealRole: ["segundo"], name: "Paella", ingredients: [{ name: "Arroz" }] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "primero" },
+      { slotId: "lun_comida_2", recipeId: "malo" },
+    ];
+    const violations = [{ rule: "guarnicion_repetida", slotId: "lun_comida_2", message: "" }];
+    const result = applyFallback(assignments, violations, pool, slots);
+    // No alternative exists, so the dish stays — but the gap is now reported.
+    expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("malo");
+    expect(result.unfixedViolations.map((v) => v.rule)).toContain("guarnicion_repetida");
   });
 
   it("still refuses to fill a slot when the only candidate breaks a hard constraint", () => {
