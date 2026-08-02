@@ -490,21 +490,7 @@
       "Salpimentar el guacamole",
       "Servir con los nachos para mojar"
     ],
-    "description": "Nachos de maíz con guacamole casero de aguacate",
-    "methods": [
-      {
-        "appliance": "airfryer",
-        "time": 10,
-        "difficulty": "facil",
-        "prepSummary": "Para los nachos, precalienta la airfryer a 180°C y caliéntalos durante 2-3 minutos para que queden extra crujientes. Mientras, prepara el guacamole de forma tradicional."
-      },
-      {
-        "appliance": "horno",
-        "time": 12,
-        "difficulty": "facil",
-        "prepSummary": "Precalienta el horno a 180°C y extiende los nachos en una bandeja. Caliéntalos durante 4-5 minutos hasta que estén ligeramente tostados y crujientes. El guacamole se prepara aparte de forma tradicional."
-      }
-    ]
+    "description": "Nachos de maíz con guacamole casero de aguacate"
   },
   {
     "id": "cenas_rapidas_008",

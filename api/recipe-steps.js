@@ -25,6 +25,12 @@ const APPLIANCE_LABELS = {
 const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 const MAX_STEPS = 6;
 
+// Versión del prompt de generación. Los pasos se cachean en Redis, así que un
+// cambio de prompt no llega a las recetas ya generadas a menos que cambie la
+// clave. Súbela cada vez que cambies el `system` de generateSteps().
+// v2: prohíbe inventar ingredientes fuera de la lista de la receta.
+const PROMPT_VERSION = "v2";
+
 function pickEnv(...names) {
   for (const n of names) {
     const v = process.env[n];
@@ -90,7 +96,16 @@ async function generateSteps({ name, applianceLabel, prepSummary, ingredients, b
     "electrodoméstico indicado. Devuelves SOLO un JSON válido " +
     '{"steps":["…"]} con 3 a 5 pasos breves (máx 90 caracteres cada uno), ' +
     "en español, coherentes con el electrodoméstico (temperaturas, tiempos, " +
-    "programas), sin markdown ni texto fuera del JSON.";
+    "programas), sin markdown ni texto fuera del JSON.\n" +
+    // Sin esta restricción el modelo inventaba acompañamientos que no están en
+    // la receta ("pone con brócoli pero el modo Thermomix cocina arroz"),
+    // contradiciendo el nombre, la foto y la lista de la compra del plato.
+    "REGLA CRÍTICA: usa EXCLUSIVAMENTE los ingredientes de la lista " +
+    "`ingredientes`. No añadas ni menciones ningún alimento que no esté en esa " +
+    "lista — ni guarniciones, ni bases (arroz, pasta, cuscús, patata…), ni " +
+    "verduras, ni lácteos. Solo cambia la TÉCNICA de cocinado, nunca los " +
+    "ingredientes. Si un paso tradicional usa un ingrediente que no está en la " +
+    "lista, omítelo en vez de sustituirlo por otro.";
 
   const userPayload = {
     receta: name,
@@ -152,7 +167,7 @@ export default async function handler(req, res) {
   }
 
   const applianceLabel = APPLIANCE_LABELS[appliance] ?? appliance;
-  const cacheKey = `recipe:steps:${recipeId}`;
+  const cacheKey = `recipe:steps:${PROMPT_VERSION}:${recipeId}`;
   const redis = getRedis();
 
   // 1) Try cache

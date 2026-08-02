@@ -851,6 +851,17 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     return false;
   });
 
+  // 3c. A slot that applyFallback could not fill never reaches the filter above
+  // (it isn't in slotAssignments at all), so it used to vanish with no trace —
+  // the user just saw a day with one course instead of the two configured.
+  // Surface it as a warning so the gap is at least explained, not silent.
+  const assignedSlotIds = new Set(slotAssignments.map((s) => s.slotId));
+  for (const slot of ctx.slots) {
+    if (!assignedSlotIds.has(slot.slotId)) {
+      warnings.push(`${group.label}: no hay ninguna receta compatible para ${slot.slotId}; ese plato se queda sin asignar.`);
+    }
+  }
+
   const poolById = Object.fromEntries(filteredPool.map((r) => [r.id, r]));
 
   // 4. Force fixed dishes to appear exactly timesPerWeek times (hard rule).

@@ -154,6 +154,23 @@ describe("validateMenu", () => {
     expect(violations.map((v) => v.rule)).toContain("tiempo_excedido");
   });
 
+  it("flags arroz as primero and arroz as segundo in the same meal", () => {
+    // Reported by a tester: "arroz de primero y arroz de segundo". The rule
+    // existed but was only covered for comida vs cena, never for the two
+    // courses of the same meal.
+    const pool = [
+      recipe({ id: "a", mealRole: ["primero"], name: "Arroz tres delicias", ingredients: [{ name: "Arroz" }] }),
+      recipe({ id: "b", mealRole: ["segundo"], name: "Paella de pollo", ingredients: [{ name: "Arroz" }] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "a" },
+      { slotId: "lun_comida_2", recipeId: "b" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("guarnicion_repetida");
+  });
+
   it("flags the same carb base repeated within a day", () => {
     const pool = [
       recipe({
@@ -412,6 +429,34 @@ describe("applyFallback", () => {
     // out of thin air. It's aiPlanner.js's job (not applyFallback's) to catch
     // a still-missing slot afterwards and drop it with a warning instead of
     // letting hydration resolve it against the unfiltered catalog.
+    expect(result).toEqual([]);
+  });
+
+  it("fills the segundo by relaxing carb repetition rather than leaving the meal with one dish", () => {
+    // Reported by a tester: "puse dos platos en la comida, pero un día
+    // aleatorio me pone solo 1". The only available segundo repeats the
+    // primero's carb base — a soft preference. Repeating rice beats showing
+    // a one-course lunch when two were configured.
+    const pool = [
+      recipe({ id: "primero", mealRole: ["primero"], name: "Arroz a la cubana", ingredients: [{ name: "Arroz" }] }),
+      recipe({ id: "segundo", mealRole: ["segundo"], name: "Ensalada de arroz", ingredients: [{ name: "Arroz" }] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const violations = [{ rule: "slot_faltante", slotId: "lun_comida_2", message: "" }];
+    const result = applyFallback(
+      [{ slotId: "lun_comida_1", recipeId: "primero" }],
+      violations, pool, slots,
+    );
+    expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("segundo");
+  });
+
+  it("still refuses to fill a slot when the only candidate breaks a hard constraint", () => {
+    // Relaxation must never reach maxTime/tupper — those are real user needs,
+    // not menu-quality preferences.
+    const pool = [recipe({ id: "a", mealRole: ["segundo"], time: 90 })];
+    const slots = [slot("lun_comida_2", { maxTime: 15 })];
+    const violations = [{ rule: "slot_faltante", slotId: "lun_comida_2", message: "" }];
+    const result = applyFallback([], violations, pool, slots);
     expect(result).toEqual([]);
   });
 

@@ -665,20 +665,41 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
     }
 
-    const candidate = filteredPool.find((r) => {
+    // Hard constraints: never relaxed. These are real user needs (tiempo
+    // máximo, tupper) or structural correctness (rol del plato, sin repetir
+    // receta). filteredPool is already allergen/intolerance-safe.
+    const satisfiesHard = (r) => {
       if (usedIds.has(r.id)) return false;
       if (ctx.maxTime && r.time > ctx.maxTime) return false;
       if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
-      if (ctx.preferType !== "cena_rapida" && r.category === "cenas_rapidas") return false;
-      const carb = getCarbType(r);
-      if (carb && dayCarbsUsed.has(carb)) return false;
-      if (dayHasCuchara && isPlatoCuchara(r)) return false;
 
       if (mealType === "cena") return r.mealRole.includes("cena");
       if (position === "1") return r.mealRole.some((role) => role === "primero" || role === "plato_unico");
       if (position === "2") return r.mealRole.includes("segundo");
       return true;
-    });
+    };
+
+    // Soft preferences: quality-of-menu nice-to-haves. Insisting on all of them
+    // used to leave the slot EMPTY when no candidate satisfied every single one
+    // — the user then saw a day with one dish instead of the two they'd
+    // configured, silently. A slightly repetitive second course beats a missing
+    // one, so relax these progressively instead of giving up.
+    const carbOk = (r) => { const c = getCarbType(r); return !(c && dayCarbsUsed.has(c)); };
+    const cucharaOk = (r) => !(dayHasCuchara && isPlatoCuchara(r));
+    const typeOk = (r) => ctx.preferType === "cena_rapida" || r.category !== "cenas_rapidas";
+
+    const tiers = [
+      (r) => carbOk(r) && cucharaOk(r) && typeOk(r), // ideal
+      (r) => cucharaOk(r) && typeOk(r),              // permite repetir base
+      (r) => typeOk(r),                              // permite dos de cuchara
+      () => true,                                    // lo que sea válido
+    ];
+
+    let candidate;
+    for (const softOk of tiers) {
+      candidate = filteredPool.find((r) => satisfiesHard(r) && softOk(r));
+      if (candidate) break;
+    }
 
     if (candidate) {
       result.push({ slotId: v.slotId, recipeId: candidate.id });
