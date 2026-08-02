@@ -36,6 +36,10 @@ function buildBabyPureePrompt(dishName) {
     `ninguna textura, capa o elemento diferenciado sobre la superficie — ni un solo ingrediente debe ser ` +
     `identificable a simple vista, todo forma una crema lisa de un solo color. ` +
     `Superficie totalmente lisa y mate, como un puré de bebé recién batido, sin ningún relieve. ` +
+    `El color resulta de MEZCLAR VISUALMENTE todos los ingredientes según su proporción real en la ` +
+    `receta (por ejemplo: si lleva verdura de hoja verde en cantidad significativa, el resultado debe ` +
+    `tener un tono verdoso u oliva perceptible, no el color limpio de un solo ingrediente dominante) — ` +
+    `nunca el color aislado del ingrediente más vistoso o apetitoso, sino el tono real de una mezcla batida. ` +
     `Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ` +
     `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
     `Iluminación natural difusa y suave, estética minimalista y rústica. ` +
