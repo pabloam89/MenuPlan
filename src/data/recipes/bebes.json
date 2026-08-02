@@ -519,64 +519,6 @@
     "description": "Puré de puerro y arroz con salmón, rico en omega-3, sin sal"
   },
   {
-    "id": "bebes_011",
-    "name": "Sopa de fideos con ternera y zanahoria",
-    "category": "bebes",
-    "mainProtein": "ternera",
-    "mainBase": "pasta",
-    "mealRole": [
-      "plato_unico",
-      "cena"
-    ],
-    "type": "completo",
-    "time": 15,
-    "difficulty": "facil",
-    "kcal": 175,
-    "protein_g": 11,
-    "carbs_g": 20,
-    "fat_g": 6,
-    "baseServings": 1,
-    "kidFriendly": true,
-    "tupperFriendly": true,
-    "allergens": [
-      "gluten"
-    ],
-    "season": "all",
-    "ingredients": [
-      {
-        "name": "Fideos finos",
-        "amount": 25,
-        "unit": "g"
-      },
-      {
-        "name": "Ternera magra",
-        "amount": 30,
-        "unit": "g"
-      },
-      {
-        "name": "Zanahoria",
-        "amount": 40,
-        "unit": "g"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 3,
-        "unit": "ml"
-      },
-      {
-        "name": "Caldo casero sin sal",
-        "amount": 300,
-        "unit": "ml"
-      }
-    ],
-    "steps": [
-      "Hervir caldo casero sin sal (o agua) con zanahoria rallada y ternera picada 8 min",
-      "Añadir fideos finos y cocer 5 min más",
-      "Tritura o chafa bien hasta lograr una textura adecuada y segura para la edad del bebé"
-    ],
-    "description": "Sopa de fideos con ternera y zanahoria, ideal para cena"
-  },
-  {
     "id": "bebes_012",
     "name": "Puré de garbanzos con calabaza",
     "category": "bebes",
@@ -942,60 +884,6 @@
       "Triturar todo con aceite hasta textura suave"
     ],
     "description": "Puré de espinacas y boniato con salmón, rico en omega-3, sin sal"
-  },
-  {
-    "id": "bebes_020",
-    "name": "Fideos con huevo y calabacín",
-    "category": "bebes",
-    "mainProtein": "huevo",
-    "mainBase": "pasta",
-    "mealRole": [
-      "plato_unico",
-      "cena"
-    ],
-    "type": "completo",
-    "time": 15,
-    "difficulty": "facil",
-    "kcal": 170,
-    "protein_g": 9,
-    "carbs_g": 19,
-    "fat_g": 7,
-    "baseServings": 1,
-    "kidFriendly": true,
-    "tupperFriendly": true,
-    "allergens": [
-      "huevo",
-      "gluten"
-    ],
-    "season": "all",
-    "ingredients": [
-      {
-        "name": "Fideos finos",
-        "amount": 25,
-        "unit": "g"
-      },
-      {
-        "name": "Huevo",
-        "amount": 1,
-        "unit": "ud"
-      },
-      {
-        "name": "Calabacín",
-        "amount": 60,
-        "unit": "g"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 3,
-        "unit": "ml"
-      }
-    ],
-    "steps": [
-      "Cocer fideos con calabacín rallado 8 min",
-      "Batir huevo y añadir a la sartén, cuajar bien revolviendo",
-      "Tritura o chafa bien hasta lograr una textura adecuada y segura para la edad del bebé"
-    ],
-    "description": "Fideos con huevo revuelto y calabacín, sin sal"
   },
   {
     "id": "bebes_021",
