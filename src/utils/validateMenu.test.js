@@ -5,6 +5,7 @@ import {
   applyFallback,
   carbTypeFromText,
   splitAchievableFreqs,
+  slotAcceptsRole,
 } from "./validateMenu.js";
 
 function recipe(overrides) {
@@ -24,7 +25,80 @@ function recipe(overrides) {
 
 const slot = (slotId, extra = {}) => ({ slotId, ...extra });
 
+describe("slotAcceptsRole (rol ↔ hueco)", () => {
+  const quesadillas = recipe({ id: "q", name: "Quesadillas caseras", category: "platos_unicos", mealRole: ["cena"] });
+  const lasana = recipe({ id: "l", name: "Lasaña de carne", category: "pasta_arroces", mealRole: ["plato_unico"] });
+  const crema = recipe({ id: "c", name: "Crema de calabacín", mealRole: ["primero"] });
+  const merluza = recipe({ id: "m", name: "Merluza al horno", mealRole: ["segundo"] });
+
+  it("rechaza un plato de solo cena en un hueco de comida", () => {
+    expect(slotAcceptsRole(quesadillas, { mealType: "comida", position: "1" })).toBe(false);
+    expect(slotAcceptsRole(quesadillas, { mealType: "comida", position: "2" })).toBe(false);
+    expect(slotAcceptsRole(quesadillas, { mealType: "cena" })).toBe(true);
+  });
+
+  it("rechaza un plato único como primero de una comida de dos platos", () => {
+    // Una lasaña ES la comida entera: como primero dejaba un menú
+    // desproporcionado (primero de 562 kcal + un segundo encima).
+    expect(slotAcceptsRole(lasana, { mealType: "comida", position: "1" })).toBe(false);
+  });
+
+  it("acepta un plato único cuando el hueco ES de plato único", () => {
+    expect(slotAcceptsRole(lasana, { mealType: "comida", position: "plato_unico" })).toBe(true);
+    expect(slotAcceptsRole(lasana, { mealType: "comida", preferType: "plato_unico" })).toBe(true);
+  });
+
+  it("acepta los roles correctos en sus huecos", () => {
+    expect(slotAcceptsRole(crema, { mealType: "comida", position: "1" })).toBe(true);
+    expect(slotAcceptsRole(merluza, { mealType: "comida", position: "2" })).toBe(true);
+  });
+});
+
 describe("validateMenu", () => {
+  it("REGRESIÓN: detecta Quesadillas (solo cena) como primero de una comida completa", () => {
+    // Reportado en producción. Antes devolvía valid:true con CERO violaciones:
+    // la restricción de rol vivía solo en applyFallback (camino de reparación),
+    // así que nunca se detectaba y por tanto nunca se reparaba.
+    const pool = [
+      recipe({ id: "quesadillas", name: "Quesadillas caseras", category: "platos_unicos", mealRole: ["cena"] }),
+      recipe({ id: "merluza", name: "Merluza al horno", mainProtein: "pescado_blanco", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "quesadillas" },
+      { slotId: "lun_comida_2", recipeId: "merluza" },
+    ];
+    const { valid, violations } = validateMenu(assignments, pool, slots);
+    expect(valid).toBe(false);
+    expect(violations.map((v) => v.rule)).toContain("rol_incompatible_con_hueco");
+  });
+
+  it("REGRESIÓN: detecta un plato único servido como primero", () => {
+    const pool = [
+      recipe({ id: "lasana", name: "Lasaña de carne", category: "pasta_arroces", mealRole: ["plato_unico"] }),
+      recipe({ id: "merluza", name: "Merluza al horno", mainProtein: "pescado_blanco", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "lasana" },
+      { slotId: "lun_comida_2", recipeId: "merluza" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("rol_incompatible_con_hueco");
+  });
+
+  it("applyFallback repara un rol incompatible sustituyendo por un plato del rol correcto", () => {
+    const pool = [
+      recipe({ id: "quesadillas", name: "Quesadillas caseras", category: "platos_unicos", mealRole: ["cena"] }),
+      recipe({ id: "crema", name: "Crema de calabacín", mainProtein: "none", mealRole: ["primero"] }),
+    ];
+    const slots = [slot("lun_comida_1")];
+    const assignments = [{ slotId: "lun_comida_1", recipeId: "quesadillas" }];
+    const violations = [{ rule: "rol_incompatible_con_hueco", slotId: "lun_comida_1", message: "" }];
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "lun_comida_1")?.recipeId).toBe("crema");
+  });
+
   it("passes a menu with no violations", () => {
     const pool = [recipe({ id: "a", mealRole: ["primero", "plato_unico"] })];
     const slots = [slot("lun_comida_1")];

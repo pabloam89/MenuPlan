@@ -206,6 +206,12 @@ PERFILES DE SALUD (config.healthProfiles) — ORIENTACIÓN, nunca exclusión:
 - Es una preferencia FUERTE pero SECUNDARIA a alergias, tipo de plato, variedad y tiempos. Nunca dejes un hueco sin cubrir por cumplir un perfil.
 
 RESTRICCIONES POR SLOT:
+- REGLA FUNDAMENTAL — el "mealRole" de la receta DEBE encajar con el hueco. Cada receta del catálogo trae su mealRole; respétalo SIEMPRE:
+  · slot _comida_1 (primer plato) → receta con mealRole "primero". NO valen "plato_unico" ni "cena".
+  · slot _comida_2 (segundo plato) → receta con mealRole "segundo".
+  · slot _cena → receta con mealRole "cena".
+  · slot con preferType "plato_unico" → receta con mealRole "plato_unico" (ver más abajo).
+  Un plato de solo cena (p. ej. quesadillas, tostas, wraps) NUNCA va en una comida. Un "plato_unico" (lasaña, paella, carbonara…) ES la comida entera: no lo pongas de primero con un segundo detrás, solo en un hueco marcado como plato único.
 - Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
 - Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
 - Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/quinoa/cuscús/pan) en la CENA de ese día.

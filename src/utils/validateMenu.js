@@ -199,6 +199,42 @@ export function splitAchievableFreqs(filteredPool, freqs) {
   return { achievable, warnings };
 }
 
+/**
+ * Does this recipe's mealRole fit the slot it's been placed in?
+ *
+ * SINGLE SOURCE OF TRUTH, shared by the validation rule below and by
+ * applyFallback's candidate searches. Keeping them in one function is the
+ * whole point: this constraint used to live ONLY inside applyFallback, so a
+ * cena-only dish (e.g. "Quesadillas caseras") placed in a comida slot was
+ * never flagged as a violation — and because nothing flagged it, the repair
+ * that knew perfectly well how to fix it never ran. It shipped to the user.
+ *
+ * `plato_unico` is deliberately NOT accepted for a "primero" slot: a plato
+ * único IS the whole meal (lasaña 562 kcal, carbonara 548…), so allowing it
+ * as a first course produced a first course as heavy as a main, plus a second
+ * course on top. It stays valid only where the slot itself is a single-dish
+ * meal (user-marked "plato único", or the 1_plato structure).
+ *
+ * @param {{ mealRole?: string[] }} recipe
+ * @param {{ mealType?: string, position?: string, preferType?: string }} slot
+ *   `position` accepts both the semantic form used by aiPlanner's slot
+ *   objects ("primero" | "segundo" | "plato_unico") and the raw form parsed
+ *   out of a slotId ("1" | "2"), since callers have one or the other.
+ */
+export function slotAcceptsRole(recipe, slot = {}) {
+  const roles = recipe?.mealRole ?? [];
+  const { mealType, position, preferType } = slot;
+
+  if (mealType === "cena") return roles.includes("cena");
+  if (position === "plato_unico" || preferType === "plato_unico") {
+    return roles.includes("plato_unico");
+  }
+  if (position === "primero" || position === "1") return roles.includes("primero");
+  if (position === "segundo" || position === "2") return roles.includes("segundo");
+  // Unknown/!unconstrained slot shape — don't invent a restriction.
+  return true;
+}
+
 export function validateMenu(
   slotAssignments,
   filteredPool,
@@ -261,6 +297,29 @@ export function validateMenu(
         rule: "legumbres_en_cena",
         slotId,
         message: `"${recipe.name}" es legumbre y no debería ir en cena`,
+      });
+    }
+  }
+
+  // 1b. The dish's mealRole must fit the slot it landed in. Without this rule
+  // a cena-only dish could sit as a comida's primero and nothing complained:
+  // the constraint existed solely in applyFallback, i.e. only on the repair
+  // path, so it was never detected and therefore never repaired.
+  for (const { slotId, recipeId } of slotAssignments) {
+    const recipe = poolById[recipeId];
+    if (!recipe) continue; // already flagged by rule 1
+    const parts = slotId.split("_");
+    const ctx = contextBySlot[slotId] ?? {};
+    const slotShape = {
+      mealType: ctx.mealType ?? parts[1],
+      position: ctx.position ?? parts[2],
+      preferType: ctx.preferType,
+    };
+    if (!slotAcceptsRole(recipe, slotShape)) {
+      violations.push({
+        rule: "rol_incompatible_con_hueco",
+        slotId,
+        message: `"${recipe.name}" (${(recipe.mealRole ?? []).join("/") || "sin rol"}) no encaja en ${slotId}`,
       });
     }
   }
@@ -684,11 +743,13 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (usedIds.has(r.id)) return false;
       if (ctx.maxTime && r.time > ctx.maxTime) return false;
       if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
-
-      if (mealType === "cena") return r.mealRole.includes("cena");
-      if (position === "1") return r.mealRole.some((role) => role === "primero" || role === "plato_unico");
-      if (position === "2") return r.mealRole.includes("segundo");
-      return true;
+      // Shared with the validation rule (see slotAcceptsRole) so repair can
+      // never accept something detection would reject, or vice versa.
+      return slotAcceptsRole(r, {
+        mealType: ctx.mealType ?? mealType,
+        position: ctx.position ?? position,
+        preferType: ctx.preferType,
+      });
     };
 
     // Soft preferences: quality-of-menu nice-to-haves. Insisting on all of them
@@ -749,6 +810,17 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
   for (const v of otherViolations) {
     const idx = result.findIndex((s) => s.slotId === v.slotId);
     if (idx === -1) continue;
+    // `comida_sin_segundo` reports the PRIMERO's slotId, but the actual defect
+    // is the missing SEGUNDO. When that segundo was in slotsContext it already
+    // fired `slot_faltante` and got filled by the loop above, leaving this
+    // violation stale — repairing it here would swap out a perfectly good first
+    // course for no reason. Only act on it when the day still lacks a segundo
+    // (i.e. it's genuinely a single-dish comida that isn't a plato único).
+    if (v.rule === "comida_sin_segundo") {
+      const day = v.slotId.split("_")[0];
+      const hasSegundo = result.some((s) => s.slotId === `${day}_comida_2`);
+      if (hasSegundo) continue;
+    }
     const slot = result[idx];
     const ctx = contextBySlot[slot.slotId];
     const mealType = slot.slotId.split("_")[1];
@@ -904,12 +976,12 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (mealType === "cena" && (r.category === "legumbres" || r.mainProtein === "legumbre")) return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
 
-      if (mealType === "cena" && !r.mealRole.includes("cena")) return false;
-      if (mealType === "comida") {
-        const pos = slot.slotId.split("_")[2];
-        if (pos === "1" && !r.mealRole.some((role) => role === "primero" || role === "plato_unico")) return false;
-        if (pos === "2" && !r.mealRole.includes("segundo")) return false;
-      }
+      // Same shared helper as the validation rule — see slotAcceptsRole.
+      if (!slotAcceptsRole(r, {
+        mealType: ctx?.mealType ?? mealType,
+        position: ctx?.position ?? slot.slotId.split("_")[2],
+        preferType: ctx?.preferType,
+      })) return false;
 
       if (ctx?.mode === "tupper" && !r.tupperFriendly) return false;
 
