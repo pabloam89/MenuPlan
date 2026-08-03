@@ -99,6 +99,54 @@ describe("validateMenu", () => {
     expect(result.find((s) => s.slotId === "lun_comida_1")?.recipeId).toBe("crema");
   });
 
+  it("detecta una comida desproporcionada (primero + segundo demasiado contundentes)", () => {
+    // Peor caso real del catálogo: pasta contundente de primero + carne
+    // grasa de segundo. Ninguno es inválido por separado.
+    const pool = [
+      recipe({ id: "pesto", name: "Pasta al pesto", mealRole: ["primero"], mainProtein: "none", kcal: 478 }),
+      recipe({ id: "costillas", name: "Costillas de cerdo al horno", mealRole: ["segundo"], mainProtein: "cerdo", kcal: 528 }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "pesto" },
+      { slotId: "lun_comida_2", recipeId: "costillas" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("comida_desproporcionada");
+  });
+
+  it("NO marca una comida normal (macarrones con tomate de primero es válido)", () => {
+    // Un tope por plato suelto marcaría estos macarrones como error; por eso
+    // la regla mira la pareja, no el plato.
+    const pool = [
+      recipe({ id: "macarrones", name: "Macarrones con tomate", mealRole: ["primero"], mainProtein: "none", kcal: 412 }),
+      recipe({ id: "merluza", name: "Merluza a la plancha", mealRole: ["segundo"], mainProtein: "pescado_blanco", kcal: 286 }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "macarrones" },
+      { slotId: "lun_comida_2", recipeId: "merluza" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("comida_desproporcionada");
+  });
+
+  it("applyFallback aligera la comida sustituyendo el segundo", () => {
+    const pool = [
+      recipe({ id: "pesto", name: "Pasta al pesto", mealRole: ["primero"], mainProtein: "none", kcal: 478 }),
+      recipe({ id: "costillas", name: "Costillas", mealRole: ["segundo"], mainProtein: "cerdo", kcal: 528 }),
+      recipe({ id: "merluza", name: "Merluza a la plancha", mealRole: ["segundo"], mainProtein: "pescado_blanco", kcal: 286 }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "pesto" },
+      { slotId: "lun_comida_2", recipeId: "costillas" },
+    ];
+    const violations = [{ rule: "comida_desproporcionada", slotId: "lun_comida_2", message: "" }];
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("merluza");
+  });
+
   it("passes a menu with no violations", () => {
     const pool = [recipe({ id: "a", mealRole: ["primero", "plato_unico"] })];
     const slots = [slot("lun_comida_1")];

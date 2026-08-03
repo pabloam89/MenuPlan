@@ -199,6 +199,13 @@ export function splitAchievableFreqs(filteredPool, freqs) {
   return { achievable, warnings };
 }
 
+// Soft ceiling for primero + segundo of the same comida (see rule 7b).
+// Derived from this catalog: median comida ≈ 606 kcal, p90+p90 ≈ 862, worst
+// possible pairing ≈ 1006. 850 sits above the normal range and only catches
+// two-main-sized-dishes-at-once. Tune here if the catalog's balance shifts.
+// It's a QUALITY preference: applyFallback relaxes it before leaving a hole.
+export const COMIDA_KCAL_SOFT_CAP = 850;
+
 /**
  * Does this recipe's mealRole fit the slot it's been placed in?
  *
@@ -497,6 +504,35 @@ export function validateMenu(
           message: `${daySlug}: solo hay primero "${recipe.name}" sin segundo, y no es plato_unico`,
         });
       }
+    }
+  }
+
+  // 7b. Primero + segundo shouldn't add up to a disproportionate comida.
+  //
+  // This is a PROPORTION heuristic for menu balance, not a nutritional target:
+  // it only asks that a two-course lunch not be built from two main-sized
+  // dishes at once. A cap on either dish alone would be wrong — "macarrones
+  // con tomate" (412 kcal) is a perfectly normal Spanish primero — so the
+  // rule looks at the pair. The threshold comes from this catalog's own
+  // distribution: a typical comida is ~606 kcal (median primero 228 + median
+  // segundo 378) and the heaviest possible pairing reaches ~1006. See
+  // COMIDA_KCAL_SOFT_CAP — it's a starting value, meant to be tuned.
+  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
+    const first = positions["1"];
+    const second = positions["2"];
+    if (!first || !second) continue;
+    const r1 = poolById[first.recipeId];
+    const r2 = poolById[second.recipeId];
+    if (!r1 || !r2) continue;
+    const total = (r1.kcal ?? 0) + (r2.kcal ?? 0);
+    if (total > COMIDA_KCAL_SOFT_CAP) {
+      violations.push({
+        rule: "comida_desproporcionada",
+        // Points at the segundo: swapping the main is the less disruptive fix
+        // (the primero is usually the lighter, more "structural" half).
+        slotId: second.slotId,
+        message: `${daySlug}: "${r1.name}" + "${r2.name}" suman ${total} kcal, demasiado para una comida de dos platos`,
+      });
     }
   }
 
@@ -895,6 +931,10 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // replacement for either half of a comida must never reintroduce the
     // exact protein its sibling already carries this same meal.
     let siblingProtein = null;
+    // Kcal of the other half of this comida, so a replacement can keep the
+    // pair under COMIDA_KCAL_SOFT_CAP (rule 7b). null = not a two-course
+    // comida, so there's no pair to balance.
+    let siblingKcal = null;
     {
       const pos = slot.slotId.split("_")[2];
       if (mealType === "comida" && (pos === "1" || pos === "2")) {
@@ -902,6 +942,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         const siblingRecipeId = result.find((s) => s.slotId === siblingSlotId)?.recipeId;
         const siblingRecipe = siblingRecipeId ? poolById[siblingRecipeId] : null;
         if (siblingRecipe && siblingRecipe.mainProtein !== "none") siblingProtein = siblingRecipe.mainProtein;
+        if (siblingRecipe) siblingKcal = siblingRecipe.kcal ?? 0;
       }
     }
 
@@ -939,6 +980,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       frito: (r) => !(neighborFrito && isFrito(r)),
       cuchara: (r) => !(dayHasCuchara && isPlatoCuchara(r)),
       cenaRapida: (r) => ctx?.preferType === "cena_rapida" || r.category !== "cenas_rapidas",
+      weight: (r) => siblingKcal === null || (r.kcal ?? 0) + siblingKcal <= COMIDA_KCAL_SOFT_CAP,
     };
 
     // Which guard IS the violation being repaired — mandatory in every tier.
@@ -949,12 +991,15 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       proteina_consecutiva: "protein",
       proteina_misma_comida: "sibling",
       plato_frito_consecutivo: "frito",
+      comida_desproporcionada: "weight",
       legumbres_en_cena: null,
     };
     const mandatoryGuard = GUARD_FOR_RULE[v.rule] ?? null;
 
     // Progressively drop the optional guards, most-expendable last-resort last.
-    const RELAX_ORDER = ["cenaRapida", "frito", "cuchara", "primeroGroup", "sibling", "protein", "carb"];
+    // `weight` goes early: menu balance matters less than variety/repetition,
+    // and it must never be the reason a slot can't be filled.
+    const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "sibling", "protein", "carb"];
     const guardTiers = [];
     for (let drop = 0; drop <= RELAX_ORDER.length; drop++) {
       const dropped = new Set(RELAX_ORDER.slice(RELAX_ORDER.length - drop));
