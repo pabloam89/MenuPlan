@@ -103,16 +103,20 @@ export function recipeHitsIntolerances(recipe, ruleIds) {
 }
 
 // ── Vegetarian / vegan ──────────────────────────────────────────────────
-// Deliberately NOT in INTOLERANCE_RULES / matched via recipeHitsIntolerances:
-// unlike lactose/fructose/sorbitol, the catalog already classifies every
-// recipe's protein through a structured, fixed enum (mainProtein +
-// extraProteins — see recipeSchema.js), so checking that field is far more
-// reliable than keyword-matching ingredient text (which would false-positive
-// on, say, "pollo" appearing nowhere but still miss a recipe whose only meat
-// signal is an uncommon cut name). Also never adaptable — there's no
-// vegetarian substitution for a chicken dish the way there is for milk — so
-// these ids are intentionally absent from substitutions.js SUBSTITUTION_RULES
-// and isAdaptableRestriction() correctly returns false for them by default.
+// Not in INTOLERANCE_RULES: this needs BOTH a structured check (mainProtein/
+// extraProteins) AND a keyword net over ingredients, not either alone.
+// The structured fields are the precise signal when populated — but an audit
+// of the real catalog found real gaps: dishes like "Revuelto de gambas"
+// (mainProtein "huevo", no extraProteins) or "Judías verdes rehogadas"
+// (mainProtein "none") carry real meat/fish as a flavor ingredient (jamón
+// serrano, panceta, gambas, atún) that was never captured in extraProteins.
+// A structured-only check shipped meat to vegetarian users in production
+// (see the week-scale calibration run this fixes). Keywords alone would
+// have the opposite problem (missing dishes whose only meat signal is an
+// uncommon cut name) — hence both. Never adaptable — there's no vegetarian
+// substitution for a chicken dish the way there is for milk — so these ids
+// are intentionally absent from substitutions.js SUBSTITUTION_RULES and
+// isAdaptableRestriction() correctly returns false for them by default.
 export const DIET_RULES = {
   vegetariano: { label: "Vegetariano" },
   vegano: { label: "Vegano" },
@@ -120,6 +124,20 @@ export const DIET_RULES = {
 
 const MEAT_FISH_PROTEINS = new Set([
   "pollo", "pavo", "cerdo", "ternera", "pescado_blanco", "pescado_azul", "marisco",
+]);
+
+// Ingredient-level net for meat/fish the structured fields miss (see audit
+// note above) — built from the real ingredient vocabulary used across
+// carnes.json/pescados.json plus common Spanish deli/cured-meat terms.
+const MEAT_FISH_RE = compileKeywordRegex([
+  "pollo", "pavo", "cerdo", "ternera", "cordero", "conejo",
+  "jamon", "chorizo", "panceta", "tocino", "salchich", "beicon", "bacon",
+  "morcilla", "lomo", "solomillo", "costilla", "secreto iberico", "magro",
+  "embutido", "cecina", "sobrasada", "foie",
+  "atun", "bacalao", "boqueron", "calamar", "dorada", "gamba", "langostino",
+  "lubina", "merluza", "pescadilla", "rape", "rosada", "salmon", "sardina",
+  "sepia", "trucha", "emperador", "almeja", "mejillon", "marisco", "pescado",
+  "anchoa", "caldo de carne", "caldo de pescado",
 ]);
 
 // Animal products a structured protein check can't see (dairy, honey).
@@ -132,7 +150,7 @@ const VEGAN_ANIMAL_RE = compileKeywordRegex([
 ]);
 
 /**
- * Structured diet check (vegetariano/vegano) — a sibling to
+ * Structured + keyword diet check (vegetariano/vegano) — a sibling to
  * recipeHitsIntolerances, not a replacement: call both when checking a
  * recipe against a member's restriction ids.
  * @param {Object} recipe
@@ -147,6 +165,7 @@ export function recipeViolatesDiet(recipe, restrictionIds) {
   if (ids.has("vegetariano") || ids.has("vegano")) {
     const proteins = [recipe.mainProtein, ...(recipe.extraProteins ?? [])];
     if (proteins.some((p) => MEAT_FISH_PROTEINS.has(p))) return true;
+    if (MEAT_FISH_RE.test(recipeHaystack(recipe))) return true;
   }
   if (ids.has("vegano")) {
     const proteins = [recipe.mainProtein, ...(recipe.extraProteins ?? [])];

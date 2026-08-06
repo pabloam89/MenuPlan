@@ -226,6 +226,7 @@ export function filterRecipes({
     pool = pool
       .map((r) => {
         if (hardIds.length > 0 && recipeHitsIntolerances(r, hardIds)) return null;
+        if (hardIds.length > 0 && recipeViolatesDiet(r, hardIds)) return null;
         if (adaptableIds.length > 0) {
           const { swaps, blocked } = planAdaptations(r, adaptableIds);
           if (blocked) return null;
@@ -366,6 +367,7 @@ export function filterGarnishes(
       if (recipeIngredientsHitAllergens(names, blockedAllergens)) return false;
     }
     if (hardIds.length > 0 && recipeHitsIntolerances(g, hardIds)) return false;
+    if (hardIds.length > 0 && recipeViolatesDiet(g, hardIds)) return false;
     if (hasKids && g.ingredients.some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
       return false;
     }

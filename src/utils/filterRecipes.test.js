@@ -219,6 +219,64 @@ describe("decisionCatalog health fields", () => {
   });
 });
 
+describe("filterRecipes vegetariano/vegano (real catalog, not just recipeViolatesHardSafety)", () => {
+  // Regression test: a first version wired the diet check into
+  // recipeViolatesHardSafety only, but filterRecipes() has its own separate
+  // hard-intolerance filtering step that doesn't call that helper — so meat/
+  // fish kept shipping to real vegetarian users despite the restriction
+  // being "on". This exercises the actual pool-building path, not the helper.
+  const MEAT_FISH = ["pollo", "pavo", "cerdo", "ternera", "pescado_blanco", "pescado_azul", "marisco"];
+
+  it("excludes every meat/fish recipe from the real filtered pool for vegetariano", () => {
+    const { recipes, error } = filterRecipes({ intolerances: ["vegetariano"], maxTime: 999, cookLevel: "pro" });
+    expect(error).toBeNull();
+    const leaked = recipes.filter(
+      (r) => MEAT_FISH.includes(r.mainProtein) || (r.extraProteins ?? []).some((p) => MEAT_FISH.includes(p)),
+    );
+    expect(leaked).toEqual([]);
+  });
+
+  it("excludes meat/fish/egg/dairy from the real filtered pool for vegano", () => {
+    const { recipes, error } = filterRecipes({ intolerances: ["vegano"], maxTime: 999, cookLevel: "pro" });
+    expect(error).toBeNull();
+    const leakedProtein = recipes.filter(
+      (r) =>
+        MEAT_FISH.includes(r.mainProtein) ||
+        r.mainProtein === "huevo" ||
+        (r.extraProteins ?? []).some((p) => MEAT_FISH.includes(p) || p === "huevo"),
+    );
+    expect(leakedProtein).toEqual([]);
+  });
+
+  it("excludes real catalog recipes whose meat/fish is only a flavor ingredient, not mainProtein/extraProteins", () => {
+    // Found via a full-catalog audit: these carry real meat/fish (jamón,
+    // panceta, atún, pavo) that was never coded in mainProtein/extraProteins,
+    // so the structured-only check missed them. Ids pinned so a future
+    // catalog edit that fixes the data doesn't silently stop testing the
+    // ingredient-keyword net (recipeViolatesDiet's MEAT_FISH_RE).
+    const gapRecipeIds = [
+      "huevos_011", // Revuelto de gambas — mainProtein huevo, contains gambas
+      "huevos_003", // Huevos rotos con jamón — mainProtein huevo, contains jamón
+      "cenas_rapidas_001", // Sándwich mixto — mainProtein none, contains jamón cocido
+      "ensaladas_verduras_015", // Ensaladilla rusa — mainProtein none, contains atún
+      "ensaladas_verduras_010", // Judías verdes rehogadas — mainProtein none, contains jamón serrano
+      "sopas_cremas_007", // Sopa castellana — mainProtein huevo, contains jamón + caldo de carne
+      "meriendas_003", // Bocadillo de jamón serrano — mainProtein none
+      "desayunos_005", // Tostada de pavo y queso — mainProtein none, contains pavo
+    ];
+    const { recipes } = filterRecipes({ intolerances: ["vegetariano"], maxTime: 999, cookLevel: "pro" });
+    const survivingIds = new Set(recipes.map((r) => r.id));
+    const leaked = gapRecipeIds.filter((id) => survivingIds.has(id));
+    expect(leaked).toEqual([]);
+  });
+
+  it("keeps the pool viable (enough recipes/categories survive)", () => {
+    const { recipes, error } = filterRecipes({ intolerances: ["vegetariano"], maxTime: 999, cookLevel: "pro" });
+    expect(error).toBeNull();
+    expect(recipes.length).toBeGreaterThan(25);
+  });
+});
+
 describe("decisionCatalog pantryScore", () => {
   it("omits pantryScore when zero, includes it (rounded) when positive", () => {
     const { recipes } = filterRecipes({ maxTime: 999, cookLevel: "pro", pantryIngredients: ["pollo"] });
