@@ -722,6 +722,50 @@ describe("applyFallback", () => {
     expect(validateMenu(result, pool, slots).valid).toBe(true);
   });
 
+  it("relaxes maxTime as a last resort to avoid the SAME dish twice on the SAME day (comida y cena)", () => {
+    // Reported by a tester: the same salad showed up for both comida and
+    // cena the same day. applyFallback already never relaxes maxTime — so
+    // when the only OTHER candidate ran over the time budget, it kept the
+    // exact duplicate instead. An identical dish twice in one day is worse
+    // than a distinct dish that's a few minutes over, so this is the one
+    // case allowed to relax it.
+    const pool = [
+      recipe({ id: "ensalada_a", mealRole: ["primero", "cena"], time: 10 }),
+      recipe({ id: "ensalada_b", mealRole: ["primero", "cena"], time: 35 }), // over budget
+    ];
+    const slots = [slot("lun_comida_1", { maxTime: 15 }), slot("lun_cena", { maxTime: 15 })];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "ensalada_a" },
+      { slotId: "lun_cena", recipeId: "ensalada_a" },
+    ];
+    const violations = [
+      { rule: "recipeId_repetido", slotId: "lun_cena", firstSlotId: "lun_comida_1", message: "" },
+    ];
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("ensalada_b");
+  });
+
+  it("does NOT relax maxTime for a repeat across different days — only same-day duplicates", () => {
+    const pool = [
+      recipe({ id: "ensalada_a", mealRole: ["primero", "cena"], time: 10 }),
+      recipe({ id: "ensalada_b", mealRole: ["primero", "cena"], time: 35 }), // over budget
+    ];
+    const slots = [slot("lun_cena", { maxTime: 15 }), slot("mar_cena", { maxTime: 15 })];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "ensalada_a" },
+      { slotId: "mar_cena", recipeId: "ensalada_a" },
+    ];
+    const violations = [
+      { rule: "recipeId_repetido", slotId: "mar_cena", firstSlotId: "lun_cena", message: "" },
+    ];
+    const result = applyFallback(assignments, violations, pool, slots);
+    // No in-budget alternative exists, and this isn't a same-day repeat, so
+    // the cross-day repeat stands (the normal, tolerable outcome) instead of
+    // pulling in the over-time dish.
+    expect(result.find((s) => s.slotId === "mar_cena")?.recipeId).toBe("ensalada_a");
+    expect(result.unfixedViolations.map((v) => v.rule)).toContain("recipeId_repetido");
+  });
+
   it("replaces a freq_target_not_met violation with a recipe matching the deficit category", () => {
     const pool = [
       recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["segundo"] }),

@@ -483,10 +483,15 @@ export function validateMenu(
   const usedRecipeIds = new Map();
   for (const { slotId, recipeId } of slotAssignments) {
     if (usedRecipeIds.has(recipeId)) {
+      const firstSlotId = usedRecipeIds.get(recipeId);
       violations.push({
         rule: "recipeId_repetido",
         slotId,
-        message: `recipeId "${recipeId}" ya usado en ${usedRecipeIds.get(recipeId)}`,
+        // firstSlotId (structured, not just in the message) lets applyFallback
+        // tell a same-day repeat (e.g. comida y cena del mismo plato — the
+        // worse outcome) from a cross-day one without parsing message text.
+        firstSlotId,
+        message: `recipeId "${recipeId}" ya usado en ${firstSlotId}`,
       });
     } else {
       usedRecipeIds.set(recipeId, slotId);
@@ -1009,7 +1014,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       guardTiers.push(dropped);
     }
 
-    const findReplacement = (droppedGuards) => filteredPool.find((r) => {
+    const findReplacement = (droppedGuards, { relaxMaxTime = false } = {}) => filteredPool.find((r) => {
       if (usedIds.has(r.id) && r.id !== slot.recipeId) return false;
       if (r.id === slot.recipeId) return false;
 
@@ -1018,8 +1023,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         if (!ok(r)) return false;
       }
 
-      // ── Hard constraints: never relaxed ──────────────────────────────
-      if (ctx?.maxTime && r.time > ctx.maxTime) return false;
+      // ── Hard constraints: never relaxed (maxTime is the one exception —
+      // see relaxMaxTime below) ─────────────────────────────────────────
+      if (!relaxMaxTime && ctx?.maxTime && r.time > ctx.maxTime) return false;
       if (mealType === "cena" && (r.category === "legumbres" || r.mainProtein === "legumbre")) return false;
       if (v.rule === "tupper_not_friendly" && !r.tupperFriendly) return false;
 
@@ -1065,6 +1071,21 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     for (const dropped of guardTiers) {
       replacement = findReplacement(dropped);
       if (replacement) break;
+    }
+
+    // Last resort, scoped to the worst case only: the SAME dish assigned
+    // twice on the SAME day (e.g. the same salad for comida and cena — a
+    // tester-reported "cagada"). A distinct dish that runs a few minutes over
+    // the cook-time budget reads far better than an exact same-day repeat, so
+    // this is the one case allowed to relax maxTime. Does not apply to a
+    // repeat across different days of the week — that's the normal, more
+    // tolerable repeatedForCompleteness path (see slot_faltante handling
+    // above), which stays bound by maxTime as before.
+    if (!replacement && v.rule === "recipeId_repetido" && v.firstSlotId) {
+      const sameDay = v.slotId.split("_")[0] === v.firstSlotId.split("_")[0];
+      if (sameDay) {
+        replacement = findReplacement(new Set(RELAX_ORDER), { relaxMaxTime: true });
+      }
     }
 
     if (replacement) {
