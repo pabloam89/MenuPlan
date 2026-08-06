@@ -2,7 +2,7 @@ import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarniciones from "../data/recipes/guarniciones.json";
 import { normalizeAllergenId, recipeIngredientsHitAllergens } from "../lib/allergens.js";
 import { ensureHealthFlags } from "../lib/healthFlags.js";
-import { recipeHitsIntolerances } from "../lib/intolerances.js";
+import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
 
@@ -53,6 +53,7 @@ export function recipeViolatesHardSafety(
     (id) => !isAdaptableRestriction(id),
   );
   if (hardIntolerances.length > 0 && recipeHitsIntolerances(recipe, hardIntolerances)) return true;
+  if (recipeViolatesDiet(recipe, hardIntolerances)) return true;
 
   if (hasKids && (recipe.ingredients ?? []).some((ing) => ALCOHOL_RE.test(normalizeForAlcoholCheck(ing.name)))) {
     return true;
@@ -380,12 +381,8 @@ export function filterGarnishes(
  * This is what gets sent to the LLM.
  *
  * @param {Object[]} filteredRecipes
- * @param {Object} [opts]
- * @param {boolean} [opts.includeHealth] - add macros (carbs/fat/protein) and
- *   healthFlags so the model can honor a group's health profiles. Off by
- *   default to keep the prompt lean when no profile is active.
  */
-export function decisionCatalog(filteredRecipes, { includeHealth = false } = {}) {
+export function decisionCatalog(filteredRecipes) {
   return filteredRecipes.map((r) => {
     const entry = {
       id: r.id,
@@ -398,21 +395,22 @@ export function decisionCatalog(filteredRecipes, { includeHealth = false } = {})
       kidFriendly: r.kidFriendly,
       tupperFriendly: r.tupperFriendly,
     };
+    // mainBase (dominant carb: arroz/pasta/patatas/quinoa/cuscus/pan/avena —
+    // see carbTypeFromText in validateMenu.js, the same taxonomy) lets the LLM
+    // avoid a same-day carb-base repeat itself, instead of relying solely on
+    // the post-hoc text-matching correction pass.
+    if (r.mainBase) entry.mainBase = r.mainBase;
     if (r.category === "bebes") {
       entry.protein_g = r.protein_g ?? 0;
-      if (r.mainBase) {
-        entry.mainBase = r.mainBase;
-      }
     }
-    // Macros + healthFlags only when a health profile is active in the group,
-    // so the prompt stays lean the rest of the time.
-    if (includeHealth) {
-      if (typeof r.carbs_g === "number") entry.carbs_g = r.carbs_g;
-      if (typeof r.fat_g === "number") entry.fat_g = r.fat_g;
-      if (typeof r.protein_g === "number") entry.protein_g = r.protein_g;
-      if (Array.isArray(r.healthFlags) && r.healthFlags.length > 0) {
-        entry.healthFlags = r.healthFlags;
-      }
+    // Macros + healthFlags: always sent (previously gated behind an active
+    // health profile to keep the prompt lean) so the model can reason about
+    // nutrition on every generation, not just when a healthProfile is set.
+    if (typeof r.carbs_g === "number") entry.carbs_g = r.carbs_g;
+    if (typeof r.fat_g === "number") entry.fat_g = r.fat_g;
+    if (typeof r.protein_g === "number" && r.category !== "bebes") entry.protein_g = r.protein_g;
+    if (Array.isArray(r.healthFlags) && r.healthFlags.length > 0) {
+      entry.healthFlags = r.healthFlags;
     }
     // Omit when zero/absent rather than sending "pantryScore": 0 on every
     // recipe — only meaningful (and only present) once the user has a pantry.

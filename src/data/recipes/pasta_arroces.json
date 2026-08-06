@@ -4,6 +4,7 @@
     "name": "Macarrones con tomate",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "pasta",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -75,6 +76,7 @@
     "name": "Espaguetis a la boloñesa",
     "category": "pasta_arroces",
     "mainProtein": "ternera",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -161,6 +163,7 @@
     "name": "Arroz blanco con tomate",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "arroz",
     "mealRole": [
       "primero"
     ],
@@ -231,6 +234,7 @@
     "name": "Arroz al horno",
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -310,6 +314,7 @@
     "name": "Espaguetis carbonara",
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -370,6 +375,7 @@
     "name": "Macarrones con atún",
     "category": "pasta_arroces",
     "mainProtein": "pescado_azul",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -447,6 +453,7 @@
     "name": "Arroz con pollo",
     "category": "pasta_arroces",
     "mainProtein": "pollo",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -537,6 +544,7 @@
     "name": "Fideos con carne",
     "category": "pasta_arroces",
     "mainProtein": "cerdo",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -617,6 +625,7 @@
     "name": "Arroz a la cubana",
     "category": "pasta_arroces",
     "mainProtein": "huevo",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -681,6 +690,7 @@
     "name": "Pasta al pesto",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "pasta",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -755,6 +765,7 @@
     "name": "Arroz con verduras",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "arroz",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -846,6 +857,7 @@
     "name": "Espaguetis con gambas",
     "category": "pasta_arroces",
     "mainProtein": "marisco",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -922,6 +934,7 @@
     "name": "Arroz negro",
     "category": "pasta_arroces",
     "mainProtein": "marisco",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -1015,6 +1028,7 @@
     "name": "Pasta con champiñones",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "pasta",
     "mealRole": [
       "primero",
       "cena"
@@ -1087,6 +1101,7 @@
     "name": "Arroz tres delicias",
     "category": "pasta_arroces",
     "mainProtein": "huevo",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1157,6 +1172,7 @@
     "name": "Tallarines con pollo",
     "category": "pasta_arroces",
     "mainProtein": "pollo",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -1233,6 +1249,7 @@
     "name": "Lasaña de carne",
     "category": "pasta_arroces",
     "mainProtein": "ternera",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -1317,6 +1334,7 @@
     "name": "Cannelones de carne",
     "category": "pasta_arroces",
     "mainProtein": "ternera",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -1411,6 +1429,7 @@
     "name": "Arroz caldoso con marisco",
     "category": "pasta_arroces",
     "mainProtein": "marisco",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -1486,6 +1505,7 @@
     "name": "Pasta con verduras salteadas",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "pasta",
     "mealRole": [
       "primero",
       "cena"
@@ -1562,6 +1582,7 @@
     "name": "Arroz a banda",
     "category": "pasta_arroces",
     "mainProtein": "pescado_blanco",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -1649,6 +1670,7 @@
     "name": "Espaguetis al ajo y guindilla",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "pasta",
     "mealRole": [
       "primero",
       "cena"
@@ -1715,6 +1737,7 @@
     "name": "Fideuá de pollo",
     "category": "pasta_arroces",
     "mainProtein": "pollo",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],
@@ -1801,6 +1824,7 @@
     "name": "Ensalada de pasta",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "pasta",
     "mealRole": [
       "primero",
       "cena"
@@ -1871,6 +1895,7 @@
     "name": "Risotto de champiñones",
     "category": "pasta_arroces",
     "mainProtein": "none",
+    "mainBase": "arroz",
     "mealRole": [
       "primero",
       "plato_unico"

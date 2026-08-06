@@ -209,13 +209,10 @@ describe("filterRecipes intolerances & dietary states", () => {
 });
 
 describe("decisionCatalog health fields", () => {
-  it("omits macros/healthFlags by default, includes them when includeHealth", () => {
+  it("always includes macros/healthFlags (no longer gated behind a health profile)", () => {
     const { recipes } = filterRecipes({ maxTime: 999, cookLevel: "pro" });
-    const plain = decisionCatalog(recipes);
-    expect(plain.every((e) => e.carbs_g === undefined && e.fat_g === undefined)).toBe(true);
-
-    const withHealth = decisionCatalog(recipes, { includeHealth: true });
-    const anyWithMacros = withHealth.filter(
+    const catalog = decisionCatalog(recipes);
+    const anyWithMacros = catalog.filter(
       (e) => typeof e.carbs_g === "number" || typeof e.fat_g === "number",
     );
     expect(anyWithMacros.length).toBeGreaterThan(0);

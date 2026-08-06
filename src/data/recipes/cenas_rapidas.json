@@ -4,6 +4,7 @@
     "name": "Sándwich mixto",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -71,6 +72,7 @@
     "name": "Tosta de tomate con jamón",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -137,6 +139,7 @@
     "name": "Ensalada de quinoa",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "mainBase": "quinoa",
     "mealRole": [
       "cena"
     ],
@@ -223,6 +226,7 @@
     "name": "Pan tumaca con embutido",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -289,6 +293,7 @@
     "name": "Tostada de aguacate y tomate",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -497,6 +502,7 @@
     "name": "Bruschetta de tomate",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -728,6 +734,7 @@
     "name": "Gazpacho con picatostes",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -804,6 +811,7 @@
     "name": "Huevos revueltos con tostadas",
     "category": "cenas_rapidas",
     "mainProtein": "huevo",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -865,6 +873,7 @@
     "name": "Tortilla wrap de atún",
     "category": "cenas_rapidas",
     "mainProtein": "pescado_azul",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],

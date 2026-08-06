@@ -77,6 +77,7 @@
     "name": "Sopa de fideos",
     "category": "sopas_cremas",
     "mainProtein": "none",
+    "mainBase": "pasta",
     "mealRole": [
       "primero"
     ],
@@ -954,6 +955,7 @@
     "name": "Puré de patatas gratinado",
     "category": "sopas_cremas",
     "mainProtein": "none",
+    "mainBase": "patatas",
     "mealRole": [
       "primero"
     ],

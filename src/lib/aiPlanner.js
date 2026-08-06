@@ -412,8 +412,7 @@ export function buildGroupContext(data, group) {
 
 // Exported for tests only — not used elsewhere outside this module.
 export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryStrict = false) {
-  const includeHealth = Array.isArray(config?.healthProfiles) && config.healthProfiles.length > 0;
-  const catalog = decisionCatalog(filteredRecipes, { includeHealth });
+  const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
     if (s.position) out.position = s.position;

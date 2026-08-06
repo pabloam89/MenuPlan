@@ -162,6 +162,7 @@
     "name": "Arroz con leche",
     "category": "postres",
     "mainProtein": "none",
+    "mainBase": "arroz",
     "mealRole": ["postre"],
     "type": "completo",
     "time": 45,

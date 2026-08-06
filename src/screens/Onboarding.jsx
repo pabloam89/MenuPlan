@@ -33,6 +33,7 @@ import {
   Minus,
   Plus,
   School,
+  Leaf,
   Coins,
   Dumbbell,
   Heart,
@@ -1384,6 +1385,11 @@ const INTOLERANCE_UI = [
   { id: "lactosa_fina", label: "Lactosa (intolerancia)", Icon: CircleDot, color: "#4a7ab8" },
   { id: "fructosa", label: "Fructosa", Icon: CircleDot, color: "#c0562f" },
   { id: "sorbitol", label: "Sorbitol", Icon: CircleDot, color: "#8a5a28" },
+  // Hard exclusions like the intolerances above, but matched structurally
+  // against mainProtein/extraProteins instead of by keyword — see
+  // recipeViolatesDiet in lib/intolerances.js.
+  { id: "vegetariano", label: "Vegetariano", Icon: Salad, color: "#4a8a3a" },
+  { id: "vegano", label: "Vegano", Icon: Leaf, color: "#2f7a4a" },
 ];
 
 // "Menú más cuidado" — per member (member.healthProfiles[]). Soft bias only.

@@ -101,3 +101,57 @@ export function recipeHitsIntolerances(recipe, ruleIds) {
   const haystack = recipeHaystack(recipe);
   return ids.some((id) => INTOLERANCE_RE[id].test(haystack));
 }
+
+// ── Vegetarian / vegan ──────────────────────────────────────────────────
+// Deliberately NOT in INTOLERANCE_RULES / matched via recipeHitsIntolerances:
+// unlike lactose/fructose/sorbitol, the catalog already classifies every
+// recipe's protein through a structured, fixed enum (mainProtein +
+// extraProteins — see recipeSchema.js), so checking that field is far more
+// reliable than keyword-matching ingredient text (which would false-positive
+// on, say, "pollo" appearing nowhere but still miss a recipe whose only meat
+// signal is an uncommon cut name). Also never adaptable — there's no
+// vegetarian substitution for a chicken dish the way there is for milk — so
+// these ids are intentionally absent from substitutions.js SUBSTITUTION_RULES
+// and isAdaptableRestriction() correctly returns false for them by default.
+export const DIET_RULES = {
+  vegetariano: { label: "Vegetariano" },
+  vegano: { label: "Vegano" },
+};
+
+const MEAT_FISH_PROTEINS = new Set([
+  "pollo", "pavo", "cerdo", "ternera", "pescado_blanco", "pescado_azul", "marisco",
+]);
+
+// Animal products a structured protein check can't see (dairy, honey).
+// Broader than lactosa_fina's keyword list on purpose: lactosa_fina
+// deliberately tolerates cured cheese/butter (the "fina" variant), but vegano
+// excludes all dairy outright.
+const VEGAN_ANIMAL_RE = compileKeywordRegex([
+  "leche", "nata", "mantequilla", "queso", "requeson", "yogur", "yogurt",
+  "mozzarella", "ricotta", "mascarpone", "cuajada", "miel", "bechamel",
+]);
+
+/**
+ * Structured diet check (vegetariano/vegano) — a sibling to
+ * recipeHitsIntolerances, not a replacement: call both when checking a
+ * recipe against a member's restriction ids.
+ * @param {Object} recipe
+ * @param {Iterable<string>} restrictionIds - same ids as recipeHitsIntolerances
+ * @returns {boolean}
+ */
+export function recipeViolatesDiet(recipe, restrictionIds) {
+  if (!recipe) return false;
+  const ids = new Set(restrictionIds ?? []);
+  if (ids.size === 0) return false;
+
+  if (ids.has("vegetariano") || ids.has("vegano")) {
+    const proteins = [recipe.mainProtein, ...(recipe.extraProteins ?? [])];
+    if (proteins.some((p) => MEAT_FISH_PROTEINS.has(p))) return true;
+  }
+  if (ids.has("vegano")) {
+    const proteins = [recipe.mainProtein, ...(recipe.extraProteins ?? [])];
+    if (proteins.includes("huevo")) return true;
+    if (VEGAN_ANIMAL_RE.test(recipeHaystack(recipe))) return true;
+  }
+  return false;
+}

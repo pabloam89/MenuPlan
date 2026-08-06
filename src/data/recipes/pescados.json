@@ -86,6 +86,7 @@
     "name": "Salmón al horno con patatas",
     "category": "pescados",
     "mainProtein": "pescado_azul",
+    "mainBase": "patatas",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -1536,6 +1537,7 @@
     "name": "Fideuá",
     "category": "pescados",
     "mainProtein": "marisco",
+    "mainBase": "pasta",
     "mealRole": [
       "plato_unico"
     ],

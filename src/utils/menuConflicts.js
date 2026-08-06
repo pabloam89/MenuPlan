@@ -34,7 +34,7 @@
 
 import { membersOfGroup } from "../lib/groups.js";
 import { normalizeAllergenId, recipeIngredientsHitAllergens, EU_ALLERGENS } from "../lib/allergens.js";
-import { recipeHitsIntolerances, INTOLERANCE_RULES } from "../lib/intolerances.js";
+import { recipeHitsIntolerances, recipeViolatesDiet, INTOLERANCE_RULES, DIET_RULES } from "../lib/intolerances.js";
 import { isAdaptableRestriction } from "../lib/substitutions.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 
@@ -111,9 +111,9 @@ export function findMenuRestrictionConflicts(data, menuPlan, recipesById = RECIP
         }
 
         if (hardIntolerances.size > 0) {
-          const hitId = Array.from(hardIntolerances).find((id) =>
-            recipeHitsIntolerances(recipe, [id]),
-          );
+          const hitId =
+            Array.from(hardIntolerances).find((id) => recipeHitsIntolerances(recipe, [id])) ??
+            Array.from(hardIntolerances).find((id) => recipeViolatesDiet(recipe, [id]));
           if (hitId) {
             conflicts.push({
               groupId: group.id,
@@ -124,7 +124,7 @@ export function findMenuRestrictionConflicts(data, menuPlan, recipesById = RECIP
               recipeName: recipe.name,
               restrictionType: "intolerance",
               restrictionId: hitId,
-              restrictionLabel: INTOLERANCE_RULES[hitId]?.label ?? hitId,
+              restrictionLabel: INTOLERANCE_RULES[hitId]?.label ?? DIET_RULES[hitId]?.label ?? hitId,
             });
           }
         }

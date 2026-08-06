@@ -4,6 +4,7 @@
     "name": "Pollo al horno con patatas",
     "category": "carnes",
     "mainProtein": "pollo",
+    "mainBase": "patatas",
     "mealRole": [
       "segundo",
       "plato_unico"
@@ -249,6 +250,7 @@
     "name": "Filetes de lomo empanados",
     "category": "carnes",
     "mainProtein": "cerdo",
+    "mainBase": "pan",
     "mealRole": [
       "segundo"
     ],
@@ -568,6 +570,7 @@
     "category": "carnes",
     "baseDishId": "carnes_005",
     "mainProtein": "ternera",
+    "mainBase": "patatas",
     "mealRole": [
       "plato_unico"
     ],

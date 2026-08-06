@@ -736,6 +736,7 @@
     "name": "Lentejas con arroz",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "mainBase": "arroz",
     "mealRole": [
       "primero",
       "plato_unico"
@@ -1150,6 +1151,7 @@
     "name": "Judías pintas con arroz",
     "category": "legumbres",
     "mainProtein": "legumbre",
+    "mainBase": "arroz",
     "mealRole": [
       "primero",
       "plato_unico"

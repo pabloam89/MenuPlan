@@ -22,14 +22,16 @@ const CORRECTABLE_HEALTH_PROFILES = new Set(
 // Matches recipe name + ingredient list, most specific pattern first.
 const CARB_PATTERNS = [
   [/arroz|paella|risotto/, "arroz"],
-  [/pasta|macarr[oó]n|espagueti|tallar[íi]n|fideo|penne|lasa[ñn]a|canelones|ravioli/, "pasta"],
+  [/pasta|macarr[oó]n|espagueti|tallar[íi]n|fideo|fideu[áa]|penne|lasa[ñn]a|can+elones|ravioli/, "pasta"],
   [/patata|papa\b|boniato|batata/, "patatas"],
   [/quinoa/, "quinoa"],
   [/c[uú]sc[uú]s|couscous|s[ée]mola|bulgur/, "cuscus"],
   // Wheat-flour bases all count as "pan": a pizza for lunch and a bocadillo
   // for dinner is the same repetition the rule exists to prevent, but until
   // these were listed the menu could serve both on the same day undetected.
-  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|rebanada|picatoste|pizza|wrap|quesadilla|masa quebrada|hojaldre/, "pan"],
+  // "empanad" (no boundary) catches empanada/empanadilla; "tosta" catches the
+  // common short form used throughout the catalog alongside "tostada".
+  [/\bpan\b|s[áa]ndwich|bocadillo|tostada|\btosta\b|bruschetta|rebanada|picatoste|pizza|wrap|burrito|quesadilla|empanad|migas|masa quebrada|hojaldre/, "pan"],
   [/avena|porridge/, "avena"],
 ];
 

@@ -4,6 +4,7 @@
     "name": "Paella valenciana",
     "category": "platos_unicos",
     "mainProtein": "pollo",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -82,6 +83,7 @@
     "name": "Pizza casera",
     "category": "platos_unicos",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -256,6 +258,7 @@
     "name": "Empanada gallega de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
+    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -341,6 +344,7 @@
     "name": "Empanadillas de atún",
     "category": "platos_unicos",
     "mainProtein": "pescado_azul",
+    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -589,6 +593,7 @@
     "name": "Patatas rellenas de carne",
     "category": "platos_unicos",
     "mainProtein": "ternera",
+    "mainBase": "patatas",
     "mealRole": [
       "plato_unico"
     ],
@@ -666,6 +671,7 @@
     "name": "Wrap de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
+    "mainBase": "pan",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -840,6 +846,7 @@
     "name": "Migas manchegas",
     "category": "platos_unicos",
     "mainProtein": "cerdo",
+    "mainBase": "pan",
     "mealRole": [
       "plato_unico"
     ],
@@ -908,6 +915,7 @@
     "name": "Pimientos rellenos de arroz",
     "category": "platos_unicos",
     "mainProtein": "none",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -1144,6 +1152,7 @@
     "name": "Patatas bravas con huevo",
     "category": "platos_unicos",
     "mainProtein": "huevo",
+    "mainBase": "patatas",
     "mealRole": [
       "cena",
       "plato_unico"
@@ -1221,6 +1230,7 @@
     "name": "Bocadillo de tortilla",
     "category": "platos_unicos",
     "mainProtein": "huevo",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
@@ -1280,6 +1290,7 @@
     "name": "Burritos caseros de pollo",
     "category": "platos_unicos",
     "mainProtein": "pollo",
+    "mainBase": "pan",
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1364,6 +1375,7 @@
     "name": "Paella de marisco",
     "category": "platos_unicos",
     "mainProtein": "marisco",
+    "mainBase": "arroz",
     "mealRole": [
       "plato_unico"
     ],
@@ -1446,6 +1458,7 @@
     "name": "Quesadillas caseras",
     "category": "platos_unicos",
     "mainProtein": "none",
+    "mainBase": "pan",
     "mealRole": [
       "cena"
     ],
