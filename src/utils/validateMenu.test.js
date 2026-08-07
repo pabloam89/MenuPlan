@@ -722,6 +722,32 @@ describe("applyFallback", () => {
     expect(validateMenu(result, pool, slots).valid).toBe(true);
   });
 
+  it("fixes proteina_repetida_en_comida without trading it for another same-protein dish", () => {
+    // Bug: GUARD_FOR_RULE's key was misspelled ("proteina_misma_comida"
+    // instead of the real rule name "proteina_repetida_en_comida"), so the
+    // "sibling" guard — the one that stops a replacement from carrying the
+    // sibling course's protein — was never protected as mandatory and could
+    // be dropped like any other soft preference. Reported by a tester: two
+    // egg dishes (primero + segundo) in the same comida.
+    const pool = [
+      recipe({ id: "huevos_primero", mainProtein: "huevo", mealRole: ["primero"] }),
+      recipe({ id: "huevos_segundo", mainProtein: "huevo", mealRole: ["segundo"] }), // currently assigned (flagged)
+      recipe({ id: "huevos_otro", mainProtein: "huevo", mealRole: ["segundo"] }), // still wrong — earlier in pool order
+      recipe({ id: "pollo_segundo", mainProtein: "pollo", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "huevos_primero" },
+      { slotId: "lun_comida_2", recipeId: "huevos_segundo" },
+    ];
+    const violations = [
+      { rule: "proteina_repetida_en_comida", slotId: "lun_comida_2", message: "" },
+    ];
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("pollo_segundo");
+    expect(validateMenu(result, pool, slots).valid).toBe(true);
+  });
+
   it("relaxes maxTime as a last resort to avoid the SAME dish twice on the SAME day (comida y cena)", () => {
     // Reported by a tester: the same salad showed up for both comida and
     // cena the same day. applyFallback already never relaxes maxTime — so
@@ -745,7 +771,12 @@ describe("applyFallback", () => {
     expect(result.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("ensalada_b");
   });
 
-  it("does NOT relax maxTime for a repeat across different days — only same-day duplicates", () => {
+  it("also relaxes maxTime for a repeat across DIFFERENT days of the week (not just same-day)", () => {
+    // Reported by a tester: "Pimientos del padrón" showed up as the comida
+    // primero on both Monday and Thursday of the same week. A first version
+    // of this fix only covered same-day duplicates — widened after the
+    // report to any repeat within the week, since a distinct dish running
+    // over the time budget still beats reusing a recipeId already in the menu.
     const pool = [
       recipe({ id: "ensalada_a", mealRole: ["primero", "cena"], time: 10 }),
       recipe({ id: "ensalada_b", mealRole: ["primero", "cena"], time: 35 }), // over budget
@@ -759,9 +790,20 @@ describe("applyFallback", () => {
       { rule: "recipeId_repetido", slotId: "mar_cena", firstSlotId: "lun_cena", message: "" },
     ];
     const result = applyFallback(assignments, violations, pool, slots);
-    // No in-budget alternative exists, and this isn't a same-day repeat, so
-    // the cross-day repeat stands (the normal, tolerable outcome) instead of
-    // pulling in the over-time dish.
+    expect(result.find((s) => s.slotId === "mar_cena")?.recipeId).toBe("ensalada_b");
+  });
+
+  it("still leaves the repeat as unfixed when literally no distinct recipe fits the role at all", () => {
+    const pool = [recipe({ id: "ensalada_a", mealRole: ["primero", "cena"], time: 10 })];
+    const slots = [slot("lun_cena", { maxTime: 15 }), slot("mar_cena", { maxTime: 15 })];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "ensalada_a" },
+      { slotId: "mar_cena", recipeId: "ensalada_a" },
+    ];
+    const violations = [
+      { rule: "recipeId_repetido", slotId: "mar_cena", firstSlotId: "lun_cena", message: "" },
+    ];
+    const result = applyFallback(assignments, violations, pool, slots);
     expect(result.find((s) => s.slotId === "mar_cena")?.recipeId).toBe("ensalada_a");
     expect(result.unfixedViolations.map((v) => v.rule)).toContain("recipeId_repetido");
   });

@@ -60,6 +60,55 @@ describe("pairGarnishes", () => {
     expect(result[0].garnishId).toBeUndefined();
   });
 
+  it("skips a garnish that would push the comida (primero + segundo + garnish) over the kcal cap", () => {
+    // Tester report: "Huevos fritos con puntillas" (312kcal segundo) + the
+    // "Arroz blanco" garnish (270kcal) landed at ~580kcal combined with a
+    // light primero — heavy enough to basically duplicate "Arroz a la
+    // cubana" while still being paired with a starter. COMIDA_KCAL_SOFT_CAP
+    // is 850, so a light primero (100) + this segundo (600) + a heavy
+    // garnish (200) would total 900 — over the cap — and must be skipped in
+    // favor of a lighter garnish that stays under it.
+    const pool = {
+      primero: { id: "primero", type: "principal", kcal: 100, ingredients: [] },
+      p1: principal({ kcal: 600 }),
+    };
+    const slots = [
+      { slotId: "lun_comida_1", recipeId: "primero" },
+      { slotId: "lun_comida_2", recipeId: "p1" },
+    ];
+    const safe = [
+      garnish({ id: "heavy", kcal: 200 }),
+      garnish({ id: "light", kcal: 80, shortName: "guarnicion ligera" }),
+    ];
+    const result = pairGarnishes(slots, pool, {}, safe);
+    const segundo = result.find((s) => s.slotId === "lun_comida_2");
+    expect(segundo.garnishId).toBe("light");
+  });
+
+  it("falls back to the kcal-cap-breaking garnish rather than leaving the segundo with none", () => {
+    const pool = {
+      primero: { id: "primero", type: "principal", kcal: 100, ingredients: [] },
+      p1: principal({ kcal: 600 }),
+    };
+    const slots = [
+      { slotId: "lun_comida_1", recipeId: "primero" },
+      { slotId: "lun_comida_2", recipeId: "p1" },
+    ];
+    // Only a heavy option exists — no garnish would ever be worse than none.
+    const safe = [garnish({ id: "heavy", kcal: 200 })];
+    const result = pairGarnishes(slots, pool, {}, safe);
+    const segundo = result.find((s) => s.slotId === "lun_comida_2");
+    expect(segundo.garnishId).toBe("heavy");
+  });
+
+  it("does not apply the kcal cap to cena (no sibling comida course to guard against)", () => {
+    const pool = { p1: principal({ kcal: 600 }) };
+    const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
+    const safe = [garnish({ id: "heavy", kcal: 400 })];
+    const result = pairGarnishes(slots, pool, {}, safe);
+    expect(result[0].garnishId).toBe("heavy");
+  });
+
   it("a user-pinned garnish wins even when excluded from the safe list (explicit choice overrides automatic filtering)", () => {
     // guarniciones_003 "Puré de patatas" carries a real declared "lactosa"
     // allergen in the bundled catalog — simulating a pin made before this

@@ -996,7 +996,13 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       guarnicion_cena_consecutiva: "carb",
       school_carb_conflict: "carb",
       proteina_consecutiva: "protein",
-      proteina_misma_comida: "sibling",
+      // Bug fix: this key must match the actual rule name pushed at "3b" above
+      // (proteina_repetida_en_comida) — it never did, so the "sibling" guard
+      // (the one that stops a replacement from carrying the sibling course's
+      // exact protein) was never protected as mandatory for this violation and
+      // could be dropped like any other soft preference. Two egg dishes in the
+      // same comida ("muy mal", tester report) is exactly what this let through.
+      proteina_repetida_en_comida: "sibling",
       plato_frito_consecutivo: "frito",
       comida_desproporcionada: "weight",
       legumbres_en_cena: null,
@@ -1073,19 +1079,15 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       if (replacement) break;
     }
 
-    // Last resort, scoped to the worst case only: the SAME dish assigned
-    // twice on the SAME day (e.g. the same salad for comida and cena — a
-    // tester-reported "cagada"). A distinct dish that runs a few minutes over
-    // the cook-time budget reads far better than an exact same-day repeat, so
-    // this is the one case allowed to relax maxTime. Does not apply to a
-    // repeat across different days of the week — that's the normal, more
-    // tolerable repeatedForCompleteness path (see slot_faltante handling
-    // above), which stays bound by maxTime as before.
-    if (!replacement && v.rule === "recipeId_repetido" && v.firstSlotId) {
-      const sameDay = v.slotId.split("_")[0] === v.firstSlotId.split("_")[0];
-      if (sameDay) {
-        replacement = findReplacement(new Set(RELAX_ORDER), { relaxMaxTime: true });
-      }
+    // Last resort: a distinct dish that runs a few minutes over the cook-time
+    // budget reads far better than repeating a recipeId already used
+    // elsewhere in the week — same-day (e.g. the same salad for comida and
+    // cena) or across different days (e.g. the same primero on Monday and
+    // Thursday), both tester-reported. This is the one violation allowed to
+    // relax maxTime, and only as the true last resort after every other
+    // guard is already dropped.
+    if (!replacement && v.rule === "recipeId_repetido") {
+      replacement = findReplacement(new Set(RELAX_ORDER), { relaxMaxTime: true });
     }
 
     if (replacement) {
