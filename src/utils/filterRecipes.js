@@ -402,6 +402,12 @@ export function decisionCatalog(filteredRecipes) {
     // avoid a same-day carb-base repeat itself, instead of relying solely on
     // the post-hoc text-matching correction pass.
     if (r.mainBase) entry.mainBase = r.mainBase;
+    // Secondary animal proteins (jamón in a veg dish, atún in a salad…). The
+    // consecutive-protein rule in validateMenu.js counts these via
+    // proteinGroupsOf, so the model needs them to apply that rule itself —
+    // otherwise "Judías verdes rehogadas" reads as mainProtein "none" and it
+    // can't tell the dish carries meat.
+    if (r.extraProteins?.length) entry.extraProteins = r.extraProteins;
     if (r.category === "bebes") {
       entry.protein_g = r.protein_g ?? 0;
     }

@@ -169,6 +169,9 @@
     "name": "Menestra de verduras con jamón",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "primero"
     ],
@@ -736,6 +739,9 @@
     "name": "Judías verdes rehogadas",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "primero"
     ],
@@ -1097,6 +1103,9 @@
     "name": "Ensaladilla rusa",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
+    "extraProteins": [
+      "pescado_azul"
+    ],
     "mealRole": [
       "primero"
     ],
@@ -1185,6 +1194,9 @@
     "name": "Alcachofas salteadas",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "primero"
     ],
@@ -1633,6 +1645,9 @@
     "name": "Coles de Bruselas salteadas",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "primero"
     ],

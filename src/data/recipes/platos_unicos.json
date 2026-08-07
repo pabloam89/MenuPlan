@@ -163,6 +163,9 @@
     "name": "Croquetas de jamón",
     "category": "platos_unicos",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena",
       "plato_unico"
@@ -429,6 +432,9 @@
     "name": "Crepes de jamón y queso",
     "category": "platos_unicos",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena",
       "plato_unico"
@@ -996,6 +1002,9 @@
     "name": "Calzone casero",
     "category": "platos_unicos",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "plato_unico",
       "cena"
@@ -1458,6 +1467,9 @@
     "name": "Quesadillas caseras",
     "category": "platos_unicos",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mainBase": "pan",
     "mealRole": [
       "cena"
@@ -1531,6 +1543,9 @@
     "name": "Huevos a la riojana",
     "category": "platos_unicos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "plato_unico",
       "cena"

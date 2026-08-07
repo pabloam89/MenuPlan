@@ -1,4 +1,7 @@
 import { describe, it, expect } from "vitest";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   validateMenu,
   buildCorrectionMessage,
@@ -6,6 +9,7 @@ import {
   carbTypeFromText,
   splitAchievableFreqs,
   slotAcceptsRole,
+  GUARD_FOR_RULE,
 } from "./validateMenu.js";
 
 function recipe(overrides) {
@@ -24,6 +28,66 @@ function recipe(overrides) {
 }
 
 const slot = (slotId, extra = {}) => ({ slotId, ...extra });
+
+describe("GUARD_FOR_RULE stays in sync with the rules validateMenu actually emits", () => {
+  // Meta-test, deliberately reading the source: three keys in this map were
+  // wrong or missing (a misspelled "proteina_misma_comida", a
+  // "plato_frito_consecutivo" that never existed, plus two rules never mapped
+  // at all). Each silently disabled the guard meant to protect that repair, so
+  // applyFallback could "fix" a violation by swapping in another dish breaking
+  // the same rule — how two egg dishes ended up in one comida. A hand-kept
+  // list of rule names would drift the same way, so both sides are extracted
+  // from the real source instead.
+  const SOURCE = fs.readFileSync(
+    path.join(path.dirname(fileURLToPath(import.meta.url)), "validateMenu.js"),
+    "utf-8",
+  );
+
+  const emittedRuleNames = new Set(
+    [...SOURCE.matchAll(/rule:\s*"([A-Za-z_]+)"/g)].map((m) => m[1]),
+  );
+  const softGuardKeys = new Set(
+    [...(SOURCE.match(/const softGuards = \{[\s\S]*?\n {4}\};/) ?? [""])[0].matchAll(
+      /^ {6}([a-zA-Z]+):/gm,
+    )].map((m) => m[1]),
+  );
+
+  it("extracts a plausible set of rule names and guard keys from the source", () => {
+    // Guards the regexes themselves: if they silently matched nothing, every
+    // assertion below would vacuously pass.
+    expect(emittedRuleNames.size).toBeGreaterThan(15);
+    expect(softGuardKeys.size).toBeGreaterThan(5);
+    expect(emittedRuleNames).toContain("proteina_repetida_en_comida");
+    expect(softGuardKeys).toContain("sibling");
+  });
+
+  it("every GUARD_FOR_RULE key is a rule name validateMenu really emits", () => {
+    const unknown = Object.keys(GUARD_FOR_RULE).filter((r) => !emittedRuleNames.has(r));
+    expect(unknown).toEqual([]);
+  });
+
+  it("every GUARD_FOR_RULE value is a real softGuards key", () => {
+    const unknown = Object.values(GUARD_FOR_RULE)
+      .filter((g) => g !== null)
+      .filter((g) => !softGuardKeys.has(g));
+    expect(unknown).toEqual([]);
+  });
+
+  it("maps every rule that has a corresponding guard (no silent gaps)", () => {
+    // Rules with no meaningful guard counterpart: structural/hard failures the
+    // repair handles by other means, not by relaxing a soft preference.
+    const INTENTIONALLY_UNMAPPED = new Set([
+      "slot_faltante", "recipeId_not_in_catalog", "rol_incompatible_con_hueco",
+      "tiempo_excedido", "tupper_not_friendly", "recipeId_repetido",
+      "comida_sin_segundo", "health_profile_conflict", "freq_target_not_met",
+      "school_protein_conflict", "legumbres_en_cena",
+    ]);
+    const unmapped = [...emittedRuleNames].filter(
+      (r) => !(r in GUARD_FOR_RULE) && !INTENTIONALLY_UNMAPPED.has(r),
+    );
+    expect(unmapped).toEqual([]);
+  });
+});
 
 describe("slotAcceptsRole (rol ↔ hueco)", () => {
   const quesadillas = recipe({ id: "q", name: "Quesadillas caseras", category: "platos_unicos", mealRole: ["cena"] });
@@ -720,6 +784,33 @@ describe("applyFallback", () => {
     expect(fixed).toBe("pescado_segundo");
     // Re-validating confirms the conflict is actually gone, not just relabeled.
     expect(validateMenu(result, pool, slots).valid).toBe(true);
+  });
+
+  it("relaxes the kcal cap (weight) before the carb-repetition guard, not the other way round", () => {
+    // The tier loop used to slice RELAX_ORDER from the END, relaxing guards in
+    // exactly the reverse of the documented intent: `carb` (the "arroz de
+    // primero y arroz de segundo" a tester reported) was the FIRST to go and
+    // `weight` the last. Here the only two candidates each break one of those:
+    // the correct pick is the one that busts the kcal cap while keeping the
+    // carb bases distinct.
+    const pool = [
+      recipe({ id: "primero", mealRole: ["primero"], name: "Arroz blanco", kcal: 400, ingredients: [{ name: "Arroz" }] }),
+      recipe({ id: "malo", mealRole: ["segundo"], name: "Pollo asado", kcal: 300, mainProtein: "pollo", ingredients: [] }),
+      // Repeats the primero's carb base but is light -> respects `weight`, breaks `carb`.
+      recipe({ id: "mismo_arroz", mealRole: ["segundo"], name: "Paella de pollo", kcal: 300, mainProtein: "pollo", ingredients: [{ name: "Arroz" }] }),
+      // Different base but heavy -> breaks `weight`, respects `carb`. Preferred.
+      recipe({ id: "pesado_distinto", mealRole: ["segundo"], name: "Ternera con patatas", kcal: 600, mainProtein: "ternera", ingredients: [{ name: "Patata" }] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "primero" },
+      { slotId: "lun_comida_2", recipeId: "malo" },
+    ];
+    // Repair driven by a rule whose mandatory guard is neither weight nor carb,
+    // so both stay merely "soft" and their relaxation ORDER is what decides.
+    const violations = [{ rule: "proteina_consecutiva", slotId: "lun_comida_2", message: "" }];
+    const result = applyFallback(assignments, violations, pool, slots);
+    expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("pesado_distinto");
   });
 
   it("fixes proteina_repetida_en_comida without trading it for another same-protein dish", () => {

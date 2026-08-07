@@ -1101,6 +1101,9 @@
     "name": "Arroz tres delicias",
     "category": "pasta_arroces",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mainBase": "arroz",
     "mealRole": [
       "plato_unico",

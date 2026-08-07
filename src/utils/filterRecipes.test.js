@@ -208,6 +208,34 @@ describe("filterRecipes intolerances & dietary states", () => {
   });
 });
 
+describe("decisionCatalog sends the fields the SYSTEM_PROMPT tells the model to use", () => {
+  // The prompt instructs the model to apply the carb-base rule via "mainBase"
+  // and the consecutive-protein rule via "extraProteins". If decisionCatalog
+  // stops sending either, those instructions become silently unactionable —
+  // the model can't see the field it's being told to read.
+  const { recipes } = filterRecipes({ maxTime: 999, cookLevel: "pro" });
+  const catalog = decisionCatalog(recipes);
+  const byId = Object.fromEntries(catalog.map((e) => [e.id, e]));
+
+  it("sends mainBase for dishes that declare one", () => {
+    expect(byId["pasta_arroces_003"]?.mainBase).toBe("arroz"); // Arroz blanco con tomate
+    expect(catalog.filter((e) => e.mainBase).length).toBeGreaterThan(30);
+  });
+
+  it("sends extraProteins for dishes that declare one", () => {
+    // Both season "all", so they survive the pool's seasonal filter whatever
+    // time of year the suite runs (Cocido madrileño is winter-only and would
+    // make this test pass or fail depending on the month).
+    expect(byId["huevos_011"]?.extraProteins).toContain("marisco"); // Revuelto de gambas
+    expect(byId["ensaladas_verduras_010"]?.extraProteins).toContain("cerdo"); // Judías verdes con jamón
+    expect(catalog.filter((e) => e.extraProteins).length).toBeGreaterThan(15);
+  });
+
+  it("sends kcal on every entry (the comida kcal cap depends on it)", () => {
+    expect(catalog.every((e) => typeof e.kcal === "number")).toBe(true);
+  });
+});
+
 describe("decisionCatalog health fields", () => {
   it("always includes macros/healthFlags (no longer gated behind a health profile)", () => {
     const { recipes } = filterRecipes({ maxTime: 999, cookLevel: "pro" });

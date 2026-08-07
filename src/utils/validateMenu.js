@@ -738,6 +738,34 @@ export function buildCorrectionMessage(violations) {
 }
 
 /**
+ * Which soft guard IS the violation being repaired — that guard is mandatory
+ * in every relaxation tier, since dropping it would let the repair "fix" a
+ * violation by swapping in another dish that breaks the very same rule.
+ *
+ * EVERY key must be a rule name actually emitted by validateMenu(). A key
+ * matching no real rule silently disables the guard it was meant to protect —
+ * exactly the bug that shipped two egg dishes in one comida, two fried dishes
+ * in a row, and a same-day protein-group clash. Exported so the test suite can
+ * cross-check the keys against the rule names the source really emits, which
+ * is what stops this map from drifting again.
+ *
+ * A rule mapped to `null` (or absent) deliberately has no corresponding guard.
+ */
+export const GUARD_FOR_RULE = {
+  guarnicion_repetida: "carb",
+  guarnicion_cena_consecutiva: "carb",
+  school_carb_conflict: "carb",
+  proteina_consecutiva: "protein",
+  proteina_repetida_en_comida: "sibling",
+  proteina_repetida_en_dia: "primeroGroup",
+  dos_fritos_seguidos: "frito",
+  dos_cuchara_mismo_dia: "cuchara",
+  cena_rapida_no_solicitada: "cenaRapida",
+  comida_desproporcionada: "weight",
+  legumbres_en_cena: null,
+};
+
+/**
  * Deterministic fallback: fix violations by replacing offending recipes
  * with the first valid alternative from the filtered pool.
  * Also fills missing slots that the LLM omitted.
@@ -990,32 +1018,24 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       weight: (r) => siblingKcal === null || (r.kcal ?? 0) + siblingKcal <= COMIDA_KCAL_SOFT_CAP,
     };
 
-    // Which guard IS the violation being repaired — mandatory in every tier.
-    const GUARD_FOR_RULE = {
-      guarnicion_repetida: "carb",
-      guarnicion_cena_consecutiva: "carb",
-      school_carb_conflict: "carb",
-      proteina_consecutiva: "protein",
-      // Bug fix: this key must match the actual rule name pushed at "3b" above
-      // (proteina_repetida_en_comida) — it never did, so the "sibling" guard
-      // (the one that stops a replacement from carrying the sibling course's
-      // exact protein) was never protected as mandatory for this violation and
-      // could be dropped like any other soft preference. Two egg dishes in the
-      // same comida ("muy mal", tester report) is exactly what this let through.
-      proteina_repetida_en_comida: "sibling",
-      plato_frito_consecutivo: "frito",
-      comida_desproporcionada: "weight",
-      legumbres_en_cena: null,
-    };
+    // See GUARD_FOR_RULE at module scope for why this mapping matters.
     const mandatoryGuard = GUARD_FOR_RULE[v.rule] ?? null;
 
-    // Progressively drop the optional guards, most-expendable last-resort last.
-    // `weight` goes early: menu balance matters less than variety/repetition,
-    // and it must never be the reason a slot can't be filled.
+    // Progressively drop the optional guards, MOST EXPENDABLE FIRST — the
+    // array is ordered accordingly: `weight` (menu balance) is the first to go
+    // and must never be the reason a slot can't be filled, while `carb` (the
+    // "arroz de primero y arroz de segundo" a tester reported) is protected
+    // longest and only dropped as the very last resort.
+    //
+    // This used to slice from the END (`slice(length - drop)`), which relaxed
+    // the list in exactly the reverse of the documented intent: `carb` was
+    // dropped first and `weight` last. Every extra guard kept while a better
+    // candidate exists is fine; dropping the important ones first is what
+    // produced visibly-bad menus.
     const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "sibling", "protein", "carb"];
     const guardTiers = [];
     for (let drop = 0; drop <= RELAX_ORDER.length; drop++) {
-      const dropped = new Set(RELAX_ORDER.slice(RELAX_ORDER.length - drop));
+      const dropped = new Set(RELAX_ORDER.slice(0, drop));
       dropped.delete(mandatoryGuard);
       guardTiers.push(dropped);
     }

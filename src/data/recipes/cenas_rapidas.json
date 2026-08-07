@@ -4,6 +4,9 @@
     "name": "Sándwich mixto",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mainBase": "pan",
     "mealRole": [
       "cena"
@@ -72,6 +75,9 @@
     "name": "Tosta de tomate con jamón",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mainBase": "pan",
     "mealRole": [
       "cena"
@@ -574,6 +580,9 @@
     "name": "Rollitos de jamón y queso",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena"
     ],
@@ -622,6 +631,9 @@
     "name": "Tabla de quesos y embutidos",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena"
     ],
@@ -946,6 +958,9 @@
     "name": "Sopa fría de melón",
     "category": "cenas_rapidas",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena"
     ],

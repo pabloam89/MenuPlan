@@ -318,6 +318,9 @@
     "name": "Salmorejo cordobés",
     "category": "sopas_cremas",
     "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "primero",
       "cena"
@@ -483,6 +486,9 @@
     "name": "Sopa castellana",
     "category": "sopas_cremas",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "primero",
       "plato_unico"

@@ -102,6 +102,9 @@
     "name": "Huevos rotos con jamón",
     "category": "huevos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "segundo",
       "cena",
@@ -229,6 +232,9 @@
     "name": "Revuelto de ajetes",
     "category": "huevos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "marisco"
+    ],
     "mealRole": [
       "cena",
       "primero"
@@ -436,6 +442,9 @@
     "name": "Huevos al plato",
     "category": "huevos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena"
     ],
@@ -513,6 +522,9 @@
     "name": "Huevos rellenos",
     "category": "huevos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "pescado_azul"
+    ],
     "mealRole": [
       "primero",
       "cena"
@@ -586,6 +598,9 @@
     "name": "Revuelto de gambas",
     "category": "huevos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "marisco"
+    ],
     "mealRole": [
       "cena",
       "segundo"
@@ -700,6 +715,9 @@
     "name": "Huevos a la flamenca",
     "category": "huevos",
     "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
     "mealRole": [
       "cena",
       "plato_unico"
