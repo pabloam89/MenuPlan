@@ -684,38 +684,5 @@
       "Terminar con perejil picado y salpimentar"
     ],
     "description": "Champiñones laminados salteados con ajo y perejil"
-  },
-  {
-    "id": "guarniciones_022",
-    "name": "Pepino con yogur y menta",
-    "shortName": "pepino con yogur",
-    "category": "guarniciones",
-    "mainProtein": "none",
-    "mealRole": ["guarnicion"],
-    "type": "guarnicion",
-    "time": 5,
-    "difficulty": "facil",
-    "kcal": 60,
-    "protein_g": 3,
-    "carbs_g": 6,
-    "fat_g": 2,
-    "baseServings": 2,
-    "kidFriendly": true,
-    "tupperFriendly": false,
-    "allergens": ["lactosa"],
-    "season": "verano",
-    "ingredients": [
-      { "name": "Pepino", "amount": 200, "unit": "g" },
-      { "name": "Yogur natural", "amount": 80, "unit": "g" },
-      { "name": "Menta fresca", "amount": 3, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 8, "unit": "ml" }
-    ],
-    "steps": [
-      "Cortar el pepino en rodajas finas o medias lunas",
-      "Mezclar el yogur con menta picada y aceite",
-      "Combinar con el pepino",
-      "Servir frío"
-    ],
-    "description": "Pepino fresco con salsa de yogur, menta y aceite de oliva"
   }
 ]
