@@ -228,5 +228,148 @@
         "prepSummary": "Precalienta el horno a 180°C. Descorazona las manzanas, colócalas en una fuente con un poco de azúcar y unas gotas de limón, y hornea unos 35-40 minutos hasta que estén tiernas."
       }
     ]
+  },
+  {
+    "id": "postres_008",
+    "name": "Yogur natural",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 2,
+    "difficulty": "facil",
+    "kcal": 65,
+    "protein_g": 5,
+    "carbs_g": 6,
+    "fat_g": 3,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Yogur natural", "amount": 250, "unit": "g" }
+    ],
+    "steps": [
+      "Reparte el yogur en dos cuencos",
+      "Sirve frío"
+    ],
+    "description": "Yogur natural sin nada más, el postre de siempre"
+  },
+  {
+    "id": "postres_009",
+    "name": "Yogur con fruta",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 150,
+    "protein_g": 6,
+    "carbs_g": 24,
+    "fat_g": 3,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Yogur natural", "amount": 250, "unit": "g" },
+      { "name": "Plátano", "amount": 1, "unit": "ud" },
+      { "name": "Fresas", "amount": 100, "unit": "g" }
+    ],
+    "steps": [
+      "Trocea el plátano y las fresas",
+      "Reparte el yogur en dos cuencos",
+      "Añade la fruta troceada por encima"
+    ],
+    "description": "Yogur natural con plátano y fresas troceadas"
+  },
+  {
+    "id": "postres_010",
+    "name": "Piña con canela",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 70,
+    "protein_g": 1,
+    "carbs_g": 17,
+    "fat_g": 0,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Piña natural", "amount": 300, "unit": "g" },
+      { "name": "Canela en polvo", "amount": 2, "unit": "g" }
+    ],
+    "steps": [
+      "Corta la piña en rodajas o dados",
+      "Espolvorea con canela",
+      "Sirve fría"
+    ],
+    "description": "Piña natural troceada con un toque de canela"
+  },
+  {
+    "id": "postres_011",
+    "name": "Requesón con miel",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 3,
+    "difficulty": "facil",
+    "kcal": 190,
+    "protein_g": 14,
+    "carbs_g": 16,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["lactosa"],
+    "season": "all",
+    "ingredients": [
+      { "name": "Requesón", "amount": 200, "unit": "g" },
+      { "name": "Miel", "amount": 20, "unit": "ml" }
+    ],
+    "steps": [
+      "Reparte el requesón en dos cuencos",
+      "Termina con un hilo de miel"
+    ],
+    "description": "Requesón fresco con un hilo de miel, un postre ligero y saciante"
+  },
+  {
+    "id": "postres_012",
+    "name": "Gelatina de fruta",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 55,
+    "protein_g": 2,
+    "carbs_g": 12,
+    "fat_g": 0,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      { "name": "Gelatina neutra en polvo", "amount": 10, "unit": "g" },
+      { "name": "Zumo de fruta natural", "amount": 500, "unit": "ml" }
+    ],
+    "steps": [
+      "Disuelve la gelatina en un poco de zumo templado",
+      "Mezcla con el resto del zumo",
+      "Reparte en moldes y deja cuajar en la nevera al menos 2 horas"
+    ],
+    "description": "Gelatina casera de zumo de fruta natural"
   }
 ]
