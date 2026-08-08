@@ -188,8 +188,9 @@ CRITERIO DE VARIEDAD (lo importante de tu trabajo):
 - Distribuir a lo largo de la semana: pescado, legumbres, carne, huevo, pasta - sin amontonar.
 - Coherencia estacional: aprovecha platos frescos en verano, de cuchara en invierno.
 
-OBJETIVOS SEMANALES (config.freqs) — cuotas orientativas por semana:
-- Cada clave de config.freqs indica cuántas veces por semana debería aparecer ese tipo de plato principal en el menú. Acércate lo máximo posible a esas cantidades SIN romper la estructura, la variedad ni las restricciones de arriba.
+OBJETIVOS SEMANALES (config.freqs) — MÁXIMOS por semana, no mínimos:
+- Cada clave de config.freqs es el número MÁXIMO de veces que ese tipo de plato principal puede aparecer en toda la semana. NUNCA lo superes. Por debajo del número está siempre bien; superarlo no.
+- Un plato puede contar para más de una clave a la vez (p. ej. "Arroz a la cubana" es pasta_arroz Y huevos, y consume las dos cuotas de golpe) — ten cuidado con estos platos combinados, agotan dos topes con un solo hueco.
 - Mapeo de cada clave al catálogo (usa category y mainProtein de cada receta):
   - carne: category "carnes" o mainProtein pollo/pavo/cerdo/ternera
   - pescado: category "pescados" o mainProtein pescado_blanco/pescado_azul/marisco
@@ -197,7 +198,7 @@ OBJETIVOS SEMANALES (config.freqs) — cuotas orientativas por semana:
   - huevos: category "huevos" o mainProtein huevo
   - pasta_arroz: category "pasta_arroces"
   - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida)
-- Son objetivos, no límites rígidos: intenta cumplirlos, pero la coherencia gastronómica y las reglas anteriores mandan siempre.
+- Reparte el resto de huecos (los que no hacen falta para llegar a ningún máximo) con variedad, sin amontonar en una sola categoría aunque ninguna tenga tope explícito.
 
 PERFILES DE SALUD (config.healthProfiles) — ORIENTACIÓN, nunca exclusión:
 - Si la lista NO está vacía, inclina el menú hacia lo más adecuado SIN romper estructura, variedad, tiempos ni restricciones. Cuando el catálogo trae carbs_g/fat_g/protein_g y healthFlags, úsalos para decidir:

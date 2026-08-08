@@ -79,7 +79,7 @@ describe("GUARD_FOR_RULE stays in sync with the rules validateMenu actually emit
     const INTENTIONALLY_UNMAPPED = new Set([
       "slot_faltante", "recipeId_not_in_catalog", "rol_incompatible_con_hueco",
       "tiempo_excedido", "tupper_not_friendly", "recipeId_repetido",
-      "comida_sin_segundo", "health_profile_conflict", "freq_target_not_met",
+      "comida_sin_segundo", "health_profile_conflict", "freq_max_exceeded",
       "school_protein_conflict", "legumbres_en_cena",
     ]);
     const unmapped = [...emittedRuleNames].filter(
@@ -511,8 +511,10 @@ describe("validateMenu", () => {
     });
   });
 
-  describe("weekly frequency targets (rule 11, config.freqs)", () => {
-    it("flags a category whose weekly target isn't met", () => {
+  describe("weekly frequency CAPS (rule 11, config.freqs) — maximums, not minimums", () => {
+    it("flags the excess when a category goes OVER its weekly cap", () => {
+      // Tester report: "huevos: 2" was read as "at least 2", so 5 egg dishes
+      // in one week went completely undetected. freqs are maximums now.
       const pool = [
         recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["segundo"] }),
         recipe({ id: "pollo_b", mainProtein: "pollo", mealRole: ["segundo"] }),
@@ -522,19 +524,23 @@ describe("validateMenu", () => {
         { slotId: "lun_comida_2", recipeId: "pollo_a" },
         { slotId: "mar_comida_2", recipeId: "pollo_b" },
       ];
-      const { violations } = validateMenu(assignments, pool, slots, [], { pescado: 1 });
-      const freqViolations = violations.filter((v) => v.rule === "freq_target_not_met");
+      const { violations } = validateMenu(assignments, pool, slots, [], { carne: 1 });
+      const freqViolations = violations.filter((v) => v.rule === "freq_max_exceeded");
       expect(freqViolations).toHaveLength(1);
-      expect(freqViolations[0].targetKey).toBe("pescado");
+      expect(freqViolations[0].targetKey).toBe("carne");
+      // The LATER occurrence is the one flagged as "the extra one".
+      expect(freqViolations[0].slotId).toBe("mar_comida_2");
     });
 
-    it("does not flag a category whose target is already met", () => {
+    it("does not flag a category that's under or exactly at its cap", () => {
       const pool = [
         recipe({ id: "pescado_a", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["segundo"] }),
       ];
       const slots = [slot("lun_comida_2")];
       const assignments = [{ slotId: "lun_comida_2", recipeId: "pescado_a" }];
       expect(validateMenu(assignments, pool, slots, [], { pescado: 1 }).valid).toBe(true);
+      // Zero of a category is always fine now — no minimum to reach.
+      expect(validateMenu(assignments, pool, slots, [], { legumbres: 3 }).valid).toBe(true);
     });
 
     it("is a no-op when freqs is empty or omitted (backward compatible)", () => {
@@ -545,21 +551,24 @@ describe("validateMenu", () => {
       expect(validateMenu(assignments, pool, slots, [], {}).valid).toBe(true);
     });
 
-    it("picks a donor slot that has no target of its own over one that would create a new deficit", () => {
+    it("a dish counting toward two capped keys at once is only flagged once, not twice", () => {
+      // "counts as both" dishes (e.g. a rice-and-egg plato) exhaust two caps
+      // with one slot. Going over on BOTH keys because of the same dish
+      // should still be a single violation on that slot, not one per key.
       const pool = [
-        recipe({ id: "verdura_a", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
-        recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["segundo"] }),
+        recipe({ id: "arroz_huevo", mainProtein: "huevo", category: "pasta_arroces", mealRole: ["segundo"] }),
+        recipe({ id: "otro", mainProtein: "pollo", mealRole: ["segundo"] }),
       ];
-      const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+      const slots = [slot("lun_comida_2"), slot("mar_comida_2")];
       const assignments = [
-        { slotId: "lun_comida_1", recipeId: "verdura_a" }, // meets verdura:1 exactly — no slack
-        { slotId: "lun_comida_2", recipeId: "pollo_a" }, // "carne" isn't tracked — free/neutral donor
+        { slotId: "lun_comida_2", recipeId: "otro" },
+        { slotId: "mar_comida_2", recipeId: "arroz_huevo" },
       ];
-      const freqs = { verdura: 1, pescado: 1 };
+      const freqs = { huevos: 0, pasta_arroz: 0 };
       const { violations } = validateMenu(assignments, pool, slots, [], freqs);
-      const freqViolations = violations.filter((v) => v.rule === "freq_target_not_met");
+      const freqViolations = violations.filter((v) => v.rule === "freq_max_exceeded");
       expect(freqViolations).toHaveLength(1);
-      expect(freqViolations[0].slotId).toBe("lun_comida_2");
+      expect(freqViolations[0].slotId).toBe("mar_comida_2");
     });
   });
 
@@ -899,15 +908,16 @@ describe("applyFallback", () => {
     expect(result.unfixedViolations.map((v) => v.rule)).toContain("recipeId_repetido");
   });
 
-  it("replaces a freq_target_not_met violation with a recipe matching the deficit category", () => {
+  it("replaces a freq_max_exceeded violation with a recipe that doesn't ALSO count toward the exceeded key", () => {
     const pool = [
       recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["segundo"] }),
       recipe({ id: "pescado_a", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["segundo"] }),
     ];
     const slots = [slot("lun_comida_2")];
+    // "pollo_a" is the offender pushing "carne" over its cap.
     const assignments = [{ slotId: "lun_comida_2", recipeId: "pollo_a" }];
     const violations = [
-      { rule: "freq_target_not_met", slotId: "lun_comida_2", targetKey: "pescado", message: "" },
+      { rule: "freq_max_exceeded", slotId: "lun_comida_2", targetKey: "carne", message: "" },
     ];
     const result = applyFallback(assignments, violations, pool, slots);
     expect(result.find((s) => s.slotId === "lun_comida_2")?.recipeId).toBe("pescado_a");
@@ -918,57 +928,54 @@ describe("applyFallback", () => {
     // order validateMenu pushed them (roughly rule 0..11). The replacement
     // search for each violation only checked rule-specific carve-outs gated
     // by `v.rule === "<that rule>"`. So fixing a LATER rule (11,
-    // freq_target_not_met) could pick a candidate that reintroduces an
+    // freq_max_exceeded) could pick a candidate that reintroduces an
     // EARLIER rule's violation (4b, school_carb_conflict) on the very same
     // cena slot, because nothing re-validated the whole menu between fixes.
-    it("does not let a freq_target_not_met fix reintroduce a school_carb_conflict on the same slot", () => {
+    it("does not let a freq_max_exceeded fix reintroduce a school_carb_conflict on the same slot", () => {
       const pool = [
-        recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["cena"] }), // currently assigned, not pescado
-        // First pescado candidate in pool order — but its carb base ("arroz")
-        // is exactly what the school already served that day.
+        // Currently assigned, the offender pushing "pescado" over its cap.
+        recipe({ id: "pescado_original", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"] }),
+        // First non-pescado candidate in pool order — but its carb base
+        // ("arroz") is exactly what the school already served that day.
         recipe({
-          id: "pescado_arroz", category: "pescados", mainProtein: "pescado_blanco",
-          mealRole: ["cena"], name: "Arroz con pescado", ingredients: [{ name: "Arroz" }],
+          id: "pollo_arroz", mainProtein: "pollo",
+          mealRole: ["cena"], name: "Arroz con pollo", ingredients: [{ name: "Arroz" }],
         }),
-        // Second pescado candidate — safe carb base, should be picked instead.
+        // Second non-pescado candidate — safe carb base, should be picked instead.
         recipe({
-          id: "pescado_patatas", category: "pescados", mainProtein: "pescado_blanco",
-          mealRole: ["cena"], name: "Pescado con patatas", ingredients: [{ name: "Patata" }],
+          id: "pollo_patatas", mainProtein: "pollo",
+          mealRole: ["cena"], name: "Pollo con patatas", ingredients: [{ name: "Patata" }],
         }),
       ];
       const slots = [slot("lun_cena", { schoolCarbsToAvoid: ["arroz"] })];
-      const assignments = [{ slotId: "lun_cena", recipeId: "pollo_a" }];
+      const assignments = [{ slotId: "lun_cena", recipeId: "pescado_original" }];
       const violations = [
-        { rule: "freq_target_not_met", slotId: "lun_cena", targetKey: "pescado", message: "" },
+        { rule: "freq_max_exceeded", slotId: "lun_cena", targetKey: "pescado", message: "" },
       ];
       const result = applyFallback(assignments, violations, pool, slots);
       const fixed = result.find((s) => s.slotId === "lun_cena")?.recipeId;
-      expect(fixed).toBe("pescado_patatas");
-      // Re-validating confirms both the freq deficit AND the school carb
-      // rule are satisfied simultaneously, not just the rule that triggered
-      // the fix.
-      expect(validateMenu(result, pool, slots, [], { pescado: 1 }).valid).toBe(true);
+      expect(fixed).toBe("pollo_patatas");
+      // Re-validating confirms both the freq cap AND the school carb rule are
+      // satisfied simultaneously, not just the rule that triggered the fix.
+      expect(validateMenu(result, pool, slots, [], { pescado: 0 }).valid).toBe(true);
     });
 
-    it("does not let a freq_target_not_met fix reintroduce a legumbres_en_cena violation", () => {
+    it("does not let a freq_max_exceeded fix reintroduce a legumbres_en_cena violation", () => {
       const pool = [
+        // Currently assigned, the offender pushing "carne" over its cap.
         recipe({ id: "pollo_a", mainProtein: "pollo", mealRole: ["cena"] }),
-        // First legumbres candidate in pool order that would satisfy the
-        // "legumbres" freq deficit but is illegal in cena.
+        // The only non-"carne" candidate is a legumbre dish — illegal in
+        // cena regardless of its own declared mealRole (hard rule).
         recipe({ id: "lentejas", category: "legumbres", mainProtein: "legumbre", mealRole: ["cena"] }),
-        // No other legumbre alternative exists for cena — a huevo dish also
-        // matches "legumbres"? No: use a second legumbre dish that IS cena-safe
-        // is not realistic (legumbres_en_cena is a hard rule), so the deficit
-        // should stay unresolved rather than break the hard rule.
       ];
       const slots = [slot("lun_cena")];
       const assignments = [{ slotId: "lun_cena", recipeId: "pollo_a" }];
       const violations = [
-        { rule: "freq_target_not_met", slotId: "lun_cena", targetKey: "legumbres", message: "" },
+        { rule: "freq_max_exceeded", slotId: "lun_cena", targetKey: "carne", message: "" },
       ];
       const result = applyFallback(assignments, violations, pool, slots);
       const fixed = result.find((s) => s.slotId === "lun_cena")?.recipeId;
-      // The only "legumbres" candidate is illegal in cena, so applyFallback
+      // The only non-"carne" candidate is illegal in cena, so applyFallback
       // must leave the slot as-is rather than trade one violation for another.
       expect(fixed).toBe("pollo_a");
       expect(validateMenu(result, pool, slots).valid ||

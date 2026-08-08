@@ -404,7 +404,9 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     );
   }
 
-  it("satisfies an allergy, a weekly pescado target, and the school-menu carb/protein avoidance together — not just whichever rule ran last", async () => {
+  it("satisfies an allergy, a weekly pescado CAP, and the school-menu carb/protein avoidance together — not just whichever rule ran last", async () => {
+    // freqs are maximums (see validateMenu.js rule 11): "pescado: 1" means
+    // AT MOST one pescado dish all week, not "at least one".
     const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 2 };
     const data = {
       members: [{ id: "m1", age: 35, allergies: ["Gluten"] }],
@@ -426,10 +428,11 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     expect(pool.length).toBeGreaterThan(10);
 
     // Real, gluten-safe candidates, deliberately chosen so the *initial* LLM
-    // answer is wrong on two different domains at once: zero pescado anywhere
-    // (freq deficit) and an arroz-based dish on the exact cena the school
-    // already served arroz+pescado (school_carb_conflict, and would-be
-    // school_protein_conflict if a naive freq fix just swapped it for pescado).
+    // answer is wrong on two different domains at once: TWO pescado segundos
+    // (freq cap of 1 exceeded) and an arroz-based, non-pescado cena on the
+    // exact day the school already served arroz+pescado (school_carb_conflict,
+    // and would-be school_protein_conflict if a naive pescado-cap fix dumped
+    // the excess fish into that same cena instead of respecting the avoidance).
     const usedIds = new Set();
     const pick = (pred) => {
       const r = pool.find((c) => pred(c) && !usedIds.has(c.id));
@@ -439,14 +442,13 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     };
     const primero = () =>
       pick((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico") && getCarbType(r) !== "arroz");
-    const segundoNoPescado = () =>
+    const segundoPescado = () =>
       pick(
         (r) =>
           r.mealRole.includes("segundo") &&
-          r.category !== "pescados" &&
-          !["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein),
+          (r.category === "pescados" || ["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein)),
       );
-    const cenaArroz = () =>
+    const cenaArrozNoPescado = () =>
       pick(
         (r) =>
           r.mealRole.includes("cena") &&
@@ -464,10 +466,10 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
       );
 
     const lunP = primero("lun");
-    const lunS = segundoNoPescado("lun");
-    const lunC = cenaArroz(); // the deliberately-wrong pick for lun_cena
+    const lunS = segundoPescado(); // 1st pescado — within cap on its own
+    const lunC = cenaArrozNoPescado(); // the deliberately-wrong pick for lun_cena
     const marP = primero("mar");
-    const marS = segundoNoPescado("mar");
+    const marS = segundoPescado(); // 2nd pescado — pushes the week over the cap of 1
     const marC = cenaNoPescadoNoArroz();
 
     mockLLMAlwaysReturns([
@@ -492,9 +494,8 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
 
     // The strongest assertion: re-running validateMenu on the FINAL output
     // (with the same achievable freqs generateGroupMenu itself computed) must
-    // report zero violations — every domain holds simultaneously, including
-    // on lun_cena specifically (the slot where the freq-fix and the
-    // school-avoidance rule could otherwise fight each other).
+    // report zero violations — every domain holds simultaneously: the pescado
+    // cap, the allergen, and the school-avoidance on lun_cena.
     const { achievable } = splitAchievableFreqs(pool, data.freqs);
     const finalCheck = validateMenu(result.slotAssignments, pool, ctx.slots, [], achievable);
     expect(finalCheck.violations).toEqual([]);
@@ -505,11 +506,14 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     expect(getCarbType(lunCenaRecipe)).not.toBe("arroz");
     expect(["pescado_blanco", "pescado_azul", "marisco"]).not.toContain(lunCenaRecipe.mainProtein);
 
-    if (achievable.pescado) {
+    // The core of the max-semantics fix: the pescado CAP is never exceeded in
+    // the final menu, even though the (deliberately wrong) initial LLM answer
+    // went over it.
+    if (achievable.pescado != null) {
       const pescadoCount = result.slotAssignments.filter(
         (s) => recipeCatalogById[s.recipeId] && FREQ_KEY_MATCHERS.pescado(recipeCatalogById[s.recipeId]),
       ).length;
-      expect(pescadoCount).toBeGreaterThanOrEqual(achievable.pescado);
+      expect(pescadoCount).toBeLessThanOrEqual(achievable.pescado);
     }
   });
 

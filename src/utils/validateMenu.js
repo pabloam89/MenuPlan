@@ -604,16 +604,15 @@ export function validateMenu(
     }
   }
 
-  // 11. Weekly frequency targets (config.freqs) — soft, correctable quotas
-  // for how many times each food-group key (carne/pescado/legumbres/huevos/
-  // pasta_arroz/verdura) should appear across the week. `freqs` is expected
-  // to already be the *achievable* subset (see splitAchievableFreqs) — every
-  // key here is one the filtered pool has enough recipes for, so a violation
-  // is always in principle fixable by swapping some other slot. Soft and
-  // correctable like every other rule above: retried through the LLM, then a
-  // deterministic carve-out in applyFallback, never a hard block — this is
-  // the deterministic backstop for the SYSTEM_PROMPT's "OBJETIVOS SEMANALES"
-  // instruction, which today is pure LLM soft-bias with no code-side check.
+  // 11. Weekly frequency CAPS (config.freqs) — soft, correctable MAXIMUMS for
+  // how many times each food-group key (carne/pescado/legumbres/huevos/
+  // pasta_arroz/verdura) may appear across the week. The configured number is
+  // a ceiling, not a target: going under is always fine, only going OVER is a
+  // violation. (Earlier versions treated it as a minimum to reach — that read
+  // "huevos: 2" as "at least 2", so nothing ever flagged 5 egg dishes in one
+  // week; a tester reported exactly that.) Soft and correctable like every
+  // other rule above: retried through the LLM, then a deterministic carve-out
+  // in applyFallback, never a hard block.
   if (freqs && Object.keys(freqs).length > 0) {
     const freqCounts = {};
     for (const key of Object.keys(freqs)) freqCounts[key] = 0;
@@ -632,35 +631,34 @@ export function validateMenu(
       matchedKeysBySlot[slotId] = matched;
     }
 
-    const claimedDonors = new Set();
+    // A dish can count toward more than one key at once (e.g. "Arroz a la
+    // cubana" is both pasta_arroz and huevos), so a shared claim set is used
+    // across every key's pass: a slot already flagged for one over-cap key is
+    // never flagged a second time for another key it also happens to push
+    // over. Fixing it once — the replacement in applyFallback can't match
+    // ANY key still over its cap — resolves both without a redundant swap.
+    const claimedExcess = new Set();
     for (const [key, target] of Object.entries(freqs)) {
-      const missing = target - (freqCounts[key] ?? 0);
-      if (missing <= 0) continue;
+      const excess = (freqCounts[key] ?? 0) - target;
+      if (excess <= 0) continue;
 
-      // Donor slots: not already claimed by another deficit this pass, don't
-      // already count toward THIS key, and — for every other key their
-      // current dish does count toward — that key has slack (count > target),
-      // so donating them away doesn't just trade one deficit for another.
-      // Walked in mealOrder for a stable, deterministic pick.
-      const donors = mealOrder.filter((m) => {
-        if (claimedDonors.has(m.slotId)) return false;
-        const matched = matchedKeysBySlot[m.slotId];
-        if (!matched) return false;
-        if (matched.has(key)) return false;
-        for (const k of matched) {
-          if ((freqCounts[k] ?? 0) <= (freqs[k] ?? 0)) return false;
-        }
-        return true;
-      });
+      // Offenders: slots counting toward this over-cap key, not already
+      // claimed by another key's excess this pass. Walked in mealOrder for a
+      // stable, deterministic pick; the LAST `excess` of them are flagged —
+      // the earliest uses read as "the normal ones", anything beyond as "the
+      // extra repeats".
+      const offenders = mealOrder.filter(
+        (m) => !claimedExcess.has(m.slotId) && matchedKeysBySlot[m.slotId]?.has(key),
+      );
 
-      for (const donor of donors.slice(0, missing)) {
-        claimedDonors.add(donor.slotId);
-        const donorRecipe = poolById[donor.recipeId];
+      for (const offender of offenders.slice(-excess)) {
+        claimedExcess.add(offender.slotId);
+        const offenderRecipe = poolById[offender.recipeId];
         violations.push({
-          rule: "freq_target_not_met",
-          slotId: donor.slotId,
+          rule: "freq_max_exceeded",
+          slotId: offender.slotId,
           targetKey: key,
-          message: `Objetivo semanal "${key}" no alcanzado (actual ${freqCounts[key]}/${target}). Sustituye "${donorRecipe?.name ?? donor.recipeId}" (${donor.slotId}) por una receta de esa categoría si encaja en el hueco.`,
+          message: `Objetivo semanal "${key}" superado (actual ${freqCounts[key]}, máximo ${target}). Sustituye "${offenderRecipe?.name ?? offender.recipeId}" (${offender.slotId}) por algo de otra categoría.`,
         });
       }
     }
@@ -901,7 +899,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // computed and always enforced below, not just when the violation being
     // fixed IS guarnicion_repetida. Rationale: violations are processed one
     // at a time in rule order, so a fix applied for a LATER rule (e.g. rule
-    // 11 freq_target_not_met) must not reintroduce a violation of an EARLIER
+    // 11 freq_max_exceeded) must not reintroduce a violation of an EARLIER
     // rule (e.g. rule 9 guarnicion_repetida) that already passed. Since
     // nothing re-validates the whole menu between fixes within this same
     // pass, every candidate search has to independently respect every
@@ -1073,9 +1071,12 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         if (carb && ctx.schoolCarbsToAvoid.includes(carb)) return false;
       }
 
-      if (v.rule === "freq_target_not_met" && v.targetKey) {
+      if (v.rule === "freq_max_exceeded" && v.targetKey) {
+        // freqs are maximums now — the replacement must NOT also count
+        // toward the key that's already over its cap (the opposite check
+        // from when this was a minimum-deficit fix).
         const matcher = FREQ_KEY_MATCHERS[v.targetKey];
-        if (matcher && !matcher(r)) return false;
+        if (matcher && matcher(r)) return false;
       }
 
       // Prefer a profile-compliant replacement, but only for the violation
