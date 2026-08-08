@@ -1064,8 +1064,20 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
 // (fruit/yogur/pan…) and are assigned here with simple rotation so the week has
 // variety without a model call. Babies are skipped (own curated path).
 //
+// `weekIndex` staggers the rotation's starting point per week (same idea as
+// poolForWeek for comida/cena, just an offset instead of a bucket split —
+// these pools are small enough, ~6-7 items, that a bucket split would leave
+// almost nothing per week). Without it, this function has zero awareness of
+// which week it's generating: called once per week with the exact same
+// `DAYS.forEach((day, i) => pool[i % pool.length])`, it produces the
+// IDENTICAL day-of-week -> dish mapping every single week, forever — a
+// tester reported "Natillas" and "Arroz con leche" landing on the same two
+// weekdays across every week of a multi-week plan. Defaults to 0 so a
+// single-week generation (or any caller that doesn't pass crossWeek) is
+// unaffected.
+//
 // Returns [{ planKey: "Lun-Desayuno", recipeId, eaters, mealKey, when? }].
-function planExtraMealsForGroup(group, data) {
+function planExtraMealsForGroup(group, data, weekIndex = 0) {
   const out = [];
   if (isBabyMenuGroup(group, data.members)) return out;
   const em = data.extraMeals ?? {};
@@ -1096,8 +1108,11 @@ function planExtraMealsForGroup(group, data) {
       DAYS.forEach((day, i) => {
         let r;
         if (em.desayuno === "igual") r = pool[0];
-        else if (em.desayuno === "findes") r = weekendIdx(i) ? pool[1 % pool.length] : pool[0];
-        else r = pool[i % pool.length]; // variado
+        else if (em.desayuno === "findes") {
+          const wd = weekIndex % pool.length;
+          const we = (weekIndex + 1) % pool.length;
+          r = weekendIdx(i) ? pool[we] : pool[wd];
+        } else r = pool[(i + weekIndex) % pool.length]; // variado
         out.push({ planKey: `${day}-Desayuno`, recipeId: r.id, eaters, mealKey: "desayuno" });
       });
     }
@@ -1111,7 +1126,7 @@ function planExtraMealsForGroup(group, data) {
       days.forEach((day, i) => {
         out.push({
           planKey: `${day}-Merienda`,
-          recipeId: pool[i % pool.length].id,
+          recipeId: pool[(i + weekIndex) % pool.length].id,
           eaters: kids.length,
           mealKey: "merienda",
         });
@@ -1127,7 +1142,7 @@ function planExtraMealsForGroup(group, data) {
       DAYS.forEach((day, i) => {
         out.push({
           planKey: `${day}-Postre`,
-          recipeId: pool[i % pool.length].id,
+          recipeId: pool[(i + weekIndex) % pool.length].id,
           eaters,
           mealKey: "postre",
           when: em.postre,
@@ -1260,7 +1275,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // Deterministic optional meals — injected AFTER the AI comida/cena plan so
   // they never touch the model. Same hydration/prefix rules as main dishes.
   for (const group of activeGroups) {
-    for (const a of planExtraMealsForGroup(group, data)) {
+    for (const a of planExtraMealsForGroup(group, data, crossWeek?.weekIndex ?? 0)) {
       const catalogRecipe = recipeCatalogById[a.recipeId];
       if (!catalogRecipe) continue;
       const frontendId = (multi ? `${group.id}__` : "") + a.recipeId;

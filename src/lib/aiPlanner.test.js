@@ -680,6 +680,72 @@ describe("generateMenuWithAI extra meals (desayuno/merienda/postre) for a normal
     expect(groupPlan["Dom-Desayuno"]).toBeTruthy();
     expect(groupPlan["Dom-Postre"]).toBeTruthy();
   });
+
+  it("varies desayuno/merienda/postre across weeks instead of repeating the identical day-of-week mapping every time", async () => {
+    // Tester report: "Natillas" and "Arroz con leche" landed on the same two
+    // weekdays in every week of a multi-week plan. planExtraMealsForGroup had
+    // zero awareness of which week it was generating — called once per week
+    // with the exact same DAYS.forEach((day, i) => pool[i % pool.length]), it
+    // produced the identical mapping forever. Fixed by threading
+    // crossWeek.weekIndex through as a rotation offset.
+    const group = { id: "g1", label: "Familia", memberIds: ["m1", "kid1"], days: 1 };
+    const data = {
+      members: [
+        { id: "m1", age: 35 },
+        { id: "kid1", age: 8 },
+      ],
+      groups: [group],
+      schedule: {},
+      extraMeals: { desayuno: "variado", merienda: "semana", postre: "cena" },
+    };
+
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
+    const segundo = pool.find((r) => r.mealRole.includes("segundo") && r.id !== primero?.id);
+    const cena = pool.find((r) => r.mealRole.includes("cena"));
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          content: [
+            {
+              text: JSON.stringify({
+                slots: [
+                  { slotId: "lun_comida_1", recipeId: primero.id },
+                  { slotId: "lun_comida_2", recipeId: segundo.id },
+                  { slotId: "lun_cena", recipeId: cena.id },
+                ],
+              }),
+            },
+          ],
+        }),
+      }),
+    );
+
+    const week0 = await generateMenuWithAI(data, { crossWeek: { weekIndex: 0, weekCount: 2, varietyPref: "strict" } });
+    const week1 = await generateMenuWithAI(data, { crossWeek: { weekIndex: 1, weekCount: 2, varietyPref: "strict" } });
+
+    const postreWeek0 = week0.plan[group.id]["Lun-Postre"]?.recipeId;
+    const postreWeek1 = week1.plan[group.id]["Lun-Postre"]?.recipeId;
+    const desayunoWeek0 = week0.plan[group.id]["Lun-Desayuno"]?.recipeId;
+    const desayunoWeek1 = week1.plan[group.id]["Lun-Desayuno"]?.recipeId;
+
+    expect(postreWeek0).toBeTruthy();
+    expect(postreWeek1).toBeTruthy();
+    // At least one of the rotated extra meals must differ between weeks —
+    // asserting on both together (rather than picking just one) avoids a
+    // flaky test if either pool happens to be small enough that a 1-step
+    // offset lands back on the same dish for that particular axis.
+    expect([postreWeek0, desayunoWeek0]).not.toEqual([postreWeek1, desayunoWeek1]);
+
+    // Same weekIndex twice must stay fully deterministic (no hidden randomness).
+    const week0Again = await generateMenuWithAI(data, { crossWeek: { weekIndex: 0, weekCount: 2, varietyPref: "strict" } });
+    expect(week0Again.plan[group.id]["Lun-Postre"]?.recipeId).toBe(postreWeek0);
+    expect(week0Again.plan[group.id]["Lun-Desayuno"]?.recipeId).toBe(desayunoWeek0);
+  });
 });
 
 describe("callModel retry on transient overload", () => {
