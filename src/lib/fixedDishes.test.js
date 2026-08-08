@@ -8,9 +8,23 @@ import { recipeCatalogById } from "../data/recipeCatalog.js";
 const UNSAFE_ID = "carnes_023";
 
 const CENA_SLOTS = ["lun_cena", "mar_cena", "mie_cena", "jue_cena", "vie_cena", "sab_cena", "dom_cena"];
+const DAYS = ["lun", "mar", "mie", "jue", "vie", "sab", "dom"];
 
 function baseAssignments() {
   return CENA_SLOTS.map((slotId) => ({ slotId, recipeId: "huevos_001" }));
+}
+
+// "Ensalada mixta" (mainProtein none) / "Pechugas de pollo a la plancha"
+// (mainProtein pollo) — generic filler for a normal two-course comida.
+function comidaAssignments({ singleDishDays = [] } = {}) {
+  const out = [];
+  for (const day of DAYS) {
+    out.push({ slotId: `${day}_comida_1`, recipeId: "ensaladas_verduras_001" });
+    if (!singleDishDays.includes(day)) {
+      out.push({ slotId: `${day}_comida_2`, recipeId: "carnes_002" });
+    }
+  }
+  return out;
 }
 
 describe("enforceFixedDishes hard-safety gate on the full-catalog fallback", () => {
@@ -179,5 +193,98 @@ describe("enforceFixedDishes respects the school menu on cena placements (rules 
     );
     expect(slotAssignments.some((s) => s.recipeId === FIXED_RECIPE.id)).toBe(true);
     expect(warnings).toEqual([]);
+  });
+});
+
+describe("enforceFixedDishes never force-places a plato_unico-only fixed dish next to an unrelated course", () => {
+  // "Arroz al horno" — mealRole: ["plato_unico"] only, no "primero"/"segundo".
+  const PLATO_UNICO_ID = "pasta_arroces_004";
+
+  function poolWithPlatoUnico() {
+    return {
+      [PLATO_UNICO_ID]: recipeCatalogById[PLATO_UNICO_ID],
+      ensaladas_verduras_001: recipeCatalogById.ensaladas_verduras_001,
+      carnes_002: recipeCatalogById.carnes_002,
+    };
+  }
+
+  it("does not place it when every day is two-course structured (no single-dish day exists)", () => {
+    // Bug this guards against: slotPositionForRecipe used to route a
+    // plato_unico-only dish to "2" (segundo), force-placing it alongside an
+    // unrelated primero every two-course day — a tester reported exactly
+    // this: "Ensalada de lentejas" (primero) + "Arroz al horno" (forced into
+    // "segundo"), both meant to be a complete dish on their own.
+    const fixedDishesRaw = [
+      { name: "Arroz al horno", catalogId: PLATO_UNICO_ID, timesPerWeek: 1, meals: ["Comida"] },
+    ];
+    const original = comidaAssignments();
+    const { slotAssignments } = enforceFixedDishes(original, fixedDishesRaw, poolWithPlatoUnico(), {});
+    expect(slotAssignments.some((s) => s.recipeId === PLATO_UNICO_ID)).toBe(false);
+    expect(slotAssignments).toEqual(original);
+  });
+
+  it("places it on a day already structured as a single dish, leaving two-course days untouched", () => {
+    const fixedDishesRaw = [
+      { name: "Arroz al horno", catalogId: PLATO_UNICO_ID, timesPerWeek: 1, meals: ["Comida"] },
+    ];
+    const original = comidaAssignments({ singleDishDays: ["dom"] });
+    const { slotAssignments, warnings } = enforceFixedDishes(original, fixedDishesRaw, poolWithPlatoUnico(), {});
+    expect(slotAssignments.find((s) => s.slotId === "dom_comida_1")?.recipeId).toBe(PLATO_UNICO_ID);
+    const otherDays = slotAssignments.filter((s) => !s.slotId.startsWith("dom_"));
+    const originalOtherDays = original.filter((s) => !s.slotId.startsWith("dom_"));
+    expect(otherDays).toEqual(originalOtherDays);
+    expect(warnings).toEqual([]);
+  });
+});
+
+describe("enforceFixedDishes avoids a same-comida protein clash with the sibling course (rule 3b)", () => {
+  // "Huevos rotos con jamón" — segundo, mainProtein huevo.
+  const HUEVOS_ROTOS_ID = "huevos_003";
+  // "Huevos cocidos con ensalada" — primero, mainProtein huevo (same protein).
+  const HUEVOS_ENSALADA_ID = "huevos_014";
+
+  function poolWithHuevos() {
+    return {
+      [HUEVOS_ROTOS_ID]: recipeCatalogById[HUEVOS_ROTOS_ID],
+      [HUEVOS_ENSALADA_ID]: recipeCatalogById[HUEVOS_ENSALADA_ID],
+      ensaladas_verduras_001: recipeCatalogById.ensaladas_verduras_001,
+      carnes_002: recipeCatalogById.carnes_002,
+    };
+  }
+
+  function comidaAssignmentsWithPrimeros(primeroByDay) {
+    const out = [];
+    for (const day of DAYS) {
+      out.push({ slotId: `${day}_comida_1`, recipeId: primeroByDay[day] ?? "ensaladas_verduras_001" });
+      out.push({ slotId: `${day}_comida_2`, recipeId: "carnes_002" });
+    }
+    return out;
+  }
+
+  it("prefers a day whose primero doesn't share the fixed dish's protein", () => {
+    // Bug this guards against: a tester reported "Huevos cocidos con
+    // ensalada" (primero) + "Huevos rotos con jamón" (segundo, fixed dish)
+    // landing in the same comida — enforceFixedDishes force-placed the fixed
+    // dish without ever checking the sibling slot it was about to sit next to.
+    const assignments = comidaAssignmentsWithPrimeros({ lun: HUEVOS_ENSALADA_ID });
+    const fixedDishesRaw = [
+      { name: "Huevos rotos con jamón", catalogId: HUEVOS_ROTOS_ID, timesPerWeek: 1, meals: ["Comida"] },
+    ];
+    const { slotAssignments, warnings } = enforceFixedDishes(assignments, fixedDishesRaw, poolWithHuevos(), {});
+    const placement = slotAssignments.find((s) => s.recipeId === HUEVOS_ROTOS_ID);
+    expect(placement).toBeTruthy();
+    expect(placement.slotId).not.toBe("lun_comida_2");
+    expect(warnings).toEqual([]);
+  });
+
+  it("places it anyway (with a warning) when every day's primero shares the protein", () => {
+    const allEggPrimeros = Object.fromEntries(DAYS.map((d) => [d, HUEVOS_ENSALADA_ID]));
+    const assignments = comidaAssignmentsWithPrimeros(allEggPrimeros);
+    const fixedDishesRaw = [
+      { name: "Huevos rotos con jamón", catalogId: HUEVOS_ROTOS_ID, timesPerWeek: 1, meals: ["Comida"] },
+    ];
+    const { slotAssignments, warnings } = enforceFixedDishes(assignments, fixedDishesRaw, poolWithHuevos(), {});
+    expect(slotAssignments.some((s) => s.recipeId === HUEVOS_ROTOS_ID)).toBe(true);
+    expect(warnings.some((w) => w.includes("Huevos rotos con jamón"))).toBe(true);
   });
 });

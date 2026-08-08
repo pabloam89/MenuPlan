@@ -147,14 +147,38 @@ function pickEvenlySpread(items, k) {
  * Choose the comida position ("1" primero / "2" segundo) or cena that matches
  * the dish's culinary role, so a vegetable primero never lands in the main
  * protein slot (and vice versa).
+ *
+ * plato_unico routes to "1", same as primero — NOT "2" as an earlier version
+ * had it. A plato_unico (paella, lasaña…) IS the whole comida on its own;
+ * routing it to "2" force-placed it as a "segundo" alongside whatever
+ * unrelated primero the day already had (a tester reported exactly this:
+ * "Ensalada de lentejas" + "Arroz al horno" as primero+segundo — both meant
+ * to be a complete dish on their own). The day-selection loop below only lets
+ * a plato_unico land on a day ALREADY structured as one dish (no comida_2),
+ * same as it already did for "1"/primero in the other direction.
  */
 function slotPositionForRecipe(recipe, targetMealType) {
   if (targetMealType === "cena") return null; // cena has a single slot
   const roles = recipe.mealRole ?? [];
   if (roles.includes("segundo")) return "2";
   if (roles.includes("primero")) return "1";
-  if (roles.includes("plato_unico")) return "2";
+  if (roles.includes("plato_unico")) return "1";
   return "2";
+}
+
+/** True when placing `recipe` in the OTHER comida course's slot (its
+ * primero/segundo sibling on the same day) would give that sibling the exact
+ * same mainProtein (validateMenu rule 3b, proteina_repetida_en_comida). Only
+ * meaningful when the sibling slot is already occupied. */
+function conflictsWithComidaSibling(recipe, slotId, bySlot, poolById) {
+  if (!recipe.mainProtein || recipe.mainProtein === "none") return false;
+  const [day, meal, pos] = slotId.split("_");
+  if (meal !== "comida" || (pos !== "1" && pos !== "2")) return false;
+  const siblingSlotId = `${day}_comida_${pos === "1" ? "2" : "1"}`;
+  const siblingRecipeId = bySlot.get(siblingSlotId)?.recipeId;
+  if (!siblingRecipeId) return false;
+  const siblingRecipe = poolById[siblingRecipeId];
+  return Boolean(siblingRecipe) && siblingRecipe.mainProtein === recipe.mainProtein;
 }
 
 /**
@@ -230,14 +254,28 @@ export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById, fi
 
     // Only touch slots of the correct meal AND position for this dish's role.
     const wantPosition = slotPositionForRecipe(recipe, targetMealType);
+    // A dish whose ONLY comida role is plato_unico must land on a day that's
+    // ALREADY single-dish-structured — never inject it as position "1" next
+    // to an existing, unrelated comida_2 (or, as it used to route, as "2"
+    // next to an unrelated comida_1 — either way stranding a course this
+    // dish was never meant to share a comida with).
+    const isPlatoUnicoOnly =
+      wantPosition === "1" &&
+      (recipe.mealRole ?? []).includes("plato_unico") &&
+      !(recipe.mealRole ?? []).includes("primero");
     const slotByDay = new Map(); // day -> slotId (one candidate slot per day)
     for (const slotId of bySlot.keys()) {
       const [day, slotMeal, pos] = slotId.split("_");
       if (targetMealType === "cena") {
         if (slotMeal === "cena") slotByDay.set(day, slotId);
       } else if (slotMeal === "comida" && pos === wantPosition) {
-        // A primero must not replace a plato_unico day (would leave no main).
-        if (wantPosition === "1" && !bySlot.has(`${day}_comida_2`)) continue;
+        const dayHasSegundo = bySlot.has(`${day}_comida_2`);
+        if (isPlatoUnicoOnly) {
+          if (dayHasSegundo) continue; // only single-dish days qualify
+        } else if (wantPosition === "1" && !dayHasSegundo) {
+          // A genuine primero must not replace a plato_unico day (would leave no main).
+          continue;
+        }
         slotByDay.set(day, slotId);
       }
     }
@@ -280,6 +318,23 @@ export function enforceFixedDishes(slotAssignments, fixedDishesRaw, poolById, fi
       } else if (safeFreeDays.length < freeDays.length) {
         warnings.push(
           `El plato fijado "${fd.name}" coincide con la proteína o base del menú escolar en algún día de esta semana; se ha mantenido igualmente para cumplir la repetición semanal solicitada.`,
+        );
+      }
+    } else {
+      // Same soft-preference pattern for the comida sibling protein clash
+      // (validateMenu rule 3b) — a tester reported "Huevos cocidos con
+      // ensalada" (primero) + "Huevos rotos con jamón" (segundo, fixed dish)
+      // landing in the same comida. This step runs after the LLM/fallback
+      // validation pass and nothing re-checks it afterward except a silent
+      // warning, so the force-placement itself must avoid the clash.
+      const safeFreeDays = chosenFreeDays.filter(
+        (day) => !conflictsWithComidaSibling(recipe, slotByDay.get(day), bySlot, poolById),
+      );
+      if (safeFreeDays.length >= need) {
+        chosenFreeDays = safeFreeDays;
+      } else if (safeFreeDays.length < chosenFreeDays.length) {
+        warnings.push(
+          `El plato fijado "${fd.name}" repite la misma proteína que el otro plato de esa comida en algún día de esta semana; se ha mantenido igualmente para cumplir la repetición semanal solicitada.`,
         );
       }
     }
