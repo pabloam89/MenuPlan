@@ -238,14 +238,17 @@ describe("enforceFixedDishes never force-places a plato_unico-only fixed dish ne
 });
 
 describe("enforceFixedDishes avoids a same-comida protein clash with the sibling course (rule 3b)", () => {
-  // "Huevos rotos con jamón" — segundo, mainProtein huevo.
-  const HUEVOS_ROTOS_ID = "huevos_003";
+  // "Huevos fritos con puntillas" — segundo, cena, mainProtein huevo. (NOT
+  // "Huevos rotos con jamón" — a tester correctly pointed out that one is
+  // heavy/complete enough to be plato_unico only; its mealRole no longer
+  // includes "segundo", see the recipes/huevos.json data fix.)
+  const HUEVOS_SEGUNDO_ID = "huevos_007";
   // "Huevos cocidos con ensalada" — primero, mainProtein huevo (same protein).
   const HUEVOS_ENSALADA_ID = "huevos_014";
 
   function poolWithHuevos() {
     return {
-      [HUEVOS_ROTOS_ID]: recipeCatalogById[HUEVOS_ROTOS_ID],
+      [HUEVOS_SEGUNDO_ID]: recipeCatalogById[HUEVOS_SEGUNDO_ID],
       [HUEVOS_ENSALADA_ID]: recipeCatalogById[HUEVOS_ENSALADA_ID],
       ensaladas_verduras_001: recipeCatalogById.ensaladas_verduras_001,
       carnes_002: recipeCatalogById.carnes_002,
@@ -262,16 +265,16 @@ describe("enforceFixedDishes avoids a same-comida protein clash with the sibling
   }
 
   it("prefers a day whose primero doesn't share the fixed dish's protein", () => {
-    // Bug this guards against: a tester reported "Huevos cocidos con
-    // ensalada" (primero) + "Huevos rotos con jamón" (segundo, fixed dish)
-    // landing in the same comida — enforceFixedDishes force-placed the fixed
-    // dish without ever checking the sibling slot it was about to sit next to.
+    // Bug this guards against: a tester reported two egg dishes (primero +
+    // segundo, fixed dish) landing in the same comida — enforceFixedDishes
+    // force-placed the fixed dish without ever checking the sibling slot it
+    // was about to sit next to.
     const assignments = comidaAssignmentsWithPrimeros({ lun: HUEVOS_ENSALADA_ID });
     const fixedDishesRaw = [
-      { name: "Huevos rotos con jamón", catalogId: HUEVOS_ROTOS_ID, timesPerWeek: 1, meals: ["Comida"] },
+      { name: "Huevos fritos con puntillas", catalogId: HUEVOS_SEGUNDO_ID, timesPerWeek: 1, meals: ["Comida"] },
     ];
     const { slotAssignments, warnings } = enforceFixedDishes(assignments, fixedDishesRaw, poolWithHuevos(), {});
-    const placement = slotAssignments.find((s) => s.recipeId === HUEVOS_ROTOS_ID);
+    const placement = slotAssignments.find((s) => s.recipeId === HUEVOS_SEGUNDO_ID);
     expect(placement).toBeTruthy();
     expect(placement.slotId).not.toBe("lun_comida_2");
     expect(warnings).toEqual([]);
@@ -281,10 +284,22 @@ describe("enforceFixedDishes avoids a same-comida protein clash with the sibling
     const allEggPrimeros = Object.fromEntries(DAYS.map((d) => [d, HUEVOS_ENSALADA_ID]));
     const assignments = comidaAssignmentsWithPrimeros(allEggPrimeros);
     const fixedDishesRaw = [
-      { name: "Huevos rotos con jamón", catalogId: HUEVOS_ROTOS_ID, timesPerWeek: 1, meals: ["Comida"] },
+      { name: "Huevos fritos con puntillas", catalogId: HUEVOS_SEGUNDO_ID, timesPerWeek: 1, meals: ["Comida"] },
     ];
     const { slotAssignments, warnings } = enforceFixedDishes(assignments, fixedDishesRaw, poolWithHuevos(), {});
-    expect(slotAssignments.some((s) => s.recipeId === HUEVOS_ROTOS_ID)).toBe(true);
-    expect(warnings.some((w) => w.includes("Huevos rotos con jamón"))).toBe(true);
+    expect(slotAssignments.some((s) => s.recipeId === HUEVOS_SEGUNDO_ID)).toBe(true);
+    expect(warnings.some((w) => w.includes("Huevos fritos con puntillas"))).toBe(true);
+  });
+});
+
+describe("recipe data: Huevos rotos con jamón is plato_unico only, not a segundo", () => {
+  it("no longer accepts a comida_2 (segundo) slot", () => {
+    // Tester correction: this dish (fried eggs + fried potatoes + ham,
+    // 482kcal, already catalogued as type "completo") is heavy/complete
+    // enough to stand alone, the same category as "Arroz al horno" earlier —
+    // pairing it with a separate primero doesn't make sense.
+    const recipe = recipeCatalogById.huevos_003;
+    expect(recipe.mealRole).toEqual(["cena", "plato_unico"]);
+    expect(recipe.mealRole).not.toContain("segundo");
   });
 });
