@@ -11,6 +11,7 @@ import {
   GitBranch,
   BriefcaseBusiness,
   CalendarDays,
+  Camera,
   Check,
   ChefHat,
   Wheat,
@@ -58,6 +59,10 @@ import {
   Zap,
   User,
   Users,
+  PersonStanding,
+  Venus,
+  Mars,
+  Glasses,
   Utensils,
   UtensilsCrossed,
   X,
@@ -68,8 +73,8 @@ import {
   Avatar,
   AvatarStack,
   ProgressDots,
-  GroupScopePicker,
-  ScopeCircle,
+  GroupScopeGlassPicker,
+  ScopeGlassPicker,
   ToggleSwitch,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
@@ -343,6 +348,51 @@ const ROLE_ICON_MAP = {
   "Otro":     User,
 };
 
+// Palette of profile types for the "family list" builder — a 2×5 grid. Each
+// profile has its own icon + colour, a friendly default name and a sensible
+// default age (null = adult, age stays optional). `role` maps to a valid
+// HOUSEHOLD_ROLES value so downstream menu grouping keeps working even when two
+// profiles share a role (Hijo/Hija → "Hijo/a", Abuelo/Abuela → "Abuelo/a").
+const FAMILY_PROFILES = [
+  { key: "papa",   label: "Papá",    role: "Papá",     icon: Mars,           tint: "#039be5", age: null },
+  { key: "mama",   label: "Mamá",    role: "Mamá",     icon: Venus,          tint: "#d81b60", age: null },
+  { key: "hijo",   label: "Hijo",    role: "Hijo/a",   icon: PersonStanding, tint: "#43a047", age: 8 },
+  { key: "hija",   label: "Hija",    role: "Hijo/a",   icon: PersonStanding, tint: "#8e24aa", age: 8 },
+  { key: "bebe",   label: "Bebé",    role: "Bebé",     icon: Baby,           tint: "#fb8c00", age: 1 },
+  { key: "abuelo", label: "Abuelo",  role: "Abuelo/a", icon: Glasses,        tint: "#3949ab", age: 70 },
+  { key: "abuela", label: "Abuela",  role: "Abuelo/a", icon: Glasses,        tint: "#00897b", age: 70 },
+  { key: "amigo",  label: "Amigo/a", role: "Amigo/a",  icon: Heart,          tint: "#e53935", age: null },
+  { key: "adulto", label: "Adulto",  role: "Adulto",   icon: Users,          tint: "#607d8b", age: null },
+  { key: "otro",   label: "Otro",    role: "Otro",     icon: User,           tint: "#78909c", age: null },
+];
+
+const profileByKey = (key) => FAMILY_PROFILES.find((p) => p.key === key) ?? null;
+
+// Read a picked image and downscale it to a 160px square JPEG data URL, so
+// member avatars stay tiny in localStorage. Mirrors HomeProfileScreen's helper.
+function fileToAvatarDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const S = 160;
+        const canvas = document.createElement("canvas");
+        canvas.width = S; canvas.height = S;
+        const ctx = canvas.getContext("2d");
+        const scale = Math.max(S / img.width, S / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        ctx.drawImage(img, (S - w) / 2, (S - h) / 2, w, h);
+        resolve(canvas.toDataURL("image/jpeg", 0.82));
+      };
+      img.onerror = reject;
+      img.src = reader.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, onBack, nextLabel, showMenuModel = false, demoName = null, demoAge = null }) {
   const [name, setName] = useState("");
   const [ageStr, setAgeStr] = useState("");
@@ -351,6 +401,16 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const [dismissedBabyHints, setDismissedBabyHints] = useState(new Set());
   const [removingIds, setRemovingIds] = useState(new Set());
   const [addBounce, setAddBounce] = useState(false);
+  // "family" = the drag-a-profile builder shown to real users. The classic
+  // name+age+Añadir form is kept only for the scripted ValueProps demo, which
+  // passes demoName/demoAge; there is no user-facing toggle anymore.
+  const builderMode = demoName != null ? "clasico" : "family";
+  // Member whose name/age/colour mini-popup is open (family builder).
+  const [editingMemberId, setEditingMemberId] = useState(null);
+  // Set when the open popup belongs to a just-dropped profile, so tapping
+  // outside discards it ("si no te gusta, pulsas fuera y ya"). Editing an
+  // existing member instead just closes.
+  const [justAddedId, setJustAddedId] = useState(null);
 
   const trimmedName = name.trim();
   const parsedAge = parseInt(ageStr, 10);
@@ -386,6 +446,71 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     }));
     setName("");
     setAgeStr("");
+  };
+
+  // Add a member from a palette profile (family-list builder): drop it into the
+  // family list up top and immediately open the name/age mini-popup.
+  const addProfile = (profile) => {
+    setAddBounce(true);
+    setTimeout(() => setAddBounce(false), 320);
+    const id = uid();
+    setData((d) => ({
+      ...d,
+      members: [
+        ...d.members,
+        {
+          id,
+          name: "",
+          age: profile.age ?? null,
+          useBirthDate: false,
+          birthDate: "",
+          homeRole: profile.role,
+          profileKey: profile.key,
+          color: profile.tint,
+          stageDetail: "",
+          allergies: [],
+          dislikes: [],
+        },
+      ],
+    }));
+    setJustAddedId(id);
+    setEditingMemberId(id);
+  };
+
+  const updateMemberName = (id, name) => {
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => (m.id === id ? { ...m, name } : m)),
+    }));
+  };
+
+  const updateMemberPhoto = (id, photo) => {
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => (m.id === id ? { ...m, photo } : m)),
+    }));
+  };
+
+  const photoInputRef = useRef(null);
+  const handlePhotoPick = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !editingMemberId) return;
+    try {
+      const url = await fileToAvatarDataUrl(file);
+      updateMemberPhoto(editingMemberId, url);
+    } catch {
+      /* ignore unreadable images */
+    }
+  };
+
+  const updateMemberAge = (id, ageStr) => {
+    const n = parseInt(ageStr, 10);
+    const age = Number.isFinite(n) ? n : null;
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => (m.id === id ? { ...m, age } : m)),
+    }));
   };
 
   const updateMemberHomeRole = (id, homeRole) => {
@@ -443,6 +568,168 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     fontFamily: "inherit",
   };
 
+  // Shared member card. `editable` (family mode) turns name + age into inline
+  // inputs; classic mode keeps them read-only. Avatar colour, role chip and
+  // remove behave the same in both.
+  const renderMemberCard = (m, idx, editable) => {
+    const role = migrateHomeRole(m.homeRole ?? suggestHomeRole(memberAge(m)));
+    const avatarColor = m.color ?? AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
+    const RoleIcon = ROLE_ICON_MAP[role] ?? User;
+    const initial = (m.name ?? "").trim()[0]?.toUpperCase() ?? "?";
+    const isPickingColor = colorPickerId === m.id;
+    const isLeaving = removingIds.has(m.id);
+    const ageValue = m.age === 0 || Number.isFinite(Number(m.age)) ? String(m.age ?? "") : "";
+    return (
+      <div
+        key={m.id}
+        className={isLeaving ? "member-leaving" : "member-enter"}
+        style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "10px 12px", background: "#fff",
+          border: "1.5px solid #dfe9e2",
+          boxShadow: "0 1px 5px rgba(45,90,61,.07)",
+          borderRadius: 14, marginBottom: 8,
+          flexWrap: "wrap",
+        }}
+      >
+        {/* Avatar — tap to pick colour */}
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => setColorPickerId(isPickingColor ? null : m.id)}
+            title="Cambiar color"
+            style={{
+              width: 40, height: 40, borderRadius: "50%", background: avatarColor,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 15, fontWeight: 800, color: "#fff",
+              border: isPickingColor ? "2.5px solid #fff" : "none",
+              boxShadow: isPickingColor ? `0 0 0 2.5px ${avatarColor}` : "none",
+              cursor: "pointer", padding: 0, fontFamily: "inherit",
+              transition: "box-shadow .15s ease",
+            }}
+          >
+            {initial}
+          </button>
+          {/* Pencil badge */}
+          <span style={{
+            position: "absolute", bottom: -2, right: -2,
+            width: 16, height: 16, borderRadius: "50%",
+            background: "#fff", border: "1.5px solid #e0e8e3",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            pointerEvents: "none",
+          }}>
+            <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
+              <path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" strokeWidth="0"/>
+            </svg>
+          </span>
+        </div>
+
+        {editable ? (
+          <input
+            value={m.name}
+            onChange={(e) => updateMemberName(m.id, e.target.value)}
+            placeholder="Nombre"
+            aria-label="Nombre"
+            style={{
+              flex: 1, minWidth: 0, fontWeight: 800, fontSize: 16, color: "#1a3a24",
+              border: "none", borderBottom: "1.5px solid transparent",
+              background: "transparent", outline: "none", fontFamily: "inherit",
+              padding: "2px 0", transition: "border-color .15s ease",
+            }}
+            onFocus={(e) => { e.target.style.borderBottomColor = "#cfe0d5"; }}
+            onBlur={(e) => { e.target.style.borderBottomColor = "transparent"; }}
+          />
+        ) : (
+          <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: 14, color: "#1a3a24",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {m.name}
+          </div>
+        )}
+
+        {editable ? (
+          <input
+            type="text"
+            inputMode="numeric"
+            value={ageValue}
+            onChange={(e) => updateMemberAge(m.id, e.target.value.replace(/\D/g, ""))}
+            placeholder="—"
+            aria-label="Edad (opcional)"
+            title="Edad (opcional)"
+            style={{
+              width: 40, height: 34, textAlign: "center", borderRadius: 9,
+              border: "1.5px solid #e0e8e2", background: "#fff",
+              fontSize: 16, fontWeight: 700, color: "#3d6b4f",
+              outline: "none", fontFamily: "inherit", flexShrink: 0, padding: 0,
+            }}
+          />
+        ) : (
+          <div style={{ fontSize: 14, fontWeight: 700, color: "#3d6b4f", width: 32, textAlign: "center", flexShrink: 0 }}>
+            {memberAge(m)}
+          </div>
+        )}
+
+        <button
+          type="button"
+          onClick={() => setRoleEditId(m.id)}
+          style={{
+            display: "inline-flex", alignItems: "center", gap: 5,
+            padding: "5px 10px", borderRadius: 20,
+            border: "1.5px solid #d0e0d6", background: "#fff",
+            color: "#2d5a3d", fontSize: 12, fontWeight: 700,
+            cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+            width: 100, justifyContent: "center",
+          }}
+        >
+          <RoleIcon size={12} />
+          {role}
+          <ChevronDown size={11} />
+        </button>
+        <button
+          type="button"
+          onClick={() => removeMember(m.id)}
+          aria-label={`Quitar a ${m.name}`}
+          style={{ border: "none", background: "transparent", cursor: "pointer", color: "#c47070",
+            display: "flex", alignItems: "center", justifyContent: "center", padding: 4, flexShrink: 0 }}
+        >
+          <Trash2 size={15} />
+        </button>
+
+        {/* Colour picker — inline, full width, no overflow risk */}
+        {isPickingColor && (
+          <div style={{
+            width: "100%",
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 10,
+            paddingTop: 10,
+            borderTop: "1px solid rgba(45,90,61,.1)",
+            marginTop: 4,
+            justifyContent: "center",
+            animation: "colorPickerIn .2s cubic-bezier(.4,0,.2,1) both",
+          }}>
+            {AVATAR_PALETTE.map((c, si) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => updateMemberColor(m.id, c)}
+                style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: c,
+                  border: avatarColor === c ? "2.5px solid #fff" : "none",
+                  boxShadow: avatarColor === c ? `0 0 0 2.5px ${c}` : `0 2px 8px ${c}55`,
+                  cursor: "pointer", padding: 0, flexShrink: 0,
+                  transform: avatarColor === c ? "scale(1.18)" : "scale(1)",
+                  transition: "transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease",
+                  animation: `swatchPop .25s cubic-bezier(.34,1.4,.64,1) ${si * 28}ms both`,
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <OnboardingShell
       title="¿Quién come en casa?"
@@ -455,12 +742,164 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
       nextDisabled={!hasMembers}
       finishDisabled={!hasMembers}
     >
-      {/* Baby menu modal — explains the baby menu and lets the user promote */}
+      {/* Baby menu modal — explains the baby menu and lets the user promote.
+          Held back while the name/age mini-popup is open so they don't stack. */}
       <BabyMenuBubble
-        member={pendingBabyMember}
+        member={editingMemberId ? null : pendingBabyMember}
         onKeep={() => pendingBabyMember && dismissBabyHint(pendingBabyMember.id)}
         onPromote={() => pendingBabyMember && promoteBabyToChild(pendingBabyMember.id)}
       />
+
+      {/* Name + age mini-popup (family builder) — compact: name + age on one
+          line, colours below, minimalist "Listo". No remove button: tapping
+          outside a just-dropped profile discards it; editing an existing one
+          just closes. */}
+      {builderMode === "family" && editingMemberId && (() => {
+        const editing = data.members.find((m) => m.id === editingMemberId);
+        if (!editing) return null;
+        const prof = profileByKey(editing.profileKey);
+        const EIcon = prof?.icon ?? ROLE_ICON_MAP[migrateHomeRole(editing.homeRole)] ?? User;
+        const color = editing.color ?? prof?.tint ?? "#2d5a3d";
+        const ageVal = editing.age != null && Number.isFinite(Number(editing.age)) ? String(editing.age) : "";
+        // Editing an existing member (tapped its avatar) unlocks photo + colour;
+        // the quick add popup (just-dropped profile) stays minimal.
+        const isEdit = editingMemberId !== justAddedId;
+        const catLabel = prof?.label ?? migrateHomeRole(editing.homeRole);
+        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); };
+        const dismiss = () => {
+          if (editingMemberId === justAddedId) removeMember(editingMemberId);
+          closePopup();
+        };
+        return (
+          <div
+            onClick={dismiss}
+            style={{
+              position: "fixed", inset: 0, zIndex: 120,
+              background: "rgba(15,30,20,.34)",
+              backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 20, animation: "miniPopFade .18s ease both",
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: 400, maxWidth: "calc(100vw - 20px)",
+                background: "#fff", borderRadius: 18,
+                border: "1px solid #e5eee8",
+                boxShadow: "0 24px 60px rgba(20,47,29,.26)",
+                padding: 20,
+                animation: "memberIn .22s cubic-bezier(.34,1.3,.64,1) both",
+              }}
+            >
+              {/* Row: avatar · name · age · confirm. When editing an existing
+                  member the avatar becomes a photo picker and colours appear. */}
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, flexShrink: 0 }}>
+                {isEdit ? (
+                  <button
+                    type="button"
+                    onClick={() => photoInputRef.current?.click()}
+                    title="Añadir o cambiar foto"
+                    aria-label="Añadir o cambiar foto"
+                    style={{ position: "relative", width: 40, height: 40, borderRadius: 999, border: "none", padding: 0, cursor: "pointer", flexShrink: 0, color: "#fff", boxShadow: `0 4px 12px ${color}44`, display: "inline-flex", alignItems: "center", justifyContent: "center", ...(editing.photo ? { backgroundImage: `url(${editing.photo})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: color }) }}
+                  >
+                    {!editing.photo && <EIcon size={19} strokeWidth={2.3} />}
+                    <span style={{ position: "absolute", bottom: -3, right: -3, width: 18, height: 18, borderRadius: 999, background: "#2d5a3d", border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Camera size={9} color="#fff" strokeWidth={2.6} />
+                    </span>
+                  </button>
+                ) : (
+                  <span
+                    title={migrateHomeRole(editing.homeRole)}
+                    style={{ width: 40, height: 40, borderRadius: 999, background: color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 4px 12px ${color}44` }}
+                  >
+                    <EIcon size={19} strokeWidth={2.3} />
+                  </span>
+                )}
+                  <span style={{ fontSize: 9, fontWeight: 800, color: "#9ab0a1", lineHeight: 1, textTransform: "uppercase", letterSpacing: ".3px", maxWidth: 48, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {catLabel}
+                  </span>
+                </div>
+                <input
+                  value={editing.name}
+                  onChange={(e) => updateMemberName(editing.id, e.target.value)}
+                  placeholder="Nombre"
+                  autoFocus={!isEdit}
+                  style={{ width: 150, flexGrow: 0, flexShrink: 1, minWidth: 0, height: 36, padding: "0 11px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={ageVal}
+                  onChange={(e) => updateMemberAge(editing.id, e.target.value.replace(/\D/g, ""))}
+                  placeholder="Edad"
+                  aria-label="Edad (opcional)"
+                  style={{ width: 46, flexShrink: 0, height: 36, padding: "0 4px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 12, fontWeight: 700, textAlign: "center", color: "#3d6b4f", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                />
+                <button
+                  type="button"
+                  onClick={closePopup}
+                  aria-label="Listo"
+                  title="Listo"
+                  style={{ width: 36, height: 36, flexShrink: 0, marginLeft: "auto", borderRadius: 9, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                >
+                  {isEdit ? <Check size={18} strokeWidth={3} /> : <Plus size={18} strokeWidth={2.8} />}
+                </button>
+                {isEdit && (
+                  <button
+                    type="button"
+                    onClick={() => { const id = editing.id; closePopup(); removeMember(id); }}
+                    aria-label="Eliminar miembro"
+                    title="Eliminar"
+                    style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 9, border: "1.5px solid #f3c6c6", background: "#fff5f5", color: "#c62828", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                  >
+                    <Trash2 size={17} strokeWidth={2.3} />
+                  </button>
+                )}
+              </div>
+
+              {isEdit && (
+                <>
+                  {/* Colours — two rows of six */}
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, justifyItems: "center", marginTop: 14 }}>
+                    {AVATAR_PALETTE.map((c) => (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => updateMemberColor(editing.id, c)}
+                        style={{
+                          width: 26, height: 26, borderRadius: 999, background: c,
+                          border: color === c ? "2.5px solid #fff" : "none",
+                          boxShadow: color === c ? `0 0 0 2.5px ${c}` : `0 2px 7px ${c}55`,
+                          cursor: "pointer", padding: 0,
+                          transform: color === c ? "scale(1.15)" : "scale(1)",
+                          transition: "transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  {editing.photo && (
+                    <div style={{ textAlign: "right", marginTop: 10 }}>
+                      <button
+                        type="button"
+                        onClick={() => updateMemberPhoto(editing.id, "")}
+                        style={{ border: "none", background: "transparent", color: "#a0587a", cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700 }}
+                      >
+                        Quitar foto
+                      </button>
+                    </div>
+                  )}
+                </>
+              )}
+
+              <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoPick} style={{ display: "none" }} />
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Role picker overlay */}
       {roleEditId && (
@@ -516,64 +955,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
         </div>
       )}
 
-      {/* Add form — columnas verticales: [Nombre] [Edad] [Añadir] */}
-      <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 16 }}>
-
-        {/* Nombre column */}
-        <div style={{ flex: "1 1 auto", minWidth: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3, color: "#1a3a24", marginBottom: 4 }}>
-            Nombre
-          </div>
-          <input
-            value={demoName ?? name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="María"
-            style={{
-              width: "100%", height: fieldH, padding: "0 12px",
-              borderRadius: 10, border: "1.5px solid #ddd",
-              fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
-            }}
-            onKeyDown={(e) => e.key === "Enter" && addMember()}
-          />
-        </div>
-
-        {/* Edad column: label centered over number input + calendar button */}
-        <div style={{ flexShrink: 0 }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3, color: "#3d6b4f", textAlign: "center", marginBottom: 4 }}>
-            Edad
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              type="text"
-              inputMode="numeric"
-              value={demoAge ?? ageStr}
-              onChange={(e) => setAgeStr(e.target.value.replace(/\D/g, ""))}
-              style={ageBoxStyle}
-              onKeyDown={(e) => e.key === "Enter" && addMember()}
-            />
-          </div>
-        </div>
-
-        {/* Añadir */}
-        <button
-          type="button"
-          onClick={addMember}
-          disabled={!canAdd}
-          style={{
-            height: fieldH, padding: "0 14px", borderRadius: 10, border: "none",
-            background: canAdd ? "#2d5a3d" : "#cdd5d0", color: "#fff",
-            fontSize: 13, fontWeight: 800, cursor: canAdd ? "pointer" : "not-allowed",
-            display: "inline-flex", alignItems: "center", gap: 6,
-            flexShrink: 0, fontFamily: "inherit",
-            transform: addBounce ? "scale(0.91)" : "scale(1)",
-            transition: "transform .15s cubic-bezier(.34,1.56,.64,1), background .2s",
-          }}
-        >
-          <Plus size={16} />
-          Añadir
-        </button>
-      </div>
-
       <style>{`
         @keyframes memberIn {
           from { opacity: 0; transform: translateY(-10px) scale(0.95); }
@@ -595,134 +976,173 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
           from { opacity: 0; transform: translateY(6px) scale(0.97); }
           to   { opacity: 1; transform: translateY(0)   scale(1);    }
         }
+        @keyframes miniPopFade { from { opacity: 0; } to { opacity: 1; } }
         .member-enter   { animation: memberIn .28s cubic-bezier(.34,1.3,.64,1) both; }
         .member-leaving { animation: memberOut .26s cubic-bezier(.4,0,.2,1) both; overflow: hidden; }
+        .palette-cell { transition: transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease, border-color .15s ease; }
+        .palette-cell:hover { box-shadow: 0 4px 14px rgba(45,90,61,.12); }
+        .palette-cell:active { transform: scale(0.95); }
+        .fam-chip { transition: transform .12s cubic-bezier(.34,1.56,.64,1); }
+        .fam-chip:active { transform: scale(0.94); }
       `}</style>
 
-      {/* Divider */}
-      {hasMembers && (
-        <div style={{ height: 1, background: "rgba(45,90,61,.1)", margin: "4px 0 8px" }} />
-      )}
-
-      {/* Member cards */}
-      {data.members.map((m, idx) => {
-        const role = migrateHomeRole(m.homeRole ?? suggestHomeRole(memberAge(m)));
-        const avatarColor = m.color ?? AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
-        const RoleIcon = ROLE_ICON_MAP[role] ?? User;
-        const initial = m.name.trim()[0]?.toUpperCase() ?? "?";
-        const isPickingColor = colorPickerId === m.id;
-        const isLeaving = removingIds.has(m.id);
-        return (
-          <div
-            key={m.id}
-            className={isLeaving ? "member-leaving" : "member-enter"}
-            style={{
-              display: "flex", alignItems: "center", gap: 10,
-              padding: "10px 12px", background: "#fff",
-              border: "1.5px solid #dfe9e2",
-              boxShadow: "0 1px 5px rgba(45,90,61,.07)",
-              borderRadius: 14, marginBottom: 8,
-              flexWrap: "wrap",
-            }}
-          >
-            {/* Avatar — tap to pick colour */}
-            <div style={{ position: "relative", flexShrink: 0 }}>
-              <button
-                type="button"
-                onClick={() => setColorPickerId(isPickingColor ? null : m.id)}
-                title="Cambiar color"
-                style={{
-                  width: 40, height: 40, borderRadius: "50%", background: avatarColor,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 15, fontWeight: 800, color: "#fff",
-                  border: isPickingColor ? "2.5px solid #fff" : "none",
-                  boxShadow: isPickingColor ? `0 0 0 2.5px ${avatarColor}` : "none",
-                  cursor: "pointer", padding: 0, fontFamily: "inherit",
-                  transition: "box-shadow .15s ease",
-                }}
-              >
-                {initial}
-              </button>
-              {/* Pencil badge */}
-              <span style={{
-                position: "absolute", bottom: -2, right: -2,
-                width: 16, height: 16, borderRadius: "50%",
-                background: "#fff", border: "1.5px solid #e0e8e3",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                pointerEvents: "none",
-              }}>
-                <svg width="8" height="8" viewBox="0 0 10 10" fill="none">
-                  <path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" strokeWidth="0"/>
-                </svg>
+      {builderMode === "family" ? (
+        <>
+          {/* TOP — the family you're building (avatars with icons) */}
+          <div style={{
+            background: "#fff",
+            border: "1px solid #e6efe9", borderRadius: 20,
+            padding: 18, marginBottom: 18,
+            boxShadow: "0 8px 24px rgba(45,90,61,.08)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: hasMembers ? 16 : 6 }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+                <span style={{ width: 26, height: 26, borderRadius: 8, background: "#eaf3ee", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <Users size={15} strokeWidth={2.4} color="#2d5a3d" />
+                </span>
+                <span style={{ fontSize: 14, fontWeight: 900, color: "#15301f", letterSpacing: "-.2px" }}>Tu familia</span>
               </span>
+              <span style={{ flex: 1, borderTop: "1px dashed #cfdcd4" }} />
+              <span style={{ fontSize: 13, fontWeight: 800, color: "#7c9788", flexShrink: 0 }}>{data.members.length}</span>
             </div>
-            <div style={{ flex: 1, minWidth: 0, fontWeight: 800, fontSize: 14, color: "#1a3a24",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {m.name}
-            </div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#3d6b4f", width: 32, textAlign: "center", flexShrink: 0 }}>
-              {memberAge(m)}
-            </div>
-            <button
-              type="button"
-              onClick={() => setRoleEditId(m.id)}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 5,
-                padding: "5px 10px", borderRadius: 20,
-                border: "1.5px solid #d0e0d6", background: "#fff",
-                color: "#2d5a3d", fontSize: 12, fontWeight: 700,
-                cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
-                width: 100, justifyContent: "center",
-              }}
-            >
-              <RoleIcon size={12} />
-              {role}
-              <ChevronDown size={11} />
-            </button>
-            <button
-              type="button"
-              onClick={() => removeMember(m.id)}
-              aria-label={`Quitar a ${m.name}`}
-              style={{ border: "none", background: "transparent", cursor: "pointer", color: "#c47070",
-                display: "flex", alignItems: "center", justifyContent: "center", padding: 4, flexShrink: 0 }}
-            >
-              <Trash2 size={15} />
-            </button>
-
-            {/* Colour picker — inline, full width, no overflow risk */}
-            {isPickingColor && (
-              <div style={{
-                width: "100%",
-                display: "flex",
-                gap: 10,
-                paddingTop: 10,
-                borderTop: "1px solid rgba(45,90,61,.1)",
-                marginTop: 4,
-                justifyContent: "center",
-                animation: "colorPickerIn .2s cubic-bezier(.4,0,.2,1) both",
-              }}>
-                {AVATAR_PALETTE.map((c, si) => (
-                  <button
-                    key={c}
-                    type="button"
-                    onClick={() => updateMemberColor(m.id, c)}
-                    style={{
-                      width: 30, height: 30, borderRadius: "50%",
-                      background: c,
-                      border: avatarColor === c ? "2.5px solid #fff" : "none",
-                      boxShadow: avatarColor === c ? `0 0 0 2.5px ${c}` : `0 2px 8px ${c}55`,
-                      cursor: "pointer", padding: 0, flexShrink: 0,
-                      transform: avatarColor === c ? "scale(1.18)" : "scale(1)",
-                      transition: "transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease",
-                      animation: `swatchPop .25s cubic-bezier(.34,1.4,.64,1) ${si * 28}ms both`,
-                    }}
-                  />
-                ))}
+            {hasMembers ? (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+                {data.members.map((m, idx) => {
+                  const prof = profileByKey(m.profileKey);
+                  const Icon = prof?.icon ?? ROLE_ICON_MAP[migrateHomeRole(m.homeRole)] ?? User;
+                  const color = m.color ?? prof?.tint ?? AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
+                  const isLeaving = removingIds.has(m.id);
+                  const showAge = m.age != null && m.age !== "" && Number.isFinite(Number(m.age));
+                  return (
+                    <button
+                      key={m.id}
+                      type="button"
+                      className={`fam-chip ${isLeaving ? "member-leaving" : "member-enter"}`}
+                      onClick={() => { setJustAddedId(null); setEditingMemberId(m.id); }}
+                      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 64, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
+                    >
+                      <span style={{ position: "relative", width: 52, height: 52, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", border: "3px solid #fff", boxShadow: `0 6px 16px ${color}55`, ...(m.photo ? { backgroundImage: `url(${m.photo})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: `linear-gradient(145deg, ${color}, ${color}cc)` }) }}>
+                        {!m.photo && <Icon size={23} strokeWidth={2.2} />}
+                        <span style={{ position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: 999, background: "#fff", border: "1.5px solid #e0e8e3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" /></svg>
+                        </span>
+                      </span>
+                      <span style={{ fontSize: 11.5, fontWeight: 800, color: "#25402f", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        {m.name || prof?.label || "—"}
+                      </span>
+                      {showAge && (
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#9ab0a1", marginTop: -3 }}>{m.age} años</span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ position: "relative", textAlign: "center", color: "#8aa093", fontSize: 12.5, fontWeight: 600, padding: "14px 0 6px" }}>
+                Toca un perfil de abajo para empezar a construir tu familia.
               </div>
             )}
           </div>
-        );
-      })}
+
+          {/* BOTTOM — 2×5 palette of profiles */}
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.4, color: "#3d6b4f", marginBottom: 10 }}>
+            Añade a alguien
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {FAMILY_PROFILES.map((p) => {
+              const Icon = p.icon;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  className="palette-cell"
+                  onClick={() => addProfile(p)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: 11,
+                    padding: "10px 12px", borderRadius: 14,
+                    border: `1.5px solid ${p.tint}33`, background: "#fff",
+                    cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+                    boxShadow: "0 1px 4px rgba(45,90,61,.05)",
+                  }}
+                >
+                  <span style={{ width: 36, height: 36, borderRadius: 999, background: p.tint, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 3px 10px ${p.tint}44` }}>
+                    <Icon size={18} strokeWidth={2.3} />
+                  </span>
+                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 800, color: "#25402f" }}>{p.label}</span>
+                  <Plus size={16} strokeWidth={2.8} color={p.tint} />
+                </button>
+              );
+            })}
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Classic add form — columnas verticales: [Nombre] [Edad] [Añadir] */}
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 16 }}>
+
+            {/* Nombre column */}
+            <div style={{ flex: "1 1 auto", minWidth: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3, color: "#1a3a24", marginBottom: 4 }}>
+                Nombre
+              </div>
+              <input
+                value={demoName ?? name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="María"
+                style={{
+                  width: "100%", height: fieldH, padding: "0 12px",
+                  borderRadius: 10, border: "1.5px solid #ddd",
+                  fontSize: 16, outline: "none", boxSizing: "border-box", fontFamily: "inherit",
+                }}
+                onKeyDown={(e) => e.key === "Enter" && addMember()}
+              />
+            </div>
+
+            {/* Edad column: label centered over number input + calendar button */}
+            <div style={{ flexShrink: 0 }}>
+              <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: 0.3, color: "#3d6b4f", textAlign: "center", marginBottom: 4 }}>
+                Edad
+              </div>
+              <div style={{ display: "flex", gap: 8 }}>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={demoAge ?? ageStr}
+                  onChange={(e) => setAgeStr(e.target.value.replace(/\D/g, ""))}
+                  style={ageBoxStyle}
+                  onKeyDown={(e) => e.key === "Enter" && addMember()}
+                />
+              </div>
+            </div>
+
+            {/* Añadir */}
+            <button
+              type="button"
+              onClick={addMember}
+              disabled={!canAdd}
+              style={{
+                height: fieldH, padding: "0 14px", borderRadius: 10, border: "none",
+                background: canAdd ? "#2d5a3d" : "#cdd5d0", color: "#fff",
+                fontSize: 13, fontWeight: 800, cursor: canAdd ? "pointer" : "not-allowed",
+                display: "inline-flex", alignItems: "center", gap: 6,
+                flexShrink: 0, fontFamily: "inherit",
+                transform: addBounce ? "scale(0.91)" : "scale(1)",
+                transition: "transform .15s cubic-bezier(.34,1.56,.64,1), background .2s",
+              }}
+            >
+              <Plus size={16} />
+              Añadir
+            </button>
+          </div>
+
+          {/* Divider */}
+          {hasMembers && (
+            <div style={{ height: 1, background: "rgba(45,90,61,.1)", margin: "4px 0 8px" }} />
+          )}
+
+          {data.members.map((m, idx) => renderMemberCard(m, idx, false))}
+        </>
+      )}
 
       {/* Standalone "Gestionar familia" only: same-menu-or-not, indexed here
           instead of forcing a trip through menu generation to set it. */}
@@ -1250,41 +1670,6 @@ function FixedDishTable({ items, mealOptions, onTimesChange, onMealsChange, onRe
 
 const FAMILIA_TARGET = "__familia__";
 
-// Family-member picker in the exact "MENÚ" scope style (GroupScopePicker):
-// "Familia" first (edits everyone at once) — same role as "Todos" there —
-// then a divider, then each member as a ScopeCircle with their name below.
-// Groups don't apply here — restrictions are always set per individual.
-function MemberAvatarSelector({ members, selectedId, onSelect }) {
-  return (
-    <div style={{ display: "flex", alignItems: "flex-end", gap: 14, flexWrap: "wrap", justifyContent: "center" }}>
-      <ScopeCircle
-        label="Familia"
-        abbrev="F"
-        color="#2d5a3d"
-        active={selectedId === FAMILIA_TARGET}
-        onClick={() => onSelect(FAMILIA_TARGET)}
-      />
-      <div style={{ width: 1, height: 40, background: "#dde8e1", flexShrink: 0 }} />
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
-        {members.map((m) => {
-          const color = memberAvatarColor(m.id, members);
-          const abbrev = (m.name ?? "?").trim().charAt(0).toUpperCase() || "?";
-          return (
-            <ScopeCircle
-              key={m.id}
-              label={m.name}
-              abbrev={abbrev}
-              color={color}
-              active={m.id === selectedId}
-              onClick={() => onSelect(m.id)}
-            />
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
 function AllergenRow({ Icon, color, label, checked, checkColor, onToggle, last }) {
   return (
     <button
@@ -1591,11 +1976,21 @@ export function OnboardingRestrictions({
           `}</style>
 
           {data.members.length > 1 && (
-            <div style={{ marginBottom: 16 }}>
-              <MemberAvatarSelector
-                members={data.members}
-                selectedId={activeAllergyMemberId}
-                onSelect={setAllergyMemberId}
+            <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
+              <ScopeGlassPicker
+                title="Persona"
+                value={activeAllergyMemberId}
+                onChange={setAllergyMemberId}
+                style={{ marginBottom: 0 }}
+                options={[
+                  { id: FAMILIA_TARGET, label: "Familia", abbrev: "F", color: "#2d5a3d" },
+                  ...data.members.map((m) => ({
+                    id: m.id,
+                    label: m.name,
+                    abbrev: (m.name ?? "?").trim().charAt(0).toUpperCase() || "?",
+                    color: memberAvatarColor(m.id, data.members),
+                  })),
+                ]}
               />
             </div>
           )}
@@ -3391,7 +3786,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
             }}>
               <Zap size={12} color="#fff" />
             </span>
-            Acciones rápidas
+            Ajustar
           </button>
       </div>
 
@@ -4106,6 +4501,34 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
   };
 
   const day = days[visibleIdx];
+
+  // "Come fuera" is confusing at dinner, so the "fuera" label follows the meal:
+  // Cena → "Cena fuera", Desayuno → "Desayuna fuera", Comida → "Come fuera".
+  const slotLabel = (value, meal) => {
+    if (value === "fuera") {
+      return meal === "Cena" ? "Cena fuera" : meal === "Desayuno" ? "Desayuna fuera" : "Come fuera";
+    }
+    return SLOT_CONFIG[value]?.label ?? "En casa";
+  };
+
+  // Consensus of every member for a meal (null when they diverge), so the
+  // "Todos" row can show a single state and toggle everyone at once.
+  const mealConsensus = (meal) => {
+    if (members.length === 0) return "casa";
+    const vals = members.map((m) => {
+      const raw = schedule[`${m.id}|${day}|${meal}`] ?? "casa";
+      return raw === "off" ? "casa" : raw;
+    });
+    return vals.every((v) => v === vals[0]) ? vals[0] : null;
+  };
+
+  // One tap sets the whole family for that meal — casa ⇄ fuera (never "cole",
+  // which only makes sense per kid). Mixed states reset to "casa" first.
+  const toggleAllForMeal = (meal) => {
+    const next = mealConsensus(meal) === "fuera" ? "casa" : "fuera";
+    members.forEach((m) => onSetMemberSlot(m.id, day, meal, next));
+  };
+
   const slideAnim = slideDir === "forward"
     ? "slideFromRight .22s cubic-bezier(.25,.46,.45,.94) both"
     : slideDir === "backward"
@@ -4256,6 +4679,63 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
             ))}
           </div>
 
+          {/* "Todos" row — set the whole family for a meal in one tap instead of
+              editing each person cell by cell. */}
+          {members.length > 1 && (
+            <>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: `100px repeat(${meals.length}, 1fr)`,
+                  gap: 8, marginBottom: 10,
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 4px" }}>
+                  <span
+                    style={{
+                      width: 28, height: 28, borderRadius: "50%", background: "#e8f0ea",
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      color: "#2d5a3d", flexShrink: 0,
+                    }}
+                  >
+                    <Users size={15} />
+                  </span>
+                  <span style={{ fontSize: 12, fontWeight: 900, color: "#1a3a24" }}>Todos</span>
+                </div>
+
+                {meals.map((meal) => {
+                  const c = mealConsensus(meal);
+                  const mixed = c === null;
+                  const conf = SLOT_CONFIG[c] ?? SLOT_CONFIG.casa;
+                  return (
+                    <button
+                      key={meal}
+                      type="button"
+                      onClick={() => toggleAllForMeal(meal)}
+                      style={{
+                        height: 56, borderRadius: 16,
+                        border: mixed ? "2px dashed #cbd8cf" : "none",
+                        background: mixed ? "#f4f7f5" : conf.color,
+                        color: mixed ? "#9ab0a1" : "#fff",
+                        boxShadow: mixed ? "none" : `0 4px 14px ${conf.color}55`,
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 4, cursor: "pointer", fontFamily: "inherit",
+                        transition: "background .15s ease, box-shadow .15s ease",
+                      }}
+                    >
+                      {mixed ? <Users size={18} /> : stateIcon(c, 18)}
+                      <span style={{ fontSize: 10, fontWeight: 800 }}>
+                        {mixed ? "Varios" : slotLabel(c, meal)}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <div style={{ height: 1, background: "#e8f0ea", margin: "0 2px 12px" }} />
+            </>
+          )}
+
           {/* Rows = members */}
           {members.map((member) => (
             <div
@@ -4295,7 +4775,7 @@ function DayView({ days, meals, members, schedule, coleAllowedIds = new Set(), d
                   >
                     {stateIcon(value, 20)}
                     <span style={{ fontSize: 10, fontWeight: 800 }}>
-                      {SLOT_CONFIG[value]?.label ?? "En casa"}
+                      {slotLabel(value, meal)}
                     </span>
                   </button>
                 );
@@ -5842,8 +6322,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
     >
       {hasMultipleGroups && (
         <div style={{ marginBottom: 20 }}>
-          <SectionTitle>Menú</SectionTitle>
-          <GroupScopePicker
+          <GroupScopeGlassPicker
             groups={styleableGroups}
             scope={activeGroupId ?? "all"}
             onChange={(scopeId) => setActiveGroupId(scopeId === "all" ? null : scopeId)}
@@ -6433,8 +6912,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   if (hasMultipleGroups) {
     blocks.push(
       <div key="menu">
-        <SectionTitle>Menú</SectionTitle>
-        <GroupScopePicker
+        <GroupScopeGlassPicker
           groups={styleableGroups}
           scope={activeGroupId ?? "all"}
           onChange={(id) => setActiveGroupId(id === "all" ? null : id)}

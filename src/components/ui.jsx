@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Calendar, ClipboardList, CookingPot, Home, Refrigerator, ShoppingCart, UserCircle, X } from "lucide-react";
+import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Refrigerator, ShoppingCart, UserCircle, X } from "lucide-react";
 import { initialsOf } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -711,6 +711,148 @@ export function GroupScopePicker({ groups, scope, onChange, style }) {
       </div>
     </div>
   );
+}
+
+// Compact "liquid glass" scope/person picker — mirrors the menu's DeckFilter.
+// Instead of laying every circle out inline, it shows a single chip with the
+// active circle + label; tapping it opens a centered frosted-glass modal where
+// you pick from all the circles. Declutters steps with several menús/personas.
+export function ScopeGlassPicker({ options, value, onChange, title = "Elige", style }) {
+  const [open, setOpen] = useState(false);
+  const active = options.find((o) => o.id === value) ?? options[0];
+  if (!active) return null;
+  const ActiveIcon = active.Icon;
+
+  return (
+    <div style={{ marginBottom: 14, display: "flex", justifyContent: "center", ...style }}>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`${title} · ${active.label}`}
+        title={`${title} · ${active.label}`}
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "6px 20px 6px 6px",
+          borderRadius: 999,
+          border: "1.5px solid #d4e6da",
+          background: "#fff",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          boxShadow: "0 6px 20px rgba(20,47,29,.12)",
+          minWidth: 168,
+        }}
+      >
+        <span
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 999,
+            background: active.color,
+            border: `2.5px solid ${active.color}`,
+            color: "#fff",
+            fontSize: 16,
+            fontWeight: 900,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: `0 4px 14px ${active.color}55`,
+            flexShrink: 0,
+          }}
+        >
+          {ActiveIcon ? <ActiveIcon size={20} /> : active.abbrev}
+        </span>
+        <span style={{ flex: 1, fontSize: 15.5, fontWeight: 800, color: "#142f1d", whiteSpace: "nowrap", textAlign: "left" }}>
+          {active.label}
+        </span>
+        <ChevronDown size={17} strokeWidth={2.6} color="#9db3a6" />
+      </button>
+
+      {open &&
+        createPortal(
+          <div
+            onClick={() => setOpen(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 1000,
+              background: "rgba(15,30,20,.34)",
+              backdropFilter: "blur(2px)",
+              WebkitBackdropFilter: "blur(2px)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: 20,
+              animation: "scopeGlassFade .18s ease both",
+            }}
+          >
+            <div
+              role="dialog"
+              aria-modal="true"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: 340,
+                maxWidth: "calc(100vw - 40px)",
+                background: "rgba(247,251,248,.82)",
+                backdropFilter: "blur(26px) saturate(180%)",
+                WebkitBackdropFilter: "blur(26px) saturate(180%)",
+                borderRadius: 24,
+                border: "1px solid rgba(255,255,255,.7)",
+                boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
+                padding: 20,
+                animation: "scopeGlassIn .22s cubic-bezier(.4,0,.2,1) both",
+              }}
+            >
+              <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".6px", textTransform: "uppercase", color: "#5f7568", marginBottom: 14 }}>
+                {title}
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 16, justifyContent: "center" }}>
+                {options.map((o) => (
+                  <ScopeCircle
+                    key={o.id}
+                    label={o.label}
+                    abbrev={o.abbrev}
+                    Icon={o.Icon}
+                    color={o.color}
+                    active={o.id === value}
+                    onClick={() => {
+                      onChange(o.id);
+                      setOpen(false);
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+            <style>{`
+              @keyframes scopeGlassFade { from { opacity: 0; } to { opacity: 1; } }
+              @keyframes scopeGlassIn {
+                from { opacity: 0; transform: translateY(10px) scale(.98); }
+                to   { opacity: 1; transform: none; }
+              }
+            `}</style>
+          </div>,
+          document.body,
+        )}
+    </div>
+  );
+}
+
+// Menú (group) flavour of the glass picker — same option-building as
+// GroupScopePicker ("Todos" + each menú), so callers just swap the component.
+export function GroupScopeGlassPicker({ groups, scope, onChange, title = "Menú", style }) {
+  const options = [
+    { id: "all", label: "Todos", abbrev: "T", color: "#2d5a3d" },
+    ...groups.map((g) => ({
+      id: g.id,
+      label: g.adHoc ? adhocReasonLabel(g.reason) : g.label,
+      abbrev: GROUP_ABBREV[g.label] ?? g.label.charAt(0),
+      Icon: g.adHoc ? CookingPot : undefined,
+      color: g.color,
+    })),
+  ];
+  return <ScopeGlassPicker options={options} value={scope} onChange={onChange} title={title} style={style} />;
 }
 
 // Centered popup with the same visual language as onboarding's big decision

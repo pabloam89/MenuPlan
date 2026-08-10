@@ -9,6 +9,7 @@ import {
   CalendarDays,
   Check,
   ChefHat,
+  CircleUserRound,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -30,6 +31,7 @@ import {
   Gauge,
   HeartPulse,
   Leaf,
+  Menu as MenuIcon,
   Microwave,
   Moon,
   Pizza,
@@ -69,7 +71,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -356,6 +358,7 @@ function PersonScopeCircle({ member, color, active, onClick }) {
   return (
     <button
       type="button"
+      className="deck-press"
       onClick={onClick}
       style={{
         display: "flex",
@@ -1509,18 +1512,16 @@ export function DishCard({
       <span style={{ position: "relative", flexShrink: 0, alignSelf: "flex-start" }}>
         <DishIcon recipe={recipe} size={44} imageUrl={dishImageForRecipe(recipe)} />
         {availability && availability.have < availability.total && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onTap?.();
-            }}
+          // Decorative dot: the whole card is already a button that opens the
+          // dish, so a click here just bubbles up to it — kept as a <span> to
+          // avoid an (invalid) nested <button>.
+          <span
+            aria-hidden="true"
             title={
               availability.have === 0
                 ? "No tienes ningún ingrediente — abrir el plato"
                 : `Te faltan ${availability.total - availability.have} ingredientes — abrir el plato`
             }
-            aria-label="Ver ingredientes que faltan"
             style={{
               position: "absolute",
               bottom: -2,
@@ -1530,8 +1531,7 @@ export function DishCard({
               borderRadius: 999,
               border: "2px solid #fff",
               background: availability.have === 0 ? "#d1483f" : "#e0a336",
-              padding: 0,
-              cursor: "pointer",
+              boxSizing: "border-box",
             }}
           />
         )}
@@ -1709,6 +1709,749 @@ export function DishCard({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// NEW "DECK" MENU MODE — mobile-first, photo-forward. Toggled from the header
+// and fully isolated so the classic renderer above stays untouched.
+// ─────────────────────────────────────────────────────────────────────────
+
+const DECK_VIEW_OPTIONS = [
+  { id: "dia", label: "Día" },
+  { id: "semana", label: "Semana" },
+  { id: "lista", label: "Lista" },
+];
+
+const DECK_VIEW_ICON = { dia: CalendarDays, semana: Layers2, lista: ClipboardList };
+
+// On-the-fly image optimization for the deck's big photos: the origin blobs are
+// ~1.5–1.8 MB / ~1024px, far too heavy for full-bleed tiles. wsrv.nl resizes +
+// converts to WebP at the edge (origin stays cached separately). Temporary until
+// we ship pre-generated derivatives with sharp.
+function deckImg(url, w = 720) {
+  if (!url) return null;
+  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
+}
+
+/** Flatten a day into photo tiles (one per dish/course, across visible groups). */
+function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
+  const meals = getDayMeals(data);
+  const tiles = [];
+  for (const meal of meals) {
+    const isLunch = isLunchMeal(meal);
+    for (const g of visibleGroups) {
+      const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
+      if (!slot) continue;
+      for (const dish of dishesFromSlot(slot, isLunch)) {
+        tiles.push({ meal, group: g, slot, dish });
+      }
+    }
+  }
+  return tiles;
+}
+
+/** A single photo-forward dish tile. Fills its parent (parent controls size). */
+function DeckTile({ tile, day, onDishTap, imgWidth = 720, radius = 22, compact = false, showGroup = false }) {
+  const { meal, group, slot, dish } = tile;
+  const [failed, setFailed] = useState(false);
+  const recipe = RECIPES_BY_ID[dish.recipeId];
+  if (!recipe) return null;
+  const optimized = deckImg(dishImageForRecipe(recipe), imgWidth);
+  const visual = visualForRecipe(recipe);
+  const mealLabel = MEAL_META[meal]?.label ?? meal;
+  const courseTxt = dish.course ? `${mealLabel} · ${dish.course}` : mealLabel;
+  const showPhoto = optimized && !failed;
+  return (
+    <button
+      type="button"
+      className="deck-tile"
+      onClick={() =>
+        onDishTap?.({ recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey })
+      }
+      style={{
+        position: "relative",
+        width: "100%",
+        height: "100%",
+        border: "none",
+        padding: 0,
+        borderRadius: radius,
+        overflow: "hidden",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        background: visual.surface,
+        display: "block",
+        textAlign: "left",
+        boxShadow: "0 6px 20px rgba(20,47,29,.14)",
+      }}
+    >
+      {showPhoto ? (
+        <img
+          src={optimized}
+          alt={recipe.name}
+          loading="lazy"
+          decoding="async"
+          onError={() => setFailed(true)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <div style={{ position: "absolute", inset: 0, background: visual.surface }} />
+      )}
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
+        }}
+      />
+      {showGroup && (
+        <div style={{ position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12 }}>
+          <GroupMenuBadge group={group} size={compact ? 20 : 26} />
+        </div>
+      )}
+      <div style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            marginBottom: compact ? 4 : 7,
+          }}
+        >
+          {/* Dot = recipe family (verdura, legumbre, pescado…), not the meal */}
+          <span
+            title={visual.label}
+            style={{
+              width: compact ? 7 : 9,
+              height: compact ? 7 : 9,
+              borderRadius: 999,
+              background: visual.accent,
+              flexShrink: 0,
+              boxShadow: "0 0 0 2px rgba(255,255,255,.6)",
+            }}
+          />
+          <span
+            style={{
+              color: "rgba(255,255,255,.95)",
+              fontSize: compact ? 9 : 10.5,
+              fontWeight: 800,
+              letterSpacing: ".7px",
+              textTransform: "uppercase",
+              textShadow: "0 1px 6px rgba(0,0,0,.5)",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {courseTxt}
+          </span>
+        </div>
+        {/* Fixed 2-line height so the eyebrow + title always start at the same
+            baseline across every stacked tile, regardless of title length. */}
+        <div
+          style={{
+            color: "#fff",
+            fontSize: compact ? 13 : 20,
+            fontWeight: 900,
+            lineHeight: 1.15,
+            letterSpacing: "-.3px",
+            textShadow: "0 2px 12px rgba(0,0,0,.45)",
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+            height: compact ? 30 : 46,
+          }}
+        >
+          {recipe.name}
+        </div>
+      </div>
+    </button>
+  );
+}
+
+/** "Día" view — horizontal day pager (scroll-snap) with peek + stacked tiles. */
+function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, showGroup = false }) {
+  const scrollerRef = useRef(null);
+  const rafRef = useRef(0);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const idx = Math.max(0, days.indexOf(activeDay));
+    el.children[idx]?.scrollIntoView({ inline: "center", block: "nearest" });
+    // Only center on mount; afterwards the active day follows the swipe.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleScroll = () => {
+    if (rafRef.current) return;
+    rafRef.current = requestAnimationFrame(() => {
+      rafRef.current = 0;
+      const el = scrollerRef.current;
+      if (!el) return;
+      const center = el.scrollLeft + el.clientWidth / 2;
+      let best = 0;
+      let bestDist = Infinity;
+      for (let i = 0; i < el.children.length; i++) {
+        const c = el.children[i];
+        const cc = c.offsetLeft + c.offsetWidth / 2;
+        const d = Math.abs(cc - center);
+        if (d < bestDist) {
+          bestDist = d;
+          best = i;
+        }
+      }
+      if (days[best] && days[best] !== activeDay) onActiveDay(days[best]);
+    });
+  };
+
+  return (
+    <div>
+      <div
+        ref={scrollerRef}
+        onScroll={handleScroll}
+        className="deck-scroller"
+        style={{
+          display: "flex",
+          gap: 12,
+          overflowX: "auto",
+          overflowY: "hidden",
+          scrollSnapType: "x mandatory",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {days.map((day) => {
+          const tiles = getDeckDayTiles(day, data, menuPlan, visibleGroups);
+          // With several menús a day can hold many dishes; forcing them all into
+          // one screen (flex:1 each) squishes tiles into unusable strips. So past
+          // 3 tiles we give each a fixed height and let the day scroll vertically.
+          const many = tiles.length > 3;
+          return (
+            <div
+              key={day}
+              className="deck-scroller"
+              style={{
+                flex: "0 0 86%",
+                scrollSnapAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+                height: "calc(100dvh - 300px)",
+                minHeight: 420,
+                overflowY: many ? "auto" : "hidden",
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              <div style={{ position: "sticky", top: 0, zIndex: 2, background: "#fff", paddingBottom: 8 }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 2px" }}>
+                  <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px" }}>{dayLabel(day)}</span>
+                  <span style={{ fontSize: 13, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
+                  <span style={{ flex: 1, height: 1, background: "#dbe8df", marginLeft: 2 }} />
+                </div>
+              </div>
+              {tiles.length === 0 ? (
+                <div
+                  style={{
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#aab5af",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    background: "#f3f8f4",
+                    borderRadius: 22,
+                  }}
+                >
+                  Sin platos
+                </div>
+              ) : (
+                tiles.map((tile, i) => (
+                  <div
+                    key={`${tile.group.id}-${tile.meal}-${tile.dish.courseKey}-${i}`}
+                    style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
+                  >
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} imgWidth={760} showGroup={showGroup} />
+                  </div>
+                ))
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, showGroup = false }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {days.map((day) => {
+        const tiles = getDeckDayTiles(day, data, menuPlan, visibleGroups);
+        if (tiles.length === 0) return null;
+        return (
+          <div key={day}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 900, color: "#142f1d" }}>{dayLabel(day)}</span>
+              <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
+              <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
+            </div>
+            <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
+              {tiles.map((tile, i) => (
+                <div key={`${tile.group.id}-${tile.meal}-${tile.dish.courseKey}-${i}`} style={{ flex: "0 0 46%" }}>
+                  <div style={{ height: 150 }}>
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} imgWidth={360} radius={16} compact showGroup={showGroup} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+/** "Lista" view — the classic, information-dense list (reuses DishCard). */
+function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, onDishTap }) {
+  return (
+    <div>
+      {days.map((day) => {
+        const meals = getDayMeals(data);
+        const dayHasContent = meals.some((meal) => visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`]));
+        if (!dayHasContent) return null;
+        return (
+          <div key={day} style={{ marginBottom: 18 }}>
+            <DaySectionHeader day={day} dayNumber={calendarDayNumber(day, weekDates)} />
+            {meals.map((meal) => {
+              const isLunch = isLunchMeal(meal);
+              const cards = visibleGroups.flatMap((g) => {
+                const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
+                if (!slot) return [];
+                return dishesFromSlot(slot, isLunch).map((dish) => ({ group: g, slot, dish }));
+              });
+              if (cards.length === 0) return null;
+              return (
+                <div key={meal} style={{ marginBottom: 14 }}>
+                  <MealSectionLabel meal={meal} />
+                  <div style={{ display: "flex", flexDirection: "column" }}>
+                    {cards.map((card, idx) => (
+                      <DishCard
+                        key={`${card.group.id}-${card.dish.courseKey}-${idx}`}
+                        slot={{ ...card.slot, recipeId: card.dish.recipeId }}
+                        courseLabel={card.dish.course}
+                        showDivider={idx < cards.length - 1}
+                        allMembers={members}
+                        groups={data.groups}
+                        group={card.group}
+                        showGroupBadge={multiGroup && scope === "all"}
+                        kitchenTools={data.kitchenTools ?? []}
+                        availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
+                        onTap={() =>
+                          onDishTap?.({
+                            recipe: RECIPES_BY_ID[card.dish.recipeId],
+                            slot: card.slot,
+                            groupId: card.group.id,
+                            day,
+                            meal,
+                            group: card.group,
+                            course: card.dish.courseKey,
+                          })
+                        }
+                      />
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap }) {
+  // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
+  // each tile shows a colored group badge so you can tell whose dish it is.
+  const showGroup = multiGroup && scope === "all";
+  return (
+    <div key={deckView} className="deck-view-swap">
+      {deckView === "dia" && (
+        <DeckDayPager
+          days={days}
+          activeDay={selectedDay}
+          onActiveDay={setSelectedDay}
+          weekDates={weekDates}
+          data={data}
+          menuPlan={menuPlan}
+          visibleGroups={visibleGroups}
+          onDishTap={onDishTap}
+          showGroup={showGroup}
+        />
+      )}
+      {deckView === "semana" && (
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} showGroup={showGroup} />
+      )}
+      {deckView === "lista" && (
+        <DeckList
+          days={days}
+          weekDates={weekDates}
+          data={data}
+          menuPlan={menuPlan}
+          visibleGroups={visibleGroups}
+          members={members}
+          dishAvailability={dishAvailability}
+          multiGroup={multiGroup}
+          scope={scope}
+          onDishTap={onDishTap}
+        />
+      )}
+    </div>
+  );
+}
+
+/**
+ * Deck view selector — a pill showing the active view that unfolds an animated
+ * menu (Día / Semana / Lista + week switcher + Vista clásica). "Tu perfil" lives
+ * outside, to the right of this pill in the header row.
+ */
+/** Circular icon for the view picker — mirrors ScopeCircle so the view picker
+ *  and the menú filter share the exact same visual language. */
+function ViewCircle({ Icon, active, size = 42 }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        borderRadius: 999,
+        padding: 3,
+        background: "rgba(255,255,255,.5)",
+        boxShadow: active ? "0 0 0 2.5px #2d5a3d" : "0 0 0 1px rgba(45,90,61,.15)",
+        transition: "box-shadow .15s ease",
+      }}
+    >
+      <span
+        style={{
+          width: size,
+          height: size,
+          borderRadius: 999,
+          background: active ? "#2d5a3d" : "#eef4ef",
+          color: active ? "#fff" : "#2d5a3d",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          transition: "background .15s ease, color .15s ease",
+        }}
+      >
+        <Icon size={Math.round(size * 0.46)} strokeWidth={2.4} />
+      </span>
+    </span>
+  );
+}
+
+/** Menu view picker. A circular chip (same model as DeckFilter) that opens a
+ *  centered "liquid glass" modal with Día / Semana / Lista as circle options. */
+function DeckNav({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const active = options.find((o) => o.id === value) ?? options[0];
+  const ActiveIcon = DECK_VIEW_ICON[active?.id] ?? CalendarDays;
+
+  return (
+    <>
+      <button
+        type="button"
+        className="deck-press"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Vista del menú (${active?.label})`}
+        title={`Vista · ${active?.label}`}
+        style={{
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          flexShrink: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 7,
+        }}
+      >
+        <ViewCircle Icon={ActiveIcon} active size={42} />
+        <span style={{ fontSize: 13.5, fontWeight: 800, color: "#2d5a3d", whiteSpace: "nowrap", letterSpacing: "-.2px" }}>
+          {active?.label}
+        </span>
+        <ChevronDown size={15} strokeWidth={2.8} color="#9db3a6" style={{ marginLeft: -2 }} />
+      </button>
+
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(15,30,20,.34)",
+            backdropFilter: "blur(2px)",
+            WebkitBackdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            animation: "deckFadeIn .18s ease both",
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 320,
+              maxWidth: "calc(100vw - 40px)",
+              background: "rgba(247,251,248,.8)",
+              backdropFilter: "blur(26px) saturate(180%)",
+              WebkitBackdropFilter: "blur(26px) saturate(180%)",
+              borderRadius: 24,
+              border: "1px solid rgba(255,255,255,.7)",
+              boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
+              padding: 18,
+              animation: "deckModalIn .22s cubic-bezier(.4,0,.2,1) both",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "center", gap: 22 }}>
+              {options.map((o) => {
+                const Icon = DECK_VIEW_ICON[o.id] ?? CalendarDays;
+                const isActive = o.id === value;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    className="deck-press"
+                    onClick={() => {
+                      onChange(o.id);
+                      setOpen(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 8,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      padding: 0,
+                      minWidth: 62,
+                    }}
+                  >
+                    <ViewCircle Icon={Icon} active={isActive} size={58} />
+                    <span
+                      style={{
+                        fontSize: 12.5,
+                        fontWeight: 800,
+                        color: isActive ? "#2d5a3d" : "#5f7568",
+                        maxWidth: 76,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {o.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+/** The scope circle used both as the deck filter chip and inside its popup, so
+ *  they are visually identical. `opt.group` null means the "Todos" circle. */
+function ScopeCircle({ opt, active, size = 42 }) {
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        borderRadius: 999,
+        padding: 3,
+        background: "rgba(255,255,255,.5)",
+        boxShadow: active ? "0 0 0 2.5px #2d5a3d" : "0 0 0 1px rgba(45,90,61,.15)",
+        transition: "box-shadow .15s ease",
+      }}
+    >
+      {opt.group ? (
+        <GroupMenuBadge group={opt.group} size={size} />
+      ) : (
+        <span
+          style={{
+            width: size,
+            height: size,
+            borderRadius: 999,
+            background: "#2d5a3d",
+            color: "#fff",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Users size={Math.round(size * 0.46)} strokeWidth={2.4} />
+        </span>
+      )}
+    </span>
+  );
+}
+
+/**
+ * Deck filter — a circular chip (identical to the popup circles) that opens a
+ * centered "liquid glass" modal to filter by menú (dieta/bebés/niños…) and by
+ * persona. Only rendered when there are several menús.
+ */
+function DeckFilter({ groups, scope, onScopeChange, members }) {
+  const [open, setOpen] = useState(false);
+
+  const scopeOptions = [{ id: "all", label: "Todos", group: null }, ...groups.map((g) => ({ id: g.id, label: g.label, group: g }))];
+  const activeOpt = scopeOptions.find((o) => o.id === scope) ?? scopeOptions[0];
+
+  return (
+    <>
+      <button
+        type="button"
+        className="deck-press"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Filtrar menú (${activeOpt.label})`}
+        title={`Filtrar · ${activeOpt.label}`}
+        style={{
+          border: "none",
+          background: "transparent",
+          padding: 0,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          flexShrink: 0,
+          display: "inline-flex",
+        }}
+      >
+        <ScopeCircle opt={activeOpt} active size={42} />
+      </button>
+
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(15,30,20,.34)",
+            backdropFilter: "blur(2px)",
+            WebkitBackdropFilter: "blur(2px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+            animation: "deckFadeIn .18s ease both",
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: 320,
+              maxWidth: "calc(100vw - 40px)",
+              background: "rgba(247,251,248,.8)",
+              backdropFilter: "blur(26px) saturate(180%)",
+              WebkitBackdropFilter: "blur(26px) saturate(180%)",
+              borderRadius: 24,
+              border: "1px solid rgba(255,255,255,.7)",
+              boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
+              padding: 18,
+              animation: "deckModalIn .22s cubic-bezier(.4,0,.2,1) both",
+            }}
+          >
+            <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".6px", textTransform: "uppercase", color: "#5f7568", marginBottom: 12 }}>
+              Menú
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 16, marginBottom: 18 }}>
+              {scopeOptions.map((opt) => {
+                const isActive = scope === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    className="deck-press"
+                    onClick={() => {
+                      onScopeChange(opt.id);
+                      setOpen(false);
+                    }}
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      gap: 6,
+                      border: "none",
+                      background: "transparent",
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      padding: 0,
+                      minWidth: 54,
+                    }}
+                  >
+                    <ScopeCircle opt={opt} active={isActive} size={42} />
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 800,
+                        color: isActive ? "#2d5a3d" : "#5f7568",
+                        maxWidth: 68,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {opt.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {members?.length > 0 && (
+              <>
+                <div style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: ".6px", textTransform: "uppercase", color: "#5f7568", marginBottom: 10 }}>
+                  Personas
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+                  {members.map((member) => {
+                    const color = memberAvatarColor(member.id, members);
+                    const memberGroupId = groupForMember(member.id, groups)?.id ?? "all";
+                    const active = scope === memberGroupId;
+                    return (
+                      <PersonScopeCircle
+                        key={member.id}
+                        member={member}
+                        color={color}
+                        active={active}
+                        onClick={() => {
+                          onScopeChange(memberGroupId);
+                          setOpen(false);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 export const MenuScreen = memo(function MenuScreen({
   data,
   setData,
@@ -1752,8 +2495,26 @@ export const MenuScreen = memo(function MenuScreen({
   }, [autoOpenProfile, onAutoOpenProfileHandled]);
   const [viewMode, setViewMode] = useState(initialViewMode); // "dia" | "semana"
   const [viewAnimDir, setViewAnimDir] = useState(0);
+  // Deck is now the only menu UI. (The classic view has been retired; its render
+  // branches are gated on `uiMode === "clasico"` and simply never activate.)
+  const uiMode = "deck";
+  const [deckView, setDeckView] = useState(() => {
+    try {
+      const saved = localStorage.getItem("menuDeckView");
+      return saved === "semana" || saved === "lista" ? saved : "dia";
+    } catch {
+      return "dia";
+    }
+  }); // "dia" | "semana" | "lista"
+  useEffect(() => {
+    try {
+      localStorage.setItem("menuDeckView", deckView);
+    } catch {
+      /* ignore */
+    }
+  }, [deckView]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
-  const [showShareDropdown, setShowShareDropdown] = useState(false);
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
     const idx = jsDay === 0 ? 6 : jsDay - 1;
@@ -1875,6 +2636,59 @@ export const MenuScreen = memo(function MenuScreen({
           color: #fff;
           transform: scale(1.12);
         }
+        .deck-scroller { scrollbar-width: none; -ms-overflow-style: none; }
+        .deck-scroller::-webkit-scrollbar { display: none; }
+        @keyframes deckNavMenuIn {
+          from { opacity: 0; transform: translateY(-8px) scale(.98); }
+          to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes deckNavItemIn {
+          from { opacity: 0; transform: translateY(-6px); }
+          to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes deckModalIn {
+          from { opacity: 0; transform: scale(.94); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        @keyframes deckFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .deck-nav-menu { animation: deckNavMenuIn .18s cubic-bezier(.4,0,.2,1) both; transform-origin: top left; }
+        .deck-nav-item { animation: deckNavItemIn .24s cubic-bezier(.4,0,.2,1) both; transition: background .15s ease; }
+        .deck-nav-item:hover { background: #f3f8f4; }
+        .deck-nav-item:active { background: #e8f0ea; }
+        @keyframes sidebarIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+        @keyframes sidebarItemIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+        .sidebar-item {
+          display: flex; align-items: center; gap: 13px; width: 100%;
+          padding: 13px 12px; border: none; background: transparent; cursor: pointer;
+          font-family: inherit; font-size: 14.5px; font-weight: 800; color: #1f3a29;
+          text-align: left; border-radius: 12px;
+          animation: sidebarItemIn .3s cubic-bezier(.4,0,.2,1) both;
+          transition: background .15s ease;
+        }
+        .sidebar-item:hover { background: #f3f8f4; }
+        .sidebar-item:active { background: #eef4ef; }
+
+        /* View swap (Día / Semana / Lista): gentle rise + fade so switching feels fluid */
+        @keyframes deckViewSwap { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        .deck-view-swap { animation: deckViewSwap .34s cubic-bezier(.22,1,.36,1) both; will-change: transform, opacity; }
+
+        /* Photo tiles: springy press + subtle image zoom for a tactile feel */
+        .deck-tile { transition: transform .2s cubic-bezier(.34,1.4,.5,1); -webkit-tap-highlight-color: transparent; }
+        .deck-tile:active { transform: scale(.975); }
+        .deck-tile img { transition: transform .55s cubic-bezier(.22,1,.36,1); }
+        .deck-tile:active img { transform: scale(1.05); }
+
+        /* Circular buttons (view picker + filter + view options) get a press cue */
+        .deck-press { transition: transform .16s cubic-bezier(.34,1.4,.5,1); -webkit-tap-highlight-color: transparent; }
+        .deck-press:active { transform: scale(.93); }
+
+        @media (prefers-reduced-motion: reduce) {
+          .deck-view-swap, .deck-tile, .deck-tile img, .deck-press,
+          .sidebar-item, .deck-nav-item, .header-menu, .deck-nav-menu {
+            animation: none !important;
+            transition: none !important;
+          }
+        }
       `}</style>
       {/* ── Top header: title + actions ── */}
       <div style={{ background: "#e9f4ed", padding: "20px 20px 14px" }}>
@@ -1899,141 +2713,145 @@ export const MenuScreen = memo(function MenuScreen({
             </h2>
             <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {/* Análisis (Cocina/Objetivos) and Menús (histórico) lost their own
-                bottom-nav tab — see BottomNav in ui.jsx — so they hang here as
-                header icons off the tab they conceptually belong to. */}
-            {onOpenAnalytics && (
-              <button
-                type="button"
-                data-coach="menu-analytics"
-                onClick={onOpenAnalytics}
-                aria-label="Análisis de tu menú"
-                title="Análisis de tu menú"
-                style={iconChipButtonStyle}
+          <button
+            type="button"
+            onClick={() => setHeaderMenuOpen(true)}
+            aria-label="Opciones del menú"
+            aria-haspopup="menu"
+            aria-expanded={headerMenuOpen}
+            title="Opciones"
+            style={{ ...iconChipButtonStyle, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
+          >
+            <MenuIcon size={18} strokeWidth={2.4} />
+          </button>
+          {headerMenuOpen && (
+            <div
+              onClick={() => setHeaderMenuOpen(false)}
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: bottomNavSpacer(),
+                zIndex: 1000,
+                background: "rgba(15,30,20,.42)",
+                backdropFilter: "blur(2px)",
+                WebkitBackdropFilter: "blur(2px)",
+                display: "flex",
+                justifyContent: "center",
+                animation: "deckFadeIn .2s ease both",
+              }}
+            >
+              <div style={{ position: "relative", width: "100%", maxWidth: APP_SHELL_MAX_WIDTH }}>
+              <aside
+                role="menu"
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+                  height: "100%",
+                  width: 300,
+                  maxWidth: "82%",
+                  background: "#fff",
+                  boxShadow: "-18px 0 50px rgba(20,47,29,.22)",
+                  display: "flex",
+                  flexDirection: "column",
+                  animation: "sidebarIn .3s cubic-bezier(.4,0,.2,1) both",
+                }}
               >
-                <BarChart3 size={17} strokeWidth={2.2} />
-              </button>
-            )}
-            {onOpenMenus && (
-              <button
-                type="button"
-                data-coach="menu-menus"
-                onClick={onOpenMenus}
-                aria-label="Menús guardados"
-                title="Menús guardados"
-                style={iconChipButtonStyle}
-              >
-                <History size={17} strokeWidth={2.2} />
-              </button>
-            )}
-            {hasMenu && (
-              <div style={{ position: "relative" }}>
-                <button
-                  type="button"
-                  onClick={() => setShowShareDropdown((v) => !v)}
-                  aria-label="Compartir o descargar"
-                  className="share-chip-btn"
-                  style={{
-                    ...iconChipButtonStyle,
-                    background: showShareDropdown ? "#e8f0ea" : "#fff",
-                  }}
-                >
-                  <span className={`share-chip-icon${showShareDropdown ? " open" : ""}`}>
-                    <Share2 size={17} />
-                  </span>
-                </button>
-                {showShareDropdown && (
-                  <>
-                    <div
-                      style={{ position: "fixed", inset: 0, zIndex: 49 }}
-                      onClick={() => setShowShareDropdown(false)}
-                    />
-                    <div
+                <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                    <span
                       style={{
-                        position: "absolute",
-                        right: 0,
-                        top: "calc(100% + 8px)",
-                        zIndex: 50,
-                        background: "#fff",
-                        borderRadius: 12,
-                        boxShadow: "0 4px 20px rgba(0,0,0,.14)",
-                        border: "1px solid #e6eee8",
-                        overflow: "hidden",
-                        minWidth: 164,
-                        animation: "shareDropIn .25s cubic-bezier(0.68,-0.55,0.265,1.55)",
+                        width: 36,
+                        height: 36,
+                        borderRadius: 11,
+                        background: "#c3e6d1",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
                       }}
                     >
-                      {[
-                        { label: "Compartir", icon: <Share2 size={14} />, action: () => { handleShare(); setShowShareDropdown(false); } },
-                        { label: "Descargar PDF", icon: <Download size={14} />, action: () => { handleDownload(); setShowShareDropdown(false); } },
-                      ].map(({ label, icon, action }) => (
+                      <MenuIcon size={18} color="#1f4a30" strokeWidth={2.4} />
+                    </span>
+                    <h2 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.3px" }}>
+                      Opciones
+                    </h2>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setHeaderMenuOpen(false)}
+                    aria-label="Cerrar"
+                    style={{ ...iconChipButtonStyle, width: 34, height: 34, borderRadius: 999, flexShrink: 0 }}
+                  >
+                    <X size={17} strokeWidth={2.5} />
+                  </button>
+                </div>
+                <div style={{ padding: "8px 10px", overflowY: "auto" }}>
+                  {[
+                    onOpenAnalytics && { key: "analytics", label: "Análisis de tu menú", Icon: BarChart3, coach: "menu-analytics", action: onOpenAnalytics, tint: "#e7effe", ink: "#2563eb" },
+                    onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
+                    hasMenu && { key: "share", label: "Compartir", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
+                    hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
+                    { key: "profile", label: "Tu perfil", Icon: CircleUserRound, coach: "menu-profile", action: () => setProfileOpen(true), tint: "#e6f2ea", ink: "#2d5a3d" },
+                    !isGenerating && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
+                  ]
+                    .filter(Boolean)
+                    .map((a, i, arr) => (
+                      <div key={a.key}>
                         <button
-                          key={label}
                           type="button"
-                          onClick={action}
-                          className="share-drop-row"
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            width: "100%",
-                            padding: "12px 16px",
-                            background: "none",
-                            border: "none",
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#142f1d",
-                            textAlign: "left",
-                          }}
+                          role="menuitem"
+                          data-coach={a.coach}
+                          className="sidebar-item"
+                          style={{ animationDelay: `${i * 40}ms` }}
+                          onClick={() => { a.action?.(); setHeaderMenuOpen(false); }}
                         >
-                          <span className="share-drop-row-icon">{icon}</span>
-                          {label}
+                          <span style={{ ...sidebarIconStyle, background: a.tint, color: a.ink }}>
+                            <a.Icon size={19} strokeWidth={2.5} />
+                          </span>
+                          <span style={{ flex: 1 }}>{a.label}</span>
+                          <ChevronRight size={16} strokeWidth={2.4} color="#c2d3c8" />
                         </button>
-                      ))}
-                    </div>
-                  </>
-                )}
+                        {i < arr.length - 1 && (
+                          <div style={{ height: 1, background: "rgba(45,90,61,.16)", margin: "0 12px" }} />
+                        )}
+                      </div>
+                    ))}
+                </div>
+              </aside>
               </div>
-            )}
-            {!isGenerating && (
-              <button
-                type="button"
-                onClick={onRegenerate}
-                aria-label="Regenerar menú"
-                title="Regenerar menú"
-                style={regenerateIconButtonStyle}
-              >
-                <RotateCw size={17} strokeWidth={2.2} />
-              </button>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ── Filter panel: collapsible con animación ── */}
-      <div
-        style={{
-          overflow: "hidden",
-          maxHeight: filterPanelOpen ? 300 : 0,
-          opacity: filterPanelOpen ? 1 : 0,
-          transition: "max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease",
-        }}
-      >
-        <MenuFilterPanel
-          groups={data.groups}
-          scope={scope}
-          onScopeChange={setScope}
-          members={data.members ?? []}
-          multiGroup={multiGroup}
-        />
-        <div style={{ height: 1, background: "#e0eae3" }} />
-      </div>
+      {/* ── Filter panel: collapsible con animación (solo modo clásico) ── */}
+      {uiMode === "clasico" && (
+        <div
+          style={{
+            overflow: "hidden",
+            maxHeight: filterPanelOpen ? 300 : 0,
+            opacity: filterPanelOpen ? 1 : 0,
+            transition: "max-height 0.35s cubic-bezier(.4,0,.2,1), opacity 0.25s ease",
+          }}
+        >
+          <MenuFilterPanel
+            groups={data.groups}
+            scope={scope}
+            onScopeChange={setScope}
+            members={data.members ?? []}
+            multiGroup={multiGroup}
+          />
+          <div style={{ height: 1, background: "#e0eae3" }} />
+        </div>
+      )}
 
-      {/* ── Week card: fecha + perfil (centrado) + chevron colapso ── */}
+      {/* ── Zona de navegación: cabecera clásica (fecha/perfil/chevron) o nav del deck ── */}
       <div style={{ background: "#fff", padding: "12px 16px 0" }}>
+        {uiMode === "clasico" && (
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
           <WeekRangeBadge label={weekLabel} hideLabel />
           <div style={{ flex: 1, display: "flex", justifyContent: "center" }}>
@@ -2071,9 +2889,10 @@ export const MenuScreen = memo(function MenuScreen({
             />
           </button>
         </div>
+        )}
 
-        {/* ── Multi-week switcher: only shown when this menú spans >1 week ── */}
-        {menuWeeks.length > 1 && (
+        {/* ── Multi-week switcher: solo en clásico (en deck vive dentro del DeckNav) ── */}
+        {uiMode === "clasico" && menuWeeks.length > 1 && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 12 }}>
             <button
               type="button"
@@ -2106,10 +2925,10 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
         )}
 
-        {/* Semana / Día toggle */}
-        {hasMenu && (
+        {/* View controls — clásico: segmented + botón para entrar al Deck */}
+        {hasMenu && uiMode === "clasico" && (
           <>
-            <div data-coach="menu-viewmode">
+            <div data-coach="menu-viewmode" style={{ minWidth: 0 }}>
               <SegmentedControl
                 value={viewMode}
                 onChange={handleViewModeChange}
@@ -2120,10 +2939,67 @@ export const MenuScreen = memo(function MenuScreen({
             <MenuViewDivider options={MENU_VIEW_OPTIONS} value={viewMode} />
           </>
         )}
+
+        {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
+        {hasMenu && uiMode === "deck" && (
+          <div
+            data-coach="menu-viewmode"
+            style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}
+          >
+            <DeckNav
+              value={deckView}
+              onChange={setDeckView}
+              options={DECK_VIEW_OPTIONS}
+            />
+            <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
+            {menuWeeks.length > 1 && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+                <button
+                  type="button"
+                  onClick={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
+                  disabled={currentWeekIdx <= 0}
+                  aria-label="Semana anterior"
+                  style={weekNavArrowStyle(currentWeekIdx <= 0)}
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={onOpenMenus}
+                  style={{
+                    border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 12.5, fontWeight: 800, color: "#2d5a3d", padding: "4px 4px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Semana {Math.max(0, currentWeekIdx) + 1} de {menuWeeks.length}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => currentWeekIdx < menuWeeks.length - 1 && onSwitchWeek?.(menuWeeks[currentWeekIdx + 1].weekStart)}
+                  disabled={currentWeekIdx >= menuWeeks.length - 1}
+                  aria-label="Semana siguiente"
+                  style={weekNavArrowStyle(currentWeekIdx >= menuWeeks.length - 1)}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+            </div>
+            {multiGroup && (
+              <DeckFilter
+                groups={data.groups}
+                scope={scope}
+                onScopeChange={setScope}
+                members={data.members ?? []}
+              />
+            )}
+          </div>
+        )}
       </div>
 
-      {/* ── Second divider: end of nav zone ── */}
-      <div style={{ height: 1, background: "#e8eee9" }} />
+      {/* ── Second divider: end of nav zone (solo clásico; en deck sobra) ── */}
+      {uiMode === "clasico" && <div style={{ height: 1, background: "#e8eee9" }} />}
 
       {!isGenerating && error && (
         <ErrorCard error={error} onRetry={onRetry} />
@@ -2140,6 +3016,34 @@ export const MenuScreen = memo(function MenuScreen({
           // restrictions) re-surfaces even if the user dismissed an earlier one.
           <RestrictionConflictBanner key={restrictionWarning} message={restrictionWarning} onRegenerate={onRegenerate} />
         )}
+        {uiMode === "deck" && (
+          <div
+            style={{
+              paddingTop: 14,
+              paddingLeft: 16,
+              paddingRight: 16,
+              paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
+            }}
+          >
+            <MenuDeck
+              deckView={deckView}
+              days={activeDays}
+              weekDates={weekDates}
+              data={data}
+              menuPlan={menuPlan}
+              visibleGroups={visibleGroups}
+              members={data.members ?? []}
+              dishAvailability={dishAvailability}
+              multiGroup={multiGroup}
+              scope={scope}
+              selectedDay={selectedDay}
+              setSelectedDay={setSelectedDay}
+              onDishTap={onDishTap}
+            />
+          </div>
+        )}
+
+        {uiMode === "clasico" && (<>
         {/* ── Week strip (only in "dia" mode) ── */}
         <div
           style={{
@@ -2295,6 +3199,7 @@ export const MenuScreen = memo(function MenuScreen({
             );
           })}
         </div>
+        </>)}
       </div>
       )}
 
@@ -3278,12 +4183,14 @@ const iconChipButtonStyle = {
   boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
 };
 
-const regenerateIconButtonStyle = {
-  ...iconChipButtonStyle,
-  border: "none",
-  background: "#1a3a24",
-  color: "#fff",
-  boxShadow: "0 2px 8px rgba(26,58,36,.22)",
+const sidebarIconStyle = {
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  width: 38,
+  height: 38,
+  borderRadius: 11,
+  flexShrink: 0,
 };
 
 function weekNavArrowStyle(disabled) {

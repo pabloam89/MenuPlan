@@ -93,6 +93,10 @@ export const AVATAR_PALETTE = [
   "#8e24aa", // purple
   "#d81b60", // pink
   "#00897b", // teal
+  "#00acc1", // cyan
+  "#7cb342", // lime
+  "#f9a825", // amber
+  "#6d4c41", // brown
 ];
 
 /**

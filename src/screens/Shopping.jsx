@@ -1725,6 +1725,12 @@ function ShoppingRow({
   // Merged Despensa lines spanning several weeks have no single editable qty.
   const canEditQty = !dimmed && !item.__qtyLocked;
 
+  // Swipe-style actions: the row shows name + quantities by default and a single
+  // trailing button. Tapping it slides the quantities out and reveals the
+  // coloured action buttons (Comprado / Recetas / Quitar). One extra tap, but a
+  // much calmer row.
+  const [actionsOpen, setActionsOpen] = useState(false);
+
   return (
     <div
       style={{
@@ -1733,6 +1739,8 @@ function ShoppingRow({
         borderBottom: isLast ? "none" : "1px solid #dde8e1",
         opacity: dimmed ? 0.45 : 1,
         padding: "10px 4px 10px 4px",
+        position: "relative",
+        zIndex: actionsOpen ? 3 : "auto",
       }}
     >
       <div style={rowGridStyle}>
@@ -1786,46 +1794,129 @@ function ShoppingRow({
             </span>
           )}
         </div>
-        {isEditingQty ? (
-          <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
-        ) : (
-          // Two colour-coded column cells (no pill border): LEFT = uds (soft
-          // green), RIGHT = peso (soft slate). The cell holding the real
-          // quantity is tappable to edit; the empty one shows a muted "—".
-          <div style={valueGroupStyle}>
-            <QtyCell
-              text={udsText}
-              cellStyle={udsCellStyle}
-              editable={udsEditable && canEditQty}
-              onEdit={onEditQty}
-              wrap
-            />
-            <QtyCell
-              text={pesoText}
-              cellStyle={pesoCellStyle}
-              editable={pesoEditable && canEditQty}
-              onEdit={onEditQty}
-            />
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {/* Quantities fade out while the coloured actions are showing. */}
+          <div
+            style={{
+              ...valueGroupStyle,
+              transition: "opacity .18s ease",
+              opacity: actionsOpen ? 0 : 1,
+              pointerEvents: actionsOpen ? "none" : "auto",
+            }}
+          >
+            {isEditingQty ? (
+              <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
+            ) : (
+              <>
+                <QtyCell
+                  text={udsText}
+                  cellStyle={udsCellStyle}
+                  editable={udsEditable && canEditQty}
+                  onEdit={onEditQty}
+                  wrap
+                />
+                <QtyCell
+                  text={pesoText}
+                  cellStyle={pesoCellStyle}
+                  editable={pesoEditable && canEditQty}
+                  onEdit={onEditQty}
+                />
+              </>
+            )}
           </div>
-        )}
-        <div style={actionsColStyle}>
-          {/* Three actions only. "En casa" (atHome) is gone: whether you already
-              have something lives in the "En casa" tab now, not as a flag on the
-              buy list. Left: Comprado, Recetas (when the item feeds >1 dish),
-              Quitar. */}
-          <ActionBtn icon={Check} label="Comprado" onClick={onPurchased} active={item.have} coach="shop-purchased" />
-          {item.recipeCount > 0 && (
-            <ActionBtn
-              icon={BookOpen}
-              label="Recetas"
-              onClick={onToggleRecipes}
-              active={expanded}
-              coach="shop-recipes"
-            />
+
+          {!isEditingQty && (
+            <button
+              type="button"
+              onClick={() => setActionsOpen((o) => !o)}
+              aria-label={actionsOpen ? "Cerrar acciones" : "Acciones"}
+              aria-expanded={actionsOpen}
+              title={actionsOpen ? "Cerrar" : "Acciones"}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 999,
+                flexShrink: 0,
+                position: "relative",
+                zIndex: 4,
+                border: "1px solid #e3ede6",
+                background: actionsOpen ? "#e8f1ea" : "#f6faf7",
+                color: "#3d5245",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                padding: 0,
+                transition: "background .15s ease, transform .2s ease",
+              }}
+            >
+              <ChevronLeft
+                size={16}
+                strokeWidth={2.5}
+                style={{
+                  transition: "transform .26s cubic-bezier(.4,0,.2,1)",
+                  transform: actionsOpen ? "rotate(180deg)" : "none",
+                }}
+              />
+            </button>
           )}
-          <ActionBtn icon={Trash2} label="Quitar" onClick={onRemove} muted coach="shop-remove" />
         </div>
       </div>
+
+      {/* Coloured actions overlay — slides in from the right, big enough for
+          single-line labels even if it covers part of the ingredient name. */}
+      {!isEditingQty && (
+        <div
+          aria-hidden={!actionsOpen}
+          style={{
+            position: "absolute",
+            top: 4,
+            bottom: 4,
+            right: 40,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            zIndex: 3,
+            transition: "transform .28s cubic-bezier(.4,0,.2,1), opacity .2s ease",
+            transform: actionsOpen ? "translateX(0)" : "translateX(18px)",
+            opacity: actionsOpen ? 1 : 0,
+            pointerEvents: actionsOpen ? "auto" : "none",
+          }}
+        >
+          <SwipeActionBtn
+            icon={Check}
+            label="Comprado"
+            color="#2f9e52"
+            onClick={() => { onPurchased(); setActionsOpen(false); }}
+            coach="shop-purchased"
+          />
+          <SwipeActionBtn
+            icon={BookOpen}
+            label="Recetas"
+            color="#2f6fb0"
+            disabled={!(item.recipeCount > 0)}
+            onClick={() => { onToggleRecipes(); setActionsOpen(false); }}
+            coach="shop-recipes"
+          />
+          <SwipeActionBtn
+            icon={Trash2}
+            label="Quitar"
+            color="#e5534b"
+            onClick={() => { onRemove(); setActionsOpen(false); }}
+            coach="shop-remove"
+          />
+        </div>
+      )}
+
+      {/* Tap anywhere outside to close. */}
+      {actionsOpen && (
+        <div
+          onClick={() => setActionsOpen(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 2 }}
+          aria-hidden="true"
+        />
+      )}
 
       {expanded && item.recipeUsage?.length > 0 && (
         <div style={{ paddingTop: 8 }}>
@@ -1976,6 +2067,44 @@ function MacroHeader({ icon: Icon, title, subtitle, count, first }) {
         </span>
       )}
     </div>
+  );
+}
+
+// Coloured action revealed by sliding the row's trailing button. Solid colour
+// fill, white icon + caption ("Comprado" / "Recetas" / "Quitar").
+function SwipeActionBtn({ icon: Icon, label, color, onClick, disabled = false, coach }) {
+  return (
+    <button
+      type="button"
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
+      aria-label={label}
+      title={label}
+      data-coach={coach}
+      style={{
+        width: 60,
+        height: 48,
+        flexShrink: 0,
+        borderRadius: 13,
+        border: "none",
+        background: disabled ? "#dfe7e1" : color,
+        color: disabled ? "#a7b3ab" : "#fff",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 4,
+        cursor: disabled ? "default" : "pointer",
+        fontFamily: "inherit",
+        padding: 0,
+        boxShadow: disabled ? "none" : `0 4px 12px ${color}55`,
+      }}
+    >
+      <Icon size={17} strokeWidth={2.4} />
+      <span style={{ fontSize: 9.5, fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap" }}>
+        {label}
+      </span>
+    </button>
   );
 }
 
@@ -3332,7 +3461,7 @@ const primaryBtnStyle = {
 
 const rowGridStyle = {
   display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) auto auto",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
   alignItems: "center",
   gap: 8,
   minHeight: 36,
@@ -3373,13 +3502,6 @@ const pesoCellStyle = {
   ...qtyCellBase,
   background: "#eef2f6",
   color: "#3f5568",
-};
-
-const actionsColStyle = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "flex-end",
-  gap: 4,
 };
 
 // Day stripe — mirrors Tu menú's DaySectionHeader (Menu.jsx).
