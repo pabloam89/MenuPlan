@@ -74,8 +74,8 @@ import {
   Avatar,
   AvatarStack,
   ProgressDots,
-  GroupScopeGlassPicker,
-  ScopeGlassPicker,
+  GroupScopePicker,
+  ScopeCirclePicker,
   ToggleSwitch,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
@@ -1987,14 +1987,13 @@ export function OnboardingRestrictions({
           `}</style>
 
           {data.members.length > 1 && (
-            <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}>
-              <ScopeGlassPicker
-                title="Persona"
+            <div style={{ marginBottom: 16 }}>
+              <ScopeCirclePicker
                 value={activeAllergyMemberId}
                 onChange={setAllergyMemberId}
                 style={{ marginBottom: 0 }}
                 options={[
-                  { id: FAMILIA_TARGET, label: "Familia", abbrev: "F", color: "#2d5a3d" },
+                  { id: FAMILIA_TARGET, label: "Familia", abbrev: "F", Icon: Users, color: "#2d5a3d" },
                   ...data.members.map((m) => ({
                     id: m.id,
                     label: m.name,
@@ -6327,10 +6326,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
     >
       {hasMultipleGroups && (
         <div style={{ marginBottom: 20 }}>
-          <GroupScopeGlassPicker
+          <GroupScopePicker
             groups={styleableGroups}
             scope={activeGroupId ?? "all"}
             onChange={(scopeId) => setActiveGroupId(scopeId === "all" ? null : scopeId)}
+            style={{ marginBottom: 0 }}
           />
         </div>
       )}
@@ -6935,7 +6935,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   if (hasMultipleGroups) {
     blocks.push(
       <div key="menu">
-        <GroupScopeGlassPicker
+        <GroupScopePicker
           groups={styleableGroups}
           scope={activeGroupId ?? "all"}
           onChange={(id) => setActiveGroupId(id === "all" ? null : id)}

@@ -823,7 +823,6 @@ function AccordionSection({ title, icon: Icon, children, defaultOpen = false, ac
 
 function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const members = data.members ?? [];
-  const dislikes = [...new Set([...(data.dislikes ?? []), ...members.flatMap((m) => m.dislikes ?? [])])];
   const allTools = [...KITCHEN_TOOLS, ...(data.customKitchenTools ?? [])];
   const fixedDishes = migrateFixedDishes(data.fixedDishes ?? []);
   // members with allergies, and members needing a more careful menu
@@ -1146,7 +1145,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
             style={{ display: "flex", alignItems: "flex-start", gap: 8, cursor: "pointer" }}
           >
           <div style={{ flex: 1, minWidth: 0 }}>
-          {membersWithAllergies.length === 0 && membersWithRegimen.length === 0 && dislikes.length === 0 ? (
+          {membersWithAllergies.length === 0 && membersWithRegimen.length === 0 ? (
             <span style={{ fontSize: 12, color: "#9ab0a1" }}>Toca para añadir alergias, intolerancias o lo que no os gusta.</span>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -1202,15 +1201,6 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                       </div>
                     );
                   })}
-                </div>
-              )}
-              {dislikes.length > 0 && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-                  {dislikes.map((d) => (
-                    <span key={d} style={{ padding: "3px 8px", borderRadius: 20, background: "#f5f0e8", fontSize: 11, fontWeight: 600, color: "#8a6d3b" }}>
-                      {d}
-                    </span>
-                  ))}
                 </div>
               )}
             </div>

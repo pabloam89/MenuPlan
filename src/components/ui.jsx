@@ -713,6 +713,44 @@ export function GroupScopePicker({ groups, scope, onChange, style }) {
   );
 }
 
+// Inline circle scope/person picker — the flat, non-modal counterpart to
+// ScopeGlassPicker. Renders every option as a ScopeCircle in a wrapping row;
+// the first option is treated as the "everyone/all" anchor and gets a thin
+// divider after it (matching GroupScopePicker's "Todos │ …" layout). Used when
+// we'd rather fill the row with circles than hide them behind a glass chip.
+export function ScopeCirclePicker({ options, value, onChange, dividerAfterFirst = true, style }) {
+  if (!options || options.length === 0) return null;
+  const [first, ...rest] = options;
+  return (
+    <div style={{ marginBottom: 14, ...style }}>
+      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
+        <ScopeCircle
+          label={first.label}
+          abbrev={first.abbrev}
+          Icon={first.Icon}
+          color={first.color}
+          active={value === first.id}
+          onClick={() => onChange(first.id)}
+        />
+        {dividerAfterFirst && rest.length > 0 && (
+          <div style={{ width: 1, height: 40, background: "#dde8e1", flexShrink: 0 }} />
+        )}
+        {rest.map((o) => (
+          <ScopeCircle
+            key={o.id}
+            label={o.label}
+            abbrev={o.abbrev}
+            Icon={o.Icon}
+            color={o.color}
+            active={value === o.id}
+            onClick={() => onChange(o.id)}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // Compact "liquid glass" scope/person picker — mirrors the menu's DeckFilter.
 // Instead of laying every circle out inline, it shows a single chip with the
 // active circle + label; tapping it opens a centered frosted-glass modal where
