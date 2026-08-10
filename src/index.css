@@ -1,5 +1,6 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Playfair+Display:wght@700;800&display=swap');
-
+/* Fonts (DM Sans + Playfair Display) are loaded via <link> in index.html for
+   early, reliable discovery. Keeping them out of a CSS @import avoids a late,
+   render-blocking fetch that made production fall back to system fonts. */
 * {
   margin: 0;
   padding: 0;

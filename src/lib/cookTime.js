@@ -4,6 +4,33 @@ export const COOK_TIME_DEFAULTS = {
   weekend: { Comida: 60, Cena: 60 },
 };
 
+// Qualitative "cooking pace" levels shown in the editor instead of a raw slider
+// (people never dial an exact number — time is variable). Each maps to a per-slot
+// minute budget the planner already understands through maxCookTime, so nothing
+// downstream changes. Minutes are distinct so the selected chip can be inferred
+// back from stored minutes (keeps back-compat with the old slider + imports).
+export const COOK_LEVELS = [
+  { id: "con_prisa",  label: "Con prisa",       sub: "Voy con el tiempo justo",    minutes: 20 },
+  { id: "normal",     label: "Normal",          sub: "Sencillo pero decente",      minutes: 35 },
+  { id: "con_tiempo", label: "Con tiempo",      sub: "Tengo un rato para cocinar", minutes: 75 },
+  { id: "depende",    label: "Depende del día", sub: "Unos días sí y otros no",    minutes: 55 },
+];
+
+export function cookLevelMinutes(id) {
+  return (COOK_LEVELS.find((l) => l.id === id) ?? COOK_LEVELS[1]).minutes;
+}
+
+/** Nearest level to a stored minute budget (for highlighting the active chip). */
+export function cookLevelForMinutes(minutes) {
+  let bestId = COOK_LEVELS[1].id;
+  let bestDist = Infinity;
+  for (const l of COOK_LEVELS) {
+    const d = Math.abs(l.minutes - (minutes ?? 0));
+    if (d < bestDist) { bestDist = d; bestId = l.id; }
+  }
+  return bestId;
+}
+
 // Fallback day counts when the real schedule isn't available (5 weekdays,
 // 2 weekend days). The editor passes the real per-meal counts derived from the
 // schedule so weekly totals match what the family actually cooks.

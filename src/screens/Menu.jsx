@@ -1,7 +1,8 @@
-import { memo, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
+  ArrowLeftRight,
   BarChart3,
   Blend,
   BookOpen,
@@ -34,6 +35,7 @@ import {
   Menu as MenuIcon,
   Microwave,
   Moon,
+  MoreVertical,
   Pizza,
   RotateCcw,
   RotateCw,
@@ -1422,6 +1424,70 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   );
 }
 
+/**
+ * Long-press + tap on the same element via pointer events (works for touch and
+ * mouse). Holding past `ms` fires onLongPress and swallows the click that
+ * follows; a quick tap fires onClick. Moving past a small threshold (a scroll)
+ * cancels the long-press so the deck stays scrollable.
+ */
+function useLongPress(onLongPress, onClick, { ms = 420, moveTol = 12 } = {}) {
+  const timer = useRef(null);
+  const firedLong = useRef(false);
+  const start = useRef(null);
+  const clear = () => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  };
+  return {
+    onPointerDown: (e) => {
+      firedLong.current = false;
+      start.current = { x: e.clientX, y: e.clientY };
+      clear();
+      timer.current = setTimeout(() => {
+        firedLong.current = true;
+        onLongPress?.();
+      }, ms);
+    },
+    onPointerMove: (e) => {
+      if (!start.current) return;
+      if (
+        Math.abs(e.clientX - start.current.x) > moveTol ||
+        Math.abs(e.clientY - start.current.y) > moveTol
+      ) {
+        clear();
+      }
+    },
+    onPointerUp: clear,
+    onPointerCancel: clear,
+    onPointerLeave: clear,
+    onClick: (e) => {
+      if (firedLong.current) {
+        e.preventDefault();
+        e.stopPropagation();
+        firedLong.current = false;
+        return;
+      }
+      onClick?.(e);
+    },
+    onContextMenu: (e) => e.preventDefault(),
+  };
+}
+
+/** Same dish slot (group + day + meal + course) — used to cancel a swap that
+ *  targets the very dish you started from. */
+export function sameDish(a, b) {
+  return (
+    !!a &&
+    !!b &&
+    a.groupId === b.groupId &&
+    a.day === b.day &&
+    a.meal === b.meal &&
+    a.course === b.course
+  );
+}
+
 export function dishesFromSlot(slot, isLunch) {
   if (!slot?.recipeId) return [];
   const items = [];
@@ -1443,11 +1509,15 @@ export function dishesFromSlot(slot, isLunch) {
 export function DishCard({
   slot,
   onTap,
+  onLongPress = null,
   courseLabel = null,
   showDivider = true,
   eaterMembers = null,
   allMembers = [],
   group = null,
+  // Groups this dish belongs to (deduped menus). Falls back to [group] so
+  // callers that only pass a single group keep working.
+  badgeGroups = null,
   showGroupBadge = false,
   kitchenTools = [],
   // { have, total } from dishAvailabilityMap. Only rendered/clickable when
@@ -1456,6 +1526,11 @@ export function DishCard({
   // and lets you mark cooked — the old "Modo Cocina" tab is gone).
   availability = null,
 }) {
+  // Hook must run before any early return (rules-of-hooks).
+  const press = useLongPress(
+    () => onLongPress?.(),
+    () => onTap?.(),
+  );
   if (!slot) {
     return (
       <div style={{ padding: "10px 0", fontSize: 12, color: "#bbb", fontStyle: "italic" }}>
@@ -1491,11 +1566,12 @@ export function DishCard({
     <button
       type="button"
       data-coach="menu-dish"
-      onClick={onTap}
+      {...press}
       style={{
         width: "100%",
         border: "none",
         borderBottom: showDivider ? "1px solid #e8f0ea" : "none",
+        touchAction: "pan-y",
         textAlign: "left",
         display: "flex",
         gap: 12,
@@ -1538,7 +1614,13 @@ export function DishCard({
       </span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap" }}>
-          {showGroupBadge && group && <GroupMenuBadge group={group} />}
+          {showGroupBadge && (badgeGroups?.length ? badgeGroups : group ? [group] : []).length > 0 && (
+            <span style={{ display: "inline-flex", gap: 4 }}>
+              {(badgeGroups?.length ? badgeGroups : [group]).map((gr) => (
+                <GroupMenuBadge key={gr.id} group={gr} />
+              ))}
+            </span>
+          )}
           <span
             style={{
               fontSize: 15,
@@ -1731,17 +1813,29 @@ function deckImg(url, w = 720) {
   return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
 }
 
-/** Flatten a day into photo tiles (one per dish/course, across visible groups). */
+/** Flatten a day into photo tiles (one per dish/course, across visible groups).
+ *  When the same dish (recipe + course) is planned for several groups in the
+ *  same meal we don't repeat it: it collapses into one tile that carries all
+ *  the groups it belongs to, so the UI can show every group icon at once. */
 function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
   const meals = getDayMeals(data);
   const tiles = [];
+  const byKey = new Map();
   for (const meal of meals) {
     const isLunch = isLunchMeal(meal);
     for (const g of visibleGroups) {
       const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
       if (!slot) continue;
       for (const dish of dishesFromSlot(slot, isLunch)) {
-        tiles.push({ meal, group: g, slot, dish });
+        const key = `${meal}::${dish.recipeId}::${dish.courseKey}`;
+        const existing = byKey.get(key);
+        if (existing) {
+          existing.groups.push(g);
+          continue;
+        }
+        const tile = { meal, group: g, groups: [g], slot, dish };
+        byKey.set(key, tile);
+        tiles.push(tile);
       }
     }
   }
@@ -1749,10 +1843,18 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
 }
 
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
-function DeckTile({ tile, day, onDishTap, imgWidth = 720, radius = 22, compact = false, showGroup = false }) {
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false }) {
   const { meal, group, slot, dish } = tile;
+  const badgeGroups = tile.groups ?? (group ? [group] : []);
   const [failed, setFailed] = useState(false);
   const recipe = RECIPES_BY_ID[dish.recipeId];
+  const sel = recipe
+    ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
+    : null;
+  const press = useLongPress(
+    () => sel && onDishLongPress?.(sel),
+    () => sel && onDishTap?.(sel),
+  );
   if (!recipe) return null;
   const optimized = deckImg(dishImageForRecipe(recipe), imgWidth);
   const visual = visualForRecipe(recipe);
@@ -1763,9 +1865,7 @@ function DeckTile({ tile, day, onDishTap, imgWidth = 720, radius = 22, compact =
     <button
       type="button"
       className="deck-tile"
-      onClick={() =>
-        onDishTap?.({ recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey })
-      }
+      {...press}
       style={{
         position: "relative",
         width: "100%",
@@ -1780,6 +1880,7 @@ function DeckTile({ tile, day, onDishTap, imgWidth = 720, radius = 22, compact =
         display: "block",
         textAlign: "left",
         boxShadow: "0 6px 20px rgba(20,47,29,.14)",
+        touchAction: "pan-x pan-y",
       }}
     >
       {showPhoto ? (
@@ -1802,10 +1903,58 @@ function DeckTile({ tile, day, onDishTap, imgWidth = 720, radius = 22, compact =
             "linear-gradient(to top, rgba(0,0,0,.74) 0%, rgba(0,0,0,.25) 42%, rgba(0,0,0,0) 66%)",
         }}
       />
-      {showGroup && (
-        <div style={{ position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12 }}>
-          <GroupMenuBadge group={group} size={compact ? 20 : 26} />
+      {showGroup && badgeGroups.length > 0 && (
+        <div style={{ position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12, display: "flex", gap: 4 }}>
+          {badgeGroups.map((gr) => (
+            <GroupMenuBadge key={gr.id} group={gr} size={compact ? 20 : 26} />
+          ))}
         </div>
+      )}
+      {sel && onDishLongPress && (
+        // Explicit affordance (long-press is mobile-only / invisible on desktop).
+        // A <span role=button> avoids an invalid nested <button>; it stops the
+        // pointer/click so it never triggers the tile's open/long-press.
+        <span
+          role="button"
+          tabIndex={0}
+          aria-label="Acciones del plato"
+          className="deck-tile-actions"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => {
+            e.stopPropagation();
+            const r = e.currentTarget.getBoundingClientRect();
+            const tileEl = e.currentTarget.closest(".deck-tile");
+            const tr = tileEl?.getBoundingClientRect();
+            const radius = tileEl ? parseFloat(getComputedStyle(tileEl).borderRadius) || 18 : 18;
+            onDishLongPress({
+              ...sel,
+              anchor: {
+                icon: { top: r.top, left: r.left, right: r.right, bottom: r.bottom },
+                tile: tr ? { top: tr.top, left: tr.left, width: tr.width, height: tr.height } : null,
+                radius,
+              },
+            });
+          }}
+          style={{
+            position: "absolute",
+            top: compact ? 6 : 9,
+            right: compact ? 6 : 9,
+            width: compact ? 24 : 30,
+            height: compact ? 24 : 30,
+            borderRadius: 999,
+            background: "rgba(12,22,15,.44)",
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            border: "1px solid rgba(255,255,255,.28)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            zIndex: 3,
+          }}
+        >
+          <MoreVertical size={compact ? 14 : 16} strokeWidth={2.8} color="#fff" />
+        </span>
       )}
       <div style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
         <div
@@ -1869,7 +2018,7 @@ function DeckTile({ tile, day, onDishTap, imgWidth = 720, radius = 22, compact =
 }
 
 /** "Día" view — horizontal day pager (scroll-snap) with peek + stacked tiles. */
-function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, showGroup = false }) {
+function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, showGroup = false }) {
   const scrollerRef = useRef(null);
   const rafRef = useRef(0);
 
@@ -1970,7 +2119,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                     key={`${tile.group.id}-${tile.meal}-${tile.dish.courseKey}-${i}`}
                     style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
                   >
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} imgWidth={760} showGroup={showGroup} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} />
                   </div>
                 ))
               )}
@@ -1983,7 +2132,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, showGroup = false }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, showGroup = false }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       {days.map((day) => {
@@ -2000,7 +2149,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, s
               {tiles.map((tile, i) => (
                 <div key={`${tile.group.id}-${tile.meal}-${tile.dish.courseKey}-${i}`} style={{ flex: "0 0 46%" }}>
                   <div style={{ height: 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} imgWidth={360} radius={16} compact showGroup={showGroup} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} />
                   </div>
                 </div>
               ))}
@@ -2013,7 +2162,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, s
 }
 
 /** "Lista" view — the classic, information-dense list (reuses DishCard). */
-function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, onDishTap }) {
+function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, onDishTap, onDishLongPress }) {
   return (
     <div>
       {days.map((day) => {
@@ -2025,11 +2174,23 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
             <DaySectionHeader day={day} dayNumber={calendarDayNumber(day, weekDates)} />
             {meals.map((meal) => {
               const isLunch = isLunchMeal(meal);
-              const cards = visibleGroups.flatMap((g) => {
+              const cards = [];
+              const cardByKey = new Map();
+              for (const g of visibleGroups) {
                 const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
-                if (!slot) return [];
-                return dishesFromSlot(slot, isLunch).map((dish) => ({ group: g, slot, dish }));
-              });
+                if (!slot) continue;
+                for (const dish of dishesFromSlot(slot, isLunch)) {
+                  const key = `${dish.recipeId}::${dish.courseKey}`;
+                  const existing = cardByKey.get(key);
+                  if (existing) {
+                    existing.groups.push(g);
+                    continue;
+                  }
+                  const card = { group: g, groups: [g], slot, dish };
+                  cardByKey.set(key, card);
+                  cards.push(card);
+                }
+              }
               if (cards.length === 0) return null;
               return (
                 <div key={meal} style={{ marginBottom: 14 }}>
@@ -2042,13 +2203,24 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
                         courseLabel={card.dish.course}
                         showDivider={idx < cards.length - 1}
                         allMembers={members}
-                        groups={data.groups}
                         group={card.group}
+                        badgeGroups={card.groups}
                         showGroupBadge={multiGroup && scope === "all"}
                         kitchenTools={data.kitchenTools ?? []}
                         availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
                         onTap={() =>
                           onDishTap?.({
+                            recipe: RECIPES_BY_ID[card.dish.recipeId],
+                            slot: card.slot,
+                            groupId: card.group.id,
+                            day,
+                            meal,
+                            group: card.group,
+                            course: card.dish.courseKey,
+                          })
+                        }
+                        onLongPress={() =>
+                          onDishLongPress?.({
                             recipe: RECIPES_BY_ID[card.dish.recipeId],
                             slot: card.slot,
                             groupId: card.group.id,
@@ -2071,7 +2243,7 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
   );
 }
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -2087,11 +2259,12 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           menuPlan={menuPlan}
           visibleGroups={visibleGroups}
           onDishTap={onDishTap}
+          onDishLongPress={onDishLongPress}
           showGroup={showGroup}
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} showGroup={showGroup} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} showGroup={showGroup} />
       )}
       {deckView === "lista" && (
         <DeckList
@@ -2105,6 +2278,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           multiGroup={multiGroup}
           scope={scope}
           onDishTap={onDishTap}
+          onDishLongPress={onDishLongPress}
         />
       )}
     </div>
@@ -2460,6 +2634,8 @@ export const MenuScreen = memo(function MenuScreen({
   error = null,
   restrictionConflicts = [],
   onDishTap,
+  onDishReplace,
+  onDishSwap,
   onNav,
   onRegenerate,
   onRetry,
@@ -2480,6 +2656,35 @@ export const MenuScreen = memo(function MenuScreen({
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
   const [showIconCoach, setShowIconCoach] = useState(false);
+  // Menu flexibility: long-press a dish → liquid-glass action sheet (swap /
+  // regenerate). "Swapear" arms swap mode, where the next tap picks the dish to
+  // exchange with.
+  const [dishAction, setDishAction] = useState(null);
+  const [swapSource, setSwapSource] = useState(null);
+
+  const handleTileTap = useCallback(
+    (sel) => {
+      if (swapSource) {
+        if (sameDish(swapSource, sel)) {
+          setSwapSource(null);
+          return;
+        }
+        onDishSwap?.(swapSource, sel);
+        setSwapSource(null);
+        return;
+      }
+      onDishTap?.(sel);
+    },
+    [swapSource, onDishSwap, onDishTap],
+  );
+
+  const handleTileLongPress = useCallback(
+    (sel) => {
+      if (swapSource) return;
+      setDishAction(sel);
+    },
+    [swapSource],
+  );
   const dishAvailability = useMemo(
     () => dishAvailabilityMap(shoppingItems ?? []),
     [shoppingItems],
@@ -2677,6 +2882,9 @@ export const MenuScreen = memo(function MenuScreen({
         .deck-tile:active { transform: scale(.975); }
         .deck-tile img { transition: transform .55s cubic-bezier(.22,1,.36,1); }
         .deck-tile:active img { transform: scale(1.05); }
+        .deck-tile-actions { transition: transform .16s cubic-bezier(.34,1.4,.5,1), background .16s ease; }
+        .deck-tile-actions:hover { transform: scale(1.14); background: rgba(12,22,15,.62); }
+        .deck-tile-actions:active { transform: scale(.9); }
 
         /* Circular buttons (view picker + filter + view options) get a press cue */
         .deck-press { transition: transform .16s cubic-bezier(.34,1.4,.5,1); -webkit-tap-highlight-color: transparent; }
@@ -3038,10 +3246,226 @@ export const MenuScreen = memo(function MenuScreen({
               scope={scope}
               selectedDay={selectedDay}
               setSelectedDay={setSelectedDay}
-              onDishTap={onDishTap}
+              onDishTap={handleTileTap}
+              onDishLongPress={handleTileLongPress}
             />
           </div>
         )}
+
+        {dishAction &&
+          createPortal(
+            (() => {
+              const W = 132;
+              const EST_H = 78;
+              const a = dishAction.anchor;
+              const anchored = !!a?.icon;
+              let menuPos = { transformOrigin: "top center" };
+              if (anchored) {
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                // Drop out of the ⋮ toward the bottom-LEFT so it clears the
+                // thumbnail: the menu sits just left of the icon, dropping down
+                // (flips up only if there's no room below).
+                const below = a.icon.bottom + 8 + EST_H <= vh - 8;
+                const top = below ? a.icon.bottom + 8 : Math.max(8, a.icon.top - EST_H - 8);
+                const left = Math.min(Math.max(8, a.icon.left - W + 10), vw - W - 6);
+                menuPos = {
+                  position: "fixed",
+                  top,
+                  left,
+                  transformOrigin: below ? "top right" : "bottom right",
+                };
+              }
+              const rows = [
+                {
+                  id: "swap",
+                  Icon: ArrowLeftRight,
+                  label: "Intercambiar",
+                  onPick: () => {
+                    setSwapSource(dishAction);
+                    setDishAction(null);
+                  },
+                },
+                {
+                  id: "regen",
+                  Icon: RotateCw,
+                  label: "Regenerar",
+                  onPick: () => {
+                    onDishReplace?.(dishAction);
+                    setDishAction(null);
+                  },
+                },
+              ];
+              return (
+                <div
+                  onClick={() => setDishAction(null)}
+                  style={{
+                    position: "fixed",
+                    inset: 0,
+                    zIndex: 1200,
+                    background: anchored ? "transparent" : "rgba(15,30,20,.34)",
+                    backdropFilter: anchored ? "none" : "blur(2px)",
+                    WebkitBackdropFilter: anchored ? "none" : "blur(2px)",
+                    display: anchored ? "block" : "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    padding: anchored ? 0 : 16,
+                    animation: "deckFadeIn .18s ease both",
+                  }}
+                >
+                  <style>{`
+                    @keyframes dishActionPop {
+                      0%   { opacity: 0; transform: scale(.72) translateY(-6px); }
+                      55%  { opacity: 1; transform: scale(1.06) translateY(0); }
+                      100% { opacity: 1; transform: scale(1) translateY(0); }
+                    }
+                  `}</style>
+
+                  {/* Spotlight: dims everything except the affected thumbnail (a
+                      giant box-shadow cut-out), so it stays clearly visible while
+                      the menu drops out of its ⋮ icon. */}
+                  {anchored && a.tile && (
+                    <div
+                      style={{
+                        position: "fixed",
+                        top: a.tile.top,
+                        left: a.tile.left,
+                        width: a.tile.width,
+                        height: a.tile.height,
+                        borderRadius: a.radius,
+                        boxShadow: "0 0 0 9999px rgba(15,30,20,.5)",
+                        border: "2.5px solid rgba(255,255,255,.9)",
+                        pointerEvents: "none",
+                        zIndex: 1201,
+                        animation: "deckFadeIn .18s ease both",
+                      }}
+                    />
+                  )}
+
+                  <div
+                    role="dialog"
+                    aria-modal="true"
+                    onClick={(e) => e.stopPropagation()}
+                    style={{
+                      ...menuPos,
+                      zIndex: 1202,
+                      width: W,
+                      maxWidth: "calc(100vw - 12px)",
+                      background: "rgba(247,251,248,.85)",
+                      backdropFilter: "blur(26px) saturate(180%)",
+                      WebkitBackdropFilter: "blur(26px) saturate(180%)",
+                      borderRadius: 13,
+                      border: "1px solid rgba(255,255,255,.7)",
+                      boxShadow: "0 14px 34px rgba(20,47,29,.32), inset 0 1px 0 rgba(255,255,255,.6)",
+                      padding: 4,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: 2,
+                      animation: "dishActionPop .3s cubic-bezier(.34,1.56,.64,1) both",
+                    }}
+                  >
+                    {rows.map(({ id, Icon, label, onPick }) => (
+                      <button
+                        key={id}
+                        type="button"
+                        onClick={onPick}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: 7,
+                          width: "100%",
+                          textAlign: "left",
+                          padding: "5px 6px",
+                          borderRadius: 9,
+                          border: "none",
+                          background: "transparent",
+                          cursor: "pointer",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        <span
+                          style={{
+                            width: 22,
+                            height: 22,
+                            borderRadius: 7,
+                            background: "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
+                            boxShadow: "0 2px 6px rgba(45,90,61,.35)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          <Icon size={12} strokeWidth={2.8} color="#fff" />
+                        </span>
+                        <span style={{ fontSize: 12, fontWeight: 800, color: "#142f1d" }}>{label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })(),
+            document.body,
+          )}
+
+        {swapSource &&
+          createPortal(
+            <div
+              style={{
+                position: "fixed",
+                left: 0,
+                right: 0,
+                bottom: 0,
+                zIndex: 1150,
+                display: "flex",
+                justifyContent: "center",
+                padding: `0 12px calc(${bottomNavSpacer()} + 10px)`,
+                pointerEvents: "none",
+              }}
+            >
+              <div
+                style={{
+                  pointerEvents: "auto",
+                  width: 420,
+                  maxWidth: "calc(100vw - 24px)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "11px 12px 11px 15px",
+                  borderRadius: 18,
+                  background: "rgba(20,47,29,.9)",
+                  backdropFilter: "blur(18px) saturate(160%)",
+                  WebkitBackdropFilter: "blur(18px) saturate(160%)",
+                  boxShadow: "0 18px 44px rgba(20,47,29,.4)",
+                  animation: "deckModalIn .2s cubic-bezier(.4,0,.2,1) both",
+                }}
+              >
+                <ArrowLeftRight size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
+                <span style={{ flex: 1, minWidth: 0, color: "#fff", fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>
+                  Toca el plato con el que intercambiar
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setSwapSource(null)}
+                  style={{
+                    flexShrink: 0,
+                    padding: "7px 13px",
+                    borderRadius: 12,
+                    border: "1px solid rgba(255,255,255,.28)",
+                    background: "rgba(255,255,255,.12)",
+                    color: "#fff",
+                    fontFamily: "inherit",
+                    fontSize: 12.5,
+                    fontWeight: 800,
+                    cursor: "pointer",
+                  }}
+                >
+                  Cancelar
+                </button>
+              </div>
+            </div>,
+            document.body,
+          )}
 
         {uiMode === "clasico" && (<>
         {/* ── Week strip (only in "dia" mode) ── */}
@@ -3132,16 +3556,23 @@ export const MenuScreen = memo(function MenuScreen({
 
                 {meals.map((meal) => {
                   const isLunch = isLunchMeal(meal);
-                  const cards = visibleGroups.flatMap((g) => {
-                    const result = [];
+                  const cards = [];
+                  const cardByKey = new Map();
+                  for (const g of visibleGroups) {
                     const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
-                    if (slot) {
-                      for (const dish of dishesFromSlot(slot, isLunch)) {
-                        result.push({ kind: "dish", group: g, slot, dish });
+                    if (!slot) continue;
+                    for (const dish of dishesFromSlot(slot, isLunch)) {
+                      const key = `${dish.recipeId}::${dish.courseKey}`;
+                      const existing = cardByKey.get(key);
+                      if (existing) {
+                        existing.groups.push(g);
+                        continue;
                       }
+                      const card = { kind: "dish", group: g, groups: [g], slot, dish };
+                      cardByKey.set(key, card);
+                      cards.push(card);
                     }
-                    return result;
-                  });
+                  }
                   if (cards.length === 0) return null;
 
                   const mealGroups =
@@ -3154,9 +3585,12 @@ export const MenuScreen = memo(function MenuScreen({
                       <MealSectionLabel meal={meal} activeGroups={mealGroups} />
                       <div style={{ display: "flex", flexDirection: "column" }}>
                         {cards.map((card, idx) => {
+                          // With a dish shared across groups the "who eats this"
+                          // sub-line is ambiguous, so only show it for single-group dishes.
                           const groupMembers = membersOfGroup(card.group, members);
                           const slotEaters = eatersForSlot(card.group, members, schedule, day, meal);
                           const showEaters =
+                            card.groups.length === 1 &&
                             groupMembers.length > 1 &&
                             slotEaters.length > 0 &&
                             slotEaters.length < groupMembers.length;
@@ -3169,8 +3603,8 @@ export const MenuScreen = memo(function MenuScreen({
                               showDivider={idx < cards.length - 1}
                               eaterMembers={showEaters ? slotEaters : null}
                               allMembers={members}
-                              groups={data.groups}
                               group={card.group}
+                              badgeGroups={card.groups}
                               showGroupBadge={multiGroup && scope === "all"}
                               kitchenTools={data.kitchenTools ?? []}
                               availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}

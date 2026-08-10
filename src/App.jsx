@@ -45,6 +45,7 @@ import {
   pruneExpiredIndividualMenus,
   adhocReasonLabel,
   resolveMemberAge,
+  membersOfGroup,
 } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import {
@@ -1141,11 +1142,16 @@ export default function App() {
     // despensa por defecto) sin tocar lo guardado del usuario.
     const working = resolveModeData(nextData ?? data);
     let groups = working.groups;
-    if (groups.length === 0 && working.members.length > 0) {
+    // A group set with an empty roster (present but no member matches — e.g.
+    // members re-added after a reset, or a stale saved model) makes the AI
+    // planner throw "Ningún grupo tiene miembros asignados". Rebuild from the
+    // model whenever groups are missing OR stale, so generation stays viable.
+    const hasRoster = (gs) => gs.some((g) => membersOfGroup(g, working.members).length > 0);
+    if (working.members.length > 0 && (groups.length === 0 || !hasRoster(groups))) {
       groups = groupsFromModel(working.members, working.menuModel);
       setData((d) => ({ ...d, groups }));
     }
-    if (groups.length === 0) {
+    if (groups.length === 0 || !hasRoster(groups)) {
       setMenuError({ message: "Añade al menos un miembro antes de generar el menú." });
       return;
     }
@@ -1554,6 +1560,17 @@ export default function App() {
   const back = (fn) => { dirRef.current = "backward"; fn(); };
 
   const goToMenu = async () => {
+    // Hard gate: no menu without at least one family member. The family step's
+    // "Siguiente" is already blocked, but the progress-dot jump skips it (and any
+    // later step's "Generar menú" would otherwise reach the planner), so the AI
+    // planner throws "Ningún grupo tiene miembros asignados". Stop here and send
+    // the user back to add someone.
+    if ((data.members?.length ?? 0) === 0) {
+      showToast("Añade al menos un miembro de la familia para generar el menú");
+      setScreen("onboarding");
+      setOnbStep(0);
+      return;
+    }
     ensureGroupsIfMissing();
     setQuickMenu(false);
     setScreen("menu");
@@ -2062,6 +2079,67 @@ export default function App() {
     trackEvent(user, "dish_replaced", "menu", { day, meal, newRecipeId: recipeId });
   }, [data, menuPlan, showToast, user]);
 
+  // Swap two existing dishes (long-press → "Intercambiar" → tap target). Only
+  // recipe ids move; each slot keeps its own eaters/mode (they describe who eats
+  // that day/meal, not the dish), so the shopping list just needs a rebuild.
+  const handleSwapSlots = useCallback(async (source, target) => {
+    if (!source || !target) return;
+    const sGroup = source.groupId;
+    const tGroup = target.groupId;
+    const sKey = `${source.day}-${source.meal}`;
+    const tKey = `${target.day}-${target.meal}`;
+    const sField = source.course === "first" ? "firstRecipeId" : "recipeId";
+    const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
+
+    const sRecipeId = menuPlan[sGroup]?.[sKey]?.[sField];
+    const tRecipeId = menuPlan[tGroup]?.[tKey]?.[tField];
+    if (!sRecipeId || !tRecipeId) {
+      showToast("Solo puedes intercambiar platos que ya existen");
+      return;
+    }
+    if (sRecipeId === tRecipeId) {
+      showToast("Son el mismo plato");
+      return;
+    }
+
+    const groups =
+      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+
+    setMenuPlan((plan) => {
+      const next = { ...plan };
+      const writeField = (group, key, field, val) => {
+        next[group] = { ...(next[group] ?? {}) };
+        next[group][key] = { ...(next[group][key] ?? {}), [field]: val, warnings: [] };
+      };
+      writeField(sGroup, sKey, sField, tRecipeId);
+      writeField(tGroup, tKey, tField, sRecipeId);
+
+      const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
+      setShopping((prev) => {
+        const flags = Object.fromEntries(
+          prev.items.map((i) => [
+            normalizeIngredientKey(i.name, i.unit ?? "ud"),
+            { have: i.have, atHome: i.atHome },
+          ])
+        );
+        return {
+          items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
+            ...it,
+            have: flags[it.id]?.have ?? false,
+            atHome: flags[it.id]?.atHome ?? false,
+          })),
+        };
+      });
+      return next;
+    });
+    showToast("Platos intercambiados");
+    trackEvent(user, "dish_swapped", "menu", {
+      from: `${source.day}-${source.meal}`,
+      to: `${target.day}-${target.meal}`,
+    });
+  }, [data, menuPlan, showToast, user]);
+
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
   // only wipes the active menu/session; "hard" nukes everything (used by
   // Ajustes' "empezar de cero"); "delete" nukes + signs out; "abandon" just
@@ -2433,6 +2511,8 @@ export default function App() {
               error={menuError}
               restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
+              onDishReplace={handleReplaceSlot}
+              onDishSwap={handleSwapSlots}
               onNav={handleNav}
               onRegenerate={handleRegenerate}
               onRetry={retryGenerateMenu}

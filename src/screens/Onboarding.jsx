@@ -10,6 +10,7 @@ import {
   Fish,
   GitBranch,
   BriefcaseBusiness,
+  Ban,
   CalendarDays,
   Camera,
   Check,
@@ -111,6 +112,7 @@ import {
   getMeals,
   modeForGroupSlot,
   primaryDayMeal,
+  slotKey,
 } from "../lib/planner.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
@@ -367,6 +369,15 @@ const FAMILY_PROFILES = [
 ];
 
 const profileByKey = (key) => FAMILY_PROFILES.find((p) => p.key === key) ?? null;
+
+// School-menu editor: friendly day names + per-course chip styling so the
+// manual grid matches the rest of the onboarding (soft coloured plaques).
+const SCHOOL_DAY_LABELS = { Lun: "Lunes", Mar: "Martes", "Mié": "Miércoles", Jue: "Jueves", Vie: "Viernes" };
+const SCHOOL_COURSE_META = {
+  Primero: { short: "1º", placeholder: "Primer plato (ej: lentejas)", bg: "#e7f2eb", color: "#2d7a4a" },
+  Segundo: { short: "2º", placeholder: "Segundo plato (ej: tortilla)", bg: "#fdf0e2", color: "#c77d2e" },
+  Postre:  { short: "P",  placeholder: "Postre (fruta, yogur…)",       bg: "#fbe9f1", color: "#c2417f" },
+};
 
 // Read a picked image and downscale it to a 160px square JPEG data URL, so
 // member avatars stay tiny in localStorage. Mirrors HomeProfileScreen's helper.
@@ -1027,7 +1038,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                           <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" /></svg>
                         </span>
                       </span>
-                      <span style={{ fontSize: 11.5, fontWeight: 800, color: "#25402f", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      <span style={{ fontSize: 12, fontWeight: 700, color: "#25402f", letterSpacing: "-.1px", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                         {m.name || prof?.label || "—"}
                       </span>
                       {showAge && (
@@ -1068,7 +1079,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                   <span style={{ width: 36, height: 36, borderRadius: 999, background: p.tint, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 3px 10px ${p.tint}44` }}>
                     <Icon size={18} strokeWidth={2.3} />
                   </span>
-                  <span style={{ flex: 1, fontSize: 13.5, fontWeight: 800, color: "#25402f" }}>{p.label}</span>
+                  <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#25402f", letterSpacing: "-.1px" }}>{p.label}</span>
                   <Plus size={16} strokeWidth={2.8} color={p.tint} />
                 </button>
               );
@@ -5562,52 +5573,42 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       </button>
 
       {reviewOpen && (
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {SCHOOL_DAYS.map((day) => (
           <div
             key={day}
             style={{
-              background: "#f6f9f7",
-              borderRadius: 10,
-              padding: "10px 12px",
+              background: "#fff",
+              border: "1px solid #e6efe9",
+              borderRadius: 16,
+              padding: 14,
+              boxShadow: "0 4px 16px rgba(45,90,61,.06)",
             }}
           >
-            <div
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                color: "#2d5a3d",
-                textTransform: "uppercase",
-                letterSpacing: 1,
-                marginBottom: 6,
-              }}
-            >
-              {day}
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 11 }}>
+              <span style={{ fontSize: 13.5, fontWeight: 900, color: "#15301f", letterSpacing: "-.2px", flexShrink: 0 }}>
+                {SCHOOL_DAY_LABELS[day] ?? day}
+              </span>
+              <span style={{ flex: 1, borderTop: "1px dashed #cfdcd4" }} />
             </div>
-            {SCHOOL_COURSES.map((course) => {
+            {SCHOOL_COURSES.map((course, ci) => {
               const k = `${day}-${course}`;
               const value = targetMap[k] ?? "";
-              const labels = {
-                Primero: { short: "1º", placeholder: "Primer plato (ej: lentejas)" },
-                Segundo: { short: "2º", placeholder: "Segundo plato (ej: tortilla)" },
-                Postre:  { short: "P",  placeholder: "Postre (fruta, yogur…)" },
-              };
-              const meta = labels[course];
+              const meta = SCHOOL_COURSE_META[course];
               return (
                 <div
                   key={course}
-                  style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}
+                  style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: ci < SCHOOL_COURSES.length - 1 ? 8 : 0 }}
                 >
                   <span
                     style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 6,
-                      background: "#fff",
-                      border: "1px solid #e3ebe6",
-                      fontSize: 11,
-                      fontWeight: 800,
-                      color: "#2d5a3d",
+                      width: 32,
+                      height: 32,
+                      borderRadius: 9,
+                      background: meta.bg,
+                      color: meta.color,
+                      fontSize: 12,
+                      fontWeight: 900,
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -5622,12 +5623,16 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                     placeholder={meta.placeholder}
                     style={{
                       flex: 1,
-                      padding: "8px 10px",
-                      borderRadius: 8,
+                      minWidth: 0,
+                      height: 38,
+                      padding: "0 12px",
+                      borderRadius: 10,
                       border: "1.5px solid #e3ebe6",
-                      fontSize: 16,
+                      fontSize: 14,
                       outline: "none",
-                      background: "#fff",
+                      background: "#fbfdfc",
+                      boxSizing: "border-box",
+                      fontFamily: "inherit",
                     }}
                   />
                 </div>
@@ -6839,6 +6844,24 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     });
   };
 
+  // A "quick dinner" only makes sense on nights someone actually eats at home,
+  // so we map the grid against the schedule: a day is enabled when at least one
+  // NON-baby member has dinner at home ("casa"/"tupper"). Nights where everyone
+  // is out (fuera/cole/off) — or the household has no non-baby members — are
+  // dimmed and non-interactive. With no schedule set yet everything defaults to
+  // "casa", so the grid stays fully enabled until the user marks nights out.
+  const nonBabyMembers = (data.members ?? []).filter((m) => !memberIsBaby(m));
+  const dinnerAtHome = (day) =>
+    nonBabyMembers.some((m) => {
+      const s = data.schedule?.[slotKey(m.id, day, "Cena")] ?? "casa";
+      return s === "casa" || s === "tupper";
+    });
+  // Start the grid on the menu's first day (e.g. a week that starts on Wednesday
+  // begins with Mié), wrapping the rest around. Falls back to Mon when unset.
+  const cenaStartIdx = data.menuWeek?.startDayIdx ?? 0;
+  const cenaDays = [...DAYS.slice(cenaStartIdx), ...DAYS.slice(0, cenaStartIdx)];
+  const anyDinnerDayOff = cenaDays.some((d) => !dinnerAtHome(d));
+
   // ── Desayuno / merienda / postre ── state lives in data.extraMeals;
   // desayuno on/off itself is set upstream in "¿Dónde coméis?".
   const em = data.extraMeals ?? {};
@@ -7037,8 +7060,9 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
             }}
           >
             <div />
-            {DAYS.map((d) => {
+            {cenaDays.map((d) => {
               const isWeekend = d === "Sáb" || d === "Dom";
+              const off = !dinnerAtHome(d);
               return (
                 <div
                   key={`h-${d}`}
@@ -7054,8 +7078,8 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                       justifyContent: "center",
                       fontSize: 10,
                       fontWeight: 800,
-                      background: isWeekend ? "#2d5a3d" : "rgba(45,90,61,.1)",
-                      color: isWeekend ? "#a8d5b5" : "#2d5a3d",
+                      background: off ? "#eef2ef" : isWeekend ? "#2d5a3d" : "rgba(45,90,61,.1)",
+                      color: off ? "#b7c3bb" : isWeekend ? "#a8d5b5" : "#2d5a3d",
                     }}
                   >
                     {d.slice(0, 2)}
@@ -7076,14 +7100,16 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
             >
               <Moon size={15} />
             </div>
-            {DAYS.map((d) => {
-              const active = slotTypeMap[`${d}|Cena`] === "rapida";
+            {cenaDays.map((d) => {
+              const off = !dinnerAtHome(d);
+              const active = !off && slotTypeMap[`${d}|Cena`] === "rapida";
               return (
                 <button
                   key={d}
                   type="button"
-                  onClick={() => toggleCenaRapida(d)}
-                  title={`Cena del ${dayLabel(d).toLowerCase()}`}
+                  disabled={off}
+                  onClick={() => !off && toggleCenaRapida(d)}
+                  title={off ? `Nadie cena en casa el ${dayLabel(d).toLowerCase()}` : `Cena del ${dayLabel(d).toLowerCase()}`}
                   style={{
                     display: "flex",
                     alignItems: "center",
@@ -7091,20 +7117,26 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                     width: "100%",
                     minHeight: 44,
                     borderRadius: 12,
-                    border: active ? "none" : "1.5px solid #e6efe9",
-                    background: active ? "#2f7dc0" : "#fff",
-                    color: active ? "#fff" : "#c0ccc4",
-                    cursor: "pointer",
+                    border: active ? "none" : off ? "1.5px dashed #e6ebe8" : "1.5px solid #e6efe9",
+                    background: active ? "#2f7dc0" : off ? "#f4f7f5" : "#fff",
+                    color: active ? "#fff" : off ? "#cfd8d2" : "#c0ccc4",
+                    cursor: off ? "not-allowed" : "pointer",
+                    opacity: off ? 0.7 : 1,
                     fontFamily: "inherit",
                     transition: "all .15s ease",
                     boxShadow: active ? "0 3px 10px rgba(47,125,192,.32)" : "none",
                   }}
                 >
-                  {active ? <Zap size={17} /> : <Moon size={14} />}
+                  {off ? <Ban size={13} /> : active ? <Zap size={17} /> : <Moon size={14} />}
                 </button>
               );
             })}
           </div>
+          {anyDinnerDayOff && (
+            <p style={{ fontSize: 11, color: "#9aa8a0", margin: "10px 2px 0", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 6 }}>
+              <Ban size={12} /> Las noches en que nadie cena en casa aparecen desactivadas.
+            </p>
+          )}
         </div>
       </div>,
     );

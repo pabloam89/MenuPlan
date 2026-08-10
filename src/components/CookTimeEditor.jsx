@@ -1,26 +1,19 @@
 import { useState } from "react";
-import { BriefcaseBusiness, Moon, Sun, Sunset } from "lucide-react";
-import { SliderInput } from "./ui.jsx";
+import { BriefcaseBusiness, Clock, Moon, Shuffle, Sun, Sunset, Utensils, Zap } from "lucide-react";
 import {
   migrateCookTime,
   writeCookTimeMode,
   writeCookTimePeriod,
   writeCookTimeShared,
-  toDisplayCookMinutes,
-  fromDisplayCookMinutes,
-  displayCookBounds,
-  formatCookDurationLabel,
-  weekCookScale,
+  COOK_LEVELS,
+  cookLevelMinutes,
+  cookLevelForMinutes,
 } from "../lib/cookTime.js";
 import { cookDayCounts, getMeals } from "../lib/planner.js";
 
-// Both periods share the same min/max so the slider fill % always maps to the
-// same minutes — otherwise two thumbs at "the same spot" would show different
-// times just because their ranges differed (weekday used to cap at 90, weekend
-// at 120), which looked like a bug even though the math was correct.
 const PERIODS = [
-  { key: "weekday", label: "Entre semana", icon: BriefcaseBusiness, min: 10, max: 120 },
-  { key: "weekend", label: "Fin de semana", icon: Sunset, min: 10, max: 120 },
+  { key: "weekday", label: "Entre semana", icon: BriefcaseBusiness },
+  { key: "weekend", label: "Fin de semana", icon: Sunset },
 ];
 
 function plannedMealTargets(plannedMeals) {
@@ -36,45 +29,51 @@ const MEAL_META = {
   Cena: { icon: Moon, label: "Cena" },
 };
 
-function CookTimeUnitToggle({ unit, onChange }) {
-  const options = [
-    { id: "day", label: "Día" },
-    { id: "week", label: "Semana" },
-  ];
+// Icon + color + time hint per cooking-pace level. Colors always show (even when
+// unselected) so the grid reads at a glance; "Depende del día" shows a "Variable"
+// pill with a shuffle icon instead of a fixed time — the whole point is that it
+// isn't a single number.
+const LEVEL_META = {
+  con_prisa: { Icon: Zap, accent: "#e08a2b", tint: "#fdf1e1", time: "≤ 20 min" },
+  normal: { Icon: Utensils, accent: "#2d8a4e", tint: "#e6f5ec", time: "~ 35 min" },
+  con_tiempo: { Icon: Clock, accent: "#2f7d8a", tint: "#e1f0f2", time: "1 h o más" },
+  depende: { Icon: Shuffle, accent: "#7a5bd6", tint: "#efeaff", time: null },
+};
 
+/** Compact pill segmented control used to pick the editing context (period /
+ *  meal) so a single level grid can drive them all instead of repeating it. */
+function SegTabs({ options, value, onChange }) {
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        background: "#f0f4f1",
-        borderRadius: 10,
-        padding: 3,
-        gap: 2,
-        marginBottom: 10,
-      }}
-    >
-      {options.map(({ id, label }) => {
-        const active = unit === id;
+    <div style={{ display: "flex", background: "#f0f4f1", borderRadius: 12, padding: 4, gap: 4, marginBottom: 12 }}>
+      {options.map((o) => {
+        const sel = o.id === value;
+        const Icon = o.icon;
         return (
           <button
-            key={id}
+            key={o.id}
             type="button"
-            onClick={() => onChange(id)}
+            onClick={() => onChange(o.id)}
             style={{
-              padding: "5px 14px",
-              borderRadius: 8,
+              flex: 1,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              padding: "8px 10px",
+              borderRadius: 9,
               border: "none",
-              fontSize: 11,
-              fontWeight: 800,
-              background: active ? (id === "week" ? "#2d5a3d" : "#fff") : "transparent",
-              color: active ? (id === "week" ? "#fff" : "#1a3a24") : "#9ab0a1",
-              boxShadow: active && id === "day" ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+              background: sel ? "#fff" : "transparent",
+              color: sel ? "#1a3a24" : "#8aa092",
+              fontWeight: sel ? 800 : 600,
+              fontSize: 12.5,
               cursor: "pointer",
               fontFamily: "inherit",
+              boxShadow: sel ? "0 1px 4px rgba(0,0,0,.08)" : "none",
               transition: "all .15s ease",
             }}
           >
-            {label}
+            {Icon && <Icon size={14} strokeWidth={2.3} color={sel ? "#2d5a3d" : "#9ab0a1"} />}
+            {o.label}
           </button>
         );
       })}
@@ -109,15 +108,7 @@ function CookTimeModeToggle({ mode, onChange }) {
 
   return (
     <div style={{ marginBottom: 18 }}>
-      <div
-        style={{
-          display: "flex",
-          background: "#f0f4f1",
-          borderRadius: 14,
-          padding: 5,
-          gap: 5,
-        }}
-      >
+      <div style={{ display: "flex", background: "#f0f4f1", borderRadius: 14, padding: 5, gap: 5 }}>
         {opts.map((opt) => {
           const sel = mode === opt.id;
           return (
@@ -151,171 +142,116 @@ function CookTimeModeToggle({ mode, onChange }) {
           );
         })}
       </div>
-      <p style={{ fontSize: 11, color: "#9ab0a1", margin: "8px 4px 0", lineHeight: 1.4, textAlign: "center" }}>
-        {opts.find((o) => o.id === mode)?.desc}
-      </p>
     </div>
   );
 }
 
-function CompactMealSlider({ meal, value, min, max, step = 5, unit, onChange }) {
-  const { icon: Icon, label } = MEAL_META[meal];
-  const pct = ((value - min) / (max - min)) * 100;
-  const display = formatCookDurationLabel(value, unit);
+/** 2×2 grid of qualitative cooking-pace levels — colored icon badge, a time
+ *  pill (or "Variable" for depende) and a little time-flow meter. */
+function CookLevelChips({ selected, onSelect }) {
   return (
-    <div style={{ padding: "8px 0 4px" }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 8,
-        }}
-      >
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 5,
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#5a7262",
-          }}
-        >
-          <Icon size={13} color="#2d5a3d" strokeWidth={2.2} />
-          {label}
-        </span>
-        <span style={{ fontSize: 13, fontWeight: 800, color: "#2d5a3d" }}>{display}</span>
-      </div>
-      <div style={{ position: "relative", height: 22, display: "flex", alignItems: "center" }}>
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            height: 3,
-            borderRadius: 2,
-            background: "#e5ede7",
-            pointerEvents: "none",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            height: 3,
-            borderRadius: 2,
-            background: "#2d5a3d",
-            width: `${pct}%`,
-            pointerEvents: "none",
-          }}
-        />
-        <input
-          className="sl-ios"
-          type="range"
-          min={min}
-          max={max}
-          step={step}
-          value={value}
-          onChange={(e) => onChange(+e.target.value)}
-          style={{ width: "100%" }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function CookTimePeriodBlock({
-  periodKey,
-  label,
-  icon: PeriodIcon,
-  min,
-  max,
-  values,
-  mode,
-  dual,
-  unit,
-  mealTargets,
-  dayCounts,
-  onPatch,
-  onShared,
-}) {
-  // In "week" mode the slider step scales with the number of cooked slots so
-  // dragging one notch always maps cleanly to a 5-min change per slot (avoids
-  // the rounding jumpiness that made weekday/weekend feel inconsistent).
-  const stepFor = (opts) =>
-    unit === "week"
-      ? Math.max(5, 5 * weekCookScale(periodKey, mealTargets, opts))
-      : 5;
-
-  const sharedValue = Math.max(values.Comida, values.Cena);
-  const sharedOpts = { shared: true, dayCounts };
-  const soloOpts = { dayCounts };
-  const sharedBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, sharedOpts);
-  const sharedDisplay = toDisplayCookMinutes(
-    dual ? sharedValue : values.Comida ?? values.Cena,
-    periodKey,
-    mealTargets,
-    unit,
-    dual ? sharedOpts : soloOpts
-  );
-  const soloBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, soloOpts);
-
-  // Shared / single-meal: SliderInput already has its own bordered container.
-  if (mode === "shared" || !dual) {
-    return (
-      <SliderInput
-        label={label}
-        icon={PeriodIcon}
-        value={sharedDisplay}
-        min={dual ? sharedBounds.min : soloBounds.min}
-        max={dual ? sharedBounds.max : soloBounds.max}
-        step={stepFor(dual ? sharedOpts : soloOpts)}
-        valueLabel={formatCookDurationLabel(sharedDisplay, unit)}
-        onChange={(v) => {
-          const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, dual ? sharedOpts : soloOpts);
-          if (dual) onShared(stored);
-          else onPatch({ Comida: stored, Cena: stored });
-        }}
-      />
-    );
-  }
-
-  // Split mode: wrap the per-meal sliders in a single bordered container.
-  return (
-    <div
-      style={{
-        background: "#fff",
-        border: "1px solid #eef2ef",
-        borderRadius: 14,
-        padding: "10px 14px 6px",
-        marginBottom: 12,
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4, paddingTop: 2 }}>
-        <PeriodIcon size={14} color="#2d5a3d" />
-        <span style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>{label}</span>
-      </div>
-      {mealTargets.map((meal, idx) => {
-        const mealOpts = { meal, dayCounts };
-        const mealBounds = displayCookBounds(min, max, periodKey, mealTargets, unit, mealOpts);
-        const displayValue = toDisplayCookMinutes(values[meal], periodKey, mealTargets, unit, mealOpts);
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
+      {COOK_LEVELS.map((l) => {
+        const sel = selected === l.id;
+        const meta = LEVEL_META[l.id] ?? LEVEL_META.normal;
+        const { Icon } = meta;
         return (
-          <div key={meal}>
-            {idx > 0 && <div style={{ height: 1, background: "#f0f4f1", margin: "2px 0 4px" }} />}
-            <CompactMealSlider
-              meal={meal}
-              value={displayValue}
-              min={mealBounds.min}
-              max={mealBounds.max}
-              step={stepFor(mealOpts)}
-              unit={unit}
-              onChange={(v) => {
-                const stored = fromDisplayCookMinutes(v, periodKey, mealTargets, unit, mealOpts);
-                onPatch({ [meal]: stored });
-              }}
-            />
-          </div>
+          <button
+            key={l.id}
+            type="button"
+            onClick={() => onSelect(l.id)}
+            style={{
+              position: "relative",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-start",
+              gap: 8,
+              padding: "12px 12px 11px",
+              borderRadius: 15,
+              border: sel ? `2px solid ${meta.accent}` : "1.5px solid #e2eae5",
+              background: sel ? meta.tint : "#fff",
+              boxShadow: sel ? `0 6px 18px ${meta.accent}22` : "0 1px 3px rgba(20,47,29,.05)",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              textAlign: "left",
+              transition: "all .16s cubic-bezier(.4,0,.2,1)",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
+              <span
+                style={{
+                  width: 34,
+                  height: 34,
+                  borderRadius: 11,
+                  background: meta.tint,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                  boxShadow: sel ? `inset 0 0 0 1.5px ${meta.accent}55` : "none",
+                }}
+              >
+                <Icon size={18} strokeWidth={2.4} color={meta.accent} />
+              </span>
+              {meta.time ? (
+                <span
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 800,
+                    color: meta.accent,
+                    background: meta.tint,
+                    borderRadius: 999,
+                    padding: "3px 8px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {meta.time}
+                </span>
+              ) : (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 3,
+                    fontSize: 10.5,
+                    fontWeight: 800,
+                    color: meta.accent,
+                    background: meta.tint,
+                    borderRadius: 999,
+                    padding: "3px 8px",
+                  }}
+                >
+                  <Shuffle size={11} strokeWidth={2.6} />
+                  Variable
+                </span>
+              )}
+            </div>
+            <div style={{ width: "100%" }}>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 13.5,
+                  fontWeight: 800,
+                  color: sel ? "#16321f" : "#25402f",
+                  letterSpacing: "-.1px",
+                }}
+              >
+                {l.label}
+              </span>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  color: sel ? "#4a6555" : "#9ab0a1",
+                  lineHeight: 1.3,
+                  marginTop: 1,
+                }}
+              >
+                {l.sub}
+              </span>
+            </div>
+          </button>
         );
       })}
     </div>
@@ -323,62 +259,72 @@ function CookTimePeriodBlock({
 }
 
 export function CookTimeEditor({ data, setData, simple = false }) {
-  const [unit, setUnit] = useState("day");
   const cookTime = migrateCookTime(data);
   const targets = plannedMealTargets(getMeals(data));
-  // En modo básico (simple) comida y cena comparten tiempo siempre: sin el
+  // En modo básico (simple) comida y cena comparten nivel siempre: sin el
   // toggle "Igual para ambos / Por separado".
   const dual = !simple && targets.includes("Comida") && targets.includes("Cena");
   const dayCounts = cookDayCounts(data);
+  const split = dual && cookTime.mode === "split";
 
   // Only show a period that actually requires cooking in the real schedule.
   const activePeriods = PERIODS.filter((p) =>
     targets.some((m) => (dayCounts[p.key]?.[m] ?? 0) > 0)
   );
 
+  // A single level grid drives every context; these tabs pick which one you're
+  // editing (period + meal) so we never repeat the grid 2× or 4×.
+  const [periodTab, setPeriodTab] = useState(activePeriods[0]?.key ?? "weekday");
+  const [mealTab, setMealTab] = useState(targets[0]);
+  // Guard against a schedule/plan change leaving a tab pointing nowhere.
+  const periodKey = activePeriods.some((p) => p.key === periodTab)
+    ? periodTab
+    : activePeriods[0]?.key ?? "weekday";
+  const mealKey = targets.includes(mealTab) ? mealTab : targets[0];
+
   const setMode = (mode) => setData((d) => writeCookTimeMode(d, mode));
   const patchPeriod = (period, patch) => setData((d) => writeCookTimePeriod(d, period, patch));
   const setShared = (period, value) => setData((d) => writeCookTimeShared(d, period, value));
 
+  const values = cookTime[periodKey] ?? { Comida: 0, Cena: 0 };
+  const currentMinutes = split
+    ? values[mealKey]
+    : dual
+      ? Math.max(values.Comida, values.Cena)
+      : values.Comida ?? values.Cena;
+
+  const handleSelect = (id) => {
+    const m = cookLevelMinutes(id);
+    if (split) patchPeriod(periodKey, { [mealKey]: m });
+    else if (dual) setShared(periodKey, m);
+    else patchPeriod(periodKey, { Comida: m, Cena: m });
+  };
+
   return (
     <>
-      <style>{`
-        .sl-ios { -webkit-appearance: none; appearance: none; width: 100%; height: 22px; background: transparent; outline: none; cursor: pointer; position: relative; z-index: 1; margin: 0; }
-        .sl-ios::-webkit-slider-runnable-track { background: transparent; height: 3px; }
-        .sl-ios::-moz-range-track { background: transparent; height: 3px; border: none; }
-        .sl-ios::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.16), 0 0 0 1px rgba(0,0,0,.06); cursor: pointer; margin-top: -9.5px; }
-        .sl-ios::-moz-range-thumb { width: 22px; height: 22px; border: none; border-radius: 50%; background: #fff; box-shadow: 0 1px 8px rgba(0,0,0,.16); cursor: pointer; }
-      `}</style>
-
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 6 }}>
-        <CookTimeUnitToggle unit={unit} onChange={setUnit} />
-      </div>
-      <p style={{ fontSize: 11, color: "#9ab0a1", margin: "0 0 14px", lineHeight: 1.45 }}>
-        {unit === "day"
-          ? "Tiempo máximo por comida o cena."
-          : "Tiempo total de cocina en ese tramo de la semana."}
+      <p style={{ fontSize: 11.5, color: "#9ab0a1", margin: "0 0 14px", lineHeight: 1.45 }}>
+        ¿Cuánto tiempo sueles tener para cocinar? Ajustamos las recetas a tu ritmo.
       </p>
 
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
-      {activePeriods.map((p) => (
-        <CookTimePeriodBlock
-          key={p.key}
-          periodKey={p.key}
-          label={p.label}
-          icon={p.icon}
-          min={p.min}
-          max={p.max}
-          values={cookTime[p.key]}
-          mode={dual ? cookTime.mode : "shared"}
-          dual={dual}
-          unit={unit}
-          mealTargets={targets}
-          dayCounts={dayCounts}
-          onPatch={(patch) => patchPeriod(p.key, patch)}
-          onShared={(v) => setShared(p.key, v)}
+      {activePeriods.length > 1 && (
+        <SegTabs
+          options={activePeriods.map((p) => ({ id: p.key, label: p.label, icon: p.icon }))}
+          value={periodKey}
+          onChange={setPeriodTab}
         />
-      ))}
+      )}
+
+      {split && (
+        <SegTabs
+          options={targets.map((m) => ({ id: m, label: MEAL_META[m].label, icon: MEAL_META[m].icon }))}
+          value={mealKey}
+          onChange={setMealTab}
+        />
+      )}
+
+      <CookLevelChips selected={cookLevelForMinutes(currentMinutes)} onSelect={handleSelect} />
     </>
   );
 }
