@@ -39,6 +39,7 @@ import {
   Moon,
   MoreVertical,
   Pizza,
+  Plus,
   RotateCcw,
   RotateCw,
   Salad,
@@ -149,6 +150,16 @@ const MEAL_META = {
   Merienda: { label: "Merienda", Icon: Apple  },
   Cena:     { label: "Cena",     Icon: Moon   },
   Postre:   { label: "Postre",   Icon: IceCream },
+};
+
+// Soft badge tints for empty-slot placeholders, per meal (matches the meal icon).
+const MEAL_EMPTY_ACCENT = {
+  Desayuno: { tint: "#efe6db", ink: "#9b6a3f" },
+  Comida:   { tint: "#fbf0d9", ink: "#c98a1e" },
+  Merienda: { tint: "#fde6e6", ink: "#c0504d" },
+  Cena:     { tint: "#e7ecf9", ink: "#4f68b0" },
+  Postre:   { tint: "#fbe7f1", ink: "#c0568f" },
+  _default: { tint: "#e4efe8", ink: "#5f7d6c" },
 };
 
 /** Structural colors — not used by recipe families in dishVisuals.js */
@@ -1919,6 +1930,12 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   );
   const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
   if (isEmpty) {
+    // Use the meal's own MenuPlan icon (Comida = Sol, Cena = Luna…) inside a soft
+    // colored badge with a small "+", so an empty slot reads as "add here" rather
+    // than a generic crossed-cutlery placeholder.
+    const MealIcon = MEAL_META[meal]?.Icon ?? UtensilsCrossed;
+    const accent = MEAL_EMPTY_ACCENT[meal] ?? MEAL_EMPTY_ACCENT._default;
+    const badge = compact ? 32 : 46;
     return (
       <button
         type="button"
@@ -1929,21 +1946,53 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           height: "100%",
           border: "2px dashed #cbd8cf",
           borderRadius: radius,
-          background: "#f2f6f3",
+          background: "#f6faf7",
           cursor: "pointer",
           fontFamily: "inherit",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          gap: compact ? 3 : 6,
+          gap: compact ? 4 : 7,
           padding: 8,
           touchAction: "pan-x pan-y",
         }}
       >
-        <UtensilsCrossed size={compact ? 18 : 26} strokeWidth={2} color="#a9bcb0" />
-        <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "#6b8275", textAlign: "center", lineHeight: 1.2 }}>
-          {emptyMealLabel} · libre
+        <span
+          style={{
+            position: "relative",
+            width: badge,
+            height: badge,
+            borderRadius: 999,
+            background: accent.tint,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <MealIcon size={compact ? 16 : 22} strokeWidth={2.2} color={accent.ink} />
+          <span
+            style={{
+              position: "absolute",
+              right: -3,
+              bottom: -3,
+              width: compact ? 15 : 18,
+              height: compact ? 15 : 18,
+              borderRadius: 999,
+              background: "#2d5a3d",
+              color: "#fff",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              border: "2px solid #f6faf7",
+            }}
+          >
+            <Plus size={compact ? 9 : 11} strokeWidth={3.2} />
+          </span>
+        </span>
+        <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "#4f6a5b", textAlign: "center", lineHeight: 1.2 }}>
+          {emptyMealLabel} libre
         </span>
         <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir</span>
       </button>
@@ -2363,7 +2412,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
               ) : (
                 tiles.map((tile, i) => (
                   <div
-                    key={`${tile.group.id}-${tile.meal}-${tile.dish.courseKey}-${i}`}
+                    key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
                     style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
                   >
                     <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} />
@@ -2395,7 +2444,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
             </div>
             <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
               {tiles.map((tile, i) => (
-                <div key={`${tile.group.id}-${tile.meal}-${tile.dish.courseKey}-${i}`} style={{ flex: "0 0 46%" }}>
+                <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: "0 0 46%" }}>
                   <div style={{ height: 150 }}>
                     <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} />
                   </div>
@@ -3425,28 +3474,25 @@ export const MenuScreen = memo(function MenuScreen({
            rounded border uniformly, with a brighter arc that travels around it in
            one direction so it's unmistakable which dish is about to move. Built as
            a conic gradient masked into a border band (follows the corner radius). */
-        @property --armedAngle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
-        @keyframes armedSpin { to { --armedAngle: 360deg; } }
+        @keyframes armedGlow { 0%, 100% { opacity: 1; } 50% { opacity: .58; } }
         .armed-ring {
           position: absolute;
           inset: 0;
-          padding: 2.5px;
+          padding: 4.5px;
           pointer-events: none;
           z-index: 6;
-          background: conic-gradient(from var(--armedAngle),
-            rgba(76,186,110,.22) 0deg,
-            #4cba6e 70deg,
-            #d9ffe6 120deg,
-            #4cba6e 170deg,
-            rgba(76,186,110,.22) 300deg);
+          /* Uniform saturated light-green band all around — no rotating arc, so the
+             rest of the border never goes dark. A gentle opacity pulse keeps it
+             alive without introducing dark segments. */
+          background: #2fce69;
           -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
                   mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           -webkit-mask-composite: xor;
                   mask-composite: exclude;
-          animation: armedSpin 1.15s linear infinite;
+          animation: armedGlow 1.2s ease-in-out infinite;
         }
         @media (prefers-reduced-motion: reduce) {
-          .armed-ring { animation: none; background: #4cba6e; }
+          .armed-ring { animation: none; }
         }
         /* Day-scope chips sliding in from the right over the header divider */
         @keyframes dayScopeIn {
