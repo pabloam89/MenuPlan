@@ -779,7 +779,7 @@
   },
   {
     "id": "cenas_rapidas_013",
-    "name": "Huevos revueltos con tostadas",
+    "name": "Tostas de aguacate y huevo poché",
     "category": "cenas_rapidas",
     "mainProtein": "huevo",
     "mainBase": "pan",
@@ -787,12 +787,12 @@
       "cena"
     ],
     "type": "completo",
-    "time": 10,
+    "time": 15,
     "difficulty": "facil",
-    "kcal": 358,
-    "protein_g": 16,
-    "carbs_g": 28,
-    "fat_g": 20,
+    "kcal": 384,
+    "protein_g": 15,
+    "carbs_g": 30,
+    "fat_g": 23,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
@@ -803,41 +803,177 @@
     "season": "all",
     "ingredients": [
       {
-        "name": "Huevo",
-        "amount": 4,
+        "name": "Pan de hogaza",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
         "unit": "ud"
       },
       {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Lima",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cilantro",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Tostar las rebanadas de pan de hogaza hasta que estén crujientes",
+      "Preparar un guacamole casero machacando el aguacate con zumo de lima, cilantro picado y sal",
+      "Escalfar los huevos 3 min en agua caliente con un chorro de vinagre",
+      "Untar el guacamole en las tostas y coronar con el huevo poché y pimienta"
+    ],
+    "description": "Tostas de pan crujiente con guacamole casero (aguacate, lima y cilantro) y huevo poché de yema jugosa",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan en la airfryer a 190°C durante 4-5 minutos hasta que quede dorado y crujiente. Mientras, escalfa los huevos en un cazo con agua y un chorro de vinagre 3 minutos. Monta las tostas con el aguacate machacado y el huevo poché por encima."
+      }
+    ]
+  },
+  {
+    "id": "cenas_rapidas_016",
+    "name": "Tostas de salmón ahumado y aguacate",
+    "category": "cenas_rapidas",
+    "mainProtein": "pescado_azul",
+    "mainBase": "pan",
+    "mealRole": [
+      "cena"
+    ],
+    "type": "completo",
+    "time": 12,
+    "difficulty": "facil",
+    "kcal": 398,
+    "protein_g": 19,
+    "carbs_g": 29,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "pescado",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
         "name": "Pan de hogaza",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Salmón ahumado",
         "amount": 100,
         "unit": "g"
       },
       {
-        "name": "Aceite de oliva",
-        "amount": 15,
-        "unit": "ml"
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
       },
       {
-        "name": "Tomate",
-        "amount": 80,
+        "name": "Queso crema",
+        "amount": 60,
         "unit": "g"
+      },
+      {
+        "name": "Eneldo",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
       }
     ],
     "steps": [
-      "Batir los huevos con sal",
-      "Cuajar en sartén con aceite removiendo suavemente",
-      "Tostar las rebanadas de pan",
-      "Servir el revuelto sobre las tostadas con tomate"
+      "Tostar las rebanadas de pan de hogaza",
+      "Untar el queso crema y colocar láminas de aguacate",
+      "Repartir el salmón ahumado por encima",
+      "Terminar con eneldo, pimienta y unas gotas de limón"
     ],
-    "description": "Huevos revueltos cremosos sobre pan tostado con tomate",
-    "methods": [
+    "description": "Tostas de pan crujiente con queso crema, aguacate, salmón ahumado y eneldo",
+    "methods": []
+  },
+  {
+    "id": "cenas_rapidas_017",
+    "name": "Tostas de burrata, tomate y albahaca",
+    "category": "cenas_rapidas",
+    "mainProtein": "none",
+    "mainBase": "pan",
+    "mealRole": [
+      "cena"
+    ],
+    "type": "completo",
+    "time": 12,
+    "difficulty": "facil",
+    "kcal": 406,
+    "protein_g": 15,
+    "carbs_g": 32,
+    "fat_g": 23,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
       {
-        "appliance": "microondas",
-        "time": 5,
-        "difficulty": "facil",
-        "prepSummary": "Para los huevos revueltos, bate los huevos con sal y aceite en un bol apto para microondas. Cocina a máxima potencia (aprox. 800W) durante 1-2 minutos, removiendo a mitad de cocción para asegurar una textura uniforme y jugosa. Las tostadas se prepararían por separado."
+        "name": "Pan de hogaza",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Burrata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 15,
+        "unit": "ml"
       }
-    ]
+    ],
+    "steps": [
+      "Tostar las rebanadas de pan de hogaza y frotar con un poco de tomate",
+      "Repartir el tomate en rodajas o triturado sobre el pan",
+      "Colocar la burrata rota por encima y salpimentar",
+      "Terminar con albahaca fresca y un buen hilo de aceite de oliva"
+    ],
+    "description": "Tostas de pan crujiente con burrata cremosa, tomate maduro y albahaca fresca",
+    "methods": []
   },
   {
     "id": "cenas_rapidas_014",

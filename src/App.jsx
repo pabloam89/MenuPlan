@@ -2054,7 +2054,7 @@ export default function App() {
     const label = reason === "dislike"
       ? "Descartado para siempre"
       : reason === "recent"
-        ? "Lo dejamos para más adelante"
+        ? "Lo dejamos para luego"
         : "Descartado esta semana";
     trackEvent(user, "dish_discarded", "menu", { reason, recipeId: baseId });
     return label;
@@ -3539,28 +3539,29 @@ export default function App() {
             transform: "translateX(-50%)",
             display: "flex",
             alignItems: "center",
-            gap: 12,
-            maxWidth: "calc(100% - 32px)",
+            gap: 10,
+            maxWidth: "calc(100% - 24px)",
             // Mirror the WizardSheet card tokens (tinted-green fill, 22px radius,
             // 44px icon bubble, deep shadow) so a save confirmation reads as the
             // same surface family as the pop-ups, just smaller.
             background: "#f3f8f4",
             border: "1.5px solid #e2ede5",
             color: "#142f1d",
-            padding: "11px 18px 11px 11px",
+            padding: "10px 14px 10px 10px",
             borderRadius: 22,
             fontSize: 13.5,
             fontWeight: 800,
             lineHeight: 1.3,
+            whiteSpace: "nowrap",
             boxShadow: "0 24px 60px -16px rgba(20,47,29,.5)",
             zIndex: 320,
           }}
         >
           <span
             style={{
-              width: 38,
-              height: 38,
-              borderRadius: 13,
+              width: 32,
+              height: 32,
+              borderRadius: 11,
               background: "#2d5a3d",
               display: "inline-flex",
               alignItems: "center",
@@ -3569,9 +3570,18 @@ export default function App() {
               boxShadow: "0 6px 14px -4px rgba(45,90,61,.5)",
             }}
           >
-            <Check size={18} color="#fff" strokeWidth={2.8} />
+            <Check size={17} color="#fff" strokeWidth={2.8} />
           </span>
-          <span style={{ minWidth: 0 }}>{typeof toast === "string" ? toast : toast.msg}</span>
+          <span
+            style={{
+              minWidth: 0,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {typeof toast === "string" ? toast : toast.msg}
+          </span>
           {typeof toast !== "string" && toast.action && (
             <button
               type="button"
@@ -3582,12 +3592,12 @@ export default function App() {
               }}
               style={{
                 flexShrink: 0,
-                marginLeft: 4,
+                marginLeft: 2,
                 border: "none",
                 background: "#2d5a3d",
                 color: "#fff",
                 borderRadius: 999,
-                padding: "6px 14px",
+                padding: "6px 13px",
                 fontSize: 13,
                 fontWeight: 800,
                 cursor: "pointer",

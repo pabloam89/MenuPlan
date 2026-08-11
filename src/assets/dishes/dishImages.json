@@ -395,7 +395,6 @@
   "cenas_rapidas_010": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_010.jpg",
   "cenas_rapidas_011": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_011.jpg",
   "cenas_rapidas_012": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_012.jpg",
-  "cenas_rapidas_013": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_013.jpg",
   "cenas_rapidas_014": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_014.jpg",
   "cenas_rapidas_015": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_015.jpg",
   "ensaladas_verduras_003": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_003.jpg?v=3",
@@ -1452,5 +1451,8 @@
   "ensaladas_verduras_030": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_030.jpg?v=2",
   "pescados_023": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023.jpg?v=2",
   "carnes_036": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_036.jpg?v=2",
-  "guarniciones_022": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_022.jpg?v=2"
+  "guarniciones_022": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_022.jpg?v=2",
+  "cenas_rapidas_013": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_013.jpg?v=2",
+  "cenas_rapidas_016": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_016.jpg?v=2",
+  "cenas_rapidas_017": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_017.jpg?v=2"
 }
