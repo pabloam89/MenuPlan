@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChefHat, BookOpen, Plus } from "lucide-react";
+import { ChefHat, BookOpen, Plus, RotateCcw, Ban } from "lucide-react";
 import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -22,6 +24,10 @@ export function RecipesScreen({
   userRecipes = [],
   recipeVotes = {},
   scopeGroups = [],
+  // Base catalog ids the user discarded "para siempre" (No me gusta). Shown in
+  // the "Descartados" tab; onRecoverRecipe clears one so it rejoins the pool.
+  discardedIds = [],
+  onRecoverRecipe,
   onSetFavoriteScope,
   onOpenRecipe,
   onNav,
@@ -59,10 +65,16 @@ export function RecipesScreen({
     [recipeVotes],
   );
 
+  const discardedRecipes = useMemo(
+    () => discardedIds.map((id) => recipeCatalogById[id]).filter(Boolean),
+    [discardedIds],
+  );
+
   const TABS = [
     { id: "mine", label: "Mis recetas", count: userRecipes.length },
     { id: "catalog", label: "Catálogo" },
     { id: "favorites", label: "Favoritas", count: favoriteIds.size },
+    { id: "discarded", label: "Descartados", count: discardedRecipes.length },
   ];
 
   return (
@@ -126,11 +138,11 @@ export function RecipesScreen({
                 data-coach={`recipes-tab-${t.id}`}
                 onClick={() => setTab(t.id)}
                 style={{
-                  flex: 1, padding: "7px 0", borderRadius: 9, border: "none",
+                  flex: 1, minWidth: 0, padding: "7px 2px", borderRadius: 9, border: "none",
                   background: sel ? "#fff" : "transparent",
                   color: sel ? INK : "#7a9485",
-                  fontSize: 13, fontWeight: sel ? 800 : 700,
-                  cursor: "pointer", fontFamily: "inherit",
+                  fontSize: 12, fontWeight: sel ? 800 : 700,
+                  cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
                   boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
                   transition: "all .15s",
                 }}
@@ -139,9 +151,9 @@ export function RecipesScreen({
                 {t.count > 0 && (
                   <span
                     style={{
-                      marginLeft: 5, fontSize: 10, fontWeight: 900, color: sel ? GREEN : "#9ab0a1",
+                      marginLeft: 4, fontSize: 9.5, fontWeight: 900, color: sel ? GREEN : "#9ab0a1",
                       background: sel ? "#e4f3e9" : "#dce8de",
-                      padding: "1px 6px", borderRadius: 999,
+                      padding: "1px 5px", borderRadius: 999,
                     }}
                   >
                     {t.count}
@@ -245,6 +257,68 @@ export function RecipesScreen({
               emptyLabel="Ninguna de tus recetas coincide con esos filtros."
             />
           )
+        )}
+
+        {tab === "discarded" && (
+          <div style={{ padding: "14px 18px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
+            {discardedRecipes.length === 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "50px 20px", textAlign: "center" }}>
+                <div style={{ width: 60, height: 60, borderRadius: 18, background: "#fdeef1", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Ban size={26} color="#e0405a" />
+                </div>
+                <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: INK }}>No has descartado ninguna receta</p>
+                <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
+                  Cuando pulses «No me gusta» al cambiar o quitar un plato del menú, aparecerá aquí para no volver a proponerlo.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {discardedRecipes.map((recipe) => {
+                  const img = dishImageForRecipe(recipe);
+                  return (
+                    <div
+                      key={recipe.id}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 12,
+                        padding: 10, borderRadius: 14, background: "#fff",
+                        border: "1.5px solid #eef3f0", boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
+                      }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => onOpenRecipe?.(recipe)}
+                        style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0, border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
+                      >
+                        <div style={{ width: 54, height: 54, borderRadius: 11, flexShrink: 0, overflow: "hidden", background: "#eef3f0", filter: "grayscale(.5)", opacity: 0.85 }}>
+                          {img && <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} loading="lazy" decoding="async" />}
+                        </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontSize: 14, fontWeight: 800, color: INK, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                            {recipe.name}
+                          </div>
+                          <div style={{ fontSize: 12, fontWeight: 700, color: "#e0405a", marginTop: 2 }}>
+                            Descartado
+                          </div>
+                        </div>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onRecoverRecipe?.(recipe.id)}
+                        style={{
+                          display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0,
+                          padding: "8px 12px", borderRadius: 11, border: "1.5px solid #cfe6d6",
+                          background: "#f2f9f4", color: GREEN, fontSize: 12.5, fontWeight: 800,
+                          cursor: "pointer", fontFamily: "inherit",
+                        }}
+                      >
+                        <RotateCcw size={14} strokeWidth={2.6} /> Recuperar
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

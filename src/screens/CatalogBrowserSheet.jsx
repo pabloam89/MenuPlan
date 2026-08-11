@@ -66,6 +66,10 @@ export function categoryColor(cat) {
   return CATEGORY_META[cat]?.color ?? DEFAULT_COLOR;
 }
 
+export function categoryIcon(cat) {
+  return CATEGORY_META[cat]?.icon ?? Utensils;
+}
+
 const PAGE_SIZES = [10, 20, 50];
 const DEFAULT_PAGE_SIZE = 20;
 
@@ -172,6 +176,10 @@ export function CatalogBrowserSheet({
   sourceRecipes = null,
   // When provided, restricts results to these recipe ids ("Favoritas" tab).
   favoriteIds = null,
+  // When provided (Set of base ids), restricts the browsable pool to just those
+  // recipes — used by the "Cena rápida" / "Plato único" quick pickers so the grid
+  // only shows dishes valid for that slot type.
+  restrictToIds = null,
   // Custom empty-state copy (favorites / mine have their own wording).
   emptyLabel = null,
   // Reference mode only: lets user-owned recipes change visibility inline.
@@ -255,6 +263,7 @@ export function CatalogBrowserSheet({
   const platoResults = useMemo(() => {
     const q = norm(query);
     const filtered = platoCatalog.filter((r) => {
+      if (restrictToIds && !restrictToIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
       if (cats.size && !cats.has(r.category)) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
@@ -264,7 +273,7 @@ export function CatalogBrowserSheet({
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, platoCatalog]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, platoCatalog, restrictToIds]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -292,6 +301,7 @@ export function CatalogBrowserSheet({
     const q = norm(query);
     const filtered = fullCatalog.filter((r) => {
       if (favoriteIds && !favoriteIds.has(r.id)) return false;
+      if (restrictToIds && !restrictToIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
       if (cats.size && !cats.has(r.category)) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
@@ -301,7 +311,7 @@ export function CatalogBrowserSheet({
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds]);
 
   // Reset pagination whenever the result set or page size changes.
   useEffect(() => {

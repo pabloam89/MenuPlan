@@ -18,8 +18,7 @@ import {
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
-import { countMenusGenerated } from "../lib/menuStats.js";
-import { planHasDishes } from "../lib/menuArchive.js";
+import { planHasDishes, menuHasContent } from "../lib/menuArchive.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
@@ -317,9 +316,13 @@ export function DashboardScreen({
   const [activeGroupId, setActiveGroupId] = useState(null);
   const selectedGroup = groups.find((gr) => gr.id === activeGroupId) ?? groups[0] ?? null;
 
-  const { count: menusGenerated, isCapped } = useMemo(
-    () => countMenusGenerated(data.menuHistory),
-    [data.menuHistory],
+  // The badge links to the "Menús" history screen, so it must count the menús
+  // actually kept there — the current one plus any past ones with content — not
+  // raw generation events (data.menuHistory), which counts every regeneration
+  // and would show far more than the history ever lists.
+  const savedMenuCount = useMemo(
+    () => Object.values(data.menus ?? {}).filter(menuHasContent).length,
+    [data.menus],
   );
 
   // Today's planned dishes for the selected group (home shows only HOY).
@@ -485,9 +488,10 @@ export function DashboardScreen({
             </div>
           )}
 
-          {/* Racha / menús generados. Vive aquí (identidad/logro) ahora que los
-              stats desaparecieron; sigue siendo el único acceso a "account". */}
-          {menusGenerated > 0 && onOpenStreak && (
+          {/* Acceso al histórico de menús: muestra cuántos menús guardados hay
+              (los mismos que lista la pantalla "Menús"), no cuántas veces se
+              ha regenerado. */}
+          {savedMenuCount > 0 && onOpenStreak && (
             <button
               type="button"
               onClick={onOpenStreak}
@@ -503,7 +507,7 @@ export function DashboardScreen({
             >
               <ClipboardList size={14} color="#fff" strokeWidth={2.4} />
               <span style={{ fontSize: 12.5, fontWeight: 800 }}>
-                {menusGenerated}{isCapped ? "+" : ""} {menusGenerated === 1 ? "menú generado" : "menús generados"}
+                {savedMenuCount} {savedMenuCount === 1 ? "menú guardado" : "menús guardados"}
               </span>
             </button>
           )}

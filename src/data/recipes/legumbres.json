@@ -1240,26 +1240,26 @@
   },
   {
     "id": "legumbres_015",
-    "name": "Ensalada de garbanzos",
+    "name": "Ensalada templada de garbanzos",
     "category": "legumbres",
     "mainProtein": "legumbre",
     "mealRole": [
       "primero"
     ],
     "type": "completo",
-    "time": 10,
+    "time": 20,
     "difficulty": "facil",
-    "kcal": 328,
+    "kcal": 332,
     "protein_g": 14,
-    "carbs_g": 32,
-    "fat_g": 16,
+    "carbs_g": 34,
+    "fat_g": 15,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
       "sulfitos"
     ],
-    "season": "verano",
+    "season": "all",
     "ingredients": [
       {
         "name": "Garbanzos cocidos",
@@ -1267,13 +1267,13 @@
         "unit": "g"
       },
       {
-        "name": "Tomate",
+        "name": "Pimiento rojo asado",
         "amount": 120,
         "unit": "g"
       },
       {
-        "name": "Pepino",
-        "amount": 80,
+        "name": "Tomate",
+        "amount": 100,
         "unit": "g"
       },
       {
@@ -1282,8 +1282,13 @@
         "unit": "g"
       },
       {
-        "name": "Aceitunas negras",
-        "amount": 30,
+        "name": "Comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
         "unit": "g"
       },
       {
@@ -1298,12 +1303,12 @@
       }
     ],
     "steps": [
-      "Escurrir los garbanzos",
-      "Cortar tomate, pepino y cebolla en dados",
-      "Mezclar todo con aceitunas",
-      "Aliñar con aceite y vinagre de Jerez"
+      "Asar el pimiento rojo, pelar y cortar en tiras",
+      "Saltear ligeramente los garbanzos con el comino",
+      "Mezclar con el tomate en dados, la cebolla morada y el pimiento asado",
+      "Aliñar en templado con aceite, vinagre de Jerez y perejil"
     ],
-    "description": "Ensalada fría de garbanzos con verduras y aceitunas",
+    "description": "Ensalada templada de garbanzos con pimiento asado, comino y vinagre de Jerez",
     "methods": []
   },
   {

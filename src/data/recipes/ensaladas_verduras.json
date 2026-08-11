@@ -1043,62 +1043,6 @@
     ]
   },
   {
-    "id": "ensaladas_verduras_014",
-    "name": "Champiñones al ajillo",
-    "category": "ensaladas_verduras",
-    "mainProtein": "none",
-    "mealRole": [
-      "primero"
-    ],
-    "type": "completo",
-    "time": 12,
-    "difficulty": "facil",
-    "kcal": 128,
-    "protein_g": 5,
-    "carbs_g": 4,
-    "fat_g": 10,
-    "baseServings": 2,
-    "kidFriendly": false,
-    "tupperFriendly": false,
-    "allergens": [],
-    "season": "all",
-    "ingredients": [
-      {
-        "name": "Champiñones",
-        "amount": 300,
-        "unit": "g"
-      },
-      {
-        "name": "Ajo",
-        "amount": 12,
-        "unit": "g"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 25,
-        "unit": "ml"
-      },
-      {
-        "name": "Perejil",
-        "amount": 5,
-        "unit": "g"
-      },
-      {
-        "name": "Guindilla",
-        "amount": 1,
-        "unit": "ud"
-      }
-    ],
-    "steps": [
-      "Limpiar y laminar los champiñones",
-      "Calentar aceite con ajo laminado y guindilla",
-      "Añadir champiñones a fuego fuerte",
-      "Saltear 5 min y servir con perejil"
-    ],
-    "description": "Champiñones laminados salteados con ajo y perejil",
-    "methods": []
-  },
-  {
     "id": "ensaladas_verduras_015",
     "name": "Ensaladilla rusa",
     "category": "ensaladas_verduras",
@@ -1112,16 +1056,17 @@
     "type": "completo",
     "time": 30,
     "difficulty": "facil",
-    "kcal": 312,
-    "protein_g": 8,
+    "kcal": 342,
+    "protein_g": 12,
     "carbs_g": 28,
-    "fat_g": 18,
+    "fat_g": 22,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
       "huevo",
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "season": "verano",
     "ingredients": [
@@ -1142,32 +1087,43 @@
       },
       {
         "name": "Atún en conserva",
-        "amount": 60,
+        "amount": 80,
         "unit": "g"
       },
       {
         "name": "Huevo cocido",
-        "amount": 1,
+        "amount": 2,
         "unit": "ud"
       },
       {
-        "name": "Mayonesa",
+        "name": "Pimiento morrón",
         "amount": 60,
         "unit": "g"
       },
       {
+        "name": "Pepinillos",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Mayonesa",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
         "name": "Aceitunas",
-        "amount": 20,
+        "amount": 25,
         "unit": "g"
       }
     ],
     "steps": [
-      "Cocer patata, zanahoria y guisantes, enfriar",
-      "Cortar en dados pequeños",
-      "Mezclar con atún, aceitunas y huevo picado",
-      "Añadir mayonesa y refrigerar 1 h antes de servir"
+      "Cocer patata, zanahoria y guisantes; enfriar bien",
+      "Cortar en dados pequeños y regulares",
+      "Mezclar con atún, pimiento morrón, pepinillos y aceitunas picadas",
+      "Ligar con la mayonesa y decorar con huevo en rodajas y aceitunas",
+      "Refrigerar 1 h antes de servir"
     ],
-    "description": "Ensaladilla rusa con patata, zanahoria, atún y mayonesa",
+    "description": "Ensaladilla rusa cremosa con atún, huevo, pimiento morrón y pepinillos",
     "methods": [
       {
         "appliance": "thermomix",
@@ -1406,52 +1362,6 @@
     ]
   },
   {
-    "id": "ensaladas_verduras_019",
-    "name": "Pimientos del padrón",
-    "category": "ensaladas_verduras",
-    "mainProtein": "none",
-    "mealRole": [
-      "primero"
-    ],
-    "type": "completo",
-    "time": 10,
-    "difficulty": "facil",
-    "kcal": 118,
-    "protein_g": 2,
-    "carbs_g": 6,
-    "fat_g": 10,
-    "baseServings": 2,
-    "kidFriendly": true,
-    "tupperFriendly": false,
-    "allergens": [],
-    "season": "verano",
-    "ingredients": [
-      {
-        "name": "Pimientos de padrón",
-        "amount": 250,
-        "unit": "g"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 30,
-        "unit": "ml"
-      },
-      {
-        "name": "Sal gorda",
-        "amount": 5,
-        "unit": "g"
-      }
-    ],
-    "steps": [
-      "Lavar y secar bien los pimientos",
-      "Freír en aceite muy caliente hasta que ampollen",
-      "Escurrir sobre papel absorbente",
-      "Salar con sal gorda y servir"
-    ],
-    "description": "Pimientos de padrón fritos con sal gorda",
-    "methods": []
-  },
-  {
     "id": "ensaladas_verduras_020",
     "name": "Acelgas rehogadas",
     "category": "ensaladas_verduras",
@@ -1522,32 +1432,55 @@
   },
   {
     "id": "ensaladas_verduras_021",
-    "name": "Ensalada de tomate",
+    "name": "Ensalada griega",
     "category": "ensaladas_verduras",
     "mainProtein": "none",
     "mealRole": [
       "primero"
     ],
     "type": "completo",
-    "time": 5,
+    "time": 10,
     "difficulty": "facil",
-    "kcal": 152,
-    "protein_g": 2,
-    "carbs_g": 8,
-    "fat_g": 12,
+    "kcal": 268,
+    "protein_g": 9,
+    "carbs_g": 12,
+    "fat_g": 20,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": [],
+    "allergens": [
+      "lactosa",
+      "sulfitos"
+    ],
     "season": "verano",
     "ingredients": [
       {
-        "name": "Tomate maduro",
-        "amount": 400,
+        "name": "Tomate",
+        "amount": 300,
         "unit": "g"
       },
       {
-        "name": "Cebolla",
+        "name": "Pepino",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso feta",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas",
         "amount": 40,
         "unit": "g"
       },
@@ -1563,12 +1496,12 @@
       }
     ],
     "steps": [
-      "Cortar los tomates en rodajas gruesas",
-      "Añadir cebolla en aros finos",
-      "Aliñar con aceite, sal y orégano",
-      "Dejar reposar 5 min antes de servir"
+      "Cortar el tomate en gajos y el pepino en medias lunas",
+      "Añadir el pimiento verde y la cebolla morada en tiras finas",
+      "Coronar con el queso feta en dados y las aceitunas",
+      "Aliñar con aceite de oliva, orégano y una pizca de sal"
     ],
-    "description": "Ensalada simple de tomate maduro con cebolla y orégano",
+    "description": "Ensalada griega con tomate, pepino, feta, aceitunas y orégano",
     "methods": []
   },
   {
@@ -1877,5 +1810,347 @@
         "prepSummary": "Corta las verduras y colócalas en un recipiente apto para microondas con un par de cucharadas de agua. Tapa y cocina a máxima potencia durante 7-8 minutos, removiendo a mitad de cocción, hasta que estén tiernas. Aliña con el aceite de oliva."
       }
     ]
+  },
+  {
+    "id": "ensaladas_verduras_026",
+    "name": "Ensalada de espinacas, queso de cabra y nueces",
+    "category": "ensaladas_verduras",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 342,
+    "protein_g": 10,
+    "carbs_g": 16,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "frutos_secos",
+      "mostaza",
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Espinacas baby",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Queso de cabra",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Nueces",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Arándanos",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Miel",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Mostaza",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Disponer las espinacas baby en un bol amplio",
+      "Repartir el queso de cabra en trozos, las nueces y los arándanos",
+      "Añadir la cebolla morada en tiras finas",
+      "Emulsionar aceite, miel, mostaza y vinagre y aliñar al momento"
+    ],
+    "description": "Ensalada de espinacas baby con queso de cabra, nueces, arándanos y vinagreta de miel y mostaza",
+    "methods": []
+  },
+  {
+    "id": "ensaladas_verduras_027",
+    "name": "Ensalada caprese",
+    "category": "ensaladas_verduras",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 328,
+    "protein_g": 16,
+    "carbs_g": 10,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "sulfitos"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Tomate",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Mozzarella fresca",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Crema de vinagre balsámico",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar el tomate y la mozzarella en rodajas del mismo grosor",
+      "Alternar rodajas de tomate y mozzarella en el plato",
+      "Repartir las hojas de albahaca fresca",
+      "Aliñar con aceite de oliva, crema de balsámico y una pizca de sal"
+    ],
+    "description": "Ensalada caprese con tomate, mozzarella fresca, albahaca y balsámico",
+    "methods": []
+  },
+  {
+    "id": "ensaladas_verduras_028",
+    "name": "Ensalada de garbanzos, pimiento y maíz",
+    "category": "ensaladas_verduras",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 312,
+    "protein_g": 13,
+    "carbs_g": 36,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Maíz dulce",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos",
+      "Cortar el pimiento, los tomates cherry y la cebolla morada en dados",
+      "Mezclar todo con el maíz",
+      "Aliñar con aceite de oliva, vinagre y sal"
+    ],
+    "description": "Ensalada fresca de garbanzos con pimiento, maíz, cherry y cebolla morada",
+    "methods": []
+  },
+  {
+    "id": "ensaladas_verduras_029",
+    "name": "Ensalada de lentejas, tomate y comino",
+    "category": "ensaladas_verduras",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 298,
+    "protein_g": 15,
+    "carbs_g": 34,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Lentejas cocidas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar las lentejas",
+      "Cortar el tomate, el pepino y la cebolla morada en dados",
+      "Mezclar con las lentejas, el comino y el perejil",
+      "Aliñar con aceite de oliva, vinagre y sal"
+    ],
+    "description": "Ensalada de lentejas con tomate, pepino, cebolla morada y un toque de comino",
+    "methods": []
+  },
+  {
+    "id": "ensaladas_verduras_030",
+    "name": "Ensalada de tomate, aguacate y cebolla morada",
+    "category": "ensaladas_verduras",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 8,
+    "difficulty": "facil",
+    "kcal": 236,
+    "protein_g": 4,
+    "carbs_g": 14,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Tomate",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar el tomate en gajos y el aguacate en láminas",
+      "Añadir la cebolla morada en tiras muy finas",
+      "Aliñar con aceite de oliva virgen extra y una pizca de sal",
+      "Terminar con orégano por encima"
+    ],
+    "description": "Ensalada de tomate maduro con aguacate y cebolla morada",
+    "methods": []
   }
 ]

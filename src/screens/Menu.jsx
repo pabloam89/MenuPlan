@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -8,6 +8,7 @@ import {
   BookOpen,
   BookOpenCheck,
   CalendarDays,
+  CalendarOff,
   Check,
   ChefHat,
   CircleUserRound,
@@ -19,6 +20,7 @@ import {
   ClipboardList,
   Apple,
   Coffee,
+  CopyPlus,
   CookingPot,
   History,
   IceCream,
@@ -40,13 +42,17 @@ import {
   RotateCcw,
   RotateCw,
   Salad,
+  Search,
   Shell,
+  Shuffle,
   SlidersHorizontal,
   Share2,
   ShoppingCart,
+  Trash2,
   Soup,
   Sparkles,
   Heart,
+  ThumbsDown,
   Sun,
   Undo2,
   Users,
@@ -64,8 +70,9 @@ import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
 import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { categoryColor, categoryIcon } from "./CatalogBrowserSheet.jsx";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
-import { kitchenHint } from "../lib/kitchenUnits.js";
+import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
 import { consumeFromPantry, restoreToPantry } from "../lib/cookPantry.js";
 import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry } from "../lib/pantry.js";
@@ -84,7 +91,7 @@ import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtras } fro
 import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
-import { dishAvailabilityMap } from "../lib/shoppingListUtils.js";
+import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
 import {
   MEAL_STYLES,
@@ -154,7 +161,7 @@ const MEAL_STYLE = {
   Postre:   { color: "#be185d", bg: "#fce7f3" },
 };
 
-function DaySectionHeader({ day, dayNumber }) {
+function DaySectionHeader({ day, dayNumber, right = null }) {
   return (
     <div
       style={{
@@ -179,17 +186,20 @@ function DaySectionHeader({ day, dayNumber }) {
       >
         {dayLabel(day)}
       </span>
-      <span
-        style={{
-          fontSize: 18,
-          fontWeight: 900,
-          color: DAY_STYLE.bar,
-          lineHeight: 1,
-          fontVariantNumeric: "tabular-nums",
-        }}
-      >
-        {dayNumber}
-      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <span
+          style={{
+            fontSize: 18,
+            fontWeight: 900,
+            color: DAY_STYLE.bar,
+            lineHeight: 1,
+            fontVariantNumeric: "tabular-nums",
+          }}
+        >
+          {dayNumber}
+        </span>
+        {right}
+      </div>
     </div>
   );
 }
@@ -512,13 +522,19 @@ function DishIcon({ recipe, size = 44, imageUrl = null }) {
   const [imgFailed, setImgFailed] = useState(false);
 
   if (imageUrl && !imgFailed) {
+    // A 44px thumbnail never needs the ~1MB origin blob — fetch a tiny derivative
+    // sized for the icon (×2 for retina), in WebP.
+    const thumbW = Math.max(96, size * 2);
     return (
       <img
-        src={imageUrl}
+        src={deckImg(imageUrl, thumbW)}
+        srcSet={deckSrcSet(imageUrl, size)}
+        sizes={`${size}px`}
         alt={recipe.name}
         width={size}
         height={size}
         loading="lazy"
+        decoding="async"
         onError={() => setImgFailed(true)}
         style={{
           width: size,
@@ -570,8 +586,11 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
     >
       {showPhoto ? (
         <img
-          src={imageUrl}
+          src={deckImg(imageUrl, 720)}
+          srcSet={deckSrcSet(imageUrl, 720)}
+          sizes="100vw"
           alt={recipe.name}
+          decoding="async"
           onError={() => setImgFailed(true)}
           style={{
             position: "absolute",
@@ -579,6 +598,7 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
             width: "100%",
             height: "100%",
             objectFit: "cover",
+            background: visual.surface,
           }}
         />
       ) : (
@@ -1467,6 +1487,18 @@ function useLongPress(onLongPress, onClick, { ms = 420, moveTol = 12 } = {}) {
 
 /** Same dish slot (group + day + meal + course) — used to cancel a swap that
  *  targets the very dish you started from. */
+// While a "Mover"/"Duplicar" action is armed, the source dish is highlighted
+// across the deck so it's obvious which one is about to move. Provided by
+// MenuScreen and consumed by the deck tiles/cards without prop drilling.
+const ArmedContext = createContext(null);
+
+// Overlay that draws the traveling green "about to move" ring. Absolutely
+// positioned, so its host must be `position: relative`. `radius` matches the
+// host's border-radius so the ring hugs the corners exactly.
+function ArmedRing({ radius = 14 }) {
+  return <span aria-hidden="true" className="armed-ring" style={{ borderRadius: radius }} />;
+}
+
 export function sameDish(a, b) {
   return (
     !!a &&
@@ -1515,6 +1547,9 @@ export function DishCard({
   // Tapping the dot just opens the dish (its detail now shows what's missing
   // and lets you mark cooked — the old "Modo Cocina" tab is gone).
   availability = null,
+  // When true, this dish is the source of an armed "Mover"/"Duplicar" action —
+  // draw a ring + tint so it's clear which one is being moved.
+  highlight = false,
 }) {
   // Hook must run before any early return (rules-of-hooks).
   const press = useLongPress(
@@ -1558,19 +1593,22 @@ export function DishCard({
       data-coach="menu-dish"
       {...press}
       style={{
+        position: "relative",
         width: "100%",
         border: "none",
-        borderBottom: showDivider ? "1px solid #e8f0ea" : "none",
+        borderBottom: showDivider && !highlight ? "1px solid #e8f0ea" : "none",
         touchAction: "pan-y",
         textAlign: "left",
         display: "flex",
         gap: 12,
-        padding: "12px 2px",
-        background: "transparent",
+        padding: highlight ? "12px 8px" : "12px 2px",
+        background: highlight ? "#eaf6ee" : "transparent",
+        borderRadius: highlight ? 14 : 0,
         cursor: "pointer",
         fontFamily: "inherit",
       }}
     >
+      {highlight && <ArmedRing radius={14} />}
       {/* alignSelf: flex-start pins this to the icon's own 44px height — without
           it, rows with extra badges (2º, alérgenos…) are taller than 44px and
           the default flex `stretch` stretches this wrapper too, dragging the
@@ -1798,9 +1836,25 @@ const DECK_VIEW_ICON = { dia: CalendarDays, semana: Layers2, lista: ClipboardLis
 // ~1.5–1.8 MB / ~1024px, far too heavy for full-bleed tiles. wsrv.nl resizes +
 // converts to WebP at the edge (origin stays cached separately). Temporary until
 // we ship pre-generated derivatives with sharp.
+// WebP only: wsrv.nl's free endpoint returns HTTP 400 for `output=avif`, and a
+// failed <source> in a <picture> does NOT fall back to <img src> — it just shows
+// nothing. So we stick to WebP, which every target browser supports.
 function deckImg(url, w = 720) {
   if (!url) return null;
   return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
+}
+
+// Responsive srcset with width descriptors so the browser fetches the size that
+// actually fits the tile × device pixel ratio (instead of a fixed 720px for a
+// 160px thumbnail). Caps at 1080 — the origin blobs are ~1024px, so asking for
+// more just upscales. Paired with a `sizes` hint of the tile's CSS width.
+function deckSrcSet(url, w = 720) {
+  if (!url) return null;
+  const hi = Math.min(Math.round(w * 2), 1080);
+  const lo = Math.min(w, hi);
+  const parts = [`${deckImg(url, lo)} ${lo}w`];
+  if (hi > lo) parts.push(`${deckImg(url, hi)} ${hi}w`);
+  return parts.join(", ");
 }
 
 /** Flatten a day into photo tiles (one per dish/course, across visible groups).
@@ -1816,7 +1870,21 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
     for (const g of visibleGroups) {
       const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
       if (!slot) continue;
-      for (const dish of dishesFromSlot(slot, isLunch)) {
+      const dishes = dishesFromSlot(slot, isLunch);
+      // A slot the user emptied ("Vaciar hueco") keeps a `cleared` flag so we can
+      // still render a tappable placeholder to refill it (per group, no dedup).
+      if (dishes.length === 0) {
+        if (slot.cleared) {
+          const key = `empty::${meal}::${g.id}`;
+          if (!byKey.has(key)) {
+            const tile = { meal, group: g, groups: [g], slot, dish: null, empty: true };
+            byKey.set(key, tile);
+            tiles.push(tile);
+          }
+        }
+        continue;
+      }
+      for (const dish of dishes) {
         const key = `${meal}::${dish.recipeId}::${dish.courseKey}`;
         const existing = byKey.get(key);
         if (existing) {
@@ -1835,22 +1903,60 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
 function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false }) {
   const { meal, group, slot, dish } = tile;
+  const armed = useContext(ArmedContext);
+  const isEmpty = Boolean(tile.empty);
   const badgeGroups = tile.groups ?? (group ? [group] : []);
   const [failed, setFailed] = useState(false);
-  const recipe = RECIPES_BY_ID[dish.recipeId];
-  const sel = recipe
-    ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
-    : null;
+  const recipe = isEmpty ? null : RECIPES_BY_ID[dish.recipeId];
+  const sel = isEmpty
+    ? { slot, groupId: group.id, day, meal, group, course: "main", empty: true }
+    : recipe
+      ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
+      : null;
   const press = useLongPress(
     () => sel && onDishLongPress?.(sel),
     () => sel && onDishTap?.(sel),
   );
+  const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
+  if (isEmpty) {
+    return (
+      <button
+        type="button"
+        {...press}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: "100%",
+          border: "2px dashed #cbd8cf",
+          borderRadius: radius,
+          background: "#f2f6f3",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: compact ? 3 : 6,
+          padding: 8,
+          touchAction: "pan-x pan-y",
+        }}
+      >
+        <UtensilsCrossed size={compact ? 18 : 26} strokeWidth={2} color="#a9bcb0" />
+        <span style={{ fontSize: compact ? 10 : 12.5, fontWeight: 800, color: "#6b8275", textAlign: "center", lineHeight: 1.2 }}>
+          {emptyMealLabel} · libre
+        </span>
+        <span style={{ fontSize: compact ? 9 : 10.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir</span>
+      </button>
+    );
+  }
   if (!recipe) return null;
-  const optimized = deckImg(dishImageForRecipe(recipe), imgWidth);
+  const srcUrl = dishImageForRecipe(recipe);
+  const optimized = deckImg(srcUrl, imgWidth);
   const visual = visualForRecipe(recipe);
   const mealLabel = MEAL_META[meal]?.label ?? meal;
   const courseTxt = dish.course ? `${mealLabel} · ${dish.course}` : mealLabel;
   const showPhoto = optimized && !failed;
+  const isArmed = !!armed && !!sel && sameDish(armed.source, sel);
   return (
     <button
       type="button"
@@ -1869,18 +1975,23 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
         background: visual.surface,
         display: "block",
         textAlign: "left",
-        boxShadow: "0 6px 20px rgba(20,47,29,.14)",
+        boxShadow: isArmed
+          ? "0 8px 24px rgba(20,47,29,.28)"
+          : "0 6px 20px rgba(20,47,29,.14)",
         touchAction: "pan-x pan-y",
       }}
     >
+      {isArmed && <ArmedRing radius={radius} />}
       {showPhoto ? (
         <img
           src={optimized}
+          srcSet={deckSrcSet(srcUrl, imgWidth)}
+          sizes={`${imgWidth}px`}
           alt={recipe.name}
           loading="lazy"
           decoding="async"
           onError={() => setFailed(true)}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", background: visual.surface }}
         />
       ) : (
         <div style={{ position: "absolute", inset: 0, background: visual.surface }} />
@@ -2008,7 +2119,152 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
 }
 
 /** "Día" view — horizontal day pager (scroll-snap) with peek + stacked tiles. */
-function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, showGroup = false }) {
+// Small pill in each day header that rerolls every dish of that day at once.
+// A round scope chip that slides in from the right over the day's divider line.
+function DayScopeChip({ label, color, size, delay, onPick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onPick(); }}
+      aria-label={label}
+      title={label}
+      style={{
+        flexShrink: 0,
+        width: size,
+        height: size,
+        borderRadius: "50%",
+        display: "grid",
+        placeItems: "center",
+        background: "#fff",
+        border: `2px solid ${color}`,
+        color,
+        padding: 0,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        boxShadow: "0 2px 7px rgba(9,18,12,.14)",
+        animation: `dayScopeIn .3s cubic-bezier(.34,1.5,.64,1) ${delay.toFixed(2)}s both`,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+// Day-level "Regenerar". With a single menú it's a plain button. With several,
+// tapping the icon hides it and slides the scope chips (one per menú + "Todos")
+// in from the right, "eating" part of the header's divider line; tap one to
+// regenerate that scope for the whole day.
+function DayRegenButton({ day, onRegenerateDay, groups = [], compact = false }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDoc = (e) => { if (!rootRef.current?.contains(e.target)) setOpen(false); };
+    document.addEventListener("pointerdown", onDoc);
+    return () => document.removeEventListener("pointerdown", onDoc);
+  }, [open]);
+  // Collapse when the day this button belongs to changes underneath it.
+  useEffect(() => { setOpen(false); }, [day]);
+
+  if (!onRegenerateDay) return null;
+
+  const menus = groups.filter(Boolean);
+  const size = compact ? 26 : 28;
+  const iconSize = compact ? 12 : 13;
+
+  // Single menú (or none): nothing to scope — a plain regenerate button.
+  if (menus.length <= 1) {
+    return (
+      <button
+        type="button"
+        className="deck-press"
+        onClick={(e) => { e.stopPropagation(); onRegenerateDay(day); }}
+        aria-label={`Regenerar ${dayLabel(day)}`}
+        title="Regenerar todos los platos de este día"
+        style={{
+          flexShrink: 0,
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 5,
+          border: "1px solid #d6e6db",
+          background: "#fff",
+          color: "#2d5a3d",
+          borderRadius: 999,
+          padding: compact ? "3px 6px" : "4px 9px 4px 7px",
+          cursor: "pointer",
+          fontFamily: "inherit",
+        }}
+      >
+        <RotateCw size={iconSize} strokeWidth={2.6} />
+        {!compact && <span style={{ fontSize: 11, fontWeight: 800 }}>Regenerar</span>}
+      </button>
+    );
+  }
+
+  const pick = (groupIds) => {
+    onRegenerateDay(day, groupIds ? { groupIds } : undefined);
+    setOpen(false);
+  };
+
+  return (
+    <div ref={rootRef} style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+      {open ? (
+        <>
+          {menus.map((g, i) => (
+            <DayScopeChip
+              key={g.id}
+              size={size}
+              color={g.color}
+              label={`Regenerar ${g.adHoc ? adhocReasonLabel(g.reason) : g.label}`}
+              delay={(menus.length - i) * 0.05}
+              onPick={() => pick([g.id])}
+            >
+              <span style={{ fontSize: size <= 26 ? 11 : 12, fontWeight: 900 }}>
+                {GROUP_ABBREV[g.label] ?? g.label.charAt(0)}
+              </span>
+            </DayScopeChip>
+          ))}
+          <DayScopeChip
+            size={size}
+            color="#2d5a3d"
+            label="Regenerar todos los menús"
+            delay={0}
+            onPick={() => pick(null)}
+          >
+            <Users size={size <= 26 ? 13 : 14} strokeWidth={2.4} />
+          </DayScopeChip>
+        </>
+      ) : (
+        <button
+          type="button"
+          className="deck-press"
+          onClick={(e) => { e.stopPropagation(); setOpen(true); }}
+          aria-label={`Regenerar ${dayLabel(day)}`}
+          title="Regenerar este día"
+          style={{
+            flexShrink: 0,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: size,
+            height: size,
+            border: "1px solid #d6e6db",
+            background: "#fff",
+            color: "#2d5a3d",
+            borderRadius: "50%",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          <RotateCw size={iconSize} strokeWidth={2.6} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false }) {
   const scrollerRef = useRef(null);
   const rafRef = useRef(0);
 
@@ -2081,10 +2337,11 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
               }}
             >
               <div style={{ position: "sticky", top: 0, zIndex: 2, background: "#fff", paddingBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8, padding: "0 2px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 2px" }}>
                   <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", letterSpacing: "-.2px" }}>{dayLabel(day)}</span>
                   <span style={{ fontSize: 13, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
                   <span style={{ flex: 1, height: 1, background: "#dbe8df", marginLeft: 2 }} />
+                  <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} />
                 </div>
               </div>
               {tiles.length === 0 ? (
@@ -2122,7 +2379,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
 }
 
 /** "Semana" view — one row per day, horizontally scrollable mini photo cards. */
-function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, showGroup = false }) {
+function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [], showGroup = false }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       {days.map((day) => {
@@ -2130,10 +2387,11 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
         if (tiles.length === 0) return null;
         return (
           <div key={day}>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
               <span style={{ fontSize: 14, fontWeight: 900, color: "#142f1d" }}>{dayLabel(day)}</span>
               <span style={{ fontSize: 12, fontWeight: 800, color: "#4cba6e" }}>{calendarDayNumber(day, weekDates)}</span>
               <span style={{ flex: 1, height: 1, background: "#e8f0ea" }} />
+              <DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />
             </div>
             <div className="deck-scroller" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
               {tiles.map((tile, i) => (
@@ -2152,7 +2410,8 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
 }
 
 /** "Lista" view — the classic, information-dense list (reuses DishCard). */
-function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, onDishTap, onDishLongPress }) {
+function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [] }) {
+  const armed = useContext(ArmedContext);
   return (
     <div>
       {days.map((day) => {
@@ -2161,7 +2420,11 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
         if (!dayHasContent) return null;
         return (
           <div key={day} style={{ marginBottom: 18 }}>
-            <DaySectionHeader day={day} dayNumber={calendarDayNumber(day, weekDates)} />
+            <DaySectionHeader
+              day={day}
+              dayNumber={calendarDayNumber(day, weekDates)}
+              right={<DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />}
+            />
             {meals.map((meal) => {
               const isLunch = isLunchMeal(meal);
               const cards = [];
@@ -2169,7 +2432,14 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
               for (const g of visibleGroups) {
                 const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
                 if (!slot) continue;
-                for (const dish of dishesFromSlot(slot, isLunch)) {
+                const dishes = dishesFromSlot(slot, isLunch);
+                if (dishes.length === 0) {
+                  if (slot.cleared) {
+                    cards.push({ group: g, groups: [g], slot, empty: true });
+                  }
+                  continue;
+                }
+                for (const dish of dishes) {
                   const key = `${dish.recipeId}::${dish.courseKey}`;
                   const existing = cardByKey.get(key);
                   if (existing) {
@@ -2186,7 +2456,57 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
                 <div key={meal} style={{ marginBottom: 14 }}>
                   <MealSectionLabel meal={meal} />
                   <div style={{ display: "flex", flexDirection: "column" }}>
-                    {cards.map((card, idx) => (
+                    {cards.map((card, idx) =>
+                      card.empty ? (
+                        <button
+                          key={`${card.group.id}-empty-${idx}`}
+                          type="button"
+                          onClick={() =>
+                            onDishTap?.({
+                              slot: card.slot,
+                              groupId: card.group.id,
+                              day,
+                              meal,
+                              group: card.group,
+                              course: "main",
+                              empty: true,
+                            })
+                          }
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            width: "100%",
+                            padding: "12px 6px",
+                            border: "none",
+                            borderBottom: idx < cards.length - 1 ? "1px dashed #d7e3db" : "none",
+                            background: "transparent",
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            textAlign: "left",
+                          }}
+                        >
+                          <span
+                            style={{
+                              width: 38,
+                              height: 38,
+                              borderRadius: 10,
+                              flexShrink: 0,
+                              border: "1.5px dashed #cbd8cf",
+                              background: "#f2f6f3",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                            }}
+                          >
+                            <UtensilsCrossed size={17} color="#a9bcb0" />
+                          </span>
+                          <span style={{ display: "flex", flexDirection: "column" }}>
+                            <span style={{ fontSize: 13, fontWeight: 800, color: "#6b8275" }}>Hueco libre</span>
+                            <span style={{ fontSize: 11.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir un plato</span>
+                          </span>
+                        </button>
+                      ) : (
                       <DishCard
                         key={`${card.group.id}-${card.dish.courseKey}-${idx}`}
                         slot={{ ...card.slot, recipeId: card.dish.recipeId }}
@@ -2197,6 +2517,7 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
                         badgeGroups={card.groups}
                         showGroupBadge={multiGroup && scope === "all"}
                         kitchenTools={data.kitchenTools ?? []}
+                        highlight={!!armed && sameDish(armed.source, { groupId: card.group.id, day, meal, course: card.dish.courseKey })}
                         availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
                         onTap={() =>
                           onDishTap?.({
@@ -2233,7 +2554,7 @@ function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dis
   );
 }
 
-function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress }) {
+function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, selectedDay, setSelectedDay, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [] }) {
   // When several menús coexist (dieta/bebés/niños…) and no single one is picked,
   // each tile shows a colored group badge so you can tell whose dish it is.
   const showGroup = multiGroup && scope === "all";
@@ -2250,11 +2571,13 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           visibleGroups={visibleGroups}
           onDishTap={onDishTap}
           onDishLongPress={onDishLongPress}
+          onRegenerateDay={onRegenerateDay}
+          regenGroups={regenGroups}
           showGroup={showGroup}
         />
       )}
       {deckView === "semana" && (
-        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} showGroup={showGroup} />
+        <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} />
       )}
       {deckView === "lista" && (
         <DeckList
@@ -2269,6 +2592,8 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
           scope={scope}
           onDishTap={onDishTap}
           onDishLongPress={onDishLongPress}
+          onRegenerateDay={onRegenerateDay}
+          regenGroups={regenGroups}
         />
       )}
     </div>
@@ -2616,6 +2941,227 @@ function DeckFilter({ groups, scope, onScopeChange, members }) {
   );
 }
 
+// Label for the "misma categoría" regen chip — a natural "otra/o <categoría>"
+// so it reads like "Otra ensalada" / "Otro pescado" instead of a vague "Parecido".
+const SAME_CATEGORY_LABEL = {
+  carnes: "Otra carne",
+  pescados: "Otro pescado",
+  legumbres: "Otra legumbre",
+  huevos: "Otro de huevo",
+  pasta_arroces: "Otra pasta/arroz",
+  sopas_cremas: "Otra sopa",
+  ensaladas_verduras: "Otra ensalada",
+  platos_unicos: "Otro plato único",
+  cenas_rapidas: "Otra cena rápida",
+  bebes: "Otro de bebé",
+  desayunos: "Otro desayuno",
+  meriendas: "Otra merienda",
+  postres: "Otro postre",
+};
+
+// Reasons shown when rejecting a dish (Regenerar / Quitar → sub-radial). Each
+// carries its own persistent consequence in App.jsx#applyDiscardReason:
+//   dislike → descartar para siempre (Recetas ▸ Descartados)
+//   week    → descartar esta semana (~7 días)
+//   timing  → tarda demasiado = descartar esta semana (~7 días)
+//   recent  → «me gusta pero reciente»: enfriamiento ~14 días + favorito
+const REJECT_REASONS = [
+  { key: "dislike", Icon: ThumbsDown, color: "#e0405a", label: "No me gusta" },
+  { key: "week", Icon: CalendarOff, color: "#e08a2f", label: "Esta semana no" },
+  { key: "timing", Icon: Clock3, color: "#2f6fb8", label: "Tarda demasiado" },
+  { key: "recent", Icon: History, color: "#7a5cc0", label: "Lo comí hace poco" },
+];
+
+// Radial ("rosco") action menu: chips laid out around the spotlighted dish
+// thumbnail. The main dish-action menu (5 actions) spreads them on a full circle
+// with a thin ring connector; callers can instead pass an explicit `angle`
+// (degrees, -90 = top) per action to drop the ring and place chips exactly where
+// the parent chips were (e.g. the "Regenerar" sub-menu reusing the Regenerar /
+// Elegir slots).
+//
+// Per-action extras: `content` renders a custom node inside the chip instead of
+// an `Icon` (e.g. a group letter badge); `active` fills the chip in its color to
+// show a toggled/selected state. `center` renders a node at the middle of the
+// ring (e.g. a "Regenerar" confirm button for the multi-select scope picker).
+function RoscoMenu({ anchor, actions, onClose, center = null }) {
+  const a = anchor;
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  // Center on the tile, fall back to the ⋮ icon, then the viewport center.
+  const cx = a?.tile
+    ? a.tile.left + a.tile.width / 2
+    : a?.icon ? (a.icon.left + a.icon.right) / 2 : vw / 2;
+  const cy = a?.tile
+    ? a.tile.top + a.tile.height / 2
+    : a?.icon ? (a.icon.top + a.icon.bottom) / 2 : vh / 2;
+  const CHIP = 42;
+  // With the dish dimmed (no bright spotlight to clear), the chips can sit much
+  // closer in — a compact ring instead of hugging the tile's edges. The scope
+  // picker still needs a wider ring so its center confirm button fits.
+  const baseR = center ? 100 : 84;
+  const maxR = Math.min(cx, vw - cx, cy, vh - cy) - CHIP / 2 - 10;
+  const R = Math.max(50, Math.min(baseR, maxR));
+
+  const N = actions.length;
+  // Explicit per-action angles (the "Regenerar" sub-menu) drop the ring and land
+  // chips on the parent's slots. Otherwise auto-spread: full circle for 5 chips
+  // (with ring), a top arc for 2-3.
+  const hasExplicitAngles = actions.every((a) => typeof a.angle === "number");
+  const isArc = !hasExplicitAngles && N <= 3;
+  const showRing = !hasExplicitAngles && N > 3;
+  const points = actions.map((act, i) => {
+    let angDeg;
+    if (typeof act.angle === "number") {
+      angDeg = act.angle;
+    } else if (isArc) {
+      const spread = 200;
+      angDeg = -90 - spread / 2 + spread / (N * 2) + (spread / N) * i;
+    } else {
+      angDeg = -90 + (360 / N) * i;
+    }
+    const ang = angDeg * (Math.PI / 180);
+    return { ...act, x: cx + R * Math.cos(ang), y: cy + R * Math.sin(ang) };
+  });
+  const circ = 2 * Math.PI * R;
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1200,
+        // Uniform dark scrim over EVERYTHING (thumbnail included) so the chip
+        // labels read perfectly — no bright spotlight fighting the text.
+        background: "rgba(9,18,12,.8)",
+        animation: "deckFadeIn .16s ease both",
+      }}
+    >
+      <style>{`
+        @keyframes roscoRing { to { stroke-dashoffset: 0; } }
+        @keyframes roscoChip {
+          0%   { opacity: 0; transform: translate(-50%,-50%) scale(.3); }
+          62%  { opacity: 1; transform: translate(-50%,-50%) scale(1.1); }
+          100% { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+        }
+        .rosco-chip { transition: background .12s ease, box-shadow .12s ease; }
+        .rosco-chip:hover { background: rgba(255,255,255,.99); box-shadow: 0 10px 26px rgba(9,18,12,.4); }
+        @media (prefers-reduced-motion: reduce) {
+          .rosco-chip, .rosco-ring { animation-duration: .001s !important; }
+        }
+      `}</style>
+
+      {a?.tile && (
+        <div
+          style={{
+            position: "fixed",
+            top: a.tile.top,
+            left: a.tile.left,
+            width: a.tile.width,
+            height: a.tile.height,
+            borderRadius: a.radius,
+            // Subtle marker only — the scrim already dims the dish; a thin outline
+            // just shows which one the radial acts on, without any glare.
+            border: "2px solid rgba(255,255,255,.35)",
+            pointerEvents: "none",
+            zIndex: 1201,
+            animation: "deckFadeIn .16s ease both",
+          }}
+        />
+      )}
+
+      {showRing && (
+        <svg
+          width={vw}
+          height={vh}
+          style={{ position: "fixed", inset: 0, zIndex: 1201, pointerEvents: "none" }}
+        >
+          <circle
+            className="rosco-ring"
+            cx={cx} cy={cy} r={R}
+            fill="none"
+            stroke="rgba(255,255,255,.42)"
+            strokeWidth={1.5}
+            strokeDasharray={circ}
+            strokeDashoffset={circ}
+            style={{ animation: "roscoRing .55s cubic-bezier(.22,1,.36,1) .05s both" }}
+          />
+        </svg>
+      )}
+
+      {points.map((p, i) => {
+        const tint = p.color ?? "#3f5a49";
+        return (
+          <button
+            key={p.id}
+            type="button"
+            role="menuitem"
+            aria-label={p.label}
+            aria-pressed={p.active ? true : undefined}
+            className="rosco-chip"
+            onClick={(e) => { e.stopPropagation(); p.onPick(); }}
+            style={{
+              position: "fixed",
+              top: p.y,
+              left: p.x,
+              zIndex: 1203,
+              width: CHIP,
+              height: CHIP,
+              borderRadius: "50%",
+              display: "grid",
+              placeItems: "center",
+              background: p.active ? tint : "rgba(250,252,251,.95)",
+              border: `2px solid ${tint}`,
+              boxShadow: p.active
+                ? `0 8px 22px ${tint}66, inset 0 1px 0 rgba(255,255,255,.3)`
+                : "0 8px 22px rgba(9,18,12,.34), inset 0 1px 0 rgba(255,255,255,.8)",
+              cursor: "pointer",
+              transform: "translate(-50%,-50%)",
+              animation: `roscoChip .34s cubic-bezier(.34,1.4,.64,1) ${(0.08 + i * 0.05).toFixed(2)}s both`,
+            }}
+          >
+            {p.content ? (
+              p.content(p.active)
+            ) : (
+              <p.Icon size={19} strokeWidth={2.2} color={p.active ? "#fff" : tint} />
+            )}
+            <span
+              style={{
+                position: "absolute",
+                top: "calc(100% + 4px)",
+                left: "50%",
+                transform: "translateX(-50%)",
+                fontSize: 10.5,
+                fontWeight: 700,
+                color: "rgba(255,255,255,.96)",
+                whiteSpace: "nowrap",
+                textShadow: "0 1px 5px rgba(0,0,0,.6)",
+                pointerEvents: "none",
+              }}
+            >
+              {p.label}
+            </span>
+          </button>
+        );
+      })}
+
+      {center && (
+        <div
+          style={{
+            position: "fixed",
+            top: cy,
+            left: cx,
+            transform: "translate(-50%,-50%)",
+            zIndex: 1204,
+            animation: "roscoChip .3s cubic-bezier(.34,1.4,.64,1) .04s both",
+          }}
+        >
+          {center}
+        </div>
+      )}
+    </div>,
+    document.body,
+  );
+}
+
 export const MenuScreen = memo(function MenuScreen({
   data,
   setData,
@@ -2625,9 +3171,17 @@ export const MenuScreen = memo(function MenuScreen({
   restrictionConflicts = [],
   onDishTap,
   onDishReplace,
+  onDishReplaceSameCategory,
+  onDishRegarnish,
   onDishSwap,
+  onDishDuplicate,
+  onDishClear,
+  onDishManualPick,
+  onDishPickCenaRapida,
+  onDishPickPlatoUnico,
   onNav,
   onRegenerate,
+  onRegenerateDay,
   onRetry,
   onToast,
   onTrackEvent,
@@ -2646,34 +3200,48 @@ export const MenuScreen = memo(function MenuScreen({
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
   const [showIconCoach, setShowIconCoach] = useState(false);
-  // Menu flexibility: long-press a dish → liquid-glass action sheet (swap /
-  // regenerate). "Swapear" arms swap mode, where the next tap picks the dish to
-  // exchange with.
+  // Menu flexibility: tap a dish's ⋮ → spotlight the dish + a liquid-glass
+  // action card anchored to it. "Cambiar" and "Duplicar" arm a two-tap mode
+  // (`armed`), where the next dish/hueco tapped is the swap/duplicate target.
   const [dishAction, setDishAction] = useState(null);
-  const [swapSource, setSwapSource] = useState(null);
+  const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate", source }
+  // "Regenerar" on a dish that carries a garnish first asks what to regenerate:
+  // just the side ("Guarnición") or the whole dish ("Plato completo").
+  const [regenChoice, setRegenChoice] = useState(null); // null | dishAction
+  // Reason sub-radial (No me gusta / Esta semana no / Tarda demasiado / Lo comí
+  // hace poco). Shown by "Quitar" and by the dish-replacing options of Regenerar.
+  // `{ ctx, run }` where run(reasonKey) executes the action carrying that reason.
+  const [reasonChoice, setReasonChoice] = useState(null);
 
   const handleTileTap = useCallback(
     (sel) => {
-      if (swapSource) {
-        if (sameDish(swapSource, sel)) {
-          setSwapSource(null);
+      if (armed) {
+        // Tapping the same dish cancels the armed action.
+        if (sameDish(armed.source, sel)) {
+          setArmed(null);
           return;
         }
-        onDishSwap?.(swapSource, sel);
-        setSwapSource(null);
+        if (armed.mode === "swap") onDishSwap?.(armed.source, sel);
+        else if (armed.mode === "duplicate") onDishDuplicate?.(armed.source, sel);
+        setArmed(null);
+        return;
+      }
+      // Empty (cleared) slots open the catalog to refill instead of dish detail.
+      if (sel.empty) {
+        onDishManualPick?.(sel);
         return;
       }
       onDishTap?.(sel);
     },
-    [swapSource, onDishSwap, onDishTap],
+    [armed, onDishSwap, onDishDuplicate, onDishManualPick, onDishTap],
   );
 
   const handleTileLongPress = useCallback(
     (sel) => {
-      if (swapSource) return;
+      if (armed || sel.empty) return;
       setDishAction(sel);
     },
-    [swapSource],
+    [armed],
   );
   const dishAvailability = useMemo(
     () => dishAvailabilityMap(shoppingItems ?? []),
@@ -2742,6 +3310,13 @@ export const MenuScreen = memo(function MenuScreen({
     if (!multiGroup || scope === "all") return data.groups;
     return data.groups.filter((g) => g.id === scope);
   }, [data.groups, multiGroup, scope]);
+
+  // Menús with members — the scope chips for the day-level "Regenerar" (a chip
+  // per menú + "Todos"), revealed inline on each day header by DayRegenButton.
+  const activeMenus = useMemo(
+    () => (data.groups ?? []).filter((g) => membersOfGroup(g, data.members).length > 0),
+    [data.groups, data.members],
+  );
 
   const handleShare = async () => {
     try {
@@ -2846,6 +3421,38 @@ export const MenuScreen = memo(function MenuScreen({
           to   { opacity: 1; transform: scale(1); }
         }
         @keyframes deckFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        /* Armed "Mover"/"Duplicar" source dish — a green ring that hugs the whole
+           rounded border uniformly, with a brighter arc that travels around it in
+           one direction so it's unmistakable which dish is about to move. Built as
+           a conic gradient masked into a border band (follows the corner radius). */
+        @property --armedAngle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+        @keyframes armedSpin { to { --armedAngle: 360deg; } }
+        .armed-ring {
+          position: absolute;
+          inset: 0;
+          padding: 2.5px;
+          pointer-events: none;
+          z-index: 6;
+          background: conic-gradient(from var(--armedAngle),
+            rgba(76,186,110,.22) 0deg,
+            #4cba6e 70deg,
+            #d9ffe6 120deg,
+            #4cba6e 170deg,
+            rgba(76,186,110,.22) 300deg);
+          -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          -webkit-mask-composite: xor;
+                  mask-composite: exclude;
+          animation: armedSpin 1.15s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .armed-ring { animation: none; background: #4cba6e; }
+        }
+        /* Day-scope chips sliding in from the right over the header divider */
+        @keyframes dayScopeIn {
+          from { opacity: 0; transform: translateX(14px) scale(.45); }
+          to   { opacity: 1; transform: translateX(0) scale(1); }
+        }
         .deck-nav-menu { animation: deckNavMenuIn .18s cubic-bezier(.4,0,.2,1) both; transform-origin: top left; }
         .deck-nav-item { animation: deckNavItemIn .24s cubic-bezier(.4,0,.2,1) both; transition: background .15s ease; }
         .deck-nav-item:hover { background: #f3f8f4; }
@@ -3223,6 +3830,7 @@ export const MenuScreen = memo(function MenuScreen({
               paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
             }}
           >
+            <ArmedContext.Provider value={armed}>
             <MenuDeck
               deckView={deckView}
               days={activeDays}
@@ -3238,167 +3846,127 @@ export const MenuScreen = memo(function MenuScreen({
               setSelectedDay={setSelectedDay}
               onDishTap={handleTileTap}
               onDishLongPress={handleTileLongPress}
+              onRegenerateDay={onRegenerateDay}
+              regenGroups={activeMenus}
             />
+            </ArmedContext.Provider>
           </div>
         )}
 
-        {dishAction &&
-          createPortal(
-            (() => {
-              const W = 132;
-              const EST_H = 78;
-              const a = dishAction.anchor;
-              const anchored = !!a?.icon;
-              let menuPos = { transformOrigin: "top center" };
-              if (anchored) {
-                const vw = window.innerWidth;
-                const vh = window.innerHeight;
-                // Drop out of the ⋮ toward the bottom-LEFT so it clears the
-                // thumbnail: the menu sits just left of the icon, dropping down
-                // (flips up only if there's no room below).
-                const below = a.icon.bottom + 8 + EST_H <= vh - 8;
-                const top = below ? a.icon.bottom + 8 : Math.max(8, a.icon.top - EST_H - 8);
-                const left = Math.min(Math.max(8, a.icon.left - W + 10), vw - W - 6);
-                menuPos = {
-                  position: "fixed",
-                  top,
-                  left,
-                  transformOrigin: below ? "top right" : "bottom right",
-                };
-              }
-              const rows = [
-                {
-                  id: "swap",
-                  Icon: ArrowLeftRight,
-                  label: "Intercambiar",
-                  onPick: () => {
-                    setSwapSource(dishAction);
-                    setDishAction(null);
-                  },
+        {dishAction && (
+          <RoscoMenu
+            anchor={dishAction.anchor}
+            onClose={() => setDishAction(null)}
+            actions={[
+              {
+                id: "swap", Icon: ArrowLeftRight, label: "Mover",
+                onPick: () => { setArmed({ mode: "swap", source: dishAction }); setDishAction(null); },
+              },
+              {
+                id: "dup", Icon: CopyPlus, label: "Duplicar",
+                onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); setDishAction(null); },
+              },
+              {
+                id: "regen", Icon: RotateCw, label: "Regenerar",
+                // Sub-radial: cómo reemplazar (otra categoría / otro plato / otra
+                // guarnición / elegir a mano). "Elegir" ahora vive aquí dentro.
+                onPick: () => { setRegenChoice(dishAction); setDishAction(null); },
+              },
+              {
+                id: "clear", Icon: Trash2, label: "Quitar",
+                // Quitar pregunta por qué (razón) → vacía el hueco aplicando la
+                // consecuencia (descarte para siempre / semana / enfriamiento).
+                onPick: () => {
+                  const ctx = dishAction;
+                  setReasonChoice({ ctx, run: (reason) => onDishClear?.(ctx, { reason }) });
+                  setDishAction(null);
                 },
-                {
-                  id: "regen",
-                  Icon: RotateCw,
-                  label: "Regenerar",
-                  onPick: () => {
-                    onDishReplace?.(dishAction);
-                    setDishAction(null);
-                  },
-                },
-              ];
-              return (
-                <div
-                  onClick={() => setDishAction(null)}
-                  style={{
-                    position: "fixed",
-                    inset: 0,
-                    zIndex: 1200,
-                    background: anchored ? "transparent" : "rgba(15,30,20,.34)",
-                    backdropFilter: anchored ? "none" : "blur(2px)",
-                    WebkitBackdropFilter: anchored ? "none" : "blur(2px)",
-                    display: anchored ? "block" : "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    padding: anchored ? 0 : 16,
-                    animation: "deckFadeIn .18s ease both",
-                  }}
-                >
-                  <style>{`
-                    @keyframes dishActionPop {
-                      0%   { opacity: 0; transform: scale(.72) translateY(-6px); }
-                      55%  { opacity: 1; transform: scale(1.06) translateY(0); }
-                      100% { opacity: 1; transform: scale(1) translateY(0); }
-                    }
-                  `}</style>
+              },
+            ]}
+          />
+        )}
 
-                  {/* Spotlight: dims everything except the affected thumbnail (a
-                      giant box-shadow cut-out), so it stays clearly visible while
-                      the menu drops out of its ⋮ icon. */}
-                  {anchored && a.tile && (
-                    <div
-                      style={{
-                        position: "fixed",
-                        top: a.tile.top,
-                        left: a.tile.left,
-                        width: a.tile.width,
-                        height: a.tile.height,
-                        borderRadius: a.radius,
-                        boxShadow: "0 0 0 9999px rgba(15,30,20,.5)",
-                        border: "2.5px solid rgba(255,255,255,.9)",
-                        pointerEvents: "none",
-                        zIndex: 1201,
-                        animation: "deckFadeIn .18s ease both",
-                      }}
-                    />
-                  )}
+        {/* "Regenerar" sub-radial — cómo reemplazar. Las opciones que cambian el
+            plato (otra categoría / otro plato / elegir a mano) abren después el
+            sub-radial de razones; "Otra guarnición" se aplica directa (no rechaza
+            el plato). Chips reutilizan el icono + color de la categoría. */}
+        {regenChoice &&
+          (() => {
+            const cat = regenChoice.recipe?.category;
+            const hasGarnish = Boolean(regenChoice.recipe?.garnishId);
+            // Ask the reason, then run the replacement carrying that reason.
+            const askReason = (run) => { setReasonChoice({ ctx: regenChoice, run }); setRegenChoice(null); };
+            const sameCat = {
+              id: "same",
+              Icon: cat ? categoryIcon(cat) : RotateCw,
+              color: cat ? categoryColor(cat) : undefined,
+              label: (cat && SAME_CATEGORY_LABEL[cat]) || "Otro parecido",
+              onPick: () => askReason((reason) => onDishReplaceSameCategory?.(regenChoice, { reason })),
+            };
+            const anyDish = {
+              id: "any", Icon: Shuffle, label: "Otro plato",
+              onPick: () => askReason((reason) => onDishReplace?.(regenChoice, { reason })),
+            };
+            const pick = {
+              id: "pick", Icon: Search, label: "Elegir a mano",
+              onPick: () => askReason((reason) => onDishManualPick?.(regenChoice, { reason })),
+            };
+            const garnish = {
+              id: "garnish", Icon: Salad, label: "Otra guarnición", color: "#16a34a",
+              onPick: () => { onDishRegarnish?.(regenChoice); setRegenChoice(null); },
+            };
+            // Slot-type picker: only dinners get the "Cena rápida" thumbnail
+            // picker. (Plato único was removed — it mixed two concepts and added
+            // confusion.) No reason step: it's a deliberate pick, like the garnish.
+            const meal = String(regenChoice.meal).toLowerCase();
+            const special =
+              meal === "cena"
+                ? {
+                    id: "cenarapida",
+                    Icon: categoryIcon("cenas_rapidas"),
+                    color: categoryColor("cenas_rapidas"),
+                    label: "Cena rápida",
+                    onPick: () => { onDishPickCenaRapida?.(regenChoice); setRegenChoice(null); },
+                  }
+                : null;
+            // Avoid a duplicate "cena rápida" entry: when the current dish is
+            // already a cena rápida, the thumbnail picker (special) replaces the
+            // random "Otra cena rápida" (sameCat) — we keep the picker.
+            const dropSameCat = special && cat === "cenas_rapidas";
+            const base = [
+              ...(dropSameCat ? [] : [sameCat]),
+              ...(hasGarnish ? [garnish] : []),
+              anyDish,
+              pick,
+            ];
+            const actions = special ? [...base, special] : base;
+            return (
+              <RoscoMenu
+                anchor={regenChoice.anchor}
+                onClose={() => setRegenChoice(null)}
+                actions={actions}
+              />
+            );
+          })()}
 
-                  <div
-                    role="dialog"
-                    aria-modal="true"
-                    onClick={(e) => e.stopPropagation()}
-                    style={{
-                      ...menuPos,
-                      zIndex: 1202,
-                      width: W,
-                      maxWidth: "calc(100vw - 12px)",
-                      background: "rgba(247,251,248,.85)",
-                      backdropFilter: "blur(26px) saturate(180%)",
-                      WebkitBackdropFilter: "blur(26px) saturate(180%)",
-                      borderRadius: 13,
-                      border: "1px solid rgba(255,255,255,.7)",
-                      boxShadow: "0 14px 34px rgba(20,47,29,.32), inset 0 1px 0 rgba(255,255,255,.6)",
-                      padding: 4,
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 2,
-                      animation: "dishActionPop .3s cubic-bezier(.34,1.56,.64,1) both",
-                    }}
-                  >
-                    {rows.map(({ id, Icon, label, onPick }) => (
-                      <button
-                        key={id}
-                        type="button"
-                        onClick={onPick}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 7,
-                          width: "100%",
-                          textAlign: "left",
-                          padding: "5px 6px",
-                          borderRadius: 9,
-                          border: "none",
-                          background: "transparent",
-                          cursor: "pointer",
-                          fontFamily: "inherit",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: 22,
-                            height: 22,
-                            borderRadius: 7,
-                            background: "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
-                            boxShadow: "0 2px 6px rgba(45,90,61,.35)",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          <Icon size={12} strokeWidth={2.8} color="#fff" />
-                        </span>
-                        <span style={{ fontSize: 12, fontWeight: 800, color: "#142f1d" }}>{label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })(),
-            document.body,
-          )}
+        {/* Reason sub-radial (por qué) — used by Quitar and by Regenerar's
+            dish-replacing options. Picking a reason runs the pending action with
+            that reason, so App.jsx applies its persistent consequence. */}
+        {reasonChoice && (
+          <RoscoMenu
+            anchor={reasonChoice.ctx.anchor}
+            onClose={() => setReasonChoice(null)}
+            actions={REJECT_REASONS.map((r) => ({
+              id: r.key,
+              Icon: r.Icon,
+              color: r.color,
+              label: r.label,
+              onPick: () => { reasonChoice.run(r.key); setReasonChoice(null); },
+            }))}
+          />
+        )}
 
-        {swapSource &&
+        {armed &&
           createPortal(
             <div
               style={{
@@ -3430,13 +3998,19 @@ export const MenuScreen = memo(function MenuScreen({
                   animation: "deckModalIn .2s cubic-bezier(.4,0,.2,1) both",
                 }}
               >
-                <ArrowLeftRight size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
+                {armed.mode === "duplicate" ? (
+                  <CopyPlus size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
+                ) : (
+                  <ArrowLeftRight size={17} strokeWidth={2.6} color="#8ee0a6" style={{ flexShrink: 0 }} />
+                )}
                 <span style={{ flex: 1, minWidth: 0, color: "#fff", fontSize: 12.5, fontWeight: 700, lineHeight: 1.3 }}>
-                  Toca el plato con el que intercambiar
+                  {armed.mode === "duplicate"
+                    ? "Toca el hueco donde repetir el plato"
+                    : "Toca el plato al que moverlo"}
                 </span>
                 <button
                   type="button"
-                  onClick={() => setSwapSource(null)}
+                  onClick={() => setArmed(null)}
                   style={{
                     flexShrink: 0,
                     padding: "7px 13px",
@@ -3597,6 +4171,7 @@ export const MenuScreen = memo(function MenuScreen({
                               badgeGroups={card.groups}
                               showGroupBadge={multiGroup && scope === "all"}
                               kitchenTools={data.kitchenTools ?? []}
+                              highlight={!!armed && sameDish(armed.source, { groupId: card.group.id, day, meal, course: card.dish.courseKey })}
                               availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
                               onTap={() =>
                                 onDishTap({
@@ -3808,7 +4383,8 @@ export function DishDetail({
   // Demo only (autoDemo="reject"): visual "press" on "Sustituir plato" right
   // before firing onReject, since the auto-trigger skips the real pointerdown.
   const [demoPressed, setDemoPressed] = useState(false);
-  const [ingredientsOpen, setIngredientsOpen] = useState(false);
+  // Receta section: segmented control between "Ingredientes" and "Pasos".
+  const [recipeTab, setRecipeTab] = useState("ingredientes");
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -4087,6 +4663,26 @@ export function DishDetail({
           <X size={20} />
         </button>
 
+        {onSetFavoriteScope && (
+          <button
+            type="button"
+            onClick={() => {
+              if (scopeGroups.length > 1) setScopeOpen(true);
+              else onSetFavoriteScope(isFavorite ? null : "all");
+            }}
+            aria-label={isFavorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+            title={isFavorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+            style={{ ...closeButtonStyle, right: "auto", left: 26 }}
+          >
+            <Heart
+              size={18}
+              color={isFavorite ? "#e0405a" : "#1a3a24"}
+              strokeWidth={isFavorite ? 2.4 : 2}
+              fill={isFavorite ? "#e0405a" : "none"}
+            />
+          </button>
+        )}
+
         <DishVisual
           recipe={recipe}
           height={220}
@@ -4095,10 +4691,11 @@ export function DishDetail({
         />
 
         <div style={{ padding: "18px 2px 0" }}>
-          {(onSetFavoriteScope || recipe.owner || recipe.rating || browse) && (
+          {(recipe.owner || recipe.rating || browse) && (
             <div style={{ marginBottom: 14, borderRadius: 16, background: "#fff", border: "2px solid #2d5a3d", padding: "12px 14px", display: "flex", flexDirection: "column", gap: 12 }}>
               {/* Row 1 — owner + date on the left, votes on the right, all in a
-                  single horizontal line. */}
+                  single horizontal line. The favorite toggle moved to the ♥ button
+                  top-left of the sheet. */}
               {(recipe.owner || recipe.rating || browse) && (
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   {recipe.owner?.avatar ? (
@@ -4132,76 +4729,6 @@ export function DishDetail({
                   </div>
                 </div>
               )}
-
-              {/* Divider between the owner/votes row and the favorite row. */}
-              {onSetFavoriteScope && (recipe.owner || recipe.rating || browse) && (
-                <div style={{ height: 1, background: "#eef3f0" }} />
-              )}
-
-              {/* Row 2 — favorite toggle + the groups it applies to. */}
-              {onSetFavoriteScope && (
-                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (scopeGroups.length > 1) setScopeOpen(true);
-                      else onSetFavoriteScope(isFavorite ? null : "all");
-                    }}
-                    aria-label={isFavorite ? "Quitar de favoritas" : "Añadir a favoritas"}
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 8,
-                      padding: 0, cursor: "pointer", flexShrink: 0,
-                      border: "none", background: "transparent", fontFamily: "inherit",
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: 32, height: 32, borderRadius: 10, flexShrink: 0,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        border: `1.5px solid ${isFavorite ? "#e0405a" : "#dde7e0"}`,
-                        background: isFavorite ? "#fdeef1" : "#fff",
-                      }}
-                    >
-                      <Heart
-                        size={16}
-                        color={isFavorite ? "#e0405a" : "#9ab0a1"}
-                        strokeWidth={isFavorite ? 2.4 : 2}
-                        fill={isFavorite ? "#e0405a" : "none"}
-                      />
-                    </span>
-                    <span style={{ fontSize: 13, fontWeight: 800, color: isFavorite ? "#e0405a" : "#7a9485" }}>
-                      {isFavorite ? "Quitar" : "Favorito"}
-                    </span>
-                  </button>
-
-                  {isFavorite && scopeGroups.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => setScopeOpen(true)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap",
-                        border: "none", background: "transparent", padding: 0,
-                        fontFamily: "inherit", cursor: "pointer",
-                      }}
-                    >
-                      <span style={{ fontSize: 13, fontWeight: 700, color: "#9ab0a1", marginRight: 2 }}>Para:</span>
-                      {(!Array.isArray(favoriteScope) ? ["Todos"] : favoriteScope).map((label) => (
-                        <span
-                          key={label}
-                          style={{
-                            display: "inline-flex", alignItems: "center", gap: 4,
-                            padding: "4px 9px", borderRadius: 999,
-                            border: "1.5px solid #f0aebb", background: "#fdeef1",
-                            fontSize: 13, fontWeight: 800, color: "#e0405a",
-                          }}
-                        >
-                          {label}
-                        </span>
-                      ))}
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           )}
 
@@ -4219,7 +4746,13 @@ export function DishDetail({
             />
           )}
 
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 14 }}>
+          {/* Ficha rápida: comensales · minutos · dificultad · alérgenos. Sin
+              caja: chips en una fila y un divider fino debajo. Los alérgenos ya se
+              entienden por su icono, así que no llevan rótulo "Alérgenos". */}
+          <div style={{
+            display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+            marginBottom: 12,
+          }}>
             <span style={detailTagStyle}>
               <Users size={12} /> {slot.eaters} comensales
             </span>
@@ -4229,31 +4762,22 @@ export function DishDetail({
             <span style={detailTagStyle}>
               <Gauge size={12} /> {activeMethod.difficultyLabel}
             </span>
+            {recipe.allergens.length > 0 && (
+              <>
+                <span style={{ width: 1, alignSelf: "stretch", background: "#e6efe9", margin: "0 2px" }} />
+                {resolveRecipeAllergens(recipe.allergens).map(({ id, Icon, label, color }) => (
+                  <span key={id} style={{
+                    display: "inline-flex", alignItems: "center", gap: 4,
+                    color, fontSize: 12, fontWeight: 700,
+                  }}>
+                    <Icon size={14} strokeWidth={2.2} />
+                    {label}
+                  </span>
+                ))}
+              </>
+            )}
           </div>
-
-          {recipe.allergens.length > 0 && (
-            <div style={{
-              display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap",
-              marginBottom: 14,
-              padding: "12px 15px",
-              borderRadius: 16,
-              background: "#fff",
-              border: "2px solid #2d5a3d",
-            }}>
-              <span style={{ fontSize: 10, fontWeight: 800, color: TITLE_GREEN, letterSpacing: ".4px", textTransform: "uppercase", marginRight: 2 }}>
-                Alérgenos
-              </span>
-              {resolveRecipeAllergens(recipe.allergens).map(({ id, Icon, label, color }) => (
-                <span key={id} style={{
-                  display: "inline-flex", alignItems: "center", gap: 4,
-                  color, fontSize: 12, fontWeight: 700,
-                }}>
-                  <Icon size={14} strokeWidth={2.2} />
-                  {label}
-                </span>
-              ))}
-            </div>
-          )}
+          <div style={{ height: 2, background: "#d5e3da", borderRadius: 2, marginBottom: 14 }} />
 
           {recipe.adaptations?.length > 0 && (
             <div style={{
@@ -4300,32 +4824,26 @@ export function DishDetail({
             </div>
           ))}
 
-          <section style={{ ...macroCardStyle, border: "2px solid #2d5a3d" }}>
-            {/* kcal header */}
-            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 16 }}>
-              <Flame size={15} color={TITLE_GREEN} />
-              <span style={{ fontSize: 13, fontWeight: 900, color: TITLE_GREEN }}>
-                {recipe.kcal} kcal
-              </span>
-              <span style={{ fontSize: 13, fontWeight: 900, color: TITLE_GREEN }}>por ración</span>
-            </div>
-            {/* Macro circles */}
-            <div style={{ display: "flex", gap: 10, justifyContent: "space-around" }}>
+          <section style={{ ...macroCardStyle, border: "none", background: "transparent", padding: 0, marginBottom: 14 }}>
+            {/* kcal + macros as four circles (number inside, copy below). Earthy,
+                cohesive palette — no rainbow. */}
+            <div style={{ display: "flex", gap: 8, justifyContent: "space-between" }}>
               {[
-                { label: "Proteína",      value: macros.protein, color: "#3b82f6" },
-                { label: "Carbohidratos", value: macros.carbs,   color: "#f97316" },
-                { label: "Grasas",        value: macros.fat,     color: "#eab308" },
-              ].map(({ label, value, color }) => (
+                { label: "kcal",          value: recipe.kcal,    unit: "",  color: "#2d5a3d" },
+                { label: "Proteína",      value: macros.protein, unit: "g", color: "#b5734a" },
+                { label: "Carbohidratos", value: macros.carbs,   unit: "g", color: "#c9a24a" },
+                { label: "Grasas",        value: macros.fat,     unit: "g", color: "#7f9e57" },
+              ].map(({ label, value, unit, color }) => (
                 <div key={label} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 7 }}>
                   <div style={{
-                    width: 66, height: 66, borderRadius: "50%",
+                    width: 62, height: 62, borderRadius: "50%",
                     background: "#fff",
                     border: `3.5px solid ${color}`,
                     boxShadow: `0 2px 12px ${color}28`,
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
-                    <span style={{ fontSize: 16, fontWeight: 900, color: "#142f1d", lineHeight: 1 }}>
-                      {value}<span style={{ fontSize: 13, fontWeight: 900, color: "#142f1d" }}>g</span>
+                    <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", lineHeight: 1 }}>
+                      {value}{unit && <span style={{ fontSize: 12, fontWeight: 900, color: "#142f1d" }}>{unit}</span>}
                     </span>
                   </div>
                   <span style={{ fontSize: 10, fontWeight: 700, color: "#7a8a7f", textAlign: "center", maxWidth: 64 }}>{label}</span>
@@ -4333,131 +4851,127 @@ export function DishDetail({
               ))}
             </div>
           </section>
+          <div style={{ height: 2, background: "#d5e3da", borderRadius: 2, marginBottom: 14 }} />
 
-          <section className="mp-recipe-section" style={recipeBlockStyle}>
+          <section className="mp-recipe-section" style={{ ...recipeBlockStyle, border: "none", background: "transparent", padding: 0 }}>
             <div style={sectionTitleStyle}>
               <BookOpen size={16} /> Receta
             </div>
 
-            {methodOptions.length > 1 && (
-              <div style={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${Math.min(methodOptions.length, 3)}, 1fr)`,
-                gap: 7,
-                margin: "0 0 14px",
-              }}>
-                {methodOptions.map((o) => {
-                  const isActive = o.appliance === activeAppliance;
-                  const isYours = o.appliance === selectedMethod?.appliance;
-                  const Icon = o.appliance === "base" ? ChefHat : APPLIANCE_ICONS[o.appliance];
-                  const aColor = o.appliance === "base" ? TITLE_GREEN : (APPLIANCE_COLORS[o.appliance] ?? TITLE_GREEN);
-                  return (
-                    <button
-                      key={o.appliance}
-                      type="button"
-                      onClick={() => setActiveAppliance(o.appliance)}
-                      style={{
-                        position: "relative",
-                        display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "center", gap: 5,
-                        padding: "10px 6px 8px",
-                        borderRadius: 12,
-                        border: `1.5px solid ${isActive ? aColor : "#e5ede7"}`,
-                        background: isActive ? `${aColor}12` : "#fff",
-                        color: isActive ? "#142f1d" : "#7a8a7f",
-                        fontSize: 11, fontWeight: 800,
-                        cursor: "pointer", fontFamily: "inherit",
-                        transition: "all .15s ease",
-                      }}
-                    >
-                      {Icon && <Icon size={18} color={isActive ? aColor : "#b0bdb4"} strokeWidth={2.2} />}
-                      <span style={{ lineHeight: 1.2, textAlign: "center" }}>{o.label}</span>
-                      {isYours && (
-                        <span style={{
-                          position: "absolute", top: 5, right: 6,
-                          width: 6, height: 6, borderRadius: "50%",
-                          background: aColor,
-                        }} />
-                      )}
-                    </button>
-                  );
-                })}
+            {/* Segmented control: Ingredientes | Pasos */}
+            <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
+              {[
+                { id: "ingredientes", label: `Ingredientes (${ingredients.length})` },
+                { id: "pasos", label: "Pasos" },
+              ].map((t) => {
+                const sel = recipeTab === t.id;
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => setRecipeTab(t.id)}
+                    style={{
+                      flex: 1, padding: "8px 0", borderRadius: 9, border: "none",
+                      background: sel ? "#fff" : "transparent",
+                      color: sel ? "#142f1d" : "#7a9485",
+                      fontSize: 13, fontWeight: sel ? 800 : 700,
+                      cursor: "pointer", fontFamily: "inherit",
+                      boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                      transition: "all .15s",
+                    }}
+                  >
+                    {t.label}
+                  </button>
+                );
+              })}
+            </div>
+            {recipeTab === "ingredientes" && (
+              <div style={{ marginBottom: cookable ? 14 : 4 }}>
+                {ingredients.map((ing, i) => (
+                  <DishIngredientRow
+                    key={ing.id}
+                    ing={ing}
+                    isLast={i === ingredients.length - 1}
+                    cookable={cookable}
+                    owned={cookable && haveByIngId[ing.id]}
+                    onMarkOwned={() => markIngredientOwned(ing)}
+                  />
+                ))}
               </div>
+            )}
+            {recipeTab === "pasos" && (
+              <>
+                {/* Tipos de cocina (electrodomésticos) — segundo segmented control,
+                    solo dentro de Pasos y solo si hay más de una forma de cocinarlo. */}
+                {methodOptions.length > 1 && (
+                  <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
+                    {methodOptions.map((o) => {
+                      const isActive = o.appliance === activeAppliance;
+                      const isYours = o.appliance === selectedMethod?.appliance;
+                      const Icon = o.appliance === "base" ? ChefHat : APPLIANCE_ICONS[o.appliance];
+                      const aColor = o.appliance === "base" ? TITLE_GREEN : (APPLIANCE_COLORS[o.appliance] ?? TITLE_GREEN);
+                      return (
+                        <button
+                          key={o.appliance}
+                          type="button"
+                          onClick={() => setActiveAppliance(o.appliance)}
+                          style={{
+                            flex: 1, minWidth: 0,
+                            display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                            padding: "8px 4px", borderRadius: 9, border: "none",
+                            background: isActive ? "#fff" : "transparent",
+                            color: isActive ? "#142f1d" : "#7a9485",
+                            fontSize: 11.5, fontWeight: isActive ? 800 : 700,
+                            cursor: "pointer", fontFamily: "inherit",
+                            boxShadow: isActive ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                            transition: "all .15s",
+                          }}
+                        >
+                          {Icon && <Icon size={15} color={isActive ? aColor : "#b0bdb4"} strokeWidth={2.2} />}
+                          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{o.label}</span>
+                          {isYours && (
+                            <span style={{ width: 5, height: 5, borderRadius: "50%", background: aColor, flexShrink: 0 }} />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {stepsLoading ? (
+                  <div
+                    style={{
+                      fontSize: 13,
+                      color: "#8a948d",
+                      animation: "pulse 1.4s ease-in-out infinite",
+                    }}
+                  >
+                    Preparando el paso a paso…
+                    <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }`}</style>
+                  </div>
+                ) : steps.length > 0 ? (
+                  <ol
+                    style={{
+                      margin: 0,
+                      paddingLeft: 18,
+                      color: "#526057",
+                      fontSize: 13,
+                      lineHeight: 1.6,
+                    }}
+                  >
+                    {steps.map((step) => (
+                      <li key={step} style={{ marginBottom: 6 }}>
+                        {step}
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
+                    No se pudo cargar el paso a paso. Cierra y vuelve a abrir el plato para reintentar.
+                  </p>
+                )}
+              </>
             )}
 
-            <button
-              type="button"
-              onClick={() => setIngredientsOpen((o) => !o)}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                width: "100%", padding: 0, border: "none", background: "none",
-                cursor: "pointer", fontFamily: "inherit",
-                marginBottom: ingredientsOpen ? 8 : 16,
-              }}
-            >
-              <span style={{ fontSize: 12, fontWeight: 900, color: "#15331c" }}>
-                Ingredientes ajustados{" "}
-                <span style={{ color: "#9aa89f", fontWeight: 800 }}>({ingredients.length})</span>
-              </span>
-              <ChevronDown
-                size={16}
-                color="#15331c"
-                strokeWidth={2.4}
-                style={{ transform: ingredientsOpen ? "rotate(180deg)" : "none", transition: "transform .2s ease" }}
-              />
-            </button>
-            {ingredientsOpen && (
-              <div style={{ display: "grid", gap: 7, marginBottom: cookable ? 12 : 16 }}>
-                {ingredients.map((ing) => {
-                  const owned = cookable && haveByIngId[ing.id];
-                  return (
-                    <div key={ing.id} style={ingredientRowStyle}>
-                      {cookable && (
-                        owned ? (
-                          <span
-                            title="Ya lo tienes en casa"
-                            style={{
-                              width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                              display: "inline-flex", alignItems: "center", justifyContent: "center",
-                              background: "#4cba6e",
-                            }}
-                          >
-                            <Check size={12} strokeWidth={3.2} color="#fff" />
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => markIngredientOwned(ing)}
-                            title="Marcar que ya lo tienes (lo añade a En casa)"
-                            style={{
-                              width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                              display: "inline-flex", alignItems: "center", justifyContent: "center",
-                              background: "#fff", border: "1.5px solid #cdddd2", cursor: "pointer",
-                              padding: 0,
-                            }}
-                          />
-                        )
-                      )}
-                      <span
-                        style={{
-                          flex: 1, minWidth: 0,
-                          ...(owned ? { color: "#9aa89f", textDecoration: "line-through" } : null),
-                        }}
-                      >
-                        {ing.name}
-                      </span>
-                      {ing.hint && (
-                        <>
-                          <span style={ingredientHintStyle}>{ing.hint}</span>
-                          <span style={ingredientDividerStyle} />
-                        </>
-                      )}
-                      <strong style={ingredientQtyStyle}>{ing.label}</strong>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
             {cookable && (
               <button
                 type="button"
@@ -4469,58 +4983,28 @@ export function DishDetail({
                     : "Descuenta estos ingredientes de lo que tienes en casa"
                 }
                 style={{
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
-                  width: "100%", marginBottom: 16, padding: "11px 12px", borderRadius: 12,
-                  border: isCooked ? "1.5px solid #bcdcc7" : "1.5px solid #2d5a3d",
-                  background: isCooked ? "#eaf3ec" : "#fff",
-                  color: "#2d5a3d", fontSize: 13, fontWeight: 800,
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 9,
+                  width: "100%", marginTop: 16, padding: "13px 14px", borderRadius: 14,
+                  border: "none",
+                  background: isCooked ? "#eaf3ec" : "linear-gradient(135deg,#3a7d52,#2d5a3d)",
+                  color: isCooked ? "#2d5a3d" : "#fff",
+                  fontSize: 14, fontWeight: 900,
                   cursor: cookBusy ? "default" : "pointer", fontFamily: "inherit",
+                  boxShadow: isCooked ? "none" : "0 10px 24px -10px rgba(45,90,61,.7)",
                   opacity: cookBusy ? 0.6 : 1,
+                  transition: "all .15s ease",
                 }}
               >
-                {isCooked ? <Undo2 size={15} strokeWidth={2.6} /> : <ChefHat size={15} strokeWidth={2.4} />}
-                {isCooked ? "Deshacer cocinado" : "Marcar cocinado"}
+                {isCooked ? <Undo2 size={16} strokeWidth={2.6} /> : <ChefHat size={16} strokeWidth={2.4} />}
+                {isCooked ? "Deshacer cocinado" : "Marcar como cocinado"}
               </button>
-            )}
-            <div style={{ fontSize: 12, fontWeight: 900, color: "#15331c", marginBottom: 8 }}>
-              Paso a paso
-            </div>
-            {stepsLoading ? (
-              <div
-                style={{
-                  fontSize: 13,
-                  color: "#8a948d",
-                  animation: "pulse 1.4s ease-in-out infinite",
-                }}
-              >
-                Preparando el paso a paso…
-                <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }`}</style>
-              </div>
-            ) : steps.length > 0 ? (
-              <ol
-                style={{
-                  margin: 0,
-                  paddingLeft: 18,
-                  color: "#526057",
-                  fontSize: 13,
-                  lineHeight: 1.6,
-                }}
-              >
-                {steps.map((step) => (
-                  <li key={step} style={{ marginBottom: 6 }}>
-                    {step}
-                  </li>
-                ))}
-              </ol>
-            ) : (
-              <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
-                No se pudo cargar el paso a paso. Cierra y vuelve a abrir el plato para reintentar.
-              </p>
             )}
           </section>
 
-          {/* Swap section — only when opened from the weekly menu */}
-          {!browse && onReject && (
+          {/* "Cambiar este plato" — demo-only now. In the real menu this moved to
+              the dish radial (Regenerar/Quitar → razón), so it only renders for the
+              value-prop carousel autoplay (autoDemo="reject"). */}
+          {autoDemo === "reject" && onReject && (
           <div style={{
             borderRadius: 16,
             border: "2px solid #2d5a3d",
@@ -4713,44 +5197,142 @@ const sectionTitleStyle = {
   marginBottom: 10,
 };
 
-const ingredientRowStyle = {
+// Ingredient rows in Dish Detail — same two-column qty layout as Compra
+// (uds | peso), without the swipe "Comprado" actions.
+const dishIngRowGridStyle = {
+  display: "grid",
+  gridTemplateColumns: "minmax(0, 1fr) auto",
+  alignItems: "center",
+  gap: 8,
+  minHeight: 36,
+};
+
+const dishIngValueGroupStyle = {
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between",
-  gap: 10,
-  padding: "8px 10px",
-  borderRadius: 10,
-  background: "#f8faf8",
-  color: "#526057",
-  fontSize: 12,
+  justifyContent: "flex-end",
+  gap: 5,
 };
 
-// Secondary "kitchen-friendly" reading (≈ 3 muslos / al gusto). Same color as
-// the exact g/ml amount — it's not a warning or a different kind of data, just
-// a softer weight — separated from it by ingredientDividerStyle instead.
-// Fixed width + right alignment so the divider lands in the same spot on
-// every row instead of drifting with each hint's text length.
-const ingredientHintStyle = {
-  flexShrink: 0,
-  width: 92,
-  textAlign: "right",
-  fontSize: 11,
-  fontWeight: 600,
-  color: "#526057",
+const dishIngQtyCellBase = {
+  minWidth: 40,
+  textAlign: "center",
+  padding: "4px 7px",
+  borderRadius: 7,
+  border: "none",
+  fontSize: 11.5,
+  fontWeight: 700,
+  fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
+  lineHeight: 1.2,
 };
 
-const ingredientDividerStyle = {
-  flexShrink: 0,
-  width: 1,
-  height: 13,
-  background: "#d7e3da",
+const dishIngUdsCellStyle = {
+  ...dishIngQtyCellBase,
+  background: "#e8f1ea",
+  color: "#2d5a3d",
 };
 
-const ingredientQtyStyle = {
-  flexShrink: 0,
-  minWidth: 48,
-  textAlign: "right",
-  whiteSpace: "nowrap",
+const dishIngPesoCellStyle = {
+  ...dishIngQtyCellBase,
+  background: "#eef2f6",
+  color: "#3f5568",
 };
+
+function DishIngredientQtyCell({ text, cellStyle, wrap = false }) {
+  const isEmpty = text === "—";
+  const style = {
+    ...cellStyle,
+    ...(wrap ? { whiteSpace: "normal", maxWidth: 68 } : null),
+    ...(isEmpty ? { color: "#c2cfc7", background: "transparent", minWidth: 22 } : null),
+  };
+  return <span style={style}>{text}</span>;
+}
+
+function DishIngredientRow({ ing, isLast, cookable, owned, onMarkOwned }) {
+  const unit = ing.unit ?? "ud";
+  const qty = ing.qtyScaled;
+  const displayVal = qty == null ? qualitativeUnitLabel(unit) : formatDisplay(qty, unit);
+  const isUdUnit = unit === "ud";
+  const pieceCount = qty != null ? pantryPieceCountLabel(ing.name, qty, unit) : null;
+  const udsText = isUdUnit ? displayVal : pieceCount || "—";
+  const pesoText = isUdUnit ? "—" : displayVal;
+
+  return (
+    <div
+      style={{
+        borderBottom: isLast ? "none" : "1px solid #dde8e1",
+        opacity: owned ? 0.45 : 1,
+        padding: "10px 4px",
+      }}
+    >
+      <div
+        style={{
+          ...dishIngRowGridStyle,
+          ...(cookable ? { gridTemplateColumns: "auto minmax(0, 1fr) auto", gap: 10 } : null),
+        }}
+      >
+        {cookable && (
+          owned ? (
+            <span
+              title="Ya lo tienes en casa"
+              style={{
+                width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: "#4cba6e",
+              }}
+            >
+              <Check size={12} strokeWidth={3.2} color="#fff" />
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={onMarkOwned}
+              title="Marcar que ya lo tienes (lo añade a En casa)"
+              style={{
+                width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: "#fff", border: "1.5px solid #cdddd2", cursor: "pointer",
+                padding: 0,
+              }}
+            />
+          )
+        )}
+        <div style={{ minWidth: 0 }}>
+          <span
+            style={{
+              display: "block",
+              fontSize: 12,
+              fontWeight: 700,
+              color: "#142f1d",
+              textDecoration: owned ? "line-through" : "none",
+              lineHeight: 1.25,
+              whiteSpace: "normal",
+              overflowWrap: "anywhere",
+            }}
+          >
+            {ing.name}
+          </span>
+          {ing.adapted && (
+            <span
+              title="Adaptado por una intolerancia"
+              style={{
+                display: "flex", alignItems: "center", gap: 3,
+                fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                marginTop: 1,
+              }}
+            >
+              <Leaf size={11} strokeWidth={2.6} />
+              Adaptado
+            </span>
+          )}
+        </div>
+        <div style={dishIngValueGroupStyle}>
+          <DishIngredientQtyCell text={udsText} cellStyle={dishIngUdsCellStyle} wrap />
+          <DishIngredientQtyCell text={pesoText} cellStyle={dishIngPesoCellStyle} />
+        </div>
+      </div>
+    </div>
+  );
+}
 

@@ -1743,6 +1743,10 @@ function ShoppingRow({
         zIndex: actionsOpen ? 3 : "auto",
       }}
     >
+      {/* Row wrapper: keeps the coloured actions overlay anchored to the row
+          itself, not the (taller) container when the recipes list is expanded —
+          otherwise the buttons drift down/centre over the expanded recipes. */}
+      <div style={{ position: "relative" }}>
       <div style={rowGridStyle}>
         <div style={{ minWidth: 0 }}>
           <span
@@ -1908,6 +1912,7 @@ function ShoppingRow({
           />
         </div>
       )}
+      </div>
 
       {/* Tap anywhere outside to close. */}
       {actionsOpen && (

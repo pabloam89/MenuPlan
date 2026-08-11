@@ -38,4 +38,30 @@ describe("guessShoppingAisle", () => {
     expect(guessShoppingAisle("Garrofón")).toBe("Legumbres");
     expect(guessShoppingAisle("Fabes")).toBe("Legumbres");
   });
+
+  // 2026-08-11 shopping-aisle audit (from real menus):
+  //  - "Romero" fell into Pescado because the fish token "mero" matched it as a
+  //    bare substring (ro-MERO). Now `\bmero\b`-bounded.
+  //  - "Pan de hamburguesa" landed in Carne (the "hamburgues" token) instead of
+  //    Panadería. Buns are now caught by a dedicated bread rule that runs first.
+  //  - "Ajo en polvo" fell through to the Verduras default; garlic/onion powder
+  //    are spices, not fresh produce.
+  it("shelves herbs as Especias even when they contain a fish token substring", () => {
+    expect(guessShoppingAisle("Romero")).toBe("Especias");
+    expect(guessShoppingAisle("Romero fresco")).toBe("Especias");
+    expect(guessShoppingAisle("Mero")).toBe("Pescado"); // the real fish still works
+  });
+
+  it("shelves burger/hot-dog buns and breadcrumbs as Panadería, not Carne", () => {
+    expect(guessShoppingAisle("Pan de hamburguesa")).toBe("Panadería");
+    expect(guessShoppingAisle("Pan de perrito")).toBe("Panadería");
+    expect(guessShoppingAisle("Pan rallado")).toBe("Panadería");
+    expect(guessShoppingAisle("Hamburguesas")).toBe("Carne"); // the meat still works
+  });
+
+  it("shelves powdered garlic/onion as Especias, not fresh Verduras", () => {
+    expect(guessShoppingAisle("Ajo en polvo")).toBe("Especias");
+    expect(guessShoppingAisle("Cebolla en polvo")).toBe("Especias");
+    expect(guessShoppingAisle("Ajo")).toBe("Verduras"); // fresh garlic stays produce
+  });
 });

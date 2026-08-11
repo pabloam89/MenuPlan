@@ -13,9 +13,10 @@ import {
   carbTypeFromText,
   getCarbType,
   splitAchievableFreqs,
+  slotAcceptsRole,
 } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
-import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes } from "./fixedDishes.js";
+import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
@@ -23,6 +24,26 @@ import { buildAdaptationMap } from "./substitutions.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
+
+/**
+ * Recipe ids the user has actively discarded and that are still in force:
+ * `forever` (permanent "No me gusta") plus any `cooldownUntil` entry whose
+ * timestamp hasn't elapsed yet ("Esta semana no" / "Tarda demasiado" = ~7 días,
+ * "Lo comí hace poco" = ~14 días). Fed into filterRecipes as `excludeIds` so a
+ * rejected dish never reappears on generation or single-slot regeneration.
+ *
+ * @param {{ discards?: { forever?: string[], cooldownUntil?: Record<string, number> } }} data
+ * @returns {string[]}
+ */
+export function activeDiscardIds(data) {
+  const now = Date.now();
+  const d = data?.discards ?? {};
+  const ids = new Set(Array.isArray(d.forever) ? d.forever : []);
+  for (const [id, until] of Object.entries(d.cooldownUntil ?? {})) {
+    if (Number(until) > now) ids.add(id);
+  }
+  return Array.from(ids);
+}
 
 const PROTEIN_KEYWORDS = {
   pescado: /pesc|atun|merluza|salmon|bacalao|lenguado|gallo|sardina|boquer|gamba|marisc/,
@@ -175,6 +196,7 @@ ESTRUCTURA DE UN DÍA EN ESPAÑA:
   - Nunca dos platos de cuchara el MISMO DÍA (ni primero+segundo, ni comida+cena). Cuenta como plato de cuchara todo lo de category "sopas_cremas" o "legumbres", y cualquier receta con mainProtein "legumbre".
   - Primero y segundo no comparten proteína (mainProtein) ni base de carbohidrato. La base la da el campo "mainBase" del catálogo (arroz/pasta/patatas/quinoa/cuscus/pan/avena): si ambos platos traen el mismo mainBase, es una repetición y NO vale. Un plato sin mainBase no tiene base de carbohidrato dominante.
   - PESO DE LA COMIDA: primero + segundo NO deben sumar más de 850 kcal entre los dos (usa el campo "kcal" del catálogo). Si el segundo es contundente, el primero debe ser ligero.
+  - COHERENCIA DE CARGA: no combines dos platos contundentes/feculentos el mismo mediodía. Si el primero ya es un plato abundante de arroz/pasta/patata (type "completo", o mainBase arroz/pasta/patatas, p. ej. "Arroz con tomate frito"), el segundo debe ser una proteína ligera a la plancha/horno acompañada de verdura, y NUNCA otro plato con carbohidrato ni pan (nada de hamburguesas con pan, bocadillos, perritos, empanados/rebozados con guarnición de patatas). Un primero feculento pide un segundo sencillo, no otro plato "de relleno".
 - CENA: un solo plato, siempre más ligero que la comida.
   - Válidas: tortillas, revueltos, ensaladas, cremas, pescado a la plancha, verdura, sándwiches.
   - NUNCA legumbres ni guisos pesados de cena.
@@ -382,6 +404,8 @@ export function buildGroupContext(data, group) {
       allergies,
       intolerances,
       dislikes,
+      // Permanent + still-live weekly/cooldown discards, excluded by id.
+      excludeIds: activeDiscardIds(data),
       hasKids,
       maxTime: maxCookTimeFilter(data),
       kitchenTools,
@@ -894,6 +918,21 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 4b. Force user-marked slot exceptions (plato único / cena rápida).
   slotAssignments = enforceSlotTypes(slotAssignments, ctx.slots, poolById);
+
+  // 4c. Break protein clusters created AFTER the fallback. The fallback fills
+  //     the free slots before fixed dishes are forced in (step 4), so a fixed
+  //     e.g. "pollo" cena can land right next to a fallback-picked "pollo"
+  //     comida_2 — a clash neither pass could foresee. Re-pick the NON-fixed,
+  //     NON-forced side of each such pair with a pool alternative that carries a
+  //     different protein. Never touches a fixed/forced slot and never empties a
+  //     slot, so it can only improve (or no-op) the menu.
+  slotAssignments = breakProteinClusters(slotAssignments, {
+    data,
+    ctx,
+    poolById,
+    filteredPool,
+    achievableFreqs,
+  });
 
   // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
   //    User-pinned combos (dish chosen from the catalog) take priority.
@@ -1414,6 +1453,174 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
 }
 
 /**
+ * Break same-protein adjacency created AFTER the deterministic fallback ran.
+ * Fixed dishes (step 4) and forced slots (step 4b) are applied after the
+ * fallback has already filled the free slots, so a forced e.g. "pollo" cena can
+ * land right next to a fallback-picked "pollo" comida_2 — a clash neither pass
+ * could foresee. This walks the chronological main-meal chain (each day's
+ * segundo — or the primero when it's a plato único — then that day's cena) and,
+ * wherever two consecutive mains share a protein GROUP, re-picks the NON-fixed,
+ * NON-forced side with a pool alternative of a different protein, respecting the
+ * slot's role/time/tupper constraints, the day's carb, the comida sibling /
+ * same-day primero protein, and the weekly frequency caps. It never touches a
+ * fixed or user-forced slot and never leaves a slot empty (a swap only happens
+ * when a compatible alternative exists), so it can only improve — or no-op — the
+ * menu.
+ */
+function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPool, achievableFreqs }) {
+  const result = slotAssignments.map((s) => ({ ...s }));
+  const bySlot = new Map(result.map((s) => [s.slotId, s]));
+  const contextBySlot = Object.fromEntries(ctx.slots.map((s) => [s.slotId, s]));
+  // Fixed-dish recipe ids grouped by the meal they were pinned for ("comida" /
+  // "cena"). A slot is only locked when it holds a fixed recipe IN ITS TARGET
+  // MEAL (its sanctioned placement) — a fixed recipe the fallback happened to
+  // also drop into another meal is a fixable extra, not a pinned one.
+  const fixedByMeal = { comida: new Set(), cena: new Set() };
+  for (const fd of data.fixedDishes ?? []) {
+    if (!fd) continue;
+    const ids = new Set();
+    if (fd.recipeId) ids.add(fd.recipeId);
+    if (fd.id) ids.add(fd.id);
+    if (fd.catalogId) ids.add(fd.catalogId);
+    for (const r of catalogMatchesForFixedDish(fd)) ids.add(r.id);
+    const meals = (fd.meals ?? ["Comida", "Cena"]).map((m) => String(m).toLowerCase());
+    for (const meal of meals) {
+      const bucket = meal.startsWith("cena") ? "cena" : "comida";
+      for (const id of ids) fixedByMeal[bucket].add(id);
+    }
+  }
+  const forcedSlotIds = new Set(ctx.slots.filter((s) => s.preferType).map((s) => s.slotId));
+  const isLocked = (slot) => {
+    if (forcedSlotIds.has(slot.slotId)) return true;
+    const mealType = slot.slotId.split("_")[1] === "cena" ? "cena" : "comida";
+    return fixedByMeal[mealType].has(slot.recipeId);
+  };
+  const groupOf = (slotId) => proteinGroupOf(poolById[bySlot.get(slotId)?.recipeId]);
+
+  // Chronological main-meal chain used for adjacency, mirroring rule 3.
+  const chainSlotIds = [];
+  for (const day of DAYS) {
+    const slug = DAY_SLUG[day];
+    if (!slug) continue;
+    const comidaMain = bySlot.has(`${slug}_comida_2`) ? `${slug}_comida_2` : `${slug}_comida_1`;
+    if (bySlot.has(comidaMain)) chainSlotIds.push(comidaMain);
+    if (bySlot.has(`${slug}_cena`)) chainSlotIds.push(`${slug}_cena`);
+  }
+
+  const usedIds = new Set(result.map((s) => s.recipeId));
+
+  // `clashGroup` is the protein group we MUST get away from (the reason for the
+  // swap) — never relaxed. `neighborGroups` are the other adjacency/sibling
+  // groups we'd prefer to avoid too, relaxed only if nothing else fits.
+  const replaceSlot = (slotId, clashGroup, neighborGroups) => {
+    const slot = bySlot.get(slotId);
+    if (!slot || isLocked(slot)) return false;
+    const sctx = contextBySlot[slotId] ?? {};
+    const parts = slotId.split("_");
+    const slug = parts[0];
+
+    // Same-comida sibling / same-day primero protein groups (rules 3b/3c) —
+    // soft, like the chain neighbours.
+    const soft = new Set(neighborGroups);
+    soft.delete(clashGroup);
+    if (parts[1] === "comida") {
+      const sg = groupOf(`${slug}_comida_${parts[2] === "1" ? "2" : "1"}`);
+      if (sg && sg !== clashGroup) soft.add(sg);
+    } else if (parts[1] === "cena") {
+      const pg = groupOf(`${slug}_comida_1`);
+      if (pg && pg !== clashGroup) soft.add(pg);
+    }
+
+    // Carbs already used this day (excluding the slot being replaced).
+    const dayCarbs = new Set();
+    for (const s of result) {
+      if (s.slotId === slotId || !s.slotId.startsWith(`${slug}_`)) continue;
+      const c = getCarbType(poolById[s.recipeId]);
+      if (c) dayCarbs.add(c);
+    }
+
+    // Protein-group usage for the frequency caps, excluding this slot.
+    const groupCounts = {};
+    for (const s of result) {
+      if (s.slotId === slotId) continue;
+      const g = proteinGroupOf(poolById[s.recipeId]);
+      if (g) groupCounts[g] = (groupCounts[g] ?? 0) + 1;
+    }
+
+    // The clash group is never acceptable; everything else is a preference.
+    // `allowReuse` drops the no-repeat rule for the last-resort tier.
+    const baseOk = (r, allowReuse = false) => {
+      if (r.id === slot.recipeId) return false;
+      if (!allowReuse && usedIds.has(r.id)) return false;
+      if (sctx.maxTime && r.time > sctx.maxTime) return false;
+      if (sctx.mode === "tupper" && !r.tupperFriendly) return false;
+      if (!slotAcceptsRole(r, {
+        mealType: sctx.mealType,
+        position: sctx.position,
+        preferType: sctx.preferType,
+      })) return false;
+      return proteinGroupOf(r) !== clashGroup;
+    };
+    const neighborOk = (r) => { const g = proteinGroupOf(r); return !(g && soft.has(g)); };
+    const carbOk = (r) => { const c = getCarbType(r); return !(c && dayCarbs.has(c)); };
+    const freqOk = (r) => {
+      const g = proteinGroupOf(r);
+      if (!g) return true;
+      const cap = achievableFreqs?.[g];
+      return cap == null || (groupCounts[g] ?? 0) < cap;
+    };
+
+    // Prefer the strictest fit, then relax the soft preferences (never the
+    // clash group) rather than leave the collision in place. Last resort: reuse
+    // a dish already on the menu — a repeat is softer and more explainable than
+    // two of the same protein back to back.
+    const candidate =
+      filteredPool.find((r) => baseOk(r) && neighborOk(r) && carbOk(r) && freqOk(r)) ??
+      filteredPool.find((r) => baseOk(r) && neighborOk(r) && freqOk(r)) ??
+      filteredPool.find((r) => baseOk(r) && neighborOk(r) && carbOk(r)) ??
+      filteredPool.find((r) => baseOk(r) && neighborOk(r)) ??
+      filteredPool.find((r) => baseOk(r) && freqOk(r)) ??
+      filteredPool.find((r) => baseOk(r)) ??
+      filteredPool.find((r) => baseOk(r, true) && neighborOk(r)) ??
+      filteredPool.find((r) => baseOk(r, true));
+    if (!candidate) return false;
+
+    usedIds.delete(slot.recipeId);
+    slot.recipeId = candidate.id;
+    usedIds.add(candidate.id);
+    return true;
+  };
+
+  let guard = 0;
+  let changed = true;
+  while (changed && guard++ < 12) {
+    changed = false;
+    for (let i = 1; i < chainSlotIds.length; i++) {
+      const prevId = chainSlotIds[i - 1];
+      const curId = chainSlotIds[i];
+      const gPrev = groupOf(prevId);
+      const gCur = groupOf(curId);
+      if (!gPrev || !gCur || gPrev !== gCur) continue;
+
+      const nextGroup = groupOf(chainSlotIds[i + 1]);
+      const beforePrevGroup = groupOf(chainSlotIds[i - 2]);
+
+      // Prefer re-picking the later slot; fall back to the earlier one. The
+      // shared protein is the clash group (must change); the outer neighbours
+      // are soft preferences.
+      if (
+        replaceSlot(curId, gCur, new Set([nextGroup].filter(Boolean))) ||
+        replaceSlot(prevId, gPrev, new Set([beforePrevGroup].filter(Boolean)))
+      ) {
+        changed = true;
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
  * Pick a replacement recipe for a slot from the rich catalog.
  *
  * @returns {{ frontendRecipe: object, recipeId: string, course: string, reusedDuplicate: boolean } | null}
@@ -1422,7 +1629,7 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
  *   elsewhere in the week — callers should tell the user rather than silently
  *   duplicating a dish (see App.jsx#handleReplaceSlot).
  */
-export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main" }) {
+export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course = "main", forcedRecipe = null, sameCategory = false }) {
   const group = (data?.groups ?? []).find((g) => g.id === groupId);
   if (!group) return null;
 
@@ -1430,6 +1637,18 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const currentSlot = menuPlan?.[groupId]?.[slotKeyStr];
   if (!currentSlot) return null;
 
+  // Context/pool the AI planner would use for this group — needed for garnish
+  // pairing + intolerance-safe scaling in BOTH the auto-pick and the manual
+  // "elegir del catálogo" (forcedRecipe) paths, so compute it up front.
+  const ctx = buildGroupContext(data, group);
+
+  let picked;
+  let reusedDuplicate = false;
+  if (forcedRecipe) {
+    // Explicit user choice from the catalog: skip candidate scoring/diversity
+    // and place it directly (still scaled + garnish-paired below).
+    picked = forcedRecipe;
+  } else {
   const currentRecipeId =
     course === "first" ? currentSlot.firstRecipeId : currentSlot.recipeId;
   const currentBaseId = stripGroupPrefix(currentRecipeId);
@@ -1449,7 +1668,6 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   }
 
   // Same constrained pool the AI planner would see for this group.
-  const ctx = buildGroupContext(data, group);
   const { recipes: pool } = filterRecipes(ctx.filterOpts);
 
   const isWeekend = day === "Sáb" || day === "Dom";
@@ -1469,15 +1687,23 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // dinner with something that doesn't match what the user actually asked for.
   const isCenaRapida = data.slotType?.[`${day}|${meal}`] === "rapida";
 
+  // "Parecido" (misma categoría): restrict candidates to the category of the
+  // dish being replaced, e.g. another salad for a salad. Null = any category.
+  const restrictCategory = sameCategory ? currentCatalog?.category ?? null : null;
+
   const roleMatch = (r) => r.mealRole?.some((role) => targetRoles.has(role));
   const structuralFit = (r) =>
-    roleMatch(r) && r.time <= slotMaxTime && (isCenaRapida || r.category !== "cenas_rapidas");
-  const { candidates: selected, reusedDuplicate } = selectReplacementCandidates(
+    roleMatch(r) &&
+    r.time <= slotMaxTime &&
+    (isCenaRapida || r.category !== "cenas_rapidas") &&
+    (!restrictCategory || r.category === restrictCategory);
+  const { candidates: selected, reusedDuplicate: rdup } = selectReplacementCandidates(
     pool,
     structuralFit,
     usedBaseIds,
     currentBaseId,
   );
+  reusedDuplicate = rdup;
   let candidates = selected;
   if (candidates.length === 0) return null;
 
@@ -1546,7 +1772,8 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   });
   if (diverse.length > 0) candidates = diverse;
 
-  const picked = candidates[Math.floor(Math.random() * candidates.length)];
+  picked = candidates[Math.floor(Math.random() * candidates.length)];
+  }
 
   // Match the generator's prefixing: only prefix when several groups are active.
   const activeGroups = (data.groups ?? []).filter(
@@ -1604,6 +1831,83 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   }
 
   return { frontendRecipe: fr, recipeId: fr.id, course, reusedDuplicate };
+}
+
+/**
+ * Regenerate ONLY the garnish of a dish, keeping the same main recipe. Used by
+ * the menu's "Regenerar → Cambiar guarnición" action. Returns a frontend recipe
+ * whose id is unchanged (it encodes only the main dish) but with a fresh garnish
+ * merged in, or null when the dish can't be regarnished (no eligible alternative
+ * side, or the main isn't in the catalog).
+ *
+ * @returns {{ frontendRecipe: object, recipeId: string, garnishId: string, course: string } | null}
+ */
+export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, course = "main", currentGarnishId = null }) {
+  const group = (data?.groups ?? []).find((g) => g.id === groupId);
+  if (!group) return null;
+
+  const slotKeyStr = `${day}-${meal}`;
+  const currentSlot = menuPlan?.[groupId]?.[slotKeyStr];
+  if (!currentSlot) return null;
+
+  const currentRecipeId = course === "first" ? currentSlot.firstRecipeId : currentSlot.recipeId;
+  const baseId = stripGroupPrefix(currentRecipeId);
+  const mainCatalog = baseId ? recipeCatalogById[baseId] : null;
+  if (!mainCatalog) return null;
+
+  const ctx = buildGroupContext(data, group);
+  const eaters = currentSlot.eaters ?? 2;
+
+  const daySlug = DAY_SLUG[day];
+  const targetMealType = String(meal).toLowerCase() === "cena" ? "cena" : "comida";
+  const targetSlotId =
+    targetMealType === "cena"
+      ? `${daySlug}_cena`
+      : course === "first"
+        ? `${daySlug}_comida_1`
+        : `${daySlug}_comida_2`;
+
+  // Reconstruct this day's assignments so garnish carb-dedup stays correct.
+  const dayAssignments = [];
+  for (const m of getMeals(data)) {
+    const s = menuPlan[groupId]?.[`${day}-${m}`];
+    if (!s?.recipeId) continue;
+    const mt = String(m).toLowerCase() === "cena" ? "cena" : "comida";
+    if (mt === "comida") {
+      if (s.firstRecipeId) {
+        dayAssignments.push({ slotId: `${daySlug}_comida_1`, recipeId: stripGroupPrefix(s.firstRecipeId) });
+      }
+      dayAssignments.push({ slotId: `${daySlug}_comida_2`, recipeId: stripGroupPrefix(s.recipeId) });
+    } else {
+      dayAssignments.push({ slotId: `${daySlug}_cena`, recipeId: stripGroupPrefix(s.recipeId) });
+    }
+  }
+
+  // Drop the current garnish from the pool so the pairing is guaranteed to
+  // change it — unless it's the only eligible option (then leave the pool as-is
+  // and bail below when the pick comes back identical).
+  let safeGarnishes = filterGarnishes(ctx.filterOpts);
+  if (currentGarnishId) {
+    const without = safeGarnishes.filter((g) => g.id !== currentGarnishId);
+    if (without.length > 0) safeGarnishes = without;
+  }
+
+  const paired = pairGarnishes(dayAssignments, recipeCatalogById, {}, safeGarnishes);
+  const newGarnishId = paired.find((a) => a.slotId === targetSlotId)?.garnishId;
+  if (!newGarnishId || newGarnishId === currentGarnishId) return null;
+  const garnish = guarnicionesData.find((g) => g.id === newGarnishId);
+  if (!garnish) return null;
+
+  const activeGroups = (data.groups ?? []).filter(
+    (g) => membersOfGroup(g, data.members).length > 0,
+  );
+  const prefix = activeGroups.length > 1 ? `${groupId}__` : "";
+  const fr = catalogToFrontendRecipe(mainCatalog, eaters, ctx.filterOpts.intolerances ?? []);
+  fr.id = prefix + mainCatalog.id;
+  fr.baseRecipeId = mainCatalog.id;
+  applyGarnishToRecipe(fr, garnish, eaters, ctx.filterOpts.intolerances ?? []);
+
+  return { frontendRecipe: fr, recipeId: fr.id, garnishId: newGarnishId, course };
 }
 
 // ── Recipe steps (on-demand, for catalog recipes without steps) ──

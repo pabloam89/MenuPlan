@@ -26,10 +26,11 @@ import {
   SlidersHorizontal,
   Settings,
   Refrigerator,
+  Menu as MenuIcon,
 } from "lucide-react";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
-import { BottomNav, bottomNavSpacer, ToggleSwitch } from "../components/ui.jsx";
+import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, ToggleSwitch } from "../components/ui.jsx";
 import { PantryPrefsWizard } from "../components/ModeSheets.jsx";
 import { PantryCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import {
@@ -717,6 +718,8 @@ export function PantryScreen({
   const expertMode = Boolean(data?.expertMode);
   const canEditPantryPrefs = Boolean(setData) && expertMode && !embedded;
   const [showPantryPrefs, setShowPantryPrefs] = useState(false);
+  // Header options drawer (burger → sliding sidebar), mirroring the Menu screen.
+  const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   useEffect(() => {
     if (canEditPantryPrefs && !data?.pantryPrefsSeen) setShowPantryPrefs(true);
   }, [canEditPantryPrefs, data?.pantryPrefsSeen]);
@@ -863,6 +866,23 @@ export function PantryScreen({
     else setLocalPantryItemQty(id, qty, unit);
   };
 
+  // Header options — same actions as before, now behind a burger → sliding
+  // sidebar (mirrors the Menú screen). Order: subir ticket, gastos, ajustes.
+  const headerActions = [
+    canUploadReceipt && {
+      key: "receipt", label: "Subir ticket", Icon: Receipt, coach: "pantry-receipt",
+      action: () => setShowReceiptFlow(true), tint: "#fdf0e0", ink: "#d97706",
+    },
+    onOpenAnalytics && {
+      key: "analytics", label: "Gastos y tickets", Icon: BarChart3, coach: "pantry-analytics",
+      action: onOpenAnalytics, tint: "#e7effe", ink: "#2563eb",
+    },
+    canEditPantryPrefs && {
+      key: "prefs", label: "Ajustes de despensa", Icon: Settings, coach: "pantry-settings",
+      action: () => setShowPantryPrefs(true), tint: "#e6f2ea", ink: "#2d5a3d",
+    },
+  ].filter(Boolean);
+
   const header = (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
@@ -885,24 +905,19 @@ export function PantryScreen({
           <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
         )}
       </div>
-      {(canUploadReceipt || onOpenAnalytics || canEditPantryPrefs) && (
-        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-          {canUploadReceipt && (
-            <button type="button" data-coach="pantry-receipt" onClick={() => setShowReceiptFlow(true)} style={pantryIconBtn} aria-label="Subir ticket" title="Subir ticket">
-              <Receipt size={17} color={GREEN} strokeWidth={2.2} />
-            </button>
-          )}
-          {onOpenAnalytics && (
-            <button type="button" data-coach="pantry-analytics" onClick={onOpenAnalytics} style={pantryIconBtn} aria-label="Gastos y tickets" title="Gastos y tickets">
-              <BarChart3 size={17} color={GREEN} strokeWidth={2.2} />
-            </button>
-          )}
-          {canEditPantryPrefs && (
-            <button type="button" data-coach="pantry-settings" onClick={() => setShowPantryPrefs(true)} style={pantryIconBtn} aria-label="Ajustes de despensa" title="Ajustes de despensa">
-              <Settings size={17} color={GREEN} strokeWidth={2.2} />
-            </button>
-          )}
-        </div>
+      {headerActions.length > 0 && (
+        <button
+          type="button"
+          data-coach="pantry-options"
+          onClick={() => setHeaderMenuOpen(true)}
+          aria-label="Opciones de En casa"
+          aria-haspopup="menu"
+          aria-expanded={headerMenuOpen}
+          title="Opciones"
+          style={{ ...pantryIconBtn, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
+        >
+          <MenuIcon size={18} color={GREEN} strokeWidth={2.4} />
+        </button>
       )}
     </div>
   );
@@ -1389,6 +1404,121 @@ export function PantryScreen({
         />
       )}
       {showIconCoach && <PantryCoachTour onClose={() => setShowIconCoach(false)} />}
+
+      {/* Burger → sliding options sidebar, styled like the Menú drawer. */}
+      {headerMenuOpen && (
+        <div
+          onClick={() => setHeaderMenuOpen(false)}
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: bottomNavSpacer(),
+            zIndex: 1000,
+            background: "rgba(15,30,20,.42)",
+            backdropFilter: "blur(2px)",
+            WebkitBackdropFilter: "blur(2px)",
+            display: "flex",
+            justifyContent: "center",
+            animation: "pantryDrawerFade .2s ease both",
+          }}
+        >
+          <style>{`
+            @keyframes pantrySidebarIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+            @keyframes pantrySidebarItemIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+            @keyframes pantryDrawerFade { from { opacity: 0; } to { opacity: 1; } }
+            .pantry-sidebar-item {
+              display: flex; align-items: center; gap: 13px; width: 100%;
+              padding: 13px 12px; border: none; background: transparent; cursor: pointer;
+              font-family: inherit; font-size: 14.5px; font-weight: 800; color: #1f3a29;
+              text-align: left; border-radius: 12px;
+              animation: pantrySidebarItemIn .3s cubic-bezier(.4,0,.2,1) both;
+              transition: background .15s ease;
+            }
+            .pantry-sidebar-item:hover { background: #f3f8f4; }
+            .pantry-sidebar-item:active { background: #eef4ef; }
+          `}</style>
+          <div style={{ position: "relative", width: "100%", maxWidth: APP_SHELL_MAX_WIDTH }}>
+            <aside
+              role="menu"
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                position: "absolute",
+                top: 0,
+                right: 0,
+                height: "100%",
+                width: 300,
+                maxWidth: "82%",
+                background: "#fff",
+                boxShadow: "-18px 0 50px rgba(20,47,29,.22)",
+                display: "flex",
+                flexDirection: "column",
+                animation: "pantrySidebarIn .3s cubic-bezier(.4,0,.2,1) both",
+              }}
+            >
+              <div style={{ background: "#e9f4ed", padding: "18px 16px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+                  <span
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: 11,
+                      background: "#c3e6d1",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Refrigerator size={18} color="#1f4a30" strokeWidth={2.4} />
+                  </span>
+                  <h2 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.3px" }}>
+                    En casa
+                  </h2>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHeaderMenuOpen(false)}
+                  aria-label="Cerrar"
+                  style={{ ...pantryIconBtn, width: 34, height: 34, borderRadius: 999, flexShrink: 0 }}
+                >
+                  <X size={17} strokeWidth={2.5} color={INK} />
+                </button>
+              </div>
+              <div style={{ padding: "8px 10px", overflowY: "auto" }}>
+                {headerActions.map((a, i, arr) => (
+                  <div key={a.key}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      data-coach={a.coach}
+                      className="pantry-sidebar-item"
+                      style={{ animationDelay: `${i * 40}ms` }}
+                      onClick={() => { a.action?.(); setHeaderMenuOpen(false); }}
+                    >
+                      <span
+                        style={{
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          width: 38, height: 38, borderRadius: 11, flexShrink: 0,
+                          background: a.tint, color: a.ink,
+                        }}
+                      >
+                        <a.Icon size={19} strokeWidth={2.5} />
+                      </span>
+                      <span style={{ flex: 1 }}>{a.label}</span>
+                      <ChevronRight size={16} strokeWidth={2.4} color="#c2d3c8" />
+                    </button>
+                    {i < arr.length - 1 && (
+                      <div style={{ height: 1, background: "rgba(45,90,61,.16)", margin: "0 12px" }} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            </aside>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

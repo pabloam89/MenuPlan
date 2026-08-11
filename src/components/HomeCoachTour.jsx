@@ -11,6 +11,7 @@ import {
   Heart,
   ChefHat,
   SlidersHorizontal,
+  Menu as MenuIcon,
   ListFilter,
   UtensilsCrossed,
   ShoppingCart,
@@ -20,7 +21,6 @@ import {
   Receipt,
   Check,
   Trash2,
-  Settings,
   CircleHelp,
   X,
 } from "lucide-react";
@@ -209,9 +209,9 @@ export const SHOPPING_COACH_STEPS = [
   },
 ];
 
-// En casa (Pantry) screen: the input CTA + the header action icons. Some icons
-// are conditional (receipt needs a signed-in user, settings only in advanced
-// mode), so PantryCoachTour filters to the ones actually on screen.
+// En casa (Pantry) screen: the input CTA + the header options button. The
+// per-action icons (subir ticket / gastos / ajustes) now live inside the burger
+// sidebar, so the tour points at the burger and describes what's inside.
 export const PANTRY_COACH_STEPS = [
   {
     selector: '[data-coach="pantry-add"]',
@@ -221,24 +221,10 @@ export const PANTRY_COACH_STEPS = [
     place: "below",
   },
   {
-    selector: '[data-coach="pantry-receipt"]',
-    Icon: Receipt,
-    title: "Subir ticket",
-    desc: "Sube una foto del ticket de la compra y llenamos tu despensa por ti, con sus precios.",
-    place: "below",
-  },
-  {
-    selector: '[data-coach="pantry-analytics"]',
-    Icon: BarChart3,
-    title: "Gastos y tickets",
-    desc: "Consulta cuánto gastas, en qué y el histórico de todos tus tickets.",
-    place: "below",
-  },
-  {
-    selector: '[data-coach="pantry-settings"]',
-    Icon: Settings,
-    title: "Ajustes de despensa",
-    desc: "Decide cómo influye tu despensa en el menú: cuándo se descuenta lo que usas y cómo se reparte entre semanas.",
+    selector: '[data-coach="pantry-options"]',
+    Icon: MenuIcon,
+    title: "Opciones de En casa",
+    desc: "Aquí dentro tienes: subir el ticket de la compra, ver tus gastos y el histórico de tickets, y ajustar cómo influye tu despensa en el menú.",
     place: "below",
   },
 ];

@@ -160,7 +160,7 @@
   },
   {
     "id": "pasta_arroces_003",
-    "name": "Arroz blanco con tomate",
+    "name": "Arroz con tomate frito",
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "arroz",
@@ -1025,9 +1025,9 @@
   },
   {
     "id": "pasta_arroces_014",
-    "name": "Pasta con champiñones",
+    "name": "Pasta con salmón y champiñones",
     "category": "pasta_arroces",
-    "mainProtein": "none",
+    "mainProtein": "pescado_azul",
     "mainBase": "pasta",
     "mealRole": [
       "primero",
@@ -1036,16 +1036,17 @@
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
-    "kcal": 398,
-    "protein_g": 12,
-    "carbs_g": 56,
-    "fat_g": 14,
+    "kcal": 472,
+    "protein_g": 24,
+    "carbs_g": 52,
+    "fat_g": 18,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "lactosa"
+      "lactosa",
+      "pescado"
     ],
     "season": "all",
     "ingredients": [
@@ -1055,19 +1056,29 @@
         "unit": "g"
       },
       {
-        "name": "Champiñones",
+        "name": "Salmón",
         "amount": 200,
         "unit": "g"
       },
       {
-        "name": "Ajo",
-        "amount": 10,
+        "name": "Champiñones",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
         "unit": "g"
       },
       {
         "name": "Nata",
-        "amount": 50,
+        "amount": 80,
         "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
       },
       {
         "name": "Aceite de oliva",
@@ -1082,17 +1093,17 @@
     ],
     "steps": [
       "Cocer la pasta al dente",
-      "Saltear champiñones laminados con ajo",
-      "Añadir nata y dejar espesar 3 min",
-      "Mezclar con la pasta y perejil"
+      "Pochar la cebolla y el ajo, y saltear los champiñones laminados",
+      "Añadir el salmón en dados y la nata, y cocer a fuego suave hasta ligar la salsa",
+      "Mezclar con la pasta y terminar con perejil picado"
     ],
-    "description": "Macarrones con champiñones salteados en salsa de nata ligera",
+    "description": "Pasta con salmón, champiñones y cebolla en una salsa suave y sedosa",
     "methods": [
       {
         "appliance": "thermomix",
         "time": 20,
         "difficulty": "facil",
-        "prepSummary": "Sofríe el ajo y los champiñones en el vaso. Añade la pasta, el agua y la sal, cocinando el tiempo indicado en el paquete. Finalmente, incorpora la nata y el perejil, mezclando a baja velocidad hasta integrar la salsa."
+        "prepSummary": "Sofríe la cebolla, el ajo y los champiñones en el vaso. Añade la pasta, el agua y la sal, cocinando el tiempo indicado en el paquete. Incorpora el salmón en dados y la nata, y mezcla a baja velocidad hasta integrar una salsa suave y sedosa. Termina con perejil."
       }
     ]
   },
@@ -1824,7 +1835,7 @@
   },
   {
     "id": "pasta_arroces_024",
-    "name": "Ensalada de pasta",
+    "name": "Ensalada de pasta mediterránea",
     "category": "pasta_arroces",
     "mainProtein": "none",
     "mainBase": "pasta",
@@ -1835,15 +1846,17 @@
     "type": "completo",
     "time": 15,
     "difficulty": "facil",
-    "kcal": 382,
-    "protein_g": 12,
-    "carbs_g": 52,
-    "fat_g": 14,
+    "kcal": 408,
+    "protein_g": 14,
+    "carbs_g": 46,
+    "fat_g": 18,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
       "gluten",
+      "lactosa",
+      "frutos_secos",
       "sulfitos"
     ],
     "season": "verano",
@@ -1855,7 +1868,17 @@
       },
       {
         "name": "Tomate cherry",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Mozzarella fresca",
         "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Rúcula",
+        "amount": 40,
         "unit": "g"
       },
       {
@@ -1864,33 +1887,23 @@
         "unit": "g"
       },
       {
-        "name": "Maíz dulce",
-        "amount": 50,
-        "unit": "g"
-      },
-      {
-        "name": "Pepino",
-        "amount": 60,
+        "name": "Pesto",
+        "amount": 30,
         "unit": "g"
       },
       {
         "name": "Aceite de oliva",
-        "amount": 20,
-        "unit": "ml"
-      },
-      {
-        "name": "Vinagre",
-        "amount": 10,
+        "amount": 15,
         "unit": "ml"
       }
     ],
     "steps": [
       "Cocer la pasta al dente y enfriar bajo agua",
-      "Cortar tomates cherry, pepino y aceitunas",
-      "Mezclar todo con maíz",
-      "Aliñar con aceite y vinagre"
+      "Cortar los tomates cherry y la mozzarella en dados",
+      "Mezclar con la rúcula, las aceitunas y el pesto",
+      "Terminar con un hilo de aceite de oliva"
     ],
-    "description": "Ensalada fría de pasta con tomate, aceitunas y maíz",
+    "description": "Ensalada fría de pasta con cherry, mozzarella, rúcula, aceitunas y pesto",
     "methods": []
   },
   {

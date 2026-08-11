@@ -1698,42 +1698,41 @@
   },
   {
     "id": "pescados_023",
-    "name": "Boquerones en vinagre",
+    "name": "Caballa a la plancha con limón",
     "category": "pescados",
     "mainProtein": "pescado_azul",
     "mealRole": [
-      "primero",
+      "segundo",
       "cena"
     ],
     "type": "principal",
-    "time": 20,
+    "time": 15,
     "difficulty": "facil",
-    "kcal": 218,
-    "protein_g": 20,
-    "carbs_g": 2,
-    "fat_g": 14,
+    "kcal": 246,
+    "protein_g": 24,
+    "carbs_g": 1,
+    "fat_g": 16,
     "baseServings": 2,
-    "kidFriendly": false,
+    "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "pescado",
-      "sulfitos"
+      "pescado"
     ],
-    "season": "verano",
+    "season": "all",
     "ingredients": [
       {
-        "name": "Boquerones frescos",
-        "amount": 300,
+        "name": "Caballa",
+        "amount": 350,
         "unit": "g"
       },
       {
-        "name": "Vinagre",
-        "amount": 150,
-        "unit": "ml"
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
       },
       {
         "name": "Ajo",
-        "amount": 10,
+        "amount": 8,
         "unit": "g"
       },
       {
@@ -1743,23 +1742,23 @@
       },
       {
         "name": "Aceite de oliva",
-        "amount": 25,
+        "amount": 20,
         "unit": "ml"
       }
     ],
     "steps": [
-      "Limpiar y abrir los boquerones en mariposa",
-      "Cubrir con vinagre y dejar marinar 4 h en nevera",
-      "Escurrir bien y aliñar con ajo, perejil y aceite",
-      "Servir fríos"
+      "Limpiar la caballa y abrirla en lomos",
+      "Marcar a la plancha bien caliente por ambos lados",
+      "Majar el ajo y el perejil con el aceite",
+      "Servir con el aliño y unas gotas de limón"
     ],
-    "description": "Boquerones marinados en vinagre con ajo y perejil",
+    "description": "Caballa a la plancha con un aliño de ajo, perejil y limón",
     "methods": [
       {
-        "appliance": "thermomix",
-        "time": 20,
+        "appliance": "airfryer",
+        "time": 15,
         "difficulty": "facil",
-        "prepSummary": "Utiliza la Thermomix para picar finamente el ajo y el perejil (unos segundos a velocidad 7). Luego, añade el aceite de oliva y emulsiona a velocidad 4-5 para crear un aliño homogéneo y aromático para los boquerones ya limpios y marinados."
+        "prepSummary": "Coloca los lomos de caballa en la freidora de aire a 190°C durante 8-10 minutos hasta que la piel quede dorada. Sirve con el aliño de ajo, perejil, aceite y limón."
       }
     ]
   },

@@ -109,6 +109,57 @@ describe("pairGarnishes", () => {
     expect(result[0].garnishId).toBe("heavy");
   });
 
+  it("a fried garnish (patatas fritas) never pairs with an egg/veg/pasta main — only meat or fish", () => {
+    const fries = garnish({ id: "fries", shortName: "patatas fritas", healthFlags: ["frito"] });
+    const veg = garnish({ id: "veg", shortName: "brócoli salteado" });
+    const eggMain = principal({ id: "egg", category: "huevos", name: "Tortilla francesa" });
+    const result = pairGarnishes(
+      [{ slotId: "lun_cena", recipeId: "egg" }],
+      { egg: eggMain },
+      {},
+      [fries, veg],
+    );
+    expect(result[0].garnishId).toBe("veg");
+  });
+
+  it("a fried garnish pairs with a meat/fish main", () => {
+    const fries = garnish({ id: "fries", shortName: "patatas fritas", healthFlags: ["frito"] });
+    const fishMain = principal({ id: "fish", category: "pescados", name: "Merluza rebozada" });
+    const result = pairGarnishes(
+      [{ slotId: "lun_cena", recipeId: "fish" }],
+      { fish: fishMain },
+      {},
+      [fries],
+    );
+    expect(result[0].garnishId).toBe("fries");
+  });
+
+  it("a preferMeal:cena garnish is skipped on a comida when another side exists, but allowed on cena", () => {
+    const fries = garnish({
+      id: "fries",
+      shortName: "patatas fritas",
+      healthFlags: ["frito"],
+      preferMeal: "cena",
+    });
+    const rice = garnish({ id: "rice", shortName: "arroz blanco" });
+    const meat = principal({ id: "meat", category: "carnes", name: "Filete a la plancha", kcal: 300 });
+    const pool = { meat, primero: { id: "primero", type: "principal", kcal: 100, ingredients: [] } };
+
+    const comida = pairGarnishes(
+      [
+        { slotId: "lun_comida_1", recipeId: "primero" },
+        { slotId: "lun_comida_2", recipeId: "meat" },
+      ],
+      pool,
+      {},
+      [fries, rice],
+    );
+    expect(comida.find((s) => s.slotId === "lun_comida_2").garnishId).toBe("rice");
+
+    const cena = pairGarnishes([{ slotId: "lun_cena", recipeId: "meat" }], pool, {}, [fries]);
+    expect(cena[0].garnishId).toBe("fries");
+  });
+
   it("a user-pinned garnish wins even when excluded from the safe list (explicit choice overrides automatic filtering)", () => {
     // guarniciones_003 "Puré de patatas" carries a real declared "lactosa"
     // allergen in the bundled catalog — simulating a pin made before this

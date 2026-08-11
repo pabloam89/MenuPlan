@@ -31,3 +31,7 @@ dist-ssr
 dish-gallery/node_modules/
 dish-gallery/dist/
 dish-gallery/.vercel/
+# Local-only review sheets, synthetic receipts and approval scratch (not app code)
+dish-gallery/review/
+approvals-live.json
+/Tickets Compra Sintéticos/

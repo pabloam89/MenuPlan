@@ -106,6 +106,14 @@ export function guessIngredientCategory(name) {
 }
 
 const SHOPPING_AISLE_HINTS = [
+  // Breads/buns first: "pan de hamburguesa" / "pan de perrito" contain
+  // "hamburgues"/"perrito" fragments that the Carne group below would grab, and
+  // "pan rallado"/"panko" are breadcrumbs — all belong in Panadería. Runs before
+  // every other group so those specific breads never get mis-shelved.
+  [
+    /pan de hamburguesa|pan de perrito|pan de hot ?dog|pan de molde|pan de pita|pan de leche|pan rallado|panko|panecillo|bollo de pan|chapata|baguette/,
+    "Panadería",
+  ],
   [
     // `\b`-bounded for "pera"/"mora"/"pina": all three are also short
     // mid-word fragments of very common, very much NOT fruit ingredients —
@@ -119,7 +127,7 @@ const SHOPPING_AISLE_HINTS = [
   // Pescado antes que Carne: "lomos de salmón" contiene "lomo" (Carne) y
   // "salmón" (Pescado); la primera coincidencia gana, así que el pez va primero.
   [
-    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina|rodaja|ventresca|cogote|suprema|pescadilla|gallo|panga|perca|tilapia|mero|congrio|raya|chipiron|chopito|vieira|zamburi|carabinero|cigala|necora|centoll|bogavante|cangrejo|buey de mar|surimi|jurel|salmonete|cazon|abadejo|halibut|corvina|palometa|pez espada|marisco/,
+    /merluza|salmon|bacalao|atun|gamba|langostino|sardina|anchoa|calamar|sepia|mejillon|pescado|rape|lubina|rodaballo|dorada|boqueron|besugo|lenguado|emperador|caballa|trucha|almeja|pulpo|rosada|bonito|berberecho|chirla|navaja|coquina|rodaja|ventresca|cogote|suprema|pescadilla|gallo|panga|perca|tilapia|\bmero\b|congrio|raya|chipiron|chopito|vieira|zamburi|carabinero|cigala|necora|centoll|bogavante|cangrejo|buey de mar|surimi|jurel|salmonete|cazon|abadejo|halibut|corvina|palometa|pez espada|marisco/,
     "Pescado",
   ],
   [
@@ -142,7 +150,7 @@ const SHOPPING_AISLE_HINTS = [
   [/huevo/, "Huevos"],
   [/pan |harina|avena|cereales|tostada|boller|pan rallado|panko/, "Panadería"],
   [
-    /guindilla|perejil|eneldo|albahaca|romero|tomillo|oregano|cilantro|curry|curcuma|pimenton|comino|laurel|menta|hierbabuena|estrag|salvia|nuez moscada|canela|jengibre|anis|hinojo|especias|chile|pimienta|azafran|vainilla|guindillas|alcaparra|cebollino|mejorana|estragón/,
+    /ajo en polvo|cebolla en polvo|ajo granulado|guindilla|perejil|eneldo|albahaca|romero|tomillo|oregano|cilantro|curry|curcuma|pimenton|comino|laurel|menta|hierbabuena|estrag|salvia|nuez moscada|canela|jengibre|anis|hinojo|especias|chile|pimienta|azafran|vainilla|guindillas|alcaparra|cebollino|mejorana|estragón/,
     "Especias",
   ],
   [

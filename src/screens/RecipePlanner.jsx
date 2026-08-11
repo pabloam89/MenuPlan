@@ -20,6 +20,7 @@ import {
   Bean,
   Salad,
   Soup,
+  Zap,
   UtensilsCrossed,
   Moon,
   Flame,
@@ -1364,6 +1365,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
           ingredients: editRecipe.ingredients ?? [],
           category: editRecipe.category ?? "",
           mealRole: editRecipe.mealRole ?? [],
+          // Proxy "cena rápida" = quick + easy dinner. Persisted as category
+          // "cenas_rapidas" so it joins that pool (and the deck picker).
+          quickDinner: editRecipe.category === "cenas_rapidas",
           mainProtein: editRecipe.mainProtein ?? "",
           usageTags: editRecipe.usageTags ?? [],
           baseDishId: editRecipe.baseDishId ?? null,
@@ -1381,6 +1385,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
     ingredients: [],
     category: "",
     mealRole: [],
+    quickDinner: false,
     mainProtein: "",
     usageTags: [], // Eje B: proposed by AI at review, editable there (multi)
     baseDishId: null, // Eje A: this is another recipe for an existing dish
@@ -1457,6 +1462,17 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
         mealRole: [...f.mealRole.filter((r) => !COMIDA_POSITIONS.includes(r)), role],
       }));
     }
+  };
+
+  // "Cena rápida" is a proxy sub-type of dinner (quick + easy). Turning it on
+  // implies "Cena", so we tick that role too; it persists as category
+  // "cenas_rapidas" on save.
+  const toggleQuickDinner = () => {
+    setForm((f) => {
+      const next = !f.quickDinner;
+      const mealRole = next && !f.mealRole.includes("cena") ? [...f.mealRole, "cena"] : f.mealRole;
+      return { ...f, quickDinner: next, mealRole };
+    });
   };
 
   // Single-select ("¿Cómo se sirve?" segmented control on the cuándo se
@@ -1631,9 +1647,19 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
       id: editRecipe?.id ?? draft.id,
       usageTags,
       type,
-      category: isGarnishOnly ? "guarniciones" : form.category || draft.category,
+      // Cena rápida proxy: pin it to the cenas_rapidas pool and make sure it
+      // carries the "cena" role so it's eligible for dinner slots + the picker.
+      category: isGarnishOnly
+        ? "guarniciones"
+        : form.quickDinner
+          ? "cenas_rapidas"
+          : form.category || draft.category,
       mainProtein: isGarnishOnly ? "none" : form.mainProtein || draft.mainProtein,
-      mealRole: isGarnishOnly ? ["guarnicion"] : draft.mealRole,
+      mealRole: isGarnishOnly
+        ? ["guarnicion"]
+        : form.quickDinner
+          ? Array.from(new Set([...(draft.mealRole ?? []), "cena"]))
+          : draft.mealRole,
       allergens: Array.from(confirmedAllergens),
       requiredAppliances: form.requiredAppliances.length ? form.requiredAppliances : undefined,
       baseDishId: form.baseDishId || undefined,
@@ -1846,14 +1872,17 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
             <div style={{ height: 1, background: "#e3ebe6" }} />
 
             <div>
-              <OptionSection icon={Clock} title="¿Cuándo se sirve?">
+              <OptionSection
+                icon={Clock}
+                title="¿Cuándo se sirve?"
+                subtitle="La cena rápida es una cena de poca elaboración y tiempo."
+              >
                 <OptionRow
                   icon={Soup}
                   color="#2d8659"
                   label="Comida"
                   checked={comidaChecked}
                   onToggle={toggleComida}
-                  last
                 />
                 <OptionRow
                   icon={MEAL_ROLE_ICONS.cena}
@@ -1861,6 +1890,13 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
                   label="Cena"
                   checked={form.mealRole.includes("cena")}
                   onToggle={() => toggleMealRole("cena")}
+                />
+                <OptionRow
+                  icon={Zap}
+                  color="#d56b9a"
+                  label="Cena rápida"
+                  checked={form.quickDinner}
+                  onToggle={toggleQuickDinner}
                   last
                 />
               </OptionSection>

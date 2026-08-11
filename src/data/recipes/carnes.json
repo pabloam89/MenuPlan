@@ -2911,5 +2911,78 @@
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca los flamenquines en una bandeja con papel de horno, rocíalos con un poco de aceite y hornea durante 25-30 minutos, volteándolos a mitad de cocción, hasta que estén dorados."
       }
     ]
+  },
+  {
+    "id": "carnes_036",
+    "name": "Nuggets de pollo caseros",
+    "category": "carnes",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "segundo",
+      "cena"
+    ],
+    "type": "principal",
+    "time": 25,
+    "difficulty": "facil",
+    "kcal": 420,
+    "protein_g": 32,
+    "carbs_g": 22,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar la pechuga en trozos del tamaño de un bocado",
+      "Salpimentar y pasar por harina, huevo batido y pan rallado",
+      "Freír en aceite caliente hasta que estén dorados",
+      "Escurrir sobre papel absorbente y servir"
+    ],
+    "description": "Trozos de pechuga de pollo empanados y fritos, crujientes y jugosos",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rocía los nuggets empanados con un poco de aceite y cocina durante 12-15 minutos, dándoles la vuelta a mitad de cocción, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Coloca los nuggets empanados en una bandeja con papel de horno, rocía con un poco de aceite y hornea 18-22 minutos, volteándolos una vez, hasta que estén dorados."
+      }
+    ]
   }
 ]

@@ -6838,9 +6838,15 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     setData((d) => {
       const key = `${day}|Cena`;
       const next = { ...(d.slotType ?? {}) };
-      if (next[key]) delete next[key];
-      else next[key] = "rapida";
-      return { ...d, slotType: next };
+      const manual = { ...(d.manualSlotType ?? {}) };
+      if (next[key]) {
+        delete next[key];
+        // Clearing here also drops any manual override for this slot.
+        delete manual[key];
+      } else {
+        next[key] = "rapida";
+      }
+      return { ...d, slotType: next, manualSlotType: manual };
     });
   };
 

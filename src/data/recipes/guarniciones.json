@@ -99,8 +99,8 @@
   },
   {
     "id": "guarniciones_004",
-    "name": "Patatas salteadas con ajo",
-    "shortName": "patatas al ajillo",
+    "name": "Patatas salteadas",
+    "shortName": "patatas salteadas",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -132,8 +132,8 @@
   },
   {
     "id": "guarniciones_005",
-    "name": "Pasta sencilla al aceite y ajo",
-    "shortName": "pasta al ajillo",
+    "name": "Pasta al aceite de oliva",
+    "shortName": "pasta al aceite",
     "category": "guarniciones",
     "mainProtein": "none",
     "mealRole": ["guarnicion"],
@@ -523,36 +523,6 @@
     "description": "Pimientos del piquillo en conserva salteados con ajo"
   },
   {
-    "id": "guarniciones_017",
-    "name": "Pan de barra con aceite",
-    "shortName": "pan",
-    "category": "guarniciones",
-    "mainProtein": "none",
-    "mealRole": ["guarnicion"],
-    "type": "guarnicion",
-    "time": 5,
-    "difficulty": "facil",
-    "kcal": 220,
-    "protein_g": 6,
-    "carbs_g": 36,
-    "fat_g": 7,
-    "baseServings": 2,
-    "kidFriendly": true,
-    "tupperFriendly": false,
-    "allergens": ["gluten"],
-    "season": "all",
-    "ingredients": [
-      { "name": "Pan de barra", "amount": 80, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" }
-    ],
-    "steps": [
-      "Cortar el pan en rebanadas",
-      "Aliñar con aceite de oliva virgen extra",
-      "Servir a temperatura ambiente"
-    ],
-    "description": "Pan de barra cortado aliñado con aceite de oliva virgen extra"
-  },
-  {
     "id": "guarniciones_018",
     "name": "Verduras salteadas",
     "shortName": "verduras salteadas",
@@ -684,5 +654,39 @@
       "Terminar con perejil picado y salpimentar"
     ],
     "description": "Champiñones laminados salteados con ajo y perejil"
+  },
+  {
+    "id": "guarniciones_022",
+    "name": "Patatas fritas",
+    "shortName": "patatas fritas",
+    "category": "guarniciones",
+    "mainProtein": "none",
+    "mealRole": ["guarnicion"],
+    "preferMeal": "cena",
+    "type": "guarnicion",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 220,
+    "protein_g": 3,
+    "carbs_g": 30,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [],
+    "season": "all",
+    "healthFlags": ["frito"],
+    "ingredients": [
+      { "name": "Patata", "amount": 350, "unit": "g" },
+      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
+      { "name": "Sal", "amount": 3, "unit": "g" }
+    ],
+    "steps": [
+      "Pelar y cortar las patatas en bastones",
+      "Freír en aceite caliente hasta que estén doradas por fuera",
+      "Escurrir sobre papel absorbente",
+      "Salar al gusto y servir recién hechas"
+    ],
+    "description": "Patatas cortadas en bastón y fritas, crujientes por fuera"
   }
 ]

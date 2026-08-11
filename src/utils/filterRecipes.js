@@ -161,6 +161,10 @@ export function filterRecipes({
   // sorbitol, embarazo, lactancia) — see lib/intolerances.js. Hard exclusion.
   intolerances = [],
   dislikes = [],
+  // Recipe ids the user actively discarded (permanent "no me gusta" + still-live
+  // weekly/cooldown discards). Hard exclusion by id, applied before every other
+  // pass so a rejected dish can never come back on generation or regeneration.
+  excludeIds = [],
   hasKids = false,
   maxTime = 120,
   kitchenTools = [],
@@ -191,6 +195,15 @@ export function filterRecipes({
     pool = pool.filter((r) => r.source === "user");
   } else if (!isBabyGroup && recipeMode === "catalog") {
     pool = pool.filter((r) => r.source !== "user");
+  }
+
+  // 0a. User-discarded recipes ("no me gusta" forever + live weekly/cooldown
+  // rejections). Compared against the base catalog id, matching how the caller
+  // stores them (prefix-free). Never applies to baby groups (their tiny curated
+  // pool must stay intact).
+  if (!isBabyGroup && excludeIds.length > 0) {
+    const blocked = new Set(excludeIds);
+    pool = pool.filter((r) => !blocked.has(r.id));
   }
 
   // 0b. Baby group isolation — baby recipes only for baby groups, excluded otherwise

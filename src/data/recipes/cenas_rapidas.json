@@ -142,7 +142,7 @@
   },
   {
     "id": "cenas_rapidas_003",
-    "name": "Ensalada de quinoa",
+    "name": "Ensalada de quinoa, feta y granada",
     "category": "cenas_rapidas",
     "mainProtein": "none",
     "mainBase": "quinoa",
@@ -152,24 +152,21 @@
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
-    "kcal": 328,
-    "protein_g": 12,
-    "carbs_g": 38,
-    "fat_g": 14,
+    "kcal": 366,
+    "protein_g": 15,
+    "carbs_g": 36,
+    "fat_g": 18,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": [],
-    "season": "verano",
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
     "ingredients": [
       {
         "name": "Quinoa",
         "amount": 140,
-        "unit": "g"
-      },
-      {
-        "name": "Pepino",
-        "amount": 80,
         "unit": "g"
       },
       {
@@ -178,9 +175,24 @@
         "unit": "g"
       },
       {
-        "name": "Aguacate",
-        "amount": 1,
-        "unit": "ud"
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso feta",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Granada",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 30,
+        "unit": "g"
       },
       {
         "name": "Aceite de oliva",
@@ -194,12 +206,12 @@
       }
     ],
     "steps": [
-      "Cocer la quinoa 15 min y escurrir, enfriar",
-      "Cortar pepino, tomates y aguacate en dados",
-      "Mezclar todo con la quinoa",
-      "Aliñar con aceite, limón y sal"
+      "Cocer la quinoa 15 min, escurrir y enfriar",
+      "Cortar el pepino y los tomates cherry, y desgranar la granada",
+      "Mezclar con la quinoa, el feta en dados y la cebolla morada",
+      "Aliñar con aceite de oliva, limón y sal"
     ],
-    "description": "Ensalada fría de quinoa con aguacate, pepino y tomate",
+    "description": "Ensalada fría de quinoa con feta, granada, cherry y pepino",
     "methods": [
       {
         "appliance": "thermomix",
@@ -686,59 +698,6 @@
       "Acompañar con pan cortado"
     ],
     "description": "Tabla para compartir con queso curado, chorizo y jamón",
-    "methods": []
-  },
-  {
-    "id": "cenas_rapidas_011",
-    "name": "Ensalada caprese",
-    "category": "cenas_rapidas",
-    "mainProtein": "none",
-    "mealRole": [
-      "cena"
-    ],
-    "type": "completo",
-    "time": 5,
-    "difficulty": "facil",
-    "kcal": 278,
-    "protein_g": 14,
-    "carbs_g": 6,
-    "fat_g": 22,
-    "baseServings": 2,
-    "kidFriendly": true,
-    "tupperFriendly": true,
-    "allergens": [
-      "lactosa"
-    ],
-    "season": "verano",
-    "ingredients": [
-      {
-        "name": "Tomate",
-        "amount": 250,
-        "unit": "g"
-      },
-      {
-        "name": "Mozzarella fresca",
-        "amount": 125,
-        "unit": "g"
-      },
-      {
-        "name": "Albahaca",
-        "amount": 5,
-        "unit": "g"
-      },
-      {
-        "name": "Aceite de oliva",
-        "amount": 25,
-        "unit": "ml"
-      }
-    ],
-    "steps": [
-      "Cortar tomate y mozzarella en rodajas del mismo grosor",
-      "Alternar en plato: tomate, mozzarella, tomate",
-      "Añadir hojas de albahaca fresca",
-      "Aliñar con aceite y sal en escamas"
-    ],
-    "description": "Ensalada italiana de tomate y mozzarella fresca con albahaca",
     "methods": []
   },
   {

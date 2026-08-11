@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check } from "lucide-react";
+import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Soup, Utensils } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -17,6 +17,9 @@ import {
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
+import { CatalogBrowserSheet } from "./screens/CatalogBrowserSheet.jsx";
+import { SlotTypePickerSheet } from "./screens/SlotTypePickerSheet.jsx";
+import { recipeCatalogById } from "./data/recipeCatalog.js";
 const ValuePropsCarousel = lazy(() => import("./screens/ValueProps.jsx").then(m => ({ default: m.ValuePropsCarousel })));
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
@@ -27,7 +30,7 @@ const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => (
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, pickGarnishReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -201,6 +204,11 @@ const INITIAL_DATA = {
   customAllergies: [],
   customDislikes: [],
   fixedDishes: [],
+  // Recipes the user rejected from the menu, by base catalog id:
+  //   forever[]              → permanent "No me gusta" (shown in Recetas ▸ Descartados, reversible)
+  //   cooldownUntil{ id: ts } → temporary ("Esta semana no"/"Tarda demasiado" ≈7d,
+  //                             "Lo comí hace poco" ≈14d). Excluded while ts > now.
+  discards: { forever: [], cooldownUntil: {} },
   // When true, mapped «En casa» stock soft-biases menu generation (pantryScore
   // + LLM nudge). Shopping still discounts stock either way.
   useHomeStock: true,
@@ -339,10 +347,14 @@ const BASIC_PANTRY_PREFS = {
 function resolveModeData(data) {
   if (!data || data.expertMode) return data;
   // Cenas rápidas viven en data.slotType como entradas "…|Cena": "rapida".
+  // En básico se descartan las que vienen de la configuración del onboarding,
+  // PERO se respetan las elegidas a mano desde el menú (data.manualSlotType),
+  // porque son una decisión explícita del usuario para ese hueco concreto.
   const slotType = data.slotType ?? {};
+  const manualSlotType = data.manualSlotType ?? {};
   const cleanedSlotType = {};
   for (const [k, v] of Object.entries(slotType)) {
-    if (v !== "rapida") cleanedSlotType[k] = v;
+    if (v !== "rapida" || manualSlotType[k]) cleanedSlotType[k] = v;
   }
   // Tiempo de cocina compartido (comida = cena) en básico.
   const ct = data.cookTime?.weekday ? data.cookTime : COOK_TIME_DEFAULTS;
@@ -593,6 +605,20 @@ function migrate(state) {
   if (!["primero_segundo", "1_plato"].includes(d.mealStructure)) d.mealStructure = "primero_segundo";
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
+  // Discards: normalize both buckets, and prune expired cooldowns on load so the
+  // map doesn't grow unbounded across sessions.
+  {
+    const src = d.discards && typeof d.discards === "object" && !Array.isArray(d.discards) ? d.discards : {};
+    const now = Date.now();
+    const cooldownUntil = {};
+    for (const [id, ts] of Object.entries(src.cooldownUntil ?? {})) {
+      if (Number(ts) > now) cooldownUntil[id] = Number(ts);
+    }
+    d.discards = {
+      forever: Array.isArray(src.forever) ? Array.from(new Set(src.forever)) : [],
+      cooldownUntil,
+    };
+  }
   d.cookTime = migrateCookTime(d);
   d.menus = d.menus && typeof d.menus === "object" && !Array.isArray(d.menus) ? d.menus : {};
   d.activeMenuId = typeof d.activeMenuId === "string" ? d.activeMenuId : null;
@@ -784,6 +810,8 @@ export default function App() {
   const [menuPlan, setMenuPlan] = useState(persisted?.menuPlan ?? {});
   const [shopping, setShopping] = useState(persisted?.shopping ?? { items: [] });
   const [selectedSlot, setSelectedSlot] = useState(null);
+  // "Elegir manualmente" (rosco): the slot we're filling from the catalog.
+  const [slotPicker, setSlotPicker] = useState(null);
   const [toast, setToast] = useState(null);
   const [isGeneratingMenu, setIsGeneratingMenu] = useState(false);
   const [menuError, setMenuError] = useState(null);
@@ -1979,6 +2007,72 @@ export default function App() {
     }
   }, [data.recipeVotes, showToast, user]);
 
+  // ── Discards (menu rejections) ──────────────────────────────────────────
+  // Base catalog id (prefix-free) of whatever currently sits in a slot, so a
+  // discard matches the id filterRecipes/aiPlanner filter on.
+  const slotBaseRecipeId = useCallback((sel) => {
+    if (!sel) return null;
+    const key = `${sel.day}-${sel.meal}`;
+    const field = (sel.course ?? "main") === "first" ? "firstRecipeId" : "recipeId";
+    const id = menuPlan[sel.groupId]?.[key]?.[field] ?? sel.recipe?.id ?? null;
+    return id ? String(id).split("__").pop() : null;
+  }, [menuPlan]);
+
+  // Turn a rejection reason (chosen in the dish radial) into its persistent
+  // consequence. Reasons:
+  //   "dislike" → descartar para siempre (Recetas ▸ Descartados, reversible)
+  //   "week"    → descartar esta semana (~7 días)
+  //   "timing"  → tarda demasiado = descartar esta semana (~7 días)
+  //   "recent"  → «me gusta pero lo comí hace poco»: enfriamiento ~14 días +
+  //               marcar favorito para que vuelva en próximos menús.
+  const applyDiscardReason = useCallback((sel, reason) => {
+    if (!reason) return;
+    const baseId = slotBaseRecipeId(sel);
+    if (!baseId) return;
+    const DAY_MS = 86400000;
+    setData((d) => {
+      const forever = [...(d.discards?.forever ?? [])];
+      const cooldownUntil = { ...(d.discards?.cooldownUntil ?? {}) };
+      if (reason === "dislike") {
+        if (!forever.includes(baseId)) forever.push(baseId);
+        delete cooldownUntil[baseId];
+      } else if (!forever.includes(baseId)) {
+        const days = reason === "recent" ? 14 : 7;
+        cooldownUntil[baseId] = Date.now() + days * DAY_MS;
+      }
+      let next = { ...d, discards: { forever, cooldownUntil } };
+      if (reason === "recent") {
+        next = { ...next, recipeVotes: setFavoriteScope(next.recipeVotes ?? {}, baseId, "all") };
+      }
+      return next;
+    });
+    if (reason === "recent" && user?.id) {
+      const nextVotes = setFavoriteScope(data.recipeVotes ?? {}, baseId, "all");
+      const entry = nextVotes[baseId] ?? null;
+      if (entry != null) saveRecipeVote(user.id, baseId, entry);
+    }
+    const label = reason === "dislike"
+      ? "Descartado para siempre"
+      : reason === "recent"
+        ? "Lo dejamos para más adelante"
+        : "Descartado esta semana";
+    trackEvent(user, "dish_discarded", "menu", { reason, recipeId: baseId });
+    return label;
+  }, [slotBaseRecipeId, data.recipeVotes, user]);
+
+  // Recuperar (Recetas ▸ Descartados): clear a permanent discard so the dish
+  // rejoins the active catalog.
+  const handleUndiscardRecipe = useCallback((recipeId) => {
+    if (!recipeId) return;
+    setData((d) => {
+      const forever = (d.discards?.forever ?? []).filter((id) => id !== recipeId);
+      const cooldownUntil = { ...(d.discards?.cooldownUntil ?? {}) };
+      delete cooldownUntil[recipeId];
+      return { ...d, discards: { forever, cooldownUntil } };
+    });
+    showToast("Receta recuperada");
+  }, [showToast]);
+
   // Selectable scopes for a favorite: the household's distinct menu-group labels
   // (excluding the single-family "Familia"). Empty/one → no per-group choice.
   const favoriteScopeGroups = useMemo(() => {
@@ -2007,15 +2101,22 @@ export default function App() {
     trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id });
   }, [data.members, user]);
 
-  const handleReplaceSlot = useCallback(async (selection) => {
+  const handleReplaceSlot = useCallback(async (selection, { sameCategory = false, reason = null } = {}) => {
+    // Learn from the rejection (discard/cooldown/favorite) BEFORE the slot
+    // mutates, so slotBaseRecipeId still reads the outgoing dish.
+    if (reason) applyDiscardReason(selection, reason);
     const { groupId, day, meal } = selection;
     const course = selection.course ?? "main";
     // Pick the replacement from the SAME rich catalog the AI planner uses, so the
     // swapped dish is identical in shape (photo, methods, macros, scaled
     // ingredients) to the rest of the menu instead of a legacy-catalog mismatch.
-    const result = pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course });
+    const result = pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course, sameCategory });
     if (!result) {
-      showToast("No hay otra receta compatible para este hueco");
+      showToast(
+        sameCategory
+          ? "No hay otro plato parecido para este hueco"
+          : "No hay otra receta compatible para este hueco",
+      );
       return;
     }
     const { frontendRecipe, recipeId, reusedDuplicate } = result;
@@ -2077,7 +2178,7 @@ export default function App() {
     setSelectedSlot(null);
     showToast(`Sustituido por «${frontendRecipe.name}»`);
     trackEvent(user, "dish_replaced", "menu", { day, meal, newRecipeId: recipeId });
-  }, [data, menuPlan, showToast, user]);
+  }, [data, menuPlan, showToast, user, applyDiscardReason]);
 
   // Swap two existing dishes (long-press → "Intercambiar" → tap target). Only
   // recipe ids move; each slot keeps its own eaters/mode (they describe who eats
@@ -2139,6 +2240,264 @@ export default function App() {
       to: `${target.day}-${target.meal}`,
     });
   }, [data, menuPlan, showToast, user]);
+
+  // Shared shopping-list rebuild for the rosco actions (clear / duplicate /
+  // manual pick). Preserves the user's have/atHome flags across the rebuild.
+  const applyShoppingFor = useCallback((next, groups, pantryIngredients) => {
+    const sh = buildShoppingList(next, groups, getDayMeals(data), pantryIngredients);
+    setShopping((prev) => {
+      const flags = Object.fromEntries(
+        prev.items.map((i) => [
+          normalizeIngredientKey(i.name, i.unit ?? "ud"),
+          { have: i.have, atHome: i.atHome },
+        ]),
+      );
+      return {
+        items: [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].map((it) => ({
+          ...it,
+          have: flags[it.id]?.have ?? false,
+          atHome: flags[it.id]?.atHome ?? false,
+        })),
+      };
+    });
+  }, [data]);
+
+  // Regenerate every dish of a single day (all active groups) in one tap — the
+  // deck day header exposes this so users can reroll a day (or two) they don't
+  // like without touching the rest of the week. Deterministic + free: reuses the
+  // same per-slot catalog picker as the single-dish "Regenerar", applied slot by
+  // slot on a working clone so carb/protein dedup stays correct within the day.
+  // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
+  const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    let activeGroups = groups.filter((g) => membersOfGroup(g, data.members).length > 0);
+    // Scope picker (multi-menu households): regenerate only the chosen menus.
+    // A null/empty selection falls back to every active menu.
+    if (Array.isArray(groupIds) && groupIds.length > 0) {
+      const wanted = new Set(groupIds);
+      activeGroups = activeGroups.filter((g) => wanted.has(g.id));
+    }
+    if (activeGroups.length === 0) return;
+    const meals = getDayMeals(data);
+
+    const working = {};
+    for (const gid of Object.keys(menuPlan)) {
+      working[gid] = {};
+      for (const k of Object.keys(menuPlan[gid] ?? {})) working[gid][k] = { ...menuPlan[gid][k] };
+    }
+
+    const newRecipes = [];
+    let changed = 0;
+    for (const g of activeGroups) {
+      for (const meal of meals) {
+        const key = `${day}-${meal}`;
+        const slot = working[g.id]?.[key];
+        if (!slot || slot.cleared) continue;
+        const courses = [];
+        if (slot.firstRecipeId) courses.push("first");
+        if (slot.recipeId) courses.push("main");
+        for (const course of courses) {
+          const result = pickCatalogReplacement(data, working, { groupId: g.id, day, meal, course });
+          if (!result) continue;
+          newRecipes.push(result.frontendRecipe);
+          working[g.id][key] = {
+            ...working[g.id][key],
+            ...(course === "first"
+              ? { firstRecipeId: result.recipeId }
+              : { recipeId: result.recipeId }),
+            warnings: [],
+          };
+          changed++;
+        }
+      }
+    }
+
+    if (changed === 0) {
+      showToast("No hay platos que regenerar en este día");
+      return;
+    }
+
+    registerRecipes(newRecipes);
+    setAiRecipes((cur) => {
+      const byId = new Map(cur.map((r) => [r.id, r]));
+      for (const r of newRecipes) byId.set(r.id, r);
+      return Array.from(byId.values());
+    });
+
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan(() => {
+      applyShoppingFor(working, groups, pantryIngredients);
+      return working;
+    });
+    showToast("Día regenerado");
+    trackEvent(user, "day_regenerated", "menu", { day });
+  }, [data, menuPlan, showToast, user, applyShoppingFor]);
+
+  // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
+  // tappable placeholder to refill it; offer an undo that restores the dishes.
+  const handleClearSlot = useCallback(async (sel, { reason = null } = {}) => {
+    const { groupId, day, meal } = sel;
+    const key = `${day}-${meal}`;
+    const prevSlot = menuPlan[groupId]?.[key];
+    if (!prevSlot || (!prevSlot.recipeId && !prevSlot.firstRecipeId)) return;
+    const discardLabel = reason ? applyDiscardReason(sel, reason) : null;
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    const snapshot = prevSlot;
+    const writeSlot = (slotValue) =>
+      setMenuPlan((plan) => {
+        const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: slotValue } };
+        applyShoppingFor(next, groups, pantryIngredients);
+        return next;
+      });
+    writeSlot({ ...prevSlot, recipeId: null, firstRecipeId: null, cleared: true, warnings: [] });
+    showToast(discardLabel ?? "Hueco vaciado", { label: "Deshacer", onClick: () => writeSlot(snapshot) });
+    trackEvent(user, "dish_cleared", "menu", { day, meal });
+  }, [data, menuPlan, showToast, user, applyShoppingFor, applyDiscardReason]);
+
+  // Duplicar: copy a dish into another slot (rosco → "Duplicar" → tap target).
+  const handleDuplicateSlot = useCallback(async (source, target) => {
+    if (!source || !target) return;
+    const sKey = `${source.day}-${source.meal}`;
+    const sField = source.course === "first" ? "firstRecipeId" : "recipeId";
+    const srcRecipeId = menuPlan[source.groupId]?.[sKey]?.[sField];
+    if (!srcRecipeId) { showToast("No hay plato que duplicar"); return; }
+    const tGroup = target.groupId;
+    const tKey = `${target.day}-${target.meal}`;
+    const tField = target.course === "first" ? "firstRecipeId" : "recipeId";
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const prevSlot = plan[tGroup]?.[tKey] ?? {};
+      const nextSlot = { ...prevSlot, [tField]: srcRecipeId, cleared: false, warnings: [] };
+      const next = { ...plan, [tGroup]: { ...(plan[tGroup] ?? {}), [tKey]: nextSlot } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast("Plato duplicado");
+    trackEvent(user, "dish_duplicated", "menu", { from: sKey, to: tKey });
+  }, [data, menuPlan, showToast, user, applyShoppingFor]);
+
+  // "Regenerar → Cambiar guarnición": keep the main dish, swap only its side.
+  // The recipe id encodes only the main, so it doesn't change — we overwrite the
+  // registry/aiRecipes entry in place and bounce the slot to force a re-render +
+  // shopping rebuild with the new garnish's ingredients.
+  const handleRegarnishSlot = useCallback(async (sel) => {
+    const { groupId, day, meal } = sel;
+    const course = sel.course ?? "main";
+    const key = `${day}-${meal}`;
+    const currentRecipeId =
+      course === "first" ? menuPlan[groupId]?.[key]?.firstRecipeId : menuPlan[groupId]?.[key]?.recipeId;
+    const currentGarnishId = RECIPES_BY_ID[currentRecipeId]?.garnishId ?? sel.recipe?.garnishId ?? null;
+    const result = pickGarnishReplacement(data, menuPlan, { groupId, day, meal, course, currentGarnishId });
+    if (!result) {
+      showToast("No hay otra guarnición para este plato");
+      return;
+    }
+    const { frontendRecipe } = result;
+    registerRecipes([frontendRecipe]);
+    setAiRecipes((cur) => {
+      const byId = new Map(cur.map((r) => [r.id, r]));
+      byId.set(frontendRecipe.id, frontendRecipe);
+      return Array.from(byId.values());
+    });
+    const groups =
+      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const prevSlot = plan[groupId]?.[key] ?? {};
+      const nextSlot = {
+        ...prevSlot,
+        ...(course === "first" ? { firstRecipeId: frontendRecipe.id } : { recipeId: frontendRecipe.id }),
+        warnings: [],
+      };
+      const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    showToast(`Nueva guarnición: «${frontendRecipe.name}»`);
+    trackEvent(user, "dish_regarnished", "menu", { day, meal });
+  }, [data, menuPlan, showToast, user, applyShoppingFor]);
+
+  // Elegir manualmente: open the catalog picker for a slot. A reason (from the
+  // "Regenerar → Elegir a mano" flow) discards the outgoing dish first.
+  const handleManualPickSlot = useCallback((sel, { reason = null } = {}) => {
+    if (reason) applyDiscardReason(sel, reason);
+    setSlotPicker({ groupId: sel.groupId, day: sel.day, meal: sel.meal, course: sel.course ?? "main" });
+  }, [applyDiscardReason]);
+
+  // "Regenerar → Cena rápida / Plato único": open the picker restricted to the
+  // relevant pool (cenas_rapidas for a dinner, plato_unico dishes for a lunch),
+  // with thumbnails + tap-to-open dish detail. Placing one also flips this slot's
+  // type (data.slotType) so future regenerations keep honoring the choice.
+  const handlePickSlotType = useCallback((sel, kind) => {
+    const all = Object.values(recipeCatalogById);
+    const recipes =
+      kind === "cena_rapida"
+        ? all.filter((r) => r.category === "cenas_rapidas")
+        : all.filter((r) => (r.mealRole ?? []).includes("plato_unico"));
+    setSlotPicker({
+      groupId: sel.groupId,
+      day: sel.day,
+      meal: sel.meal,
+      course: sel.course ?? "main",
+      kind,
+      recipes,
+    });
+  }, []);
+
+  // Apply the catalog dish the user picked into the pending slot.
+  const handleChooseRecipeForSlot = useCallback(async (recipeId) => {
+    if (!slotPicker || !recipeId) return;
+    const { groupId, day, meal, course, kind = null } = slotPicker;
+    const catalogRecipe = recipeCatalogById[recipeId];
+    if (!catalogRecipe) { showToast("Receta no encontrada"); setSlotPicker(null); return; }
+    // Plato único takes over the WHOLE comida (single dish, no primero/segundo),
+    // so force it into the main course regardless of which one was long-pressed.
+    const placeCourse = kind === "plato_unico" ? "main" : course;
+    const result = pickCatalogReplacement(data, menuPlan, { groupId, day, meal, course: placeCourse, forcedRecipe: catalogRecipe });
+    if (!result) { showToast("No se pudo colocar esa receta aquí"); setSlotPicker(null); return; }
+    const { frontendRecipe, recipeId: newRecipeId } = result;
+    registerRecipes([frontendRecipe]);
+    setAiRecipes((cur) => {
+      const byId = new Map(cur.map((r) => [r.id, r]));
+      byId.set(frontendRecipe.id, frontendRecipe);
+      return Array.from(byId.values());
+    });
+    // Persist the slot-type choice so regeneration keeps honoring it. A manually
+    // picked cena rápida is also flagged in manualSlotType so it survives basic
+    // mode's normalization (resolveModeData) — an explicit pick beats the mode.
+    if (kind === "cena_rapida" || kind === "plato_unico") {
+      const slotKey = `${day}|${meal}`;
+      setData((d) => ({
+        ...d,
+        slotType: { ...(d.slotType ?? {}), [slotKey]: kind === "cena_rapida" ? "rapida" : "unico" },
+        ...(kind === "cena_rapida"
+          ? { manualSlotType: { ...(d.manualSlotType ?? {}), [slotKey]: true } }
+          : null),
+      }));
+    }
+    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const key = `${day}-${meal}`;
+      const prevSlot = plan[groupId]?.[key] ?? {};
+      const nextSlot = {
+        ...prevSlot,
+        ...(placeCourse === "first" ? { firstRecipeId: newRecipeId } : { recipeId: newRecipeId }),
+        // Plato único merges the two courses into one → drop the primero.
+        ...(kind === "plato_unico" ? { firstRecipeId: null } : null),
+        cleared: false,
+        warnings: [],
+      };
+      const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    setSlotPicker(null);
+    showToast(`Colocado «${frontendRecipe.name}»`);
+    trackEvent(user, "dish_manual_pick", "menu", { day, meal, newRecipeId, kind });
+  }, [slotPicker, data, menuPlan, showToast, user, applyShoppingFor]);
 
   // Reset intents: "soft" keeps the profile (family, recipes, preferences) and
   // only wipes the active menu/session; "hard" nukes everything (used by
@@ -2512,7 +2871,15 @@ export default function App() {
               restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
               onDishReplace={handleReplaceSlot}
+              onDishReplaceSameCategory={(sel, opts = {}) => handleReplaceSlot(sel, { ...opts, sameCategory: true })}
+              onDishRegarnish={handleRegarnishSlot}
               onDishSwap={handleSwapSlots}
+              onDishDuplicate={handleDuplicateSlot}
+              onDishClear={handleClearSlot}
+              onDishManualPick={handleManualPickSlot}
+              onDishPickCenaRapida={(sel) => handlePickSlotType(sel, "cena_rapida")}
+              onDishPickPlatoUnico={(sel) => handlePickSlotType(sel, "plato_unico")}
+              onRegenerateDay={handleRegenerateDay}
               onNav={handleNav}
               onRegenerate={handleRegenerate}
               onRetry={retryGenerateMenu}
@@ -2736,7 +3103,7 @@ export default function App() {
                 onOpenAnalytics={() => fwd(() => setScreen("analytics"))}
                 onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "dashboard"; setEditingRecipe(null); fwd(() => setScreen("recipePlanner")); }}
                 onOpenRecipes={() => fwd(() => setScreen("recipes"))}
-                onOpenStreak={() => fwd(() => setScreen("account"))}
+                onOpenStreak={() => fwd(() => setScreen("menus"))}
               />
             </Suspense>
           </div>
@@ -2769,6 +3136,8 @@ export default function App() {
                 userRecipes={data.userRecipes}
                 recipeVotes={data.recipeVotes}
                 scopeGroups={favoriteScopeGroups}
+                discardedIds={data.discards?.forever ?? []}
+                onRecoverRecipe={handleUndiscardRecipe}
                 onSetFavoriteScope={handleSetFavoriteScope}
                 onOpenRecipe={handleOpenCatalogRecipe}
                 onNav={handleNav}
@@ -2910,6 +3279,30 @@ export default function App() {
           setData={setData}
           onToast={showToast}
           onPantryChanged={() => setPantryEpoch((n) => n + 1)}
+        />
+      )}
+
+      {/* Cena rápida / Plato único: minimal thumbnail-only picker. */}
+      {slotPicker && (slotPicker.kind === "cena_rapida" || slotPicker.kind === "plato_unico") && (
+        <SlotTypePickerSheet
+          title={slotPicker.kind === "cena_rapida" ? "Cena rápida" : "Plato único"}
+          Icon={slotPicker.kind === "cena_rapida" ? Soup : Utensils}
+          accent={slotPicker.kind === "cena_rapida" ? "#d56b9a" : "#5a7066"}
+          recipes={slotPicker.recipes ?? []}
+          onPick={(id) => { if (id) handleChooseRecipeForSlot(id); }}
+          onClose={() => setSlotPicker(null)}
+        />
+      )}
+
+      {/* Elegir a mano: full catalog browser. */}
+      {slotPicker && !slotPicker.kind && (
+        <CatalogBrowserSheet
+          gatePick
+          gatePickType="plato"
+          selectedPlatoId={null}
+          onPickPlato={(id) => { if (id) handleChooseRecipeForSlot(id); }}
+          onClose={() => setSlotPicker(null)}
+          recipeVotes={data.recipeVotes ?? {}}
         />
       )}
 

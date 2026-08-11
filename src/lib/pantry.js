@@ -30,19 +30,41 @@ function mapRow(row) {
   };
 }
 
+// Postgres "undefined_column" — a DB that hasn't run 0009_user_pantry_updated_at
+// yet is missing `updated_at`; we degrade gracefully instead of hard-failing.
+const UNDEFINED_COLUMN = "42703";
+
+function isMissingUpdatedAt(error) {
+  return error?.code === UNDEFINED_COLUMN && /updated_at/.test(error?.message ?? "");
+}
+
 /** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
 export async function loadPantry(userId) {
   if (!supabase || !userId) return [];
+  const base = "id, ingredient_name, ingredient_normalized, qty, unit, source, created_at";
   const { data, error } = await supabase
     .from("user_pantry")
-    .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at, updated_at")
+    .select(`${base}, updated_at`)
     .eq("user_id", userId)
     .order("created_at", { ascending: true });
-  if (error) {
-    console.error("[pantry] load failed", error);
+  if (!error) return (data ?? []).map(mapRow);
+
+  // Older schema (pre-0009): retry without updated_at so the pantry still loads
+  // (created_at becomes the "last touched" proxy via mapRow). Quietly, since
+  // this is an expected shape difference, not a real failure.
+  if (isMissingUpdatedAt(error)) {
+    const retry = await supabase
+      .from("user_pantry")
+      .select(base)
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true });
+    if (!retry.error) return (retry.data ?? []).map(mapRow);
+    console.error("[pantry] load failed", retry.error);
     return [];
   }
-  return (data ?? []).map(mapRow);
+
+  console.error("[pantry] load failed", error);
+  return [];
 }
 
 /**
@@ -97,7 +119,7 @@ export async function addPantryItems(userId, items) {
     const { data, error } = await supabase
       .from("user_pantry")
       .insert(toInsert)
-      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, updated_at");
+      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at");
     if (error) console.error("[pantry] insert failed", error);
     else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
   }
@@ -107,7 +129,7 @@ export async function addPantryItems(userId, items) {
       .update({ qty: u.qty })
       .eq("user_id", userId)
       .eq("id", u.id)
-      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, updated_at");
+      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at");
     if (error) console.error("[pantry] top-up failed", error);
     else if (data?.[0]) rows.push({ ...mapRow(data[0]), isNew: false });
   }

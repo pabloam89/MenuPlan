@@ -30,6 +30,74 @@ function carbOfGarnish(g) {
 // about what counts as the same base.
 const carbOfRecipe = getCarbType;
 
+// Bread is never an automatic side — a plain baguette doesn't belong plated next
+// to a main. It can still be attached as a pinned/user choice. Detected via its
+// "pan" carb type.
+function isPanGarnish(g) {
+  return carbOfGarnish(g) === "pan";
+}
+
+// A garnish with no starch is treated as "vegetable" (judías, brócoli, menestra,
+// ensalada…). Used to avoid a veg garnish when the day already leans vegetable
+// (veg primero or another veg side) — veg + veg reads as an unbalanced comida.
+function isVegGarnish(g) {
+  return carbOfGarnish(g) === null;
+}
+
+// A main recipe counts as "vegetable-forward" when it's a salad/vegetable dish.
+function isVegRecipe(recipe) {
+  return recipe?.category === "ensaladas_verduras";
+}
+
+// A deep-fried garnish (patatas fritas) only makes sense next to meat or fish —
+// it never goes with an egg dish (tortilla), a salad or a pasta/rice plate. Real
+// "huevos con patatas fritas y chorizo" is a whole dish, not a segundo + side, so
+// eggs are deliberately excluded here.
+function isFriedGarnish(g) {
+  return Array.isArray(g.healthFlags) && g.healthFlags.includes("frito");
+}
+function friedGarnishFitsMain(g, mainRecipe) {
+  if (!isFriedGarnish(g)) return true;
+  return mainRecipe?.category === "carnes" || mainRecipe?.category === "pescados";
+}
+
+function normalizeText(s) {
+  return String(s)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+// Aromatics/condiments show up in almost every recipe, so they can never be a
+// garnish's "star" ingredient — otherwise cebolla/ajo would clash with the whole
+// catalog. The star is the first listed ingredient that isn't one of these.
+const GARNISH_STOPWORDS =
+  /^(aceite|sal|vinagre|limon|ajo|perejil|cebolla|oregano|pimienta|pimenton|mantequilla|leche|nata|nuez|miel|menta|hierba|especia|azucar|laurel|tomillo|romero|comino|guindilla)/;
+
+// The garnish's headline ingredient, e.g. "Ensalada de tomate con cebolla" → "tomate".
+function garnishStarWord(g) {
+  for (const ing of g.ingredients ?? []) {
+    const n = normalizeText(ing.name);
+    const word = n.split(/\s+/)[0];
+    if (!word || word.length < 3) continue;
+    if (GARNISH_STOPWORDS.test(word)) continue;
+    return word;
+  }
+  return null;
+}
+
+// A garnish that repeats the main's headline ingredient reads as redundant
+// ("Bacalao con tomate" + "Ensalada de tomate"). Detected by matching the
+// garnish's star word against the main recipe's name and ingredient list.
+function garnishClashesWithMain(g, recipe) {
+  const star = garnishStarWord(g);
+  if (!star) return false;
+  const hay = normalizeText(
+    (recipe.name ?? "") + " " + (recipe.ingredients ?? []).map((i) => i.name).join(" "),
+  );
+  return new RegExp(`\\b${star}`).test(hay);
+}
+
 /**
  * For each "principal" recipe in a comida_2 or cena slot, picks a garnish
  * from guarniciones.json at random among every candidate that satisfies the
@@ -61,12 +129,22 @@ const carbOfRecipe = getCarbType;
 export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, safeGarnishes = guarniciones) {
   // Collect carbs already used by main recipes, per day
   const dayUsedCarbs = {};
+  // Track whether each day already leans vegetable (a salad/veg main), so the
+  // pairing avoids stacking a veg garnish on top (veg + veg).
+  const dayHasVeg = {};
+  // Track whether a day's MAIN course already brings a starch (arroz/pasta/
+  // patatas…), so a segundo garnish doesn't turn the comida into a double-carb
+  // bomb (arroz de primero + patatas de guarnición). Computed from mains only,
+  // before any garnish carbs are folded into dayUsedCarbs below.
+  const dayHasStarchMain = {};
   for (const { slotId, recipeId } of slotAssignments) {
     const daySlug = slotId.split("_")[0];
     const recipe = poolById[recipeId];
     if (!recipe) continue;
+    if (isVegRecipe(recipe)) dayHasVeg[daySlug] = true;
     const carb = carbOfRecipe(recipe);
     if (!carb) continue;
+    dayHasStarchMain[daySlug] = true;
     if (!dayUsedCarbs[daySlug]) dayUsedCarbs[daySlug] = new Set();
     dayUsedCarbs[daySlug].add(carb);
   }
@@ -117,7 +195,20 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
       garnish = guarniciones.find((g) => g.id === pinnedId) ?? null;
     }
     if (!garnish) {
+      // A fried side (patatas fritas) only pairs with meat/fish — never a
+      // tortilla, salad or pasta plate. Applied before every pass below so no
+      // relaxation tier can sneak it back in for an egg/veg main.
+      // A garnish can also declare `preferMeal: "cena"` (patatas fritas read as
+      // a dinner classic, not a lunch side); those are dropped from comida slots
+      // unless nothing else is eligible.
+      let eligible = safeGarnishes.filter(
+        (g) => friedGarnishFitsMain(g, recipe) && (isCena || g.preferMeal !== "cena"),
+      );
+      if (eligible.length === 0) eligible = safeGarnishes.filter((g) => friedGarnishFitsMain(g, recipe));
+      // Bread is never auto-paired (only ever pinned by the user), so it's
+      // excluded from every candidate pass below.
       const fitsRules = (g) => {
+        if (isPanGarnish(g)) return false;
         if (usedGarnishIds.has(g.id)) return false;
         if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
         const gCarb = carbOfGarnish(g);
@@ -128,13 +219,14 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
       // Every garnish meeting the rules is an equally valid pick — choosing
       // randomly among them (instead of always the first match in the JSON's
       // fixed order) is what actually gives week-to-week variety.
-      let candidates = safeGarnishes.filter(fitsRules);
+      let candidates = eligible.filter(fitsRules);
       // Relax "not used yet this week" before giving up entirely, so a slot
       // never goes without a side just because the week is running low on
       // fresh garnishes (still respects the cena time cap, day carb rule and
       // kcal cap).
       if (candidates.length === 0) {
-        candidates = safeGarnishes.filter((g) => {
+        candidates = eligible.filter((g) => {
+          if (isPanGarnish(g)) return false;
           if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
           const gCarb = carbOfGarnish(g);
           if (gCarb && dayCarbs.has(gCarb)) return false;
@@ -146,12 +238,42 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
       // without any garnish at all just because every remaining option
       // would push the comida over budget.
       if (candidates.length === 0) {
-        candidates = safeGarnishes.filter((g) => {
+        candidates = eligible.filter((g) => {
+          if (isPanGarnish(g)) return false;
           if (isCena && g.time > CENA_MAX_GARNISH_TIME) return false;
           const gCarb = carbOfGarnish(g);
           if (gCarb && dayCarbs.has(gCarb)) return false;
           return true;
         });
+      }
+      // Avoid a garnish that duplicates the main's headline ingredient
+      // ("Bacalao con tomate" + "Ensalada de tomate"). For a segundo, also guard
+      // against repeating the day's primero star — otherwise "Ensalada de tomate"
+      // (primero) + "Atún con ensalada de tomate" (garnish) reads as double
+      // tomato. Only narrow the pool when a non-clashing option remains — never
+      // leave a slot bare.
+      const primeroRecipe =
+        mealType === "comida"
+          ? poolById[slotAssignments.find((s) => s.slotId === `${daySlug}_comida_1`)?.recipeId]
+          : null;
+      const nonClashing = candidates.filter(
+        (g) =>
+          !garnishClashesWithMain(g, recipe) &&
+          (!primeroRecipe || !garnishClashesWithMain(g, primeroRecipe)),
+      );
+      if (nonClashing.length > 0) candidates = nonClashing;
+      // If the day already leans vegetable (veg primero or a veg side already
+      // placed), prefer a starch garnish so the comida stays balanced. Only
+      // narrow the pool when non-veg options exist — never leave a slot bare.
+      if (dayHasVeg[daySlug]) {
+        const nonVeg = candidates.filter((g) => !isVegGarnish(g));
+        if (nonVeg.length > 0) candidates = nonVeg;
+      } else if (dayHasStarchMain[daySlug]) {
+        // The day's main already carries a starch (e.g. arroz de primero); prefer
+        // a vegetable garnish so the comida isn't a double-carb bomb. Only narrow
+        // the pool when a veg option remains — never leave a slot bare.
+        const veg = candidates.filter((g) => isVegGarnish(g));
+        if (veg.length > 0) candidates = veg;
       }
       if (candidates.length > 0) {
         garnish = candidates[Math.floor(Math.random() * candidates.length)];
@@ -168,6 +290,8 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
       if (!dayUsedCarbs[daySlug]) dayUsedCarbs[daySlug] = new Set();
       dayUsedCarbs[daySlug].add(gCarb);
     }
+    // Register a veg side so the rest of the day avoids piling on more veg.
+    if (isVegGarnish(garnish)) dayHasVeg[daySlug] = true;
 
     return { ...slot, garnishId: garnish.id };
   });
