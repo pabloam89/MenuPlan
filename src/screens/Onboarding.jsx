@@ -121,6 +121,7 @@ import {
   slotKey,
 } from "../lib/planner.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
+import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 
 const PantryScreen = lazy(() =>
@@ -917,35 +918,28 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                           aria-label="Edad (opcional)"
                           style={{ width: 42, flexShrink: 0, height: 34, padding: "0 4px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 12, fontWeight: 700, textAlign: "center", color: "#3d6b4f", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
-                        <div style={{ flex: 1 }} />
                         {isEdit ? (
+                          // Editar: el ✓ "Listo" era redundante (tocar fuera cierra
+                          // y guarda), así que solo dejamos 🗑️. Un único botón, igual
+                          // que "Añadir", para que el input de nombre respire lo mismo.
                           <button
                             type="button"
-                            onClick={closePopup}
-                            aria-label="Listo"
-                            style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 9, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                            onClick={() => { const id = editing.id; closePopup(); removeMember(id); }}
+                            aria-label="Eliminar"
+                            title="Eliminar"
+                            style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 9, border: "1.5px solid #f3c6c6", background: "#fff5f5", color: "#c62828", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                           >
-                            <Check size={17} strokeWidth={3} />
+                            <Trash2 size={15} strokeWidth={2.3} />
                           </button>
                         ) : (
                           <button
                             type="button"
                             onClick={closePopup}
                             aria-label="Añadir"
-                            style={{ height: 34, flexShrink: 0, borderRadius: 9, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 6, padding: "0 14px" }}
+                            title="Añadir"
+                            style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 9, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
                           >
-                            <Plus size={15} strokeWidth={2.8} />
-                            <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: "-.1px" }}>Añadir</span>
-                          </button>
-                        )}
-                        {isEdit && (
-                          <button
-                            type="button"
-                            onClick={() => { const id = editing.id; closePopup(); removeMember(id); }}
-                            aria-label="Eliminar"
-                            style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 9, border: "1.5px solid #f3c6c6", background: "#fff5f5", color: "#c62828", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                          >
-                            <Trash2 size={15} strokeWidth={2.3} />
+                            <Plus size={17} strokeWidth={2.8} />
                           </button>
                         )}
                       </div>
@@ -1497,7 +1491,11 @@ const MEAL_ICON = { Desayuno: Coffee, Comida: Sun, Cena: Moon };
 // coral claramente más rojo que el dorado del mediodía para que no se confundan
 // dos cálidos vecinos. Comida y Cena coinciden con el MealGlyph del calendario
 // (Menu.jsx) para que la app hable un mismo idioma.
-const MEAL_TIME_COLOR = { Desayuno: "#e0654f", Comida: "#c9820a", Cena: "#5a7a9a" };
+// La cena es índigo y no el azul pizarra de antes: ese azul estaba a 6° de
+// matiz del "come fuera" de los horarios, así que la misma luna significaba la
+// hora en un sitio y el lugar en el de al lado. El índigo se va a 237°, lejos
+// tanto del teal de "fuera" como del verde de "en casa".
+const MEAL_TIME_COLOR = { Desayuno: "#e0654f", Comida: "#c9820a", Cena: "#5a5fc8" };
 export function mealTimeColor(meal) {
   return MEAL_TIME_COLOR[meal] ?? "#2d5a3d";
 }
@@ -3598,65 +3596,52 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
 
 // ─── Schedule (group + individual editing) ────────────────────
 
+// El comedor tiene tono propio y no una variante del azul de "come fuera":
+// para esta app son cosas distintas —el comedor trae menú conocido y condiciona
+// lo que se cocina en casa esa noche— y merece leerse de lejos.
+// El choque que tenía con el coral del desayuno (6° de matiz) ya no existe:
+// dentro de los carriles los glifos de franja horaria van en gris, así que el
+// único color de la rejilla es el del sitio donde se come.
 const SLOT_CONFIG = {
   casa:   { label: "En casa",     color: "#4cba6e" },
   tupper: { label: "Tupper",      color: "#c05c3a" },
-  fuera:  { label: "Come fuera",  color: "#3d6b8a" },
+  fuera:  { label: "Come fuera",  color: "#2e7d75" },
   cole:   { label: "Comedor",     color: "#c05c3a" },
 };
 
 const MIXED_COLOR = "#aaa";
 
-const QF_WEEKDAYS = DAYS.filter((d) => !["Sáb", "Dom"].includes(d));
-const QF_WEEKEND = DAYS.filter((d) => ["Sáb", "Dom"].includes(d));
-const QF_BLOCKS = [
-  { key: "weekday", label: "Entre semana", days: QF_WEEKDAYS },
-  { key: "weekend", label: "El finde", days: QF_WEEKEND },
-];
-
-/** Guess the quick-fill value for a block + meal from the current schedule. */
-function inferQuickFillValue(schedule, memberIds, members, days, meal) {
-  const values = [];
-  for (const day of days) {
-    for (const id of memberIds) {
-      const member = members.find((m) => m.id === id);
-      const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
-      let v = schedule[`${id}|${day}|${meal}`] ?? "casa";
-      if (!isKid && v === "cole") v = "casa";
-      values.push(v);
-    }
-  }
-  if (values.length === 0) return "casa";
-  if (values.every((v) => v === "cole")) return "cole";
-  if (values.every((v) => v === "fuera")) return "fuera";
-  return "casa";
-}
+// Verde de la banda de "en casa" en los carriles: tiene que leerse como verde
+// —de ahí que suba respecto al #e9f3ec de antes— pero quedarse por debajo de
+// las fichas de comedor y de fuera, que son las que deben saltar.
+const HOME_BAND = "#d9edde";
 
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset, autoplay = false, demoHeight = null }) {
   // Desayuno is optional (stored in data.extraMeals, not data.meals, so the AI
   // planner never treats it as a comida). But when it's on we DO want its row in
   // the "¿dónde coméis?" grid, so people can say who has breakfast at home.
-  const baseMeals = getMeals(data);
   const desayunoOn = Boolean(data.extraMeals?.desayuno && data.extraMeals.desayuno !== "off");
-  const meals = desayunoOn
-    ? ["Desayuno", ...baseMeals.filter((m) => m !== "Desayuno")]
-    : baseMeals;
+  const meals = useMemo(() => {
+    const base = getMeals(data);
+    return desayunoOn ? ["Desayuno", ...base.filter((m) => m !== "Desayuno")] : base;
+  }, [data, desayunoOn]);
   const memberList = useMemo(() => data.members ?? [], [data.members]);
   const [sheetSlot, setSheetSlot] = useState(null);
-  const [quickFillOpen, setQuickFillOpen] = useState(false);
-  // Quick-fill answers keyed by `${blockKey}|${meal}` (e.g. "weekday|Comida").
-  const [qf, setQf] = useState({});
-  // Which meal the quick-fill sheet is currently editing (Comida / Cena tab).
-  const [qfMeal, setQfMeal] = useState("Comida");
-  const [dayViewOpen, setDayViewOpen] = useState(false);
-  const [dayViewIdx, setDayViewIdx] = useState(0);
+  // Slots just written by a quick action, so the lanes can animate them in.
+  const [flashKeys, setFlashKeys] = useState(null);
   // Body scroll container (para el guion del carrusel: scroll DENTRO del body).
   const scheduleBodyRef = useRef(null);
 
   // Value-prop carousel demo (guionizado): el scroll ocurre DENTRO del body
   // (como una pantalla real), no paneando el frame → sin saltos raros.
-  // 1) a los 0,5s empieza el scroll down hasta abajo; 2) 0,5s tras llegar,
-  // abre "Ajustar"; 3) toca una opción; 4) sale y se ve el grid 1s. En bucle.
+  // 1) baja hasta las acciones rápidas; 2) toca «Al cole» y los carriles se
+  // rellenan solos; 3) lo desactiva y vuelve a empezar. En bucle.
+  //
+  // El guion vive en un effect que solo depende de `autoplay`, así que lee la
+  // acción y el toggle por ref para no congelar la primera versión.
+  const quickActionsRef = useRef([]);
+  const toggleQuickRef = useRef(null);
+  const quickGridRef = useRef(null);
   useEffect(() => {
     if (!autoplay) return undefined;
     let cancelled = false;
@@ -3687,32 +3672,36 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         };
         rafId = requestAnimationFrame(tick);
       });
+    const demoAction = () => {
+      const list = quickActionsRef.current;
+      return list.find((a) => a.id === "cole") ?? list[0] ?? null;
+    };
     const run = async () => {
       while (!cancelled) {
-        setQuickFillOpen(false);
-        setDayViewOpen(false);
         // Reinicio instantáneo al top (sin rebote animado hacia arriba).
         if (scheduleBodyRef.current) scheduleBodyRef.current.scrollTop = 0;
+        const start = demoAction();
+        if (start && start.status !== "off") toggleQuickRef.current?.(start);
         await wait(500); // 0,5s antes de empezar a bajar
         if (cancelled) return;
         const el = scheduleBodyRef.current;
-        const maxScroll = el ? el.scrollHeight - el.clientHeight : 0;
-        await smoothScroll(maxScroll, 1100); // scroll down hasta abajo
+        const grid = quickGridRef.current;
+        // Deja la rejilla de acciones justo bajo el borde superior: así se ve
+        // a la vez la tarjeta que se pulsa y los carriles que reacciona.
+        const target = grid && el
+          ? Math.min(grid.offsetTop - 12, el.scrollHeight - el.clientHeight)
+          : (el ? el.scrollHeight - el.clientHeight : 0);
+        await smoothScroll(target, 1000);
         if (cancelled) return;
-        await wait(500); // 0,5s tras llegar abajo
+        await wait(600);
         if (cancelled) return;
-        openQuickFill(); // entra en "Ajustar"
-        await wait(1300);
+        const on = demoAction();
+        if (on) toggleQuickRef.current?.(on); // enciende «Al cole»
+        await wait(2000); // se ve el relleno escalonado de los carriles
         if (cancelled) return;
-        // Toca una opción (¿dónde coméis entre semana? → Fuera).
-        setQf((prev) => ({
-          ...prev,
-          "weekday|Comida": prev["weekday|Comida"] === "fuera" ? "casa" : "fuera",
-        }));
-        await wait(1100);
-        if (cancelled) return;
-        setQuickFillOpen(false); // sale
-        await wait(1000); // se ve el grid 1s
+        const off = demoAction();
+        if (off) toggleQuickRef.current?.(off); // y lo apaga
+        await wait(900);
         if (cancelled) return;
       }
     };
@@ -3734,11 +3723,11 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   }, [data.menuWeekOffsets, data.menuWeek]);
   const sameForAllWeeks = data.menuScheduleSameForAllWeeks !== false;
   const [editingWeekOffset, setEditingWeekOffset] = useState(weekOffsets[0]);
-  useEffect(() => {
-    if (!weekOffsets.includes(editingWeekOffset)) setEditingWeekOffset(weekOffsets[0]);
-  }, [weekOffsets, editingWeekOffset]);
+  // Deselecting a week can leave this pointing at one that no longer exists;
+  // falling back while rendering avoids the extra render an effect would cost.
+  const editingWeek = weekOffsets.includes(editingWeekOffset) ? editingWeekOffset : weekOffsets[0];
   const baseOffset = weekOffsets[0];
-  const viewingOffset = sameForAllWeeks ? baseOffset : editingWeekOffset;
+  const viewingOffset = sameForAllWeeks ? baseOffset : editingWeek;
   const isEditingBaseWeek = viewingOffset === baseOffset;
 
   // Real calendar dates for the week being viewed — only the earliest
@@ -3751,6 +3740,22 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     }),
     [viewingOffset, baseOffset, data.menuWeek],
   );
+
+  // Solo hay algo que pasar si se han elegido varias semanas y cada una lleva
+  // su propia configuración.
+  const weekNav = useMemo(() => {
+    if (sameForAllWeeks || weekOffsets.length <= 1) return null;
+    const i = weekOffsets.indexOf(viewingOffset);
+    return {
+      index: i + 1,
+      total: weekOffsets.length,
+      label: formatWeekRangeLabel(weekDates, activeDays),
+      modified: viewingOffset !== weekOffsets[0]
+        && Boolean(data.menuWeekOverrides?.[viewingOffset]),
+      onPrev: i > 0 ? () => setEditingWeekOffset(weekOffsets[i - 1]) : null,
+      onNext: i < weekOffsets.length - 1 ? () => setEditingWeekOffset(weekOffsets[i + 1]) : null,
+    };
+  }, [sameForAllWeeks, weekOffsets, viewingOffset, weekDates, activeDays, data.menuWeekOverrides]);
 
   const effectiveSchedule = isEditingBaseWeek
     ? data.schedule
@@ -3797,50 +3802,82 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
     updateSchedule((prev) => ({ ...prev, [`${memberId}|${day}|${meal}`]: value }));
   };
 
-  const openCell = (day, meal) => {
-    if (subjectMemberIds.length === 0) return;
-    setSheetSlot({ day, meal });
+  // Lane view edits are binary: at home, or not. Which "not" gets stored is
+  // resolved per slot by outStateFor, so the comedor label only appears where
+  // a comedor could plausibly exist.
+  const toggleLaneSlot = (member, day, meal) => {
+    const cur = effectiveSchedule[`${member.id}|${day}|${meal}`];
+    const next = isHomeState(cur) ? outStateFor(member, day, meal, data.schoolMenus) : "casa";
+    setMemberSlot(member.id, day, meal, next);
   };
 
-  const applyQuickFill = () => {
+  // Tapping a lane's meal glyph is the "Leo come fuera, y ya está" gesture:
+  // families describe a weekly habit, not seven separate days.
+  const toggleLaneMemberMeal = (member, meal) => {
+    const anyHome = DAYS.some((day) =>
+      isHomeState(effectiveSchedule[`${member.id}|${day}|${meal}`])
+    );
     updateSchedule((prev) => {
       const next = { ...prev };
-      const dayMeals = getMeals(data);
-      for (const id of subjectMemberIds) {
-        const member = data.members.find((m) => m.id === id);
-        const isKid = member ? stageForAge(memberAge(member)).id !== "adulto" : false;
-        for (const block of QF_BLOCKS) {
-          for (const day of block.days) {
-            for (const meal of dayMeals) {
-              const chosen = qf[`${block.key}|${meal}`] ?? "casa";
-              const value = chosen === "cole" ? (isKid ? "cole" : "casa") : chosen;
-              next[`${id}|${day}|${meal}`] = value;
-            }
-          }
+      for (const day of DAYS) {
+        next[`${member.id}|${day}|${meal}`] = anyHome
+          ? outStateFor(member, day, meal, data.schoolMenus)
+          : "casa";
+      }
+      return next;
+    });
+  };
+
+  // Same idea on the column: one tap sends the whole family home for that day,
+  // or out if they already all were.
+  const toggleLaneDay = (day) => {
+    const anyHome = subjectMembers.some((m) =>
+      meals.some((meal) => isHomeState(effectiveSchedule[`${m.id}|${day}|${meal}`]))
+    );
+    updateSchedule((prev) => {
+      const next = { ...prev };
+      for (const m of subjectMembers) {
+        for (const meal of meals) {
+          next[`${m.id}|${day}|${meal}`] = anyHome
+            ? outStateFor(m, day, meal, data.schoolMenus)
+            : "casa";
         }
       }
       return next;
     });
-    setQuickFillOpen(false);
   };
 
-  const openQuickFill = () => {
-    const next = {};
-    for (const block of QF_BLOCKS) {
-      for (const meal of meals) {
-        next[`${block.key}|${meal}`] = inferQuickFillValue(
-          effectiveSchedule,
-          subjectMemberIds,
-          subjectMembers,
-          block.days,
-          meal
-        );
-      }
-    }
-    setQf(next);
-    setQfMeal(meals[0] ?? "Comida");
-    setQuickFillOpen(true);
+  const quickActions = useMemo(
+    () => resolveQuickActions(subjectMembers, meals, effectiveSchedule),
+    [subjectMembers, meals, effectiveSchedule],
+  );
+
+  // A card writes its own slots and nothing else, which is what makes it
+  // reversible: turning it off restores "casa" on exactly the slots it claimed,
+  // leaving anything you edited by hand elsewhere untouched. A half-applied
+  // card completes on the first tap and clears on the second.
+  const toggleQuickAction = (action) => {
+    const turningOn = action.status !== "on";
+    updateSchedule((prev) => {
+      const next = { ...prev };
+      for (const k of action.keys) next[k] = turningOn ? action.value : "casa";
+      return next;
+    });
+    setFlashKeys(new Set(action.keys));
   };
+
+  // El guion de la demo se monta una vez y vive fuera del render, así que lee
+  // la versión actual por ref en lugar de congelar la del primer montaje.
+  useEffect(() => {
+    quickActionsRef.current = quickActions;
+    toggleQuickRef.current = toggleQuickAction;
+  });
+
+  useEffect(() => {
+    if (!flashKeys) return undefined;
+    const id = setTimeout(() => setFlashKeys(null), 700);
+    return () => clearTimeout(id);
+  }, [flashKeys]);
 
   const toggleDayMeal = (meal) => {
     setData((d) => {
@@ -3871,11 +3908,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       </OnboardingShell>
     );
   }
-
-  const openDay = (day) => {
-    if (subjectMemberIds.length === 0) return;
-    setSheetSlot({ day, meal: mainMeal });
-  };
 
   return (
     <OnboardingShell
@@ -4008,285 +4040,33 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
 
       <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0 18px" }} />
       <style>{`
-        @keyframes qfSlideUp {
-          from { transform: translateY(100%); opacity: 0; }
-          to   { transform: translateY(0);    opacity: 1; }
-        }
-        @keyframes qfFadeIn {
-          from { opacity: 0; }
-          to   { opacity: 1; }
+        @keyframes laneFill {
+          0%   { transform: scale(.55); opacity: .15; }
+          65%  { transform: scale(1.1);  opacity: 1;   }
+          100% { transform: scale(1);    opacity: 1;   }
         }
       `}</style>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-        {/* Semana / Día toggle — alineado a la izquierda donde estaba "Tu semana" */}
-        <div style={{
-          display: "flex", background: "#f0f4f1", borderRadius: 10, padding: 3, gap: 2,
-        }}>
-          <button
-            type="button"
-            onClick={() => setDayViewOpen(false)}
-            style={{
-              padding: "4px 10px", borderRadius: 8, border: "none", fontSize: 11, fontWeight: 700,
-              background: !dayViewOpen ? "#fff" : "transparent",
-              color: !dayViewOpen ? "#1a3a24" : "#9ab0a1",
-              boxShadow: !dayViewOpen ? "0 1px 4px rgba(0,0,0,.1)" : "none",
-              cursor: "pointer", fontFamily: "inherit", transition: "all .15s ease",
-            }}
-          >
-            Semana
-          </button>
-          <button
-            type="button"
-            onClick={() => { setDayViewIdx(0); setDayViewOpen(true); }}
-            style={{
-              padding: "4px 10px", borderRadius: 8, border: "none", fontSize: 11, fontWeight: 700,
-              background: dayViewOpen ? "#2d5a3d" : "transparent",
-              color: dayViewOpen ? "#fff" : "#9ab0a1",
-              boxShadow: dayViewOpen ? "0 1px 4px rgba(45,90,61,.3)" : "none",
-              cursor: "pointer", fontFamily: "inherit", transition: "all .15s ease",
-            }}
-          >
-            Día
-          </button>
-        </div>
-        <button
-            type="button"
-            onClick={openQuickFill}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 7,
-              padding: "6px 12px 6px 7px",
-              borderRadius: 999,
-              border: "1.5px solid #d4e6da",
-              background: "#f0f7f2",
-              color: "#2d5a3d",
-              fontSize: 12,
-              fontWeight: 700,
-              cursor: "pointer",
-              fontFamily: "inherit",
-            }}
-          >
-            <span style={{
-              width: 22, height: 22, borderRadius: "50%",
-              background: "#2d5a3d",
-              display: "inline-flex", alignItems: "center", justifyContent: "center",
-              flexShrink: 0,
-            }}>
-              <Zap size={12} color="#fff" />
-            </span>
-            Ajustar
-          </button>
+      <div ref={quickGridRef}>
+        {quickActions.length > 0 && <SectionTitle>Acciones rápidas</SectionTitle>}
+        <QuickActionCards actions={quickActions} onToggle={toggleQuickAction} />
       </div>
 
-      {quickFillOpen && (
-        <div
-          onClick={() => setQuickFillOpen(false)}
-          style={{
-            position: "fixed", inset: 0,
-            background: "rgba(0,0,0,.45)",
-            zIndex: 200,
-            display: "flex", alignItems: "flex-end", justifyContent: "center",
-            animation: "qfFadeIn .2s ease-out",
-          }}
-        >
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              background: "#fff",
-              borderRadius: "22px 22px 0 0",
-              width: "100%", maxWidth: 420,
-              padding: "24px 20px calc(28px + env(safe-area-inset-bottom, 0px))",
-              animation: "qfSlideUp .28s cubic-bezier(.32,1,.28,1)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{
-                  width: 36, height: 36, borderRadius: "50%",
-                  background: "#1a3a24",
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Zap size={16} color="#fff" />
-                </span>
-                <h3 style={{ margin: 0, fontSize: 18, fontWeight: 800, color: "#1a3a24" }}>
-                  Semana de la familia
-                </h3>
-              </div>
-              <button
-                type="button" onClick={() => setQuickFillOpen(false)}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#aaa", padding: 4, display: "flex" }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <p style={{ fontSize: 13, color: "#999", margin: "0 0 22px", lineHeight: 1.5 }}>
-              Dinos dónde coméis en cada momento y rellenamos la semana entera de golpe. Luego puedes retocar días sueltos.
-            </p>
-
-            {meals.length > 1 && (
-              <div style={{ display: "flex", background: "#f0f4f1", borderRadius: 12, padding: 4, gap: 3, marginBottom: 20 }}>
-                {meals.map((meal) => {
-                  const active = qfMeal === meal;
-                  const MealIcon = meal === "Comida" ? Sun : Moon;
-                  return (
-                    <button
-                      key={meal}
-                      type="button"
-                      onClick={() => setQfMeal(meal)}
-                      style={{
-                        flex: 1,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 6,
-                        padding: "9px 8px",
-                        borderRadius: 9,
-                        border: "none",
-                        fontSize: 13,
-                        fontWeight: 800,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                        background: active ? "#2d5a3d" : "transparent",
-                        color: active ? "#fff" : "#9ab0a1",
-                        boxShadow: active ? "0 2px 8px rgba(45,90,61,.35)" : "none",
-                        transition: "all .15s ease",
-                      }}
-                    >
-                      <MealIcon size={14} color={active ? "#fff" : mealTimeColor(meal)} strokeWidth={2.4} />
-                      {meal}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
-            {QF_BLOCKS.map((block, i) => {
-              const isLunch = qfMeal === "Comida";
-              const qKey = `${block.key}|${qfMeal}`;
-              const verb = qfMeal === "Cena" ? "cenáis" : "coméis";
-              const blockText = block.key === "weekday" ? "entre semana" : "el finde";
-              const options = [
-                { value: "casa", icon: <House size={15} />, label: "En casa" },
-                ...(block.key === "weekday" && allowCole && isLunch
-                  ? [{ value: "cole", icon: <School size={15} />, label: "Al cole" }]
-                  : []),
-                { value: "fuera", icon: <UtensilsCrossed size={15} />, label: "Fuera" },
-              ];
-              return (
-                <div key={block.key} style={{ marginBottom: i === QF_BLOCKS.length - 1 ? 26 : 18 }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24", marginBottom: 10 }}>
-                    ¿Dónde {verb} {blockText}?
-                  </div>
-                  <QuickFillSegment
-                    value={qf[qKey] ?? "casa"}
-                    onChange={(v) => setQf((prev) => ({ ...prev, [qKey]: v }))}
-                    options={options}
-                  />
-                </div>
-              );
-            })}
-
-            <button
-              type="button"
-              onClick={applyQuickFill}
-              style={{
-                width: "100%",
-                background: "#1a3a24",
-                color: "#fff",
-                border: "none",
-                borderRadius: 14,
-                padding: "16px",
-                fontSize: 15,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              Aplicar a la semana
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* Multi-week menús with independent per-week schedules: pick which
-          week's "quién come dónde" you're looking at/editing. Hidden when
-          only one week is selected, or when "misma config para todas" is on. */}
-      {!sameForAllWeeks && weekOffsets.length > 1 && (
-        <>
-          <div style={{ height: 1, background: "#e6eee8", margin: "2px 0 14px" }} />
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 3,
-              background: "#f0f4f1",
-              borderRadius: 12,
-              padding: 3,
-              marginBottom: 14,
-            }}
-          >
-            {weekOffsets.map((offset) => {
-              const { dates: d, activeDays: ad } = getWeekDatesByMenuWeek({
-                offset,
-                startDayIdx: offset === baseOffset ? (data.menuWeek?.startDayIdx ?? 0) : 0,
-              });
-              const label = formatWeekRangeLabel(d, ad);
-              const hasOverride = offset !== baseOffset && Boolean(data.menuWeekOverrides?.[offset]);
-              const sel = offset === viewingOffset;
-              return (
-                <button
-                  key={offset}
-                  type="button"
-                  onClick={() => setEditingWeekOffset(offset)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 5,
-                    padding: "8px 4px",
-                    borderRadius: 9,
-                    border: "none",
-                    background: sel ? "#2d5a3d" : "transparent",
-                    color: sel ? "#fff" : "#5c6b60",
-                    fontSize: 12,
-                    fontWeight: 800,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    whiteSpace: "nowrap",
-                    boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
-                    transition: "all .15s ease",
-                  }}
-                >
-                  {label}
-                  {hasOverride && (
-                    <span style={{
-                      width: 6, height: 6, borderRadius: 999, flexShrink: 0,
-                      background: sel ? "#fff" : "#4cba6e",
-                    }} />
-                  )}
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      <ScheduleGrid
+      <ScheduleLanes
+        members={subjectMembers}
         meals={meals}
-        memberIds={subjectMemberIds}
         schedule={effectiveSchedule}
-        onCellClick={openCell}
-        onDayClick={openDay}
         activeDays={activeDays}
         dates={weekDates}
+        schoolMenus={data.schoolMenus}
+        flashKeys={flashKeys}
+        weekNav={weekNav}
+        onToggleSlot={toggleLaneSlot}
+        onToggleMemberMeal={toggleLaneMemberMeal}
+        onDayClick={toggleLaneDay}
       />
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 8, marginBottom: 12 }}>
-        <div style={{ padding: "8px 10px", borderRadius: 8, border: "1px solid #e3ebe6", background: "#fafcfb" }}>
-          <SheetIconLegend columns={sheetColumns(allowCole)} compact />
-        </div>
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 7, marginBottom: 12, paddingRight: 2 }}>
+        <SheetIconLegend columns={sheetColumns(allowCole)} compact tiny />
       </div>
 
       {/* "Aplicar la misma configuración a todas las semanas" toggle — only
@@ -4332,21 +4112,6 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         />
       )}
 
-      {dayViewOpen && (
-        <DayView
-          days={activeDays}
-          meals={meals}
-          members={memberList}
-          schedule={effectiveSchedule}
-          coleAllowedIds={new Set(memberList.filter((m) => stageForAge(memberAge(m)).id !== "adulto").map((m) => m.id))}
-          dayIdx={dayViewIdx}
-          onDayChange={setDayViewIdx}
-          onClose={() => setDayViewOpen(false)}
-          onSetMemberSlot={(memberId, day, meal, value) =>
-            setMemberSlot(memberId, day, meal, value)
-          }
-        />
-      )}
     </OnboardingShell>
   );
 }
@@ -4357,7 +4122,7 @@ function sheetColumns(showCole) {
   return showCole ? SLOT_COLUMNS : SLOT_COLUMNS.filter((s) => s !== "cole");
 }
 
-function SheetIconLegend({ columns, compact = false }) {
+function SheetIconLegend({ columns, compact = false, tiny = false }) {
   return (
     <div
       style={{
@@ -4377,12 +4142,12 @@ function SheetIconLegend({ columns, compact = false }) {
               display: "inline-flex",
               alignItems: "center",
               gap: 4,
-              fontSize: 10,
+              fontSize: tiny ? 9 : 10,
               fontWeight: 600,
-              color: "#666",
+              color: tiny ? "#8b9b91" : "#666",
             }}
           >
-            <span style={{ color: c, display: "inline-flex" }}>{stateIcon(s, 12)}</span>
+            <span style={{ color: c, display: "inline-flex" }}>{stateIcon(s, tiny ? 11 : 12)}</span>
             {SLOT_CONFIG[s].label}
           </span>
         );
@@ -5206,6 +4971,492 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick, act
   );
 }
 
+/**
+ * The 2x2 board of habits above the lanes.
+ *
+ * Each card carries the faces of the people it would actually move, so the rule
+ * reads as "these three, to the school canteen" rather than as an abstract
+ * setting — and a household with no children simply never sees that card.
+ */
+function QuickActionCards({ actions, onToggle }) {
+  const railRef = useRef(null);
+
+  // Abanico: las dos del centro rectas y las de los lados caídas hacia fuera.
+  // El transform se escribe directamente en el DOM en cada frame de scroll —
+  // pasarlo por estado repintaría cuatro tarjetas con ilustración sesenta veces
+  // por segundo para animar tres grados.
+  useLayoutEffect(() => {
+    const rail = railRef.current;
+    if (!rail) return undefined;
+    let raf = 0;
+    const paint = () => {
+      raf = 0;
+      const cards = [...rail.children];
+      const mid = rail.scrollLeft + rail.clientWidth / 2;
+      // Distancia al eje en anchos de tarjeta, con signo.
+      const dist = cards.map((el) => (el.offsetLeft + el.offsetWidth / 2 - mid) / el.offsetWidth);
+      // Las dos más cercanas al eje quedan rectas, y el resto cae en
+      // proporción. Por ranking y no por un umbral fijo: así sigue saliendo
+      // una pareja recta con tres tarjetas, o si cambia el ancho del móvil.
+      const dead = [...dist].map(Math.abs).sort((a, b) => a - b)[1] ?? 0;
+      cards.forEach((el, i) => {
+        const d = dist[i];
+        const t = Math.sign(d) * Math.min(1.2, Math.max(0, Math.abs(d) - dead));
+        el.style.transform =
+          `translateY(${Math.abs(t) * 10}px) rotate(${t * 5}deg) scale(${1 - Math.abs(t) * 0.05})`;
+        // Las centrales por delante de las caídas. Nunca negativo: un z-index
+        // por debajo de cero las mete detrás del fondo del panel y desaparecen.
+        el.style.zIndex = t === 0 ? "2" : "1";
+      });
+    };
+    const onScroll = () => { if (!raf) raf = requestAnimationFrame(paint); };
+    // Arranca centrado en las dos del medio, que es donde vive el abanico.
+    rail.scrollLeft = (rail.scrollWidth - rail.clientWidth) / 2;
+    paint();
+    // Las ilustraciones pueden cambiar el layout al cargar, así que se repinta
+    // en el siguiente frame y ante cualquier reflow del carril.
+    const raf2 = requestAnimationFrame(paint);
+    const ro = new ResizeObserver(onScroll);
+    ro.observe(rail);
+    rail.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      rail.removeEventListener("scroll", onScroll);
+      ro.disconnect();
+      cancelAnimationFrame(raf);
+      cancelAnimationFrame(raf2);
+    };
+  }, [actions.length]);
+
+  if (actions.length === 0) return null;
+  return (
+    <div
+      ref={railRef}
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+        overflowX: "auto",
+        // Sin scroll-snap: engancharía UNA tarjeta al eje y rompería la pareja
+        // central que sostiene el abanico.
+        // Sangra hasta el borde de la pantalla (el shell mete 20px) para que las
+        // tarjetas de los lados asomen de verdad y se lea como carrusel.
+        marginInline: -20,
+        paddingInline: 20,
+        // Hueco para la caída y la sombra de las inclinadas.
+        paddingBottom: 12,
+        marginBottom: 8,
+        scrollbarWidth: "none",
+      }}
+    >
+      {actions.map((a) => {
+        const on = a.status === "on";
+        const partial = a.status === "partial";
+        const accent = SLOT_CONFIG[a.value]?.color ?? SLOT_CONFIG.fuera.color;
+        return (
+          <button
+            key={a.id}
+            type="button"
+            onClick={() => onToggle(a)}
+            aria-pressed={on}
+            title={`${a.label} — ${a.faces.map((f) => f.name).join(", ")}`}
+            style={{
+              position: "relative",
+              // Dos protagonistas en el centro y las vecinas asomando por los
+              // lados: se ve que hay más sin abrir un scroll invisible.
+              flex: "0 0 40%",
+              transformOrigin: "center top",
+              display: "block",
+              padding: 0,
+              overflow: "hidden",
+              textAlign: "left",
+              borderRadius: 16,
+              background: "#fff",
+              border: `2px solid ${on ? accent : partial ? "#cfe0d5" : "#e8efe9"}`,
+              borderStyle: partial ? "dashed" : "solid",
+              boxShadow: on ? `0 4px 14px ${accent}33` : "0 1px 3px rgba(0,0,0,.05)",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "border-color .16s ease, box-shadow .16s ease",
+            }}
+          >
+            <div style={{ position: "relative", height: 84, background: "#fdfcfa" }}>
+              <img
+                src={a.img}
+                alt=""
+                style={{
+                  width: "100%", height: "100%", objectFit: "cover", objectPosition: a.focus,
+                  display: "block",
+                  // Off cards stay legible but visibly dormant, so the board
+                  // reads as a set of switches rather than four illustrations.
+                  filter: on ? "none" : "saturate(.55) opacity(.72)",
+                  transition: "filter .16s ease",
+                }}
+              />
+              <div style={{ position: "absolute", left: 6, top: 6, display: "flex" }}>
+                {a.faces.slice(0, 2).map((f, i) => (
+                  <span
+                    key={f.id}
+                    style={{
+                      marginLeft: i === 0 ? 0 : -7,
+                      display: "inline-flex", borderRadius: "50%",
+                      border: "2px solid #fff", background: "#fff",
+                    }}
+                  >
+                    <Avatar name={f.name} photo={f.src} size={18} color={f.color} />
+                  </span>
+                ))}
+                {a.faces.length > 2 && (
+                  <span
+                    style={{
+                      marginLeft: -7, width: 20, height: 20, borderRadius: "50%",
+                      background: "#2d5a3d", color: "#fff", border: "2px solid #fff",
+                      fontSize: 8.5, fontWeight: 800,
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    }}
+                  >
+                    +{a.faces.length - 2}
+                  </span>
+                )}
+              </div>
+              {on && (
+                <span
+                  style={{
+                    position: "absolute", top: 6, right: 6,
+                    width: 19, height: 19, borderRadius: "50%",
+                    background: accent, border: "2px solid #fff",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <Check size={10} color="#fff" strokeWidth={3.5} />
+                </span>
+              )}
+            </div>
+            <div style={{ padding: "6px 8px 7px" }}>
+              <div
+                style={{
+                  fontSize: 10, fontWeight: 800, lineHeight: 1.3,
+                  color: on ? accent : "#1a3a24",
+                }}
+              >
+                {a.label}
+              </div>
+              {partial && (
+                <div style={{ fontSize: 9, fontWeight: 700, color: "#9ab0a1", marginTop: 2 }}>
+                  A medias · toca para completar
+                </div>
+              )}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/**
+ * The week, transposed: one lane per person instead of one cell per slot.
+ *
+ * The classic grid collapses the household into a consensus per slot and gives
+ * up ("Mix") the moment people diverge — so the one thing this step is actually
+ * asking, *who* eats at home, is the one thing it can't show. Seven columns on
+ * a phone leave ~40px each, which is why: a face never fits. Putting people on
+ * the rows fixes that, and the meals become two thin bars inside each day
+ * rather than a mode you have to toggle between.
+ *
+ * Editing is binary — at home or not — because the planner never distinguished
+ * `cole` from `fuera` anyway; the stored label is resolved by `outStateFor`.
+ */
+/**
+ * Paso de semana en miniatura para la esquina de la cabecera de los carriles.
+ * Sustituye a la botonera de rangos a todo lo ancho: dentro de una tabla que ya
+ * pide siete columnas, saber en cuál de las semanas estás es una nota al pie,
+ * no un control principal. El rango de fechas se conserva en el `title`.
+ */
+function WeekStepper({ index, total, label, modified, onPrev, onNext }) {
+  const step = (Icon, onClick) => (
+    <button
+      type="button"
+      onClick={onClick ?? undefined}
+      disabled={!onClick}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 13, height: 13, padding: 0, border: "none", borderRadius: 999,
+        background: "none", color: onClick ? "#5c6b60" : "#cbd8cf",
+        cursor: onClick ? "pointer" : "default", fontFamily: "inherit",
+      }}
+    >
+      <Icon size={11} strokeWidth={2.6} />
+    </button>
+  );
+  return (
+    <span
+      title={label}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 1,
+        background: "#f0f4f1", borderRadius: 999, padding: "2px 3px",
+      }}
+    >
+      {step(ChevronLeft, onPrev)}
+      <span style={{ fontSize: 8.5, fontWeight: 800, color: "#5c6b60", whiteSpace: "nowrap" }}>
+        {index} de {total}
+      </span>
+      {/* La botonera anterior marcaba de un vistazo qué semanas tenían horario
+          propio. Con un paso solo se puede decir de la actual, pero perder eso
+          del todo dejaría al usuario editando una semana retocada sin saberlo. */}
+      {modified && (
+        <span style={{ width: 4, height: 4, borderRadius: 999, background: "#4cba6e", flexShrink: 0 }} />
+      )}
+      {step(ChevronRight, onNext)}
+    </span>
+  );
+}
+
+function ScheduleLanes({
+  members,
+  meals,
+  schedule,
+  activeDays,
+  dates,
+  schoolMenus,
+  flashKeys,
+  weekNav,
+  onToggleSlot,
+  onToggleMemberMeal,
+  onDayClick,
+}) {
+  const mealGlyph = (meal, size = 11) =>
+    meal === "Desayuno" ? <Coffee size={size} strokeWidth={2.6} /> :
+    meal === "Comida"   ? <Sun size={size} strokeWidth={2.6} />    :
+                          <Moon size={size} strokeWidth={2.6} />;
+
+  // Nombre bajo la cara en vez de al lado: el carril gana 34px de ancho, que es
+  // media columna de día, y los nombres largos dejan de recortarse.
+  //
+  // Los siete días no son columnas de esta rejilla sino una rejilla anidada
+  // dentro de la tercera columna. Es lo que permite dibujar la banda de "en
+  // casa" como una superficie continua por debajo: si los días fueran columnas
+  // hermanas, los 3px de separación partirían el verde en siete trozos. La
+  // cabecera usa la misma anidación para que día y celda sigan alineados.
+  const gridCols = "48px 18px minmax(0, 1fr)";
+  const dayCols = "repeat(7, minmax(0, 1fr))";
+
+  // Qué columna es hoy. La semana en curso arranca en el día de hoy, así que
+  // sin marcarlo el salto entre los días apagados y los vivos parece un error
+  // de pintado en vez del punto donde empieza lo que aún puedes decidir.
+  const todayKey = useMemo(() => {
+    if (!dates) return null;
+    const now = new Date();
+    return DAYS.find((d) => {
+      const dt = dates[d];
+      return dt
+        && dt.getFullYear() === now.getFullYear()
+        && dt.getMonth() === now.getMonth()
+        && dt.getDate() === now.getDate();
+    }) ?? null;
+  }, [dates]);
+
+  return (
+    <div style={{ background: "#fff", border: "1px solid #e8efe9", borderRadius: 18, padding: "10px 10px 6px" }}>
+      {/* Day header */}
+      <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 3, marginBottom: 9 }}>
+        {/* La esquina de la cabecera estaba vacía y es justo donde el ojo
+            empieza a leer la tabla, así que ahí vive el paso de semana. Ocupa
+            las dos columnas del carril (nombre + franja) porque en 48px no
+            caben las flechas. */}
+        <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "center" }}>
+          {weekNav && <WeekStepper {...weekNav} />}
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: dayCols }}>
+        {DAYS.map((d) => {
+          const wknd = d === "Sáb" || d === "Dom";
+          return (
+            <button
+              key={d}
+              type="button"
+              onClick={onDayClick ? () => onDayClick(d) : undefined}
+              title={onDayClick ? `Igualar todo el ${d}` : undefined}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 1,
+                background: "none", border: "none", padding: "0 0 2px", cursor: onDayClick ? "pointer" : "default",
+                fontFamily: "inherit",
+                opacity: activeDays.includes(d) ? 1 : 0.38,
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 9.5, fontWeight: 800, letterSpacing: .2,
+                  color: wknd ? "#2d5a3d" : "#7d8f84",
+                }}
+              >
+                {d.slice(0, 2)}
+              </span>
+              {dates && (
+                <span
+                  style={{
+                    minWidth: 19, height: 19, borderRadius: 999,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    // El número era más claro que el nombre del día y la
+                    // cabecera entera se leía como una marca de agua. Manda el
+                    // número, que es lo que la gente busca para situarse.
+                    background: d === todayKey ? "#2d5a3d" : "transparent",
+                    color: d === todayKey ? "#fff" : "#1a3a24",
+                    fontSize: 11.5, fontWeight: 800,
+                  }}
+                >
+                  {calendarDayNumber(d, dates)}
+                </span>
+              )}
+            </button>
+          );
+        })}
+        </div>
+      </div>
+
+      {members.map((m, mi) => {
+        const color = memberAvatarColor(m.id, members);
+        const firstName = (m.name ?? "").trim().split(/\s+/)[0] || m.name;
+        return (
+          <div
+            key={m.id}
+            style={{
+              display: "grid",
+              gridTemplateColumns: gridCols,
+              gap: 3,
+              alignItems: "center",
+              padding: "6px 0",
+              borderTop: mi === 0 ? "none" : "1px solid #f0f5f2",
+            }}
+          >
+            {/* Lane header spans this member's meal sub-rows */}
+            <div
+              style={{
+                gridRow: `span ${meals.length}`,
+                display: "flex", flexDirection: "column", alignItems: "center",
+                gap: 2, minWidth: 0,
+              }}
+            >
+              <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={30} color={color} />
+              <span
+                style={{
+                  fontSize: 9.5, fontWeight: 800, color: "#1a3a24", maxWidth: "100%",
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}
+              >
+                {firstName}
+              </span>
+            </div>
+
+            {meals.map((meal) => (
+              <Fragment key={meal}>
+                <button
+                  type="button"
+                  onClick={() => onToggleMemberMeal(m, meal)}
+                  title={`${meal} de ${firstName} — toda la semana`}
+                  style={{
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    background: "none", border: "none", padding: 0, cursor: "pointer",
+                    color: mealTimeColor(meal),
+                  }}
+                >
+                  {mealGlyph(meal)}
+                </button>
+                <div style={{ position: "relative" }}>
+                  {/* La casa no se dibuja celda a celda: es el campo sobre el
+                      que ocurre todo lo demás. Antes era el hueco entre
+                      excepciones y una semana normal —casi todo el mundo come
+                      en casa casi siempre— se veía como una tabla a medio
+                      rellenar en vez de como una semana resuelta. Los días ya
+                      pasados atenúan su tramo, por eso son siete y no uno. */}
+                  <div
+                    style={{
+                      position: "absolute", inset: 0, display: "grid",
+                      gridTemplateColumns: dayCols, borderRadius: 7, overflow: "hidden",
+                    }}
+                  >
+                    {DAYS.map((day, di) => (
+                      <div
+                        key={day}
+                        style={{
+                          background: HOME_BAND,
+                          opacity: activeDays.includes(day) ? 1 : 0.35,
+                          // Una línea de nada en cada frontera. La banda seguida
+                          // resolvía el vacío pero se leía como un fondo, no como
+                          // algo que se toca; los cortes devuelven la idea de
+                          // siete casillas sin volver a partir el verde.
+                          borderRight: di === DAYS.length - 1
+                            ? "none"
+                            : "1px solid rgba(45,90,61,.09)",
+                        }}
+                      />
+                    ))}
+                  </div>
+                  <div style={{ position: "relative", display: "grid", gridTemplateColumns: dayCols }}>
+                    {DAYS.map((day, di) => {
+                      const key = `${m.id}|${day}|${meal}`;
+                      const raw = schedule[key] ?? "casa";
+                      const home = isHomeState(raw);
+                      const out = home ? outStateFor(m, day, meal, schoolMenus) : raw;
+                      const c = SLOT_CONFIG[out]?.color ?? SLOT_CONFIG.fuera.color;
+                      const dayActive = activeDays.includes(day);
+                      // Cells written by a quick action pop in one after
+                      // another, so tapping a card reads as cause and effect
+                      // instead of the grid silently changing under you.
+                      const flash = flashKeys?.has(key);
+                      return (
+                        <button
+                          key={day}
+                          type="button"
+                          onClick={() => onToggleSlot(m, day, meal)}
+                          title={`${firstName} · ${meal} ${day} — ${home ? "en casa" : SLOT_CONFIG[out]?.label}`}
+                          aria-pressed={home}
+                          style={{
+                            height: 22,
+                            // Los 1.5px dejan asomar la banda alrededor de cada
+                            // ficha: es lo que hace que se lea como algo puesto
+                            // encima del verde y no como un trozo que falta.
+                            margin: "0 1.5px",
+                            borderRadius: 7,
+                            border: "none",
+                            padding: 0,
+                            cursor: "pointer",
+                            background: home ? "transparent" : c,
+                            color: "#fff",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            opacity: dayActive ? 1 : 0.35,
+                            transition: "background .14s ease",
+                            animation: flash ? "laneFill .34s ease-out both" : "none",
+                            animationDelay: flash ? `${di * 45}ms` : undefined,
+                          }}
+                        >
+                          {!home && stateIcon(out, 11)}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </Fragment>
+            ))}
+          </div>
+        );
+      })}
+
+      {/* Con las tarjetas de acciones rápidas arriba, la rejilla se lee como el
+          resultado de lo que pulsas ahí y no como algo editable por su cuenta.
+          Los cortes de la banda insinúan las casillas; esto lo dice. */}
+      <div
+        style={{
+          paddingTop: 7, textAlign: "center",
+          fontSize: 9.5, fontWeight: 600, fontStyle: "italic", color: "#9ab0a1",
+        }}
+      >
+        Toca una casilla para cambiar un día suelto
+      </div>
+    </div>
+  );
+}
+
 // ─── School menu ───────────────────────────────────────────────
 
 // Value-prop carousel only (see `demoScript` below) — a plausible comedor
@@ -5297,8 +5548,18 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     ? AI_PARSE_MESSAGES[Math.floor(aiParseElapsed / 3) % AI_PARSE_MESSAGES.length]
     : importStatus;
 
-  // Auto-set schedule to "cole" for school days when a menu is uploaded
+  // Auto-set schedule to "cole" for school days when a menu is uploaded.
+  //
+  // Only on an actual *change* to the menu, never on mount: the schedule step
+  // lets you say "el martes se lo salta y come en casa", and this effect would
+  // otherwise stomp that back to "cole" every time you walked back through this
+  // screen. Re-uploading a menu still re-claims the days, which is what someone
+  // changing their menu means.
+  const lastSyncedMenus = useRef(null);
   useEffect(() => {
+    const prev = lastSyncedMenus.current;
+    lastSyncedMenus.current = data.schoolMenus;
+    if (prev === null) return;
     setData((d) => {
       const sm = d.schoolMenus ?? {};
       const schedule = { ...d.schedule };

@@ -294,10 +294,13 @@ const SCHOOL_DEMO_MEMBERS = [
 // Steps "Cuándo coméis" / "Cómo coméis" — reusan un hogar de 2 adultos + 1 niño.
 // Horario realista: entre semana Leo come en el cole y Pablo come fuera; todos
 // cenan en casa; el finde, comida en casa. Así la rejilla muestra casa/cole/fuera.
+// Mismos personajes que en la slide de familia: los carriles muestran la cara
+// de cada uno, y sin avatarKey salían con iniciales justo después de haber
+// prometido que eliges personaje.
 const HOME_DEMO_MEMBERS = [
-  mkMember({ id: "vp-h-pablo", name: "Pablo", age: 38, homeRole: "Adulto" }),
-  mkMember({ id: "vp-h-ana", name: "Ana", age: 36, homeRole: "Adulto" }),
-  mkMember({ id: "vp-h-leo", name: "Leo", age: 8, homeRole: "Hijo/a" }),
+  mkMember({ id: "vp-h-pablo", name: "Pablo", age: 38, homeRole: "Papá", profileKey: "papa", avatarKey: "papa_4" }),
+  mkMember({ id: "vp-h-ana", name: "Ana", age: 36, homeRole: "Mamá", profileKey: "mama", avatarKey: "mama_5" }),
+  mkMember({ id: "vp-h-leo", name: "Leo", age: 8, homeRole: "Hijo/a", profileKey: "hijo", avatarKey: "hijo_2" }),
 ];
 const HOME_DEMO_GROUP = {
   id: "vp-h-g1",

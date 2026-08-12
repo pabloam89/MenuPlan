@@ -2659,8 +2659,9 @@ function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 32 })
 
 /** Small sun/moon badge that labels each meal row of the grid. */
 function MealGlyph({ isLunch, size = 22 }) {
-  const color = isLunch ? "#c9820a" : "#5a7a9a";
-  const bg = isLunch ? "#fdf4e3" : "#eef3f7";
+  // Mismos tonos que MEAL_TIME_COLOR en Onboarding.jsx.
+  const color = isLunch ? "#c9820a" : "#5a5fc8";
+  const bg = isLunch ? "#fdf4e3" : "#eff0fb";
   const Icon = isLunch ? Sun : Moon;
   return (
     <span
