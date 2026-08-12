@@ -5,17 +5,17 @@ import {
   Leaf,
   Sparkles,
   BookOpen,
-  ClipboardList,
   UserRound,
   Plus,
   Heart,
   ChefHat,
-  SlidersHorizontal,
+  Users,
   Menu as MenuIcon,
-  ListFilter,
   UtensilsCrossed,
+  MoreVertical,
+  RotateCw,
+  Ban,
   ShoppingCart,
-  BarChart3,
   ArrowRight,
   Share2,
   Receipt,
@@ -102,36 +102,57 @@ export const RECIPES_COACH_STEPS = [
     desc: "Las que tú creas: edítalas, bórralas y, si quieres, compártelas para que otras familias también las vean.",
     place: "below",
   },
+  {
+    selector: '[data-coach="recipes-tab-discarded"]',
+    Icon: Ban,
+    title: "Descartados",
+    desc: "Los platos que has descartado «para siempre» desde el menú. Aquí puedes recuperarlos cuando quieras.",
+    place: "below",
+  },
 ];
 
-// Tu menú screen: profile, filters, day/week toggle, a dish, + nav (shopping…).
+// Tu menú screen: views, who-it's-for filter, a dish, + nav (shopping…).
+// "Tu perfil" has no step of its own: it moved inside the ☰ sidebar, which is
+// closed on arrival, so a spotlight would have nothing to point at. The
+// menu-options step below names it among everything that burger holds.
 export const MENU_COACH_STEPS = [
-  {
-    selector: '[data-coach="menu-profile"]',
-    Icon: SlidersHorizontal,
-    title: "Tu perfil",
-    desc: "Ajusta al vuelo cómo coméis —platos, estilo, raciones— sin tener que rehacer el menú entero.",
-    place: "below",
-  },
-  {
-    selector: '[data-coach="menu-filters"]',
-    Icon: ListFilter,
-    title: "Filtros y personas",
-    desc: "Despliega para ver el menú de cada persona o grupo, o ciérralo para ver más de un vistazo.",
-    place: "below",
-  },
   {
     selector: '[data-coach="menu-viewmode"]',
     Icon: CalendarDays,
     title: "Día o semana",
-    desc: "Cambia entre lo que toca hoy y la vista de la semana completa.",
+    desc: "Cambia entre lo que toca hoy y la semana completa.",
+    place: "below",
+  },
+  {
+    // The circle of faces that opens the scope picker (only when the family
+    // eats from more than one menú — otherwise there's nothing to filter).
+    selector: '[data-coach="menu-filters"]',
+    Icon: Users,
+    title: "El menú de cada uno",
+    desc: "Toca las caras de tu familia para ver solo el menú de un grupo o de una persona. Y en cada plato, las caras de arriba te dicen quién lo come.",
     place: "below",
   },
   {
     selector: '[data-coach="menu-dish"]',
     Icon: UtensilsCrossed,
     title: "Cada plato",
-    desc: "Toca cualquier plato para ver ingredientes, los pasos adaptados a tu cocina y cambiarlo si no os convence.",
+    desc: "Toca cualquier plato para ver sus ingredientes, los pasos adaptados a tu cocina, sus valores y marcarlo como cocinado.",
+    place: "below",
+  },
+  {
+    // The 3-dots button on every tile → quick actions popover.
+    selector: '[data-coach="menu-actions"]',
+    Icon: MoreVertical,
+    title: "Acciones rápidas",
+    desc: "En los tres puntos de cada plato: muévelo a otro día, regenéralo, elígelo a mano, duplícalo o quítalo. El menú es tuyo.",
+    place: "below",
+  },
+  {
+    // Per-day regenerate control in each day header (scoped by menú if varios).
+    selector: '[data-coach="menu-day-regen"]',
+    Icon: RotateCw,
+    title: "Regenerar un día",
+    desc: "¿No os convence un día entero? Regenéralo de golpe. Con varios menús, eliges para quién.",
     place: "below",
   },
   {
@@ -142,20 +163,12 @@ export const MENU_COACH_STEPS = [
     place: "above",
   },
   {
-    // "Análisis" and "Menús" moved off the bottom nav onto these two header
-    // icons — Análisis (Cocina/Objetivos) and Menús (histórico) both belong
-    // conceptually to "Tu menú", not to a 5th permanent tab slot.
-    selector: '[data-coach="menu-analytics"]',
-    Icon: BarChart3,
-    title: "Análisis",
-    desc: "Consulta el equilibrio nutricional y la variedad de vuestra semana.",
-    place: "below",
-  },
-  {
-    selector: '[data-coach="menu-menus"]',
-    Icon: ClipboardList,
-    title: "Menús",
-    desc: "Consulta tu menú actual y todo el histórico de menús que has ido generando.",
+    // Everything that used to be separate header icons now lives inside this
+    // burger: Análisis, Menús guardados, Perfil, Compartir, PDF y Regenerar.
+    selector: '[data-coach="menu-options"]',
+    Icon: MenuIcon,
+    title: "Opciones de tu menú",
+    desc: "Aquí dentro tienes el análisis nutricional, tus menús guardados, tu perfil, compartir, descargar en PDF y regenerar el menú entero.",
     place: "below",
   },
 ];
@@ -519,29 +532,80 @@ export function HomeCoachTour({ onClose }) {
   return <CoachTour steps={HOME_COACH_STEPS} onClose={onClose} />;
 }
 
+// Drop steps whose target isn't currently in the DOM so the spotlight never
+// lands on an empty selector (e.g. no dishes yet → no 3-dots / day-regen).
+function presentSteps(steps) {
+  if (typeof document === "undefined") return steps;
+  return steps.filter((s) => document.querySelector(s.selector));
+}
+
+/**
+ * Resolves which steps to run, once the screen has actually painted.
+ *
+ * Filtering on the first render is a race we mostly lose: App mounts the tour
+ * as soon as the screen flag flips, while the screen itself is lazy-loaded, so
+ * every selector but the always-mounted BottomNav looks missing and the tour
+ * collapses to a single step. `grace` is how long to keep re-checking before
+ * settling for whatever is on screen; it resolves early as soon as every step
+ * is found. On-demand tours pass 0 — their screen is already up.
+ */
+function useResolvedSteps(steps, grace) {
+  const [resolved, setResolved] = useState(() => {
+    const now = presentSteps(steps);
+    return now.length === steps.length ? now : null;
+  });
+
+  useEffect(() => {
+    if (resolved) return undefined;
+    const startedAt = Date.now();
+    const id = setInterval(() => {
+      const now = presentSteps(steps);
+      if (now.length === steps.length || Date.now() - startedAt >= grace) {
+        clearInterval(id);
+        setResolved(now);
+      }
+    }, 120);
+    return () => clearInterval(id);
+  }, [steps, resolved, grace]);
+
+  return resolved;
+}
+
+function ResolvingCoachTour({ steps, grace, onClose }) {
+  const resolved = useResolvedSteps(steps, grace);
+  const empty = resolved?.length === 0;
+
+  // Closing is a parent state change, so it can't happen during render.
+  useEffect(() => {
+    if (empty) onClose();
+  }, [empty, onClose]);
+
+  if (!resolved || empty) return null;
+  return <CoachTour steps={resolved} onClose={onClose} />;
+}
+
+// 1.8s covers a cold lazy-load of the screen without leaving a first-time user
+// staring at an undimmed page wondering whether anything is coming.
+const SCREEN_LOAD_GRACE = 1800;
+
 export function RecipesCoachTour({ onClose }) {
-  return <CoachTour steps={RECIPES_COACH_STEPS} onClose={onClose} />;
+  return <ResolvingCoachTour steps={RECIPES_COACH_STEPS} grace={SCREEN_LOAD_GRACE} onClose={onClose} />;
 }
 
 export function MenuCoachTour({ onClose }) {
-  return <CoachTour steps={MENU_COACH_STEPS} onClose={onClose} />;
+  return <ResolvingCoachTour steps={MENU_COACH_STEPS} grace={SCREEN_LOAD_GRACE} onClose={onClose} />;
 }
 
 export function ShoppingCoachTour({ onClose }) {
-  return <CoachTour steps={SHOPPING_COACH_STEPS} onClose={onClose} />;
+  // "Añadir" only exists while the list is empty, and the per-row actions only
+  // once a row is swiped open — without filtering, those steps dimmed the whole
+  // screen with nothing lit up.
+  return <ResolvingCoachTour steps={SHOPPING_COACH_STEPS} grace={0} onClose={onClose} />;
 }
 
 export function PantryCoachTour({ onClose }) {
-  // Drop steps whose target isn't on screen (receipt/settings are conditional)
-  // so the spotlight never lands on an empty selector.
-  const steps = PANTRY_COACH_STEPS.filter(
-    (s) => typeof document !== "undefined" && document.querySelector(s.selector),
-  );
-  if (steps.length === 0) {
-    onClose();
-    return null;
-  }
-  return <CoachTour steps={steps} onClose={onClose} />;
+  // Receipt/settings targets are conditional, so some steps may be absent.
+  return <ResolvingCoachTour steps={PANTRY_COACH_STEPS} grace={0} onClose={onClose} />;
 }
 
 // Round help button that (re)launches a screen's spotlight tour on demand —

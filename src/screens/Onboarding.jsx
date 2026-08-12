@@ -33,6 +33,7 @@ import {
   Layers2,
   Loader2,
   Minus,
+  Pencil,
   Plus,
   School,
   Leaf,
@@ -75,14 +76,18 @@ import {
   AvatarStack,
   ProgressDots,
   GroupScopePicker,
+  ScopeCircle,
   ScopeCirclePicker,
+  GroupAvatarStack,
+  groupAvatarFaces,
   ToggleSwitch,
+  WizardSheet,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
+import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
 import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
@@ -102,6 +107,7 @@ import {
   memberIsBaby,
   membersOfGroup,
   migrateGroupsForBabies,
+  reconcileTierGroups,
   resolveMemberAge,
   uid,
 } from "../lib/groups.js";
@@ -133,6 +139,13 @@ function normalizeTextValue(input) {
   return (input ?? "").trim().replace(/\s+/g, " ");
 }
 
+const FAMILY_ROLES_SET = new Set(["papa", "mama", "hijo", "hija", "bebe", "abuelo", "abuela"]);
+function isFamilyGroup(members) {
+  return members.some((m) =>
+    FAMILY_ROLES_SET.has(migrateHomeRole(m.homeRole ?? suggestHomeRole(memberAge(m))))
+  );
+}
+
 function titleCase(input) {
   const text = normalizeTextValue(input);
   if (!text) return "";
@@ -162,6 +175,8 @@ export function OnboardingShell({
   nextDisabled = false,
   finishDisabled = false,
   bg = "#f5f9f6",
+  bodyRef = null,
+  heightOverride = null,
 }) {
   const progress = useContext(OnboardingProgressContext);
   const headerBtn = {
@@ -182,7 +197,9 @@ export function OnboardingShell({
     <div
       style={{
         padding: "12px 20px 0",
-        height: "100dvh",
+        // En demo (carrusel) fijamos la altura al frame para que el scroll ocurra
+        // DENTRO del body (como una pantalla real) y no haya saltos raros.
+        height: heightOverride ?? "100dvh",
         boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
@@ -234,6 +251,7 @@ export function OnboardingShell({
       )}
 
       <div
+        ref={bodyRef}
         style={{
           flex: 1,
           minHeight: 0,
@@ -370,6 +388,17 @@ const FAMILY_PROFILES = [
 
 const profileByKey = (key) => FAMILY_PROFILES.find((p) => p.key === key) ?? null;
 
+const AVATAR_COUNTS = {
+  papa: 13, mama: 10, hijo: 14, hija: 14,
+  bebe: 4, abuelo: 3, abuela: 5, adulto: 14, amigo: 14, otro: 0,
+};
+// Which avatar to show by default when a profile is first added.
+const DEFAULT_AVATAR = {
+  papa: "papa_4", mama: "mama_5", amigo: "hijo_9", adulto: "hija_7",
+};
+const avatarSrc = (profileKey, avatarKey) =>
+  memberAvatarSrc({ profileKey, avatarKey });
+
 // School-menu editor: friendly day names + per-course chip styling so the
 // manual grid matches the rest of the onboarding (soft coloured plaques).
 const SCHOOL_DAY_LABELS = { Lun: "Lunes", Mar: "Martes", "Mié": "Miércoles", Jue: "Jueves", Vie: "Viernes" };
@@ -412,6 +441,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   const [dismissedBabyHints, setDismissedBabyHints] = useState(new Set());
   const [removingIds, setRemovingIds] = useState(new Set());
   const [addBounce, setAddBounce] = useState(false);
+  const [colorExpanded, setColorExpanded] = useState(false);
+  const [avatarExpanded, setAvatarExpanded] = useState(false);
   // "family" = the drag-a-profile builder shown to real users. The classic
   // name+age+Añadir form is kept only for the scripted ValueProps demo, which
   // passes demoName/demoAge; there is no user-facing toggle anymore.
@@ -465,6 +496,8 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     setAddBounce(true);
     setTimeout(() => setAddBounce(false), 320);
     const id = uid();
+    const defFolder = AVATAR_FOLDER[profile.key];
+    const defAvatar = DEFAULT_AVATAR[profile.key] ?? (defFolder ? `${defFolder}_1` : null);
     setData((d) => ({
       ...d,
       members: [
@@ -478,6 +511,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
           homeRole: profile.role,
           profileKey: profile.key,
           color: profile.tint,
+          avatarKey: defAvatar,
           stageDetail: "",
           allergies: [],
           dislikes: [],
@@ -499,6 +533,13 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
     setData((d) => ({
       ...d,
       members: d.members.map((m) => (m.id === id ? { ...m, photo } : m)),
+    }));
+  };
+
+  const updateMemberAvatar = (id, avatarKey) => {
+    setData((d) => ({
+      ...d,
+      members: d.members.map((m) => (m.id === id ? { ...m, avatarKey } : m)),
     }));
   };
 
@@ -744,7 +785,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   return (
     <OnboardingShell
       title="¿Quién come en casa?"
-      subtitle="Añade a cada persona. Luego revisa su categoría (Adulto, Bebé…) y toca su avatar para elegir un color."
+      subtitle="Añade a cada persona. Luego tócala para elegir su personaje, su color y su edad."
       onReset={onReset}
       onBack={onBack}
       onNext={onNext}
@@ -776,7 +817,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
         // the quick add popup (just-dropped profile) stays minimal.
         const isEdit = editingMemberId !== justAddedId;
         const catLabel = prof?.label ?? migrateHomeRole(editing.homeRole);
-        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); };
+        const closePopup = () => { setEditingMemberId(null); setJustAddedId(null); setAvatarExpanded(false); setColorExpanded(false); };
         const dismiss = () => {
           if (editingMemberId === justAddedId) removeMember(editingMemberId);
           closePopup();
@@ -798,112 +839,179 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
               onClick={(e) => e.stopPropagation()}
               style={{
                 width: 400, maxWidth: "calc(100vw - 20px)",
-                background: "#fff", borderRadius: 18,
+                background: "#fff", borderRadius: 20,
                 border: "1px solid #e5eee8",
                 boxShadow: "0 24px 60px rgba(20,47,29,.26)",
-                padding: 20,
+                padding: "22px 22px 28px",
                 animation: "memberIn .22s cubic-bezier(.34,1.3,.64,1) both",
               }}
             >
-              {/* Row: avatar · name · age · confirm. When editing an existing
-                  member the avatar becomes a photo picker and colours appear. */}
-              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, flexShrink: 0 }}>
-                {isEdit ? (
-                  <button
-                    type="button"
-                    onClick={() => photoInputRef.current?.click()}
-                    title="Añadir o cambiar foto"
-                    aria-label="Añadir o cambiar foto"
-                    style={{ position: "relative", width: 40, height: 40, borderRadius: 999, border: "none", padding: 0, cursor: "pointer", flexShrink: 0, color: "#fff", boxShadow: `0 4px 12px ${color}44`, display: "inline-flex", alignItems: "center", justifyContent: "center", ...(editing.photo ? { backgroundImage: `url(${editing.photo})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: color }) }}
-                  >
-                    {!editing.photo && <EIcon size={19} strokeWidth={2.3} />}
-                    <span style={{ position: "absolute", bottom: -3, right: -3, width: 18, height: 18, borderRadius: 999, background: "#2d5a3d", border: "2px solid #fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Camera size={9} color="#fff" strokeWidth={2.6} />
-                    </span>
-                  </button>
-                ) : (
-                  <span
-                    title={migrateHomeRole(editing.homeRole)}
-                    style={{ width: 40, height: 40, borderRadius: 999, background: color, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 4px 12px ${color}44` }}
-                  >
-                    <EIcon size={19} strokeWidth={2.3} />
-                  </span>
-                )}
-                  <span style={{ fontSize: 9, fontWeight: 800, color: "#9ab0a1", lineHeight: 1, textTransform: "uppercase", letterSpacing: ".3px", maxWidth: 48, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {catLabel}
-                  </span>
-                </div>
-                <input
-                  value={editing.name}
-                  onChange={(e) => updateMemberName(editing.id, e.target.value)}
-                  placeholder="Nombre"
-                  autoFocus={!isEdit}
-                  style={{ width: 150, flexGrow: 0, flexShrink: 1, minWidth: 0, height: 36, padding: "0 11px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
-                />
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={ageVal}
-                  onChange={(e) => updateMemberAge(editing.id, e.target.value.replace(/\D/g, ""))}
-                  placeholder="Edad"
-                  aria-label="Edad (opcional)"
-                  style={{ width: 46, flexShrink: 0, height: 36, padding: "0 4px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 12, fontWeight: 700, textAlign: "center", color: "#3d6b4f", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
-                />
-                <button
-                  type="button"
-                  onClick={closePopup}
-                  aria-label="Listo"
-                  title="Listo"
-                  style={{ width: 36, height: 36, flexShrink: 0, marginLeft: "auto", borderRadius: 9, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                >
-                  {isEdit ? <Check size={18} strokeWidth={3} /> : <Plus size={18} strokeWidth={2.8} />}
-                </button>
-                {isEdit && (
-                  <button
-                    type="button"
-                    onClick={() => { const id = editing.id; closePopup(); removeMember(id); }}
-                    aria-label="Eliminar miembro"
-                    title="Eliminar"
-                    style={{ width: 36, height: 36, flexShrink: 0, borderRadius: 9, border: "1.5px solid #f3c6c6", background: "#fff5f5", color: "#c62828", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
-                  >
-                    <Trash2 size={17} strokeWidth={2.3} />
-                  </button>
-                )}
-              </div>
+              {/* Two-column layout ─────────────────────────────────────── */}
+              {(() => {
+                const folder = AVATAR_FOLDER[editing.profileKey];
+                const count  = AVATAR_COUNTS[editing.profileKey] ?? 0;
+                const imgSrc = editing.photo || avatarSrc(editing.profileKey, editing.avatarKey);
+                const keys   = folder && count > 0
+                  ? Array.from({ length: count }, (_, i) => `${folder}_${i + 1}`)
+                  : [];
+                return (
+                  <div style={{ display: "flex", alignItems: "stretch", gap: 0 }}>
 
-              {isEdit && (
-                <>
-                  {/* Colours — two rows of six */}
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, justifyItems: "center", marginTop: 14 }}>
-                    {AVATAR_PALETTE.map((c) => (
+                    {/* ── LEFT: catLabel · avatar · colour box ──────────── */}
+                    <div style={{
+                      display: "flex", flexDirection: "column", alignItems: "center",
+                      gap: 10, paddingRight: 14, marginRight: 14,
+                      borderRight: "1.5px solid #e8f0eb", flexShrink: 0, width: 72,
+                    }}>
+                      {/* Category label centred above avatar */}
+                      <span style={{ fontSize: 9, fontWeight: 800, color: "#9ab0a1", textTransform: "uppercase", letterSpacing: ".3px", lineHeight: 1 }}>
+                        {catLabel}
+                      </span>
+                      {/* Current avatar */}
+                      <span style={{
+                        width: 46, height: 46, borderRadius: 999, overflow: "hidden",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        background: color, color: "#fff", flexShrink: 0,
+                        boxShadow: `0 4px 14px ${color}44`,
+                      }}>
+                        {imgSrc
+                          ? <img src={imgSrc} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                          : <EIcon size={20} strokeWidth={2.2} />}
+                      </span>
+                      {/* Colour — pill box so it looks clearly tappable */}
                       <button
-                        key={c}
                         type="button"
-                        onClick={() => updateMemberColor(editing.id, c)}
+                        onClick={() => setColorExpanded((v) => !v)}
+                        aria-label="Cambiar color"
                         style={{
-                          width: 26, height: 26, borderRadius: 999, background: c,
-                          border: color === c ? "2.5px solid #fff" : "none",
-                          boxShadow: color === c ? `0 0 0 2.5px ${c}` : `0 2px 7px ${c}55`,
-                          cursor: "pointer", padding: 0,
-                          transform: color === c ? "scale(1.15)" : "scale(1)",
-                          transition: "transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease",
+                          width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+                          padding: "6px 8px", borderRadius: 8, cursor: "pointer",
+                          border: colorExpanded ? `1.5px solid ${color}` : "1.5px solid #e0e8e3",
+                          background: colorExpanded ? `${color}15` : "#f4f8f5",
+                          transition: "border-color .15s ease, background .15s ease",
+                          fontFamily: "inherit",
                         }}
-                      />
-                    ))}
-                  </div>
-                  {editing.photo && (
-                    <div style={{ textAlign: "right", marginTop: 10 }}>
-                      <button
-                        type="button"
-                        onClick={() => updateMemberPhoto(editing.id, "")}
-                        style={{ border: "none", background: "transparent", color: "#a0587a", cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700 }}
                       >
-                        Quitar foto
+                        <span style={{ width: 14, height: 14, borderRadius: 999, background: color, flexShrink: 0 }} />
+                        <ChevronDown size={12} color="#9ab0a1" strokeWidth={2.5} />
                       </button>
                     </div>
-                  )}
-                </>
+
+                    {/* ── RIGHT: top row (name · age → ✓ 🗑️) + avatar strip ─ */}
+                    <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 14 }}>
+                      {/* Top row */}
+                      <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                        <input
+                          value={editing.name}
+                          onChange={(e) => updateMemberName(editing.id, e.target.value)}
+                          placeholder="Nombre"
+                          autoFocus={!isEdit}
+                          style={{ flex: 1, minWidth: 0, height: 34, padding: "0 10px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                        />
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          value={ageVal}
+                          onChange={(e) => updateMemberAge(editing.id, e.target.value.replace(/\D/g, ""))}
+                          placeholder="Edad"
+                          aria-label="Edad (opcional)"
+                          style={{ width: 42, flexShrink: 0, height: 34, padding: "0 4px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 12, fontWeight: 700, textAlign: "center", color: "#3d6b4f", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                        />
+                        <div style={{ flex: 1 }} />
+                        {isEdit ? (
+                          <button
+                            type="button"
+                            onClick={closePopup}
+                            aria-label="Listo"
+                            style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 9, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                          >
+                            <Check size={17} strokeWidth={3} />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={closePopup}
+                            aria-label="Añadir"
+                            style={{ height: 34, flexShrink: 0, borderRadius: 9, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", gap: 6, padding: "0 14px" }}
+                          >
+                            <Plus size={15} strokeWidth={2.8} />
+                            <span style={{ fontSize: 13, fontWeight: 800, letterSpacing: "-.1px" }}>Añadir</span>
+                          </button>
+                        )}
+                        {isEdit && (
+                          <button
+                            type="button"
+                            onClick={() => { const id = editing.id; closePopup(); removeMember(id); }}
+                            aria-label="Eliminar"
+                            style={{ width: 34, height: 34, flexShrink: 0, borderRadius: 9, border: "1.5px solid #f3c6c6", background: "#fff5f5", color: "#c62828", cursor: "pointer", fontFamily: "inherit", display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+                          >
+                            <Trash2 size={15} strokeWidth={2.3} />
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Avatar strip */}
+                      {keys.length > 0 && (
+                        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
+                          {keys.map((k) => {
+                            const sel = editing.avatarKey === k;
+                            return (
+                              <button
+                                key={k}
+                                type="button"
+                                onClick={() => updateMemberAvatar(editing.id, k)}
+                                style={{
+                                  width: 46, height: 46, flexShrink: 0, padding: 0, cursor: "pointer",
+                                  borderRadius: 999, overflow: "hidden",
+                                  border: sel ? `2.5px solid ${color}` : "2.5px solid #e5eee8",
+                                  boxShadow: sel ? `0 3px 10px ${color}55` : "0 1px 3px rgba(0,0,0,.06)",
+                                  background: "transparent",
+                                  transform: sel ? "scale(1.1)" : "scale(1)",
+                                  transition: "transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .14s ease, border-color .14s ease",
+                                }}
+                              >
+                                <img src={`/avatares/${folder}/${k}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Colour palette — full-width, expands below when pill is tapped */}
+              {colorExpanded && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 8, justifyItems: "center", marginTop: 12 }}>
+                  {AVATAR_PALETTE.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => { updateMemberColor(editing.id, c); setColorExpanded(false); }}
+                      style={{
+                        width: 26, height: 26, borderRadius: 999, background: c,
+                        border: color === c ? "2.5px solid #fff" : "none",
+                        boxShadow: color === c ? `0 0 0 2.5px ${c}` : `0 2px 7px ${c}55`,
+                        cursor: "pointer", padding: 0,
+                        transform: color === c ? "scale(1.15)" : "scale(1)",
+                        transition: "transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease",
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {isEdit && editing.photo && (
+                <div style={{ textAlign: "right", marginTop: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => updateMemberPhoto(editing.id, "")}
+                    style={{ border: "none", background: "transparent", color: "#a0587a", cursor: "pointer", fontFamily: "inherit", fontSize: 11.5, fontWeight: 700 }}
+                  >
+                    Quitar foto
+                  </button>
+                </div>
               )}
 
               <input ref={photoInputRef} type="file" accept="image/*" onChange={handlePhotoPick} style={{ display: "none" }} />
@@ -999,25 +1107,27 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
 
       {builderMode === "family" ? (
         <>
-          {/* TOP — the family you're building (avatars with icons) */}
+          {/* TOP — header above card */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
+              <span style={{ width: 24, height: 24, borderRadius: 7, background: "#eaf3ee", display: "inline-flex", alignItems: "center", justifyContent: "center" }}>
+                <Users size={13} strokeWidth={2.4} color="#2d5a3d" />
+              </span>
+              <span style={{ fontSize: 13, fontWeight: 900, color: "#15301f", letterSpacing: "-.2px" }}>Tu familia</span>
+            </span>
+            <span style={{ flex: 1, borderTop: "1px dashed #cfdcd4" }} />
+            <span style={{ minWidth: 22, height: 22, borderRadius: 999, background: "#eaf3ee", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 800, color: "#2d5a3d", padding: "0 6px" }}>
+              {data.members.length}
+            </span>
+          </div>
           <div style={{
             background: "#fff",
             border: "1px solid #e6efe9", borderRadius: 20,
-            padding: 18, marginBottom: 18,
+            padding: hasMembers ? "16px 18px 20px" : 18, marginBottom: 18,
             boxShadow: "0 8px 24px rgba(45,90,61,.08)",
           }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: hasMembers ? 16 : 6 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, flexShrink: 0 }}>
-                <span style={{ width: 26, height: 26, borderRadius: 8, background: "#eaf3ee", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                  <Users size={15} strokeWidth={2.4} color="#2d5a3d" />
-                </span>
-                <span style={{ fontSize: 14, fontWeight: 900, color: "#15301f", letterSpacing: "-.2px" }}>Tu familia</span>
-              </span>
-              <span style={{ flex: 1, borderTop: "1px dashed #cfdcd4" }} />
-              <span style={{ fontSize: 13, fontWeight: 800, color: "#7c9788", flexShrink: 0 }}>{data.members.length}</span>
-            </div>
             {hasMembers ? (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "8px 4px" }}>
                 {data.members.map((m, idx) => {
                   const prof = profileByKey(m.profileKey);
                   const Icon = prof?.icon ?? ROLE_ICON_MAP[migrateHomeRole(m.homeRole)] ?? User;
@@ -1030,19 +1140,39 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                       type="button"
                       className={`fam-chip ${isLeaving ? "member-leaving" : "member-enter"}`}
                       onClick={() => { setJustAddedId(null); setEditingMemberId(m.id); }}
-                      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, width: 64, border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
+                      style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: "100%", border: "none", background: "transparent", cursor: "pointer", fontFamily: "inherit", padding: 0 }}
                     >
-                      <span style={{ position: "relative", width: 52, height: 52, borderRadius: 999, display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", border: "3px solid #fff", boxShadow: `0 6px 16px ${color}55`, ...(m.photo ? { backgroundImage: `url(${m.photo})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: `linear-gradient(145deg, ${color}, ${color}cc)` }) }}>
-                        {!m.photo && <Icon size={23} strokeWidth={2.2} />}
-                        <span style={{ position: "absolute", bottom: -2, right: -2, width: 18, height: 18, borderRadius: 999, background: "#fff", border: "1.5px solid #e0e8e3", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <svg width="9" height="9" viewBox="0 0 10 10" fill="none"><path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" /></svg>
+                      {/* Avatar: coloured disc behind the illustrated character */}
+                      {!m.photo && m.avatarKey ? (
+                        <span style={{ position: "relative", width: 66, height: 66, display: "inline-block" }}>
+                          <span style={{
+                            position: "absolute", top: 8, left: 5, right: 5, bottom: 2,
+                            borderRadius: 999,
+                            background: `linear-gradient(145deg, ${color}, ${color}cc)`,
+                            boxShadow: `0 5px 14px ${color}44`,
+                          }} />
+                          <img
+                            src={avatarSrc(m.profileKey, m.avatarKey)}
+                            alt=""
+                            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain", filter: "drop-shadow(0 2px 5px rgba(0,0,0,.18))", transform: m.profileKey === "bebe" ? "scale(0.78)" : "scale(1)", transformOrigin: "center center" }}
+                          />
+                          <span style={{ position: "absolute", bottom: 1, right: 1, width: 16, height: 16, borderRadius: 999, background: "#fff", border: "1.5px solid #e0e8e3", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1 }}>
+                            <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" /></svg>
+                          </span>
                         </span>
-                      </span>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#25402f", letterSpacing: "-.1px", maxWidth: 64, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      ) : (
+                        <span style={{ position: "relative", width: 54, height: 54, borderRadius: 999, overflow: "hidden", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#fff", border: "3px solid #fff", boxShadow: `0 5px 14px ${color}55`, ...(m.photo ? { backgroundImage: `url(${m.photo})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: `linear-gradient(145deg, ${color}, ${color}cc)` }) }}>
+                          {!m.photo && <Icon size={22} strokeWidth={2.2} />}
+                          <span style={{ position: "absolute", bottom: -2, right: -2, width: 16, height: 16, borderRadius: 999, background: "#fff", border: "1.5px solid #e0e8e3", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <svg width="8" height="8" viewBox="0 0 10 10" fill="none"><path d="M7 1.5l1.5 1.5-5 5L2 9l.5-2.5 5-5z" fill="#2d5a3d" /></svg>
+                          </span>
+                        </span>
+                      )}
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#25402f", letterSpacing: "-.1px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                         {m.name || prof?.label || "—"}
                       </span>
                       {showAge && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: "#9ab0a1", marginTop: -3 }}>{m.age} años</span>
+                        <span style={{ fontSize: 10, fontWeight: 700, color: "#9ab0a1", marginTop: -2 }}>{m.age} años</span>
                       )}
                     </button>
                   );
@@ -1076,8 +1206,12 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                     boxShadow: "0 1px 4px rgba(45,90,61,.05)",
                   }}
                 >
-                  <span style={{ width: 36, height: 36, borderRadius: 999, background: p.tint, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 3px 10px ${p.tint}44` }}>
-                    <Icon size={18} strokeWidth={2.3} />
+                  <span style={{ width: 36, height: 36, borderRadius: 999, overflow: "hidden", background: p.tint, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 3px 10px ${p.tint}44` }}>
+                    {AVATAR_FOLDER[p.key] ? (
+                      <img src={`/avatares/${AVATAR_FOLDER[p.key]}/${DEFAULT_AVATAR[p.key] ?? `${AVATAR_FOLDER[p.key]}_1`}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    ) : (
+                      <Icon size={18} strokeWidth={2.3} />
+                    )}
                   </span>
                   <span style={{ flex: 1, fontSize: 13, fontWeight: 700, color: "#25402f", letterSpacing: "-.1px" }}>{p.label}</span>
                   <Plus size={16} strokeWidth={2.8} color={p.tint} />
@@ -1193,7 +1327,9 @@ function FamilyMenuModelSection({ data, setData }) {
     }
     const reuseExisting =
       data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
-    const groups = reuseExisting ? data.groups : buildGroups(data.members, "separate");
+    const groups = reuseExisting
+      ? reconcileTierGroups(data.members, data.groups)
+      : buildGroups(data.members, "separate");
 
     if (groups.length > 1) {
       setDraftGroups(groups);
@@ -1354,6 +1490,18 @@ function mealToSelectValue(meals, mealOptions) {
 
 const MEAL_ICON = { Desayuno: Coffee, Comida: Sun, Cena: Moon };
 
+// Color natural de cada franja horaria: coral de amanecer, dorado de mediodía,
+// azul de noche. Es información (qué comida es), no decoración, así que puede
+// llevar su propio color sin quitarle al verde su papel de "esto se pulsa".
+// Buscamos rojo-amarillo-azul (máxima separación de tono): el desayuno va a un
+// coral claramente más rojo que el dorado del mediodía para que no se confundan
+// dos cálidos vecinos. Comida y Cena coinciden con el MealGlyph del calendario
+// (Menu.jsx) para que la app hable un mismo idioma.
+const MEAL_TIME_COLOR = { Desayuno: "#e0654f", Comida: "#c9820a", Cena: "#5a7a9a" };
+export function mealTimeColor(meal) {
+  return MEAL_TIME_COLOR[meal] ?? "#2d5a3d";
+}
+
 const TOOL_ICON = {
   Airfryer: Wind,
   Horno: Flame,
@@ -1407,7 +1555,7 @@ function MealIconToggle({ meals, mealOptions, onChange }) {
               transition: "background .15s ease, color .15s ease",
             }}
           >
-            <Icon size={15} />
+            <Icon size={15} color={active ? "#fff" : mealTimeColor(m)} strokeWidth={2.4} />
           </button>
         );
       })}
@@ -1991,14 +2139,16 @@ export function OnboardingRestrictions({
               <ScopeCirclePicker
                 value={activeAllergyMemberId}
                 onChange={setAllergyMemberId}
+                allMembers={data.members}
                 style={{ marginBottom: 0 }}
                 options={[
-                  { id: FAMILIA_TARGET, label: "Familia", abbrev: "F", Icon: Users, color: "#2d5a3d" },
+                  { id: FAMILIA_TARGET, label: isFamilyGroup(data.members) ? "Familia" : "Todos", abbrev: isFamilyGroup(data.members) ? "F" : "T", Icon: Users, color: "#2d5a3d", members: data.members },
                   ...data.members.map((m) => ({
                     id: m.id,
                     label: m.name,
                     abbrev: (m.name ?? "?").trim().charAt(0).toUpperCase() || "?",
                     color: memberAvatarColor(m.id, data.members),
+                    members: [m],
                   })),
                 ]}
               />
@@ -2478,23 +2628,30 @@ function GroupAssignmentMatrix({ members, groups, onAssign }) {
               gap: 4,
             }}
           >
-            <span
-              style={{
-                width: 34,
-                height: 34,
-                borderRadius: 999,
-                border: `2px solid ${g.color}`,
-                color: g.color,
-                fontSize: 13,
-                fontWeight: 900,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "#fff",
-              }}
-            >
-              {GROUP_COLUMN_ABBREV[g.label] ?? g.label.charAt(0)}
-            </span>
+            {(() => {
+              const faces = groupAvatarFaces(members.filter((m) => g.memberIds?.includes(m.id)), members);
+              if (faces.length > 0) return <GroupAvatarStack faces={faces} size={34} />;
+              return (
+                <span
+                  style={{
+                    width: 34,
+                    height: 34,
+                    borderRadius: 999,
+                    border: `2px solid ${g.color}`,
+                    color: g.color,
+                    fontSize: 13,
+                    fontWeight: 900,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    overflow: "hidden",
+                    background: "#fff",
+                  }}
+                >
+                  {GROUP_COLUMN_ABBREV[g.label] ?? g.label.charAt(0)}
+                </span>
+              );
+            })()}
             <span
               style={{
                 fontSize: 10,
@@ -2535,7 +2692,12 @@ function GroupAssignmentMatrix({ members, groups, onAssign }) {
                   minWidth: 0,
                 }}
               >
-                <Avatar name={member.name} size={24} />
+                <Avatar
+                  name={member.name}
+                  size={24}
+                  photo={memberAvatarThumbSrc(member)}
+                  color={memberAvatarColor(member.id, members)}
+                />
                 <span
                   style={{
                     fontSize: 13,
@@ -3206,12 +3368,14 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
     {
       id: "same",
       Icon: Users,
+      img: "/avatares/cards/comemos_lo_mismo.png",
       label: "Todos comemos lo mismo",
       desc: "Un único menú para toda la familia",
     },
     {
       id: "separate",
       Icon: GitBranch,
+      img: "/avatares/cards/comemos_por_separado.png",
       label: "Menús separados",
       desc: "Un menú por grupo — adultos, niños y bebé si hace falta",
     },
@@ -3248,7 +3412,9 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
     // manual reassignments — it always lands back on the same menu split.
     const reuseExisting =
       data.menuModel === "separate" && Array.isArray(data.groups) && data.groups.length > 0;
-    const groups = reuseExisting ? data.groups : buildGroups(data.members, "separate");
+    const groups = reuseExisting
+      ? reconcileTierGroups(data.members, data.groups)
+      : buildGroups(data.members, "separate");
 
     if (needsAssignmentPopup(groups, "separate")) {
       setDraftGroups(groups);
@@ -3288,7 +3454,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
       onFinish={onFinish}
       nextDisabled={!canProceed}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 14 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%" }}>
         {models.map((m) => {
           const sel = data.menuModel === m.id;
           return (
@@ -3297,57 +3463,77 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
               type="button"
               onClick={() => pickModel(m.id)}
               style={{
+                flex: 1,
+                minHeight: 0,
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 12,
+                alignItems: "stretch",
                 width: "100%",
                 textAlign: "center",
-                padding: "28px 20px",
+                padding: 0,
                 borderRadius: 18,
                 cursor: "pointer",
+                overflow: "hidden",
                 background: sel ? "#2d5a3d" : "#f7f9f8",
                 border: `2.5px solid ${sel ? "#2d5a3d" : "#e8ede9"}`,
                 boxShadow: sel ? "0 4px 18px rgba(45,90,61,.25)" : "none",
                 transition: "all .18s ease",
+                fontFamily: "inherit",
               }}
             >
-              <span
-                style={{
-                  width: 68,
-                  height: 68,
-                  borderRadius: 20,
-                  background: sel ? "rgba(255,255,255,.18)" : "#edf2ee",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  transition: "background .18s ease",
-                }}
-              >
-                <m.Icon size={36} color={sel ? "#fff" : "#2d5a3d"} />
-              </span>
-              <span>
-                <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 16, marginBottom: 4 }}>{m.label}</div>
-                <div style={{ fontSize: 13, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.4 }}>{m.desc}</div>
-              </span>
-              {sel && (
+              {/* illustration */}
+              {m.img ? (
+                <img
+                  src={m.img}
+                  alt=""
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    width: "100%",
+                    objectFit: "cover",
+                    objectPosition: "center center",
+                    display: "block",
+                    borderBottom: `1px solid ${sel ? "rgba(255,255,255,.15)" : "#e8ede9"}`,
+                  }}
+                />
+              ) : (
                 <span
                   style={{
-                    display: "inline-flex",
+                    flex: 1,
+                    minHeight: 0,
+                    display: "flex",
                     alignItems: "center",
-                    gap: 4,
-                    background: "rgba(255,255,255,.2)",
-                    color: "#fff",
-                    fontSize: 12,
-                    fontWeight: 700,
-                    padding: "4px 10px",
-                    borderRadius: 20,
+                    justifyContent: "center",
+                    background: sel ? "rgba(255,255,255,.1)" : "#edf2ee",
                   }}
                 >
-                  <Check size={12} /> Seleccionado
+                  <m.Icon size={36} color={sel ? "#fff" : "#2d5a3d"} />
                 </span>
               )}
+              {/* text + badge */}
+              <span style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "11px 16px 13px" }}>
+                <span>
+                  <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 15, marginBottom: 3 }}>{m.label}</div>
+                  <div style={{ fontSize: 12, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.35 }}>{m.desc}</div>
+                </span>
+                {sel && (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      background: "rgba(255,255,255,.2)",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 20,
+                    }}
+                  >
+                    <Check size={12} /> Seleccionado
+                  </span>
+                )}
+              </span>
             </button>
           );
         })}
@@ -3446,7 +3632,7 @@ function inferQuickFillValue(schedule, memberIds, members, days, meal) {
   return "casa";
 }
 
-export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset }) {
+export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset, autoplay = false, demoHeight = null }) {
   // Desayuno is optional (stored in data.extraMeals, not data.meals, so the AI
   // planner never treats it as a comida). But when it's on we DO want its row in
   // the "¿dónde coméis?" grid, so people can say who has breakfast at home.
@@ -3464,6 +3650,79 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   const [qfMeal, setQfMeal] = useState("Comida");
   const [dayViewOpen, setDayViewOpen] = useState(false);
   const [dayViewIdx, setDayViewIdx] = useState(0);
+  // Body scroll container (para el guion del carrusel: scroll DENTRO del body).
+  const scheduleBodyRef = useRef(null);
+
+  // Value-prop carousel demo (guionizado): el scroll ocurre DENTRO del body
+  // (como una pantalla real), no paneando el frame → sin saltos raros.
+  // 1) a los 0,5s empieza el scroll down hasta abajo; 2) 0,5s tras llegar,
+  // abre "Ajustar"; 3) toca una opción; 4) sale y se ve el grid 1s. En bucle.
+  useEffect(() => {
+    if (!autoplay) return undefined;
+    let cancelled = false;
+    const timers = [];
+    let rafId = 0;
+    const wait = (ms) =>
+      new Promise((res) => {
+        const id = setTimeout(res, ms);
+        timers.push(id);
+      });
+    // Scroll suave del body, con easing (el scroll nativo se ve a saltos dentro
+    // del frame escalado). Solo hacia abajo durante el guion.
+    const smoothScroll = (to, duration = 1000) =>
+      new Promise((res) => {
+        const el = scheduleBodyRef.current;
+        if (!el) { res(); return; }
+        const start = el.scrollTop;
+        const delta = to - start;
+        if (Math.abs(delta) < 1) { res(); return; }
+        const t0 = performance.now();
+        const ease = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
+        const tick = (now) => {
+          if (cancelled) { res(); return; }
+          const t = Math.min(1, (now - t0) / duration);
+          el.scrollTop = start + delta * ease(t);
+          if (t < 1) rafId = requestAnimationFrame(tick);
+          else res();
+        };
+        rafId = requestAnimationFrame(tick);
+      });
+    const run = async () => {
+      while (!cancelled) {
+        setQuickFillOpen(false);
+        setDayViewOpen(false);
+        // Reinicio instantáneo al top (sin rebote animado hacia arriba).
+        if (scheduleBodyRef.current) scheduleBodyRef.current.scrollTop = 0;
+        await wait(500); // 0,5s antes de empezar a bajar
+        if (cancelled) return;
+        const el = scheduleBodyRef.current;
+        const maxScroll = el ? el.scrollHeight - el.clientHeight : 0;
+        await smoothScroll(maxScroll, 1100); // scroll down hasta abajo
+        if (cancelled) return;
+        await wait(500); // 0,5s tras llegar abajo
+        if (cancelled) return;
+        openQuickFill(); // entra en "Ajustar"
+        await wait(1300);
+        if (cancelled) return;
+        // Toca una opción (¿dónde coméis entre semana? → Fuera).
+        setQf((prev) => ({
+          ...prev,
+          "weekday|Comida": prev["weekday|Comida"] === "fuera" ? "casa" : "fuera",
+        }));
+        await wait(1100);
+        if (cancelled) return;
+        setQuickFillOpen(false); // sale
+        await wait(1000); // se ve el grid 1s
+        if (cancelled) return;
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(rafId);
+      timers.forEach(clearTimeout);
+    };
+  }, [autoplay]);
 
   // Multi-week menús: which selected week's "quién come dónde" is currently
   // being viewed/edited. Defaults to the earliest one (the base pattern).
@@ -3626,6 +3885,8 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
+      bodyRef={scheduleBodyRef}
+      heightOverride={demoHeight}
     >
 
       <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
@@ -3638,6 +3899,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
             ? Boolean(data.extraMeals?.desayuno && data.extraMeals.desayuno !== "off")
             : meals.includes(meal);
           const MealIcon = meal === "Comida" ? Sun : meal === "Cena" ? Moon : Coffee;
+          const tint = mealTimeColor(meal);
           return (
             <button
               key={meal}
@@ -3648,18 +3910,36 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 6,
+                gap: 7,
                 padding: "14px 8px 12px",
                 borderRadius: 14,
                 cursor: "pointer",
-                background: sel ? "#2d5a3d" : "#f4f7f5",
-                border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                color: sel ? "#fff" : "#9ab0a1",
+                // Selección teñida con el color de la propia franja (ámbar para
+                // Comida, azul noche para Cena): cada comida se enciende con su
+                // identidad en vez del verde genérico.
+                background: sel ? tint : "#f4f7f5",
+                border: `1.5px solid ${sel ? tint : "#e3ebe6"}`,
+                color: sel ? "#fff" : "#7a8a80",
+                boxShadow: sel ? `0 6px 18px ${tint}55` : "none",
                 transition: "all .15s ease",
                 fontFamily: "inherit",
               }}
             >
-              <MealIcon size={20} />
+              <span
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 11,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  background: sel ? "rgba(255,255,255,.22)" : `${tint}1f`,
+                  color: sel ? "#fff" : tint,
+                  transition: "all .15s ease",
+                }}
+              >
+                <MealIcon size={19} strokeWidth={sel ? 2.4 : 2.2} />
+              </span>
               <span style={{ fontSize: 12, fontWeight: 700 }}>{meal}</span>
             </button>
           );
@@ -3875,7 +4155,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
                         transition: "all .15s ease",
                       }}
                     >
-                      <MealIcon size={14} />
+                      <MealIcon size={14} color={active ? "#fff" : mealTimeColor(meal)} strokeWidth={2.4} />
                       {meal}
                     </button>
                   );
@@ -4158,57 +4438,67 @@ function ScheduleSlotSheet({
           </button>
         </div>
 
-        {/* Todos row */}
+        {/* Todos row — avatar-style anchor (a "family" bubble with the label
+            below) on the left, the state options on the right, matching the
+            member rows so the whole sheet reads as one column of people. */}
         {members.length > 1 && (
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 800, color: "#aaa", textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 6 }}>
-              Todos
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 54, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <span style={{ width: 40, height: 40, borderRadius: "50%", background: "#e8f0ea", display: "inline-flex", alignItems: "center", justifyContent: "center", color: "#2d5a3d" }}>
+                  <Users size={19} />
+                </span>
+                <span style={{ fontSize: 11, fontWeight: 800, color: "#1a3a24", textAlign: "center" }}>Todos</span>
+              </div>
+              <div style={{ display: "flex", gap: 8, flex: 1 }}>
+                {columns.map((s) => {
+                  const conf = SLOT_CONFIG[s] ?? SLOT_CONFIG.casa;
+                  const selected = todosConsensus === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => onSetAllSlot(s)}
+                      style={{
+                        flex: 1, height: 56, borderRadius: 14, border: "none",
+                        background: selected ? conf.color : "#f4f7f5",
+                        color: selected ? "#fff" : "#bbb",
+                        boxShadow: selected ? `0 3px 10px ${conf.color}55` : "none",
+                        display: "flex", flexDirection: "column",
+                        alignItems: "center", justifyContent: "center",
+                        gap: 4, cursor: "pointer", fontFamily: "inherit",
+                        transition: "background .15s ease",
+                      }}
+                    >
+                      {stateIcon(s, 16)}
+                      <span style={{ fontSize: 10, fontWeight: 800, opacity: selected ? 1 : 0.5 }}>
+                        {conf.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-            <div style={{ display: "flex", gap: 8 }}>
-              {columns.map((s) => {
-                const conf = SLOT_CONFIG[s] ?? SLOT_CONFIG.casa;
-                const selected = todosConsensus === s;
-                return (
-                  <button
-                    key={s}
-                    type="button"
-                    onClick={() => onSetAllSlot(s)}
-                    style={{
-                      flex: 1, height: 56, borderRadius: 14, border: "none",
-                      background: selected ? conf.color : "#f4f7f5",
-                      color: selected ? "#fff" : "#bbb",
-                      boxShadow: selected ? `0 3px 10px ${conf.color}55` : "none",
-                      display: "flex", flexDirection: "column",
-                      alignItems: "center", justifyContent: "center",
-                      gap: 4, cursor: "pointer", fontFamily: "inherit",
-                      transition: "background .15s ease",
-                    }}
-                  >
-                    {stateIcon(s, 16)}
-                    <span style={{ fontSize: 10, fontWeight: 800, opacity: selected ? 1 : 0.5 }}>
-                      {conf.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <div style={{ height: 1, background: "#e8f0ea", margin: "12px 0 0" }} />
+            <div style={{ height: 1, background: "#e8f0ea", margin: "14px 0 0" }} />
           </div>
         )}
 
-        {/* Member rows — same card style as Day View */}
+        {/* Member rows — avatar (real photo) with the name below on the left,
+            the state options on the right. */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {members.map((m) => {
             const raw = schedule[`${m.id}|${day}|${meal}`] ?? "casa";
             const cur = raw === "off" ? "casa" : raw;
             const kid = stageForAge(memberAge(m)).id !== "adulto";
             return (
-              <div key={m.id}>
-                <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6 }}>
-                  <Avatar name={m.name} size={22} />
-                  <span style={{ fontSize: 13, fontWeight: 800, color: "#1a3a24" }}>{m.name}</span>
+              <div key={m.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 54, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                  <Avatar name={m.name} size={40} photo={memberAvatarThumbSrc(m)} color={memberAvatarColor(m.id, members)} />
+                  <span style={{ fontSize: 11, fontWeight: 700, color: "#1a3a24", maxWidth: 54, textAlign: "center", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {m.name}
+                  </span>
                 </div>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div style={{ display: "flex", gap: 8, flex: 1 }}>
                   {columns.map((s) => {
                     const disabled = s === "cole" && !kid;
                     const conf = SLOT_CONFIG[s] ?? SLOT_CONFIG.casa;
@@ -4875,13 +5165,13 @@ function ScheduleGrid({ meals, memberIds, schedule, onCellClick, onDayClick, act
               }}
               title={meal}
             >
-              <span style={{ color: "#7a9080", display: "inline-flex" }}>
+              <span style={{ color: mealTimeColor(meal), display: "inline-flex" }}>
                 {meal === "Desayuno" ? (
-                  <Coffee size={15} />
+                  <Coffee size={15} strokeWidth={2.4} />
                 ) : meal === "Comida" ? (
-                  <Sun size={15} />
+                  <Sun size={15} strokeWidth={2.4} />
                 ) : (
-                  <Moon size={15} />
+                  <Moon size={15} strokeWidth={2.4} />
                 )}
               </span>
             </div>
@@ -4938,11 +5228,30 @@ const DEMO_SCHOOL_ENTRIES = {
   "Vie-Postre": "Yogur natural",
 };
 
+// Same card language as "¿Cómo coméis en casa?" — both screens ask the same
+// kind of question (one menú for everyone, or one each), so they shouldn't look
+// like two different controls.
+const SCHOOL_SCOPE_CARDS = [
+  {
+    value: "shared",
+    img: "/avatares/cards/mismo_menu_ninos.png",
+    label: "Mismo menú para todos",
+    desc: "Todos comen lo mismo en el comedor",
+  },
+  {
+    value: "individual",
+    img: "/avatares/cards/distinto_menu_ninos.png",
+    label: "Por niño/a",
+    desc: "Cada uno con el menú de su cole",
+  },
+];
+
 export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, onReset, demoScript = false }) {
   const schoolKids = data.members.filter(
     (m) => stageForAge(memberAge(m)).id !== "adulto"
   );
   const [scope, setScope] = useState("shared");
+  const [uploadOpen, setUploadOpen] = useState(false);
   const [activeKidId, setActiveKidId] = useState(schoolKids[0]?.id ?? null);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
@@ -5076,6 +5385,21 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         },
       };
     });
+  };
+
+  // A row of one child leaves the upload button stranded next to a big gap, so
+  // it carries the formats as a label. Past three children the circles need
+  // that width more than the label does — the icon and the sheet's own
+  // subtitle still say what it takes. The shared menú is a single stack, capped
+  // at three faces plus a counter, so it never crowds the label out.
+  const uploadCompact = scope === "individual" && schoolKids.length > 3;
+
+  // Picking a card is also the way in to uploading: the choice only matters
+  // because of the file that follows it, so the two happen in one gesture.
+  const openUpload = (value) => {
+    setScope(value);
+    setImportError(null);
+    setUploadOpen(true);
   };
 
   const clearAll = () => {
@@ -5264,218 +5588,221 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
-        {[
-          { value: "shared",     icon: <Users size={20} />, label: "Mismo menú para todos" },
-          { value: "individual", icon: <User size={20} />,  label: "Por niño/a" },
-        ].map(({ value, icon, label }) => {
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, ...(hasAnyDish ? { marginBottom: 16 } : { height: "100%", paddingBottom: 4 }) }}>
+        {SCHOOL_SCOPE_CARDS.map(({ value, img, label, desc }) => {
           const sel = scope === value;
           return (
             <button
               key={value}
               type="button"
-              onClick={() => setScope(value)}
+              onClick={() => openUpload(value)}
               style={{
-                flex: 1,
+                // Sin menú subido, las dos cards se reparten la pantalla (sin
+                // scroll). En cuanto hay algo que revisar, se vuelven compactas
+                // para dejar sitio al panel de revisión debajo.
+                ...(hasAnyDish ? {} : { flex: 1, minHeight: 0 }),
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "center",
-                gap: 6,
-                padding: "14px 8px 12px",
-                borderRadius: 14,
-                border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                background: sel ? "#2d5a3d" : "#f4f7f5",
-                color: sel ? "#fff" : "#9ab0a1",
-                fontSize: 12,
-                fontWeight: 700,
+                alignItems: "stretch",
+                width: "100%",
+                textAlign: "center",
+                padding: 0,
+                borderRadius: 18,
                 cursor: "pointer",
+                overflow: "hidden",
+                background: sel ? "#2d5a3d" : "#f7f9f8",
+                border: `2.5px solid ${sel ? "#2d5a3d" : "#e8ede9"}`,
+                boxShadow: sel ? "0 4px 18px rgba(45,90,61,.25)" : "none",
+                transition: "all .18s ease",
                 fontFamily: "inherit",
-                transition: "all .15s ease",
               }}
             >
-              {icon}
-              {label}
+              <img
+                src={img}
+                alt=""
+                style={{
+                  width: "100%",
+                  // Comparte el alto disponible con la otra card (flex) para que
+                  // ambas quepan sin scroll; la imagen se encoge en pantallas
+                  // bajas en vez de forzar altura fija. Con menú subido, altura
+                  // compacta fija.
+                  ...(hasAnyDish ? { height: 120 } : { flex: 1, minHeight: 90 }),
+                  objectFit: "cover",
+                  // Full-width cards only show a thin horizontal slice of these
+                  // square renders; 20% lands on the faces in one and on both
+                  // trays in the other, where centring shows only hair.
+                  objectPosition: "center 20%",
+                  display: "block",
+                  borderBottom: `1px solid ${sel ? "rgba(255,255,255,.15)" : "#e8ede9"}`,
+                }}
+              />
+              <span style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "11px 16px 13px" }}>
+                <span>
+                  <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 15, marginBottom: 3 }}>{label}</div>
+                  <div style={{ fontSize: 12, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.35 }}>{desc}</div>
+                </span>
+                {sel && (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                      background: "rgba(255,255,255,.2)",
+                      color: "#fff",
+                      fontSize: 12,
+                      fontWeight: 700,
+                      padding: "4px 10px",
+                      borderRadius: 20,
+                    }}
+                  >
+                    <Check size={12} /> Seleccionado
+                  </span>
+                )}
+              </span>
             </button>
           );
         })}
       </div>
 
-      {scope === "individual" && (
-        <div
-          style={{
-            display: "flex",
-            gap: 6,
-            overflowX: "auto",
-            paddingBottom: 8,
-            marginBottom: 10,
-          }}
-        >
-          {schoolKids.map((m) => {
-            const sel = m.id === activeKidId;
-            return (
-              <button
+      {uploadOpen && (
+      <WizardSheet
+        icon={School}
+        title={scope === "individual" ? "Por niño/a" : "Mismo menú para todos"}
+        subtitle="Sube el PDF, la foto o el CSV del comedor"
+        onClose={() => !importing && setUploadOpen(false)}
+      >
+      {/* Who the menú is for, then upload, then done — one row of circles and
+          icons instead of three stacked full-width blocks. */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+        {/* Shrinks (and scrolls) as people are added so the upload button keeps
+            the leftover width instead of stranding it as a gap. */}
+        <div style={{ display: "flex", gap: 10, overflowX: "auto", flex: "0 1 auto", minWidth: 0 }}>
+          {scope === "individual" ? (
+            schoolKids.map((m) => (
+              <ScopeCircle
                 key={m.id}
-                type="button"
+                label={(m.name ?? "").trim().split(/\s+/)[0] || m.name}
+                color={memberAvatarColor(m.id, data.members)}
+                members={[m]}
+                allMembers={data.members}
+                active={m.id === activeKidId}
                 onClick={() => setActiveKidId(m.id)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  borderRadius: 20,
-                  border: "none",
-                  padding: "6px 10px 6px 6px",
-                  background: sel ? "#2d5a3d" : "#f0f0f0",
-                  color: sel ? "#fff" : "#555",
-                  fontSize: 12,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  flexShrink: 0,
-                }}
-              >
-                <Avatar
-                  name={m.name}
-                  size={22}
-                  color={sel ? "rgba(255,255,255,.25)" : "#bbb"}
-                />
-                {m.name}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      <div style={{ height: 1, background: "#d6e9dc", margin: "16px 0 14px" }} />
-
-      <SectionTitle>Importar menú</SectionTitle>
-      <div style={{ display: "flex", gap: 8, marginBottom: 8, alignItems: "stretch" }}>
-        <div
-          onClick={() => !importing && fileInputRef.current?.click()}
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: "6px 12px",
-            borderRadius: 10,
-            border: "1.5px dashed rgba(45,90,61,.35)",
-            background: importing ? "#f6f9f7" : "#fff",
-            cursor: importing ? "default" : "pointer",
-          }}
-        >
-          <span
-            style={{
-              width: 30,
-              height: 30,
-              borderRadius: 8,
-              background: "rgba(45,90,61,.12)",
-              color: "#2d5a3d",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            {importing ? <Loader2 size={16} className="rotating" /> : <Upload size={16} />}
-          </span>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            {importing ? (
-              <>
-                <div
-                  style={{
-                    height: 5,
-                    borderRadius: 3,
-                    background: "#ecf1ed",
-                    overflow: "hidden",
-                    marginBottom: 5,
-                  }}
-                >
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${Math.round(displayProgress * 100)}%`,
-                      background: "#2d5a3d",
-                      borderRadius: 3,
-                      transition: "width .8s ease",
-                    }}
-                  />
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: 11,
-                    color: "#8d978f",
-                  }}
-                >
-                  <span
-                    style={{
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      flex: 1,
-                      minWidth: 0,
-                    }}
-                  >
-                    {displayStatus || "…"}
-                  </span>
-                  <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>
-                    {importElapsedSec}s
-                  </span>
-                </div>
-              </>
-            ) : (
-              <>
-                <div style={{ fontSize: 13, fontWeight: 700, color: "#1a3a24" }}>
-                  Subir PDF, foto o CSV
-                </div>
-                {importedFileName && (
-                  <div
-                    style={{
-                      fontSize: 11,
-                      color: "#888",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {importedFileName}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="application/pdf,image/*,.csv,text/csv"
-            onChange={onPickFile}
-            disabled={importing}
-            style={{ display: "none" }}
-          />
+              />
+            ))
+          ) : (
+            <ScopeCircle
+              label="Todos"
+              abbrev="T"
+              color="#2d5a3d"
+              members={schoolKids}
+              allMembers={data.members}
+              active
+            />
+          )}
         </div>
 
         <button
           type="button"
-          onClick={clearAll}
-          aria-label="Vaciar menú"
-          title="Vaciar"
+          onClick={() => !importing && fileInputRef.current?.click()}
+          disabled={importing}
+          aria-label="Subir PDF, foto o CSV"
+          title="Subir PDF, foto o CSV"
           style={{
-            flexShrink: 0,
-            width: 44,
-            borderRadius: 10,
-            border: "1.5px solid #d7e1db",
-            background: "#fff",
+            flex: 1,
+            minWidth: 46,
+            height: 46,
+            borderRadius: 14,
+            border: "1.5px dashed rgba(45,90,61,.45)",
+            background: importing ? "#eef3f0" : "#fff",
             color: "#2d5a3d",
-            display: "flex",
+            display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
-            cursor: "pointer",
+            gap: 7,
+            padding: "0 10px",
+            fontSize: 12,
+            fontWeight: 800,
+            fontFamily: "inherit",
+            cursor: importing ? "default" : "pointer",
           }}
         >
-          <Trash2 size={16} />
+          {importing ? <Loader2 size={17} className="rotating" /> : <Upload size={17} />}
+          {!uploadCompact && (
+            <span style={{ whiteSpace: "nowrap" }}>
+              {importing ? "Procesando…" : "PDF, foto o CSV"}
+            </span>
+          )}
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/pdf,image/*,.csv,text/csv"
+          onChange={onPickFile}
+          disabled={importing}
+          style={{ display: "none" }}
+        />
+
+        <button
+          type="button"
+          onClick={() => setUploadOpen(false)}
+          disabled={importing}
+          aria-label="Listo"
+          title="Listo"
+          style={{
+            flexShrink: 0,
+            width: 46,
+            height: 46,
+            borderRadius: 14,
+            border: "none",
+            background: importing ? "#b8c9be" : "#1a3a24",
+            color: "#fff",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: importing ? "default" : "pointer",
+          }}
+        >
+          <Check size={20} />
         </button>
       </div>
+
+      {importing ? (
+        <div style={{ marginBottom: 10 }}>
+          <div style={{ height: 5, borderRadius: 3, background: "#e4ebe6", overflow: "hidden", marginBottom: 5 }}>
+            <div
+              style={{
+                height: "100%",
+                width: `${Math.round(displayProgress * 100)}%`,
+                background: "#2d5a3d",
+                borderRadius: 3,
+                transition: "width .8s ease",
+              }}
+            />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8d978f" }}>
+            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
+              {displayStatus || "…"}
+            </span>
+            <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{importElapsedSec}s</span>
+          </div>
+        </div>
+      ) : (
+        importedFileName && (
+          <div
+            style={{
+              fontSize: 11.5,
+              color: "#7a9080",
+              marginBottom: 10,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {importedFileName}
+            {importStatus ? ` · ${importStatus}` : ""}
+          </div>
+        )
+      )}
 
       {importError && (
         <div
@@ -5531,7 +5858,37 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         </div>
       )}
 
+      {/* Emptying only makes sense once there's something to empty — offering it
+          next to the upload box on a blank screen just looked like a threat. */}
+      {hasAnyDish && !importing && (
+        <button
+          type="button"
+          onClick={clearAll}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            background: "none",
+            border: "none",
+            color: "#a35a1f",
+            fontSize: 12.5,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            padding: "6px 2px",
+            marginBottom: 4,
+          }}
+        >
+          <Trash2 size={13} /> Vaciar este menú
+        </button>
+      )}
+      </WizardSheet>
+      )}
 
+      {/* La revisión manual solo aparece cuando ya hay un menú cargado: nadie
+          va a teclear la semana entera a mano, así que en blanco solo estorba.
+          Al subir algo, se abre con la UI de MenuPlan (cards por día). */}
+      {hasAnyDish && (
       <button
         type="button"
         onClick={() => setReviewOpen((v) => !v)}
@@ -5541,10 +5898,10 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           alignItems: "center",
           justifyContent: "space-between",
           gap: 8,
-          padding: "10px 12px",
-          borderRadius: 10,
-          border: "1px solid #e3ebe6",
-          background: "#fff",
+          padding: "12px 14px",
+          borderRadius: 12,
+          border: `1.5px solid ${reviewOpen ? "#cfe3d6" : "#e3ebe6"}`,
+          background: reviewOpen ? "#f2f8f4" : "#fff",
           cursor: "pointer",
           marginBottom: reviewOpen ? 10 : 0,
         }}
@@ -5554,24 +5911,30 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
-            fontSize: 11,
+            gap: 9,
+            fontSize: 13,
             fontWeight: 800,
-            color: "#888",
-            textTransform: "uppercase",
-            letterSpacing: 1,
+            color: "#1a3a24",
           }}
         >
-          Revisar / editar
+          <span style={{
+            width: 26, height: 26, borderRadius: 8, background: "#e3f0e8",
+            display: "inline-flex", alignItems: "center", justifyContent: "center",
+            color: "#2d5a3d", flexShrink: 0,
+          }}>
+            <Pencil size={14} />
+          </span>
+          Revisar / editar el menú
         </span>
         {reviewOpen ? (
-          <ChevronUp size={16} color="#888" />
+          <ChevronUp size={17} color="#2d5a3d" />
         ) : (
-          <ChevronDown size={16} color="#888" />
+          <ChevronDown size={17} color="#2d5a3d" />
         )}
       </button>
+      )}
 
-      {reviewOpen && (
+      {hasAnyDish && reviewOpen && (
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {SCHOOL_DAYS.map((day) => (
           <div
@@ -6153,7 +6516,7 @@ export function mealStyleIconStyle(selected) {
   };
 }
 
-export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, onReset, nextLabel, autoplay = false }) {
   // Seed groups if the user skipped MenuModel, so per-menu tabs have anchors.
   useEffect(() => {
     if (!Array.isArray(data.groups) || data.groups.length === 0) {
@@ -6295,6 +6658,18 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
     });
   };
 
+  // Value-prop carousel demo: recorre los 4 estilos, 0,75 s por opción.
+  useEffect(() => {
+    if (!autoplay) return undefined;
+    let i = 0;
+    const id = setInterval(() => {
+      i = (i + 1) % MEAL_STYLES.length;
+      selectStyle(MEAL_STYLES[i].id);
+    }, 750);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoplay, styleKey]);
+
   // Block progressing while any "Personalizado" menu asks for more dishes
   // than the week actually has slots for — the plan couldn't honor it anyway.
   const customOverBudget = useMemo(() => {
@@ -6330,6 +6705,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
             groups={styleableGroups}
             scope={activeGroupId ?? "all"}
             onChange={(scopeId) => setActiveGroupId(scopeId === "all" ? null : scopeId)}
+            members={data.members ?? []}
             style={{ marginBottom: 0 }}
           />
         </div>
@@ -6945,6 +7321,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
           groups={styleableGroups}
           scope={activeGroupId ?? "all"}
           onChange={(id) => setActiveGroupId(id === "all" ? null : id)}
+          members={data.members ?? []}
         />
       </div>,
     );

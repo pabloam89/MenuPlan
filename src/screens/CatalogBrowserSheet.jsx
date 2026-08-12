@@ -70,6 +70,10 @@ export function categoryIcon(cat) {
   return CATEGORY_META[cat]?.icon ?? Utensils;
 }
 
+export function isKnownCategory(cat) {
+  return Boolean(cat) && Object.prototype.hasOwnProperty.call(CATEGORY_META, cat);
+}
+
 const PAGE_SIZES = [10, 20, 50];
 const DEFAULT_PAGE_SIZE = 20;
 

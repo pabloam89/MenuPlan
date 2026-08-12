@@ -11,7 +11,9 @@
         "dislikes": [],
         "useBirthDate": false,
         "birthDate": "",
-        "homeRole": "Adulto"
+        "homeRole": "Papá",
+        "profileKey": "papa",
+        "avatarKey": "papa_4"
       },
       {
         "id": "m-ana",
@@ -23,7 +25,9 @@
         ],
         "useBirthDate": false,
         "birthDate": "",
-        "homeRole": "Adulto"
+        "homeRole": "Mamá",
+        "profileKey": "mama",
+        "avatarKey": "mama_5"
       },
       {
         "id": "m-leo",
@@ -33,7 +37,9 @@
         "dislikes": [],
         "useBirthDate": false,
         "birthDate": "",
-        "homeRole": "Hijo/a"
+        "homeRole": "Hijo/a",
+        "profileKey": "hijo",
+        "avatarKey": "hijo_2"
       }
     ],
     "dislikes": [],

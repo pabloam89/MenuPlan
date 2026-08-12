@@ -237,6 +237,9 @@ export function ShoppingScreen({
   // mount so "Subir ticket" from the pantry lands straight in the capture flow.
   openCaptureOnMount = false,
   onCaptureHandled = null,
+  // Value-prop carousel demo: marca un par de productos y luego enseña el flujo
+  // de "subir ticket" (chooser de demo → wizard del ticket) en bucle.
+  autoDemo = false,
   // Bumps after login merge so stock reloads once local→cloud fold finishes.
   pantryEpoch = 0,
 }) {
@@ -704,6 +707,60 @@ export function ShoppingScreen({
     }
     setReceiptWizard({ detail, lines });
   };
+
+  // Value-prop carousel demo: enseña marcar productos y el flujo de ticket.
+  useEffect(() => {
+    if (!autoDemo) return undefined;
+    let cancelled = false;
+    const timers = [];
+    const wait = (ms) =>
+      new Promise((res) => {
+        const id = setTimeout(res, ms);
+        timers.push(id);
+      });
+    const setHaveFirst = (n, have) =>
+      setShopping?.((s) => ({
+        ...s,
+        items: (s.items ?? []).map((it, i) => (i < n ? { ...it, have } : it)),
+      }));
+    const run = async () => {
+      while (!cancelled) {
+        // 1) Marca un par de productos como "en casa".
+        setHaveFirst(2, false);
+        await wait(1200);
+        if (cancelled) return;
+        setHaveFirst(1, true);
+        await wait(600);
+        if (cancelled) return;
+        setHaveFirst(2, true);
+        await wait(1800);
+        if (cancelled) return;
+        setHaveFirst(2, false);
+        // 2) "Subir ticket": chooser de demo → wizard del ticket.
+        setShowReceiptDemo(true);
+        await wait(2000);
+        if (cancelled) return;
+        const fx = RECEIPT_FIXTURES[0];
+        if (fx) {
+          setShowReceiptDemo(false);
+          handleDemoTicket(fx);
+        }
+        // Deja que la barra de progreso del wizard recorra los 4 pasos
+        // (≈950ms · 3 saltos) y se vea completa ~1s antes de cerrar.
+        await wait(4600);
+        if (cancelled) return;
+        setReceiptWizard(null);
+        await wait(1200);
+        if (cancelled) return;
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo]);
 
   // Ticket confirmed through the wizard: tach exactly the list ingredients the
   // user kept checked in the review step, and (when spend capture is available)
@@ -1206,6 +1263,7 @@ export function ShoppingScreen({
           listItems={mergedItems}
           onCancel={() => setReceiptWizard(null)}
           onConfirm={handleReceiptConfirm}
+          autoDemo={autoDemo}
         />
       )}
 
@@ -2671,7 +2729,7 @@ function ConfirmExitSheet({ onStay, onLeave }) {
   );
 }
 
-export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, onConfirm }) {
+export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCancel, onConfirm, autoDemo = false }) {
   // Store picker mirrors "Añadir gasto"'s: a known chain (with logo/monogram)
   // or "__other" + free text for local shops. The ticket's OCR'd store name
   // seeds whichever of the two applies.
@@ -2736,6 +2794,23 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   const steps = ["fecha", "super", "productos", "coincidencias"];
   const stepId = steps[Math.min(step, steps.length - 1)];
   const isLast = step >= steps.length - 1;
+
+  // Demo del carrusel: recorre los pasos para que la barra de progreso avance
+  // hasta el final (sin confirmar; el guion exterior cierra el wizard al acabar).
+  useEffect(() => {
+    if (!autoDemo) return undefined;
+    let i = 0;
+    const id = setInterval(() => {
+      i += 1;
+      if (i >= steps.length) {
+        clearInterval(id);
+        return;
+      }
+      setStep(i);
+    }, 950);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo]);
 
   const included = lines.filter((l) => l.include);
   // Lines the user explicitly flagged "no está en mi lista" in step 3 never go
@@ -3361,7 +3436,7 @@ function EmptyList({ onAdd }) {
       <p style={{ fontSize: 14, fontWeight: 600, color: "#7a8a7f", margin: "0 0 16px" }}>
         Nada pendiente
       </p>
-      <button type="button" onClick={onAdd} style={primaryBtnStyle}>
+      <button type="button" data-coach="shop-add" onClick={onAdd} style={primaryBtnStyle}>
         Añadir
       </button>
     </div>

@@ -1,11 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Loader2, Sparkles } from "lucide-react";
-import { OnboardingMembers, OnboardingRestrictions, OnboardingSchoolMenu } from "./Onboarding.jsx";
-import { DishDetail, MenuScreen } from "./Menu.jsx";
-import { RecipesScreen } from "./RecipesScreen.jsx";
+import { ArrowLeftRight, CalendarOff, Check, Clock3, CopyPlus, Fish, History, RotateCw, Search, Shuffle, Sparkles, ThumbsDown, Trash2 } from "lucide-react";
+import { OnboardingMembers, OnboardingRestrictions, OnboardingSchoolMenu, OnboardingSchedule, OnboardingMealStyle } from "./Onboarding.jsx";
+import { DishDetail, MenuScreen, RoscoMenu } from "./Menu.jsx";
+import { DashboardScreen } from "./Dashboard.jsx";
+import { RecipePlannerScreen } from "./RecipePlanner.jsx";
 import { ShoppingScreen } from "./Shopping.jsx";
 import { catalogToFrontendRecipe } from "../lib/aiPlanner.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { registerRecipes } from "../data/recipes.js";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 import demoState from "../dev/demoState.json";
 
@@ -67,13 +69,23 @@ const mkMember = (m) => ({
   ...m,
 });
 
-// Step 1 — arranca con 2 adultos y en bucle teclea un niño y un bebé.
+// Step 1 — family builder (UI nueva): arranca con papá y mamá arriba y en bucle
+// va "soltando" perfiles de la paleta (hijo, bebé). Cada miembro lleva su
+// profileKey + color para que los avatares se pinten como en la app real.
+// Each one carries an avatarKey so the carousel shows the same illustrated
+// characters the user is about to pick in onboarding. Without it they fall back
+// to plain initials and the first thing we promise looks nothing like the app.
 const FAMILY_START = [
-  mkMember({ id: "vp-pablo", name: "Pablo", age: 38, homeRole: "Adulto" }),
-  mkMember({ id: "vp-ana", name: "Ana", age: 36, homeRole: "Adulto" }),
+  mkMember({ id: "vp-pablo", name: "Pablo", age: 38, homeRole: "Papá", profileKey: "papa", avatarKey: "papa_4", color: "#039be5" }),
+  mkMember({ id: "vp-ana", name: "Ana", age: 36, homeRole: "Mamá", profileKey: "mama", avatarKey: "mama_5", color: "#d81b60" }),
 ];
-const DEMO_CHILD = mkMember({ id: "vp-leo", name: "Leo", age: 10, homeRole: "Hijo/a" });
-const DEMO_BABY = mkMember({ id: "vp-lucas", name: "Lucas", age: 1, homeRole: "Bebé" });
+// Familia de 4 hijos: se van soltando de uno en uno sobre papá + mamá.
+const DEMO_KIDS = [
+  mkMember({ id: "vp-leo",  name: "Leo",  age: 11, homeRole: "Hijo/a", profileKey: "hijo", avatarKey: "hijo_2",  color: "#43a047" }),
+  mkMember({ id: "vp-sara", name: "Sara", age: 9,  homeRole: "Hijo/a", profileKey: "hija", avatarKey: "hija_12", color: "#8e24aa" }),
+  mkMember({ id: "vp-hugo", name: "Hugo", age: 6,  homeRole: "Hijo/a", profileKey: "hijo", avatarKey: "hijo_11", color: "#fb8c00" }),
+  mkMember({ id: "vp-mia",  name: "Mía",  age: 3,  homeRole: "Hijo/a", profileKey: "hija", avatarKey: "hija_14", color: "#e53935" }),
+];
 
 const membersToData = (members) => ({
   members,
@@ -85,9 +97,9 @@ const membersToData = (members) => ({
 // Step 2 — alérgenos (Pablo), embarazo (Ana), diabetes (Marcos).
 const RESTRICTION_DATA = {
   members: [
-    mkMember({ id: "vp-r-pablo", name: "Pablo", age: 38, homeRole: "Adulto", allergies: ["Gluten", "Leche"] }),
-    mkMember({ id: "vp-r-ana", name: "Ana", age: 34, homeRole: "Adulto", dietaryStates: ["embarazo"] }),
-    mkMember({ id: "vp-r-marcos", name: "Marcos", age: 52, homeRole: "Adulto", healthProfiles: ["glucemico"] }),
+    mkMember({ id: "vp-r-pablo", name: "Pablo", age: 38, homeRole: "Adulto", avatarKey: "papa_4", allergies: ["Gluten", "Leche"] }),
+    mkMember({ id: "vp-r-ana", name: "Ana", age: 34, homeRole: "Adulto", avatarKey: "mama_5", dietaryStates: ["embarazo"] }),
+    mkMember({ id: "vp-r-marcos", name: "Marcos", age: 52, homeRole: "Adulto", avatarKey: "papa_11", healthProfiles: ["glucemico"] }),
   ],
   customAllergies: [],
 };
@@ -174,11 +186,6 @@ const USER_RECIPES = [
   },
 ];
 
-const RECIPE_VOTES = {
-  carnes_001: { v: "up", fav: "all" },
-  user_demo_lentejas: { fav: "all" },
-};
-
 // Step 5 — lista de la compra realista repartida en varias secciones.
 const SHOPPING_ITEMS = [
   { id: "cebolla|ud", name: "Cebolla", category: "Verduras y frutas", unit: "ud", qty: 3, displayQty: "3 uds", have: false, atHome: false, sources: [{ day: "Lun", meal: "Cena", group: "Familia", recipeName: "Pasta boloñesa", qty: 1, unit: "ud" }, { day: "Mié", meal: "Comida", group: "Familia", recipeName: "Pollo al horno", qty: 2, unit: "ud" }] },
@@ -226,7 +233,55 @@ const KITCHEN_TOOLS = ["Thermomix", "Airfryer", "Horno"];
 // recetas reales) que ya usa `?demo=1` en local, así garantizamos que todos
 // los recipeId existen en RECIPES_BY_ID y las imágenes resuelven.
 const MENU_DEMO_DATA = { ...demoState.data, menuWeek: { offset: 0, startDayIdx: 0 } };
-const MENU_DEMO_PLAN = demoState.menuPlan;
+// El plan de `demoState` usa recetas con IDs propios que NO tienen foto en el
+// manifiesto (salían placeholders de color). Reconstruimos el menú con recetas
+// reales del catálogo que sí tienen imagen, para el mismo grupo/días.
+const DEMO_GROUP_ID = MENU_DEMO_DATA.groups?.[0]?.id ?? "uck1a48c";
+const demoSlot = (recipeId, firstRecipeId = null) => ({
+  recipeId,
+  firstRecipeId,
+  mode: "casa",
+  eaters: 3,
+  warnings: [],
+});
+const MENU_DEMO_PLAN = {
+  _warnings: [],
+  [DEMO_GROUP_ID]: {
+    "Lun-Comida": demoSlot("pescados_002", "ensaladas_verduras_001"),
+    "Lun-Cena": demoSlot("pasta_arroces_001"),
+    "Mar-Comida": demoSlot("carnes_001", "sopas_cremas_001"),
+    "Mar-Cena": demoSlot("cenas_rapidas_001"),
+    "Mié-Comida": demoSlot("pescados_005", "legumbres_001"),
+    "Mié-Cena": demoSlot("huevos_001"),
+    "Jue-Comida": demoSlot("carnes_005", "ensaladas_verduras_002"),
+    "Jue-Cena": demoSlot("cenas_rapidas_002"),
+    "Vie-Comida": demoSlot("platos_unicos_001", "sopas_cremas_002"),
+    "Vie-Cena": demoSlot("pasta_arroces_002"),
+    "Sáb-Comida": demoSlot("platos_unicos_002"),
+    "Sáb-Cena": demoSlot("cenas_rapidas_001"),
+    "Dom-Comida": demoSlot("carnes_001", "ensaladas_verduras_001"),
+    "Dom-Cena": demoSlot("pescados_002"),
+  },
+};
+
+// RECIPES_BY_ID se construye desde BASE_RECIPES (recetas legacy), NO desde el
+// catálogo — el catálogo solo entra en runtime vía `registerRecipes` (planner).
+// En el carrusel de bienvenida el planner no corre, así que registramos aquí las
+// recetas de catálogo que usa el menú demo, para que resuelvan nombre + FOTO.
+const DEMO_MENU_RECIPE_IDS = Array.from(
+  new Set(
+    Object.values(MENU_DEMO_PLAN[DEMO_GROUP_ID]).flatMap((s) =>
+      [s.recipeId, s.firstRecipeId].filter(Boolean),
+    ),
+  ),
+);
+registerRecipes(
+  DEMO_MENU_RECIPE_IDS.map((id) => recipeCatalogById[id])
+    .filter(Boolean)
+    .map((r) => catalogToFrontendRecipe(r, 3)),
+);
+// Home demo — usuario ficticio para que googleInfo pinte un nombre real.
+const HOME_DEMO_USER = { user_metadata: { full_name: "Pablo" } };
 
 // Step "Menú del cole" — familia con un hijo en edad escolar (para que
 // OnboardingSchoolMenu no muestre el estado vacío "sin niños/as").
@@ -236,9 +291,58 @@ const SCHOOL_DEMO_MEMBERS = [
   mkMember({ id: "vp-s-leo", name: "Leo", age: 8, homeRole: "Hijo/a" }),
 ];
 
+// Steps "Cuándo coméis" / "Cómo coméis" — reusan un hogar de 2 adultos + 1 niño.
+// Horario realista: entre semana Leo come en el cole y Pablo come fuera; todos
+// cenan en casa; el finde, comida en casa. Así la rejilla muestra casa/cole/fuera.
+const HOME_DEMO_MEMBERS = [
+  mkMember({ id: "vp-h-pablo", name: "Pablo", age: 38, homeRole: "Adulto" }),
+  mkMember({ id: "vp-h-ana", name: "Ana", age: 36, homeRole: "Adulto" }),
+  mkMember({ id: "vp-h-leo", name: "Leo", age: 8, homeRole: "Hijo/a" }),
+];
+const HOME_DEMO_GROUP = {
+  id: "vp-h-g1",
+  label: "Familia",
+  memberIds: HOME_DEMO_MEMBERS.map((m) => m.id),
+  color: "#2d5a3d",
+};
+const WEEK_DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+const buildScheduleDemo = () => {
+  const s = {};
+  for (const day of WEEK_DAYS) {
+    const weekend = day === "Sáb" || day === "Dom";
+    s[`vp-h-pablo|${day}|Comida`] = weekend ? "casa" : "fuera";
+    s[`vp-h-ana|${day}|Comida`] = "casa";
+    s[`vp-h-leo|${day}|Comida`] = weekend ? "casa" : "cole";
+    s[`vp-h-pablo|${day}|Cena`] = "casa";
+    s[`vp-h-ana|${day}|Cena`] = "casa";
+    s[`vp-h-leo|${day}|Cena`] = "casa";
+  }
+  return s;
+};
+const SCHEDULE_DEMO_DATA = {
+  members: HOME_DEMO_MEMBERS,
+  meals: ["Comida", "Cena"],
+  menuModel: "same",
+  menuWeek: { offset: 0, startDayIdx: 0 },
+  schedule: buildScheduleDemo(),
+  schoolMenus: { shared: {}, byMember: {} },
+  groups: [HOME_DEMO_GROUP],
+  customAllergies: [],
+};
+const MEALSTYLE_DEMO_DATA = {
+  members: HOME_DEMO_MEMBERS,
+  meals: ["Comida", "Cena"],
+  menuModel: "same",
+  menuWeek: { offset: 0, startDayIdx: 0 },
+  schedule: buildScheduleDemo(),
+  groups: [HOME_DEMO_GROUP],
+  mealStyleByGroup: { "vp-h-g1": "equilibrado" },
+  customAllergies: [],
+};
+
 // ── Frame ─────────────────────────────────────────────────────────────────
 
-function Frame({ children, focusY = 0, stageHeight = 760, containerRef = null }) {
+function Frame({ children, focusY = 0, stageHeight = 760, containerRef = null, animate = true }) {
   return (
     <div
       ref={containerRef}
@@ -261,7 +365,9 @@ function Frame({ children, focusY = 0, stageHeight = 760, containerRef = null })
           height: stageHeight,
           transform: `scale(${SCALE}) translateY(${focusY}px)`,
           transformOrigin: "top left",
-          transition: "transform 1s cubic-bezier(.4,0,.2,1)",
+          // `animate=false` → salto instantáneo (reset al top entre pasos, sin
+          // rebote hacia arriba). `true` → paneo suave (solo hacia abajo).
+          transition: animate ? "transform 1s cubic-bezier(.4,0,.2,1)" : "none",
         }}
       >
         {children}
@@ -290,37 +396,33 @@ function smoothScrollTo(el, to, duration = 1200) {
   return () => cancelAnimationFrame(raf);
 }
 
-function RegenOverlay() {
+// ── Per-step demo wrappers (each holds its own state) ───────────────────────
+
+// "Aquí arranca todo" — la Home real: menú de hoy, tu familia y accesos rápidos.
+function HomeDemo() {
   return (
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        zIndex: 5,
-        background: "rgba(244,248,245,.86)",
-        backdropFilter: "blur(2px)",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 12,
-      }}
-    >
-      <Loader2 size={30} color="#2d5a3d" style={{ animation: "vpSpin 1s linear infinite" }} />
-      <span style={{ fontSize: 13, fontWeight: 800, color: "#2d5a3d" }}>Buscando otro plato…</span>
-    </div>
+    <Frame stageHeight={1180} focusY={0}>
+      <DashboardScreen
+        user={HOME_DEMO_USER}
+        data={MENU_DEMO_DATA}
+        menuPlan={MENU_DEMO_PLAN}
+        onNav={() => {}}
+        onViewMenu={() => {}}
+        onGenerateNewMenu={() => {}}
+        onOpenRecipePlanner={() => {}}
+        onOpenStreak={() => {}}
+        onOpenAccount={() => {}}
+      />
+    </Frame>
   );
 }
 
-// ── Per-step demo wrappers (each holds its own state) ───────────────────────
-
 function MembersDemo() {
-  // Loop: 2 adultos ya rellenos → teclea "Leo" (niño) y añade → teclea "Lucas"
-  // (bebé) y añade (salta el pop-up) → pausa → reset. El tecleo se muestra en el
-  // input real vía demoName/demoAge; los miembros los añadimos por setData.
+  // UI nueva (family builder): NO pasamos demoName → OnboardingMembers muestra la
+  // lista de familia arriba + la paleta de perfiles abajo. En bucle vamos
+  // "soltando" perfiles (papá/mamá → hijo → bebé) por setData para que se vea
+  // crecer la familia con sus avatares de colores.
   const [members, setMembers] = useState(FAMILY_START);
-  const [typed, setTyped] = useState("");
-  const [typedAge, setTypedAge] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -330,37 +432,19 @@ function MembersDemo() {
         const id = setTimeout(res, ms);
         timers.push(id);
       });
-    const typeName = async (word) => {
-      for (let i = 1; i <= word.length; i += 1) {
-        if (cancelled) return;
-        setTyped(word.slice(0, i));
-        await wait(90);
-      }
-    };
     const run = async () => {
       while (!cancelled) {
         setMembers(FAMILY_START);
-        setTyped("");
-        setTypedAge("");
+        await wait(900);
+        if (cancelled) return;
+        // Suelta los 4 hijos de uno en uno.
+        for (let i = 0; i < DEMO_KIDS.length; i += 1) {
+          setMembers([...FAMILY_START, ...DEMO_KIDS.slice(0, i + 1)]);
+          await wait(900);
+          if (cancelled) return;
+        }
+        // 1s viendo a los 6 miembros al completo.
         await wait(1000);
-        if (cancelled) return;
-        await typeName("Leo");
-        setTypedAge("10");
-        await wait(650);
-        if (cancelled) return;
-        setMembers([...FAMILY_START, DEMO_CHILD]);
-        setTyped("");
-        setTypedAge("");
-        await wait(1100);
-        if (cancelled) return;
-        await typeName("Lucas");
-        setTypedAge("1");
-        await wait(650);
-        if (cancelled) return;
-        setMembers([...FAMILY_START, DEMO_CHILD, DEMO_BABY]);
-        setTyped("");
-        setTypedAge("");
-        await wait(3200);
       }
     };
     run();
@@ -378,13 +462,7 @@ function MembersDemo() {
 
   return (
     <Frame stageHeight={820} focusY={0}>
-      <OnboardingMembers
-        data={data}
-        setData={setData}
-        showMenuModel
-        demoName={typed}
-        demoAge={typedAge}
-      />
+      <OnboardingMembers data={data} setData={setData} showMenuModel />
     </Frame>
   );
 }
@@ -399,10 +477,9 @@ function RestrictionsDemo() {
 }
 
 function MenuDemo() {
-  // No hay nada que clicar aquí: la propia cámara (focusY) hace un paneo
-  // vertical lento a lo largo de la semana ya planificada, en modo "semana"
-  // desde el arranque para que se vea de un vistazo que es un menú completo.
-  const [focusY, setFocusY] = useState(0);
+  // Vista "Semana" real con FOTOS. Paneo vertical suave por los días + scroll
+  // horizontal continuo (`autoDemo="tour"`) para que se vean bien los platos.
+  const [focusY, setFocusY] = useState(-60);
   useEffect(() => {
     let cancelled = false;
     const timers = [];
@@ -413,9 +490,9 @@ function MenuDemo() {
       });
     const run = async () => {
       while (!cancelled) {
-        for (const y of [0, -480, -960, -1440]) {
+        for (const y of [-60, -60, -380, -700, -380]) {
           setFocusY(y);
-          await wait(2500);
+          await wait(2800);
           if (cancelled) return;
         }
       }
@@ -426,9 +503,8 @@ function MenuDemo() {
       timers.forEach(clearTimeout);
     };
   }, []);
-
   return (
-    <Frame stageHeight={2100} focusY={focusY}>
+    <Frame stageHeight={1750} focusY={focusY}>
       <MenuScreen
         data={MENU_DEMO_DATA}
         setData={() => {}}
@@ -443,7 +519,8 @@ function MenuDemo() {
         onSwitchWeek={() => {}}
         onOpenMenus={() => {}}
         onAutoOpenProfileHandled={() => {}}
-        initialViewMode="semana"
+        initialDeckView="semana"
+        autoDemo="tour"
       />
     </Frame>
   );
@@ -465,6 +542,45 @@ function SchoolMenuDemo() {
         onFinish={() => {}}
         onReset={() => {}}
         demoScript
+      />
+    </Frame>
+  );
+}
+
+function ScheduleDemo() {
+  const [data, setData] = useState(SCHEDULE_DEMO_DATA);
+  // Sin paneo del frame: fijamos la altura del shell al frame (STAGE_H) para que
+  // el scroll ocurra DENTRO del body (como una pantalla real) y el panel
+  // "Ajustar" (fixed) ancle al fondo del frame → sin recortes ni saltos raros.
+  const STAGE_H = Math.round(VIS_H / SCALE); // altura lógica visible del frame
+  return (
+    <Frame stageHeight={STAGE_H} focusY={0}>
+      <OnboardingSchedule
+        data={data}
+        setData={setData}
+        onNext={() => {}}
+        onBack={() => {}}
+        onFinish={() => {}}
+        onReset={() => {}}
+        autoplay
+        demoHeight={STAGE_H}
+      />
+    </Frame>
+  );
+}
+
+function MealStyleDemo() {
+  const [data, setData] = useState(MEALSTYLE_DEMO_DATA);
+  return (
+    <Frame stageHeight={900} focusY={0}>
+      <OnboardingMealStyle
+        data={data}
+        setData={setData}
+        onNext={() => {}}
+        onBack={() => {}}
+        onFinish={() => {}}
+        onReset={() => {}}
+        autoplay
       />
     </Frame>
   );
@@ -503,6 +619,7 @@ function DishMethodsDemo() {
           browse
           onClose={() => {}}
           stepsByAppliance={CANNELONI_STEPS}
+          initialRecipeTab="pasos"
           autoDemo="methods"
         />
       </div>
@@ -510,91 +627,131 @@ function DishMethodsDemo() {
   );
 }
 
-function DishSwapDemo() {
-  const recipes = useMemo(() => {
-    const a = recipeCatalogById["pasta_arroces_018"];
-    const b = recipeCatalogById["pescados_001"];
-    return [a ? catalogToFrontendRecipe(a, 4) : null, b ? catalogToFrontendRecipe(b, 4) : null];
-  }, []);
-  const [idx, setIdx] = useState(0);
-  const [regen, setRegen] = useState(false);
-  const ref = useRef(null);
-  const recipe = recipes[idx];
+// Flujo del radial real (mismos iconos/labels/colores que producción):
+// 1) main: Mover / Duplicar / Regenerar / Quitar
+// 2) regen: al pulsar Regenerar → Otro pescado / Otro plato / Elegir a mano
+// 3) reason: al reemplazar pregunta el porqué; resaltamos "Tarda demasiado".
+const RADIAL_MAIN = [
+  { id: "swap", Icon: ArrowLeftRight, label: "Mover", onPick: () => {} },
+  { id: "dup", Icon: CopyPlus, label: "Duplicar", onPick: () => {} },
+  { id: "regen", Icon: RotateCw, label: "Regenerar", onPick: () => {} },
+  { id: "clear", Icon: Trash2, label: "Quitar", onPick: () => {} },
+];
+const RADIAL_REGEN = [
+  { id: "same", Icon: Fish, color: "#2f6fb8", label: "Otro pescado", onPick: () => {} },
+  { id: "any", Icon: Shuffle, label: "Otro plato", onPick: () => {} },
+  { id: "pick", Icon: Search, label: "Elegir a mano", onPick: () => {} },
+];
+const RADIAL_REASON = [
+  { id: "dislike", Icon: ThumbsDown, color: "#e0405a", label: "No me gusta", onPick: () => {} },
+  { id: "week", Icon: CalendarOff, color: "#e08a2f", label: "Esta semana no", onPick: () => {} },
+  { id: "timing", Icon: Clock3, color: "#2f6fb8", label: "Tarda demasiado", active: true, onPick: () => {} },
+  { id: "recent", Icon: History, color: "#7a5cc0", label: "Lo comí hace poco", onPick: () => {} },
+];
 
-  const handleReject = useCallback(() => {
-    setRegen(true);
-    setTimeout(() => {
-      setIdx(1);
-      setRegen(false);
-    }, 900);
-  }, []);
+const RADIAL_STAGE_H = 1300;
+const RADIAL_FOCUS_Y = -58;
+// Slot sobre el que actúa el radial: un día CENTRAL (para poder centrarlo también
+// en horizontal) y un pescado (para que "Otro pescado" cuadre). "Regenera" a otro
+// pescado del catálogo (ya registrado, con foto).
+const RADIAL_SLOT = "Mié-Comida";
+const RADIAL_SWAP_TO = "pescados_002";
+const RADIAL_SWAPPED_PLAN = {
+  ...MENU_DEMO_PLAN,
+  [DEMO_GROUP_ID]: {
+    ...MENU_DEMO_PLAN[DEMO_GROUP_ID],
+    [RADIAL_SLOT]: { ...MENU_DEMO_PLAN[DEMO_GROUP_ID][RADIAL_SLOT], recipeId: RADIAL_SWAP_TO },
+  },
+};
 
-  // idx 0 (plato rechazado): arranca arriba, baja con scroll suave hasta la
-  // tarjeta "Cambiar este plato" — justo a tiempo para el rechazo automático
-  // de DishDetail (autoDemo="reject", a los 2000ms). idx 1 (plato nuevo):
-  // arranca arriba y, tras una pausa breve, reinicia el bucle entero.
-  useEffect(() => {
-    const el = ref.current?.querySelector(".mp-sheet-up");
-    if (!el) return undefined;
-    el.scrollTop = 0;
-    let cancelScroll = () => {};
-    const timers = [];
-    if (idx === 0) {
-      timers.push(
-        setTimeout(() => {
-          cancelScroll = smoothScrollTo(el, el.scrollHeight, 1000);
-        }, 500),
-      );
-    } else {
-      timers.push(setTimeout(() => setIdx(0), 2200));
-    }
-    return () => {
-      timers.forEach(clearTimeout);
-      cancelScroll();
-    };
-  }, [idx]);
-
-  if (!recipe) return null;
+// Pulso de "toque" sobre los ⋮ (arriba a la derecha del tile), antes del radial.
+function TapPulse({ tile }) {
+  const x = tile.left + tile.width - 24;
+  const y = tile.top + 24;
   return (
-    <Frame stageHeight={STAGE_VISIBLE_H} containerRef={ref}>
-      <div className="vp-dish">
-        <DishDetail
-          key={recipe.id}
-          recipe={recipe}
-          slot={{ eaters: 4 }}
-          onClose={() => {}}
-          onReject={idx === 0 ? handleReject : undefined}
-          autoDemo={idx === 0 ? "reject" : null}
-        />
-      </div>
-      {regen && <RegenOverlay />}
-    </Frame>
-  );
-}
-
-function RecipesDemo() {
-  return (
-    <Frame stageHeight={780} focusY={0}>
-      <RecipesScreen
-        userRecipes={USER_RECIPES}
-        recipeVotes={RECIPE_VOTES}
-        scopeGroups={[]}
-        onNav={() => {}}
-        onOpenRecipe={() => {}}
-        onOpenRecipePlanner={() => {}}
-        onSetFavoriteScope={() => {}}
-        catalogInitialCategory="pasta_arroces"
-        autoplay
+    <div style={{ position: "absolute", inset: 0, zIndex: 1190, pointerEvents: "none" }}>
+      <style>{`@keyframes vpTap {
+        0%   { transform: translate(-50%,-50%) scale(.5); opacity: .95; }
+        70%  { transform: translate(-50%,-50%) scale(1.6); opacity: 0; }
+        100% { opacity: 0; }
+      }`}</style>
+      <span
+        style={{
+          position: "absolute", left: x, top: y, width: 34, height: 34,
+          borderRadius: "50%", border: "3px solid rgba(255,255,255,.95)",
+          background: "rgba(255,255,255,.3)", transform: "translate(-50%,-50%)",
+          boxShadow: "0 2px 10px rgba(9,18,12,.45)",
+          animation: "vpTap .62s ease-out both",
+        }}
       />
-    </Frame>
+    </div>
   );
 }
 
-// Ids marcados como comprados en el bucle de ShoppingDemo (ver SHOPPING_ITEMS).
-const SHOPPING_CHECK_IDS = ["cebolla|ud", "calabacin|ud"];
+// "Tú mandas" — el radial se lanza SOBRE el menú completo (fondo real, atenuado
+// por el propio rosco). Secuencia: 1s viendo el menú → toque en los ⋮ →
+// main → Regenerar → razón (Tarda demasiado) → regenera (plato nuevo) 1s. Bucle.
+function RadialDemo() {
+  const wrapRef = useRef(null);
+  const [anchor, setAnchor] = useState(null);
+  const [phase, setPhase] = useState("menu"); // menu | tap | main | regen | reason | done
+  const [plan, setPlan] = useState(MENU_DEMO_PLAN);
+  // focusY se calcula tras medir el tile para CENTRARLO en el marco (si no, el
+  // radial queda pegado arriba y descuadrado). Fallback: RADIAL_FOCUS_Y.
+  const [focusY, setFocusY] = useState(RADIAL_FOCUS_Y);
 
-function ShoppingDemo() {
-  const [shopping, setShopping] = useState({ items: SHOPPING_ITEMS });
+  useEffect(() => {
+    let raf;
+    let tries = 0;
+    let scrolled = false;
+    const measure = () => {
+      const wrap = wrapRef.current;
+      // El stage escalado es el único hijo del contenedor de Frame; medimos
+      // relativo a él para obtener coordenadas LÓGICAS (el rosco vive dentro
+      // del stage, así que comparte su scale + translateY(focusY)).
+      const stage = wrap?.firstElementChild;
+      // Anclamos en el SEGUNDO plato (el que se regenera) — así el resalte
+      // coincide con los bordes de ESA miniatura (no una caja-unión desacoplada).
+      const el =
+        stage?.querySelector(`.deck-tile[data-slot="${RADIAL_SLOT}"][data-course="main"]`) ||
+        stage?.querySelector(`.deck-tile[data-slot="${RADIAL_SLOT}"]`) ||
+        stage?.querySelectorAll(".deck-tile")?.[0];
+      if (!stage || !el) {
+        if (tries++ < 60) raf = requestAnimationFrame(measure);
+        return;
+      }
+      // 1) Centra ese plato en HORIZONTAL desplazando los scrollers del deck (una
+      // vez), para que el radial quede cuadrado sin desacoplar el borde.
+      if (!scrolled) {
+        scrolled = true;
+        const trr = el.getBoundingClientRect();
+        const sr0 = stage.getBoundingClientRect();
+        const delta = ((trr.left + trr.width / 2) - (sr0.left + sr0.width / 2)) / SCALE;
+        const scrollers = stage.querySelectorAll(".deck-scroller");
+        if (scrollers.length && Math.abs(delta) > 1) {
+          scrollers.forEach((s) => { s.scrollLeft += delta; });
+          raf = requestAnimationFrame(measure); // re-medir tras el scroll
+          return;
+        }
+      }
+      const tr = el.getBoundingClientRect();
+      const sr = stage.getBoundingClientRect();
+      const tile = {
+        left: (tr.left - sr.left) / SCALE,
+        top: (tr.top - sr.top) / SCALE,
+        width: tr.width / SCALE,
+        height: tr.height / SCALE,
+      };
+      setAnchor({ tile, radius: 16 });
+      // 2) Centra en VERTICAL vía focusY (un pelín por encima del centro para
+      // dejar aire a la chip inferior).
+      const centerY = tile.top + tile.height / 2;
+      setFocusY(Math.min(0, Math.round(STAGE_VISIBLE_H / 2 - 18 - centerY)));
+    };
+    measure();
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     const timers = [];
@@ -603,25 +760,27 @@ function ShoppingDemo() {
         const id = setTimeout(res, ms);
         timers.push(id);
       });
-    const setHave = (id, have) =>
-      setShopping((s) => ({
-        ...s,
-        items: s.items.map((it) => (it.id === id ? { ...it, have } : it)),
-      }));
-
     const run = async () => {
       while (!cancelled) {
-        SHOPPING_CHECK_IDS.forEach((id) => setHave(id, false));
-        await wait(900);
+        setPlan(MENU_DEMO_PLAN);
+        setPhase("menu");
+        await wait(1000); // 1s viendo el menú normal
         if (cancelled) return;
-        // Toca "Comprado" en un par de productos, uno tras otro: cada uno sale
-        // de la lista al marcarlo (ya no hay sub-vista de "Comprado").
-        for (const id of SHOPPING_CHECK_IDS) {
-          setHave(id, true);
-          await wait(480);
-          if (cancelled) return;
-        }
-        await wait(2000);
+        setPhase("tap"); // "toca" los ⋮
+        await wait(650);
+        if (cancelled) return;
+        setPhase("main"); // Mover / Duplicar / Regenerar / Quitar
+        await wait(2200);
+        if (cancelled) return;
+        setPhase("regen"); // Otro pescado / Otro plato / Elegir a mano
+        await wait(2200);
+        if (cancelled) return;
+        setPhase("reason"); // razón: Tarda demasiado (resaltado)
+        await wait(2400);
+        if (cancelled) return;
+        setPhase("done"); // regenera → plato nuevo
+        setPlan(RADIAL_SWAPPED_PLAN);
+        await wait(1200); // 1s viendo el nuevo plato
         if (cancelled) return;
       }
     };
@@ -632,26 +791,132 @@ function ShoppingDemo() {
     };
   }, []);
 
+  const showRadial = phase === "main" || phase === "regen" || phase === "reason";
+  const actions = phase === "regen" ? RADIAL_REGEN : phase === "reason" ? RADIAL_REASON : RADIAL_MAIN;
+
   return (
-    <Frame stageHeight={780} focusY={0}>
-      <ShoppingScreen
-        shopping={shopping}
-        setShopping={setShopping}
+    <Frame stageHeight={RADIAL_STAGE_H} focusY={focusY} containerRef={wrapRef}>
+      <MenuScreen
+        data={MENU_DEMO_DATA}
+        setData={() => {}}
+        menuPlan={plan}
+        onDishTap={() => {}}
         onNav={() => {}}
+        onRegenerate={() => {}}
+        onRetry={() => {}}
+        onReset={() => {}}
         onToast={() => {}}
-        initialOpenAisle="Verduras"
+        onTrackEvent={() => {}}
+        onSwitchWeek={() => {}}
+        onOpenMenus={() => {}}
+        onAutoOpenProfileHandled={() => {}}
+        initialDeckView="semana"
       />
+      {anchor && phase === "tap" && <TapPulse tile={anchor.tile} />}
+      {anchor && showRadial && (
+        <RoscoMenu
+          key={phase}
+          inline
+          frameW={LOGICAL_W}
+          frameH={RADIAL_STAGE_H}
+          radius={58}
+          anchor={anchor}
+          actions={actions}
+          onClose={() => {}}
+        />
+      )}
+    </Frame>
+  );
+}
+
+// "Recetas": muestra CÓMO se crea una receta. El planner se teclea solo
+// ("Salmón a la plancha con ensalada de mango y aguacate") y recorre las 6
+// pantallas; paneamos hacia abajo en los pasos con contenido largo.
+function RecipesDemo() {
+  const [focusY, setFocusY] = useState(0);
+  const [animate, setAnimate] = useState(true);
+  const rafRef = useRef(0);
+  // Cambio de paso: salto instantáneo al top del nuevo paso (sin animar hacia
+  // arriba, para que NO rebote). El scroll dentro del paso siempre va hacia
+  // abajo, animado, vía onDemoScroll.
+  const onDemoStep = () => {
+    cancelAnimationFrame(rafRef.current);
+    setAnimate(false);
+    setFocusY(0);
+    rafRef.current = requestAnimationFrame(() => setAnimate(true));
+  };
+  const onDemoScroll = (y) => {
+    setAnimate(true);
+    setFocusY(y);
+  };
+  useEffect(() => () => cancelAnimationFrame(rafRef.current), []);
+  return (
+    <Frame stageHeight={1080} focusY={focusY} animate={animate}>
+      <RecipePlannerScreen
+        userRecipes={USER_RECIPES}
+        user={null}
+        setData={() => {}}
+        onClose={() => {}}
+        onSaved={() => {}}
+        autoDemo
+        onDemoStep={onDemoStep}
+        onDemoScroll={onDemoScroll}
+      />
+    </Frame>
+  );
+}
+
+function ShoppingDemo() {
+  const [shopping, setShopping] = useState({ items: SHOPPING_ITEMS });
+  // Altura = frame visible, y wrapper .vp-shop para que el overlay del ticket
+  // (WizardSheet) quede DENTRO del marco (no fixed al viewport) y no tape "Atrás".
+  return (
+    <Frame stageHeight={STAGE_VISIBLE_H} focusY={0}>
+      <div className="vp-shop">
+        <ShoppingScreen
+          shopping={shopping}
+          setShopping={setShopping}
+          onNav={() => {}}
+          onToast={() => {}}
+          initialOpenAisle="Verduras"
+          autoDemo
+        />
+      </div>
     </Frame>
   );
 }
 
 const STEPS = [
   {
+    title: "Aquí arranca todo",
+    Demo: HomeDemo,
+    bullets: [
+      "Tu pantalla de inicio: el menú de hoy, tu familia y accesos rápidos.",
+      "Desde aquí generas el menú, abres la compra y consultas tus recetas.",
+    ],
+  },
+  {
     title: "Un menú para toda la familia",
     Demo: MembersDemo,
     bullets: [
-      "Añade a cada uno de casa, con su edad: adultos, niños y bebés.",
-      "A los bebés les preparamos un menú de purés y texturas suaves, aparte.",
+      "Añade a cada uno de casa, con su edad y el personaje que más se le parezca.",
+      "Un único menú para todos o uno distinto para peques y mayores.",
+    ],
+  },
+  {
+    title: "Cuándo coméis",
+    Demo: ScheduleDemo,
+    bullets: [
+      "Di quién come en casa cada día, en comida y cena, entre semana y el finde.",
+      "Marca quién come fuera o en el cole y el menú se ajusta a los días reales.",
+    ],
+  },
+  {
+    title: "Cómo os gusta comer",
+    Demo: MealStyleDemo,
+    bullets: [
+      "Elige el estilo: de todo, equilibrado o algo más ligero.",
+      "Repartimos legumbres, pescado, verdura y demás en su justa medida.",
     ],
   },
   {
@@ -663,19 +928,19 @@ const STEPS = [
     ],
   },
   {
+    title: "Los peques, cubiertos",
+    Demo: SchoolMenuDemo,
+    bullets: [
+      "A los bebés les preparamos un menú aparte de purés y texturas suaves.",
+      "Sube el PDF o la foto del comedor: el menú de casa no repite lo del cole.",
+    ],
+  },
+  {
     title: "Tu menú, ya organizado",
     Demo: MenuDemo,
     bullets: [
       "Cada comida de la semana, con su plato y su tiempo de cocina.",
       "Míralo día a día o de un vistazo, semana completa.",
-    ],
-  },
-  {
-    title: "Y el menú del cole, también",
-    Demo: SchoolMenuDemo,
-    bullets: [
-      "Sube el PDF o la foto del comedor y lo interpretamos por ti.",
-      "Así el menú de casa no repite lo que ya comen en el cole.",
     ],
   },
   {
@@ -687,27 +952,27 @@ const STEPS = [
     ],
   },
   {
-    title: "Recetas de verdad, también las tuyas",
+    title: "Crea tus propias recetas",
     Demo: RecipesDemo,
     bullets: [
-      "Un catálogo con recetas reales, no inventadas por un ordenador.",
-      "Añade las tuyas con ayuda de la IA y guarda tus favoritas.",
+      "Escribe el plato y la IA te propone ingredientes, pasos y hasta la foto.",
+      "En unos pasos la guardas y ya entra en tus menús.",
     ],
   },
   {
     title: "La lista de la compra, hecha sola",
     Demo: ShoppingDemo,
     bullets: [
-      "Se genera automáticamente a partir del menú de la semana.",
-      "Marca lo que ya tienes en casa para no comprarlo de más.",
+      "Se genera sola desde el menú; marca lo que ya tienes en casa.",
+      "Sube el ticket y tachamos lo comprado y lo guardamos en la despensa.",
     ],
   },
   {
-    title: "¿No te convence un plato?",
-    Demo: DishSwapDemo,
+    title: "Tú mandas",
+    Demo: RadialDemo,
     bullets: [
-      "Pulsa “No me gusta” y te buscamos otro al momento.",
-      "El menú se adapta a vosotros, no al revés.",
+      "Toca los ⋮ de un plato y elige: moverlo, duplicarlo, regenerarlo o quitarlo.",
+      "También puedes elegirlo a mano o descartarlo: el menú se adapta a vosotros.",
     ],
   },
 ];
@@ -768,6 +1033,18 @@ export function ValuePropsCarousel({ onFinish }) {
           max-height: 100% !important;
           border-radius: 22px !important;
           box-shadow: 0 10px 30px rgba(0,0,0,.12) !important;
+        }
+        /* Igual para el wizard del ticket en "Tu compra": el overlay queda DENTRO
+           del frame (no fixed al viewport) para que no tape el botón "Atrás". */
+        .vp-shop .mp-overlay-in {
+          position: absolute !important;
+          inset: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          align-items: center !important;
+        }
+        .vp-shop .mp-sheet-up {
+          max-height: 100% !important;
         }
       `}</style>
 

@@ -23,7 +23,7 @@ import {
   GoogleButton,
   bottomNavSpacer,
 } from "../components/ui.jsx";
-import { memberAvatarColor, stageLabel, migrateHomeRole } from "../lib/stages.js";
+import { memberAvatarColor, memberAvatarThumbSrc, stageLabel, migrateHomeRole } from "../lib/stages.js";
 import { computeStreak } from "../lib/menuStats.js";
 import { INTOLERANCE_RULES } from "../lib/intolerances.js";
 
@@ -582,7 +582,7 @@ export function AccountScreen({
                   >
                     <Avatar
                       name={m.name}
-                      photo={m.photo}
+                      photo={memberAvatarThumbSrc(m)}
                       size={42}
                       color={memberAvatarColor(m.id, members)}
                     />

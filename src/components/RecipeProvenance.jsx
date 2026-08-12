@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ThumbsUp, ThumbsDown, Utensils } from "lucide-react";
 
 // Small MenuPlan logo mark used instead of a user avatar for catalog dishes.
@@ -82,6 +83,22 @@ export function formatRecipeDate(ts) {
   return new Date(ts).toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
 }
 
+// The owner snapshot is stamped when the recipe is saved, so its avatar can be
+// a Google account URL that has since expired. Fall back to the MenuPlan mark
+// rather than leaving a broken-image glyph in the card.
+function OwnerBadge({ owner }) {
+  const [failed, setFailed] = useState(false);
+  if (!owner?.avatar || failed) return <MenuPlanBadge />;
+  return (
+    <img
+      src={owner.avatar}
+      alt={owner.name ?? ""}
+      onError={() => setFailed(true)}
+      style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
+    />
+  );
+}
+
 /**
  * Compact owner badge + name + vote counts, stacked in a narrow column.
  * Used as the trailing slot of the catalog's RecipeCard list rows.
@@ -95,15 +112,7 @@ export function RecipeProvenance({ recipe }) {
 
   return (
     <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, minWidth: 44 }}>
-      {isUserRecipe && owner?.avatar ? (
-        <img
-          src={owner.avatar}
-          alt={owner.name ?? ""}
-          style={{ width: 26, height: 26, borderRadius: 8, objectFit: "cover", flexShrink: 0 }}
-        />
-      ) : (
-        <MenuPlanBadge />
-      )}
+      {isUserRecipe ? <OwnerBadge owner={owner} /> : <MenuPlanBadge />}
       <span
         style={{
           fontSize: 9.5, fontWeight: 800, color: isUserRecipe ? "#2f6fb8" : "#2d5a3d",

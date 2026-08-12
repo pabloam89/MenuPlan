@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
-import { memberAvatarColor, migrateHomeRole, resolveMemberAge } from "../lib/stages.js";
+import { findAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 
 const GREEN = "#2d5a3d";
@@ -198,7 +198,7 @@ function MemberCard({ member, allMembers }) {
       border: "1.5px solid #e3ebe6", borderRadius: 13,
       boxShadow: "0 1px 4px rgba(20,47,29,.06)",
     }}>
-      <Avatar name={member.name} photo={member.photo} size={40} color={memberAvatarColor(member.id, allMembers)} />
+      <Avatar name={member.name} photo={memberAvatarThumbSrc(member)} size={40} color={memberAvatarColor(member.id, allMembers)} />
 
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
@@ -265,7 +265,11 @@ export function HomeProfileScreen({
     } catch { /* ignore */ }
   };
 
-  const profilePhoto = data.profilePhoto ?? g.photo;
+  const profilePhoto = userAvatarSrc({
+    profilePhoto: data.profilePhoto,
+    member: findAccountMember(members, g.name),
+    googlePhoto: g.photo,
+  });
 
   return (
     <div style={{ minHeight: "100dvh", background: BG }}>

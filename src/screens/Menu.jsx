@@ -1,4 +1,4 @@
-import { createContext, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, Fragment, memo, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -24,6 +24,7 @@ import {
   CookingPot,
   History,
   IceCream,
+  LayoutGrid,
   Layers2,
   Download,
   Droplets,
@@ -71,7 +72,8 @@ import { resolveRecipeAllergens, EU_ALLERGENS } from "../lib/allergens.js";
 import { matchingHealthProfiles } from "../lib/healthProfileMatch.js";
 import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
-import { categoryColor, categoryIcon } from "./CatalogBrowserSheet.jsx";
+import guarnicionesData from "../data/recipes/guarniciones.json";
+import { categoryColor, categoryIcon, categoryLabel, isKnownCategory } from "./CatalogBrowserSheet.jsx";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
@@ -81,7 +83,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -93,7 +95,7 @@ import { downloadMenu, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
 import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
-import { initialsOf, AVATAR_PALETTE, memberAvatarColor } from "../lib/stages.js";
+import { initialsOf, AVATAR_PALETTE, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import {
   MEAL_STYLES,
   DEFAULT_MEAL_STYLE,
@@ -222,9 +224,28 @@ const MENU_VIEW_OPTIONS = [
 ];
 const GROUP_ABBREV = { Adultos: "A", Niños: "N", "Bebé": "B", Familia: "F" };
 
-function GroupMenuBadge({ group, size = 22 }) {
+// An ad-hoc menú isn't a set of people, and a caller with no roster can't
+// resolve anyone — both fall back to the initial. Below ~16px even a head-and-
+// shoulders thumb is mush, so tiny badges keep the letter too.
+function groupBadgeFaces(group, members, size) {
+  if (group?.adHoc || !members || size < 16) return [];
+  return groupAvatarFaces(members.filter((m) => group.memberIds?.includes(m.id)), members);
+}
+
+// Menu badges sit inline beside dish names and day headers, where a stack that
+// grows with the household would shove the layout around — so unlike everywhere
+// else these keep the single row and the "+N" counter.
+function GroupMenuBadge({ group, size = 22, members, active = true, max = 4 }) {
   const abbrev = GROUP_ABBREV[group.label] ?? group.label.charAt(0);
   const displayLabel = group.adHoc ? adhocReasonLabel(group.reason) : group.label;
+  const faces = groupBadgeFaces(group, members, size);
+  if (faces.length > 0) {
+    return (
+      <span title={displayLabel} style={{ display: "inline-flex" }}>
+        <GroupAvatarStack faces={faces} size={size} active={active} max={max} />
+      </span>
+    );
+  }
   return (
     <span
       title={group.adHoc ? `${displayLabel} · menú individual` : displayLabel}
@@ -232,6 +253,7 @@ function GroupMenuBadge({ group, size = 22 }) {
         width: size,
         height: size,
         borderRadius: 999,
+        overflow: "hidden",
         background: group.color,
         color: "#fff",
         fontSize: size <= 20 ? 9 : 10,
@@ -378,6 +400,7 @@ function groupForMember(memberId, groups) {
  * "Menú" row above: one `scope`, whatever avatar you tap. */
 function PersonScopeCircle({ member, color, active, onClick }) {
   const abbrev = initialsOf(member.name);
+  const avatar = memberAvatarThumbSrc(member);
   return (
     <button
       type="button"
@@ -401,20 +424,25 @@ function PersonScopeCircle({ member, color, active, onClick }) {
           width: 36,
           height: 36,
           borderRadius: 999,
-          background: color,
-          color: "#fff",
+          overflow: "hidden",
+          boxSizing: "border-box",
+          // Same hollow-until-selected rule as the group stacks beside it.
+          background: active ? color : "#fff",
+          border: `2px solid ${color}`,
+          color: active ? "#fff" : color,
           fontSize: 11,
           fontWeight: 900,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           flexShrink: 0,
-          opacity: active ? 1 : 0.55,
-          boxShadow: active ? `0 3px 10px ${color}55` : `0 1px 4px ${color}33`,
-          transition: "opacity .15s ease, box-shadow .15s ease",
+          boxShadow: active ? `0 3px 10px ${color}55` : "none",
+          transition: "background .15s ease, border-color .15s ease, box-shadow .15s ease",
         }}
       >
-        {abbrev}
+        {avatar
+          ? <img src={avatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          : abbrev}
       </span>
       <span
         style={{
@@ -443,6 +471,7 @@ function MenuFilterPanel({ groups, scope, onScopeChange, members, multiGroup }) 
             groups={groups}
             scope={scope}
             onChange={onScopeChange}
+            members={members}
             style={{ marginBottom: 0, width: "100%" }}
           />
         ) : (
@@ -1185,11 +1214,13 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                 return (
                   <div key={m.id} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
                     <div style={{
-                      width: 26, height: 26, borderRadius: 999, flexShrink: 0,
+                      width: 26, height: 26, borderRadius: 999, flexShrink: 0, overflow: "hidden",
                       background: memberColor, display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 11, fontWeight: 900, color: "#fff",
                     }}>
-                      {(m.name ?? "?")[0].toUpperCase()}
+                      {memberAvatarThumbSrc(m)
+                        ? <img src={memberAvatarThumbSrc(m)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                        : (m.name ?? "?")[0].toUpperCase()}
                     </div>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 5, paddingTop: 3 }}>
                       {(m.allergies ?? []).map((a) => {
@@ -1222,11 +1253,13 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                         fontSize: 11, fontWeight: 700, color: "#2d5a3d",
                       }}>
                         <div style={{
-                          width: 18, height: 18, borderRadius: 999,
+                          width: 18, height: 18, borderRadius: 999, overflow: "hidden", flexShrink: 0,
                           background: memberColor, display: "flex", alignItems: "center", justifyContent: "center",
                           fontSize: 9, fontWeight: 900, color: "#fff",
                         }}>
-                          {(m.name ?? "?")[0].toUpperCase()}
+                          {memberAvatarThumbSrc(m)
+                            ? <img src={memberAvatarThumbSrc(m)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                            : (m.name ?? "?")[0].toUpperCase()}
                         </div>
                         {m.name}: {memberCareTags(m).join(", ")}
                       </div>
@@ -1290,6 +1323,7 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
                 groups={styleableGroups}
                 scope={activeStyleGroupId ?? "all"}
                 onChange={(id) => setActiveStyleGroupId(id === "all" ? (styleableGroups[0]?.id ?? null) : id)}
+                members={members}
               />
             </div>
           )}
@@ -1815,7 +1849,7 @@ export function DishCard({
                     <Avatar
                       key={member.id}
                       name={member.name}
-                      photo={member.photo}
+                      photo={memberAvatarThumbSrc(member)}
                       color={color}
                       size={22}
                     />
@@ -1838,10 +1872,12 @@ export function DishCard({
 const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
-  { id: "lista", label: "Lista" },
+  // La vista "Resumen" (id "lista") sigue en el código (DeckCalendar) pero aún
+  // no está lista, así que no la exponemos en el switch todavía. Reactivar
+  // cuando esté terminada volviendo a añadir: { id: "lista", label: "Resumen" }.
 ];
 
-const DECK_VIEW_ICON = { dia: CalendarDays, semana: Layers2, lista: ClipboardList };
+const DECK_VIEW_ICON = { dia: CalendarDays, semana: Layers2, lista: LayoutGrid };
 
 // On-the-fly image optimization for the deck's big photos: the origin blobs are
 // ~1.5–1.8 MB / ~1024px, far too heavy for full-bleed tiles. wsrv.nl resizes +
@@ -1912,7 +1948,7 @@ function getDeckDayTiles(day, data, menuPlan, visibleGroups) {
 }
 
 /** A single photo-forward dish tile. Fills its parent (parent controls size). */
-function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false }) {
+function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radius = 22, compact = false, showGroup = false, members = null }) {
   const { meal, group, slot, dish } = tile;
   const armed = useContext(ArmedContext);
   const isEmpty = Boolean(tile.empty);
@@ -2010,6 +2046,9 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     <button
       type="button"
       className="deck-tile"
+      data-coach="menu-dish"
+      data-slot={`${day}-${meal}`}
+      data-course={dish?.courseKey}
       {...press}
       style={{
         position: "relative",
@@ -2056,7 +2095,10 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       {showGroup && badgeGroups.length > 0 && (
         <div style={{ position: "absolute", top: compact ? 8 : 12, left: compact ? 8 : 12, display: "flex", gap: 4 }}>
           {badgeGroups.map((gr) => (
-            <GroupMenuBadge key={gr.id} group={gr} size={compact ? 20 : 26} />
+            // Two faces then a counter: a dish shared by several menús already
+            // shows one badge per group, so letting each one run to three would
+            // march a row of discs across the photo.
+            <GroupMenuBadge key={gr.id} group={gr} size={compact ? 20 : 26} members={members} max={2} />
           ))}
         </div>
       )}
@@ -2068,6 +2110,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
           role="button"
           tabIndex={0}
           aria-label="Acciones del plato"
+          data-coach="menu-actions"
           className="deck-tile-actions"
           onPointerDown={(e) => e.stopPropagation()}
           onClick={(e) => {
@@ -2228,6 +2271,7 @@ function DayRegenButton({ day, onRegenerateDay, groups = [], compact = false }) 
       <button
         type="button"
         className="deck-press"
+        data-coach="menu-day-regen"
         onClick={(e) => { e.stopPropagation(); onRegenerateDay(day); }}
         aria-label={`Regenerar ${dayLabel(day)}`}
         title="Regenerar todos los platos de este día"
@@ -2288,6 +2332,7 @@ function DayRegenButton({ day, onRegenerateDay, groups = [], compact = false }) 
         <button
           type="button"
           className="deck-press"
+          data-coach="menu-day-regen"
           onClick={(e) => { e.stopPropagation(); setOpen(true); }}
           aria-label={`Regenerar ${dayLabel(day)}`}
           title="Regenerar este día"
@@ -2415,7 +2460,7 @@ function DeckDayPager({ days, activeDay, onActiveDay, weekDates, data, menuPlan,
                     key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`}
                     style={many ? { height: 172, flexShrink: 0 } : { flex: 1, minHeight: 0 }}
                   >
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={760} showGroup={showGroup} members={data?.members} />
                   </div>
                 ))
               )}
@@ -2446,7 +2491,7 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
               {tiles.map((tile, i) => (
                 <div key={`${tile.group.id}-${tile.meal}-${tile.dish?.courseKey ?? "empty"}-${i}`} style={{ flex: "0 0 46%" }}>
                   <div style={{ height: 150 }}>
-                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} />
+                    <DeckTile tile={tile} day={day} onDishTap={onDishTap} onDishLongPress={onDishLongPress} imgWidth={360} radius={16} compact showGroup={showGroup} members={data?.members} />
                   </div>
                 </div>
               ))}
@@ -2458,147 +2503,446 @@ function DeckWeek({ days, weekDates, data, menuPlan, visibleGroups, onDishTap, o
   );
 }
 
-/** "Lista" view — the classic, information-dense list (reuses DishCard). */
-function DeckList({ days, weekDates, data, menuPlan, visibleGroups, members, dishAvailability, multiGroup, scope, onDishTap, onDishLongPress, onRegenerateDay, regenGroups = [] }) {
-  const armed = useContext(ArmedContext);
+// Legacy seed recipes tag themselves in singular ("pescado", "carne") while the
+// catalog uses its own category ids ("pescados", "carnes"). Bridge the two so
+// old menús still get a color instead of falling back to the neutral token.
+const LEGACY_TAG_TO_CATEGORY = {
+  pescado: "pescados",
+  carne: "carnes",
+  pollo: "carnes",
+  huevo: "huevos",
+  verdura: "ensaladas_verduras",
+  verduras: "ensaladas_verduras",
+  ensalada: "ensaladas_verduras",
+  ensaladas: "ensaladas_verduras",
+  legumbre: "legumbres",
+  pasta: "pasta_arroces",
+  arroz: "pasta_arroces",
+  arroces: "pasta_arroces",
+  sopa: "sopas_cremas",
+  sopas: "sopas_cremas",
+  crema: "sopas_cremas",
+  cremas: "sopas_cremas",
+  postre: "postres",
+  desayuno: "desayunos",
+  merienda: "meriendas",
+  bebe: "bebes",
+};
+
+const GUARNICION_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
+
+// Garnishes split into two families that change the meal's character far more
+// than the individual side does: a starch ("pescado + patatas") or a vegetable
+// ("pescado + ensalada"). Reuse the dish category colors so the badge speaks
+// the same visual language as the token it sits on.
+const GARNISH_STARCH_RE = /arroz|patata|pur[eé]|pasta|cusc[uú]s|quinoa/i;
+
+function garnishCategory(garnish) {
+  if (!garnish) return null;
+  const text = `${garnish.shortName ?? ""} ${garnish.name ?? ""}`;
+  return GARNISH_STARCH_RE.test(text) ? "pasta_arroces" : "ensaladas_verduras";
+}
+
+/**
+ * Resolve the catalog category, display name and side dish for a slot's
+ * recipeId. The id stored in the plan is a frontendId that may carry a group
+ * prefix ("groupId__pescados_001"), so try the runtime registry first, then
+ * the bare catalog id, and finally the legacy tag bridge.
+ */
+function dishTypology(recipeId) {
+  const fr = RECIPES_BY_ID[recipeId];
+  const bareId = recipeId.includes("__") ? recipeId.slice(recipeId.indexOf("__") + 2) : recipeId;
+  const catalogEntry =
+    recipeCatalogById[bareId] ?? (fr?.baseRecipeId ? recipeCatalogById[fr.baseRecipeId] : null);
+
+  let cat = catalogEntry?.category ?? null;
+  if (!isKnownCategory(cat)) {
+    cat = (fr?.tags ?? [])
+      .map((t) => (isKnownCategory(t) ? t : LEGACY_TAG_TO_CATEGORY[t]))
+      .find(isKnownCategory) ?? null;
+  }
+
+  const garnish = fr?.garnishId ? GUARNICION_BY_ID[fr.garnishId] : null;
+
+  return {
+    cat,
+    name: fr?.name ?? catalogEntry?.name ?? "",
+    garnishCat: garnishCategory(garnish),
+    garnishName: garnish?.shortName ?? null,
+  };
+}
+
+/** Every dish of a day+meal across the visible menús, deduped by recipe. */
+function typologyTokens(day, meal, menuPlan, visibleGroups) {
+  const isLunch = isLunchMeal(meal);
+  const tokens = [];
+  const seen = new Set();
+
+  for (const g of visibleGroups) {
+    const slot = menuPlan[g.id]?.[`${day}-${meal}`];
+    if (!slot) continue;
+    const ids = isLunch ? [slot.firstRecipeId, slot.recipeId] : [slot.recipeId];
+    for (const [i, recipeId] of ids.entries()) {
+      if (!recipeId || seen.has(recipeId)) continue;
+      seen.add(recipeId);
+      const course = isLunch && i === 0 ? "first" : "main";
+      tokens.push({ recipeId, slot, group: g, course, ...dishTypology(recipeId) });
+    }
+  }
+  return tokens;
+}
+
+/**
+ * Solid circular category token — icon only, color carries the meaning. When
+ * the dish has a side, a smaller badge rides on its corner so the pairing
+ * ("pescado + patatas") reads as a single glyph.
+ */
+function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 32 }) {
+  const color = cat ? categoryColor(cat) : "#5a7066";
+  const Icon = cat ? categoryIcon(cat) : Utensils;
+  const label = cat ? categoryLabel(cat) : "Plato";
+
+  const gColor = garnishCat ? categoryColor(garnishCat) : null;
+  const GIcon = garnishCat ? categoryIcon(garnishCat) : null;
+  const badge = Math.round(size * 0.47);
+
+  const tip = [label, name].filter(Boolean).join(" · ");
+
   return (
-    <div>
-      {days.map((day) => {
-        const meals = getDayMeals(data);
-        const dayHasContent = meals.some((meal) => visibleGroups.some((g) => menuPlan[g.id]?.[`${day}-${meal}`]));
-        if (!dayHasContent) return null;
-        return (
-          <div key={day} style={{ marginBottom: 18 }}>
-            <DaySectionHeader
-              day={day}
-              dayNumber={calendarDayNumber(day, weekDates)}
-              right={<DayRegenButton day={day} onRegenerateDay={onRegenerateDay} groups={regenGroups} compact />}
-            />
-            {meals.map((meal) => {
-              const isLunch = isLunchMeal(meal);
-              const cards = [];
-              const cardByKey = new Map();
-              for (const g of visibleGroups) {
-                const slot = menuPlan[g.id]?.[`${day}-${meal}`] ?? null;
-                if (!slot) continue;
-                const dishes = dishesFromSlot(slot, isLunch);
-                if (dishes.length === 0) {
-                  if (slot.cleared) {
-                    cards.push({ group: g, groups: [g], slot, empty: true });
-                  }
-                  continue;
-                }
-                for (const dish of dishes) {
-                  const key = `${dish.recipeId}::${dish.courseKey}`;
-                  const existing = cardByKey.get(key);
-                  if (existing) {
-                    existing.groups.push(g);
-                    continue;
-                  }
-                  const card = { group: g, groups: [g], slot, dish };
-                  cardByKey.set(key, card);
-                  cards.push(card);
-                }
-              }
-              if (cards.length === 0) return null;
+    <button
+      type="button"
+      className="deck-press"
+      onClick={onTap}
+      title={garnishName ? `${tip} (+ ${garnishName})` : tip}
+      aria-label={tip}
+      style={{
+        position: "relative",
+        width: size,
+        height: size,
+        flexShrink: 0,
+        borderRadius: 999,
+        border: "none",
+        padding: 0,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: `linear-gradient(145deg, ${color} 0%, ${color}d9 100%)`,
+        boxShadow: `0 3px 9px -3px ${color}99, inset 0 1px 0 rgba(255,255,255,.25)`,
+        transition: "transform .15s ease",
+      }}
+    >
+      <Icon size={Math.round(size * 0.47)} color="#fff" strokeWidth={2.4} />
+      {GIcon && (
+        <span
+          style={{
+            position: "absolute",
+            right: -3,
+            bottom: -3,
+            width: badge,
+            height: badge,
+            borderRadius: 999,
+            background: gColor,
+            border: "1.5px solid #fff",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <GIcon size={Math.round(badge * 0.58)} color="#fff" strokeWidth={3} />
+        </span>
+      )}
+    </button>
+  );
+}
+
+/** Small sun/moon badge that labels each meal row of the grid. */
+function MealGlyph({ isLunch, size = 22 }) {
+  const color = isLunch ? "#c9820a" : "#5a7a9a";
+  const bg = isLunch ? "#fdf4e3" : "#eef3f7";
+  const Icon = isLunch ? Sun : Moon;
+  return (
+    <span
+      title={isLunch ? "Comida" : "Cena"}
+      style={{
+        width: size,
+        height: size,
+        flexShrink: 0,
+        borderRadius: 999,
+        background: bg,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Icon size={Math.round(size * 0.6)} color={color} strokeWidth={2.6} />
+    </span>
+  );
+}
+
+/**
+ * "Resumen" view — the week as a real calendar grid: days across, meals down.
+ * Each dish is a colored icon token (with a side-dish badge when it has one),
+ * so a glance answers "what dominates this week?" without reading a single
+ * name. A proportion bar on top tallies the whole mix.
+ */
+function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTap }) {
+  const { mealRows, mix, hasContent } = useMemo(() => {
+    const meals = getMeals(data); // main meals only (Comida / Cena)
+    const counts = new Map();
+    const rows = [];
+    let any = false;
+
+    for (const meal of meals) {
+      const cells = days.map((day) => {
+        const tokens = typologyTokens(day, meal, menuPlan, visibleGroups);
+        for (const t of tokens) {
+          if (t.cat) counts.set(t.cat, (counts.get(t.cat) ?? 0) + 1);
+        }
+        if (tokens.length > 0) any = true;
+        return { day, tokens };
+      });
+      rows.push({ meal, cells });
+    }
+
+    const total = [...counts.values()].reduce((a, b) => a + b, 0);
+    const sorted = [...counts.entries()]
+      .sort((a, b) => b[1] - a[1] || categoryLabel(a[0]).localeCompare(categoryLabel(b[0])))
+      .map(([cat, count]) => ({ cat, count, pct: total ? (count / total) * 100 : 0 }));
+
+    return { mealRows: rows, mix: { total, items: sorted }, hasContent: any };
+  }, [days, data, menuPlan, visibleGroups]);
+
+  if (!hasContent) {
+    return (
+      <div style={{ padding: "40px 20px", textAlign: "center" }}>
+        <LayoutGrid size={32} color="#cdd8d0" strokeWidth={2} />
+        <p style={{ margin: "10px 0 0", fontSize: 13, fontWeight: 700, color: "#9ab0a1" }}>
+          Aún no hay platos que resumir
+        </p>
+      </div>
+    );
+  }
+
+  const todayNum = new Date().getDate();
+
+  return (
+    <div style={{ paddingBottom: 8 }}>
+      {/* ── Week mix: proportion bar + legend with counts ── */}
+      {mix.items.length > 0 && (
+        <div
+          style={{
+            background: "#fff",
+            border: "1px solid #e8efe9",
+            borderRadius: 16,
+            padding: 14,
+            marginBottom: 14,
+            boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+          }}
+        >
+          <span
+            style={{
+              fontSize: 10,
+              fontWeight: 800,
+              color: "#9ab0a1",
+              textTransform: "uppercase",
+              letterSpacing: ".8px",
+            }}
+          >
+            El mix de la semana
+          </span>
+
+          <div
+            style={{
+              display: "flex",
+              height: 10,
+              borderRadius: 999,
+              overflow: "hidden",
+              margin: "10px 0 12px",
+              background: "#f0f4f1",
+            }}
+          >
+            {mix.items.map(({ cat, pct }) => (
+              <span
+                key={cat}
+                title={`${categoryLabel(cat)} · ${Math.round(pct)}%`}
+                style={{ width: `${pct}%`, background: categoryColor(cat) }}
+              />
+            ))}
+          </div>
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 14px" }}>
+            {mix.items.map(({ cat, count }) => {
+              const color = categoryColor(cat);
+              const Icon = categoryIcon(cat);
               return (
-                <div key={meal} style={{ marginBottom: 14 }}>
-                  <MealSectionLabel meal={meal} />
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    {cards.map((card, idx) =>
-                      card.empty ? (
-                        <button
-                          key={`${card.group.id}-empty-${idx}`}
-                          type="button"
-                          onClick={() =>
-                            onDishTap?.({
-                              slot: card.slot,
-                              groupId: card.group.id,
-                              day,
-                              meal,
-                              group: card.group,
-                              course: "main",
-                              empty: true,
-                            })
-                          }
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 10,
-                            width: "100%",
-                            padding: "12px 6px",
-                            border: "none",
-                            borderBottom: idx < cards.length - 1 ? "1px dashed #d7e3db" : "none",
-                            background: "transparent",
-                            cursor: "pointer",
-                            fontFamily: "inherit",
-                            textAlign: "left",
-                          }}
-                        >
-                          <span
-                            style={{
-                              width: 38,
-                              height: 38,
-                              borderRadius: 10,
-                              flexShrink: 0,
-                              border: "1.5px dashed #cbd8cf",
-                              background: "#f2f6f3",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                            }}
-                          >
-                            <UtensilsCrossed size={17} color="#a9bcb0" />
-                          </span>
-                          <span style={{ display: "flex", flexDirection: "column" }}>
-                            <span style={{ fontSize: 13, fontWeight: 800, color: "#6b8275" }}>Hueco libre</span>
-                            <span style={{ fontSize: 11.5, fontWeight: 600, color: "#9bb0a4" }}>Toca para añadir un plato</span>
-                          </span>
-                        </button>
-                      ) : (
-                      <DishCard
-                        key={`${card.group.id}-${card.dish.courseKey}-${idx}`}
-                        slot={{ ...card.slot, recipeId: card.dish.recipeId }}
-                        courseLabel={card.dish.course}
-                        showDivider={idx < cards.length - 1}
-                        allMembers={members}
-                        group={card.group}
-                        badgeGroups={card.groups}
-                        showGroupBadge={multiGroup && scope === "all"}
-                        kitchenTools={data.kitchenTools ?? []}
-                        highlight={!!armed && sameDish(armed.source, { groupId: card.group.id, day, meal, course: card.dish.courseKey })}
-                        availability={dishAvailability.get(`${day}::${meal}::${card.dish.recipeId}`) ?? null}
-                        onTap={() =>
-                          onDishTap?.({
-                            recipe: RECIPES_BY_ID[card.dish.recipeId],
-                            slot: card.slot,
-                            groupId: card.group.id,
-                            day,
-                            meal,
-                            group: card.group,
-                            course: card.dish.courseKey,
-                          })
-                        }
-                        onLongPress={() =>
-                          onDishLongPress?.({
-                            recipe: RECIPES_BY_ID[card.dish.recipeId],
-                            slot: card.slot,
-                            groupId: card.group.id,
-                            day,
-                            meal,
-                            group: card.group,
-                            course: card.dish.courseKey,
-                          })
-                        }
-                      />
-                    ))}
-                  </div>
-                </div>
+                <span key={cat} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
+                  <span
+                    style={{
+                      width: 20,
+                      height: 20,
+                      borderRadius: 999,
+                      background: color,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <Icon size={11} color="#fff" strokeWidth={2.6} />
+                  </span>
+                  <span style={{ fontSize: 11.5, fontWeight: 800, color: "#3a4a42" }}>
+                    {categoryLabel(cat)}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 900,
+                      color,
+                      fontVariantNumeric: "tabular-nums",
+                    }}
+                  >
+                    {count}
+                  </span>
+                </span>
               );
             })}
           </div>
-        );
-      })}
+        </div>
+      )}
+
+      {/* ── The week as a grid: days across, meals down ── */}
+      <div
+        style={{
+          background: "#fff",
+          border: "1px solid #e8efe9",
+          borderRadius: 16,
+          overflow: "hidden",
+          boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: `26px repeat(${days.length}, minmax(0, 1fr))`,
+          }}
+        >
+          {/* Header: day names + dates */}
+          <div style={{ background: "#f6f9f7", borderBottom: "1px solid #e3ebe6" }} />
+          {days.map((day) => {
+            const dayNum = calendarDayNumber(day, weekDates);
+            const isToday = dayNum != null && dayNum === todayNum;
+            return (
+              <div
+                key={`h-${day}`}
+                style={{
+                  background: isToday ? "#eaf6ee" : "#f6f9f7",
+                  borderBottom: `1px solid ${isToday ? "#bfe6cb" : "#e3ebe6"}`,
+                  padding: "7px 0 6px",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 9,
+                    fontWeight: 800,
+                    color: isToday ? "#4cba6e" : "#9ab0a1",
+                    textTransform: "uppercase",
+                    letterSpacing: ".4px",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {day}
+                </div>
+                <div
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 900,
+                    color: isToday ? "#2d5a3d" : "#142f1d",
+                    lineHeight: 1.2,
+                    fontVariantNumeric: "tabular-nums",
+                  }}
+                >
+                  {dayNum ?? "·"}
+                </div>
+              </div>
+            );
+          })}
+
+          {/* One row per meal */}
+          {mealRows.map(({ meal, cells }, ri) => {
+            const divider = ri > 0 ? "1px solid #eef3f0" : "none";
+            return (
+              <Fragment key={meal}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: "#fbfdfb",
+                    borderTop: divider,
+                    borderRight: "1px solid #eef3f0",
+                  }}
+                >
+                  <MealGlyph isLunch={isLunchMeal(meal)} size={20} />
+                </div>
+
+                {cells.map(({ day, tokens }) => {
+                  const dayNum = calendarDayNumber(day, weekDates);
+                  const isToday = dayNum != null && dayNum === todayNum;
+                  return (
+                    <div
+                      key={`${meal}-${day}`}
+                      style={{
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 6,
+                        padding: "11px 2px",
+                        borderTop: divider,
+                        background: isToday ? "#f7fdf9" : "transparent",
+                      }}
+                    >
+                      {tokens.length === 0 ? (
+                        <span
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: 999,
+                            background: "#e3ebe6",
+                          }}
+                        />
+                      ) : (
+                        tokens.map(({ recipeId, slot, group, course, cat, name, garnishCat, garnishName }) => (
+                          <TypologyToken
+                            key={`${recipeId}-${course}`}
+                            cat={cat}
+                            name={name}
+                            garnishCat={garnishCat}
+                            garnishName={garnishName}
+                            onTap={() =>
+                              onDishTap?.({
+                                recipe: RECIPES_BY_ID[recipeId],
+                                slot,
+                                groupId: group.id,
+                                day,
+                                meal,
+                                group,
+                                course,
+                              })
+                            }
+                          />
+                        ))
+                      )}
+                    </div>
+                  );
+                })}
+              </Fragment>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -2629,20 +2973,13 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
         <DeckWeek days={days} weekDates={weekDates} data={data} menuPlan={menuPlan} visibleGroups={visibleGroups} onDishTap={onDishTap} onDishLongPress={onDishLongPress} onRegenerateDay={onRegenerateDay} regenGroups={regenGroups} showGroup={showGroup} />
       )}
       {deckView === "lista" && (
-        <DeckList
+        <DeckCalendar
           days={days}
           weekDates={weekDates}
           data={data}
           menuPlan={menuPlan}
           visibleGroups={visibleGroups}
-          members={members}
-          dishAvailability={dishAvailability}
-          multiGroup={multiGroup}
-          scope={scope}
           onDishTap={onDishTap}
-          onDishLongPress={onDishLongPress}
-          onRegenerateDay={onRegenerateDay}
-          regenGroups={regenGroups}
         />
       )}
     </div>
@@ -2809,7 +3146,20 @@ function DeckNav({ value, onChange, options }) {
 
 /** The scope circle used both as the deck filter chip and inside its popup, so
  *  they are visually identical. `opt.group` null means the "Todos" circle. */
-function ScopeCircle({ opt, active, size = 42 }) {
+function ScopeCircle({ opt, active, size = 42, members }) {
+  // "Todos" has no group behind it, but it still stands for a set of people —
+  // the whole household — so it gets their faces like every other option.
+  const faces = opt.group
+    ? groupBadgeFaces(opt.group, members, size)
+    : members && size >= 32
+      ? groupAvatarFaces(members, members)
+      : [];
+  // A stack of faces carries its own selected state. Keeping the outer ring
+  // would stretch it into a pill around the whole row, which reads as a
+  // different kind of control than the single circles beside it.
+  if (faces.length > 0) {
+    return <GroupAvatarStack faces={faces} size={size} active={active} />;
+  }
   return (
     <span
       style={{
@@ -2822,7 +3172,7 @@ function ScopeCircle({ opt, active, size = 42 }) {
       }}
     >
       {opt.group ? (
-        <GroupMenuBadge group={opt.group} size={size} />
+        <GroupMenuBadge group={opt.group} size={size} members={members} active={active} />
       ) : (
         <span
           style={{
@@ -2859,6 +3209,7 @@ function DeckFilter({ groups, scope, onScopeChange, members }) {
       <button
         type="button"
         className="deck-press"
+        data-coach="menu-filters"
         onClick={() => setOpen(true)}
         aria-haspopup="dialog"
         aria-label={`Filtrar menú (${activeOpt.label})`}
@@ -2873,7 +3224,7 @@ function DeckFilter({ groups, scope, onScopeChange, members }) {
           display: "inline-flex",
         }}
       >
-        <ScopeCircle opt={activeOpt} active size={42} />
+        <ScopeCircle opt={activeOpt} active size={42} members={members} />
       </button>
 
       {open && (
@@ -2938,7 +3289,7 @@ function DeckFilter({ groups, scope, onScopeChange, members }) {
                       minWidth: 54,
                     }}
                   >
-                    <ScopeCircle opt={opt} active={isActive} size={42} />
+                    <ScopeCircle opt={opt} active={isActive} size={42} members={members} />
                     <span
                       style={{
                         fontSize: 11,
@@ -3032,10 +3383,14 @@ const REJECT_REASONS = [
 // an `Icon` (e.g. a group letter badge); `active` fills the chip in its color to
 // show a toggled/selected state. `center` renders a node at the middle of the
 // ring (e.g. a "Regenerar" confirm button for the multi-select scope picker).
-function RoscoMenu({ anchor, actions, onClose, center = null }) {
+export function RoscoMenu({ anchor, actions, onClose, center = null, inline = false, frameW = null, frameH = null, radius = null }) {
   const a = anchor;
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
+  // `inline` (value-props demo): render inside a relatively-positioned frame
+  // instead of portaling to document.body, so the radial stays inside the
+  // scaled tutorial "screenshot" instead of covering the whole viewport.
+  const vw = frameW ?? window.innerWidth;
+  const vh = frameH ?? window.innerHeight;
+  const POS = inline ? "absolute" : "fixed";
   // Center on the tile, fall back to the ⋮ icon, then the viewport center.
   const cx = a?.tile
     ? a.tile.left + a.tile.width / 2
@@ -3047,9 +3402,9 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
   // With the dish dimmed (no bright spotlight to clear), the chips can sit much
   // closer in — a compact ring instead of hugging the tile's edges. The scope
   // picker still needs a wider ring so its center confirm button fits.
-  const baseR = center ? 100 : 84;
+  const baseR = radius ?? (center ? 100 : 84);
   const maxR = Math.min(cx, vw - cx, cy, vh - cy) - CHIP / 2 - 10;
-  const R = Math.max(50, Math.min(baseR, maxR));
+  const R = Math.max(46, Math.min(baseR, maxR));
 
   const N = actions.length;
   // Explicit per-action angles (the "Regenerar" sub-menu) drop the ring and land
@@ -3057,7 +3412,9 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
   // (with ring), a top arc for 2-3.
   const hasExplicitAngles = actions.every((a) => typeof a.angle === "number");
   const isArc = !hasExplicitAngles && N <= 3;
-  const showRing = !hasExplicitAngles && N > 3;
+  // En la demo (inline) el anillo circular compite con el borde rectangular de la
+  // miniatura y se ve "desacoplado": lo omitimos y dejamos solo las chips.
+  const showRing = !hasExplicitAngles && N > 3 && !inline;
   const points = actions.map((act, i) => {
     let angDeg;
     if (typeof act.angle === "number") {
@@ -3073,11 +3430,11 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
   });
   const circ = 2 * Math.PI * R;
 
-  return createPortal(
+  const overlay = (
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, zIndex: 1200,
+        position: POS, inset: 0, zIndex: 1200,
         // Uniform dark scrim over EVERYTHING (thumbnail included) so the chip
         // labels read perfectly — no bright spotlight fighting the text.
         background: "rgba(9,18,12,.8)",
@@ -3085,6 +3442,7 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
       }}
     >
       <style>{`
+        @keyframes deckFadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes roscoRing { to { stroke-dashoffset: 0; } }
         @keyframes roscoChip {
           0%   { opacity: 0; transform: translate(-50%,-50%) scale(.3); }
@@ -3101,15 +3459,16 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
       {a?.tile && (
         <div
           style={{
-            position: "fixed",
+            position: POS,
             top: a.tile.top,
             left: a.tile.left,
             width: a.tile.width,
             height: a.tile.height,
+            boxSizing: "border-box",
             borderRadius: a.radius,
             // Subtle marker only — the scrim already dims the dish; a thin outline
             // just shows which one the radial acts on, without any glare.
-            border: "2px solid rgba(255,255,255,.35)",
+            border: "2px solid rgba(255,255,255,.55)",
             pointerEvents: "none",
             zIndex: 1201,
             animation: "deckFadeIn .16s ease both",
@@ -3121,7 +3480,7 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
         <svg
           width={vw}
           height={vh}
-          style={{ position: "fixed", inset: 0, zIndex: 1201, pointerEvents: "none" }}
+          style={{ position: POS, inset: 0, zIndex: 1201, pointerEvents: "none" }}
         >
           <circle
             className="rosco-ring"
@@ -3148,7 +3507,7 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
             className="rosco-chip"
             onClick={(e) => { e.stopPropagation(); p.onPick(); }}
             style={{
-              position: "fixed",
+              position: POS,
               top: p.y,
               left: p.x,
               zIndex: 1203,
@@ -3195,7 +3554,7 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
       {center && (
         <div
           style={{
-            position: "fixed",
+            position: POS,
             top: cy,
             left: cx,
             transform: "translate(-50%,-50%)",
@@ -3206,9 +3565,9 @@ function RoscoMenu({ anchor, actions, onClose, center = null }) {
           {center}
         </div>
       )}
-    </div>,
-    document.body,
+    </div>
   );
+  return inline ? overlay : createPortal(overlay, document.body);
 }
 
 export const MenuScreen = memo(function MenuScreen({
@@ -3241,6 +3600,11 @@ export const MenuScreen = memo(function MenuScreen({
   autoOpenProfile = false,
   onAutoOpenProfileHandled,
   initialViewMode = "dia",
+  // Demo-only (value-props carousel): seed the deck view ("semana"/"dia"/"lista")
+  // and auto-play the quick-actions rosco so the tutorial can show off the
+  // week view + acciones rápidas without a real user gesture.
+  initialDeckView = null,
+  autoDemo = null,
   // Live shopping list (active week) + jump-to-cook-mode callback, so each
   // dish can show a "faltan ingredientes" dot instead of making you go check
   // Compra yourself.
@@ -3292,6 +3656,90 @@ export const MenuScreen = memo(function MenuScreen({
     },
     [armed],
   );
+
+  // Demo-only autoplay for the value-props carousel: open the quick-actions
+  // rosco on a real tile (via a synthetic click, so the anchor is computed
+  // exactly like a user tap), pause to read it, then arm "Mover" to show the
+  // marching ring on the source tile, and loop. No callbacks fire — arming is
+  // pure internal state — so it's safe with the demo's no-op handlers.
+  const dishActionRef = useRef(null);
+  useEffect(() => { dishActionRef.current = dishAction; }, [dishAction]);
+  useEffect(() => {
+    if (autoDemo !== "actions") return undefined;
+    let cancelled = false;
+    const timers = [];
+    const wait = (ms) =>
+      new Promise((res) => {
+        const id = setTimeout(res, ms);
+        timers.push(id);
+      });
+    const run = async () => {
+      while (!cancelled) {
+        setArmed(null);
+        setDishAction(null);
+        await wait(1500);
+        if (cancelled) return;
+        // Open the rosco on the first tile's ⋮ (real click → correct anchor).
+        document.querySelector(".deck-tile-actions")?.click();
+        await wait(2400);
+        if (cancelled) return;
+        // Arm "Mover": the source tile gets the marching ring.
+        const source = dishActionRef.current;
+        if (source) {
+          setArmed({ mode: "swap", source });
+          setDishAction(null);
+        }
+        await wait(2600);
+        if (cancelled) return;
+        setArmed(null);
+        await wait(1400);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo]);
+
+  // Demo-only "tour" (value-props "Tu menú" slide): en vista Semana, hace scroll
+  // horizontal continuo (ida y vuelta) por las filas para que se vean los platos.
+  // (No cambiamos a Día: su layout usa 100dvh y no encaja en el mini-marco.)
+  useEffect(() => {
+    if (autoDemo !== "tour") return undefined;
+    let cancelled = false;
+    let dir = 1;
+    let raf = 0;
+    const step = () => {
+      if (cancelled) return;
+      const scrollers = document.querySelectorAll(".deck-scroller");
+      let ref = null;
+      scrollers.forEach((el) => {
+        const max = el.scrollWidth - el.clientWidth;
+        if (max <= 1) return;
+        if (!ref) ref = el;
+        let next = el.scrollLeft + dir * 1.1;
+        if (next < 0) next = 0;
+        if (next > max) next = max;
+        el.scrollLeft = next;
+      });
+      if (ref) {
+        const max = ref.scrollWidth - ref.clientWidth;
+        if (dir > 0 && ref.scrollLeft >= max - 0.5) dir = -1;
+        else if (dir < 0 && ref.scrollLeft <= 0.5) dir = 1;
+      }
+      raf = requestAnimationFrame(step);
+    };
+    setDeckView("semana");
+    raf = requestAnimationFrame(step);
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo]);
+
   const dishAvailability = useMemo(
     () => dishAvailabilityMap(shoppingItems ?? []),
     [shoppingItems],
@@ -3311,20 +3759,26 @@ export const MenuScreen = memo(function MenuScreen({
   // branches are gated on `uiMode === "clasico"` and simply never activate.)
   const uiMode = "deck";
   const [deckView, setDeckView] = useState(() => {
+    if (initialDeckView === "semana" || initialDeckView === "lista" || initialDeckView === "dia") {
+      return initialDeckView;
+    }
     try {
       const saved = localStorage.getItem("menuDeckView");
-      return saved === "semana" || saved === "lista" ? saved : "dia";
+      // "lista" (Resumen) está oculta por ahora: un valor guardado antiguo cae a "día".
+      return saved === "semana" ? "semana" : "dia";
     } catch {
       return "dia";
     }
   }); // "dia" | "semana" | "lista"
   useEffect(() => {
+    // In demo mode we must not clobber the real user's saved deck preference.
+    if (autoDemo) return;
     try {
       localStorage.setItem("menuDeckView", deckView);
     } catch {
       /* ignore */
     }
-  }, [deckView]);
+  }, [deckView, autoDemo]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
@@ -3566,6 +4020,7 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
           <button
             type="button"
+            data-coach="menu-options"
             onClick={() => setHeaderMenuOpen(true)}
             aria-label="Opciones del menú"
             aria-haspopup="menu"
@@ -3793,15 +4248,17 @@ export const MenuScreen = memo(function MenuScreen({
 
         {/* View controls — deck: vistas (izq) · semana (centro) · filtro círculo (der) */}
         {hasMenu && uiMode === "deck" && (
-          <div
-            data-coach="menu-viewmode"
-            style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}
-          >
-            <DeckNav
-              value={deckView}
-              onChange={setDeckView}
-              options={DECK_VIEW_OPTIONS}
-            />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+            {/* The coach anchor hugs the view switch alone: the filter circle at
+                the far right gets its own step, and a spotlight over the whole
+                row would highlight both at once. */}
+            <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
+              <DeckNav
+                value={deckView}
+                onChange={setDeckView}
+                options={DECK_VIEW_OPTIONS}
+              />
+            </div>
             <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
             {menuWeeks.length > 1 && (
               <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
@@ -3899,7 +4356,7 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
         )}
 
-        {dishAction && (
+        {dishAction && autoDemo !== "actions" && (
           <RoscoMenu
             anchor={dishAction.anchor}
             onClose={() => setDishAction(null)}
@@ -4012,7 +4469,7 @@ export const MenuScreen = memo(function MenuScreen({
           />
         )}
 
-        {armed &&
+        {armed && autoDemo !== "actions" &&
           createPortal(
             <div
               style={{
@@ -4408,6 +4865,7 @@ export function DishDetail({
   // - autoDemo: "methods" cycles the method tabs; "reject" auto-picks a swap
   //   reason and fires onReject once. Default null → normal interactive behaviour.
   initialAppliance = null,
+  initialRecipeTab = "ingredientes",
   stepsByAppliance = null,
   autoDemo = null,
   // Cook context — only present when opened from the weekly menu. Enables the
@@ -4430,7 +4888,7 @@ export function DishDetail({
   // before firing onReject, since the auto-trigger skips the real pointerdown.
   const [demoPressed, setDemoPressed] = useState(false);
   // Receta section: segmented control between "Ingredientes" and "Pasos".
-  const [recipeTab, setRecipeTab] = useState("ingredientes");
+  const [recipeTab, setRecipeTab] = useState(initialRecipeTab);
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -4950,7 +5408,13 @@ export function DishDetail({
                 {/* Tipos de cocina (electrodomésticos) — segundo segmented control,
                     solo dentro de Pasos y solo si hay más de una forma de cocinarlo. */}
                 {methodOptions.length > 1 && (
-                  <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
+                  <div
+                    style={
+                      methodOptions.length >= 4
+                        ? { display: "grid", gridTemplateColumns: "1fr 1fr", gap: 3, background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }
+                        : { display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }
+                    }
+                  >
                     {methodOptions.map((o) => {
                       const isActive = o.appliance === activeAppliance;
                       const isYours = o.appliance === selectedMethod?.appliance;

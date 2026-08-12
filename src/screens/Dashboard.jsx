@@ -23,7 +23,7 @@ import { DAYS, getDayMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
-import { memberAvatarColor } from "../lib/stages.js";
+import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import menuCardPhoto from "../assets/dashboard/menu-card.png";
 import recipesCardPhoto from "../assets/dashboard/recipes-card.png";
 import pantryCardPhoto from "../assets/dashboard/pantry-card.png";
@@ -344,8 +344,16 @@ export function DashboardScreen({
 
   const showTodaySection = multiGroup ? hasMenu : todayMeals.length > 0;
 
-  const familyShown = members.slice(0, 5);
-  const familyExtra = members.length - familyShown.length;
+  // The hero is the one place with room to spare, so nobody hides behind a
+  // "+N" here. Past six the row folds into two staggered halves — the same
+  // interlocking the shared GroupAvatarStack uses — instead of running off the
+  // card. This keeps its own markup rather than borrowing that component
+  // because Avatar still renders an initial for members with no photo, which a
+  // faces-only stack would silently drop.
+  const familyRows =
+    members.length > 6
+      ? [members.slice(0, Math.ceil(members.length / 2)), members.slice(Math.ceil(members.length / 2))]
+      : [members];
 
   return (
     <div style={{ minHeight: "100dvh", background: PAGE_BG, display: "flex", flexDirection: "column" }}>
@@ -457,34 +465,37 @@ export function DashboardScreen({
           </p>
 
           {/* family avatars */}
-          {familyShown.length > 0 && (
-            <div style={{ display: "flex", alignItems: "center", marginTop: 12, position: "relative" }}>
-              {familyShown.map((m, i) => (
+          {members.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 12, position: "relative" }}>
+              {familyRows.map((row, r) => (
                 <div
-                  key={m.id}
+                  key={r}
                   style={{
-                    marginLeft: i === 0 ? 0 : -10,
-                    borderRadius: "50%",
-                    border: "2px solid #2d5a3d",
-                    zIndex: familyShown.length - i,
-                    lineHeight: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    // Half a step right and biting into the row above, so the
+                    // two halves interlock rather than sit in a grid.
+                    marginLeft: r === 0 ? 0 : 12,
+                    marginTop: r === 0 ? 0 : -12,
+                    zIndex: r,
                   }}
                 >
-                  <Avatar name={m.name} photo={m.photo} size={34} color={memberAvatarColor(m.id, members)} />
+                  {row.map((m, i) => (
+                    <div
+                      key={m.id}
+                      style={{
+                        marginLeft: i === 0 ? 0 : -10,
+                        borderRadius: "50%",
+                        border: "2px solid #2d5a3d",
+                        zIndex: row.length - i,
+                        lineHeight: 0,
+                      }}
+                    >
+                      <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={34} color={memberAvatarColor(m.id, members)} />
+                    </div>
+                  ))}
                 </div>
               ))}
-              {familyExtra > 0 && (
-                <div
-                  style={{
-                    marginLeft: -10, width: 34, height: 34, borderRadius: "50%",
-                    border: "2px solid #2d5a3d", background: "rgba(255,255,255,.24)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 12, fontWeight: 800, color: "#fff",
-                  }}
-                >
-                  +{familyExtra}
-                </div>
-              )}
             </div>
           )}
 

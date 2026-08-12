@@ -112,7 +112,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
 
         {/* Tabs are always available — Gasto works even without an active menú. */}
         {multiGroup && insights.hasMenu && tab !== "gasto" && (
-          <GroupScopePicker groups={groups} scope={scope} onChange={setScope} />
+          <GroupScopePicker groups={groups} scope={scope} onChange={setScope} members={data.members ?? []} />
         )}
 
         <SegmentedControl

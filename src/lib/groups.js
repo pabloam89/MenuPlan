@@ -136,6 +136,121 @@ export function defaultGroupsFromMembers(members) {
   return groups;
 }
 
+const TIER_LABEL = { adult: "Adultos", child: "Niños", baby: BABY_GROUP_LABEL };
+const TIER_BY_LABEL = { Adultos: "adult", "Niños": "child", [BABY_GROUP_LABEL]: "baby" };
+
+/**
+ * Keeps the tier menus in sync with who actually lives in the house: drops a
+ * tier nobody belongs to (no kids → no "Niños" menu at all), adds one back when
+ * a tier gains its first member, and places anyone still unassigned into the
+ * menu for their own tier, so opening the assignment sheet already shows a
+ * sensible default instead of an empty grid.
+ *
+ * Only touches a tier-based split: ad-hoc individual menus are preserved, and a
+ * single-"Familia" model is returned untouched.
+ */
+function isTierSplit(groups) {
+  const tierGroups = groups.filter((g) => !g.adHoc);
+  return tierGroups.length > 0 && tierGroups.every((g) => TIER_BY_LABEL[g.label]);
+}
+
+/** Same groups, same people on each, in the same order. */
+function sameAssignment(a, b) {
+  if (a.length !== b.length) return false;
+  return a.every((g, i) => {
+    const other = b[i];
+    return (
+      other &&
+      g.id === other.id &&
+      g.label === other.label &&
+      g.memberIds.length === other.memberIds.length &&
+      g.memberIds.every((id, j) => id === other.memberIds[j])
+    );
+  });
+}
+
+export function reconcileTierGroups(members, groups) {
+  const list = groups ?? [];
+  if (!isTierSplit(list)) return list;
+
+  const split = splitMembersByStage(members);
+  const byTier = { adult: split.adults, child: split.children, baby: split.babies };
+  const alive = new Set(members.map((m) => m.id));
+
+  const next = list
+    .filter((g) => g.adHoc || byTier[TIER_BY_LABEL[g.label]].length > 0)
+    .map((g) => ({ ...g, memberIds: g.memberIds.filter((id) => alive.has(id)) }));
+
+  for (const tier of ["adult", "child", "baby"]) {
+    if (byTier[tier].length > 0 && !next.some((g) => g.label === TIER_LABEL[tier])) {
+      next.push({ id: uid(), label: TIER_LABEL[tier], memberIds: [], color: nextGroupColor(next) });
+    }
+  }
+
+  // Computed after the pruning above, so someone whose only menu just
+  // disappeared counts as unassigned and lands back in their own tier.
+  const placed = new Set(next.flatMap((g) => g.memberIds));
+  return next.map((g) => {
+    const tier = TIER_BY_LABEL[g.label];
+    if (!tier) return g;
+    const missing = byTier[tier].filter((m) => !placed.has(m.id)).map((m) => m.id);
+    return missing.length > 0 ? { ...g, memberIds: [...g.memberIds, ...missing] } : g;
+  });
+}
+
+/**
+ * Put every member on some menu after the roster changed.
+ *
+ * `reconcileTierGroups` only understands an Adultos/Niños/Bebé split and hands
+ * back a single-"Familia" model untouched, so someone added to a household that
+ * eats the same menu ended up on no menu at all: the planner, the avatar stacks
+ * and the group pickers all kept showing the roster as it was before them.
+ * Returns `groups` unchanged (same reference) when nobody moved, so callers can
+ * skip a pointless state write.
+ */
+export function reconcileGroupsWithMembers(members, groups) {
+  const list = groups ?? [];
+  if (list.length === 0) return list;
+  if (isTierSplit(list)) {
+    const tiered = reconcileTierGroups(members, list);
+    return sameAssignment(tiered, list) ? list : tiered;
+  }
+
+  // Non-tier layout — the single "Familia" menu, optionally beside "Bebé".
+  const alive = new Set(members.map((m) => m.id));
+  const pruned = list.map((g) => ({
+    ...g,
+    memberIds: g.memberIds.filter((id) => alive.has(id)),
+  }));
+
+  const placed = new Set(pruned.flatMap((g) => g.memberIds));
+  const newcomers = members.filter((m) => !placed.has(m.id));
+  if (newcomers.length === 0) {
+    return sameAssignment(pruned, list) ? list : pruned;
+  }
+
+  // Babies keep their own menu when one exists; everyone else joins the
+  // general one, which is whichever menu isn't the babies'.
+  const babyGroup = pruned.find((g) => g.label === BABY_GROUP_LABEL);
+  const general = pruned.find((g) => g.label !== BABY_GROUP_LABEL) ?? pruned[0];
+  const babyIds = babyGroup
+    ? newcomers.filter((m) => memberIsBaby(m)).map((m) => m.id)
+    : [];
+  const babySet = new Set(babyIds);
+  const generalIds = newcomers.filter((m) => !babySet.has(m.id)).map((m) => m.id);
+
+  const next = pruned.map((g) => {
+    if (babyGroup && g.id === babyGroup.id && babyIds.length > 0) {
+      return { ...g, memberIds: [...g.memberIds, ...babyIds] };
+    }
+    if (g.id === general.id && generalIds.length > 0) {
+      return { ...g, memberIds: [...g.memberIds, ...generalIds] };
+    }
+    return g;
+  });
+  return sameAssignment(next, list) ? list : next;
+}
+
 export function nextGroupColor(existing) {
   const used = new Set(existing.map((g) => g.color));
   return GROUP_COLORS.find((c) => !used.has(c)) ?? GROUP_COLORS[existing.length % GROUP_COLORS.length];

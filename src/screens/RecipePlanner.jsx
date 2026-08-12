@@ -58,6 +58,7 @@ import {
 import { ProgressDots, SegmentedControl } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { recipeCatalog } from "../data/recipeCatalog.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import {
   USAGE_TAGS,
   deriveTypeFromUsageTags,
@@ -1349,7 +1350,7 @@ function VisibilitySheet({ onConfirm, onClose }) {
  * into data.userRecipes, where it becomes usable exactly like a catalog dish
  * (see filterRecipes.js / aiPlanner.js / CatalogBrowserSheet.jsx).
  */
-export function RecipePlannerScreen({ userRecipes = [], user = null, setData, onClose, onSaved, editRecipe = null }) {
+export function RecipePlannerScreen({ userRecipes = [], user = null, setData, onClose, onSaved, editRecipe = null, autoDemo = false, onDemoStep = null, onDemoScroll = null }) {
   // Editing an existing recipe: jump straight to the review step with the
   // recipe already loaded (no AI re-run), and let "Atrás" walk back through
   // the wizard to tweak anything. Saving updates the same recipe (by id).
@@ -1568,6 +1569,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
   // lands on it with an empty list — a head start they can freely edit/remove.
   // Keyed by name so retyping the dish name (and coming back) re-suggests once.
   useEffect(() => {
+    if (autoDemo) return; // en demo sembramos ingredientes, sin red
     const ingredientsStepIndex = 1;
     if (step !== ingredientsStepIndex) return;
     const name = form.name.trim();
@@ -1601,10 +1603,183 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
 
   // Kick off the AI draft once we land on the review step (the last one).
   useEffect(() => {
+    if (autoDemo) return undefined; // demo siembra el draft, sin red
     if (step === reviewStepIndex && aiState === "idle") runAI();
     return () => abortRef.current?.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step]);
+
+  // Value-prop carousel demo: recorre el asistente PULSANDO cada opción (no
+  // rellena de golpe). Usa una receta REAL del catálogo, así el nombre y la FOTO
+  // son coherentes (nada inventado). En bucle. `onDemoStep` sincroniza el paneo.
+  useEffect(() => {
+    if (!autoDemo) return undefined;
+    const seed = recipeCatalog.find((r) => r.id === "pescados_002") ?? null;
+    if (!seed) return undefined;
+    let cancelled = false;
+    const timers = [];
+    const wait = (ms) =>
+      new Promise((res) => {
+        const id = setTimeout(res, ms);
+        timers.push(id);
+      });
+    // Entra a un paso: salto instantáneo al top (sin rebote) y limpia el scroll.
+    const enterStep = (s) => {
+      setStep(s);
+      onDemoStep?.(s);
+    };
+    const run = async () => {
+      while (!cancelled) {
+        // Reset del formulario y vuelta al paso 0 arriba del todo.
+        enterStep(0);
+        setDraft(null);
+        setPhoto(null);
+        setPhotoGenState("idle");
+        setAiState("idle");
+        setBaseDishDecision(null);
+        setForm((f) => ({
+          ...f,
+          name: "",
+          ingredients: [],
+          usageTags: [],
+          mealRole: [],
+          quickDinner: false,
+          kidFriendly: null,
+          requiredAppliances: [],
+          baseServings: 4,
+          time: 30,
+        }));
+        await wait(650);
+        if (cancelled) return;
+
+        // ── Paso 0 · El plato ────────────────────────────────────────────────
+        for (let i = 1; i <= seed.name.length; i += 1) {
+          setName(seed.name.slice(0, i));
+          await wait(32);
+          if (cancelled) return;
+        }
+        await wait(700);
+        if (cancelled) return;
+        setBaseDishDecision("new"); // "es una receta nueva"
+        await wait(700);
+        if (cancelled) return;
+        onDemoScroll?.(-120);
+        await wait(700);
+        if (cancelled) return;
+        setForm((f) => ({ ...f, baseServings: seed.baseServings ?? 4 })); // Nº personas
+        await wait(650);
+        if (cancelled) return;
+        onDemoScroll?.(-210);
+        await wait(650);
+        if (cancelled) return;
+        setForm((f) => ({ ...f, time: seed.time ?? 25 })); // Tiempo
+        await wait(650);
+        if (cancelled) return;
+        onDemoScroll?.(-360); // baja hasta "¿Cómo se prepara?"
+        await wait(700);
+        if (cancelled) return;
+        setForm((f) => ({ ...f, requiredAppliances: ["Horno"] })); // Método
+        await wait(950);
+        if (cancelled) return;
+
+        // Siembra ingredientes ANTES de su paso (sin sugerencia por red).
+        setForm((f) => ({
+          ...f,
+          category: seed.category ?? "pescados",
+          mainProtein: seed.mainProtein ?? "pescado_blanco",
+          allergens: seed.allergens ?? [],
+          ingredients: seed.ingredients ?? [],
+        }));
+
+        // ── Paso 1 · Ingredientes ────────────────────────────────────────────
+        enterStep(1);
+        await wait(1100);
+        if (cancelled) return;
+        onDemoScroll?.(-180);
+        await wait(1100);
+        if (cancelled) return;
+        onDemoScroll?.(-360); // baja hasta el final de la lista
+        await wait(1300);
+        if (cancelled) return;
+
+        // ── Paso 2 · ¿Cuándo se sirve? ──────────────────────────────────────
+        enterStep(2);
+        await wait(700);
+        if (cancelled) return;
+        setForm((f) => ({ ...f, usageTags: ["plato_normal"] })); // ¿Cómo se sirve?
+        await wait(800);
+        if (cancelled) return;
+        onDemoScroll?.(-120);
+        await wait(500);
+        if (cancelled) return;
+        setForm((f) => ({ ...f, mealRole: [...new Set([...f.mealRole, "segundo"])] })); // Comida
+        await wait(800);
+        if (cancelled) return;
+        onDemoScroll?.(-260); // baja hasta "¿Apto para niños?"
+        await wait(600);
+        if (cancelled) return;
+        setForm((f) => ({ ...f, kidFriendly: true })); // Apto niños: Sí
+        await wait(950);
+        if (cancelled) return;
+
+        // ── Paso 3 · Preparación → "Procesar con IA" ────────────────────────
+        enterStep(3);
+        await wait(700);
+        if (cancelled) return;
+        setForm((f) => ({
+          ...f,
+          preparationNotes: seed.description || "Hornea el salmón con las patatas y la cebolla hasta que esté jugoso.",
+        }));
+        await wait(800);
+        if (cancelled) return;
+        setAiState("loading");
+        await wait(1300);
+        if (cancelled) return;
+        setDraft(seed);
+        setAiState("done");
+        await wait(900);
+        if (cancelled) return;
+        onDemoScroll?.(-240); // ver los pasos generados
+        await wait(1100);
+        if (cancelled) return;
+        onDemoScroll?.(-420); // baja hasta el final
+        await wait(1300);
+        if (cancelled) return;
+
+        // ── Paso 4 · Foto → "Generar con IA" ────────────────────────────────
+        enterStep(4);
+        await wait(700);
+        if (cancelled) return;
+        setPhotoGenState("loading");
+        await wait(1400);
+        if (cancelled) return;
+        setPhoto(dishImageForRecipe(seed)); // foto coherente con el plato
+        setPhotoGenState("idle");
+        await wait(1000);
+        if (cancelled) return;
+        onDemoScroll?.(-160);
+        await wait(1300);
+        if (cancelled) return;
+
+        // ── Paso 5 · Revisión ───────────────────────────────────────────────
+        enterStep(reviewStepIndex);
+        await wait(900);
+        if (cancelled) return;
+        onDemoScroll?.(-200);
+        await wait(1200);
+        if (cancelled) return;
+        onDemoScroll?.(-420); // baja hasta el CTA final
+        await wait(1600);
+        if (cancelled) return;
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoDemo]);
 
   const generatePhoto = async () => {
     if (!form.name.trim()) return;
@@ -2158,6 +2333,28 @@ const PREVIEW_MACROS = [
   { key: "fat_g", label: "Grasas", color: "#eab308" },
 ];
 
+// Google account pictures expire, so a stamped owner avatar can 404 long after
+// the recipe was saved; degrade to the neutral placeholder instead of a broken
+// image. Mirrors OwnerBadge in RecipeProvenance.jsx.
+function OwnerPhoto({ owner }) {
+  const [failed, setFailed] = useState(false);
+  if (owner?.avatar && !failed) {
+    return (
+      <img
+        src={owner.avatar}
+        alt=""
+        onError={() => setFailed(true)}
+        style={{ width: 32, height: 32, borderRadius: 999, objectFit: "cover", flexShrink: 0 }}
+      />
+    );
+  }
+  return (
+    <span style={{ width: 32, height: 32, borderRadius: 999, background: "#eef3ef", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+      <UserCircle2 size={22} color="#9ab0a1" />
+    </span>
+  );
+}
+
 // A read-only preview that mirrors the real DishDetail (Menu.jsx): photo hero
 // with the name overlaid, info pills, allergen strip, macro rings — plus the
 // provenance/community strip (owner, generation date, up/down rating).
@@ -2239,13 +2436,7 @@ function DishPreviewCard({ draft, photo, allergens = [], user }) {
 
         {/* Owner + date + rating */}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {owner?.avatar ? (
-            <img src={owner.avatar} alt="" style={{ width: 32, height: 32, borderRadius: 999, objectFit: "cover", flexShrink: 0 }} />
-          ) : (
-            <span style={{ width: 32, height: 32, borderRadius: 999, background: "#eef3ef", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <UserCircle2 size={22} color="#9ab0a1" />
-            </span>
-          )}
+          <OwnerPhoto owner={owner} />
           <div style={{ flex: 1, minWidth: 0 }}>
             <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: INK, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {owner?.name ?? "Tú"}

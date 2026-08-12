@@ -1,6 +1,6 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Soup, Utensils } from "lucide-react";
-import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton } from "./components/ui.jsx";
+import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
   OnboardingMembers,
   OnboardingRestrictions,
@@ -49,6 +49,7 @@ import {
   adhocReasonLabel,
   resolveMemberAge,
   membersOfGroup,
+  reconcileGroupsWithMembers,
 } from "./lib/groups.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import {
@@ -104,6 +105,13 @@ import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { buildGarnishComboRecipe } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
+import {
+  createRoster,
+  DEFAULT_ROSTER_ID,
+  ensureRosters,
+  listRosters,
+  switchRoster,
+} from "./lib/rosters.js";
 import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
@@ -316,6 +324,12 @@ const INITIAL_DATA = {
   // Uploaded receipts (the "facturas" inbox): { id, createdAt, store,
   // purchasedAt, total, lineCount }.
   receipts: [],
+  // ── Grupos de personas para los que planificas (lib/rosters.js) ──
+  // El roster activo vive en los campos de arriba (members, groups, schedule…);
+  // los demás se aparcan aquí y se intercambian al cambiar de grupo, de modo
+  // que "Otro grupo" ya no contamina la familia habitual.
+  rosters: {},
+  activeRosterId: DEFAULT_ROSTER_ID,
 };
 
 // Ad-hoc menus used to be labeled by the member's name ("Menú de X"); now
@@ -676,7 +690,82 @@ function migrate(state) {
     d.menus = { [legacyMenu.id]: legacyMenu };
     d.activeMenuId = legacyMenu.id;
   }
-  return { ...state, data: { ...INITIAL_DATA, ...d } };
+  return { ...state, data: ensureRosters({ ...INITIAL_DATA, ...d }) };
+}
+
+// ─── Combos de familias para la card "Otro grupo" ───────────────────────────
+const OTHER_GROUP_COMBOS = [
+  // 4: papá + mamá + hijo + hija
+  [
+    { src: "/avatares/papa/papa_3.png",   color: "#6b8fa8" },
+    { src: "/avatares/mama/mama_4.png",   color: "#c47fa0" },
+    { src: "/avatares/hijo/hijo_5.png",   color: "#7ab87a" },
+    { src: "/avatares/hija/hija_2.png",   color: "#e8a45a" },
+  ],
+  // 2: pareja sin hijos
+  [
+    { src: "/avatares/adulto/adulto_2.png", color: "#8a7bc8" },
+    { src: "/avatares/adulto/adulto_5.png", color: "#b87ab8" },
+  ],
+  // 5: familia grande con abuela
+  [
+    { src: "/avatares/papa/papa_7.png",    color: "#5a8a6a" },
+    { src: "/avatares/mama/mama_9.png",    color: "#c07080" },
+    { src: "/avatares/hijo/hijo_8.png",    color: "#7090c0" },
+    { src: "/avatares/hija/hija_6.png",    color: "#d08050" },
+    { src: "/avatares/abuela/abuela_2.png",color: "#90a080" },
+  ],
+  // 3: adulto solo con dos hijos
+  [
+    { src: "/avatares/adulto/adulto_4.png", color: "#c06050" },
+    { src: "/avatares/hijo/hijo_11.png",    color: "#6090a0" },
+    { src: "/avatares/hija/hija_9.png",     color: "#e0a060" },
+  ],
+  // 3: abuelos + nieto
+  [
+    { src: "/avatares/abuelo/abuelo_2.png", color: "#708090" },
+    { src: "/avatares/abuela/abuela_4.png", color: "#a08090" },
+    { src: "/avatares/hijo/hijo_3.png",     color: "#80b090" },
+  ],
+  // 4: mamá + bebé + hijo + hija
+  [
+    { src: "/avatares/mama/mama_6.png",   color: "#d06080" },
+    { src: "/avatares/bebe/bebe_2.png",   color: "#f0c060" },
+    { src: "/avatares/hijo/hijo_2.png",   color: "#60a090" },
+    { src: "/avatares/hija/hija_12.png",  color: "#e09050" },
+  ],
+];
+
+function RotatingGroupPreview() {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx((i) => (i + 1) % OTHER_GROUP_COMBOS.length);
+        setVisible(true);
+      }, 300);
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const faces = OTHER_GROUP_COMBOS[idx];
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "22px 18px 18px",
+        opacity: visible ? 1 : 0,
+        transition: "opacity .3s ease",
+      }}
+    >
+      <GroupAvatarStack faces={faces} size={64} />
+    </div>
+  );
 }
 
 export default function App() {
@@ -1152,6 +1241,21 @@ export default function App() {
       setData((d) => ({ ...d, groups: groupsFromModel(d.members, d.menuModel) }));
     }
   };
+
+  // Anyone added to the roster — from onboarding, a quick edit, or while
+  // setting up a different group — has to land on some menu. Nothing else
+  // re-runs the split once `groups` exists: `ensureGroupsIfMissing` only fires
+  // on an empty list and the tier reconcile only runs when you re-pick the menu
+  // model, so newcomers used to sit in `members` belonging to no group at all.
+  // Reconcile returns the same reference when nobody moved, which is what keeps
+  // this from looping.
+  useEffect(() => {
+    setData((d) => {
+      if (d.groups.length === 0 || d.members.length === 0) return d;
+      const groups = reconcileGroupsWithMembers(d.members, d.groups);
+      return groups === d.groups ? d : { ...d, groups };
+    });
+  }, [data.members, data.groups]);
 
   const toastTimer = useRef(null);
   // `action` (optional) renders a trailing button in the toast — e.g. a
@@ -1975,6 +2079,34 @@ export default function App() {
     setScreen("onboarding");
   }, []);
 
+  // "Otro grupo" → park the current household and start an empty roster, so
+  // whoever gets added next belongs to that group alone. Before rosters existed
+  // this only jumped to step 0, which appended the new people to the family you
+  // already had, with no way back.
+  const startOtherGroup = useCallback(() => {
+    setData((d) => createRoster(d, { name: "Otro grupo", defaults: INITIAL_DATA }));
+    setMenuPlan({});
+    setShopping({ items: [] });
+    setSelectedSlot(null);
+    setQuickMenu(false);
+    goToOnboardingStep(0);
+  }, [goToOnboardingStep]);
+
+  // Switching back to a group also has to restore the menú it last generated:
+  // `menuPlan`/`shopping` live outside `data`, so swapping the roster alone
+  // would leave the previous group's food on screen.
+  const useRoster = useCallback((rosterId) => {
+    const target = data.rosters?.[rosterId];
+    if (!target || rosterId === data.activeRosterId) return;
+    const snapshot = target.snapshot ?? {};
+    const weeks = Object.values(snapshot.menus?.[snapshot.activeMenuId]?.weeks ?? {});
+    const week = weeks.find((w) => w.offset === snapshot.menuWeek?.offset) ?? weeks[0] ?? null;
+    setData((d) => switchRoster(d, rosterId));
+    setMenuPlan(week?.plan ?? {});
+    setShopping(week?.shopping ?? { items: [] });
+    setSelectedSlot(null);
+  }, [data]);
+
   const handleDishTap = useCallback((selection) => {
     setSelectedSlot(selection);
     trackEvent(user, "dish_viewed", "menu", { recipeId: selection?.recipe?.id });
@@ -2517,7 +2649,7 @@ export default function App() {
     // reload right after "Reiniciar" can't race the stale cloud snapshot back
     // in through the hydration effect above.
     if (user?.id) clearUserState(user.id);
-    setData(INITIAL_DATA);
+    setData(ensureRosters(INITIAL_DATA));
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
@@ -2571,7 +2703,7 @@ export default function App() {
     // session (RLS on user_id = auth.uid()), so it has to run while still
     // logged in.
     if (user?.id) await clearUserState(user.id);
-    setData(INITIAL_DATA);
+    setData(ensureRosters(INITIAL_DATA));
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
@@ -3461,51 +3593,77 @@ export default function App() {
               ¿Para quién es el menú?
             </h3>
             <p style={{ margin: "0 auto 20px", fontSize: 13.5, color: "#7a9485", textAlign: "center", lineHeight: 1.45, maxWidth: 260 }}>
-              Reutiliza tu familia o empieza de cero para otro grupo.
+              Reutiliza un grupo que ya tengas o empieza de cero.
             </p>
 
             {(() => {
+              // Abandoned "Otro grupo" attempts (created, never filled in) would
+              // otherwise pile up here as nameless empty cards.
+              const rosters = listRosters(data).filter(
+                (r) => r.isActive || r.members.length > 0
+              );
               const options = [
+                ...rosters.map((r) => ({
+                  key: r.id,
+                  Icon: Users,
+                  primary: r.isActive,
+                  label: r.name,
+                  faces: groupAvatarFaces(r.members, r.members),
+                  onClick: () => {
+                    setWhoForOpen(false);
+                    if (!r.isActive) useRoster(r.id);
+                    startQuickMenu();
+                  },
+                })),
                 {
-                  key: "family", Icon: Users, primary: true,
-                  label: "Mi familia habitual",
-                  onClick: () => { setWhoForOpen(false); startQuickMenu(); },
-                },
-                {
-                  key: "other", Icon: Sparkles, primary: false,
+                  key: "other", Icon: Sparkles, rotating: true, primary: false,
                   label: "Otro grupo",
-                  onClick: () => { setWhoForOpen(false); setQuickMenu(false); goToOnboardingStep(0); },
+                  onClick: () => { setWhoForOpen(false); startOtherGroup(); },
                 },
               ];
               return (
                 <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-                  {options.map(({ key, Icon, primary, label, onClick }) => (
+                  {options.map(({ key, Icon, rotating, primary, label, faces = [], onClick }) => (
                     <button
                       key={key}
                       type="button"
                       onClick={onClick}
                       style={{
                         display: "flex", flexDirection: "column", alignItems: "center",
-                        justifyContent: "center", gap: 10, width: "100%", textAlign: "center",
-                        padding: "22px 18px", borderRadius: 20, cursor: "pointer",
-                        fontFamily: "inherit",
+                        justifyContent: "center", gap: rotating ? 0 : 10, width: "100%", textAlign: "center",
+                        padding: "0 0 18px", borderRadius: 20, cursor: "pointer",
+                        fontFamily: "inherit", overflow: "hidden",
                         background: primary ? "#eef6f0" : "#f7f9f8",
                         border: `2.5px solid ${primary ? "#bfe0cb" : "#e8ede9"}`,
                         transition: "all .15s ease",
                       }}
                     >
-                      <span
-                        style={{
-                          width: 58, height: 58, borderRadius: 18,
-                          background: primary ? "#2d5a3d" : "#edf2ee",
-                          display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        }}
-                      >
-                        <Icon size={28} color={primary ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
-                      </span>
-                      <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>
-                        {label}
-                      </span>
+                      {rotating ? (
+                        <>
+                          <RotatingGroupPreview />
+                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
+                        </>
+                      ) : faces.length > 0 ? (
+                        <>
+                          <div style={{ padding: "22px 18px 4px" }}>
+                            <GroupAvatarStack faces={faces} size={72} />
+                          </div>
+                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
+                        </>
+                      ) : (
+                        <div style={{ padding: "22px 18px", display: "flex", flexDirection: "column", alignItems: "center", gap: 10 }}>
+                          <span
+                            style={{
+                              width: 58, height: 58, borderRadius: 18,
+                              background: primary ? "#2d5a3d" : "#edf2ee",
+                              display: "inline-flex", alignItems: "center", justifyContent: "center",
+                            }}
+                          >
+                            <Icon size={28} color={primary ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
+                          </span>
+                          <span style={{ fontWeight: 800, color: "#1a3a24", fontSize: 15.5 }}>{label}</span>
+                        </div>
+                      )}
                     </button>
                   ))}
                 </div>
@@ -3693,7 +3851,25 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
         }
       `}</style>
 
-      {/* Vídeo de fondo */}
+      {/* Glow detrás del título */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: 0,
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: 340,
+          height: 340,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(61,122,82,.32) 0%, transparent 70%)",
+          animation: "glowPulse 5s ease-in-out infinite",
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* Vídeo a pantalla completa */}
       <video
         autoPlay
         muted
@@ -3706,52 +3882,15 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
           width: "100%",
           height: "100%",
           objectFit: "cover",
+          zIndex: 1,
+          pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
         }}
       >
         <source src="/splash.mp4" type="video/mp4" />
       </video>
 
-      {/* Overlay oscuro uniforme */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "rgba(0,0,0,0.32)",
-        }}
-      />
-
-      {/* Gradiente inferior */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, rgba(5,14,8,0) 0%, rgba(5,14,8,.1) 45%, rgba(5,14,8,.82) 75%, rgba(5,14,8,.98) 100%)",
-        }}
-      />
-
-      {/* Glow detrás del título */}
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          top: 0,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 340,
-          height: 340,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(61,122,82,.38) 0%, transparent 70%)",
-          animation: "glowPulse 5s ease-in-out infinite",
-          zIndex: 1,
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Título centrado arriba */}
+      {/* Título arriba */}
       <div
         style={{
           position: "absolute",
@@ -3759,7 +3898,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
           left: 0,
           right: 0,
           zIndex: 2,
-          padding: "72px 32px 0",
+          padding: "56px 32px 0",
           color: "#fff",
           textAlign: "center",
           animation: "fadeUp .8s ease-out both",
@@ -3778,49 +3917,14 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
         >
           Menú<span style={{ color: "#7ecb96" }}>Plan</span>
         </h1>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 4 }}>
-          <p style={{
-            fontSize: 20, lineHeight: 1.4, margin: 0,
-            color: "rgba(255,255,255,.88)", fontWeight: 400, fontStyle: "italic",
-            letterSpacing: "-.2px", textShadow: "0 1px 10px rgba(0,0,0,.5)",
-            textAlign: "left",
-            animation: "fadeUp .8s ease-out .25s both",
-          }}>
-            Tu app de <span style={{ color: "#7ecb96" }}>menús familiares</span>.
-          </p>
-          <div style={{ animation: "fadeUp .8s ease-out .4s both", textAlign: "left" }}>
-            <p style={{
-              fontSize: 20, lineHeight: 1.4, margin: 0,
-              color: "rgba(255,255,255,.88)", fontWeight: 400, fontStyle: "italic",
-              letterSpacing: "-.2px", textShadow: "0 1px 10px rgba(0,0,0,.5)",
-            }}>
-              Dinos{" "}
-              <span style={{
-                color: "#7ecb96",
-                display: "inline-block",
-                opacity: visible ? 1 : 0,
-                transform: visible ? "translateY(0)" : "translateY(5px)",
-                transition: "opacity .35s ease, transform .35s ease",
-              }}>
-                {phrases[phraseIdx]}
-              </span>
-            </p>
-            <p style={{
-              fontSize: 20, lineHeight: 1.4, margin: "6px 0 0",
-              color: "rgba(255,255,255,.88)", fontWeight: 400, fontStyle: "italic",
-              letterSpacing: "-.2px", textShadow: "0 1px 10px rgba(0,0,0,.5)",
-            }}>
-              Y nosotros nos encargamos del resto.
-            </p>
-          </div>
-        </div>
       </div>
 
-      {/* Botón abajo */}
+      {/* Botones abajo */}
       <div
         style={{
           position: "relative",
           zIndex: 2,
+          flexShrink: 0,
           padding: "0 28px 40px",
           animation: "fadeUp .8s ease-out .5s both",
           display: "flex",
@@ -3830,7 +3934,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
         onClick={(e) => e.stopPropagation()}
       >
         {hasSaved || isAuthed ? (
-          <GhostPillButton onClick={handleEnter} tone="light">
+          <GhostPillButton onClick={handleEnter} tone="solid">
             {hasSaved ? "Continuar" : "Empezar ya"}
           </GhostPillButton>
         ) : (

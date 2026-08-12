@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
 import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Refrigerator, ShoppingCart, UserCircle, X } from "lucide-react";
-import { initialsOf } from "../lib/stages.js";
+import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 
@@ -417,6 +417,33 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
 export function GhostPillButton({ onClick, children, tone = "light" }) {
   const [pressed, setPressed] = useState(false);
   const light = tone === "light";
+  // "solid" es el CTA principal: relleno verde, alto contraste, se ve igual
+  // sobre el vídeo del splash que sobre un fondo claro (cuando el vídeo no
+  // carga). Los otros tonos son secundarios (ghost translúcido / borde claro).
+  const solid = tone === "solid";
+
+  const styles = solid
+    ? {
+        border: "none",
+        background: pressed
+          ? "linear-gradient(135deg, #24492f 0%, #3a9e5b 100%)"
+          : "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
+        color: "#fff",
+        boxShadow: "0 10px 28px rgba(45,90,61,.4)",
+      }
+    : {
+        border: light ? "2px solid rgba(255,255,255,.85)" : "1.5px solid #dbe5de",
+        background: pressed
+          ? light
+            ? "rgba(255,255,255,.3)"
+            : "#eef4f0"
+          : light
+            ? "rgba(255,255,255,.16)"
+            : "transparent",
+        color: light ? "#fff" : "#1a3a24",
+        boxShadow: "none",
+      };
+
   return (
     <button
       type="button"
@@ -431,23 +458,15 @@ export function GhostPillButton({ onClick, children, tone = "light" }) {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        padding: "13px 20px",
+        padding: solid ? "15px 20px" : "13px 20px",
         borderRadius: 999,
-        border: light ? "1.5px solid rgba(255,255,255,.4)" : "1.5px solid #dbe5de",
-        background: pressed
-          ? light
-            ? "rgba(255,255,255,.22)"
-            : "#eef4f0"
-          : light
-            ? "rgba(255,255,255,.08)"
-            : "transparent",
-        color: light ? "#fff" : "#1a3a24",
-        fontSize: 14.5,
-        fontWeight: 700,
+        fontSize: solid ? 15 : 14.5,
+        fontWeight: solid ? 800 : 700,
         cursor: "pointer",
         fontFamily: "inherit",
         transform: pressed ? "scale(.97)" : "scale(1)",
         transition: "transform .15s ease, background .15s ease",
+        ...styles,
       }}
     >
       {children}
@@ -456,7 +475,11 @@ export function GhostPillButton({ onClick, children, tone = "light" }) {
 }
 
 export function Avatar({ name, size = 28, color = "#2d5a3d", title, photo }) {
-  if (photo) {
+  // Remote photos (Google account pictures stamped on old recipes, for
+  // instance) can 403 long after they were saved; fall back to the initials
+  // instead of leaving the browser's broken-image glyph on screen.
+  const [failedSrc, setFailedSrc] = useState(null);
+  if (photo && failedSrc !== photo) {
     return (
       <span
         title={title ?? name}
@@ -471,8 +494,10 @@ export function Avatar({ name, size = 28, color = "#2d5a3d", title, photo }) {
         }}
       >
         <img
+          key={photo}
           src={photo}
           alt={name ?? ""}
+          onError={() => setFailedSrc(photo)}
           style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
         />
       </span>
@@ -621,7 +646,138 @@ export function WeekRangeBadge({ label, hideLabel = false, topLabel = "Semana" }
   );
 }
 
-export function ScopeCircle({ label, abbrev, Icon, color, active, onClick }) {
+/**
+ * The faces of a group, each paired with its own member colour — the avatars
+ * are cut-outs on transparency, so that colour is what fills the disc behind
+ * them. `allMembers` is the full roster: member colours fall back to a palette
+ * slot by index, so passing only the group's members would recolour anyone who
+ * hasn't picked a colour. Empty when nobody has an avatar, so the caller falls
+ * back to its icon/initial.
+ */
+export function groupAvatarFaces(groupMembers, allMembers) {
+  const roster = allMembers ?? groupMembers ?? [];
+  return (groupMembers ?? [])
+    .map((m) => ({ src: memberAvatarThumbSrc(m), color: memberAvatarColor(m.id, roster) }))
+    .filter((f) => f.src);
+}
+
+/**
+ * A group drawn as its members' faces at the *same* diameter as a single
+ * avatar, overlapping each other and growing to the right — rather than as one
+ * circle with shrunken faces crammed inside, which made everyone unreadable.
+ * Widening the group is the point: it pushes whatever follows to the right.
+ *
+ * Selection fills the discs with each member's colour and is never drawn as an
+ * outline around the whole row: a ring hugging several circles reads as a pill
+ * and breaks the circular language of every other control. Unselected discs
+ * stay hollow — the colour moves to the ring — so a picked group reads at a
+ * glance without dimming anyone into looking disabled.
+ *
+ * Everyone is shown by default: hiding members behind a "+N" made a seven-person
+ * household read as six, which is exactly the sort of quiet lie this control
+ * exists to avoid. Past six the row folds into two staggered rows instead of
+ * growing wider. Pass `max` where the width is genuinely constrained — the menu
+ * badges do — and the stack falls back to one row plus the counter.
+ */
+export function GroupAvatarStack({ faces, size = 46, active = true, max = null }) {
+  const border = Math.max(2, Math.round(size * 0.055));
+  const shown = max ? faces.slice(0, max) : faces;
+  const overflow = faces.length - shown.length;
+  // Faces sit centred in the thumb, so hiding ~38% of the circle underneath
+  // still leaves each one recognisable.
+  const bite = Math.round(size * 0.38);
+
+  const disc = (face, i, key) => (
+    <span
+      key={key}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 999,
+        overflow: "hidden",
+        flexShrink: 0,
+        boxSizing: "border-box",
+        // Filled discs need a white ring to stay separate where they
+        // overlap; hollow ones carry the colour on the ring instead.
+        background: active ? face.color : "#fff",
+        border: `${border}px solid ${active ? "#fff" : face.color}`,
+        marginLeft: i === 0 ? 0 : -bite,
+        position: "relative",
+        zIndex: i,
+        boxShadow: active ? `0 2px 8px ${face.color}66` : "none",
+        transition: "background .18s ease, border-color .18s ease, box-shadow .18s ease",
+      }}
+    >
+      <img src={face.src} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+    </span>
+  );
+
+  if (!max && shown.length > 6) {
+    // Longer row on top and the shorter one nudged half a step right, so the
+    // two interlock the way the Olympic rings do instead of stacking in a grid.
+    const topCount = Math.ceil(shown.length / 2);
+    return (
+      <span
+        style={{
+          display: "inline-flex",
+          flexDirection: "column",
+          alignItems: "flex-start",
+          flexShrink: 0,
+        }}
+      >
+        <span style={{ display: "inline-flex" }}>
+          {shown.slice(0, topCount).map((face, i) => disc(face, i, `t${i}`))}
+        </span>
+        <span
+          style={{
+            display: "inline-flex",
+            marginLeft: Math.round((size - bite) / 2),
+            marginTop: -Math.round(size * 0.34),
+            position: "relative",
+            zIndex: 1,
+          }}
+        >
+          {shown.slice(topCount).map((face, i) => disc(face, i, `b${i}`))}
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", flexShrink: 0 }}>
+      {shown.map((face, i) => disc(face, i, i))}
+      {overflow > 0 && (
+        <span
+          style={{
+            width: size,
+            height: size,
+            borderRadius: 999,
+            flexShrink: 0,
+            boxSizing: "border-box",
+            background: active ? "#2d5a3d" : "#fff",
+            border: `${border}px solid ${active ? "#fff" : "#9ab0a1"}`,
+            color: active ? "#fff" : "#5a7066",
+            marginLeft: -bite,
+            position: "relative",
+            zIndex: shown.length,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: Math.max(9, Math.round(size * 0.3)),
+            fontWeight: 900,
+            letterSpacing: "-.3px",
+            boxShadow: active ? "0 2px 8px rgba(45,90,61,.4)" : "none",
+          }}
+        >
+          +{overflow}
+        </span>
+      )}
+    </span>
+  );
+}
+
+export function ScopeCircle({ label, abbrev, Icon, color, active, onClick, members, allMembers }) {
+  const faces = groupAvatarFaces(members, allMembers);
   return (
     <button
       type="button"
@@ -636,28 +792,38 @@ export function ScopeCircle({ label, abbrev, Icon, color, active, onClick }) {
         background: "transparent",
         cursor: "pointer",
         fontFamily: "inherit",
-        minWidth: 48,
+        minWidth: 44,
       }}
     >
-      <span
-        style={{
-          width: 46,
-          height: 46,
-          borderRadius: 999,
-          background: active ? color : "#fff",
-          border: `2.5px solid ${color}`,
-          color: active ? "#fff" : color,
-          fontSize: 15,
-          fontWeight: 900,
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          boxShadow: active ? `0 4px 14px ${color}55` : "none",
-          transition: "all .18s ease",
-        }}
-      >
-        {Icon ? <Icon size={19} /> : abbrev}
-      </span>
+      {faces.length > 0 ? (
+        // Onboarding lines these up beside every individual member, so the
+        // group anchor has to stay narrow: three faces and a counter, never the
+        // full two-row fold, or the people beside it get pushed onto their own
+        // rows three at a time.
+        <GroupAvatarStack faces={faces} size={46} active={active} max={3} />
+      ) : (
+        <span
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: 999,
+            overflow: "hidden",
+            background: active ? color : "#fff",
+            border: `2.5px solid ${color}`,
+            color: active ? "#fff" : color,
+            fontSize: 15,
+            fontWeight: 900,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: active ? `0 4px 14px ${color}55` : "none",
+            opacity: active ? 1 : 0.72,
+            transition: "all .18s ease",
+          }}
+        >
+          {Icon ? <Icon size={19} /> : abbrev}
+        </span>
+      )}
       <span
         style={{
           fontSize: 10,
@@ -672,8 +838,12 @@ export function ScopeCircle({ label, abbrev, Icon, color, active, onClick }) {
   );
 }
 
-export function GroupScopePicker({ groups, scope, onChange, style }) {
+export function GroupScopePicker({ groups, scope, onChange, style, members }) {
   const todosActive = scope === "all";
+  // Resolve each group's memberIds into member objects so the circles can show
+  // the family's own illustrated avatars instead of an initial.
+  const membersOf = (g) =>
+    members ? members.filter((m) => g.memberIds?.includes(m.id)) : undefined;
 
   return (
     <div style={{ marginBottom: 14, ...style }}>
@@ -684,6 +854,8 @@ export function GroupScopePicker({ groups, scope, onChange, style }) {
           color="#2d5a3d"
           active={todosActive}
           onClick={() => onChange("all")}
+          members={members}
+          allMembers={members}
         />
         {groups.length > 0 && (
           <>
@@ -703,6 +875,8 @@ export function GroupScopePicker({ groups, scope, onChange, style }) {
                   color={g.color}
                   active={scope === g.id}
                   onClick={() => onChange(g.id)}
+                  members={g.adHoc ? undefined : membersOf(g)}
+                  allMembers={members}
                 />
               ))}
             </div>
@@ -718,34 +892,48 @@ export function GroupScopePicker({ groups, scope, onChange, style }) {
 // the first option is treated as the "everyone/all" anchor and gets a thin
 // divider after it (matching GroupScopePicker's "Todos │ …" layout). Used when
 // we'd rather fill the row with circles than hide them behind a glass chip.
-export function ScopeCirclePicker({ options, value, onChange, dividerAfterFirst = true, style }) {
+export function ScopeCirclePicker({ options, value, onChange, dividerAfterFirst = true, style, allMembers }) {
   if (!options || options.length === 0) return null;
   const [first, ...rest] = options;
   return (
     <div style={{ marginBottom: 14, ...style }}>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 12, flexWrap: "wrap" }}>
-        <ScopeCircle
-          label={first.label}
-          abbrev={first.abbrev}
-          Icon={first.Icon}
-          color={first.color}
-          active={value === first.id}
-          onClick={() => onChange(first.id)}
-        />
-        {dividerAfterFirst && rest.length > 0 && (
-          <div style={{ width: 1, height: 40, background: "#dde8e1", flexShrink: 0 }} />
-        )}
-        {rest.map((o) => (
+      {/* The rest wrap inside their own box rather than in one shared row, so a
+          second row of people starts under the first person — not under the
+          "everyone" circle, which reads as if those people belonged to it. */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+        <span style={{ display: "inline-flex", flexShrink: 0 }}>
           <ScopeCircle
-            key={o.id}
-            label={o.label}
-            abbrev={o.abbrev}
-            Icon={o.Icon}
-            color={o.color}
-            active={value === o.id}
-            onClick={() => onChange(o.id)}
+            label={first.label}
+            abbrev={first.abbrev}
+            Icon={first.Icon}
+            color={first.color}
+            members={first.members}
+            allMembers={allMembers}
+            active={value === first.id}
+            onClick={() => onChange(first.id)}
           />
-        ))}
+        </span>
+        {dividerAfterFirst && rest.length > 0 && (
+          <div style={{ width: 1, height: 46, background: "#dde8e1", flexShrink: 0 }} />
+        )}
+        {/* Tighter than the gap outside it: at 12px only three people fit
+            beside the group circle, which made a normal household wrap onto
+            three lines. */}
+        <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-start", gap: 8, flex: 1, minWidth: 0 }}>
+          {rest.map((o) => (
+            <ScopeCircle
+              key={o.id}
+              label={o.label}
+              abbrev={o.abbrev}
+              Icon={o.Icon}
+              color={o.color}
+              members={o.members}
+              allMembers={allMembers}
+              active={value === o.id}
+              onClick={() => onChange(o.id)}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -755,11 +943,12 @@ export function ScopeCirclePicker({ options, value, onChange, dividerAfterFirst 
 // Instead of laying every circle out inline, it shows a single chip with the
 // active circle + label; tapping it opens a centered frosted-glass modal where
 // you pick from all the circles. Declutters steps with several menús/personas.
-export function ScopeGlassPicker({ options, value, onChange, title = "Elige", style }) {
+export function ScopeGlassPicker({ options, value, onChange, title = "Elige", style, allMembers }) {
   const [open, setOpen] = useState(false);
   const active = options.find((o) => o.id === value) ?? options[0];
   if (!active) return null;
   const ActiveIcon = active.Icon;
+  const activeFaces = groupAvatarFaces(active.members, allMembers);
 
   return (
     <div style={{ marginBottom: 14, display: "flex", justifyContent: "center", ...style }}>
@@ -783,25 +972,30 @@ export function ScopeGlassPicker({ options, value, onChange, title = "Elige", st
           minWidth: 168,
         }}
       >
-        <span
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 999,
-            background: active.color,
-            border: `2.5px solid ${active.color}`,
-            color: "#fff",
-            fontSize: 16,
-            fontWeight: 900,
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            boxShadow: `0 4px 14px ${active.color}55`,
-            flexShrink: 0,
-          }}
-        >
-          {ActiveIcon ? <ActiveIcon size={20} /> : active.abbrev}
-        </span>
+        {activeFaces.length > 0 ? (
+          <GroupAvatarStack faces={activeFaces} size={44} />
+        ) : (
+          <span
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 999,
+              background: active.color,
+              border: `2.5px solid ${active.color}`,
+              color: "#fff",
+              fontSize: 16,
+              fontWeight: 900,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              overflow: "hidden",
+              boxShadow: `0 4px 14px ${active.color}55`,
+              flexShrink: 0,
+            }}
+          >
+            {ActiveIcon ? <ActiveIcon size={20} /> : active.abbrev}
+          </span>
+        )}
         <span style={{ flex: 1, fontSize: 15.5, fontWeight: 800, color: "#142f1d", whiteSpace: "nowrap", textAlign: "left" }}>
           {active.label}
         </span>
@@ -854,6 +1048,8 @@ export function ScopeGlassPicker({ options, value, onChange, title = "Elige", st
                     abbrev={o.abbrev}
                     Icon={o.Icon}
                     color={o.color}
+                    members={o.members}
+                    allMembers={allMembers}
                     active={o.id === value}
                     onClick={() => {
                       onChange(o.id);
@@ -879,18 +1075,21 @@ export function ScopeGlassPicker({ options, value, onChange, title = "Elige", st
 
 // Menú (group) flavour of the glass picker — same option-building as
 // GroupScopePicker ("Todos" + each menú), so callers just swap the component.
-export function GroupScopeGlassPicker({ groups, scope, onChange, title = "Menú", style }) {
+export function GroupScopeGlassPicker({ groups, scope, onChange, title = "Menú", style, members }) {
   const options = [
-    { id: "all", label: "Todos", abbrev: "T", color: "#2d5a3d" },
+    { id: "all", label: "Todos", abbrev: "T", color: "#2d5a3d", members },
     ...groups.map((g) => ({
       id: g.id,
       label: g.adHoc ? adhocReasonLabel(g.reason) : g.label,
       abbrev: GROUP_ABBREV[g.label] ?? g.label.charAt(0),
       Icon: g.adHoc ? CookingPot : undefined,
       color: g.color,
+      // Ad-hoc menus keep their cooking-pot icon; they describe a diet, not a
+      // set of people, so faces would be misleading.
+      members: g.adHoc || !members ? undefined : members.filter((m) => g.memberIds?.includes(m.id)),
     })),
   ];
-  return <ScopeGlassPicker options={options} value={scope} onChange={onChange} title={title} style={style} />;
+  return <ScopeGlassPicker options={options} value={scope} onChange={onChange} title={title} style={style} allMembers={members} />;
 }
 
 // Centered popup with the same visual language as onboarding's big decision
