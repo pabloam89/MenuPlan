@@ -3881,7 +3881,10 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
           inset: 0,
           width: "100%",
           height: "100%",
-          objectFit: "cover",
+          // "contain" muestra el fotograma 16:9 completo (sin recortar los
+          // laterales como hacía "cover"); el espacio sobrante arriba/abajo se
+          // funde con el fondo oscuro del contenedor (#0a160e), sin bandas duras.
+          objectFit: "contain",
           zIndex: 1,
           pointerEvents: "none",
           animation: "fadeIn 1.2s ease-out",
