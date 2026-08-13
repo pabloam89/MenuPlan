@@ -78,7 +78,7 @@ import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCatego
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
 import { consumeFromPantry, restoreToPantry } from "../lib/cookPantry.js";
-import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry } from "../lib/pantry.js";
+import { addPantryItems, addLocalPantryItems, loadPantry, loadLocalPantry, removePantryItem, removeLocalPantryItem } from "../lib/pantry.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
@@ -4936,6 +4936,12 @@ export function DishDetail({
   // "Lo tengo": you have this even though it's not registered — add it to En
   // casa (the override we agreed on), so the tick lights up and cooking can
   // later discount it. Uses the dish's scaled need as the stocked amount.
+  // Tracks the created/topped-up pantry row id per ingredient (session-local,
+  // reset on unmount) so the tick can be reverted — but ONLY for a tick we
+  // ourselves just added here. A tick that reflects real pre-existing "En
+  // casa" stock must stay read-only: un-ticking it would delete stock the
+  // user has for reasons unrelated to this dish.
+  const [manuallyOwnedIds, setManuallyOwnedIds] = useState({});
   const markIngredientOwned = async (ing) => {
     const parsed = normalizePantryInput(ing.name)[0];
     if (!parsed) return;
@@ -4946,8 +4952,27 @@ export function DishDetail({
       unit: ing.unit ?? "ud",
       source: "manual",
     };
-    if (user) await addPantryItems(user.id, [item]);
-    else addLocalPantryItems([item]);
+    let addedId = null;
+    if (user) {
+      const rows = await addPantryItems(user.id, [item]);
+      addedId = rows[0]?.id ?? null;
+    } else {
+      const next = addLocalPantryItems([item]);
+      addedId = next.find((it) => it.ingredientNormalized === item.normalized)?.id ?? null;
+    }
+    if (addedId) setManuallyOwnedIds((m) => ({ ...m, [ing.id]: addedId }));
+    await reloadCookStock();
+  };
+  const revertIngredientOwned = async (ing) => {
+    const pantryId = manuallyOwnedIds[ing.id];
+    if (!pantryId) return;
+    if (user) await removePantryItem(user.id, pantryId);
+    else removeLocalPantryItem(pantryId);
+    setManuallyOwnedIds((m) => {
+      const next = { ...m };
+      delete next[ing.id];
+      return next;
+    });
     await reloadCookStock();
   };
   const cookIngredients = () =>
@@ -5399,7 +5424,9 @@ export function DishDetail({
                     isLast={i === ingredients.length - 1}
                     cookable={cookable}
                     owned={cookable && haveByIngId[ing.id]}
+                    revertible={cookable && Boolean(manuallyOwnedIds[ing.id])}
                     onMarkOwned={() => markIngredientOwned(ing)}
+                    onRevertOwned={() => revertIngredientOwned(ing)}
                   />
                 ))}
               </div>
@@ -5760,7 +5787,7 @@ function DishIngredientQtyCell({ text, cellStyle, wrap = false }) {
   return <span style={style}>{text}</span>;
 }
 
-function DishIngredientRow({ ing, isLast, cookable, owned, onMarkOwned }) {
+function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
   const displayVal = qty == null ? qualitativeUnitLabel(unit) : formatDisplay(qty, unit);
@@ -5785,16 +5812,31 @@ function DishIngredientRow({ ing, isLast, cookable, owned, onMarkOwned }) {
       >
         {cookable && (
           owned ? (
-            <span
-              title="Ya lo tienes en casa"
-              style={{
-                width: 18, height: 18, borderRadius: 6, flexShrink: 0,
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                background: "#4cba6e",
-              }}
-            >
-              <Check size={12} strokeWidth={3.2} color="#fff" />
-            </span>
+            revertible ? (
+              <button
+                type="button"
+                onClick={onRevertOwned}
+                title="Deshacer: quitar de En casa"
+                style={{
+                  width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  background: "#4cba6e", border: "none", cursor: "pointer", padding: 0,
+                }}
+              >
+                <Check size={12} strokeWidth={3.2} color="#fff" />
+              </button>
+            ) : (
+              <span
+                title="Ya lo tienes en casa"
+                style={{
+                  width: 18, height: 18, borderRadius: 6, flexShrink: 0,
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  background: "#4cba6e",
+                }}
+              >
+                <Check size={12} strokeWidth={3.2} color="#fff" />
+              </span>
+            )
           ) : (
             <button
               type="button"
