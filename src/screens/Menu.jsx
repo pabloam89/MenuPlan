@@ -1874,10 +1874,11 @@ export function DishCard({
 const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
-  { id: "lista", label: "Resumen" }, // DEV-ONLY: ocultar antes de subir a staging
+  { id: "lista", label: "Resumen" },
 ];
 
-const DECK_VIEW_ICON = { dia: CalendarDays, semana: Layers2, lista: LayoutGrid };
+const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers2, lista: LayoutGrid };
+const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", lista: "#5a5fc8" };
 
 // On-the-fly image optimization for the deck's big photos: the origin blobs are
 // ~1.5–1.8 MB / ~1024px, far too heavy for full-bleed tiles. wsrv.nl resizes +
@@ -2600,7 +2601,7 @@ function typologyTokens(day, meal, menuPlan, visibleGroups) {
  * scaled past the edge to bury its flat margin and would paint straight over
  * an inset one.
  */
-function CategoryArt({ cat, size = 34, ring = 2, elevated = false }) {
+function CategoryArt({ cat, size = 34, ring = 1.2, elevated = false }) {
   const [failed, setFailed] = useState(false);
   const color = cat ? categoryColor(cat) : "#5a7066";
   const Icon = cat ? categoryIcon(cat) : Utensils;
@@ -2619,8 +2620,13 @@ function CategoryArt({ cat, size = 34, ring = 2, elevated = false }) {
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        background: img ? "#fff" : `${color}1c`,
-        boxShadow: elevated ? "0 3px 8px -2px rgba(20,47,29,.3)" : "none",
+        background: `${color}1a`,
+        // Elevated tokens wear a halo in their own category colour so each
+        // dish reads as its own coloured coin — sits well against the tinted
+        // board and separates neighbouring combos at a glance.
+        boxShadow: elevated
+          ? `0 0 0 1.5px ${color}, 0 2px 8px -1px ${color}80, 0 1px 3px rgba(20,47,29,.22)`
+          : "none",
       }}
     >
       {img ? (
@@ -2669,7 +2675,7 @@ function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 34, d
         transition: "transform .15s ease",
       }}
     >
-      <CategoryArt cat={cat} size={size} elevated />
+      <CategoryArt cat={cat} size={size} ring={1.5} elevated />
       {garnishCat && (
         <span
           style={{
@@ -2682,7 +2688,7 @@ function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 34, d
             boxShadow: "0 2px 5px -1px rgba(20,47,29,.3)",
           }}
         >
-          <CategoryArt cat={garnishCat} size={badge} ring={1.5} />
+          <CategoryArt cat={garnishCat} size={badge} ring={1} />
         </span>
       )}
     </button>
@@ -2732,37 +2738,33 @@ function WeekMix({ mix }) {
     <div
       style={{
         position: "relative",
-        background: "#fff",
-        border: "1px solid #e8efe9",
-        borderRadius: 18,
-        padding: "13px 14px 14px",
+        padding: "13px 2px 14px",
         marginBottom: 14,
         overflow: "hidden",
-        boxShadow: "0 1px 3px rgba(20,47,29,.05)",
       }}
     >
-      {/* Soft halo in the leading category's colour — the card takes on the
-          personality of whatever dominated the week. */}
-      <span
-        aria-hidden
-        style={{
-          position: "absolute",
-          top: -80,
-          right: -40,
-          width: 210,
-          height: 210,
-          borderRadius: 999,
-          background: `radial-gradient(circle, ${leadColor}24 0%, transparent 70%)`,
-          pointerEvents: "none",
-        }}
-      />
 
-      <div style={{ position: "relative", display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 11 }}>
-        <span style={{ fontSize: 10, fontWeight: 800, color: "#9ab0a1", textTransform: "uppercase", letterSpacing: ".8px" }}>
+      <div style={{ position: "relative", display: "flex", alignItems: "baseline", gap: 8, marginBottom: 11 }}>
+        <span style={{ fontSize: 11, fontWeight: 900, color: "#2f4238", textTransform: "uppercase", letterSpacing: ".8px", whiteSpace: "nowrap" }}>
           El mix de la semana
         </span>
-        <span style={{ fontSize: 11, fontWeight: 800, color: "#5a7060", fontVariantNumeric: "tabular-nums" }}>
-          {mix.total} platos
+        <span style={{ flex: 1, borderBottom: "1.5px dashed #d4dfd8", marginBottom: 3 }} />
+        <span
+          style={{
+            flexShrink: 0,
+            width: 22, height: 22,
+            borderRadius: 999,
+            background: "#2d5a3d",
+            color: "#fff",
+            fontSize: 11,
+            fontWeight: 900,
+            fontVariantNumeric: "tabular-nums",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          {mix.total}
         </span>
       </div>
 
@@ -2781,50 +2783,33 @@ function WeekMix({ mix }) {
           const lead = i === 0;
           return (
             <Fragment key={cat}>
-              <CategoryArt cat={cat} size={30} ring={2} />
+              <CategoryArt cat={cat} size={30} ring={1.2} />
 
               <span
                 title={categoryLabel(cat)}
-                style={{
-                  fontSize: 11.5,
-                  fontWeight: 800,
-                  color: "#2f4238",
-                  letterSpacing: "-.2px",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
+                style={{ fontSize: 11.5, fontWeight: 800, color: "#2f4238", letterSpacing: "-.2px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}
               >
                 {categoryLabel(cat)}
               </span>
 
               <span
                 title={`${count} ${count === 1 ? "plato" : "platos"} · ${Math.round(pct)}%`}
-                style={{ height: 12, borderRadius: 999, background: "#eff4f0", overflow: "hidden" }}
+                style={{ height: 10, borderRadius: 999, background: "#eff4f0", overflow: "hidden" }}
               >
                 <span
                   className="mix-bar"
                   style={{
-                    display: "block",
-                    height: "100%",
+                    display: "block", height: "100%",
                     width: `${(count / top) * 100}%`,
                     borderRadius: 999,
-                    background: `linear-gradient(90deg, ${color}cc 0%, ${color} 100%)`,
-                    boxShadow: lead ? `0 0 10px -1px ${color}90` : "none",
+                    background: color,
+                    boxShadow: lead ? `0 0 8px -1px ${color}90` : "none",
                     animationDelay: `${i * 70}ms`,
                   }}
                 />
               </span>
 
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 900,
-                  color,
-                  textAlign: "right",
-                  fontVariantNumeric: "tabular-nums",
-                }}
-              >
+              <span style={{ fontSize: 13, fontWeight: 900, color, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                 {count}
               </span>
             </Fragment>
@@ -2842,30 +2827,30 @@ function WeekMix({ mix }) {
  * without reading a single name. A bubble mix on top tallies the whole week.
  */
 function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTap }) {
-  const { mealRows, mix, hasContent } = useMemo(() => {
+  const { activeMeals, dayRows, mix, hasContent } = useMemo(() => {
     const meals = getMeals(data); // main meals only (Comida / Cena)
     const counts = new Map();
-    const rows = [];
     let any = false;
 
-    for (const meal of meals) {
-      const cells = days.map((day) => {
+    const rows = days.map((day) => {
+      const byMeal = {};
+      for (const meal of meals) {
         const tokens = typologyTokens(day, meal, menuPlan, visibleGroups);
         for (const t of tokens) {
           if (t.cat) counts.set(t.cat, (counts.get(t.cat) ?? 0) + 1);
         }
         if (tokens.length > 0) any = true;
-        return { day, tokens };
-      });
-      rows.push({ meal, cells });
-    }
+        byMeal[meal] = tokens;
+      }
+      return { day, byMeal };
+    });
 
     const total = [...counts.values()].reduce((a, b) => a + b, 0);
     const sorted = [...counts.entries()]
       .sort((a, b) => b[1] - a[1] || categoryLabel(a[0]).localeCompare(categoryLabel(b[0])))
       .map(([cat, count]) => ({ cat, count, pct: total ? (count / total) * 100 : 0 }));
 
-    return { mealRows: rows, mix: { total, items: sorted }, hasContent: any };
+    return { activeMeals: meals, dayRows: rows, mix: { total, items: sorted }, hasContent: any };
   }, [days, data, menuPlan, visibleGroups]);
 
   if (!hasContent) {
@@ -2883,146 +2868,122 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
 
   return (
     <div style={{ paddingBottom: 8 }}>
-      {/* ── Week mix: illustration bubbles sized by how often each category
-             shows up. A stacked bar forced you to decode colour→legend→count;
-             here the biggest picture *is* the answer to "what did we eat?". ── */}
       {mix.items.length > 0 && <WeekMix mix={mix} />}
+      <WeekGrid
+        dayRows={dayRows}
+        activeMeals={activeMeals}
+        weekDates={weekDates}
+        todayNum={todayNum}
+        onDishTap={onDishTap}
+      />
+    </div>
+  );
+}
 
-      {/* ── The week as a grid: days across, meals down.
-             The board is tinted on purpose: white dishes on a white card on a
-             white page had nothing to sit against. Now the coins read as chips
-             laid on a surface. ── */}
-      <div
+/** Renderiza los platos de una celda (principal + guarnición) unidos por "+". */
+function ComboTokens({ tokens, meal, day, onDishTap, size = 34, gap = 9, plusColor = "#b3c4b9" }) {
+  if (!tokens || tokens.length === 0) {
+    return <span style={{ width: 7, height: 7, borderRadius: 999, background: "#c6d8cc" }} />;
+  }
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flexWrap: "wrap", gap }}>
+      {tokens.map(({ recipeId, slot, group, course, cat, name, garnishCat, garnishName }, ti) => (
+        <Fragment key={`${recipeId}-${course}`}>
+          {ti > 0 && (
+            <span
+              style={{
+                fontSize: 13,
+                fontWeight: 900,
+                color: plusColor,
+                lineHeight: 1,
+                flexShrink: 0,
+                userSelect: "none",
+                margin: "0 -2px",
+              }}
+            >
+              +
+            </span>
+          )}
+          <TypologyToken
+            cat={cat}
+            name={name}
+            garnishCat={garnishCat}
+            garnishName={garnishName}
+            size={size}
+            onTap={() =>
+              onDishTap?.({ recipe: RECIPES_BY_ID[recipeId], slot, groupId: group.id, day, meal, group, course })
+            }
+          />
+        </Fragment>
+      ))}
+    </div>
+  );
+}
+
+/** Cabecera de columna de comida: icono y nombre en su color, sobre un subrayado. */
+function CalMealHeader({ meal }) {
+  const mc = mealTimeColor(meal);
+  const MealIcon = isLunchMeal(meal) ? Sun : Moon;
+  return (
+    <div
+      style={{
+        borderBottom: `2px solid ${mc}`,
+        padding: "9px 4px 8px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+      }}
+    >
+      <MealIcon size={15} color={mc} strokeWidth={2.6} />
+      <span
         style={{
-          background: "#eef4f0",
-          border: "1px solid #d9e6de",
-          borderRadius: 16,
-          overflow: "hidden",
-          boxShadow: "0 1px 3px rgba(20,47,29,.06)",
+          fontSize: 11,
+          fontWeight: 900,
+          color: mc,
+          letterSpacing: ".4px",
+          textTransform: "uppercase",
         }}
       >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: `28px repeat(${days.length}, minmax(0, 1fr))`,
-          }}
-        >
-          {/* Header: day names + dates */}
-          <div style={{ background: "#dfebe3", borderBottom: "1px solid #c9dcd0" }} />
-          {days.map((day) => {
-            const dayNum = calendarDayNumber(day, weekDates);
-            const isToday = dayNum != null && dayNum === todayNum;
-            return (
-              <div
-                key={`h-${day}`}
-                style={{
-                  background: isToday ? "#2d5a3d" : "#dfebe3",
-                  borderBottom: `1px solid ${isToday ? "#2d5a3d" : "#c9dcd0"}`,
-                  padding: "7px 0 6px",
-                  textAlign: "center",
-                }}
-              >
-                <div
-                  style={{
-                    fontSize: 9,
-                    fontWeight: 800,
-                    color: isToday ? "rgba(255,255,255,.75)" : "#6f8a7a",
-                    textTransform: "uppercase",
-                    letterSpacing: ".4px",
-                    lineHeight: 1.3,
-                  }}
-                >
-                  {day}
-                </div>
-                <div
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 900,
-                    color: isToday ? "#fff" : "#142f1d",
-                    lineHeight: 1.2,
-                    fontVariantNumeric: "tabular-nums",
-                  }}
-                >
-                  {dayNum ?? "·"}
-                </div>
+        {meal}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The week as a grid: days down the side, meals across the top.
+ *
+ * Deliberately quiet — the dish coins are the only saturated thing here, so
+ * the surface stays white and rows alternate with a barely-there tint. The
+ * meal columns are told apart by their coloured underline alone.
+ */
+function WeekGrid({ dayRows, activeMeals, weekDates, todayNum, onDishTap }) {
+  return (
+    <div>
+      <div style={{ display: "grid", gridTemplateColumns: `46px repeat(${activeMeals.length}, 1fr)` }}>
+        <div />
+        {activeMeals.map((meal) => (
+          <CalMealHeader key={`h-${meal}`} meal={meal} />
+        ))}
+        {dayRows.map(({ day, byMeal }, di) => {
+          const dayNum = calendarDayNumber(day, weekDates);
+          const isToday = dayNum != null && dayNum === todayNum;
+          const bg = "transparent";
+          return (
+            <Fragment key={day}>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "14px 4px", borderTop: di > 0 ? "1px solid #eef2f0" : "none" }}>
+                <div style={{ fontSize: 9, fontWeight: 800, color: isToday ? "#4a7c5c" : "#9ab0a1", textTransform: "uppercase", letterSpacing: ".4px" }}>{day.slice(0, 3)}</div>
+                <div style={{ fontSize: 15, fontWeight: 900, color: isToday ? "#2d5a3d" : "#142f1d", fontVariantNumeric: "tabular-nums" }}>{dayNum ?? "·"}</div>
               </div>
-            );
-          })}
-
-          {/* One row per meal */}
-          {mealRows.map(({ meal, cells }, ri) => {
-            const divider = ri > 0 ? "1px solid #d9e6de" : "none";
-            return (
-              <Fragment key={meal}>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: "#e7f0ea",
-                    borderTop: divider,
-                    borderRight: "1px solid #d9e6de",
-                  }}
-                >
-                  <MealGlyph isLunch={isLunchMeal(meal)} size={20} />
+              {activeMeals.map((meal) => (
+                <div key={`${day}-${meal}`} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "12px 8px", borderTop: di > 0 ? "1px solid #eef2f0" : "none" }}>
+                  <ComboTokens tokens={byMeal[meal]} meal={meal} day={day} onDishTap={onDishTap} size={40} gap={11} />
                 </div>
-
-                {cells.map(({ day, tokens }, ci) => {
-                  const dayNum = calendarDayNumber(day, weekDates);
-                  const isToday = dayNum != null && dayNum === todayNum;
-                  return (
-                    <div
-                      key={`${meal}-${day}`}
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 7,
-                        padding: "12px 2px",
-                        borderTop: divider,
-                        background: isToday ? "#dcece2" : "transparent",
-                      }}
-                    >
-                      {tokens.length === 0 ? (
-                        <span
-                          style={{
-                            width: 7,
-                            height: 7,
-                            borderRadius: 999,
-                            background: "#c6d8cc",
-                          }}
-                        />
-                      ) : (
-                        tokens.map(({ recipeId, slot, group, course, cat, name, garnishCat, garnishName }, ti) => (
-                          <TypologyToken
-                            key={`${recipeId}-${course}`}
-                            cat={cat}
-                            name={name}
-                            garnishCat={garnishCat}
-                            garnishName={garnishName}
-                            delay={(ri * 4 + ci) * 26 + ti * 40}
-                            onTap={() =>
-                              onDishTap?.({
-                                recipe: RECIPES_BY_ID[recipeId],
-                                slot,
-                                groupId: group.id,
-                                day,
-                                meal,
-                                group,
-                                course,
-                              })
-                            }
-                          />
-                        ))
-                      )}
-                    </div>
-                  );
-                })}
-              </Fragment>
-            );
-          })}
-        </div>
+              ))}
+            </Fragment>
+          );
+        })}
       </div>
     </div>
   );
@@ -3072,9 +3033,9 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
  * menu (Día / Semana / Lista + week switcher + Vista clásica). "Tu perfil" lives
  * outside, to the right of this pill in the header row.
  */
-/** Circular icon for the view picker — mirrors ScopeCircle so the view picker
- *  and the menú filter share the exact same visual language. */
-function ViewCircle({ Icon, active, size = 42 }) {
+/** Circular icon for the view picker. Each view has its own accent colour;
+ *  active state fills the disc, inactive shows the tinted ring + icon. */
+function ViewCircle({ Icon, active, color = "#2d5a3d", size = 36 }) {
   return (
     <span
       style={{
@@ -3082,7 +3043,7 @@ function ViewCircle({ Icon, active, size = 42 }) {
         borderRadius: 999,
         padding: 3,
         background: "rgba(255,255,255,.5)",
-        boxShadow: active ? "0 0 0 2.5px #2d5a3d" : "0 0 0 1px rgba(45,90,61,.15)",
+        boxShadow: active ? `0 0 0 2px ${color}` : "0 0 0 1px rgba(45,90,61,.12)",
         transition: "box-shadow .15s ease",
       }}
     >
@@ -3091,63 +3052,104 @@ function ViewCircle({ Icon, active, size = 42 }) {
           width: size,
           height: size,
           borderRadius: 999,
-          background: active ? "#2d5a3d" : "#eef4ef",
-          color: active ? "#fff" : "#2d5a3d",
+          background: active ? color : `${color}18`,
+          color: active ? "#fff" : color,
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           transition: "background .15s ease, color .15s ease",
         }}
       >
-        <Icon size={Math.round(size * 0.46)} strokeWidth={2.4} />
+        <Icon size={Math.round(size * 0.44)} strokeWidth={2.4} />
       </span>
     </span>
   );
 }
 
-/**
- * Segmented control (Día / Semana) as two flat pills.
- * The active pill is solid green; inactive is transparent on a light track.
- */
+/** Menu view picker — circular chip that opens a modal with the view options. */
 function DeckNav({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const active = options.find((o) => o.id === value) ?? options[0];
+  const ActiveIcon  = DECK_VIEW_ICON[active?.id]  ?? CalendarDays;
+  const activeColor = DECK_VIEW_COLOR[active?.id] ?? "#2d5a3d";
+
   return (
-    <div
-      style={{
-        display: "inline-flex",
-        background: "#eef4ef",
-        borderRadius: 999,
-        padding: 3,
-        gap: 3,
-      }}
-    >
-      {options.map((o) => {
-        const Icon = DECK_VIEW_ICON[o.id] ?? CalendarDays;
-        const active = o.id === value;
-        return (
-          <button
-            key={o.id}
-            type="button"
-            className="deck-press"
-            onClick={() => onChange(o.id)}
+    <>
+      <button
+        type="button"
+        className="deck-press"
+        onClick={() => setOpen(true)}
+        aria-haspopup="dialog"
+        aria-label={`Vista del menú (${active?.label})`}
+        title={`Vista · ${active?.label}`}
+        style={{
+          border: "none", background: "transparent", padding: 0,
+          cursor: "pointer", fontFamily: "inherit", flexShrink: 0,
+          display: "inline-flex", alignItems: "center", gap: 7,
+        }}
+      >
+        <ViewCircle Icon={ActiveIcon} active color={activeColor} />
+        <span style={{ fontSize: 13.5, fontWeight: 800, color: activeColor, whiteSpace: "nowrap", letterSpacing: "-.2px" }}>
+          {active?.label}
+        </span>
+        <ChevronDown size={15} strokeWidth={2.8} color="#9db3a6" style={{ marginLeft: -2 }} />
+      </button>
+
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(15,30,20,.34)",
+            backdropFilter: "blur(2px)", WebkitBackdropFilter: "blur(2px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 20, animation: "deckFadeIn .18s ease both",
+          }}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            onClick={(e) => e.stopPropagation()}
             style={{
-              display: "inline-flex", alignItems: "center", gap: 5,
-              padding: "5px 12px",
-              borderRadius: 999,
-              border: "none",
-              background: active ? "#2d5a3d" : "transparent",
-              color: active ? "#fff" : "#5a7060",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              transition: "background .15s ease, color .15s ease",
-              whiteSpace: "nowrap",
+              width: 320, maxWidth: "calc(100vw - 40px)",
+              background: "rgba(247,251,248,.8)",
+              backdropFilter: "blur(26px) saturate(180%)",
+              WebkitBackdropFilter: "blur(26px) saturate(180%)",
+              borderRadius: 24,
+              border: "1px solid rgba(255,255,255,.7)",
+              boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
+              padding: 18,
+              animation: "deckModalIn .22s cubic-bezier(.4,0,.2,1) both",
             }}
           >
-            <Icon size={14} strokeWidth={2.4} />
-            <span style={{ fontSize: 12, fontWeight: 800 }}>{o.label}</span>
-          </button>
-        );
-      })}
-    </div>
+            <div style={{ display: "flex", justifyContent: "center", gap: 22 }}>
+              {options.map((o) => {
+                const Icon = DECK_VIEW_ICON[o.id] ?? CalendarDays;
+                const isActive = o.id === value;
+                return (
+                  <button
+                    key={o.id}
+                    type="button"
+                    className="deck-press"
+                    onClick={() => { onChange(o.id); setOpen(false); }}
+                    style={{
+                      display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
+                      border: "none", background: "transparent", cursor: "pointer",
+                      fontFamily: "inherit", padding: 0, minWidth: 62,
+                    }}
+                  >
+                    <ViewCircle Icon={Icon} active={isActive} color={DECK_VIEW_COLOR[o.id] ?? "#2d5a3d"} size={48} />
+                    <span style={{ fontSize: 12.5, fontWeight: 800, color: isActive ? "#2d5a3d" : "#5f7568", maxWidth: 76, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {o.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -4045,8 +4047,7 @@ export const MenuScreen = memo(function MenuScreen({
         @keyframes deckViewSwap { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
         .deck-view-swap { animation: deckViewSwap .34s cubic-bezier(.22,1,.36,1) both; will-change: transform, opacity; }
 
-        /* Resumen: the mix bars sweep out top-down, so the ranking reads as it
-           draws itself instead of appearing all at once. */
+
         @keyframes mixBarGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
         .mix-bar { transform-origin: left center; animation: mixBarGrow .5s cubic-bezier(.22,1,.36,1) both; }
 
@@ -4340,12 +4341,10 @@ export const MenuScreen = memo(function MenuScreen({
             {/* The coach anchor hugs the view switch alone: the filter circle at
                 the far right gets its own step, and a spotlight over the whole
                 row would highlight both at once. */}
-            <div data-coach="menu-viewmode" style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}>
-              <DeckNav
-                value={deckView}
-                onChange={setDeckView}
-                options={DECK_VIEW_OPTIONS}
-              />
+            <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
+              <DeckNav value={deckView} onChange={setDeckView} options={DECK_VIEW_OPTIONS} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
               {menuWeeks.length > 1 && (
                 <DeckWeekStepper
                   weekIdx={Math.max(0, currentWeekIdx)}
@@ -4356,7 +4355,6 @@ export const MenuScreen = memo(function MenuScreen({
                 />
               )}
             </div>
-            <div style={{ flex: 1 }} />
             {multiGroup && (
               <DeckFilter
                 groups={data.groups}
