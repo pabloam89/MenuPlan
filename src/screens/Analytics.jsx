@@ -25,6 +25,7 @@ import { groupsFromModel } from "../lib/groups.js";
 import { getConsumptionInsights, mergeConsumptionGroups, filterConsumptionByMeal } from "../lib/consumptionInsights.js";
 import { getMenuInsights } from "../lib/menuInsights.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
+import { mealTimeColor } from "../lib/mealTimes.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { tabDirection } from "../lib/motion.js";
 import { SpendPanel } from "./SpendPanel.jsx";
@@ -301,8 +302,12 @@ function CocinaTab({ cookView, meals }) {
   );
 }
 
-const MEAL_FILTER_COLORS = { Comida: "#0d9488", Cena: "#2b7cd3" };
-
+/**
+ * Meal filter. Each option lights up in its own meal colour — ámbar for
+ * Comida, índigo for Cena — rather than the generic green, so the toggle,
+ * the bars it drives and the hover readout all speak the same language as
+ * the rest of the app. "Todos" isn't a meal, so it keeps the house green.
+ */
 function MealMiniToggle({ meals, value, onChange }) {
   const comida = meals.find((m) => m === "Comida") ?? meals[0];
   const cena = meals.find((m) => m === "Cena") ?? meals[meals.length - 1];
@@ -326,6 +331,7 @@ function MealMiniToggle({ meals, value, onChange }) {
     >
       {options.map(({ id, label, Icon }) => {
         const active = value === id;
+        const tint = mealTimeColor(id);
         return (
           <button
             key={id}
@@ -338,8 +344,11 @@ function MealMiniToggle({ meals, value, onChange }) {
               padding: label ? "0 10px" : 0,
               borderRadius: 7,
               border: "none",
-              background: active ? "#2d5a3d" : "transparent",
-              color: active ? "#fff" : "#7a8a7f",
+              background: active ? tint : "transparent",
+              // Unselected icons keep their own hue so you can tell sol from
+              // luna without selecting them first.
+              color: active ? "#fff" : label ? "#7a8a7f" : `${tint}b3`,
+              boxShadow: active ? `0 2px 7px -2px ${tint}` : "none",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
@@ -534,10 +543,7 @@ function DayCookChart({ rows, meals, mealFilter }) {
     return { day: row.day, minutes: row.byMeal[mealFilter] ?? 0, row };
   });
   const chartMax = Math.max(...chartRows.map((r) => r.minutes), 1);
-  const barColor =
-    mealFilter === "all"
-      ? null
-      : MEAL_FILTER_COLORS[mealFilter] ?? "#2d5a3d";
+  const barColor = mealFilter === "all" ? null : mealTimeColor(mealFilter);
 
   const hoverRow = hoverDay ? chartRows.find((r) => r.day === hoverDay) : null;
 
@@ -562,13 +568,13 @@ function DayCookChart({ rows, meals, mealFilter }) {
           {mealFilter === "all" && (
             <>
               {comidaMeal && hoverRow.row.byMeal[comidaMeal] > 0 && (
-                <span style={{ color: "#0d9488" }}>
+                <span style={{ color: mealTimeColor("Comida") }}>
                   {" "}
                   · Comida {hoverRow.row.byMeal[comidaMeal]}′
                 </span>
               )}
               {cenaMeal && hoverRow.row.byMeal[cenaMeal] > 0 && (
-                <span style={{ color: MEAL_FILTER_COLORS.Cena }}>
+                <span style={{ color: mealTimeColor("Cena") }}>
                   {" "}
                   · Cena {hoverRow.row.byMeal[cenaMeal]}′
                 </span>
