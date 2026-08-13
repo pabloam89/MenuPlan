@@ -697,10 +697,13 @@ export function GroupAvatarStack({ faces, size = 46, active = true, max = null }
         overflow: "hidden",
         flexShrink: 0,
         boxSizing: "border-box",
-        // Filled discs need a white ring to stay separate where they
-        // overlap; hollow ones carry the colour on the ring instead.
+        // Seleccionado = disco lleno con el aro del propio color, no blanco: el
+        // aro blanco se fundía con el fondo claro de la tarjeta y encogía la
+        // mancha de color, restando contraste justo a lo que está elegido. Con
+        // el aro del color, el círculo se lee como una mancha sólida y salta
+        // más. En pila, colores distintos siguen separando los discos.
         background: active ? face.color : "#fff",
-        border: `${border}px solid ${active ? "#fff" : face.color}`,
+        border: `${border}px solid ${face.color}`,
         marginLeft: i === 0 ? 0 : -bite,
         position: "relative",
         zIndex: i,
@@ -755,7 +758,7 @@ export function GroupAvatarStack({ faces, size = 46, active = true, max = null }
             flexShrink: 0,
             boxSizing: "border-box",
             background: active ? "#2d5a3d" : "#fff",
-            border: `${border}px solid ${active ? "#fff" : "#9ab0a1"}`,
+            border: `${border}px solid ${active ? "#2d5a3d" : "#9ab0a1"}`,
             color: active ? "#fff" : "#5a7066",
             marginLeft: -bite,
             position: "relative",

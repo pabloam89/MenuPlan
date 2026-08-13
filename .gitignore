@@ -31,6 +31,9 @@ dist-ssr
 dish-gallery/node_modules/
 dish-gallery/dist/
 dish-gallery/.vercel/
+# Midjourney originals (~250MB of 1024x1024 renders). Only the processed output
+# under public/ ships; regenerate it with the scripts/make_*_cards.py scripts.
+/Avatares/
 # Local-only review sheets, synthetic receipts and approval scratch (not app code)
 dish-gallery/review/
 approvals-live.json

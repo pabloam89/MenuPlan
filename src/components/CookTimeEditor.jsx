@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BriefcaseBusiness, Clock, Moon, Shuffle, Sun, Sunset, Utensils, Zap } from "lucide-react";
+import { BriefcaseBusiness, Moon, Shuffle, Sun, Sunset } from "lucide-react";
 import {
   migrateCookTime,
   writeCookTimeMode,
@@ -24,20 +24,24 @@ function plannedMealTargets(plannedMeals) {
   return ["Comida"];
 }
 
+// Color por comida (mismo idioma que "cuándo coméis en casa" y el postre):
+// Comida en ámbar, Cena en índigo. Se usa en el toggle y en los tabs por separado.
+const MEAL_COLOR = { Comida: "#c9820a", Cena: "#5a7a9a" };
 const MEAL_META = {
-  Comida: { icon: Sun, label: "Comida" },
-  Cena: { icon: Moon, label: "Cena" },
+  Comida: { icon: Sun, label: "Comida", color: MEAL_COLOR.Comida },
+  Cena: { icon: Moon, label: "Cena", color: MEAL_COLOR.Cena },
 };
 
-// Icon + color + time hint per cooking-pace level. Colors always show (even when
-// unselected) so the grid reads at a glance; "Depende del día" shows a "Variable"
-// pill with a shuffle icon instead of a fixed time — the whole point is that it
-// isn't a single number.
+// Illustration + color + time hint per cooking-pace level. Colors always show
+// (even when unselected) so the grid reads at a glance; "Depende del día" shows a
+// "Variable" pill with a shuffle icon instead of a fixed time — the whole point is
+// that it isn't a single number. Each level uses a Pixar-style cook illustration
+// (agobio → calma) served from public/avatares/cards.
 const LEVEL_META = {
-  con_prisa: { Icon: Zap, accent: "#e08a2b", tint: "#fdf1e1", time: "≤ 20 min" },
-  normal: { Icon: Utensils, accent: "#2d8a4e", tint: "#e6f5ec", time: "~ 35 min" },
-  con_tiempo: { Icon: Clock, accent: "#2f7d8a", tint: "#e1f0f2", time: "1 h o más" },
-  depende: { Icon: Shuffle, accent: "#7a5bd6", tint: "#efeaff", time: null },
+  con_prisa: { img: "/avatares/cards/cook_con_prisa.png", accent: "#e08a2b", tint: "#fdf1e1", time: "≤ 20 min" },
+  normal: { img: "/avatares/cards/cook_normal.png", accent: "#2d8a4e", tint: "#e6f5ec", time: "~ 35 min" },
+  con_tiempo: { img: "/avatares/cards/cook_con_tiempo.png", accent: "#2f7d8a", tint: "#e1f0f2", time: "1 h o más" },
+  depende: { img: "/avatares/cards/cook_depende.png", accent: "#7a5bd6", tint: "#efeaff", time: null },
 };
 
 /** Compact pill segmented control used to pick the editing context (period /
@@ -48,6 +52,7 @@ function SegTabs({ options, value, onChange }) {
       {options.map((o) => {
         const sel = o.id === value;
         const Icon = o.icon;
+        const accent = o.color;
         return (
           <button
             key={o.id}
@@ -63,16 +68,16 @@ function SegTabs({ options, value, onChange }) {
               borderRadius: 9,
               border: "none",
               background: sel ? "#fff" : "transparent",
-              color: sel ? "#1a3a24" : "#8aa092",
+              color: sel ? (accent ?? "#1a3a24") : "#8aa092",
               fontWeight: sel ? 800 : 600,
               fontSize: 12.5,
               cursor: "pointer",
               fontFamily: "inherit",
-              boxShadow: sel ? "0 1px 4px rgba(0,0,0,.08)" : "none",
+              boxShadow: sel ? `0 1px 4px ${accent ? `${accent}33` : "rgba(0,0,0,.08)"}` : "none",
               transition: "all .15s ease",
             }}
           >
-            {Icon && <Icon size={14} strokeWidth={2.3} color={sel ? "#2d5a3d" : "#9ab0a1"} />}
+            {Icon && <Icon size={14} strokeWidth={2.3} color={sel ? (accent ?? "#2d5a3d") : "#9ab0a1"} />}
             {o.label}
           </button>
         );
@@ -87,9 +92,9 @@ function CookTimeModeToggle({ mode, onChange }) {
       id: "shared",
       label: "Igual para ambos",
       renderIcon: (sel) => (
-        <span style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
-          <Sun size={18} strokeWidth={2.2} color={sel ? "#2d5a3d" : "#9ab0a1"} />
-          <Moon size={18} strokeWidth={2.2} color={sel ? "#2d5a3d" : "#9ab0a1"} />
+        <span style={{ display: "inline-flex", gap: 4, alignItems: "center", opacity: sel ? 1 : 0.5 }}>
+          <Sun size={18} strokeWidth={2.2} color={MEAL_COLOR.Comida} />
+          <Moon size={18} strokeWidth={2.2} color={MEAL_COLOR.Cena} />
         </span>
       ),
     },
@@ -97,10 +102,10 @@ function CookTimeModeToggle({ mode, onChange }) {
       id: "split",
       label: "Por separado",
       renderIcon: (sel) => (
-        <span style={{ display: "inline-flex", gap: 6, alignItems: "center" }}>
-          <Sun size={18} strokeWidth={2.2} color={sel ? "#2d5a3d" : "#9ab0a1"} />
-          <span style={{ fontSize: 11, fontWeight: 700, color: sel ? "#2d5a3d" : "#c5d4cb" }}>/</span>
-          <Moon size={18} strokeWidth={2.2} color={sel ? "#2d5a3d" : "#9ab0a1"} />
+        <span style={{ display: "inline-flex", gap: 6, alignItems: "center", opacity: sel ? 1 : 0.5 }}>
+          <Sun size={18} strokeWidth={2.2} color={MEAL_COLOR.Comida} />
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#c5d4cb" }}>/</span>
+          <Moon size={18} strokeWidth={2.2} color={MEAL_COLOR.Cena} />
         </span>
       ),
     },
@@ -154,7 +159,6 @@ function CookLevelChips({ selected, onSelect }) {
       {COOK_LEVELS.map((l) => {
         const sel = selected === l.id;
         const meta = LEVEL_META[l.id] ?? LEVEL_META.normal;
-        const { Icon } = meta;
         return (
           <button
             key={l.id}
@@ -164,12 +168,12 @@ function CookLevelChips({ selected, onSelect }) {
               position: "relative",
               display: "flex",
               flexDirection: "column",
-              alignItems: "flex-start",
-              gap: 8,
-              padding: "12px 12px 11px",
+              alignItems: "stretch",
+              padding: 0,
+              overflow: "hidden",
               borderRadius: 15,
               border: sel ? `2px solid ${meta.accent}` : "1.5px solid #e2eae5",
-              background: sel ? meta.tint : "#fff",
+              background: "#fff",
               boxShadow: sel ? `0 6px 18px ${meta.accent}22` : "0 1px 3px rgba(20,47,29,.05)",
               cursor: "pointer",
               fontFamily: "inherit",
@@ -177,32 +181,41 @@ function CookLevelChips({ selected, onSelect }) {
               transition: "all .16s cubic-bezier(.4,0,.2,1)",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%" }}>
-              <span
+            {/* Ilustración del nivel sobre el color del nivel (contain para no
+                recortar al personaje) + píldora de tiempo/Variable superpuesta. */}
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                aspectRatio: "1 / 1",
+                background: meta.tint,
+              }}
+            >
+              <img
+                src={meta.img}
+                alt=""
+                loading="lazy"
                 style={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: 11,
-                  background: meta.tint,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                  boxShadow: sel ? `inset 0 0 0 1.5px ${meta.accent}55` : "none",
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  display: "block",
                 }}
-              >
-                <Icon size={18} strokeWidth={2.4} color={meta.accent} />
-              </span>
+              />
               {meta.time ? (
                 <span
                   style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
                     fontSize: 10.5,
                     fontWeight: 800,
                     color: meta.accent,
-                    background: meta.tint,
+                    background: "rgba(255,255,255,.92)",
                     borderRadius: 999,
                     padding: "3px 8px",
                     whiteSpace: "nowrap",
+                    boxShadow: "0 1px 4px rgba(20,47,29,.12)",
                   }}
                 >
                   {meta.time}
@@ -210,15 +223,19 @@ function CookLevelChips({ selected, onSelect }) {
               ) : (
                 <span
                   style={{
+                    position: "absolute",
+                    top: 8,
+                    right: 8,
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 3,
                     fontSize: 10.5,
                     fontWeight: 800,
                     color: meta.accent,
-                    background: meta.tint,
+                    background: "rgba(255,255,255,.92)",
                     borderRadius: 999,
                     padding: "3px 8px",
+                    boxShadow: "0 1px 4px rgba(20,47,29,.12)",
                   }}
                 >
                   <Shuffle size={11} strokeWidth={2.6} />
@@ -226,7 +243,7 @@ function CookLevelChips({ selected, onSelect }) {
                 </span>
               )}
             </div>
-            <div style={{ width: "100%" }}>
+            <div style={{ width: "100%", padding: "10px 12px 11px", background: sel ? meta.tint : "#fff" }}>
               <span
                 style={{
                   display: "block",
@@ -258,7 +275,7 @@ function CookLevelChips({ selected, onSelect }) {
   );
 }
 
-export function CookTimeEditor({ data, setData, simple = false }) {
+export function CookTimeEditor({ data, setData, simple = false, showIntro = true }) {
   const cookTime = migrateCookTime(data);
   const targets = plannedMealTargets(getMeals(data));
   // En modo básico (simple) comida y cena comparten nivel siempre: sin el
@@ -302,9 +319,11 @@ export function CookTimeEditor({ data, setData, simple = false }) {
 
   return (
     <>
-      <p style={{ fontSize: 11.5, color: "#9ab0a1", margin: "0 0 14px", lineHeight: 1.45 }}>
-        ¿Cuánto tiempo sueles tener para cocinar? Ajustamos las recetas a tu ritmo.
-      </p>
+      {showIntro && (
+        <p style={{ fontSize: 11.5, color: "#9ab0a1", margin: "0 0 14px", lineHeight: 1.45 }}>
+          ¿Cuánto tiempo sueles tener para cocinar? Ajustamos las recetas a tu ritmo.
+        </p>
+      )}
 
       {dual && <CookTimeModeToggle mode={cookTime.mode} onChange={setMode} />}
 
@@ -318,7 +337,7 @@ export function CookTimeEditor({ data, setData, simple = false }) {
 
       {split && (
         <SegTabs
-          options={targets.map((m) => ({ id: m, label: MEAL_META[m].label, icon: MEAL_META[m].icon }))}
+          options={targets.map((m) => ({ id: m, label: MEAL_META[m].label, icon: MEAL_META[m].icon, color: MEAL_META[m].color }))}
           value={mealKey}
           onChange={setMealTab}
         />

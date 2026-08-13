@@ -8,7 +8,10 @@ import { getWeekDatesByMenuWeek } from "./weekCalendar.js";
 // math, and archive bookkeeping — kept separate from App.jsx so they're
 // trivial to unit test.
 
-export const MAX_MENU_WEEKS = 5;
+// Cuatro semanas es el techo: más de un mes por delante deja de ser
+// planificación y se vuelve adivinar la compra. También mantiene el selector
+// dentro de un mes de calendario casi siempre.
+export const MAX_MENU_WEEKS = 4;
 
 // Fase 8 (multi-week-menus plan): a signed-in account's archive now lives in
 // user_menus/user_menu_weeks/user_menu_recipes, not the user_state JSONB blob

@@ -75,6 +75,8 @@ import { recipeCatalogById } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { categoryColor, categoryIcon, categoryLabel, isKnownCategory } from "./CatalogBrowserSheet.jsx";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
+import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
+import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
 import { findMatchingPantryItem } from "../lib/shoppingBuilder.js";
 import { consumeFromPantry, restoreToPantry } from "../lib/cookPantry.js";
@@ -2659,9 +2661,9 @@ function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 32 })
 
 /** Small sun/moon badge that labels each meal row of the grid. */
 function MealGlyph({ isLunch, size = 22 }) {
-  // Mismos tonos que MEAL_TIME_COLOR en Onboarding.jsx.
-  const color = isLunch ? "#c9820a" : "#5a5fc8";
-  const bg = isLunch ? "#fdf4e3" : "#eff0fb";
+  const meal = isLunch ? "Comida" : "Cena";
+  const color = mealTimeColor(meal);
+  const bg = mealTimeBg(meal);
   const Icon = isLunch ? Sun : Moon;
   return (
     <span
@@ -3384,6 +3386,34 @@ const REJECT_REASONS = [
 // an `Icon` (e.g. a group letter badge); `active` fills the chip in its color to
 // show a toggled/selected state. `center` renders a node at the middle of the
 // ring (e.g. a "Regenerar" confirm button for the multi-select scope picker).
+// Radial chip filled edge-to-edge with the category illustration, so "Otra
+// ensalada" shows the same artwork as the catalog and the shopping list rather
+// than a flat line icon. The Lucide icon stays underneath and shows through if
+// the image fails to load. Returns null when the category has no art, letting
+// RoscoMenu render its default icon.
+//
+// RoscoMenu invokes `content` as a plain function, not as a component, so this
+// must stay hook-free.
+function categoryChipContent(category, Icon, tint) {
+  const src = categoryImageSrc(category);
+  if (!src || !Icon) return null;
+  return (active) => (
+    <>
+      <Icon size={19} strokeWidth={2.2} color={active ? "#fff" : tint} />
+      <img
+        src={src}
+        alt=""
+        onError={(e) => { e.currentTarget.style.display = "none"; }}
+        style={{
+          position: "absolute", inset: 0,
+          width: "100%", height: "100%",
+          objectFit: "cover", borderRadius: "50%",
+        }}
+      />
+    </>
+  );
+}
+
 export function RoscoMenu({ anchor, actions, onClose, center = null, inline = false, frameW = null, frameH = null, radius = null }) {
   const a = anchor;
   // `inline` (value-props demo): render inside a relatively-positioned frame
@@ -4400,10 +4430,13 @@ export const MenuScreen = memo(function MenuScreen({
             const hasGarnish = Boolean(regenChoice.recipe?.garnishId);
             // Ask the reason, then run the replacement carrying that reason.
             const askReason = (run) => { setReasonChoice({ ctx: regenChoice, run }); setRegenChoice(null); };
+            const sameCatIcon = cat ? categoryIcon(cat) : RotateCw;
+            const sameCatColor = cat ? categoryColor(cat) : undefined;
             const sameCat = {
               id: "same",
-              Icon: cat ? categoryIcon(cat) : RotateCw,
-              color: cat ? categoryColor(cat) : undefined,
+              Icon: sameCatIcon,
+              color: sameCatColor,
+              content: categoryChipContent(cat, sameCatIcon, sameCatColor ?? "#3f5a49"),
               label: (cat && SAME_CATEGORY_LABEL[cat]) || "Otro parecido",
               onPick: () => askReason((reason) => onDishReplaceSameCategory?.(regenChoice, { reason })),
             };
@@ -4429,6 +4462,11 @@ export const MenuScreen = memo(function MenuScreen({
                     id: "cenarapida",
                     Icon: categoryIcon("cenas_rapidas"),
                     color: categoryColor("cenas_rapidas"),
+                    content: categoryChipContent(
+                      "cenas_rapidas",
+                      categoryIcon("cenas_rapidas"),
+                      categoryColor("cenas_rapidas"),
+                    ),
                     label: "Cena rápida",
                     onPick: () => { onDishPickCenaRapida?.(regenChoice); setRegenChoice(null); },
                   }
@@ -5787,6 +5825,32 @@ function DishIngredientQtyCell({ text, cellStyle, wrap = false }) {
   return <span style={style}>{text}</span>;
 }
 
+// Cartoon thumbnail for an ingredient row. Falls back through the resolver's
+// family/aisle tiers, and renders nothing at all if even that misses, so the
+// grid column just collapses instead of showing a hole.
+function IngredientThumb({ ing, dimmed = false, size = 30 }) {
+  const src = ingredientImageFor(ing) ?? ingredientThumbSrc(ing?.name);
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return <span style={{ width: 0 }} />;
+  return (
+    <span
+      style={{
+        width: size, height: size, borderRadius: 8, flexShrink: 0,
+        overflow: "hidden", background: "#f2f7f4",
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        opacity: dimmed ? 0.45 : 1,
+      }}
+    >
+      <img
+        src={src}
+        alt=""
+        onError={() => setFailed(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    </span>
+  );
+}
+
 function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwned, onRevertOwned }) {
   const unit = ing.unit ?? "ud";
   const qty = ing.qtyScaled;
@@ -5807,7 +5871,10 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
       <div
         style={{
           ...dishIngRowGridStyle,
-          ...(cookable ? { gridTemplateColumns: "auto minmax(0, 1fr) auto", gap: 10 } : null),
+          gridTemplateColumns: cookable
+            ? "auto auto minmax(0, 1fr) auto"
+            : "auto minmax(0, 1fr) auto",
+          ...(cookable ? { gap: 10 } : null),
         }}
       >
         {cookable && (
@@ -5851,6 +5918,7 @@ function DishIngredientRow({ ing, isLast, cookable, owned, revertible, onMarkOwn
             />
           )
         )}
+        <IngredientThumb ing={ing} dimmed={owned} />
         <div style={{ minWidth: 0 }}>
           <span
             style={{

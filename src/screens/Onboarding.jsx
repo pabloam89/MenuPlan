@@ -5,7 +5,6 @@ import {
   Baby,
   Bean,
   Beef,
-  BookOpenCheck,
   Egg,
   Fish,
   GitBranch,
@@ -18,6 +17,7 @@ import {
   Wheat,
   ChevronLeft,
   ChevronRight,
+  Clock,
   Coffee,
   Sun,
   Sunset,
@@ -120,6 +120,7 @@ import {
   primaryDayMeal,
   slotKey,
 } from "../lib/planner.js";
+import { mealTimeColor } from "../lib/mealTimes.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
 import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
@@ -944,30 +945,48 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                         )}
                       </div>
 
-                      {/* Avatar strip */}
+                      {/* Avatar strip — exactamente 3 caben a la vez y el resto
+                          pide scroll a la derecha. El fade + chevron de la derecha
+                          indica que hay más avatares. */}
                       {keys.length > 0 && (
-                        <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 4, scrollbarWidth: "none" }}>
-                          {keys.map((k) => {
-                            const sel = editing.avatarKey === k;
-                            return (
-                              <button
-                                key={k}
-                                type="button"
-                                onClick={() => updateMemberAvatar(editing.id, k)}
-                                style={{
-                                  width: 46, height: 46, flexShrink: 0, padding: 0, cursor: "pointer",
-                                  borderRadius: 999, overflow: "hidden",
-                                  border: sel ? `2.5px solid ${color}` : "2.5px solid #e5eee8",
-                                  boxShadow: sel ? `0 3px 10px ${color}55` : "0 1px 3px rgba(0,0,0,.06)",
-                                  background: "transparent",
-                                  transform: sel ? "scale(1.1)" : "scale(1)",
-                                  transition: "transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .14s ease, border-color .14s ease",
-                                }}
-                              >
-                                <img src={`/avatares/${folder}/${k}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                              </button>
-                            );
-                          })}
+                        <div style={{ position: "relative" }}>
+                          <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}>
+                            {keys.map((k) => {
+                              const sel = editing.avatarKey === k;
+                              return (
+                                <button
+                                  key={k}
+                                  type="button"
+                                  onClick={() => updateMemberAvatar(editing.id, k)}
+                                  style={{
+                                    flex: "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
+                                    scrollSnapAlign: "start",
+                                    padding: 0, cursor: "pointer",
+                                    borderRadius: 999, overflow: "hidden",
+                                    border: sel ? `2.5px solid ${color}` : "2.5px solid #e5eee8",
+                                    boxShadow: sel ? `0 3px 10px ${color}55` : "0 1px 3px rgba(0,0,0,.06)",
+                                    background: "transparent",
+                                    transform: sel ? "scale(1.06)" : "scale(1)",
+                                    transition: "transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .14s ease, border-color .14s ease",
+                                  }}
+                                >
+                                  <img src={`/avatares/${folder}/${k}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                                </button>
+                              );
+                            })}
+                          </div>
+                          {/* Fade + chevron hint — only when there are more than 3 avatars */}
+                          {keys.length > 3 && (
+                            <div style={{
+                              position: "absolute", top: 0, right: 0, bottom: 0,
+                              width: 32, pointerEvents: "none",
+                              background: "linear-gradient(90deg, transparent, rgba(255,255,255,.95))",
+                              display: "flex", alignItems: "center", justifyContent: "flex-end",
+                              paddingRight: 2,
+                            }}>
+                              <ChevronRight size={14} color="#9ab0a1" strokeWidth={2.5} />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -1491,14 +1510,6 @@ const MEAL_ICON = { Desayuno: Coffee, Comida: Sun, Cena: Moon };
 // coral claramente más rojo que el dorado del mediodía para que no se confundan
 // dos cálidos vecinos. Comida y Cena coinciden con el MealGlyph del calendario
 // (Menu.jsx) para que la app hable un mismo idioma.
-// La cena es índigo y no el azul pizarra de antes: ese azul estaba a 6° de
-// matiz del "come fuera" de los horarios, así que la misma luna significaba la
-// hora en un sitio y el lugar en el de al lado. El índigo se va a 237°, lejos
-// tanto del teal de "fuera" como del verde de "en casa".
-const MEAL_TIME_COLOR = { Desayuno: "#e0654f", Comida: "#c9820a", Cena: "#5a5fc8" };
-export function mealTimeColor(meal) {
-  return MEAL_TIME_COLOR[meal] ?? "#2d5a3d";
-}
 
 const TOOL_ICON = {
   Airfryer: Wind,
@@ -1507,6 +1518,18 @@ const TOOL_ICON = {
   Thermomix: Bot,
   "Olla rápida": CookingPot,
   Vaporera: Layers2,
+};
+
+// Color por herramienta para que la rejilla no sea un bloque verde monótono:
+// cada aparato tiene su tono (calor rojo/ámbar, frío azul, tech morado, vapor
+// verde…). Las herramientas personalizadas caen al verde de marca.
+const TOOL_COLOR = {
+  Airfryer: "#e08a2b",
+  Horno: "#e0654f",
+  Microondas: "#5a7a9a",
+  Thermomix: "#7a5bd6",
+  "Olla rápida": "#c9820a",
+  Vaporera: "#2d8a4e",
 };
 
 function mealColWidthFor(mealOptions) {
@@ -2158,6 +2181,7 @@ export function OnboardingRestrictions({
           <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
             <RestrictionTabCard
               Icon={Zap}
+              img="/avatares/cards/cook_alergias.jpg"
               title="Alergias"
               subtitle="e intolerancias"
               active={mainTab === "alergias"}
@@ -2165,6 +2189,11 @@ export function OnboardingRestrictions({
             />
             <RestrictionTabCard
               Icon={HeartPulse}
+              images={[
+                "/avatares/cards/cook_salud_sano.jpg",
+                "/avatares/cards/cook_salud_embarazada.jpg",
+                "/avatares/cards/cook_salud_enfermo.jpg",
+              ]}
               title="Salud"
               subtitle="crónico y temporal"
               active={mainTab === "salud"}
@@ -2333,7 +2362,103 @@ const healthColHeaderStyle = {
 
 // One of the two top switch cards (Alergias vs Menú cuidado). Mirrors the
 // meal-style cards (icon on top, label below, green fill + check when active).
-function RestrictionTabCard({ Icon, title, subtitle, active, onClick }) {
+// Ilustración que rota cada `interval` ms con un pequeño slide hacia la derecha
+// (la entrante aparece desde la izquierda y avanza a su sitio) + crossfade. Las
+// imágenes están todas en el DOM (precargadas) para que el cambio sea instantáneo,
+// y respeta prefers-reduced-motion dejando una fija.
+function RotatingCardImage({ images, interval = 2500, alt = "" }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (!images || images.length <= 1) return undefined;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return undefined;
+    const t = setInterval(() => setIdx((v) => (v + 1) % images.length), interval);
+    return () => clearInterval(t);
+  }, [images, interval]);
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      {images.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt={i === idx ? alt : ""}
+          loading="lazy"
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+            opacity: i === idx ? 1 : 0,
+            transform: i === idx ? "translateX(0)" : "translateX(-22px)",
+            transition: "opacity .45s ease, transform .55s cubic-bezier(.34,1.08,.5,1)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClick }) {
+  const illustrated = Boolean(img || (images && images.length));
+  if (illustrated) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={active}
+        style={{
+          position: "relative",
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
+          padding: 0,
+          overflow: "hidden",
+          borderRadius: 15,
+          border: `2px solid ${active ? "#2d5a3d" : "#e0eae3"}`,
+          background: "#fff",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          transition: "all .16s ease",
+          boxShadow: active ? "0 6px 18px rgba(45,90,61,.22)" : "0 1px 2px rgba(0,0,0,.04)",
+        }}
+      >
+        {active && (
+          <span
+            style={{
+              position: "absolute", top: 8, right: 8, zIndex: 2,
+              width: 20, height: 20, borderRadius: "50%", background: "#2d5a3d",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 1px 4px rgba(20,47,29,.3)",
+            }}
+          >
+            <Check size={12} color="#fff" strokeWidth={3} />
+          </span>
+        )}
+        <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "#f4f7f5" }}>
+          {images && images.length > 1 ? (
+            <RotatingCardImage images={images} alt={title} />
+          ) : (
+            <img
+              src={img ?? images?.[0]}
+              alt=""
+              loading="lazy"
+              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+            />
+          )}
+        </div>
+        <div style={{ padding: "8px 6px 9px", background: active ? "#2d5a3d" : "#fff", textAlign: "center", color: active ? "#fff" : "#142f1d" }}>
+          <div style={{ fontSize: 12, fontWeight: 800 }}>{title}</div>
+          <div style={{ fontSize: 10, fontWeight: 600, marginTop: 1, opacity: 0.9 }}>{subtitle}</div>
+        </div>
+      </button>
+    );
+  }
   return (
     <button type="button" onClick={onClick} aria-pressed={active} style={mealStyleCardStyle(active)}>
       {active && (
@@ -3035,8 +3160,8 @@ const AFINAR_WIZARD_STEPS = [
   { step: 4, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
   { step: 5, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
   { step: 6, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
-  { step: 7, Icon: Repeat, label: "Repetimos", desc: "Casa, favoritas y platos fijos" },
   { step: 8, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
+  { step: 9, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
 ];
 
 export function AfinarWizardBubble({ onClose, visibleSteps }) {
@@ -6576,6 +6701,7 @@ export const MEAL_STYLES = [
     label: "De todo",
     desc: "Pasta, arroz y carne al frente. Familiar y del gusto de los peques.",
     Icon: Pizza,
+    img: "/meal-styles/de_todo.png",
     freqs: { pasta_arroz: 4, carne: 4, huevos: 2, verdura: 2, pescado: 1, legumbres: 1 },
   },
   {
@@ -6583,6 +6709,7 @@ export const MEAL_STYLES = [
     label: "Equilibrado",
     desc: "Un poco de todo, sin que destaque nada. El punto medio.",
     Icon: HeartPulse,
+    img: "/meal-styles/equilibrado.png",
     freqs: { carne: 3, pescado: 3, verdura: 3, legumbres: 2, pasta_arroz: 2, huevos: 2 },
   },
   {
@@ -6590,6 +6717,7 @@ export const MEAL_STYLES = [
     label: "Ligero y saludable",
     desc: "Mucha verdura, pescado y legumbre; poca pasta y carne roja.",
     Icon: Salad,
+    img: "/meal-styles/ligero.png",
     freqs: { verdura: 6, pescado: 4, legumbres: 3, huevos: 2, carne: 1, pasta_arroz: 1 },
   },
   {
@@ -6597,6 +6725,7 @@ export const MEAL_STYLES = [
     label: "A tu gusto",
     desc: "Reparte tú mismo los platos de la semana.",
     Icon: SlidersHorizontal,
+    img: "/meal-styles/a_tu_gusto.png",
     freqs: { carne: 3, pescado: 3, verdura: 3, legumbres: 2, pasta_arroz: 2, huevos: 2 },
   },
 ];
@@ -6992,25 +7121,54 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
               key={s.id}
               type="button"
               onClick={() => selectStyle(s.id)}
-              style={mealStyleCardStyle(sel)}
+              style={{
+                position: "relative",
+                flex: 1, minWidth: 0,
+                height: 112,
+                borderRadius: 15,
+                overflow: "hidden",
+                border: `2.5px solid ${sel ? "#2d5a3d" : "transparent"}`,
+                padding: 0,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                boxShadow: sel
+                  ? "0 0 0 1.5px #2d5a3d, 0 6px 18px rgba(45,90,61,.3)"
+                  : "0 1px 4px rgba(0,0,0,.1)",
+                transition: "box-shadow .16s ease",
+              }}
             >
+              {s.img && (
+                <img
+                  src={s.img}
+                  alt=""
+                  style={{
+                    position: "absolute", inset: 0, width: "100%", height: "100%",
+                    objectFit: "cover", objectPosition: "center top",
+                    filter: sel ? "none" : "saturate(.7) brightness(.95)",
+                    transition: "filter .16s ease",
+                  }}
+                />
+              )}
+              {/* Gradient darkens the bottom so the label is legible */}
+              <div style={{
+                position: "absolute", inset: 0,
+                background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.65) 100%)",
+              }} />
               {sel && (
-                <span style={{ position: "absolute", top: 6, right: 6, display: "flex" }}>
-                  <Check size={11} color="#fff" />
+                <span style={{
+                  position: "absolute", top: 5, right: 5,
+                  width: 16, height: 16, borderRadius: 999,
+                  background: "#2d5a3d", border: "1.5px solid #fff",
+                  display: "inline-flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Check size={9} color="#fff" strokeWidth={3} />
                 </span>
               )}
-              <div style={mealStyleIconStyle(sel)}>
-                <s.Icon size={16} />
-              </div>
-              <div
-                style={{
-                  fontSize: 10.5,
-                  fontWeight: 800,
-                  color: sel ? "#fff" : "#142f1d",
-                  textAlign: "center",
-                  lineHeight: 1.2,
-                }}
-              >
+              <div style={{
+                position: "absolute", bottom: 6, left: 4, right: 4,
+                fontSize: 9.5, fontWeight: 800, color: "#fff",
+                textAlign: "center", lineHeight: 1.2,
+              }}>
                 {s.label}
               </div>
             </button>
@@ -7499,10 +7657,10 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
       const s = data.schedule?.[slotKey(m.id, day, "Cena")] ?? "casa";
       return s === "casa" || s === "tupper";
     });
-  // Start the grid on the menu's first day (e.g. a week that starts on Wednesday
-  // begins with Mié), wrapping the rest around. Falls back to Mon when unset.
-  const cenaStartIdx = data.menuWeek?.startDayIdx ?? 0;
-  const cenaDays = [...DAYS.slice(cenaStartIdx), ...DAYS.slice(0, cenaStartIdx)];
+  // La rejilla va siempre de lunes a domingo sin envolver: la semana no se
+  // "atraviesa" (nada de empezar en miércoles y arrastrar Lun/Mar a la cola).
+  // Las semanas parciales se resuelven con el selector de semanas, no aquí.
+  const cenaDays = DAYS;
   const anyDinnerDayOff = cenaDays.some((d) => !dinnerAtHome(d));
 
   // ── Desayuno / merienda / postre ── state lives in data.extraMeals;
@@ -7531,10 +7689,15 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   // (`isSelected` picks exactly one) or multi-select like Postre (both can
   // be on at once).
   const SEG_HEIGHT = 68;
+  // `tint` (color sólido) y `fill` (fondo, admite degradado) son opcionales por
+  // opción: sin ellos el control es verde como siempre; con ellos la opción se
+  // enciende con su propio color (Postre usa ámbar/índigo, mismo idioma que
+  // "cuándo coméis en casa"). El resto de segmentados no los pasan y no cambian.
   const segmented = (options, isSelected, onSelect) => (
     <div style={{ display: "flex", gap: 8 }}>
-      {options.map(({ id, label, Icon }) => {
+      {options.map(({ id, label, Icon, tint, fill }) => {
         const sel = isSelected(id);
+        const accent = tint ?? "#2d5a3d";
         return (
           <button
             key={id}
@@ -7550,16 +7713,17 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
               gap: 6,
               padding: "10px 6px",
               borderRadius: 14,
-              border: sel ? "2px solid #2d5a3d" : "1.5px solid #dde8e1",
-              background: sel ? "#2d5a3d" : "#fff",
+              border: sel ? `2px solid ${accent}` : "1.5px solid #dde8e1",
+              background: sel ? (fill ?? accent) : "#fff",
               color: sel ? "#fff" : "#142f1d",
+              boxShadow: sel && tint ? `0 6px 18px ${accent}55` : "none",
               cursor: "pointer",
               fontFamily: "inherit",
               textAlign: "center",
               transition: "all .15s ease",
             }}
           >
-            <Icon size={18} color={sel ? "#fff" : "#2d5a3d"} strokeWidth={2.2} />
+            <Icon size={18} color={sel ? "#fff" : accent} strokeWidth={2.2} />
             <span style={{ fontSize: 11.5, fontWeight: 800, lineHeight: 1.2 }}>{label}</span>
           </button>
         );
@@ -7666,9 +7830,15 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
       <SectionTitle>Postre</SectionTitle>
       {segmented(
         [
-          { id: "comida", label: "Comida", Icon: Sun },
-          { id: "cena", label: "Cena", Icon: Moon },
-          { id: "ambas", label: "Ambos", Icon: UtensilsCrossed },
+          { id: "comida", label: "Comida", Icon: Sun, tint: "#c9820a" },
+          { id: "cena", label: "Cena", Icon: Moon, tint: "#5a7a9a" },
+          {
+            id: "ambas",
+            label: "Ambos",
+            Icon: UtensilsCrossed,
+            tint: "#5a7a9a",
+            fill: "linear-gradient(135deg, #c9820a 0%, #5a7a9a 100%)",
+          },
         ],
         // "Ambos" only lights up once both individual ones are true — it's a
         // shortcut, not a fourth independent state — so it's derived rather
@@ -8433,9 +8603,9 @@ function capitalize(text) {
 
 export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   const levels = [
-    { id: "basic", icon: <BookOpenCheck size={20} />, label: "Básico", desc: "Lo justo para sobrevivir" },
-    { id: "normal", icon: <ChefHat size={20} />, label: "Normal", desc: "Me defiendo bien" },
-    { id: "pro", icon: <Sparkles size={20} />, label: "Me gusta cocinar", desc: "Disfruto experimentando" },
+    { id: "basic", img: "/avatares/cards/cook_nivel_basico.png", label: "Básico", desc: "Lo justo para sobrevivir" },
+    { id: "normal", img: "/avatares/cards/cook_nivel_normal.png", label: "Normal", desc: "Me defiendo bien" },
+    { id: "pro", img: "/avatares/cards/cook_nivel_pro.png", label: "Me gusta cocinar", desc: "Disfruto experimentando" },
   ];
   const tools = [
     "Airfryer",
@@ -8479,7 +8649,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
   return (
     <OnboardingShell
       title="¿Quién cocina y cómo?"
-      subtitle="Para ajustar las recetas a tu nivel"
+      subtitle="Tu nivel y tus herramientas"
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -8502,26 +8672,37 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                     flex: 1,
                     display: "flex",
                     flexDirection: "column",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "14px 8px 12px",
+                    alignItems: "stretch",
+                    padding: 0,
+                    overflow: "hidden",
                     borderRadius: 14,
                     cursor: "pointer",
-                    background: sel ? "#2d5a3d" : "#f4f7f5",
-                    border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                    color: sel ? "#fff" : "#9ab0a1",
-                    transition: "all .15s ease",
+                    background: "#fff",
+                    border: `2px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                    boxShadow: sel ? "0 6px 18px rgba(45,90,61,.18)" : "0 1px 3px rgba(20,47,29,.05)",
+                    transition: "all .16s cubic-bezier(.4,0,.2,1)",
                     fontFamily: "inherit",
                   }}
                 >
-                  {l.icon}
-                  <span style={{ fontWeight: 700, fontSize: 12 }}>{l.label}</span>
+                  {/* Ilustración del nivel (contain para que se vea el personaje
+                      entero) sobre un tinte neutro. */}
+                  <div style={{ width: "100%", aspectRatio: "1 / 1", background: "#f4f7f5" }}>
+                    <img
+                      src={l.img}
+                      alt=""
+                      loading="lazy"
+                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+                    />
+                  </div>
+                  <div style={{ padding: "7px 5px 8px", background: sel ? "#2d5a3d" : "#fff", textAlign: "center" }}>
+                    <span style={{ display: "block", fontWeight: 800, fontSize: 11.5, lineHeight: 1.15, color: sel ? "#fff" : "#25402f" }}>
+                      {l.label}
+                    </span>
+                  </div>
                 </button>
               );
             })}
           </div>
-
-          <div style={{ height: 1, background: "#d6e9dc", margin: "4px 0 20px" }} />
         </>
       )}
 
@@ -8552,10 +8733,10 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                 <AllergenRow
                   key={tool}
                   Icon={TOOL_ICON[tool] ?? Wrench}
-                  color="#2d5a3d"
+                  color={TOOL_COLOR[tool] ?? "#2d5a3d"}
                   label={tool}
                   checked={sel}
-                  checkColor="#2d5a3d"
+                  checkColor={TOOL_COLOR[tool] ?? "#2d5a3d"}
                   onToggle={() => (isCustom && sel ? removeCustomTool(tool) : toggleTool(tool))}
                 />
               );
@@ -8604,12 +8785,24 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
           )}
         </div>
       </AvoidSection>
+    </OnboardingShell>
+  );
+}
 
-      <div style={{ height: 1, background: "#d6e9dc", margin: "20px 0" }} />
-
-      {/* Tiempo */}
-      <SectionTitle>¿Cuánto tiempo tienes para cocinar?</SectionTitle>
-      <CookTimeEditor data={data} setData={setData} simple={!data.expertMode} />
+// Paso propio para el tiempo de cocina, separado de "¿Quién cocina y cómo?"
+// (nivel + herramientas). Aquí viven las 4 cards ilustradas de ritmo de cocina.
+export function OnboardingCookTime({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  return (
+    <OnboardingShell
+      title="¿Cuánto tiempo tienes para cocinar?"
+      subtitle="Ajustamos las recetas a tu ritmo"
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      finishLabel={finishLabel}
+    >
+      <CookTimeEditor data={data} setData={setData} simple={!data.expertMode} showIntro={false} />
     </OnboardingShell>
   );
 }
@@ -8658,9 +8851,9 @@ function isSameDay(a, b) {
 // avoids repeating vs. the immediately preceding week; "relaxed" applies no
 // bias at all (handy for meal-prep-style repeats on purpose).
 const VARIETY_OPTIONS = [
-  { id: "strict", label: "No quiero repetir platos", Icon: Shuffle },
-  { id: "moderate", label: "Algo de repetición está bien", Icon: Repeat },
-  { id: "relaxed", label: "Repetir para ahorrar tiempo", Icon: Zap },
+  { id: "strict",   label: "No quiero repetir platos",      Icon: Shuffle, img: "/variety-cards/strict.png" },
+  { id: "moderate", label: "Algo de repetición está bien",  Icon: Repeat,  img: "/variety-cards/moderate.png" },
+  { id: "relaxed",  label: "Repetir para ahorrar tiempo",   Icon: Zap,     img: "/variety-cards/relaxed.png" },
 ];
 
 export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinish }) {
@@ -8715,7 +8908,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
     });
   };
 
-  const weeks = buildCalendarWeeks(8);
+  const weeks = buildCalendarWeeks(MAX_MENU_WEEKS);
 
   // The select-column card is drawn as one continuous pill that hugs the
   // circles: it must start above the FIRST circle and end below the LAST one
@@ -8754,13 +8947,25 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
       onFinish={onFinish}
       finishLabel="Generar menú"
     >
+      {/* Month label above day headers — shows the first month in the calendar */}
+      <div style={{
+        fontSize: 11,
+        fontWeight: 800,
+        color: "#2d5a3d",
+        letterSpacing: ".8px",
+        textTransform: "uppercase",
+        padding: "0 4px 4px",
+      }}>
+        {MONTH_NAMES_ES[weeks[0].monday.getMonth()]} {weeks[0].monday.getFullYear()}
+      </div>
+
       {/* Day-of-week header */}
       <div style={{
         display: "grid",
         gridTemplateColumns: "repeat(7, 1fr) 32px",
         gap: 0,
         padding: "0 4px",
-        marginBottom: 4,
+        marginBottom: 1,
       }}>
         {WEEK_DAY_SHORT.map((d) => (
           <div key={d} style={{
@@ -8769,7 +8974,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
             fontWeight: 800,
             color: "#4a6b55",
             letterSpacing: ".5px",
-            padding: "6px 0",
+            padding: "4px 0",
           }}>{d}</div>
         ))}
         <div />
@@ -8796,7 +9001,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
         {weeks.map(({ offset, monday, days }, weekIdx) => {
           const isSelected = selectedOffsets.includes(offset);
           const showMonthLabel =
-            weekIdx === 0 ||
+            weekIdx > 0 &&
             monday.getMonth() !== weeks[weekIdx - 1].monday.getMonth();
 
           return (
@@ -8935,25 +9140,53 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                   key={opt.id}
                   type="button"
                   onClick={() => setData((d) => ({ ...d, menuVarietyPref: opt.id }))}
-                  style={mealStyleCardStyle(sel)}
+                  style={{
+                    position: "relative",
+                    flex: 1, minWidth: 0,
+                    height: 112,
+                    borderRadius: 15,
+                    overflow: "hidden",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    boxShadow: sel
+                      ? "0 0 0 2.5px #2d5a3d, 0 6px 18px rgba(45,90,61,.3)"
+                      : "0 1px 4px rgba(0,0,0,.1)",
+                    transition: "box-shadow .16s ease",
+                  }}
                 >
+                  {opt.img && (
+                    <img
+                      src={opt.img}
+                      alt=""
+                      style={{
+                        position: "absolute", inset: 0, width: "100%", height: "100%",
+                        objectFit: "cover", objectPosition: "center top",
+                        filter: sel ? "none" : "saturate(.7) brightness(.95)",
+                        transition: "filter .16s ease",
+                      }}
+                    />
+                  )}
+                  <div style={{
+                    position: "absolute", inset: 0,
+                    background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.65) 100%)",
+                  }} />
                   {sel && (
-                    <span style={{ position: "absolute", top: 6, right: 6, display: "flex" }}>
-                      <Check size={11} color="#fff" />
+                    <span style={{
+                      position: "absolute", top: 5, right: 5,
+                      width: 16, height: 16, borderRadius: 999,
+                      background: "#2d5a3d", border: "1.5px solid #fff",
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <Check size={9} color="#fff" strokeWidth={3} />
                     </span>
                   )}
-                  <div style={mealStyleIconStyle(sel)}>
-                    <opt.Icon size={16} />
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 10.5,
-                      fontWeight: 800,
-                      color: sel ? "#fff" : "#142f1d",
-                      textAlign: "center",
-                      lineHeight: 1.2,
-                    }}
-                  >
+                  <div style={{
+                    position: "absolute", bottom: 6, left: 4, right: 4,
+                    fontSize: 9.5, fontWeight: 800, color: "#fff",
+                    textAlign: "center", lineHeight: 1.2,
+                  }}>
                     {opt.label}
                   </div>
                 </button>

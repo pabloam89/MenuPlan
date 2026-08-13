@@ -48,6 +48,7 @@ import {
   toCanonicalStockQty,
 } from "../lib/kitchenUnits.js";
 import { guessShoppingAisle } from "../lib/ingredientCategories.js";
+import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { DATE_BUCKET_OPTIONS, estimateListCost, formatEuro, matchesDateBucket } from "../lib/priceHistory.js";
 
 // Editing shows the canonical g/ml as the friendlier kg/L when it's ≥1000,
@@ -212,9 +213,15 @@ const STOCK_VIEWS = [
   ["peso", "Peso"],
 ];
 
-function AisleIcon({ aisle, size = 26 }) {
+// Shows the ingredient's own cartoon when we have one and falls back to the
+// flat aisle icon otherwise — same 26px slot either way, so the row grid is
+// unaffected.
+function AisleIcon({ aisle, name, size = 26 }) {
   const meta = AISLE_UI[aisle] ?? { Icon: Package, color: "#64748b" };
   const Icon = meta.Icon;
+  const img = name ? ingredientThumbSrc(name) : null;
+  const [failed, setFailed] = useState(false);
+  const showImg = Boolean(img) && !failed;
   return (
     <span
       title={aisle}
@@ -222,16 +229,26 @@ function AisleIcon({ aisle, size = 26 }) {
         width: size,
         height: size,
         borderRadius: 8,
-        background: meta.color,
+        background: showImg ? "#f2f7f4" : meta.color,
         color: "#fff",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
         justifySelf: "center",
+        overflow: "hidden",
       }}
     >
-      <Icon size={size * 0.5} strokeWidth={2.2} />
+      {showImg ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <Icon size={size * 0.5} strokeWidth={2.2} />
+      )}
     </span>
   );
 }
@@ -262,7 +279,11 @@ const dateInputStyle = {
   background: "#fff",
 };
 
-function PantryCheckRow({ icon: Icon, iconColor, label, checked, single, onToggle, last }) {
+function PantryCheckRow({ icon: Icon, iconColor, img, label, checked, single, onToggle, last }) {
+  // Illustration when we have one, flat icon as the fallback — see CheckRow in
+  // CatalogBrowserSheet.jsx, which these filter sheets mirror.
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImg = Boolean(img) && !imgFailed;
   return (
     <button
       type="button"
@@ -273,7 +294,7 @@ function PantryCheckRow({ icon: Icon, iconColor, label, checked, single, onToggl
         display: "flex",
         alignItems: "center",
         gap: 12,
-        padding: "13px 10px",
+        padding: showImg ? "8px 10px" : "13px 10px",
         border: "none",
         background: "transparent",
         cursor: "pointer",
@@ -283,11 +304,25 @@ function PantryCheckRow({ icon: Icon, iconColor, label, checked, single, onToggl
         borderBottom: last ? "none" : "1px solid rgba(45,110,70,.2)",
       }}
     >
-      {Icon && (
+      {showImg ? (
+        <span
+          style={{
+            width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+            overflow: "hidden", background: "#f2f7f4",
+          }}
+        >
+          <img
+            src={img}
+            alt=""
+            onError={() => setImgFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </span>
+      ) : Icon ? (
         <span style={{ flexShrink: 0, display: "flex", width: 20, justifyContent: "center" }}>
           <Icon size={17} color={iconColor || GREEN} strokeWidth={2.2} />
         </span>
-      )}
+      ) : null}
       <span
         style={{
           flex: 1,
@@ -545,6 +580,7 @@ function PantryFiltersSheet({
                   key={a}
                   icon={AISLE_UI[a]?.Icon}
                   iconColor={AISLE_UI[a]?.color}
+                  img={aisleImageSrc(a)}
                   label={a}
                   checked={aisleFilters.has(a)}
                   last={i === availableAisles.length - 1}
@@ -1189,7 +1225,7 @@ export function PantryScreen({
                                 {item.ingredientName}
                               </span>
                             </span>
-                            <AisleIcon aisle={aisle} />
+                            <AisleIcon aisle={aisle} name={item.ingredientName} />
                             <span />
                             <button
                               type="button"

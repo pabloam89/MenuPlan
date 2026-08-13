@@ -63,6 +63,7 @@ import {
 } from "../lib/priceHistory.js";
 import { INGREDIENT_CATEGORIES, RECIPES_BY_ID } from "../data/recipes.js";
 import { normalizeIngredientKey, isPerishableAisle, guessShoppingAisle, normalizeName } from "../lib/ingredientCategories.js";
+import { ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { visualForRecipe } from "../assets/dishes/dishVisuals.js";
 import { formatISODateShort } from "../lib/menuArchive.js";
@@ -183,26 +184,30 @@ function applyPantryCoverage(rows, stock) {
 }
 
 const AISLE_UI = {
-  Verduras: { Icon: Leaf, color: "#3d9b5f" },
-  Frutas: { Icon: Apple, color: "#e07b39" },
-  Carne: { Icon: Drumstick, color: "#c45c4a" },
-  Pescado: { Icon: Fish, color: "#2072b8" },
-  Legumbres: { Icon: Bean, color: "#8b6914" },
-  "Pasta y arroz": { Icon: Wheat, color: "#c9922a" },
-  Lácteos: { Icon: Milk, color: "#4a9ec5" },
-  Huevos: { Icon: Egg, color: "#ca9a14" },
-  Panadería: { Icon: Croissant, color: "#a67c52" },
-  Especias: { Icon: Sprout, color: "#7c5cbf" },
-  "Aceites y conservas": { Icon: Package, color: "#64748b" },
+  Verduras:              { Icon: Leaf,         color: "#3d9b5f", img: "/categories/verduras.png" },
+  Frutas:                { Icon: Apple,        color: "#e07b39", img: "/categories/frutas.png" },
+  Carne:                 { Icon: Drumstick,    color: "#c45c4a", img: "/categories/carne.png" },
+  Pescado:               { Icon: Fish,         color: "#2072b8", img: "/categories/pescado.png" },
+  Legumbres:             { Icon: Bean,         color: "#8b6914", img: "/categories/legumbres.png" },
+  "Pasta y arroz":       { Icon: Wheat,        color: "#c9922a", img: "/categories/pasta_arroz.png" },
+  Lácteos:               { Icon: Milk,         color: "#4a9ec5", img: "/categories/lacteos.png" },
+  Huevos:                { Icon: Egg,          color: "#ca9a14", img: "/categories/huevos.png" },
+  Panadería:             { Icon: Croissant,    color: "#a67c52", img: "/categories/panaderia.png" },
+  Especias:              { Icon: Sprout,       color: "#7c5cbf", img: "/categories/especias.png" },
+  "Aceites y conservas": { Icon: Package,      color: "#64748b", img: "/categories/aceites_conservas.png" },
   // Not a real store aisle — «Ya en casa» (ingredients matched against En casa
   // stock; see src/lib/pantry.js). Distinct from the Compra macro "Despensa"
   // (non-perishable aisles still to buy).
-  __pantry: { Icon: Refrigerator, color: "#2d5a3d" },
+  __pantry:              { Icon: Refrigerator, color: "#2d5a3d" },
 };
 
 // Title-band tint shared across En casa / Menú / Recetas / Compra — a soft
 // green (accent-tinted), distinct from the white list body below it.
 const HEADER_BAND = "#e9f4ed";
+// Fill for the aisle you have open. Teal rather than the app green so it reads
+// as a state, not as another piece of chrome; only one shows at a time, which
+// is what lets it be this saturated without weighing the list down.
+const AISLE_OPEN_BAND = "#2e7d75";
 
 export function ShoppingScreen({
   shopping,
@@ -930,21 +935,23 @@ export function ShoppingScreen({
             display: "flex",
             alignItems: "center",
             gap: 10,
-            padding: "10px 14px",
+            padding: "8px 12px",
             border: "none",
-            // Transparent, like the recipe catalog's category rows — no per-row
-            // card now that the list sits directly on the page background.
-            background: "transparent",
+            // The band marks the aisle you opened rather than decorating every
+            // heading: one filled row at a time reads as "you are here", where a
+            // band on all of them just tinted the whole list. Closed headings
+            // stay white and are told apart from their ingredients by the larger
+            // illustration and the divider.
+            background: open ? AISLE_OPEN_BAND : "#fff",
+            borderRadius: open ? "12px 12px 0 0" : 0,
+            borderBottom:
+              !open && !isLastSection ? "1px solid rgba(45,110,70,.18)" : "none",
             cursor: "pointer",
             fontFamily: "inherit",
             textAlign: "left",
-            // Thin divider between collapsed rows, like the catalog category
-            // list; an open section's item panel provides its own separation.
-            borderBottom:
-              !open && !isLastSection ? "1px solid rgba(45,110,70,.2)" : "none",
           }}
         >
-          <AisleIcon aisle={section.key} size={28} soft />
+          <AisleIcon aisle={section.key} size={38} soft />
           <span
             style={{
               flex: 1,
@@ -953,7 +960,7 @@ export function ShoppingScreen({
               // font size is consistent across the whole app.
               fontSize: 13.5,
               fontWeight: 800,
-              color: "#142f1d",
+              color: open ? "#fff" : "#142f1d",
               overflow: "hidden",
               textOverflow: "ellipsis",
               whiteSpace: "nowrap",
@@ -965,7 +972,7 @@ export function ShoppingScreen({
             style={{
               fontSize: 12,
               fontWeight: 700,
-              color: "#9ab0a1",
+              color: open ? "rgba(255,255,255,.75)" : "#9ab0a1",
               flexShrink: 0,
               fontVariantNumeric: "tabular-nums",
             }}
@@ -973,7 +980,7 @@ export function ShoppingScreen({
             {section.items.length}
           </span>
           {open ? (
-            <ChevronDown size={16} color="#c2cfc7" style={{ flexShrink: 0 }} />
+            <ChevronDown size={16} color="rgba(255,255,255,.75)" style={{ flexShrink: 0 }} />
           ) : (
             <ChevronRight size={16} color="#c2cfc7" style={{ flexShrink: 0 }} />
           )}
@@ -1000,9 +1007,6 @@ export function ShoppingScreen({
               />
             ))}
           </div>
-        )}
-        {open && !isLastSection && (
-          <div style={{ height: 1, background: "rgba(45,110,70,.2)" }} />
         )}
       </div>
     );
@@ -1662,18 +1666,18 @@ function AisleIcon({ aisle, size = 36, soft = false }) {
         width: size,
         height: size,
         borderRadius: soft ? 9 : 11,
-        // Soft variant matches the recipe catalog category rows: a lightly
-        // tinted square with the icon in the category colour (vs. the solid
-        // colour block used elsewhere).
         background: soft ? `${meta.color}1a` : meta.color,
         color: soft ? meta.color : "#fff",
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
+        overflow: "hidden",
       }}
     >
-      <Icon size={size * (soft ? 0.5 : 0.48)} strokeWidth={2.2} />
+      {meta.img
+        ? <img src={meta.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        : <Icon size={size * (soft ? 0.5 : 0.48)} strokeWidth={2.2} />}
     </span>
   );
 }
@@ -1749,6 +1753,32 @@ function QtyCell({ text, cellStyle, editable, onEdit, wrap = false }) {
   return <span style={style}>{text}</span>;
 }
 
+// Cartoon thumbnail for a shopping row, resolved by name through the
+// ingredient -> family -> aisle cascade. Renders an empty slot when nothing
+// matches so the grid column collapses instead of leaving a gap.
+function IngredientThumb({ name, dimmed = false, size = 30 }) {
+  const src = ingredientThumbSrc(name);
+  const [failed, setFailed] = useState(false);
+  if (!src || failed) return <span style={{ width: 0 }} />;
+  return (
+    <span
+      style={{
+        width: size, height: size, borderRadius: 8, flexShrink: 0,
+        overflow: "hidden", background: "#f2f7f4",
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        opacity: dimmed ? 0.45 : 1,
+      }}
+    >
+      <img
+        src={src}
+        alt=""
+        onError={() => setFailed(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+      />
+    </span>
+  );
+}
+
 function ShoppingRow({
   item,
   isLast = false,
@@ -1806,6 +1836,7 @@ function ShoppingRow({
           otherwise the buttons drift down/centre over the expanded recipes. */}
       <div style={{ position: "relative" }}>
       <div style={rowGridStyle}>
+        <IngredientThumb name={item.name} dimmed={dimmed} />
         <div style={{ minWidth: 0 }}>
           <span
             style={{
@@ -3541,7 +3572,7 @@ const primaryBtnStyle = {
 
 const rowGridStyle = {
   display: "grid",
-  gridTemplateColumns: "minmax(0, 1fr) auto",
+  gridTemplateColumns: "auto minmax(0, 1fr) auto",
   alignItems: "center",
   gap: 8,
   minHeight: 36,

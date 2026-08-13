@@ -73,6 +73,8 @@ import {
   suggestRecipeIngredients,
 } from "../lib/userRecipes.js";
 import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle } from "../lib/ingredientCategories.js";
+import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
+import { mealTimeColor } from "../lib/mealTimes.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -135,14 +137,28 @@ const PANTRY_AISLE_UI = {
 function PantryCategoryIcon({ name, size = 26 }) {
   const meta = PANTRY_AISLE_UI[guessShoppingAisle(name)] ?? { Icon: Package, color: "#64748b" };
   const Icon = meta.Icon;
+  const img = ingredientThumbSrc(name);
+  const [failed, setFailed] = useState(false);
+  const showImg = Boolean(img) && !failed;
   return (
     <span
       style={{
-        width: size, height: size, borderRadius: 8, background: meta.color, color: "#fff",
+        width: size, height: size, borderRadius: 8,
+        background: showImg ? "#f2f7f4" : meta.color, color: "#fff",
         display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+        overflow: "hidden",
       }}
     >
-      <Icon size={size * 0.5} strokeWidth={2.2} />
+      {showImg ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <Icon size={size * 0.5} strokeWidth={2.2} />
+      )}
     </span>
   );
 }
@@ -243,18 +259,27 @@ function findBaseDishMatches(name, pool) {
   return scored.sort((a, b) => b.score - a.score).slice(0, 3).map((s) => s.r);
 }
 
+// The "revisa las cantidades" hint explains how AI suggestions work, so it's
+// worth one interruption and no more — remembered across recipes and sessions.
+const SUGGEST_HINT_SEEN_KEY = "mp_recipe_suggest_hint_seen";
+
+/** Claims the one-time hint. True the first time ever, false afterwards. */
+function markSuggestHintSeen() {
+  try {
+    if (localStorage.getItem(SUGGEST_HINT_SEEN_KEY)) return false;
+    localStorage.setItem(SUGGEST_HINT_SEEN_KEY, "1");
+    return true;
+  } catch {
+    // Storage blocked (private mode): show it, just don't remember.
+    return true;
+  }
+}
+
 const MEAL_ROLE_ICONS = {
   primero: Soup,
   segundo: UtensilsCrossed,
   plato_unico: UtensilsCrossed,
   cena: Moon,
-};
-
-const MEAL_ROLE_COLORS = {
-  primero: "#2d8659",
-  segundo: "#c96a1c",
-  plato_unico: "#6b4fa0",
-  cena: "#2f6fb8",
 };
 
 // Lunch is not a stored mealRole — we infer primero/segundo/plato_unico from
@@ -829,6 +854,38 @@ export function IngredientPicker({
   );
 }
 
+// Aisle chip for the Categorías list: the category illustration when we have
+// one, otherwise the flat icon on its tinted square. Selection is carried by a
+// coloured ring so it reads the same either way.
+function AisleBadge({ aisle, Icon, color, selected, size = 30 }) {
+  const img = aisleImageSrc(aisle);
+  const [failed, setFailed] = useState(false);
+  const showImg = Boolean(img) && !failed;
+  return (
+    <span
+      style={{
+        width: size, height: size, borderRadius: 9, flexShrink: 0,
+        overflow: "hidden",
+        background: showImg ? "#f2f7f4" : selected ? color : "#f0f4f1",
+        color: selected && !showImg ? "#fff" : color,
+        boxShadow: selected ? `0 0 0 2px ${color}` : "none",
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+      }}
+    >
+      {showImg ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <Icon size={14} strokeWidth={2.2} />
+      )}
+    </span>
+  );
+}
+
 // Floating aisle list for the Categorías button — portaled so it isn't clipped
 // by overflow parents; icons + horizontal dividers match StorePicker's language.
 function AisleDropdown({ aisle, anchorRef, onSelect, onClose }) {
@@ -927,21 +984,7 @@ function AisleDropdown({ aisle, anchorRef, onSelect, onClose }) {
                 fontFamily: "inherit",
               }}
             >
-              <span
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 8,
-                  background: selected ? color : "#f0f4f1",
-                  color: selected ? "#fff" : color,
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Icon size={14} strokeWidth={2.2} />
-              </span>
+              <AisleBadge aisle={a} Icon={Icon} color={color} selected={selected} />
               <span style={{ flex: 1, minWidth: 0 }}>{a}</span>
               {selected && <Check size={15} strokeWidth={2.8} color={GREEN} style={{ flexShrink: 0 }} />}
             </button>
@@ -1436,6 +1479,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
   const [suggestState, setSuggestState] = useState("idle"); // idle | loading | done | error
   const suggestAbortRef = useRef(null);
   const suggestedForNameRef = useRef(null);
+  // "Revisa las cantidades" is onboarding for the suggestion feature, not a
+  // status: it shows for 3s on the first recipe ever and never again.
+  const [showSuggestHint, setShowSuggestHint] = useState(false);
 
   const updateForm = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -1592,6 +1638,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
           setForm((f) => (f.ingredients.length === 0 ? { ...f, ingredients: asIngredients } : f));
         }
         setSuggestState("done");
+        if (markSuggestHintSeen()) setShowSuggestHint(true);
       })
       .catch((err) => {
         if (err?.name === "AbortError") return;
@@ -1600,6 +1647,14 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
     return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [step, form.name]);
+
+  // The hint has said its piece after 3s; leaving it up just pushes the
+  // ingredient list down for the rest of the session.
+  useEffect(() => {
+    if (!showSuggestHint) return undefined;
+    const t = setTimeout(() => setShowSuggestHint(false), 3000);
+    return () => clearTimeout(t);
+  }, [showSuggestHint]);
 
   // Kick off the AI draft once we land on the review step (the last one).
   useEffect(() => {
@@ -2005,7 +2060,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
                   Sugiriendo ingredientes para «{form.name.trim()}»…
                 </span>
               </div>
-            ) : suggestState === "done" && form.ingredients.length > 0 ? (
+            ) : showSuggestHint && form.ingredients.length > 0 ? (
               <div style={{
                 display: "flex", alignItems: "center", gap: 8, margin: "0 0 12px",
                 padding: "9px 11px", borderRadius: 12, background: "#fff7ed",
@@ -2054,14 +2109,14 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
               >
                 <OptionRow
                   icon={Soup}
-                  color="#2d8659"
+                  color={mealTimeColor("Comida")}
                   label="Comida"
                   checked={comidaChecked}
                   onToggle={toggleComida}
                 />
                 <OptionRow
                   icon={MEAL_ROLE_ICONS.cena}
-                  color={MEAL_ROLE_COLORS.cena}
+                  color={mealTimeColor("Cena")}
                   label="Cena"
                   checked={form.mealRole.includes("cena")}
                   onToggle={() => toggleMealRole("cena")}

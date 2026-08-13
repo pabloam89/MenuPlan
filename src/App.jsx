@@ -4,13 +4,13 @@ import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAva
 import {
   OnboardingMembers,
   OnboardingRestrictions,
-  OnboardingRepeat,
   OnboardingMenuModel,
   OnboardingMealStyle,
   OnboardingMealExtras,
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
+  OnboardingCookTime,
   OnboardingWeek,
   AfinarWizardBubble,
   IndividualMenuSheet,
@@ -2724,18 +2724,17 @@ export default function App() {
   const skipMenuModel = !canSplitMenus(data.members);
   const skipSchoolMenu = !hasUnderageMember(data.members);
   // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (6, se asume
-  // equilibrado), "¿Cómo completamos el menú?" (7, la estructura de plato se
-  // pregunta ya en "¿Qué comidas quieres organizar?") y "¿Qué repetimos?" (8)
-  // se ocultan.
+  // equilibrado) y "¿Cómo completamos el menú?" (7, la estructura de plato se
+  // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
   const isStepHidden = useCallback(
     (i) =>
       (i === 1 && skipMenuModel) ||
       (i === 2 && skipSchoolMenu) ||
-      (basicMode && (i === 6 || i === 7 || i === 8)) ||
+      (basicMode && (i === 6 || i === 7)) ||
       // "Mi familia habitual" only ever skips Familia (0) — it's the one
       // thing already known. Everything else (modelo de menú, semana,
-      // horario, estilo, restricciones, qué repetimos, cocina) can change
+      // horario, estilo, restricciones, cocina) can change
       // from una generación a otra, so it's asked in full every time, same
       // as a brand-new family or "Otro grupo".
       (quickMenu && i === 0),
@@ -2872,18 +2871,15 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingRepeat
+    <OnboardingCooking
       data={data}
       setData={setData}
-      user={user}
-      priceObs={data.priceObs ?? []}
-      pantryEpoch={pantryEpoch}
       onNext={nextOf(8)}
       onBack={backOf(8)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCooking
+    <OnboardingCookTime
       data={data}
       setData={setData}
       onNext={nextOf(9)}

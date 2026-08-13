@@ -37,6 +37,7 @@ import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
 import { getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
+import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
 import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
 
@@ -46,19 +47,19 @@ const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]))
 const GREEN = "#2d5a3d";
 
 const CATEGORY_META = {
-  legumbres: { label: "Legumbres", icon: Bean, color: "#b9770e" },
-  carnes: { label: "Carnes", icon: Drumstick, color: "#c0392b" },
-  pescados: { label: "Pescados", icon: Fish, color: "#2f6f9f" },
-  huevos: { label: "Huevos", icon: Egg, color: "#d4a017" },
-  pasta_arroces: { label: "Pasta y arroz", icon: Wheat, color: "#cf7833" },
-  sopas_cremas: { label: "Sopas y cremas", icon: Soup, color: "#8a6cc4" },
-  ensaladas_verduras: { label: "Verduras", icon: Salad, color: "#3f9656" },
-  platos_unicos: { label: "Platos únicos", icon: Utensils, color: "#5a7066" },
-  cenas_rapidas: { label: "Cenas rápidas", icon: Soup, color: "#d56b9a" },
-  bebes: { label: "Bebés", icon: Baby, color: "#6cb4c4" },
-  desayunos: { label: "Desayunos", icon: Coffee, color: "#c98a3a" },
-  meriendas: { label: "Meriendas", icon: Apple, color: "#4a9d6b" },
-  postres: { label: "Postres", icon: IceCream, color: "#c463a0" },
+  legumbres:          { label: "Legumbres",     icon: Bean,           color: "#b9770e", img: "/categories/legumbres.png" },
+  carnes:             { label: "Carnes",         icon: Drumstick,      color: "#c0392b", img: "/categories/carnes.png" },
+  pescados:           { label: "Pescados",       icon: Fish,           color: "#2f6f9f", img: "/categories/pescados.png" },
+  huevos:             { label: "Huevos",         icon: Egg,            color: "#d4a017", img: "/categories/huevos.png" },
+  pasta_arroces:      { label: "Pasta y arroz",  icon: Wheat,          color: "#cf7833", img: "/categories/pasta_arroces.png" },
+  sopas_cremas:       { label: "Sopas y cremas", icon: Soup,           color: "#8a6cc4", img: "/categories/sopas_cremas.png" },
+  ensaladas_verduras: { label: "Verduras",       icon: Salad,          color: "#3f9656", img: "/categories/ensaladas_verduras.png" },
+  platos_unicos:      { label: "Platos únicos",  icon: Utensils,       color: "#5a7066", img: "/categories/platos_unicos.png" },
+  cenas_rapidas:      { label: "Cenas rápidas",  icon: Soup,           color: "#d56b9a", img: "/categories/cenas_rapidas.png" },
+  bebes:              { label: "Bebés",           icon: Baby,           color: "#6cb4c4", img: "/categories/bebes.png" },
+  desayunos:          { label: "Desayunos",       icon: Coffee,         color: "#c98a3a", img: "/categories/desayunos.png" },
+  meriendas:          { label: "Meriendas",       icon: Apple,          color: "#4a9d6b", img: "/categories/meriendas.png" },
+  postres:            { label: "Postres",         icon: IceCream,       color: "#c463a0", img: "/categories/postres.png" },
 };
 
 const DEFAULT_COLOR = "#5a7066";
@@ -542,12 +543,14 @@ export function CatalogBrowserSheet({
           >
             <span
               style={{
-                width: 28, height: 28, borderRadius: 8, flexShrink: 0,
+                width: 44, height: 44, borderRadius: 10, flexShrink: 0,
+                overflow: "hidden", background: `${color}18`,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                background: `${color}18`,
               }}
             >
-              <Icon size={14} color={color} strokeWidth={2} />
+              {meta?.img
+                ? <img src={meta.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                : <Icon size={14} color={color} strokeWidth={2} />}
             </span>
             <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 800, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {categoryLabel(catId)}
@@ -1006,6 +1009,7 @@ function FiltersSheet({
                   key={c}
                   icon={CATEGORY_META[c]?.icon ?? Utensils}
                   iconColor={categoryColor(c)}
+                  img={categoryImageSrc(c)}
                   label={categoryLabel(c)}
                   checked={cats.has(c)}
                   last={i === allCats.length - 1}
@@ -1024,6 +1028,7 @@ function FiltersSheet({
               {allProteins.map((p, i) => (
                 <CheckRow
                   key={p}
+                  img={proteinImageSrc(p)}
                   label={titleCase(p)}
                   checked={proteins.has(p)}
                   last={i === allProteins.length - 1}
@@ -1101,7 +1106,11 @@ function summaryActive(key, { cats, proteins, maxTime, difficulties, kidOnly }) 
   return false;
 }
 
-function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle, last }) {
+function CheckRow({ icon: Icon, iconColor, img, label, checked, single, onToggle, last }) {
+  // The illustration wins when there is one; the flat icon stays as the fallback
+  // so a missing file degrades instead of leaving the label unaligned.
+  const [imgFailed, setImgFailed] = useState(false);
+  const showImg = Boolean(img) && !imgFailed;
   return (
     <button
       type="button"
@@ -1109,16 +1118,31 @@ function CheckRow({ icon: Icon, iconColor, label, checked, single, onToggle, las
       className="filter-opt-row"
       style={{
         width: "100%", display: "flex", alignItems: "center", gap: 12,
-        padding: "13px 10px", border: "none", background: "transparent",
+        padding: showImg ? "8px 10px" : "13px 10px",
+        border: "none", background: "transparent",
         cursor: "pointer", fontFamily: "inherit", borderRadius: 10, textAlign: "left",
         borderBottom: last ? "none" : "1px solid rgba(45,110,70,.2)",
       }}
     >
-      {Icon && (
+      {showImg ? (
+        <span
+          style={{
+            width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+            overflow: "hidden", background: "#f2f7f4",
+          }}
+        >
+          <img
+            src={img}
+            alt=""
+            onError={() => setImgFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        </span>
+      ) : Icon ? (
         <span style={{ flexShrink: 0, display: "flex", width: 20, justifyContent: "center" }}>
           <Icon size={18} color={iconColor || GREEN} strokeWidth={2} />
         </span>
-      )}
+      ) : null}
       <span
         style={{
           flex: 1, minWidth: 0, fontSize: 14.5, fontWeight: checked ? 800 : 600,
