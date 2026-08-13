@@ -45,7 +45,16 @@ export function useAuth() {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
-    if (!supabase) return { error: new Error("Supabase not configured") };
+    // These messages reach the user under the button, so they say what to do
+    // rather than naming the vendor. The console keeps the developer detail.
+    if (!supabase) {
+      console.error(
+        "[auth] VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY missing in this build — Google sign-in cannot work.",
+      );
+      return {
+        error: new Error("El inicio de sesión no está disponible en este entorno. Puedes entrar sin cuenta."),
+      };
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: window.location.origin },

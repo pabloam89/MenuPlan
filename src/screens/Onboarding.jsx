@@ -5384,11 +5384,8 @@ function ScheduleLanes({
     <div style={{ background: "#fff", border: "1px solid #e8efe9", borderRadius: 18, padding: "10px 10px 6px" }}>
       {/* Day header */}
       <div style={{ display: "grid", gridTemplateColumns: gridCols, gap: 3, marginBottom: 9 }}>
-        {/* La esquina de la cabecera estaba vacía y es justo donde el ojo
-            empieza a leer la tabla, así que ahí vive el paso de semana. Ocupa
-            las dos columnas del carril (nombre + franja) porque en 48px no
-            caben las flechas. */}
-        <div style={{ gridColumn: "span 2", display: "flex", justifyContent: "center" }}>
+        {/* Hueco izquierdo (avatar + nombre): el selector de semana vive aquí */}
+        <div style={{ gridColumn: "span 2", display: "flex", alignItems: "center", justifyContent: "flex-start", paddingLeft: 2 }}>
           {weekNav && <WeekStepper {...weekNav} />}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: dayCols }}>
@@ -6695,13 +6692,24 @@ const FOOD_META = {
 
 const FOOD_ORDER = ["carne", "pescado", "pasta_arroz", "legumbres", "huevos", "verdura"];
 
+// Ilustraciones de categoría (mismo set Midjourney que el resto de la app).
+// Se usan para componer el mosaico de cada estilo de comida.
+const CATEGORY_ART = {
+  carne: "/categories/cut/carne.png",
+  pescado: "/categories/cut/pescado.png",
+  pasta_arroz: "/categories/cut/pasta_arroz.png",
+  legumbres: "/categories/cut/legumbres.png",
+  huevos: "/categories/cut/huevos.png",
+  verdura: "/categories/cut/verduras.png",
+};
+
 export const MEAL_STYLES = [
   {
     id: "de_todo",
     label: "De todo",
     desc: "Pasta, arroz y carne al frente. Familiar y del gusto de los peques.",
     Icon: Pizza,
-    img: "/meal-styles/de_todo.png",
+    cats: ["pasta_arroz", "carne", "huevos", "verdura"],
     freqs: { pasta_arroz: 4, carne: 4, huevos: 2, verdura: 2, pescado: 1, legumbres: 1 },
   },
   {
@@ -6709,7 +6717,7 @@ export const MEAL_STYLES = [
     label: "Equilibrado",
     desc: "Un poco de todo, sin que destaque nada. El punto medio.",
     Icon: HeartPulse,
-    img: "/meal-styles/equilibrado.png",
+    cats: ["carne", "pescado", "verdura", "legumbres"],
     freqs: { carne: 3, pescado: 3, verdura: 3, legumbres: 2, pasta_arroz: 2, huevos: 2 },
   },
   {
@@ -6717,7 +6725,7 @@ export const MEAL_STYLES = [
     label: "Ligero y saludable",
     desc: "Mucha verdura, pescado y legumbre; poca pasta y carne roja.",
     Icon: Salad,
-    img: "/meal-styles/ligero.png",
+    cats: ["verdura", "pescado", "legumbres", "huevos"],
     freqs: { verdura: 6, pescado: 4, legumbres: 3, huevos: 2, carne: 1, pasta_arroz: 1 },
   },
   {
@@ -6725,12 +6733,12 @@ export const MEAL_STYLES = [
     label: "A tu gusto",
     desc: "Reparte tú mismo los platos de la semana.",
     Icon: SlidersHorizontal,
-    img: "/meal-styles/a_tu_gusto.png",
+    wheel: true,
     freqs: { carne: 3, pescado: 3, verdura: 3, legumbres: 2, pasta_arroz: 2, huevos: 2 },
   },
 ];
 
-export const DEFAULT_MEAL_STYLE = "equilibrado";
+export const DEFAULT_MEAL_STYLE = "de_todo";
 
 /**
  * Scales a preset's freqs (weights, not absolute counts) to fit exactly the
@@ -7112,8 +7120,13 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
           from { opacity: 0; transform: translateY(16px); }
           to   { opacity: 1; transform: translateY(0); }
         }
+        @keyframes noriaSpin { to { transform: rotate(360deg); } }
+        @keyframes noriaSpinBack { to { transform: rotate(-360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+          .noria-wheel, .noria-icon { animation: none !important; }
+        }
       `}</style>
-      <div style={{ display: "flex", gap: 6 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9 }}>
         {MEAL_STYLES.map((s) => {
           const sel = activeStyle === s.id;
           return (
@@ -7123,53 +7136,142 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
               onClick={() => selectStyle(s.id)}
               style={{
                 position: "relative",
-                flex: 1, minWidth: 0,
-                height: 112,
+                minWidth: 0,
+                height: 140,
+                display: "flex", flexDirection: "column", alignItems: "stretch",
                 borderRadius: 15,
                 overflow: "hidden",
-                border: `2.5px solid ${sel ? "#2d5a3d" : "transparent"}`,
+                border: `2px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
                 padding: 0,
                 cursor: "pointer",
                 fontFamily: "inherit",
+                background: "#fff",
                 boxShadow: sel
-                  ? "0 0 0 1.5px #2d5a3d, 0 6px 18px rgba(45,90,61,.3)"
-                  : "0 1px 4px rgba(0,0,0,.1)",
-                transition: "box-shadow .16s ease",
+                  ? "0 6px 18px rgba(45,90,61,.24)"
+                  : "0 1px 3px rgba(20,47,29,.06)",
+                transition: "box-shadow .16s ease, border-color .16s ease",
               }}
             >
-              {s.img && (
-                <img
-                  src={s.img}
-                  alt=""
-                  style={{
-                    position: "absolute", inset: 0, width: "100%", height: "100%",
-                    objectFit: "cover", objectPosition: "center top",
-                    filter: sel ? "none" : "saturate(.7) brightness(.95)",
-                    transition: "filter .16s ease",
-                  }}
-                />
-              )}
-              {/* Gradient darkens the bottom so the label is legible */}
+              {/* Composición: las dos categorías dominantes como una sola escena.
+                  Se solapan solo por los márgenes casi-blancos (que funden con el
+                  fondo), así los dos alimentos conviven sin pisarse ni parecer grid.
+                  Para "A tu gusto" mostramos una mini-noria con las 6 categorías. */}
               <div style={{
-                position: "absolute", inset: 0,
-                background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.65) 100%)",
-              }} />
-              {sel && (
-                <span style={{
-                  position: "absolute", top: 5, right: 5,
-                  width: 16, height: 16, borderRadius: 999,
-                  background: "#2d5a3d", border: "1.5px solid #fff",
-                  display: "inline-flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Check size={9} color="#fff" strokeWidth={3} />
-                </span>
-              )}
-              <div style={{
-                position: "absolute", bottom: 6, left: 4, right: 4,
-                fontSize: 9.5, fontWeight: 800, color: "#fff",
-                textAlign: "center", lineHeight: 1.2,
+                position: "relative",
+                flex: 1,
+                overflow: "hidden",
+                background: "linear-gradient(180deg, #fbfcfb 0%, #eef3f0 100%)",
               }}>
-                {s.label}
+                {s.wheel ? (
+                  <div
+                    className="noria-wheel"
+                    style={{
+                      position: "absolute", top: "50%", left: "50%",
+                      width: 0, height: 0,
+                      animation: "noriaSpin 18s linear infinite",
+                    }}
+                  >
+                    {FOOD_ORDER.map((c, i) => {
+                      const ang = (i * 360) / FOOD_ORDER.length;
+                      return (
+                        <div
+                          key={c}
+                          style={{
+                            position: "absolute", top: 0, left: 0,
+                            width: 32, height: 32, margin: "-16px 0 0 -16px",
+                            transform: `rotate(${ang}deg) translateY(-33px)`,
+                          }}
+                        >
+                          <div style={{ transform: `rotate(${-ang}deg)`, width: "100%", height: "100%" }}>
+                            <img
+                              className="noria-icon"
+                              src={CATEGORY_ART[c]}
+                              alt=""
+                              loading="lazy"
+                              style={{
+                                width: "100%", height: "100%", objectFit: "contain",
+                                animation: "noriaSpinBack 18s linear infinite",
+                                filter: sel
+                                  ? "drop-shadow(0 1px 2px rgba(0,0,0,.12))"
+                                  : "saturate(.9) brightness(.99) drop-shadow(0 1px 2px rgba(0,0,0,.08))",
+                              }}
+                            />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                <>
+                {/* Sombra compartida: asienta las dos piezas en la misma superficie */}
+                <div style={{
+                  position: "absolute", zIndex: 1,
+                  left: "14%", right: "12%", bottom: "9%", height: "16%",
+                  borderRadius: "50%",
+                  background: "radial-gradient(ellipse at center, rgba(20,47,29,.18) 0%, rgba(20,47,29,0) 70%)",
+                  filter: "blur(1px)",
+                }} />
+                {/* Secundaria: detrás, algo más pequeña, apoyada a la izquierda */}
+                {(s.cats?.[1] != null) && (
+                  <img
+                    src={CATEGORY_ART[s.cats[1]]}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      position: "absolute", zIndex: 2,
+                      width: "60%", height: "72%",
+                      left: "1%", bottom: "8%",
+                      objectFit: "contain",
+                      filter: sel
+                        ? "drop-shadow(0 3px 4px rgba(0,0,0,.14))"
+                        : "saturate(.9) brightness(.99) drop-shadow(0 3px 4px rgba(0,0,0,.1))",
+                      transition: "filter .16s ease",
+                    }}
+                  />
+                )}
+                {/* Dominante: delante, más grande y apoyada abajo a la derecha */}
+                {(s.cats?.[0] != null) && (
+                  <img
+                    src={CATEGORY_ART[s.cats[0]]}
+                    alt=""
+                    loading="lazy"
+                    style={{
+                      position: "absolute", zIndex: 3,
+                      width: "66%", height: "86%",
+                      right: "-1%", bottom: "3%",
+                      objectFit: "contain",
+                      filter: sel
+                        ? "drop-shadow(0 4px 5px rgba(0,0,0,.16))"
+                        : "saturate(.94) brightness(1) drop-shadow(0 4px 5px rgba(0,0,0,.12))",
+                      transition: "filter .16s ease",
+                    }}
+                  />
+                )}
+                </>
+                )}
+                {sel && (
+                  <span style={{
+                    position: "absolute", top: 4, right: 4, zIndex: 3,
+                    width: 16, height: 16, borderRadius: 999,
+                    background: "#2d5a3d", border: "1.5px solid #fff",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Check size={9} color="#fff" strokeWidth={3} />
+                  </span>
+                )}
+              </div>
+              <div style={{
+                padding: "8px 6px 9px",
+                background: sel ? "#2d5a3d" : "#fff",
+                textAlign: "center",
+                transition: "background .16s ease",
+              }}>
+                <span style={{
+                  fontSize: 12, fontWeight: 800, lineHeight: 1.15,
+                  color: sel ? "#fff" : "#25402f",
+                }}>
+                  {s.label}
+                </span>
               </div>
             </button>
           );
@@ -7202,14 +7304,14 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
               const cenaSlots = Math.max(0, slotBudget.cenaDays);
               const showComida = getMeals(data).includes("Comida");
               const showCena = getMeals(data).includes("Cena");
-              const slotCard = (Icon, value, label) => (
+              const slotCard = (Icon, value, label, color) => (
                 <div
                   style={{
                     display: "flex",
                     alignItems: "center",
                     gap: 6,
                     background: "#fff",
-                    border: "1.5px solid #bcdcc7",
+                    border: `1.5px solid ${color}55`,
                     borderRadius: 10,
                     padding: "5px 9px",
                     flex: "0 0 auto",
@@ -7221,14 +7323,14 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                       height: 20,
                       borderRadius: 6,
                       flexShrink: 0,
-                      background: "#eef5f0",
-                      color: "#2d5a3d",
+                      background: `${color}1f`,
+                      color,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                     }}
                   >
-                    <Icon size={11} />
+                    <Icon size={11} strokeWidth={2.4} />
                   </span>
                   <span style={{ fontSize: 11.5, fontWeight: 800, color: "#142f1d", whiteSpace: "nowrap" }}>
                     {value} {label}
@@ -7237,8 +7339,8 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
               );
               return (
                 <div style={{ display: "flex", gap: 6, marginBottom: 12 }}>
-                  {showComida && slotCard(Sun, comidaSlots, "comidas")}
-                  {showCena && slotCard(Moon, cenaSlots, "cenas")}
+                  {showComida && slotCard(Sun, comidaSlots, "comidas", "#c9820a")}
+                  {showCena && slotCard(Moon, cenaSlots, "cenas", "#5a7a9a")}
                 </div>
               );
             })()}
@@ -7389,18 +7491,27 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                         >
                           <span
                             style={{
-                              width: 26,
-                              height: 26,
-                              borderRadius: 8,
-                              background: `${meta.color}1a`,
-                              color: meta.color,
+                              width: 32,
+                              height: 32,
+                              borderRadius: 9,
+                              background: `${meta.color}14`,
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
                               flexShrink: 0,
+                              overflow: "hidden",
                             }}
                           >
-                            <meta.Icon size={15} />
+                            {CATEGORY_ART[key] ? (
+                              <img
+                                src={CATEGORY_ART[key]}
+                                alt=""
+                                loading="lazy"
+                                style={{ width: "88%", height: "88%", objectFit: "contain" }}
+                              />
+                            ) : (
+                              <meta.Icon size={15} color={meta.color} />
+                            )}
                           </span>
                           <span
                             style={{

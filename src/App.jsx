@@ -106,10 +106,10 @@ import { buildGarnishComboRecipe } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import {
-  createRoster,
   DEFAULT_ROSTER_ID,
   ensureRosters,
   listRosters,
+  startOtherRoster,
   switchRoster,
 } from "./lib/rosters.js";
 import { navDirection } from "./lib/motion.js";
@@ -2084,7 +2084,7 @@ export default function App() {
   // this only jumped to step 0, which appended the new people to the family you
   // already had, with no way back.
   const startOtherGroup = useCallback(() => {
-    setData((d) => createRoster(d, { name: "Otro grupo", defaults: INITIAL_DATA }));
+    setData((d) => startOtherRoster(d, { defaults: INITIAL_DATA }));
     setMenuPlan({});
     setShopping({ items: [] });
     setSelectedSlot(null);
@@ -3593,24 +3593,32 @@ export default function App() {
             </p>
 
             {(() => {
-              // Abandoned "Otro grupo" attempts (created, never filled in) would
-              // otherwise pile up here as nameless empty cards.
-              const rosters = listRosters(data).filter(
-                (r) => r.isActive || r.members.length > 0
-              );
+              // Solo dos opciones: reutilizar la familia habitual ("Mi familia",
+              // el roster primario) o empezar "Otro grupo". Los grupos scratch no
+              // se listan uno a uno (antes se acumulaban como tarjetas duplicadas
+              // e indistinguibles, todas "Otro grupo").
+              const allRosters = listRosters(data);
+              const primaryRoster =
+                allRosters.find((r) => r.id === DEFAULT_ROSTER_ID) ??
+                allRosters.find((r) => r.isActive) ??
+                allRosters[0];
               const options = [
-                ...rosters.map((r) => ({
-                  key: r.id,
-                  Icon: Users,
-                  primary: r.isActive,
-                  label: r.name,
-                  faces: groupAvatarFaces(r.members, r.members),
-                  onClick: () => {
-                    setWhoForOpen(false);
-                    if (!r.isActive) useRoster(r.id);
-                    startQuickMenu();
-                  },
-                })),
+                ...(primaryRoster && primaryRoster.members.length > 0
+                  ? [
+                      {
+                        key: primaryRoster.id,
+                        Icon: Users,
+                        primary: true,
+                        label: primaryRoster.name,
+                        faces: groupAvatarFaces(primaryRoster.members, primaryRoster.members),
+                        onClick: () => {
+                          setWhoForOpen(false);
+                          if (!primaryRoster.isActive) useRoster(primaryRoster.id);
+                          startQuickMenu();
+                        },
+                      },
+                    ]
+                  : []),
                 {
                   key: "other", Icon: Sparkles, rotating: true, primary: false,
                   label: "Otro grupo",

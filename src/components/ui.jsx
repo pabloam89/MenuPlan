@@ -351,19 +351,32 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
   const dark = variant === "dark";
   const [pressed, setPressed] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleClick = async () => {
     if (loading) return;
     setLoading(true);
+    setError(null);
+    let failure = null;
     try {
-      await onClick?.();
-    } catch {
+      // signInWithGoogle reports failures by *returning* { error } rather than
+      // throwing, so catching a rejection only covers half the cases. Missing
+      // Supabase env vars in a deploy hit the returned-error path, which used
+      // to leave the button spinning "Redirigiendo…" forever with no clue why.
+      const result = await onClick?.();
+      failure = result?.error ?? null;
+    } catch (err) {
+      failure = err;
+    }
+    if (failure) {
       setLoading(false);
+      setError(failure.message || "No se pudo conectar con Google.");
     }
     // On success the page redirects — no need to reset loading
   };
 
   return (
+    <>
     <button
       type="button"
       onClick={handleClick}
@@ -411,6 +424,31 @@ export function GoogleButton({ onClick, label = "Continuar con Google", variant 
       )}
       {loading ? "Redirigiendo…" : label}
     </button>
+    {error && (
+      <p
+        role="alert"
+        style={{
+          margin: "8px 0 0",
+          fontSize: 12.5,
+          lineHeight: 1.45,
+          textAlign: "center",
+          color: dark ? "#ffd9d2" : "#c0392b",
+          // The dark variant sits over the splash video, where plain text on a
+          // bright frame is unreadable.
+          ...(dark
+            ? {
+                background: "rgba(20,20,20,.55)",
+                borderRadius: 10,
+                padding: "7px 12px",
+                backdropFilter: "blur(4px)",
+              }
+            : null),
+        }}
+      >
+        {error}
+      </p>
+    )}
+    </>
   );
 }
 

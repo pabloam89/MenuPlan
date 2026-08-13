@@ -22,6 +22,11 @@ import { uid } from "./groups.js";
 
 export const DEFAULT_ROSTER_ID = "default";
 export const DEFAULT_ROSTER_NAME = "Mi familia";
+// A single reusable "scratch" roster for "Otro grupo". Using a fixed id (instead
+// of a fresh uid every time) means picking "Otro grupo" repeatedly never piles up
+// nameless duplicates: there is always at most one besides "Mi familia".
+export const OTHER_ROSTER_ID = "other";
+export const OTHER_ROSTER_NAME = "Otro grupo";
 
 /**
  * Fields swapped when you change roster. Adding a field here is what makes it
@@ -146,6 +151,33 @@ export function createRoster(data, { name = "Otro grupo", defaults } = {}) {
       [id]: { id, name, createdAt: Date.now(), snapshot },
     },
   };
+}
+
+/**
+ * Start "Otro grupo" reusing a single scratch roster. The household you came
+ * from ("Mi familia" / the default) is preserved; any previously-created scratch
+ * groups are collapsed into one, so this flow can never accumulate duplicate
+ * "Otro grupo" entries. Result: at most two rosters — the primary + this one.
+ */
+export function startOtherRoster(data, { defaults } = {}) {
+  const saved = saveActiveRoster(ensureRosters(data));
+  // Keep the primary roster (default, or the earliest one if there's no default)
+  // and drop every other parked scratch roster.
+  const all = saved.rosters ?? {};
+  const primaryId = all[DEFAULT_ROSTER_ID]
+    ? DEFAULT_ROSTER_ID
+    : Object.values(all).sort((a, b) => (a.createdAt ?? 0) - (b.createdAt ?? 0))[0]?.id;
+  const rosters = {};
+  if (primaryId && all[primaryId]) rosters[primaryId] = all[primaryId];
+
+  const snapshot = blankRosterSnapshot(defaults);
+  rosters[OTHER_ROSTER_ID] = {
+    id: OTHER_ROSTER_ID,
+    name: OTHER_ROSTER_NAME,
+    createdAt: Date.now(),
+    snapshot,
+  };
+  return { ...saved, ...snapshot, activeRosterId: OTHER_ROSTER_ID, rosters };
 }
 
 export function renameRoster(data, id, name) {
