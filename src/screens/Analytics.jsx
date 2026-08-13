@@ -695,6 +695,19 @@ const FAMILY_ICON_TYPE = {
   otros: "chef",
 };
 
+// Nuestras ilustraciones 3D recortadas por familia. "Otros" no tiene una
+// específica, así que cae al icono de chef. Pasta y arroz comparten la misma
+// (el bol trae pasta + arroz).
+const FAMILY_ART = {
+  pescado: "/categories/cut/pescado.png",
+  carne: "/categories/cut/carne.png",
+  legumbres: "/categories/cut/legumbres.png",
+  huevos: "/categories/cut/huevos.png",
+  verdura: "/categories/cut/verduras.png",
+  pasta: "/categories/cut/pasta_arroz.png",
+  arroz: "/categories/cut/pasta_arroz.png",
+};
+
 const ICONS_BY_TYPE = {
   fish: Fish,
   meat: Drumstick,
@@ -711,6 +724,31 @@ function FamilyDishIcon({ familyKey, size = 36 }) {
   const iconType = FAMILY_ICON_TYPE[familyKey] ?? "chef";
   const visual = visualForRecipe({ iconType });
   const Icon = ICONS_BY_TYPE[iconType] ?? Utensils;
+  const art = FAMILY_ART[familyKey];
+  if (art) {
+    return (
+      <span
+        style={{
+          width: size,
+          height: size,
+          borderRadius: Math.round(size * 0.3),
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: `${visual.accent}1f`,
+          flexShrink: 0,
+          overflow: "hidden",
+        }}
+      >
+        <img
+          src={art}
+          alt=""
+          loading="lazy"
+          style={{ width: "86%", height: "86%", objectFit: "contain" }}
+        />
+      </span>
+    );
+  }
   return (
     <span
       style={{
@@ -959,6 +997,29 @@ const legendActionCellStyle = {
   padding: "8px 6px",
 };
 
+function RecipeThumb({ image, familyKey, size = 42 }) {
+  const [failed, setFailed] = useState(false);
+  if (image && !failed) {
+    return (
+      <img
+        src={image}
+        alt=""
+        loading="lazy"
+        onError={() => setFailed(true)}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: 10,
+          objectFit: "cover",
+          flexShrink: 0,
+          background: "#eef4ef",
+        }}
+      />
+    );
+  }
+  return <FamilyDishIcon familyKey={familyKey} size={size} />;
+}
+
 function FamilyRecipesSheet({ family, onClose }) {
   const recipes = family.recipes ?? [];
   const accent = visualForRecipe({ iconType: FAMILY_ICON_TYPE[family.key] ?? "chef" }).accent;
@@ -987,11 +1048,12 @@ function FamilyRecipesSheet({ family, onClose }) {
                 justifyContent: "space-between",
                 alignItems: "center",
                 gap: 12,
-                padding: "12px 0",
+                padding: "10px 0",
                 borderBottom: "1px solid #e8f0ea",
               }}
             >
-              <span style={{ fontSize: 14, fontWeight: 700, color: "#142f1d", minWidth: 0 }}>
+              <RecipeThumb image={recipe.image} familyKey={family.key} />
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#142f1d", flex: 1, minWidth: 0 }}>
                 {recipe.name}
               </span>
               <span style={{ fontSize: 14, fontWeight: 900, color: accent, flexShrink: 0 }}>×{recipe.count}</span>

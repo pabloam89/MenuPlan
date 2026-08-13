@@ -47,6 +47,7 @@ import {
   spendStats,
 } from "../lib/priceHistory.js";
 import { guessShoppingAisle } from "../lib/ingredientCategories.js";
+import { aisleImageSrc } from "../lib/ingredientImages.js";
 import { useAuth } from "../lib/useAuth.js";
 import { removePantryItem } from "../lib/pantry.js";
 
@@ -1480,7 +1481,10 @@ const spendAmountCellStyle = {
 // trailing chevron gets its own column instead of fighting the amount for space.
 function AisleSpendRow({ aisle, total, max, detail }) {
   const [open, setOpen] = useState(false);
+  const [imgFailed, setImgFailed] = useState(false);
   const { Icon, color } = aisleMeta(aisle);
+  const img = aisleImageSrc(aisle);
+  const showImg = Boolean(img) && !imgFailed;
   const pct = max > 0 ? Math.max(6, Math.round((total / max) * 100)) : 0;
   const canExpand = detail.length > 0;
   return (
@@ -1491,15 +1495,25 @@ function AisleSpendRow({ aisle, total, max, detail }) {
             width: 34,
             height: 34,
             borderRadius: 11,
-            background: color,
+            background: showImg ? `${color}1f` : color,
             color: "#fff",
             display: "inline-flex",
             alignItems: "center",
             justifyContent: "center",
             flexShrink: 0,
+            overflow: "hidden",
           }}
         >
-          <Icon size={17} strokeWidth={2.2} />
+          {showImg ? (
+            <img
+              src={img}
+              alt=""
+              onError={() => setImgFailed(true)}
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          ) : (
+            <Icon size={17} strokeWidth={2.2} />
+          )}
         </span>
         <div style={{ minWidth: 0 }}>
           <span style={{ fontSize: 12.5, fontWeight: 800, color: "#142f1d" }}>{aisle}</span>
@@ -1862,6 +1876,27 @@ const habitValueTextStyle = {
   whiteSpace: "nowrap",
 };
 
+function AisleMiniChip({ aisle, size = 22 }) {
+  const { Icon, color } = aisleMeta(aisle);
+  const img = aisleImageSrc(aisle);
+  const [failed, setFailed] = useState(false);
+  return (
+    <span
+      style={{
+        width: size, height: size, borderRadius: Math.round(size * 0.32),
+        background: img && !failed ? `${color}1f` : `${color}18`,
+        color, display: "inline-flex", alignItems: "center",
+        justifyContent: "center", flexShrink: 0, overflow: "hidden",
+      }}
+    >
+      {img && !failed
+        ? <img src={img} alt="" onError={() => setFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        : <Icon size={Math.round(size * 0.58)} strokeWidth={2.3} />}
+    </span>
+  );
+}
+
 // Leading store / category / staple + ticket average, from the user's data.
 // No separate amount column on purpose — "Mercadona 38€" / "Aceites y
 // conservas 9€" already duplicated the exact totals "Por supermercado" and
@@ -1893,9 +1928,7 @@ function HabitsCard({ stats }) {
       right: (
         <>
           <span style={habitValueTextStyle}>{stats.topAisle.aisle}</span>
-          <span style={habitIconBadgeSmall(aisleIcon.color)}>
-            <aisleIcon.Icon size={13} strokeWidth={2.3} />
-          </span>
+          <AisleMiniChip aisle={stats.topAisle.aisle} size={22} />
         </>
       ),
     },

@@ -1874,9 +1874,7 @@ export function DishCard({
 const DECK_VIEW_OPTIONS = [
   { id: "dia", label: "Día" },
   { id: "semana", label: "Semana" },
-  // La vista "Resumen" (id "lista") sigue en el código (DeckCalendar) pero aún
-  // no está lista, así que no la exponemos en el switch todavía. Reactivar
-  // cuando esté terminada volviendo a añadir: { id: "lista", label: "Resumen" }.
+  { id: "lista", label: "Resumen" }, // DEV-ONLY: ocultar antes de subir a staging
 ];
 
 const DECK_VIEW_ICON = { dia: CalendarDays, semana: Layers2, lista: LayoutGrid };
@@ -2595,25 +2593,64 @@ function typologyTokens(day, meal, menuPlan, visibleGroups) {
 }
 
 /**
- * Solid circular category token — icon only, color carries the meaning. When
- * the dish has a side, a smaller badge rides on its corner so the pairing
- * ("pescado + patatas") reads as a single glyph.
+ * Category illustration as a coin: the full render, cropped into a circle and
+ * rimmed in the category colour.
+ *
+ * A real border (not an inset shadow) does the rimming, because the artwork is
+ * scaled past the edge to bury its flat margin and would paint straight over
+ * an inset one.
  */
-function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 32 }) {
+function CategoryArt({ cat, size = 34, ring = 2, elevated = false }) {
+  const [failed, setFailed] = useState(false);
   const color = cat ? categoryColor(cat) : "#5a7066";
   const Icon = cat ? categoryIcon(cat) : Utensils;
+  const img = cat && !failed ? categoryImageSrc(cat) : null;
+
+  return (
+    <span
+      style={{
+        width: size,
+        height: size,
+        flexShrink: 0,
+        borderRadius: 999,
+        border: `${ring}px solid ${color}`,
+        boxSizing: "border-box",
+        overflow: "hidden",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: img ? "#fff" : `${color}1c`,
+        boxShadow: elevated ? "0 3px 8px -2px rgba(20,47,29,.3)" : "none",
+      }}
+    >
+      {img ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ width: "118%", height: "118%", objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <Icon size={Math.round(size * 0.5)} color={color} strokeWidth={2.5} />
+      )}
+    </span>
+  );
+}
+
+/**
+ * A dish in the Resumen grid: the category illustration ringed in its colour.
+ * When the dish has a side, a smaller art badge rides on its corner so the
+ * pairing ("pescado + patatas") reads as a single glyph.
+ */
+function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 34, delay = 0 }) {
   const label = cat ? categoryLabel(cat) : "Plato";
-
-  const gColor = garnishCat ? categoryColor(garnishCat) : null;
-  const GIcon = garnishCat ? categoryIcon(garnishCat) : null;
-  const badge = Math.round(size * 0.47);
-
+  const badge = Math.round(size * 0.46);
   const tip = [label, name].filter(Boolean).join(" · ");
 
   return (
     <button
       type="button"
-      className="deck-press"
+      className="cal-token"
       onClick={onTap}
       title={garnishName ? `${tip} (+ ${garnishName})` : tip}
       aria-label={tip}
@@ -2622,37 +2659,30 @@ function TypologyToken({ cat, name, garnishCat, garnishName, onTap, size = 32 })
         width: size,
         height: size,
         flexShrink: 0,
-        borderRadius: 999,
         border: "none",
         padding: 0,
+        background: "none",
         cursor: "pointer",
         fontFamily: "inherit",
         display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: `linear-gradient(145deg, ${color} 0%, ${color}d9 100%)`,
-        boxShadow: `0 3px 9px -3px ${color}99, inset 0 1px 0 rgba(255,255,255,.25)`,
+        animationDelay: `${delay}ms`,
         transition: "transform .15s ease",
       }}
     >
-      <Icon size={Math.round(size * 0.47)} color="#fff" strokeWidth={2.4} />
-      {GIcon && (
+      <CategoryArt cat={cat} size={size} elevated />
+      {garnishCat && (
         <span
           style={{
             position: "absolute",
             right: -3,
             bottom: -3,
-            width: badge,
-            height: badge,
             borderRadius: 999,
-            background: gColor,
-            border: "1.5px solid #fff",
+            border: "2px solid #fff",
             display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
+            boxShadow: "0 2px 5px -1px rgba(20,47,29,.3)",
           }}
         >
-          <GIcon size={Math.round(badge * 0.58)} color="#fff" strokeWidth={3} />
+          <CategoryArt cat={garnishCat} size={badge} ring={1.5} />
         </span>
       )}
     </button>
@@ -2685,10 +2715,131 @@ function MealGlyph({ isLunch, size = 22 }) {
 }
 
 /**
+ * The week's category mix as a ranked bar chart: illustration, name, a bar
+ * scaled against the leading category, and the count.
+ *
+ * Everything lives in one four-column grid, so the art, the names, the bar
+ * baselines and the numbers line up down the card — the bubble layout it
+ * replaced couldn't do that, because each bubble carried its own badge at its
+ * own diameter. Bars are measured against the top category rather than the
+ * total: "half as much chicken as fish" is the comparison people actually make.
+ */
+function WeekMix({ mix }) {
+  const top = mix.items[0]?.count ?? 1;
+  const leadColor = categoryColor(mix.items[0]?.cat);
+
+  return (
+    <div
+      style={{
+        position: "relative",
+        background: "#fff",
+        border: "1px solid #e8efe9",
+        borderRadius: 18,
+        padding: "13px 14px 14px",
+        marginBottom: 14,
+        overflow: "hidden",
+        boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+      }}
+    >
+      {/* Soft halo in the leading category's colour — the card takes on the
+          personality of whatever dominated the week. */}
+      <span
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: -80,
+          right: -40,
+          width: 210,
+          height: 210,
+          borderRadius: 999,
+          background: `radial-gradient(circle, ${leadColor}24 0%, transparent 70%)`,
+          pointerEvents: "none",
+        }}
+      />
+
+      <div style={{ position: "relative", display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 11 }}>
+        <span style={{ fontSize: 10, fontWeight: 800, color: "#9ab0a1", textTransform: "uppercase", letterSpacing: ".8px" }}>
+          El mix de la semana
+        </span>
+        <span style={{ fontSize: 11, fontWeight: 800, color: "#5a7060", fontVariantNumeric: "tabular-nums" }}>
+          {mix.total} platos
+        </span>
+      </div>
+
+      <div
+        style={{
+          position: "relative",
+          display: "grid",
+          gridTemplateColumns: "30px minmax(0, 1fr) 1.45fr 18px",
+          alignItems: "center",
+          columnGap: 9,
+          rowGap: 9,
+        }}
+      >
+        {mix.items.map(({ cat, count, pct }, i) => {
+          const color = categoryColor(cat);
+          const lead = i === 0;
+          return (
+            <Fragment key={cat}>
+              <CategoryArt cat={cat} size={30} ring={2} />
+
+              <span
+                title={categoryLabel(cat)}
+                style={{
+                  fontSize: 11.5,
+                  fontWeight: 800,
+                  color: "#2f4238",
+                  letterSpacing: "-.2px",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {categoryLabel(cat)}
+              </span>
+
+              <span
+                title={`${count} ${count === 1 ? "plato" : "platos"} · ${Math.round(pct)}%`}
+                style={{ height: 12, borderRadius: 999, background: "#eff4f0", overflow: "hidden" }}
+              >
+                <span
+                  className="mix-bar"
+                  style={{
+                    display: "block",
+                    height: "100%",
+                    width: `${(count / top) * 100}%`,
+                    borderRadius: 999,
+                    background: `linear-gradient(90deg, ${color}cc 0%, ${color} 100%)`,
+                    boxShadow: lead ? `0 0 10px -1px ${color}90` : "none",
+                    animationDelay: `${i * 70}ms`,
+                  }}
+                />
+              </span>
+
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 900,
+                  color,
+                  textAlign: "right",
+                  fontVariantNumeric: "tabular-nums",
+                }}
+              >
+                {count}
+              </span>
+            </Fragment>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+/**
  * "Resumen" view — the week as a real calendar grid: days across, meals down.
- * Each dish is a colored icon token (with a side-dish badge when it has one),
- * so a glance answers "what dominates this week?" without reading a single
- * name. A proportion bar on top tallies the whole mix.
+ * Each dish is a category illustration ringed in its colour (with a side-dish
+ * badge when it has one), so a glance answers "what dominates this week?"
+ * without reading a single name. A bubble mix on top tallies the whole week.
  */
 function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTap }) {
   const { mealRows, mix, hasContent } = useMemo(() => {
@@ -2732,106 +2883,32 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
 
   return (
     <div style={{ paddingBottom: 8 }}>
-      {/* ── Week mix: proportion bar + legend with counts ── */}
-      {mix.items.length > 0 && (
-        <div
-          style={{
-            background: "#fff",
-            border: "1px solid #e8efe9",
-            borderRadius: 16,
-            padding: 14,
-            marginBottom: 14,
-            boxShadow: "0 1px 3px rgba(20,47,29,.05)",
-          }}
-        >
-          <span
-            style={{
-              fontSize: 10,
-              fontWeight: 800,
-              color: "#9ab0a1",
-              textTransform: "uppercase",
-              letterSpacing: ".8px",
-            }}
-          >
-            El mix de la semana
-          </span>
+      {/* ── Week mix: illustration bubbles sized by how often each category
+             shows up. A stacked bar forced you to decode colour→legend→count;
+             here the biggest picture *is* the answer to "what did we eat?". ── */}
+      {mix.items.length > 0 && <WeekMix mix={mix} />}
 
-          <div
-            style={{
-              display: "flex",
-              height: 10,
-              borderRadius: 999,
-              overflow: "hidden",
-              margin: "10px 0 12px",
-              background: "#f0f4f1",
-            }}
-          >
-            {mix.items.map(({ cat, pct }) => (
-              <span
-                key={cat}
-                title={`${categoryLabel(cat)} · ${Math.round(pct)}%`}
-                style={{ width: `${pct}%`, background: categoryColor(cat) }}
-              />
-            ))}
-          </div>
-
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 14px" }}>
-            {mix.items.map(({ cat, count }) => {
-              const color = categoryColor(cat);
-              const Icon = categoryIcon(cat);
-              return (
-                <span key={cat} style={{ display: "inline-flex", alignItems: "center", gap: 5 }}>
-                  <span
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 999,
-                      background: color,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
-                    <Icon size={11} color="#fff" strokeWidth={2.6} />
-                  </span>
-                  <span style={{ fontSize: 11.5, fontWeight: 800, color: "#3a4a42" }}>
-                    {categoryLabel(cat)}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 11.5,
-                      fontWeight: 900,
-                      color,
-                      fontVariantNumeric: "tabular-nums",
-                    }}
-                  >
-                    {count}
-                  </span>
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* ── The week as a grid: days across, meals down ── */}
+      {/* ── The week as a grid: days across, meals down.
+             The board is tinted on purpose: white dishes on a white card on a
+             white page had nothing to sit against. Now the coins read as chips
+             laid on a surface. ── */}
       <div
         style={{
-          background: "#fff",
-          border: "1px solid #e8efe9",
+          background: "#eef4f0",
+          border: "1px solid #d9e6de",
           borderRadius: 16,
           overflow: "hidden",
-          boxShadow: "0 1px 3px rgba(20,47,29,.05)",
+          boxShadow: "0 1px 3px rgba(20,47,29,.06)",
         }}
       >
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: `26px repeat(${days.length}, minmax(0, 1fr))`,
+            gridTemplateColumns: `28px repeat(${days.length}, minmax(0, 1fr))`,
           }}
         >
           {/* Header: day names + dates */}
-          <div style={{ background: "#f6f9f7", borderBottom: "1px solid #e3ebe6" }} />
+          <div style={{ background: "#dfebe3", borderBottom: "1px solid #c9dcd0" }} />
           {days.map((day) => {
             const dayNum = calendarDayNumber(day, weekDates);
             const isToday = dayNum != null && dayNum === todayNum;
@@ -2839,8 +2916,8 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
               <div
                 key={`h-${day}`}
                 style={{
-                  background: isToday ? "#eaf6ee" : "#f6f9f7",
-                  borderBottom: `1px solid ${isToday ? "#bfe6cb" : "#e3ebe6"}`,
+                  background: isToday ? "#2d5a3d" : "#dfebe3",
+                  borderBottom: `1px solid ${isToday ? "#2d5a3d" : "#c9dcd0"}`,
                   padding: "7px 0 6px",
                   textAlign: "center",
                 }}
@@ -2849,7 +2926,7 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
                   style={{
                     fontSize: 9,
                     fontWeight: 800,
-                    color: isToday ? "#4cba6e" : "#9ab0a1",
+                    color: isToday ? "rgba(255,255,255,.75)" : "#6f8a7a",
                     textTransform: "uppercase",
                     letterSpacing: ".4px",
                     lineHeight: 1.3,
@@ -2861,7 +2938,7 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
                   style={{
                     fontSize: 14,
                     fontWeight: 900,
-                    color: isToday ? "#2d5a3d" : "#142f1d",
+                    color: isToday ? "#fff" : "#142f1d",
                     lineHeight: 1.2,
                     fontVariantNumeric: "tabular-nums",
                   }}
@@ -2874,7 +2951,7 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
 
           {/* One row per meal */}
           {mealRows.map(({ meal, cells }, ri) => {
-            const divider = ri > 0 ? "1px solid #eef3f0" : "none";
+            const divider = ri > 0 ? "1px solid #d9e6de" : "none";
             return (
               <Fragment key={meal}>
                 <div
@@ -2882,15 +2959,15 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    background: "#fbfdfb",
+                    background: "#e7f0ea",
                     borderTop: divider,
-                    borderRight: "1px solid #eef3f0",
+                    borderRight: "1px solid #d9e6de",
                   }}
                 >
                   <MealGlyph isLunch={isLunchMeal(meal)} size={20} />
                 </div>
 
-                {cells.map(({ day, tokens }) => {
+                {cells.map(({ day, tokens }, ci) => {
                   const dayNum = calendarDayNumber(day, weekDates);
                   const isToday = dayNum != null && dayNum === todayNum;
                   return (
@@ -2901,29 +2978,30 @@ function DeckCalendar({ days, weekDates, data, menuPlan, visibleGroups, onDishTa
                         flexDirection: "column",
                         alignItems: "center",
                         justifyContent: "center",
-                        gap: 6,
-                        padding: "11px 2px",
+                        gap: 7,
+                        padding: "12px 2px",
                         borderTop: divider,
-                        background: isToday ? "#f7fdf9" : "transparent",
+                        background: isToday ? "#dcece2" : "transparent",
                       }}
                     >
                       {tokens.length === 0 ? (
                         <span
                           style={{
-                            width: 6,
-                            height: 6,
+                            width: 7,
+                            height: 7,
                             borderRadius: 999,
-                            background: "#e3ebe6",
+                            background: "#c6d8cc",
                           }}
                         />
                       ) : (
-                        tokens.map(({ recipeId, slot, group, course, cat, name, garnishCat, garnishName }) => (
+                        tokens.map(({ recipeId, slot, group, course, cat, name, garnishCat, garnishName }, ti) => (
                           <TypologyToken
                             key={`${recipeId}-${course}`}
                             cat={cat}
                             name={name}
                             garnishCat={garnishCat}
                             garnishName={garnishName}
+                            delay={(ri * 4 + ci) * 26 + ti * 40}
                             onTap={() =>
                               onDishTap?.({
                                 recipe: RECIPES_BY_ID[recipeId],
@@ -3966,6 +4044,23 @@ export const MenuScreen = memo(function MenuScreen({
         /* View swap (Día / Semana / Lista): gentle rise + fade so switching feels fluid */
         @keyframes deckViewSwap { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
         .deck-view-swap { animation: deckViewSwap .34s cubic-bezier(.22,1,.36,1) both; will-change: transform, opacity; }
+
+        /* Resumen: the mix bars sweep out top-down, so the ranking reads as it
+           draws itself instead of appearing all at once. */
+        @keyframes mixBarGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        .mix-bar { transform-origin: left center; animation: mixBarGrow .5s cubic-bezier(.22,1,.36,1) both; }
+
+        /* Grid tokens ripple in left-to-right, top-to-bottom. */
+        @keyframes calTokenIn {
+          from { opacity: 0; transform: scale(.55); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        .cal-token { animation: calTokenIn .3s cubic-bezier(.34,1.4,.5,1) both; }
+        .cal-token:active { transform: scale(.9); }
+
+        @media (prefers-reduced-motion: reduce) {
+          .mix-bar, .cal-token { animation: none; }
+        }
 
         /* Photo tiles: springy press + subtle image zoom for a tactile feel */
         .deck-tile { transition: transform .2s cubic-bezier(.34,1.4,.5,1); -webkit-tap-highlight-color: transparent; }

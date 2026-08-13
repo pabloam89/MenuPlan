@@ -1,4 +1,5 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { membersOfGroup } from "./groups.js";
 import { DAYS, getMeals, slotKey } from "./planner.js";
 import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
@@ -117,6 +118,12 @@ function mealForMember({ member, group, menuPlan, data, day, meal }) {
     name: recipe.name,
     family,
     familyLabel: FAMILY_LABELS[family],
+    image: dishImageForRecipe({
+      id: recipe.id,
+      baseRecipeId: recipe.baseRecipeId,
+      garnishId: slot.garnishId,
+      photo: slot.photo,
+    }),
     macros: macrosFromRecipe(recipe),
   };
 }
@@ -183,13 +190,17 @@ function buildFamilyRecipesMap(entries) {
   const maps = {};
   for (const entry of entries) {
     if (!maps[entry.family]) maps[entry.family] = new Map();
-    maps[entry.family].set(entry.name, (maps[entry.family].get(entry.name) ?? 0) + 1);
+    const prev = maps[entry.family].get(entry.name);
+    maps[entry.family].set(entry.name, {
+      count: (prev?.count ?? 0) + 1,
+      image: prev?.image ?? entry.image ?? null,
+    });
   }
   return Object.fromEntries(
     Object.entries(maps).map(([key, map]) => [
       key,
       [...map.entries()]
-        .map(([name, count]) => ({ name, count }))
+        .map(([name, v]) => ({ name, count: v.count, image: v.image }))
         .sort((a, b) => b.count - a.count),
     ])
   );
@@ -366,8 +377,12 @@ export function mergeConsumptionGroups(groups) {
     for (const { name, count } of group.dishCounts) addCount(dishCounts, name, count);
     for (const [key, recipes] of Object.entries(group.familyRecipes ?? {})) {
       if (!familyRecipeMaps[key]) familyRecipeMaps[key] = new Map();
-      for (const { name, count } of recipes) {
-        familyRecipeMaps[key].set(name, (familyRecipeMaps[key].get(name) ?? 0) + count);
+      for (const { name, count, image } of recipes) {
+        const prev = familyRecipeMaps[key].get(name);
+        familyRecipeMaps[key].set(name, {
+          count: (prev?.count ?? 0) + count,
+          image: prev?.image ?? image ?? null,
+        });
       }
     }
     macrosWeek.protein += group.macrosWeek.protein;
@@ -388,7 +403,7 @@ export function mergeConsumptionGroups(groups) {
     Object.entries(familyRecipeMaps).map(([key, map]) => [
       key,
       [...map.entries()]
-        .map(([name, count]) => ({ name, count }))
+        .map(([name, v]) => ({ name, count: v.count, image: v.image }))
         .sort((a, b) => b.count - a.count),
     ])
   );
