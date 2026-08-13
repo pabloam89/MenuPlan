@@ -3027,123 +3027,85 @@ function ViewCircle({ Icon, active, size = 42 }) {
   );
 }
 
-/** Menu view picker. A circular chip (same model as DeckFilter) that opens a
- *  centered "liquid glass" modal with Día / Semana / Lista as circle options. */
+/**
+ * Segmented control (Día / Semana) as two flat pills.
+ * The active pill is solid green; inactive is transparent on a light track.
+ */
 function DeckNav({ value, onChange, options }) {
-  const [open, setOpen] = useState(false);
-  const active = options.find((o) => o.id === value) ?? options[0];
-  const ActiveIcon = DECK_VIEW_ICON[active?.id] ?? CalendarDays;
-
   return (
-    <>
-      <button
-        type="button"
-        className="deck-press"
-        onClick={() => setOpen(true)}
-        aria-haspopup="dialog"
-        aria-label={`Vista del menú (${active?.label})`}
-        title={`Vista · ${active?.label}`}
-        style={{
-          border: "none",
-          background: "transparent",
-          padding: 0,
-          cursor: "pointer",
-          fontFamily: "inherit",
-          flexShrink: 0,
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 7,
-        }}
-      >
-        <ViewCircle Icon={ActiveIcon} active size={42} />
-        <span style={{ fontSize: 13.5, fontWeight: 800, color: "#2d5a3d", whiteSpace: "nowrap", letterSpacing: "-.2px" }}>
-          {active?.label}
-        </span>
-        <ChevronDown size={15} strokeWidth={2.8} color="#9db3a6" style={{ marginLeft: -2 }} />
-      </button>
-
-      {open && (
-        <div
-          onClick={() => setOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 1000,
-            background: "rgba(15,30,20,.34)",
-            backdropFilter: "blur(2px)",
-            WebkitBackdropFilter: "blur(2px)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 20,
-            animation: "deckFadeIn .18s ease both",
-          }}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            onClick={(e) => e.stopPropagation()}
+    <div
+      style={{
+        display: "inline-flex",
+        background: "#eef4ef",
+        borderRadius: 999,
+        padding: 3,
+        gap: 3,
+      }}
+    >
+      {options.map((o) => {
+        const Icon = DECK_VIEW_ICON[o.id] ?? CalendarDays;
+        const active = o.id === value;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            className="deck-press"
+            onClick={() => onChange(o.id)}
             style={{
-              width: 320,
-              maxWidth: "calc(100vw - 40px)",
-              background: "rgba(247,251,248,.8)",
-              backdropFilter: "blur(26px) saturate(180%)",
-              WebkitBackdropFilter: "blur(26px) saturate(180%)",
-              borderRadius: 24,
-              border: "1px solid rgba(255,255,255,.7)",
-              boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
-              padding: 18,
-              animation: "deckModalIn .22s cubic-bezier(.4,0,.2,1) both",
+              display: "inline-flex", alignItems: "center", gap: 5,
+              padding: "5px 12px",
+              borderRadius: 999,
+              border: "none",
+              background: active ? "#2d5a3d" : "transparent",
+              color: active ? "#fff" : "#5a7060",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "background .15s ease, color .15s ease",
+              whiteSpace: "nowrap",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "center", gap: 22 }}>
-              {options.map((o) => {
-                const Icon = DECK_VIEW_ICON[o.id] ?? CalendarDays;
-                const isActive = o.id === value;
-                return (
-                  <button
-                    key={o.id}
-                    type="button"
-                    className="deck-press"
-                    onClick={() => {
-                      onChange(o.id);
-                      setOpen(false);
-                    }}
-                    style={{
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      gap: 8,
-                      border: "none",
-                      background: "transparent",
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      padding: 0,
-                      minWidth: 62,
-                    }}
-                  >
-                    <ViewCircle Icon={Icon} active={isActive} size={58} />
-                    <span
-                      style={{
-                        fontSize: 12.5,
-                        fontWeight: 800,
-                        color: isActive ? "#2d5a3d" : "#5f7568",
-                        maxWidth: 76,
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                      }}
-                    >
-                      {o.label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-    </>
+            <Icon size={14} strokeWidth={2.4} />
+            <span style={{ fontSize: 12, fontWeight: 800 }}>{o.label}</span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** Mini "N de X" week stepper shown next to DeckNav when there are multiple weeks. */
+function DeckWeekStepper({ weekIdx, weekTotal, onPrev, onNext, onOpen }) {
+  const btn = (Icon, onClick, disabled) => (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      style={{
+        display: "inline-flex", alignItems: "center", justifyContent: "center",
+        width: 20, height: 20, padding: 0, border: "none", borderRadius: 999,
+        background: "none",
+        color: disabled ? "#c8d8cc" : "#5a7060",
+        cursor: disabled ? "default" : "pointer", fontFamily: "inherit",
+      }}
+    >
+      <Icon size={13} strokeWidth={2.8} />
+    </button>
+  );
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", background: "#eef4ef", borderRadius: 999, padding: "3px 6px 3px 4px", gap: 1 }}>
+      {btn(ChevronLeft, onPrev, weekIdx <= 0)}
+      <button
+        type="button"
+        onClick={onOpen}
+        style={{
+          border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
+          fontSize: 11.5, fontWeight: 800, color: "#2d5a3d", padding: "0 4px", whiteSpace: "nowrap",
+        }}
+      >
+        {weekIdx + 1} de {weekTotal}
+      </button>
+      {btn(ChevronRight, onNext, weekIdx >= weekTotal - 1)}
+    </div>
   );
 }
 
@@ -4283,48 +4245,23 @@ export const MenuScreen = memo(function MenuScreen({
             {/* The coach anchor hugs the view switch alone: the filter circle at
                 the far right gets its own step, and a spotlight over the whole
                 row would highlight both at once. */}
-            <div data-coach="menu-viewmode" style={{ display: "flex", minWidth: 0 }}>
+            <div data-coach="menu-viewmode" style={{ display: "inline-flex", alignItems: "center", gap: 6, minWidth: 0 }}>
               <DeckNav
                 value={deckView}
                 onChange={setDeckView}
                 options={DECK_VIEW_OPTIONS}
               />
+              {menuWeeks.length > 1 && (
+                <DeckWeekStepper
+                  weekIdx={Math.max(0, currentWeekIdx)}
+                  weekTotal={menuWeeks.length}
+                  onPrev={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
+                  onNext={() => currentWeekIdx < menuWeeks.length - 1 && onSwitchWeek?.(menuWeeks[currentWeekIdx + 1].weekStart)}
+                  onOpen={onOpenMenus}
+                />
+              )}
             </div>
-            <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
-            {menuWeeks.length > 1 && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
-                <button
-                  type="button"
-                  onClick={() => currentWeekIdx > 0 && onSwitchWeek?.(menuWeeks[currentWeekIdx - 1].weekStart)}
-                  disabled={currentWeekIdx <= 0}
-                  aria-label="Semana anterior"
-                  style={weekNavArrowStyle(currentWeekIdx <= 0)}
-                >
-                  <ChevronLeft size={16} />
-                </button>
-                <button
-                  type="button"
-                  onClick={onOpenMenus}
-                  style={{
-                    border: "none", background: "none", cursor: "pointer", fontFamily: "inherit",
-                    fontSize: 12.5, fontWeight: 800, color: "#2d5a3d", padding: "4px 4px",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  Semana {Math.max(0, currentWeekIdx) + 1} de {menuWeeks.length}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => currentWeekIdx < menuWeeks.length - 1 && onSwitchWeek?.(menuWeeks[currentWeekIdx + 1].weekStart)}
-                  disabled={currentWeekIdx >= menuWeeks.length - 1}
-                  aria-label="Semana siguiente"
-                  style={weekNavArrowStyle(currentWeekIdx >= menuWeeks.length - 1)}
-                >
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            )}
-            </div>
+            <div style={{ flex: 1 }} />
             {multiGroup && (
               <DeckFilter
                 groups={data.groups}
