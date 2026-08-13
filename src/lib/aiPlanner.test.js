@@ -210,6 +210,150 @@ describe("pickCatalogReplacement respects school-menu avoidance", () => {
   });
 });
 
+describe("pickCatalogReplacement keeps the same-day protein group separated (rule 3c)", () => {
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const PROTEIN_GROUPS = {
+    pollo: "carne", pavo: "carne", cerdo: "carne", ternera: "carne",
+    pescado_blanco: "pescado", pescado_azul: "pescado", marisco: "pescado",
+    legumbre: "legumbres", huevo: "huevos",
+  };
+  const groupsOfRecipe = (r) => {
+    const out = new Set();
+    if (!r) return out;
+    for (const p of [r.mainProtein, ...(r.extraProteins ?? [])]) {
+      if (PROTEIN_GROUPS[p]) out.add(PROTEIN_GROUPS[p]);
+    }
+    return out;
+  };
+
+  it("never proposes a cena sharing that day's comida protein group, even when the neighbouring days crowd out the stricter tier", () => {
+    // The diversity guardrail used to be a single all-or-nothing filter: when no
+    // candidate satisfied BOTH the same-day and the neighbour-day constraint it
+    // dropped the two together, so a crowded week could hand back a cena with
+    // the very protein group that day's comida already carried. Same-day
+    // separation is what the user actually sees on the plate, so it must now
+    // survive one tier longer than the neighbour-day preference.
+    const data = {
+      members: [{ id: "m1", age: 35 }],
+      groups: [group],
+      schedule: {},
+      timeWeekday: 90,
+      timeWeekend: 90,
+    };
+    const all = Object.values(recipeCatalogById);
+    const bySlotGroup = (mealRole, wanted) =>
+      all.find((r) => r.mealRole?.includes(mealRole) && groupsOfRecipe(r).has(wanted) && r.time <= 90);
+
+    const carneComida = bySlotGroup("segundo", "carne");
+    expect(carneComida, "fixture needs a carne segundo in the catalog").toBeTruthy();
+
+    // Deliberately spread the OTHER protein groups across the adjacent days so
+    // the strict (same-day + neighbour-day clean) tier is genuinely squeezed.
+    const menuPlan = {
+      [group.id]: {
+        "Lun-Comida": { recipeId: bySlotGroup("segundo", "pescado")?.id, eaters: 2 },
+        "Lun-Cena": { recipeId: bySlotGroup("cena", "huevos")?.id, eaters: 2 },
+        "Mar-Comida": { recipeId: carneComida.id, eaters: 2 },
+        "Mar-Cena": { recipeId: "__placeholder_not_in_catalog__", eaters: 2 },
+        "Mié-Comida": { recipeId: bySlotGroup("segundo", "legumbres")?.id, eaters: 2 },
+        "Mié-Cena": { recipeId: bySlotGroup("cena", "pescado")?.id, eaters: 2 },
+      },
+    };
+
+    for (let i = 0; i < 60; i++) {
+      const result = pickCatalogReplacement(data, menuPlan, {
+        groupId: group.id,
+        day: "Mar",
+        meal: "Cena",
+        course: "main",
+      });
+      expect(result).toBeTruthy();
+      const picked =
+        recipeCatalogById[result.recipeId] ?? recipeCatalogById[result.frontendRecipe.baseRecipeId];
+      expect(groupsOfRecipe(picked).has("carne")).toBe(false);
+    }
+  });
+});
+
+describe("generateGroupMenu: a forced fixed dish must not reintroduce a same-day protein clash", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function mockLLMAlwaysReturns(slots) {
+    const text = JSON.stringify({ slots });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ content: [{ text }] }) }),
+    );
+  }
+
+  it("re-picks the primero when enforceFixedDishes forces a huevo cena onto a day whose primero is already huevo", async () => {
+    // The exact shape reported from a real menu: "Huevos rellenos" as primero
+    // and "Huevos fritos con puntillas" as cena, the same Thursday. The
+    // validate + applyFallback loop leaves a clean menu; enforceFixedDishes then
+    // forces the huevo cena in and recreates rule 3c's clash. breakProteinClusters
+    // only walked the main-meal chain, which deliberately skips comida_1
+    // primeros — so nothing corrected this and it surfaced only as a warning.
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 2 };
+    const fixedRecipe = recipeCatalogById.huevos_007; // Huevos fritos con puntillas
+    expect(fixedRecipe, "fixture depends on huevos_007 existing").toBeTruthy();
+    expect(fixedRecipe.mealRole).toContain("cena");
+
+    const data = {
+      members: [{ id: "m1", age: 35 }],
+      groups: [group],
+      schedule: {},
+      timeWeekday: 90,
+      timeWeekend: 90,
+      // No weekly caps, so the only pressure under test is the same-day clash
+      // (a huevos cap would mask it by swapping the primero for its own reason).
+      freqs: {},
+      fixedDishes: [
+        { name: fixedRecipe.name, catalogId: fixedRecipe.id, timesPerWeek: 1, meals: ["Cena"] },
+      ],
+    };
+
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+
+    const huevoPrimeros = pool.filter(
+      (r) => r.mainProtein === "huevo" && r.mealRole.includes("primero") && r.id !== fixedRecipe.id,
+    );
+    expect(huevoPrimeros.length).toBeGreaterThanOrEqual(2);
+
+    const used = new Set([fixedRecipe.id, huevoPrimeros[0].id, huevoPrimeros[1].id]);
+    const pickDistinct = (pred) => {
+      const r = pool.find((c) => pred(c) && !used.has(c.id));
+      expect(r, "no distinct pool candidate matched a fixture predicate").toBeTruthy();
+      used.add(r.id);
+      return r;
+    };
+    const noHuevo = (r) => r.mainProtein !== "huevo";
+
+    // BOTH days open with a huevo primero, so wherever enforceFixedDishes places
+    // the fixed huevo cena it lands on a day that already carries huevos.
+    mockLLMAlwaysReturns([
+      { slotId: "lun_comida_1", recipeId: huevoPrimeros[0].id },
+      { slotId: "lun_comida_2", recipeId: pickDistinct((r) => r.mealRole.includes("segundo") && noHuevo(r)).id },
+      { slotId: "lun_cena", recipeId: pickDistinct((r) => r.mealRole.includes("cena") && noHuevo(r) && r.category !== "legumbres").id },
+      { slotId: "mar_comida_1", recipeId: huevoPrimeros[1].id },
+      { slotId: "mar_comida_2", recipeId: pickDistinct((r) => r.mealRole.includes("segundo") && noHuevo(r)).id },
+      { slotId: "mar_cena", recipeId: pickDistinct((r) => r.mealRole.includes("cena") && noHuevo(r) && r.category !== "legumbres").id },
+    ]);
+
+    const result = await generateGroupMenu(data, group);
+
+    // The fixed dish still gets its guaranteed placement — the fix corrects the
+    // NON-fixed side of the clash, it never silently drops what the user pinned.
+    expect(result.slotAssignments.filter((s) => s.recipeId === fixedRecipe.id)).toHaveLength(1);
+
+    // ...and no day repeats a protein group across primero and cena any more.
+    const finalCheck = validateMenu(result.slotAssignments, pool, ctx.slots, [], {});
+    expect(finalCheck.violations.filter((v) => v.rule === "proteina_repetida_en_dia")).toEqual([]);
+  });
+});
+
 describe("selectReplacementCandidates (single-dish swap)", () => {
   // Covers the manual "swap this dish" path (pickCatalogReplacement), which
   // picks from a much smaller pool than the full weekly generator and is the

@@ -75,6 +75,24 @@ function proteinGroupOf(recipe) {
   return recipe ? (PROTEIN_GROUP_MAP[recipe.mainProtein] ?? null) : null;
 }
 
+// Every protein GROUP a dish carries — its mainProtein PLUS any secondary animal
+// proteins declared in `extraProteins` — mirroring validateMenu.js's
+// proteinGroupsOf so "no repetir el mismo grupo" means the same thing in the
+// planner as in the validator. A compound legume dish (cocido, fabada) keeps
+// mainProtein "legumbre" for the frequency/cena rules while its ternera/cerdo
+// still counts as carne here, which is what rules 3c and 4 already assume.
+function proteinGroupsOf(recipe) {
+  const groups = new Set();
+  if (!recipe) return groups;
+  const add = (p) => {
+    const g = PROTEIN_GROUP_MAP[p];
+    if (g) groups.add(g);
+  };
+  add(recipe.mainProtein);
+  for (const p of recipe.extraProteins ?? []) add(p);
+  return groups;
+}
+
 // Balanced weekly quotas used when the user hasn't set a meal style — includes
 // carbs, meat and eggs so the default menu isn't skewed all-healthy.
 const DEFAULT_FREQS = { carne: 3, pescado: 2, legumbres: 2, pasta_arroz: 2, huevos: 2, verdura: 3 };
@@ -1496,6 +1514,7 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
     return fixedByMeal[mealType].has(slot.recipeId);
   };
   const groupOf = (slotId) => proteinGroupOf(poolById[bySlot.get(slotId)?.recipeId]);
+  const groupsOf = (slotId) => proteinGroupsOf(poolById[bySlot.get(slotId)?.recipeId]);
 
   // Chronological main-meal chain used for adjacency, mirroring rule 3.
   const chainSlotIds = [];
@@ -1559,9 +1578,16 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
         position: sctx.position,
         preferType: sctx.preferType,
       })) return false;
-      return proteinGroupOf(r) !== clashGroup;
+      // Full group set (mainProtein + extraProteins): swapping a clashing dish
+      // for a cocido/fabada whose *secondary* protein is the very group we're
+      // fleeing would just move the collision out of sight of mainProtein.
+      return !proteinGroupsOf(r).has(clashGroup);
     };
-    const neighborOk = (r) => { const g = proteinGroupOf(r); return !(g && soft.has(g)); };
+    const neighborOk = (r) => {
+      const gs = proteinGroupsOf(r);
+      for (const g of gs) if (soft.has(g)) return false;
+      return true;
+    };
     const carbOk = (r) => { const c = getCarbType(r); return !(c && dayCarbs.has(c)); };
     const freqOk = (r) => {
       const g = proteinGroupOf(r);
@@ -1611,6 +1637,46 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
       if (
         replaceSlot(curId, gCur, new Set([nextGroup].filter(Boolean))) ||
         replaceSlot(prevId, gPrev, new Set([beforePrevGroup].filter(Boolean)))
+      ) {
+        changed = true;
+      }
+    }
+
+    // Same-day primero ↔ cena (rule 3c). The chain above deliberately leaves a
+    // comida_1 primero OUT of the sequence — a light starter shouldn't block the
+    // next dinner — so a primero that genuinely carries a protein can share its
+    // group with that same day's cena unseen. Rule 3c exists to catch exactly
+    // that, but nothing re-applied it after enforceFixedDishes/enforceSlotTypes,
+    // so a fixed or forced dish could reintroduce the clash and it would only
+    // ever surface as a warning (e.g. huevos rellenos de primero + huevos fritos
+    // de cena the same day). Re-picks the PRIMERO first: it sits outside the
+    // adjacency chain, so changing it can't create a new consecutive-protein
+    // clash the way changing the cena could.
+    for (const day of DAYS) {
+      const slug = DAY_SLUG[day];
+      if (!slug) continue;
+      const primeroId = `${slug}_comida_1`;
+      const cenaId = `${slug}_cena`;
+      // Only when the primero is a real starter alongside a segundo — when it's
+      // the day's only comida dish it already sits in the chain above.
+      if (!bySlot.has(`${slug}_comida_2`) || !bySlot.has(primeroId) || !bySlot.has(cenaId)) continue;
+      const primeroGroups = groupsOf(primeroId);
+      if (primeroGroups.size === 0) continue;
+      const shared = [...groupsOf(cenaId)].find((g) => primeroGroups.has(g));
+      if (!shared) continue;
+
+      const cenaNeighbors = new Set();
+      const cenaIdx = chainSlotIds.indexOf(cenaId);
+      if (cenaIdx !== -1) {
+        for (const nid of [chainSlotIds[cenaIdx - 1], chainSlotIds[cenaIdx + 1]]) {
+          if (!nid) continue;
+          for (const g of groupsOf(nid)) cenaNeighbors.add(g);
+        }
+      }
+
+      if (
+        replaceSlot(primeroId, shared, new Set()) ||
+        replaceSlot(cenaId, shared, cenaNeighbors)
       ) {
         changed = true;
       }
@@ -1736,41 +1802,52 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   // protein/legume next to itself (e.g. garbanzos two days running, or a
   // primero with protein when the segundo already carries one).
   const siblingRecipeId = course === "first" ? currentSlot.recipeId : currentSlot.firstRecipeId;
-  const siblingHasProtein = Boolean(
-    proteinGroupOf(recipeCatalogById[stripGroupPrefix(siblingRecipeId)]),
-  );
+  const siblingHasProtein =
+    proteinGroupsOf(recipeCatalogById[stripGroupPrefix(siblingRecipeId)]).size > 0;
 
-  const nearbyProteinGroups = new Set();
-  const dayIdx = DAYS.indexOf(day);
-  const neighborDays = [DAYS[dayIdx - 1], DAYS[dayIdx + 1]].filter(Boolean);
-  for (const d of neighborDays) {
+  const collectGroups = (into, dayName, skipMeal = null) => {
     for (const m of getMeals(data)) {
-      const s = menuPlan[groupId]?.[`${d}-${m}`];
+      if (skipMeal && m === skipMeal) continue;
+      const s = menuPlan[groupId]?.[`${dayName}-${m}`];
       if (!s) continue;
       for (const rid of [s.firstRecipeId, s.recipeId]) {
-        const grp = proteinGroupOf(recipeCatalogById[stripGroupPrefix(rid)]);
-        if (grp) nearbyProteinGroups.add(grp);
+        for (const g of proteinGroupsOf(recipeCatalogById[stripGroupPrefix(rid)])) into.add(g);
       }
     }
-  }
+  };
+
   // Same day, other meal (comida <-> cena) — the slot being replaced is excluded.
-  for (const m of getMeals(data)) {
-    if (m === meal) continue;
-    const s = menuPlan[groupId]?.[`${day}-${m}`];
-    if (!s) continue;
-    for (const rid of [s.firstRecipeId, s.recipeId]) {
-      const grp = proteinGroupOf(recipeCatalogById[stripGroupPrefix(rid)]);
-      if (grp) nearbyProteinGroups.add(grp);
-    }
+  const sameDayGroups = new Set();
+  collectGroups(sameDayGroups, day, meal);
+  // Chronologically adjacent days.
+  const neighborDayGroups = new Set();
+  const dayIdx = DAYS.indexOf(day);
+  for (const d of [DAYS[dayIdx - 1], DAYS[dayIdx + 1]].filter(Boolean)) {
+    collectGroups(neighborDayGroups, d);
   }
 
-  const diverse = candidates.filter((r) => {
-    const grp = proteinGroupOf(r);
-    if (!grp) return true;
+  const sameDayOk = (r) => {
+    const gs = proteinGroupsOf(r);
+    if (gs.size === 0) return true;
     if (siblingHasProtein) return false; // same comida already has a protein course
-    return !nearbyProteinGroups.has(grp);
-  });
-  if (diverse.length > 0) candidates = diverse;
+    for (const g of gs) if (sameDayGroups.has(g)) return false;
+    return true;
+  };
+  const neighborDayOk = (r) => {
+    for (const g of proteinGroupsOf(r)) if (neighborDayGroups.has(g)) return false;
+    return true;
+  };
+
+  // Two tiers instead of one all-or-nothing filter. Before, when no candidate
+  // satisfied BOTH constraints the whole guardrail was dropped at once — which
+  // let a swap reintroduce the same protein group twice in a single day just
+  // because the neighbouring days happened to be crowded. The same-day clash
+  // (rule 3c) is the one the user actually sees on the plate, so it is now only
+  // given up when literally nothing else fits; the neighbour-day preference is
+  // relaxed first.
+  const strict = candidates.filter((r) => sameDayOk(r) && neighborDayOk(r));
+  const relaxed = strict.length > 0 ? strict : candidates.filter(sameDayOk);
+  if (relaxed.length > 0) candidates = relaxed;
 
   picked = candidates[Math.floor(Math.random() * candidates.length)];
   }
