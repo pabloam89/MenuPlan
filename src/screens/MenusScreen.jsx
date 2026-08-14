@@ -598,8 +598,8 @@ export function MenusScreen({
               <EmptyState
                 img={
                   tab === "favoritos"
-                    ? "/avatares/cards/empty_menus_favoritos.png"
-                    : "/avatares/cards/empty_menus_historico.png"
+                    ? "/avatares/cards/empty_menus_favoritos.jpg"
+                    : "/avatares/cards/empty_menus_historico.jpg"
                 }
                 imgPosition="center 22%"
                 text={

@@ -24,12 +24,12 @@ import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
-import menuCardPhoto2 from "../assets/dashboard/menu-card-2.png";
-import menuCardPhoto3 from "../assets/dashboard/menu-card-3.png";
-import recipesCardPhoto2 from "../assets/dashboard/recipes-card-2.png";
-import recipesCardPhoto3 from "../assets/dashboard/recipes-card-3.png";
-import pantryCardPhoto2 from "../assets/dashboard/pantry-card-2.png";
-import pantryCardPhoto3 from "../assets/dashboard/pantry-card-3.png";
+import menuCardPhoto2 from "../assets/dashboard/menu-card-2.jpg";
+import menuCardPhoto3 from "../assets/dashboard/menu-card-3.jpg";
+import recipesCardPhoto2 from "../assets/dashboard/recipes-card-2.jpg";
+import recipesCardPhoto3 from "../assets/dashboard/recipes-card-3.jpg";
+import pantryCardPhoto2 from "../assets/dashboard/pantry-card-2.jpg";
+import pantryCardPhoto3 from "../assets/dashboard/pantry-card-3.jpg";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 
 const PAGE_BG = "#f4f8f5";

@@ -200,7 +200,7 @@ export function RecipesScreen({
             onOpenRecipe={onOpenRecipe}
             extraRecipes={userRecipes}
             favoriteIds={favoriteIds}
-            emptyImg="/avatares/cards/empty_favoritas.png"
+            emptyImg="/avatares/cards/empty_favoritas.jpg"
             emptyLabel="Aún no tienes favoritas"
             emptySubtitle="Pulsa el corazón en cualquier receta del catálogo para guardarla aquí."
           />
@@ -210,7 +210,7 @@ export function RecipesScreen({
           userRecipes.length === 0 ? (
             <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
               <EmptyIllustration
-                img="/avatares/cards/empty_recetas_propias.png"
+                img="/avatares/cards/empty_recetas_propias.jpg"
                 title="Aún no tienes recetas propias"
                 subtitle="Crea tu primera receta y la IA rellenará macros, pasos y foto."
                 maxWidth={240}
@@ -255,7 +255,7 @@ export function RecipesScreen({
             {discardedRecipes.length === 0 ? (
               <div style={{ padding: "8px 0" }}>
                 <EmptyIllustration
-                  img="/avatares/cards/empty_descartes.png"
+                  img="/avatares/cards/empty_descartes.jpg"
                   title="No has descartado ninguna receta"
                   subtitle="Los platos que marques con «No me gusta» aparecerán aquí para no volver a proponerlos."
                   maxWidth={240}

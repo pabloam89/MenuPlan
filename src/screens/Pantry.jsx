@@ -1276,7 +1276,7 @@ export function PantryScreen({
         {pantryIsEmpty && (
           <div style={{ padding: "40px 20px 4px" }}>
             <EmptyIllustration
-              img="/avatares/cards/empty_despensa.png"
+              img="/avatares/cards/empty_despensa.jpg"
               title="Tu nevera y tu despensa están vacías"
               subtitle="Añade lo que tienes en casa y lo usaremos en tus recetas y en tu lista de la compra."
               imgAspect="16 / 12"
