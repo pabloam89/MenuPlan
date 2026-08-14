@@ -93,6 +93,13 @@ import {
   deleteRecipeVote,
   upsertRecipeVotes,
 } from "./lib/recipeVotes.js";
+import {
+  loadRecipeDiscards,
+  saveRecipeDiscard,
+  deleteRecipeDiscard,
+  upsertRecipeDiscards,
+  mergeDiscards,
+} from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { shouldAdoptRemoteProfile } from "./lib/profileMerge.js";
 import {
@@ -1024,6 +1031,7 @@ export default function App() {
     // isn't the source of truth for the union (same as before).
     const localRecipes = data.userRecipes ?? [];
     const localVotes = data.recipeVotes ?? {};
+    const localDiscards = data.discards ?? { forever: [], cooldownUntil: {} };
     const localMenus = data.menus ?? {};
     // Spend history is NOT part of the winner-takes-all profile adoption below:
     // it's merged as a union both ways so a guest's tickets survive login and a
@@ -1040,10 +1048,11 @@ export default function App() {
       if (cancelled) return;
       setPantryEpoch((n) => n + 1);
 
-      const [remoteState, remoteRecipes, remoteVotes] = await Promise.all([
+      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards] = await Promise.all([
         loadUserState(user.id),
         loadUserRecipes(user.id),
         loadRecipeVotes(user.id),
+        loadRecipeDiscards(user.id),
       ]);
       if (cancelled) return;
 
@@ -1069,6 +1078,17 @@ export default function App() {
       });
       if (useRemote) remoteData.groups = healAdhocGroupLabels(remoteData.groups);
 
+      // Forever discards union, cooldowns take the later expiry — see
+      // recipeDiscardsSync.js's mergeDiscards for the reasoning. Also folds in
+      // whatever discards still sit in the legacy user_state blob (remoteData),
+      // for accounts whose only record of them predates user_recipe_discards —
+      // otherwise that history would be silently orphaned the moment the blob
+      // write stops carrying `discards` (see the debounced push below).
+      const mergedDiscards = mergeDiscards(
+        mergeDiscards(localDiscards, remoteDiscards),
+        remoteData?.discards ?? { forever: [], cooldownUntil: {} },
+      );
+
       // Union spend by id so neither side's tickets/observations are dropped by
       // the profile adoption (which otherwise picks one whole `data` blob).
       const unionById = (a = [], b = []) => {
@@ -1085,6 +1105,7 @@ export default function App() {
         ...(useRemote ? { ...INITIAL_DATA, ...remoteData } : d),
         userRecipes: mergedRecipes,
         recipeVotes: mergedVotes,
+        discards: mergedDiscards,
         priceObs: mergedPriceObs,
         receipts: mergedReceipts,
         priceAliases: mergedAliases,
@@ -1108,6 +1129,16 @@ export default function App() {
         if (!(rid in remoteVotes)) votesBackfill[rid] = v;
       }
       upsertRecipeVotes(user.id, votesBackfill);
+      // Backfill from the full merge (local + legacy blob), not just local —
+      // an account whose only record of a discard sits in the legacy blob
+      // needs it pushed to the new table too, not only kept in memory.
+      const discardsBackfill = {
+        forever: mergedDiscards.forever.filter((id) => !(remoteDiscards.forever ?? []).includes(id)),
+        cooldownUntil: Object.fromEntries(
+          Object.entries(mergedDiscards.cooldownUntil).filter(([id]) => !(id in (remoteDiscards.cooldownUntil ?? {}))),
+        ),
+      };
+      upsertRecipeDiscards(user.id, discardsBackfill);
 
       // Fase 3/4 of the menú-archive migration: the cloud tables
       // (user_menus/user_menu_weeks/user_menu_recipes) are the read
@@ -1236,6 +1267,9 @@ export default function App() {
       const profile = { ...data };
       delete profile.userRecipes;
       delete profile.recipeVotes;
+      // discards now sync through user_recipe_discards (0010_recipe_discards.sql)
+      // with their own immediate write — stop duplicating into this blob.
+      delete profile.discards;
       // Fase 7 (multi-week-menus plan): user_menus/user_menu_weeks/
       // user_menu_recipes are now the source of truth for a signed-in
       // account's menú archive (see the Fase 3/4 hydration above) — stop
@@ -2252,6 +2286,14 @@ export default function App() {
       const entry = nextVotes[baseId] ?? null;
       if (entry != null) saveRecipeVote(user.id, baseId, entry);
     }
+    if (user?.id) {
+      if (reason === "dislike") {
+        saveRecipeDiscard(user.id, baseId, { isPermanent: true });
+      } else if (!(data.discards?.forever ?? []).includes(baseId)) {
+        const days = reason === "recent" ? 14 : 7;
+        saveRecipeDiscard(user.id, baseId, { cooldownUntil: Date.now() + days * DAY_MS });
+      }
+    }
     const label = reason === "dislike"
       ? "Descartado para siempre"
       : reason === "recent"
@@ -2259,7 +2301,7 @@ export default function App() {
         : "Descartado esta semana";
     trackEvent(user, "dish_discarded", "menu", { reason, recipeId: baseId });
     return label;
-  }, [slotBaseRecipeId, data.recipeVotes, user]);
+  }, [slotBaseRecipeId, data.recipeVotes, data.discards, user]);
 
   // Recuperar (Recetas ▸ Descartados): clear a permanent discard so the dish
   // rejoins the active catalog.
@@ -2271,8 +2313,9 @@ export default function App() {
       delete cooldownUntil[recipeId];
       return { ...d, discards: { forever, cooldownUntil } };
     });
+    if (user?.id) deleteRecipeDiscard(user.id, recipeId);
     showToast("Receta recuperada");
-  }, [showToast]);
+  }, [showToast, user]);
 
   // Selectable scopes for a favorite: the household's distinct menu-group labels
   // (excluding the single-family "Familia"). Empty/one → no per-group choice.
