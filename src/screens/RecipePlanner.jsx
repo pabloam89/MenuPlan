@@ -76,6 +76,7 @@ import {
 import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle } from "../lib/ingredientCategories.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
+import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -2585,7 +2586,13 @@ function PhotoStep({ dishName, photo, genState, genError, onGenerate, onRemovePh
       <div style={{ position: "relative", height: 220, borderRadius: 16, overflow: "hidden" }}>
         {photo ? (
           <>
-            <img src={photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <img
+              src={deckImg(photo, 440)}
+              srcSet={deckSrcSet(photo, 440)}
+              alt=""
+              loading="lazy"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
             <button
               type="button"
               onClick={onRemovePhoto}
@@ -2690,7 +2697,13 @@ function DishPreviewCard({ draft, photo, allergens = [], user }) {
       {/* Hero */}
       <div style={{ position: "relative", height: 170, background: "#eef3ef" }}>
         {photo ? (
-          <img src={photo} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+          <img
+            src={deckImg(photo, 440)}
+            srcSet={deckSrcSet(photo, 440)}
+            alt=""
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
         ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Camera size={26} color="#b6c8bc" />

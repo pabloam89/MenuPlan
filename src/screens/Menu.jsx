@@ -99,6 +99,7 @@ import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
 import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
+import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
 import {
   MEAL_STYLES,
   DEFAULT_MEAL_STYLE,
@@ -1880,31 +1881,6 @@ const DECK_VIEW_OPTIONS = [
 
 const DECK_VIEW_ICON  = { dia: CalendarDays, semana: Layers2, lista: LayoutGrid };
 const DECK_VIEW_COLOR = { dia: "#c9820a", semana: "#2e7d75", lista: "#5a5fc8" };
-
-// On-the-fly image optimization for the deck's big photos: the origin blobs are
-// ~1.5–1.8 MB / ~1024px, far too heavy for full-bleed tiles. wsrv.nl resizes +
-// converts to WebP at the edge (origin stays cached separately). Temporary until
-// we ship pre-generated derivatives with sharp.
-// WebP only: wsrv.nl's free endpoint returns HTTP 400 for `output=avif`, and a
-// failed <source> in a <picture> does NOT fall back to <img src> — it just shows
-// nothing. So we stick to WebP, which every target browser supports.
-function deckImg(url, w = 720) {
-  if (!url) return null;
-  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
-}
-
-// Responsive srcset with width descriptors so the browser fetches the size that
-// actually fits the tile × device pixel ratio (instead of a fixed 720px for a
-// 160px thumbnail). Caps at 1080 — the origin blobs are ~1024px, so asking for
-// more just upscales. Paired with a `sizes` hint of the tile's CSS width.
-function deckSrcSet(url, w = 720) {
-  if (!url) return null;
-  const hi = Math.min(Math.round(w * 2), 1080);
-  const lo = Math.min(w, hi);
-  const parts = [`${deckImg(url, lo)} ${lo}w`];
-  if (hi > lo) parts.push(`${deckImg(url, hi)} ${hi}w`);
-  return parts.join(", ");
-}
 
 /** Flatten a day into photo tiles (one per dish/course, across visible groups).
  *  When the same dish (recipe + course) is planned for several groups in the

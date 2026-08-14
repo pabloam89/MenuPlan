@@ -2,16 +2,10 @@ import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Search, X } from "lucide-react";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
-
-// WebP thumbnail via wsrv (same approach as the menu deck), so the grid stays
-// light even with lots of options.
-function thumb(url, w = 320) {
-  if (!url) return null;
-  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
-}
 
 const norm = (s) =>
   (s ?? "")
@@ -179,8 +173,8 @@ export function SlotTypePickerSheet({
                     <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 3", background: "#eef3f0" }}>
                       {img && (
                         <img
-                          src={thumb(img, 320)}
-                          srcSet={`${thumb(img, 320)} 320w, ${thumb(img, 480)} 480w`}
+                          src={deckImg(img, 320)}
+                          srcSet={deckSrcSet(img, 320)}
                           sizes="(max-width: 460px) 45vw, 210px"
                           alt=""
                           loading="lazy"

@@ -6,6 +6,7 @@ import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.j
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+import { deckImg } from "../lib/dishPhotoOptimize.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -290,7 +291,7 @@ export function RecipesScreen({
                         style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 0, border: "none", background: "transparent", padding: 0, cursor: "pointer", fontFamily: "inherit", textAlign: "left" }}
                       >
                         <div style={{ width: 54, height: 54, borderRadius: 11, flexShrink: 0, overflow: "hidden", background: "#eef3f0", filter: "grayscale(.5)", opacity: 0.85 }}>
-                          {img && <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} loading="lazy" decoding="async" />}
+                          {img && <img src={deckImg(img, 108)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} loading="lazy" decoding="async" />}
                         </div>
                         <div style={{ minWidth: 0 }}>
                           <div style={{ fontSize: 14, fontWeight: 800, color: INK, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>

@@ -36,6 +36,7 @@ import {
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
+import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
 import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
 import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
@@ -1232,7 +1233,7 @@ function GatePickCard({ kind, item, selected, onToggle, animDelay = 0 }) {
           }}
         >
           {photo ? (
-            <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={deckImg(photo, 104)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           ) : isPlato ? (
             <CategoryIcon category={item.category} size={22} />
           ) : (
@@ -1434,7 +1435,7 @@ function RecipeCard({
               }}
             >
               {photo ? (
-                <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={deckImg(photo, 104)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <CategoryIcon category={recipe.category} size={22} />
               )}
