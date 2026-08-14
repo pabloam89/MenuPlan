@@ -12,19 +12,19 @@ export const POSTRE_TIPOS = [
     id: "inmediato",
     title: "Al momento",
     subtitle: "Sin cocinar",
-    img: "/avatares/cards/postre_inmediato.png",
+    img: "/avatares/cards/postre_inmediato.jpg",
   },
   {
     id: "cazo",
     title: "De cazo",
     subtitle: "Arroz con leche, natillas",
-    img: "/avatares/cards/postre_intermedio.png",
+    img: "/avatares/cards/postre_intermedio.jpg",
   },
   {
     id: "horno",
     title: "De horno",
     subtitle: "Flan, tarta, bizcocho",
-    img: "/avatares/cards/postre_elaborado.png",
+    img: "/avatares/cards/postre_elaborado.jpg",
   },
 ];
 
@@ -32,7 +32,7 @@ export const POSTRE_INMEDIATO_KINDS = [
   { id: "fruta", label: "Fruta", img: "/categories/cut/frutas.png" },
   { id: "yogur", label: "Yogur", img: "/ingredients/yogur-cut.png" },
   // "+" = pool de fruta O yogur (elige uno u otro cada día), no un plato mezclado.
-  { id: "mix", label: "Yogur + fruta", img: "/avatares/cards/yogur_fruta.png" },
+  { id: "mix", label: "Yogur + fruta", img: "/avatares/cards/yogur_fruta.jpg" },
 ];
 
 /** Calendar season in Spain (meteorological quarters). */

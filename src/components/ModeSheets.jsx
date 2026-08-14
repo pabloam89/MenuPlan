@@ -71,13 +71,13 @@ export function ModeSelectSheet({ onChoose, onDismiss }) {
     >
       <div style={{ display: "flex", gap: 8 }}>
         <ModeIllustCard
-          img="/avatares/cards/modo_sencillo.png"
+          img="/avatares/cards/modo_sencillo.jpg"
           title="Modo sencillo"
           subtitle="Comidas y cenas, y decidimos el resto por ti."
           onClick={() => onChoose(false)}
         />
         <ModeIllustCard
-          img="/avatares/cards/modo_avanzado.png"
+          img="/avatares/cards/modo_avanzado.jpg"
           title="Modo avanzado"
           subtitle="Tú controlas desayunos, meriendas, despensa y cocina."
           onClick={() => onChoose(true)}

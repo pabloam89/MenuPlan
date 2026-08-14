@@ -145,14 +145,14 @@ const MEAL_STRUCTURE_CARDS = [
 ];
 
 const DESPENSA_OPTS = [
-  { id: "only", label: "Solo la despensa", subtitle: "Lo que hay en casa", img: "/avatares/cards/despensa_solo.png" },
-  { id: "prefer", label: "Usar la despensa", subtitle: "Combina con recetas", img: "/avatares/cards/despensa_usar.png" },
-  { id: "off", label: "Sin despensa", subtitle: "Recetas desde cero", img: "/avatares/cards/despensa_sin.png" },
+  { id: "only", label: "Solo la despensa", subtitle: "Lo que hay en casa", img: "/avatares/cards/despensa_solo.jpg" },
+  { id: "prefer", label: "Usar la despensa", subtitle: "Combina con recetas", img: "/avatares/cards/despensa_usar.jpg" },
+  { id: "off", label: "Sin despensa", subtitle: "Recetas desde cero", img: "/avatares/cards/despensa_sin.jpg" },
 ];
 const DESAYUNO_OPTS = [
-  { id: "variado", label: "Variado", subtitle: "Cada día algo distinto", img: "/avatares/cards/desayuno_variado.png" },
-  { id: "findes", label: "Igual entre semana", subtitle: "Diferente el finde", img: "/avatares/cards/desayuno_lunes_viernes.png" },
-  { id: "igual", label: "Siempre igual", subtitle: "La misma rutina", img: "/avatares/cards/desayuno_igual.png" },
+  { id: "variado", label: "Variado", subtitle: "Cada día algo distinto", img: "/avatares/cards/desayuno_variado.jpg" },
+  { id: "findes", label: "Igual entre semana", subtitle: "Diferente el finde", img: "/avatares/cards/desayuno_lunes_viernes.jpg" },
+  { id: "igual", label: "Siempre igual", subtitle: "La misma rutina", img: "/avatares/cards/desayuno_igual.jpg" },
 ];
 const MERIENDA_OPTS = [
   { id: "off", label: "Sin merienda", Icon: X },
@@ -8373,7 +8373,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
       {showExtrasTabs && (
         <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
           <RestrictionTabCard
-            img="/avatares/cards/comidas.png"
+            img="/avatares/cards/comidas.jpg"
             title="Comidas"
             subtitle="desayuno, comida y cena"
             imgRatio="4 / 3"
@@ -8382,7 +8382,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
             onClick={() => setExtrasTab("comidas")}
           />
           <RestrictionTabCard
-            img="/avatares/cards/otros.png"
+            img="/avatares/cards/otros.jpg"
             title="Otros"
             subtitle="postre, despensa y guarnición"
             imgRatio="4 / 3"
