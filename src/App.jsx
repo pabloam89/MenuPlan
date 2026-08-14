@@ -2042,18 +2042,10 @@ export default function App() {
   // Dialog state: when the user re-enters the wizard with data already saved,
   // ask whether to continue or start fresh instead of silently overwriting.
   const [onbResumeOpen, setOnbResumeOpen] = useState(false);
-  const [pendingOnbStep, setPendingOnbStep] = useState(0);
 
   const goToOnboardingStep = useCallback((step) => {
-    // Show the "continue / start fresh" dialog whenever there's an existing
-    // household. First-run splash never goes through this helper.
-    if ((data.members?.length ?? 0) > 0) {
-      setPendingOnbStep(step);
-      setOnbResumeOpen(true);
-      return;
-    }
     _doGoToOnboardingStep(step);
-  }, [data.members, _doGoToOnboardingStep]);
+  }, [_doGoToOnboardingStep]);
 
   // "Editar preferencias" from Settings/Account used to just jump into the
   // restrictions step of the full onboarding wizard — "Atrás" then stepped
@@ -2083,12 +2075,12 @@ export default function App() {
   const [firstRunOnboarding, setFirstRunOnboarding] = useState(false);
   const handleGenerateMenu = useCallback(() => {
     if ((data.members ?? []).length > 0) {
-      setWhoForOpen(true);
+      setOnbResumeOpen(true);
     } else {
       setQuickMenu(false);
-      goToOnboardingStep(0);
+      _doGoToOnboardingStep(0);
     }
-  }, [data.members, goToOnboardingStep]);
+  }, [data.members, _doGoToOnboardingStep]);
 
   // "Mi familia habitual" → shortened assistant (not skipped entirely).
   const startQuickMenu = useCallback(() => {
@@ -2098,6 +2090,29 @@ export default function App() {
     setOnbStep(1); // step 0 (familia) is hidden in quick mode; effect hops if 1 is too
     setScreen("onboarding");
   }, []);
+
+  // "Continuar donde lo dejé": if they already generated a menu, skip the
+  // wizard and generate with the saved profile (pantry, extras, family). If
+  // they abandoned mid-wizard, reopen that step. If they only finished the
+  // first-run family screen, pick up the rest of the assistant.
+  const resumeOnboardingOrGenerate = useCallback(() => {
+    setOnbResumeOpen(false);
+    const hasMenu =
+      Object.keys(menuPlan ?? {}).length > 0 ||
+      Object.keys(data.menus ?? {}).length > 0;
+    if (hasMenu) {
+      fwd(goToMenu);
+      return;
+    }
+    if (onbStep > 0) {
+      setFirstRunOnboarding(false);
+      setQuickMenu(false);
+      dirRef.current = "forward";
+      setScreen("onboarding");
+      return;
+    }
+    startQuickMenu();
+  }, [menuPlan, data.menus, onbStep, goToMenu, startQuickMenu]);
 
   // "Otro grupo" → park the current household and start an empty roster, so
   // whoever gets added next belongs to that group alone. Before rosters existed
@@ -3629,7 +3644,7 @@ export default function App() {
             <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               <button
                 type="button"
-                onClick={() => { setOnbResumeOpen(false); _doGoToOnboardingStep(pendingOnbStep); }}
+                onClick={resumeOnboardingOrGenerate}
                 style={{
                   width: "100%", padding: "13px 16px", borderRadius: 13, border: "none",
                   background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",

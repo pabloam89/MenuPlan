@@ -1,6 +1,5 @@
 import { useState } from "react";
 import {
-  Leaf,
   SlidersHorizontal,
   Refrigerator,
   Camera,
@@ -22,6 +21,45 @@ import { WizardSheet, WizardOptionCard } from "./ui.jsx";
 // ── Selector inicial de modo (básico vs avanzado) ──
 // Se muestra una vez, tras el spotlight de Inicio. Si el usuario lo cierra sin
 // elegir, se queda en modo básico (progressive disclosure por defecto).
+function ModeIllustCard({ img, title, subtitle, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "stretch",
+        padding: 0,
+        overflow: "hidden",
+        borderRadius: 15,
+        border: "2px solid #e0eae3",
+        background: "#fff",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        boxShadow: "0 1px 2px rgba(0,0,0,.04)",
+      }}
+    >
+      <div style={{ width: "100%", aspectRatio: "1 / 1", background: "#f4f7f5" }}>
+        <img
+          src={img}
+          alt=""
+          loading="lazy"
+          style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+        />
+      </div>
+      <div style={{ padding: "8px 6px 10px", textAlign: "center", color: "#142f1d" }}>
+        <div style={{ fontSize: 12, fontWeight: 800 }}>{title}</div>
+        <div style={{ fontSize: 10, fontWeight: 600, marginTop: 2, opacity: 0.85, lineHeight: 1.25 }}>
+          {subtitle}
+        </div>
+      </div>
+    </button>
+  );
+}
+
 export function ModeSelectSheet({ onChoose, onDismiss }) {
   return (
     <WizardSheet
@@ -31,21 +69,17 @@ export function ModeSelectSheet({ onChoose, onDismiss }) {
       onClose={onDismiss}
       maxWidth={340}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <WizardOptionCard
-          icon={Leaf}
-          iconColor="#2d5a3d"
-          iconBg="#e7f3ec"
+      <div style={{ display: "flex", gap: 8 }}>
+        <ModeIllustCard
+          img="/avatares/cards/modo_sencillo.png"
           title="Modo sencillo"
-          subtitle="Comidas y cenas, y decidimos el resto por ti. Lo más fácil para empezar."
+          subtitle="Comidas y cenas, y decidimos el resto por ti."
           onClick={() => onChoose(false)}
         />
-        <WizardOptionCard
-          icon={SlidersHorizontal}
-          iconColor="#8a5a00"
-          iconBg="#fbeecd"
+        <ModeIllustCard
+          img="/avatares/cards/modo_avanzado.png"
           title="Modo avanzado"
-          subtitle="Tú controlas todo: desayunos, meriendas, despensa, variedad y cocina."
+          subtitle="Tú controlas desayunos, meriendas, despensa y cocina."
           onClick={() => onChoose(true)}
         />
       </div>
