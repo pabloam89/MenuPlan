@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChefHat, BookOpen, Plus, RotateCcw, Ban } from "lucide-react";
-import { BottomNav, bottomNavSpacer } from "../components/ui.jsx";
+import { BookOpen, Plus, RotateCcw } from "lucide-react";
+import { BottomNav, bottomNavSpacer, EmptyIllustration } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
@@ -200,38 +200,28 @@ export function RecipesScreen({
             onOpenRecipe={onOpenRecipe}
             extraRecipes={userRecipes}
             favoriteIds={favoriteIds}
-            emptyLabel="Aún no tienes favoritas. Pulsa el corazón en cualquier receta del catálogo para guardarla aquí."
+            emptyImg="/avatares/cards/empty_favoritas.png"
+            emptyLabel="Aún no tienes favoritas"
+            emptySubtitle="Pulsa el corazón en cualquier receta del catálogo para guardarla aquí."
           />
         )}
 
         {tab === "mine" && (
           userRecipes.length === 0 ? (
-            <div style={{ padding: "14px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
-              <div
-                style={{
-                  display: "flex", flexDirection: "column", alignItems: "center",
-                  gap: 12, padding: "50px 20px", textAlign: "center",
-                }}
+            <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
+              <EmptyIllustration
+                img="/avatares/cards/empty_recetas_propias.png"
+                title="Aún no tienes recetas propias"
+                subtitle="Crea tu primera receta y la IA rellenará macros, pasos y foto."
+                maxWidth={240}
+                imgAspect="1 / 1"
+                imgPosition="center"
               >
-                <div
-                  style={{
-                    width: 60, height: 60, borderRadius: 18, background: "#f2e7fb",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <ChefHat size={26} color="#9647c9" />
-                </div>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: INK }}>
-                  Aún no tienes recetas propias
-                </p>
-                <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
-                  Crea tu primera receta y la IA rellenará macros, pasos y foto.
-                </p>
                 <button
                   type="button"
                   onClick={onOpenRecipePlanner}
                   style={{
-                    marginTop: 4, display: "flex", alignItems: "center", gap: 7,
+                    marginTop: 14, display: "inline-flex", alignItems: "center", gap: 7,
                     padding: "11px 20px", borderRadius: 13, border: "none",
                     background: GREEN, color: "#fff", fontSize: 14, fontWeight: 800,
                     cursor: "pointer", fontFamily: "inherit",
@@ -239,7 +229,7 @@ export function RecipesScreen({
                 >
                   <Plus size={15} strokeWidth={2.8} /> Crear receta
                 </button>
-              </div>
+              </EmptyIllustration>
             </div>
           ) : (
             <CatalogBrowserSheet
@@ -263,14 +253,15 @@ export function RecipesScreen({
         {tab === "discarded" && (
           <div style={{ padding: "14px 18px", maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box" }}>
             {discardedRecipes.length === 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "50px 20px", textAlign: "center" }}>
-                <div style={{ width: 60, height: 60, borderRadius: 18, background: "#fdeef1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Ban size={26} color="#e0405a" />
-                </div>
-                <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: INK }}>No has descartado ninguna receta</p>
-                <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
-                  Cuando pulses «No me gusta» al cambiar o quitar un plato del menú, aparecerá aquí para no volver a proponerlo.
-                </p>
+              <div style={{ padding: "8px 0" }}>
+                <EmptyIllustration
+                  img="/avatares/cards/empty_descartes.png"
+                  title="No has descartado ninguna receta"
+                  subtitle="Los platos que marques con «No me gusta» aparecerán aquí para no volver a proponerlos."
+                  maxWidth={240}
+                  imgAspect="1 / 1"
+                  imgPosition="center"
+                />
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>

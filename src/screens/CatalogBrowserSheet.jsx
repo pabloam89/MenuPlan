@@ -41,6 +41,7 @@ import { getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../l
 import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
 import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
+import { EmptyIllustration } from "../components/ui.jsx";
 
 const GARNISHES = guarnicionesData;
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
@@ -188,6 +189,15 @@ export function CatalogBrowserSheet({
   restrictToIds = null,
   // Custom empty-state copy (favorites / mine have their own wording).
   emptyLabel = null,
+  // Optional second line under the title, shown non-bold (mirrors Descartados).
+  emptySubtitle = null,
+  // Optional fixed box height so the illustration matches its sibling empty
+  // states (Recetas: Mis recetas / Favoritas / Descartados share one size).
+  emptyMinHeight = undefined,
+  // Solid teal footer band (white copy) to match sibling empty states.
+  emptySolidBand = false,
+  // Optional illustration shown instead of the icon tile in the empty state.
+  emptyImg = null,
   // Reference mode only: lets user-owned recipes change visibility inline.
   onChangeVisibility = null,
   // Reference mode only: lets the owner delete their own recipes inline.
@@ -632,28 +642,43 @@ export function CatalogBrowserSheet({
             />
           ))}
       {results.length === 0 && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "50px 20px", textAlign: "center" }}>
-          <div
-            style={{
-              width: 60,
-              height: 60,
-              borderRadius: 18,
-              background: favoriteIds ? "#fdecef" : "#eef4f0",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {favoriteIds ? <Heart size={26} color="#e0668a" /> : <Search size={26} color="#2d5a3d" />}
+        emptyImg ? (
+          <div style={{ padding: "16px 20px" }}>
+            <EmptyIllustration
+              img={emptyImg}
+              title={emptyLabel}
+              subtitle={emptySubtitle}
+              maxWidth={240}
+              minHeight={emptyMinHeight}
+              solidBand={emptySolidBand}
+              imgAspect="1 / 1"
+              imgPosition="center"
+            />
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5, maxWidth: 260 }}>
-            {emptyLabel
-              ? emptyLabel
-              : gatePick
-                ? "No encontramos platos ni guarniciones con esos filtros."
-                : "No encontramos platos con esos filtros."}
-          </p>
-        </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "50px 20px", textAlign: "center" }}>
+            <div
+              style={{
+                width: 60,
+                height: 60,
+                borderRadius: 18,
+                background: favoriteIds ? "#fdecef" : "#eef4f0",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {favoriteIds ? <Heart size={26} color="#e0668a" /> : <Search size={26} color="#2d5a3d" />}
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5, maxWidth: 260 }}>
+              {emptyLabel
+                ? emptyLabel
+                : gatePick
+                  ? "No encontramos platos ni guarniciones con esos filtros."
+                  : "No encontramos platos con esos filtros."}
+            </p>
+          </div>
+        )
       )}
     </>
   );

@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
-import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, ToggleSwitch } from "../components/ui.jsx";
+import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
 import { PantryPrefsWizard } from "../components/ModeSheets.jsx";
 import { PantryCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import {
@@ -152,18 +152,6 @@ const AISLE_UI = {
 };
 
 const pageTitle = { fontSize: 20, fontWeight: 900, color: INK, margin: 0, letterSpacing: "-.3px" };
-
-// Empty-state tiles (nevera + despensa) shown when there's no stock yet —
-// filled tinted tiles with saturated icons, matching the "Recetas" empty state.
-const emptyTile = {
-  width: 60,
-  height: 60,
-  borderRadius: 18,
-  display: "inline-flex",
-  alignItems: "center",
-  justifyContent: "center",
-  background: "#e0eef5",
-};
 
 // Compact icon buttons in the "En casa" header (top-right): upload a ticket
 // and open the spend/tickets analytics. Square so two sit neatly beside the
@@ -1286,21 +1274,13 @@ export function PantryScreen({
         )}
 
         {pantryIsEmpty && (
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "40px 20px 4px", textAlign: "center" }}>
-            <div style={{ display: "inline-flex", gap: 14 }}>
-              <span style={emptyTile}>
-                <Refrigerator size={26} color="#2f6d8a" strokeWidth={2} />
-              </span>
-              <span style={{ ...emptyTile, background: "#f3ecdf" }}>
-                <Package size={26} color="#bf9256" strokeWidth={2} />
-              </span>
-            </div>
-            <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: INK }}>
-              Tu nevera y tu despensa están vacías
-            </p>
-            <p style={{ margin: 0, maxWidth: 280, fontSize: 13, color: "#7a9485", lineHeight: 1.5 }}>
-              Añade lo que tienes en casa y lo usaremos en tus recetas y en tu lista de la compra.
-            </p>
+          <div style={{ padding: "40px 20px 4px" }}>
+            <EmptyIllustration
+              img="/avatares/cards/empty_despensa.png"
+              title="Tu nevera y tu despensa están vacías"
+              subtitle="Añade lo que tienes en casa y lo usaremos en tus recetas y en tu lista de la compra."
+              imgAspect="16 / 12"
+            />
           </div>
         )}
 

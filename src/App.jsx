@@ -59,6 +59,7 @@ import {
   foldInNewMenu,
   removeMenu,
   toggleMenuFavorite,
+  saveActivePlanAsFavorite,
   collectMenuRecipeIds,
   pruneAiRecipes,
   pruneMenuHistory,
@@ -1878,6 +1879,30 @@ export default function App() {
     setShopping({ items: [] });
   }, [data.activeMenuId, user, showToast]);
 
+  // Header ♥ on "Tu menú": favorites the active menú so it survives the prune
+  // and shows up in the Favoritos tab. Turning it ON snapshots the live
+  // (edited) plan into the archive first, so the favorite keeps the menú the
+  // user actually shaped — not the raw generated one.
+  const toggleActiveFavorite = useCallback(() => {
+    const menuId = data.activeMenuId;
+    const current = data.menus?.[menuId];
+    if (!current) return;
+    if (!current.isFavorite) {
+      const offset = data.menuWeek?.offset;
+      const { menus, weekStart, week } = saveActivePlanAsFavorite(data.menus, menuId, menuPlan, offset);
+      setData((d) => ({ ...d, menus }));
+      if (user) {
+        toggleMenuFavoriteRemote(user.id, menuId, true);
+        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week);
+      }
+      showToast("Menú guardado en favoritos");
+    } else {
+      setData((d) => ({ ...d, menus: toggleMenuFavorite(d.menus, menuId) }));
+      if (user) toggleMenuFavoriteRemote(user.id, menuId, false);
+      showToast("Quitado de favoritos");
+    }
+  }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast]);
+
   // Deletes a non-active menú from the histórico. Unlike deleteActiveMenu,
   // never touches menuPlan/shopping — those mirror the active menú's current
   // week and have nothing to do with a history entry.
@@ -3060,6 +3085,8 @@ export default function App() {
               user={user}
               onTrackEvent={(event, metadata) => trackEvent(user, event, "menu", metadata)}
               activeMenu={data.menus?.[data.activeMenuId] ?? null}
+              activeFavorite={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
+              onToggleFavorite={toggleActiveFavorite}
               onSwitchWeek={switchActiveWeek}
               onOpenMenus={openMenusScreen}
               onOpenAnalytics={() => {

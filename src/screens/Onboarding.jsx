@@ -986,29 +986,29 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                       {keys.length > 0 && (
                         <div style={{ position: "relative" }}>
                           <div style={{ display: "flex", gap: 10, overflowX: "auto", padding: "4px 0", scrollSnapType: "x proximity", scrollbarWidth: "none" }}>
-                            {keys.map((k) => {
-                              const sel = editing.avatarKey === k;
-                              return (
-                                <button
-                                  key={k}
-                                  type="button"
-                                  onClick={() => updateMemberAvatar(editing.id, k)}
-                                  style={{
+                          {keys.map((k) => {
+                            const sel = editing.avatarKey === k;
+                            return (
+                              <button
+                                key={k}
+                                type="button"
+                                onClick={() => updateMemberAvatar(editing.id, k)}
+                                style={{
                                     flex: "0 0 calc((100% - 20px) / 3)", aspectRatio: "1",
                                     scrollSnapAlign: "start",
                                     padding: 0, cursor: "pointer",
-                                    borderRadius: 999, overflow: "hidden",
-                                    border: sel ? `2.5px solid ${color}` : "2.5px solid #e5eee8",
-                                    boxShadow: sel ? `0 3px 10px ${color}55` : "0 1px 3px rgba(0,0,0,.06)",
-                                    background: "transparent",
+                                  borderRadius: 999, overflow: "hidden",
+                                  border: sel ? `2.5px solid ${color}` : "2.5px solid #e5eee8",
+                                  boxShadow: sel ? `0 3px 10px ${color}55` : "0 1px 3px rgba(0,0,0,.06)",
+                                  background: "transparent",
                                     transform: sel ? "scale(1.06)" : "scale(1)",
-                                    transition: "transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .14s ease, border-color .14s ease",
-                                  }}
-                                >
-                                  <img src={`/avatares/${folder}/${k}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                                </button>
-                              );
-                            })}
+                                  transition: "transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .14s ease, border-color .14s ease",
+                                }}
+                              >
+                                <img src={`/avatares/${folder}/${k}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                              </button>
+                            );
+                          })}
                           </div>
                           {/* Fade + chevron hint — only when there are more than 3 avatars */}
                           {keys.length > 3 && (
@@ -3695,42 +3695,42 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
                   }}
                 />
               ) : (
-                <span
-                  style={{
+              <span
+                style={{
                     flex: 1,
                     minHeight: 0,
                     display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
+                  alignItems: "center",
+                  justifyContent: "center",
                     background: sel ? "rgba(255,255,255,.1)" : "#edf2ee",
-                  }}
-                >
-                  <m.Icon size={36} color={sel ? "#fff" : "#2d5a3d"} />
-                </span>
+                }}
+              >
+                <m.Icon size={36} color={sel ? "#fff" : "#2d5a3d"} />
+              </span>
               )}
               {/* text + badge */}
               <span style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "11px 16px 13px" }}>
-                <span>
+              <span>
                   <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 15, marginBottom: 3 }}>{m.label}</div>
                   <div style={{ fontSize: 12, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.35 }}>{m.desc}</div>
+              </span>
+              {sel && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                    background: "rgba(255,255,255,.2)",
+                    color: "#fff",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    padding: "4px 10px",
+                    borderRadius: 20,
+                  }}
+                >
+                  <Check size={12} /> Seleccionado
                 </span>
-                {sel && (
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                      background: "rgba(255,255,255,.2)",
-                      color: "#fff",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      padding: "4px 10px",
-                      borderRadius: 20,
-                    }}
-                  >
-                    <Check size={12} /> Seleccionado
-                  </span>
-                )}
+              )}
               </span>
             </button>
           );
@@ -4394,35 +4394,35 @@ function ScheduleSlotSheet({
                   <Users size={19} />
                 </span>
                 <span style={{ fontSize: 11, fontWeight: 800, color: "#1a3a24", textAlign: "center" }}>Todos</span>
-              </div>
+            </div>
               <div style={{ display: "flex", gap: 8, flex: 1 }}>
-                {columns.map((s) => {
-                  const conf = SLOT_CONFIG[s] ?? SLOT_CONFIG.casa;
-                  const selected = todosConsensus === s;
-                  return (
-                    <button
-                      key={s}
-                      type="button"
-                      onClick={() => onSetAllSlot(s)}
-                      style={{
-                        flex: 1, height: 56, borderRadius: 14, border: "none",
-                        background: selected ? conf.color : "#f4f7f5",
-                        color: selected ? "#fff" : "#bbb",
-                        boxShadow: selected ? `0 3px 10px ${conf.color}55` : "none",
-                        display: "flex", flexDirection: "column",
-                        alignItems: "center", justifyContent: "center",
-                        gap: 4, cursor: "pointer", fontFamily: "inherit",
-                        transition: "background .15s ease",
-                      }}
-                    >
-                      {stateIcon(s, 16)}
-                      <span style={{ fontSize: 10, fontWeight: 800, opacity: selected ? 1 : 0.5 }}>
-                        {conf.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              {columns.map((s) => {
+                const conf = SLOT_CONFIG[s] ?? SLOT_CONFIG.casa;
+                const selected = todosConsensus === s;
+                return (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => onSetAllSlot(s)}
+                    style={{
+                      flex: 1, height: 56, borderRadius: 14, border: "none",
+                      background: selected ? conf.color : "#f4f7f5",
+                      color: selected ? "#fff" : "#bbb",
+                      boxShadow: selected ? `0 3px 10px ${conf.color}55` : "none",
+                      display: "flex", flexDirection: "column",
+                      alignItems: "center", justifyContent: "center",
+                      gap: 4, cursor: "pointer", fontFamily: "inherit",
+                      transition: "background .15s ease",
+                    }}
+                  >
+                    {stateIcon(s, 16)}
+                    <span style={{ fontSize: 10, fontWeight: 800, opacity: selected ? 1 : 0.5 }}>
+                      {conf.label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
             </div>
             <div style={{ height: 1, background: "#e8f0ea", margin: "14px 0 0" }} />
           </div>
@@ -4617,16 +4617,16 @@ function SectionTitle({ children, img, Icon, color }) {
           )}
         </span>
       )}
-      <div
-        style={{
-          fontSize: 11,
-          fontWeight: 800,
+    <div
+      style={{
+        fontSize: 11,
+        fontWeight: 800,
           color: ink,
-          textTransform: "uppercase",
-          letterSpacing: 1,
-        }}
-      >
-        {children}
+        textTransform: "uppercase",
+        letterSpacing: 1,
+      }}
+    >
+      {children}
       </div>
     </div>
   );
@@ -6154,7 +6154,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               <img
                 src={img}
                 alt=""
-                style={{
+          style={{
                   width: "100%",
                   // Comparte el alto disponible con la otra card (flex) para que
                   // ambas quepan sin scroll; la imagen se encoge en pantallas
@@ -6177,14 +6177,14 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                 </span>
                 {sel && (
                   <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
                       gap: 4,
                       background: "rgba(255,255,255,.2)",
                       color: "#fff",
-                      fontSize: 12,
-                      fontWeight: 700,
+                  fontSize: 12,
+                  fontWeight: 700,
                       padding: "4px 10px",
                       borderRadius: 20,
                     }}
@@ -6193,10 +6193,10 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                   </span>
                 )}
               </span>
-            </button>
-          );
-        })}
-      </div>
+              </button>
+            );
+          })}
+        </div>
 
       {uploadOpen && (
       <WizardSheet
@@ -6282,7 +6282,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           disabled={importing}
           aria-label="Listo"
           title="Listo"
-          style={{
+            style={{
             flexShrink: 0,
             width: 46,
             height: 46,
@@ -6290,9 +6290,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             border: "none",
             background: importing ? "#b8c9be" : "#1a3a24",
             color: "#fff",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
             cursor: importing ? "default" : "pointer",
           }}
         >
@@ -6300,41 +6300,41 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         </button>
       </div>
 
-      {importing ? (
+            {importing ? (
         <div style={{ marginBottom: 10 }}>
           <div style={{ height: 5, borderRadius: 3, background: "#e4ebe6", overflow: "hidden", marginBottom: 5 }}>
-            <div
-              style={{
-                height: "100%",
-                width: `${Math.round(displayProgress * 100)}%`,
-                background: "#2d5a3d",
-                borderRadius: 3,
-                transition: "width .8s ease",
-              }}
-            />
-          </div>
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${Math.round(displayProgress * 100)}%`,
+                      background: "#2d5a3d",
+                      borderRadius: 3,
+                      transition: "width .8s ease",
+                    }}
+                  />
+                </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8d978f" }}>
             <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
-              {displayStatus || "…"}
-            </span>
+                    {displayStatus || "…"}
+                  </span>
             <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{importElapsedSec}s</span>
-          </div>
-        </div>
+                </div>
+                </div>
       ) : (
         importedFileName && (
-          <div
-            style={{
+                  <div
+                    style={{
               fontSize: 11.5,
               color: "#7a9080",
               marginBottom: 10,
-              whiteSpace: "nowrap",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {importedFileName}
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                    }}
+                  >
+                    {importedFileName}
             {importStatus ? ` · ${importStatus}` : ""}
-          </div>
+                  </div>
         )
       )}
 
@@ -7458,7 +7458,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                 )}
                 </>
                 )}
-                {sel && (
+              {sel && (
                   <span style={{
                     position: "absolute", top: 4, right: 4, zIndex: 3,
                     width: 16, height: 16, borderRadius: 999,
@@ -7466,20 +7466,20 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                   }}>
                     <Check size={9} color="#fff" strokeWidth={3} />
-                  </span>
-                )}
+                </span>
+              )}
               </div>
               <div style={{
                 padding: "8px 6px 9px",
                 background: sel ? "#2d5a3d" : "#fff",
-                textAlign: "center",
+                  textAlign: "center",
                 transition: "background .16s ease",
               }}>
                 <span style={{
                   fontSize: 12, fontWeight: 800, lineHeight: 1.15,
                   color: sel ? "#fff" : "#25402f",
                 }}>
-                  {s.label}
+                {s.label}
                 </span>
               </div>
             </button>
@@ -8106,8 +8106,8 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 imgRatio="2 / 1"
                 active={structureId === t.id}
                 onClick={() =>
-                  setData((d) => ({
-                    ...d,
+            setData((d) => ({
+              ...d,
                     mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: t.id },
                   }))
                 }
@@ -8132,23 +8132,23 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 COMIDA
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
-                {cenaDays.map((d) => {
+            {cenaDays.map((d) => {
                   const off = !lunchAtHome(d);
                   const active = !off && slotTypeMap[`${d}|Comida`] === "rapida";
                   const dayNum = calendarDayNumber(d, weekDates);
                   const tint = mealTimeColor("Comida");
-                  return (
+              return (
                     <button
                       key={`comida-${d}`}
                       type="button"
                       disabled={off}
                       onClick={() => !off && toggleMealRapida(d, "Comida")}
-                      style={{
+                    style={{
                         aspectRatio: "1 / 1",
                         display: "flex",
                         flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
+                      alignItems: "center",
+                      justifyContent: "center",
                         gap: 2,
                         borderRadius: 12,
                         border: active ? "none" : off ? "1.5px dashed #e6ebe8" : `1.5px solid ${tint}44`,
@@ -8162,9 +8162,9 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                       <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1 }}>{dayNum}</span>
                       <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1, opacity: 0.9 }}>{d.slice(0, 2)}</span>
                     </button>
-                  );
-                })}
-              </div>
+              );
+            })}
+            </div>
             </div>
           )}
           {hasCena && (
@@ -8173,39 +8173,39 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 CENA
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
-                {cenaDays.map((d) => {
-                  const off = !dinnerAtHome(d);
-                  const active = !off && slotTypeMap[`${d}|Cena`] === "rapida";
+            {cenaDays.map((d) => {
+              const off = !dinnerAtHome(d);
+              const active = !off && slotTypeMap[`${d}|Cena`] === "rapida";
                   const dayNum = calendarDayNumber(d, weekDates);
                   const tint = mealTimeColor("Cena");
-                  return (
-                    <button
+              return (
+                <button
                       key={`cena-${d}`}
-                      type="button"
-                      disabled={off}
+                  type="button"
+                  disabled={off}
                       onClick={() => !off && toggleMealRapida(d, "Cena")}
-                      style={{
+                  style={{
                         aspectRatio: "1 / 1",
-                        display: "flex",
+                    display: "flex",
                         flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
+                    alignItems: "center",
+                    justifyContent: "center",
                         gap: 2,
-                        borderRadius: 12,
+                    borderRadius: 12,
                         border: active ? "none" : off ? "1.5px dashed #e6ebe8" : `1.5px solid ${tint}44`,
                         background: active ? tint : "transparent",
                         color: active ? "#fff" : off ? "#c5cdc8" : tint,
-                        cursor: off ? "not-allowed" : "pointer",
-                        fontFamily: "inherit",
+                    cursor: off ? "not-allowed" : "pointer",
+                    fontFamily: "inherit",
                         padding: 0,
-                      }}
-                    >
+                  }}
+                >
                       <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1 }}>{dayNum}</span>
                       <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1, opacity: 0.9 }}>{d.slice(0, 2)}</span>
-                    </button>
-                  );
-                })}
-              </div>
+                </button>
+              );
+            })}
+          </div>
             </div>
           )}
         </>,
@@ -8309,7 +8309,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                     onClick={() => setExtraMeal("postreTipo", t.id)}
                   />
                 ))}
-              </div>
+        </div>
               {postreTipo === "inmediato" && (
                 <div style={{ marginTop: 14 }}>
                   <div style={{ height: 1, background: "#d7e6dc", margin: "0 0 14px" }} />

@@ -230,3 +230,29 @@ export function toggleMenuFavorite(menus, menuId) {
   if (!menu) return menus;
   return { ...menus, [menuId]: { ...menu, isFavorite: !menu.isFavorite } };
 }
+
+/**
+ * Marks the active menú as favorite, first snapshotting the live (edited) plan
+ * into its currently displayed week so the favorite captures manual edits
+ * (swaps, moves, duplicados…) instead of the raw generated plan the archive
+ * still holds. `activeOffset` is data.menuWeek.offset — the week currently
+ * mirrored into the live `menuPlan`. Returns the new map plus the snapshotted
+ * { weekStart, week } so callers can mirror it to the cloud. Pure.
+ */
+export function saveActivePlanAsFavorite(menus, activeMenuId, livePlan, activeOffset) {
+  const menu = menus?.[activeMenuId];
+  if (!menu) return { menus, weekStart: null, week: null };
+  let weeks = menu.weeks ?? {};
+  let weekStart = null;
+  let week = null;
+  if (livePlan && Object.keys(livePlan).length > 0) {
+    const entry = Object.entries(weeks).find(([, w]) => w?.offset === activeOffset);
+    if (entry) {
+      weekStart = entry[0];
+      week = { ...entry[1], plan: livePlan };
+      weeks = { ...weeks, [weekStart]: week };
+    }
+  }
+  const nextMenus = { ...menus, [activeMenuId]: { ...menu, weeks, isFavorite: true } };
+  return { menus: nextMenus, weekStart, week };
+}

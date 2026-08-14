@@ -116,6 +116,78 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
   );
 }
 
+// Empty-state illustration card: a large square illustration on top and the
+// message inside a footer band, both wrapped in one rounded teal-bordered
+// container — mirrors the illustrated onboarding cards when selected. `title`
+// renders as the black headline; `subtitle` and any `children` (e.g. a CTA)
+// sit under it.
+export function EmptyIllustration({
+  img,
+  title,
+  subtitle,
+  children,
+  maxWidth = 320,
+  // When set, every card of this size renders as the same fixed box regardless
+  // of how long its copy is or whether it has a CTA — the illustration stays
+  // pinned to the top and the footer band grows to fill the rest, so the band
+  // starts at the SAME height in every card (used by the three Recetas empty
+  // states so all read identical).
+  minHeight,
+  accent = "#0f766e",
+  // Solid teal footer band with white copy (instead of a plain white footer) —
+  // the band fills down to the bottom border, matching the teal frame.
+  solidBand = false,
+  imgAspect = "16 / 10",
+  imgPosition = "center 40%",
+}) {
+  return (
+    <div
+      style={{
+        width: "100%",
+        maxWidth,
+        minHeight,
+        margin: "0 auto",
+        borderRadius: 24,
+        border: `3px solid ${accent}`,
+        overflow: "hidden",
+        background: "#fff",
+        boxShadow: "0 12px 32px -20px rgba(20,47,29,.4)",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <img
+        src={img}
+        alt=""
+        style={{ width: "100%", aspectRatio: imgAspect, objectFit: "cover", objectPosition: imgPosition, display: "block", flexShrink: 0 }}
+      />
+      <div
+        style={{
+          flex: 1,
+          padding: "16px 18px 18px",
+          textAlign: "center",
+          background: solidBand ? accent : "transparent",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+        }}
+      >
+        {title && (
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: solidBand ? "#fff" : "#142f1d", lineHeight: 1.4 }}>
+            {title}
+          </p>
+        )}
+        {subtitle && (
+          <p style={{ margin: title ? "6px 0 0" : 0, fontSize: 13, color: solidBand ? "rgba(255,255,255,.88)" : "#5c6b60", lineHeight: 1.5 }}>
+            {subtitle}
+          </p>
+        )}
+        {children}
+      </div>
+    </div>
+  );
+}
+
 // size="sm" is an opt-in compact variant (e.g. inline next to a segmented
 // control where there's no room for the full-size 48×28 switch) — default
 // stays exactly as before for every existing caller.
