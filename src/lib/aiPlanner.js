@@ -960,12 +960,16 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // 6. Re-validate the FULLY-enforced menu. Steps 4/4b run AFTER the
   //    validate+fallback loop and can, in principle, reintroduce a rule
   //    violation (a fixed dish forced onto adjacent days, a forced cena rápida
-  //    that clashes with the day, etc.). We deliberately do NOT auto-swap here
-  //    — that could undo the very fixed/forced choices those steps just
-  //    guaranteed — but anything unexpected is surfaced as a warning so it
-  //    never ships silently. Consequences that are intentional (a fixed dish
-  //    legitimately repeating, or a violation on a user-forced slot) are
-  //    filtered out first.
+  //    that clashes with the day, a freq cap pushed back over the top, etc.).
+  //    A violation on a slot the user themselves pinned/forced is left alone —
+  //    swapping it would undo the very choice those steps just guaranteed —
+  //    but anything else gets a REAL repair attempt via applyFallback (not
+  //    just a warning): a tester's real menu shipped 4 huevo dishes against a
+  //    cap of 3, and separately 3 egg dinners on consecutive nights, because
+  //    this stage used to only log a warning that (since a since-fixed bug)
+  //    never even reached the UI — the violation shipped silently either way.
+  //    Whatever applyFallback still can't fix (pool too constrained) is
+  //    re-checked and THAT residual is what gets warned about below.
   {
     const postCheck = validateMenu(
       slotAssignments,
@@ -975,11 +979,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       achievableFreqs,
     );
     if (!postCheck.valid) {
-      const fixedIds = new Set(
-        (data.fixedDishes ?? [])
-          .map((f) => f?.recipeId ?? f?.id)
-          .filter(Boolean),
-      );
+      const fixedIds = allFixedDishIds(data.fixedDishes);
       const forcedSlotIds = new Set(
         ctx.slots.filter((s) => s.preferType).map((s) => s.slotId),
       );
@@ -989,7 +989,40 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
         if (forcedSlotIds.has(v.slotId)) return false;
         return true;
       });
-      for (const v of unexpected) {
+
+      // Never let the repair touch a slot that itself currently holds a fixed
+      // dish (regardless of WHICH rule flagged it) — that's the one case a
+      // real fix would mean overriding the user's own pin, so it stays a
+      // warning-only "intentional consequence" like the filtering above.
+      const safeToFix = unexpected.filter((v) => !fixedIds.has(assignBySlot[v.slotId]));
+
+      if (safeToFix.length > 0) {
+        slotAssignments = applyFallback(
+          slotAssignments,
+          safeToFix,
+          filteredPool,
+          ctx.slots,
+          ctx.config.healthProfiles,
+        );
+      }
+
+      // Re-check AFTER the repair attempt — only genuinely unresolved
+      // violations (the fix failed to find any valid replacement, or the slot
+      // was excluded above because it's fixed/forced) get warned about.
+      const finalPostCheck = validateMenu(
+        slotAssignments,
+        filteredPool,
+        ctx.slots,
+        ctx.config.healthProfiles,
+        achievableFreqs,
+      );
+      const finalAssignBySlot = Object.fromEntries(slotAssignments.map((s) => [s.slotId, s.recipeId]));
+      const stillUnexpected = finalPostCheck.violations.filter((v) => {
+        if (v.rule === "recipeId_repetido" && fixedIds.has(finalAssignBySlot[v.slotId])) return false;
+        if (forcedSlotIds.has(v.slotId)) return false;
+        return true;
+      });
+      for (const v of stillUnexpected) {
         warnings.push(
           `${group.label}: tras fijar platos y slots forzados, "${v.slotId}" incumple una regla (${v.rule}). ${v.message}`,
         );
@@ -1491,6 +1524,29 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
 }
 
 /**
+ * Every catalog recipe id a fixed dish could resolve to — recipeId, id,
+ * catalogId (fixedDishes entries use different fields depending on how they
+ * were created — picked from the catalog vs. typed by name) plus whatever
+ * catalogMatchesForFixedDish's name-based lookup finds. Shared by
+ * breakProteinClusters (step 4c) and the post-check repair (step 6) so both
+ * recognize the SAME slots as "holds a fixed dish, don't touch it" — before
+ * this was extracted, step 6 only checked recipeId/id and silently missed
+ * catalogId-only entries, which let its repair swap away a dish the user had
+ * actually pinned.
+ */
+function allFixedDishIds(fixedDishes) {
+  const ids = new Set();
+  for (const fd of fixedDishes ?? []) {
+    if (!fd) continue;
+    if (fd.recipeId) ids.add(fd.recipeId);
+    if (fd.id) ids.add(fd.id);
+    if (fd.catalogId) ids.add(fd.catalogId);
+    for (const r of catalogMatchesForFixedDish(fd)) ids.add(r.id);
+  }
+  return ids;
+}
+
+/**
  * Break same-protein adjacency created AFTER the deterministic fallback ran.
  * Fixed dishes (step 4) and forced slots (step 4b) are applied after the
  * fallback has already filled the free slots, so a forced e.g. "pollo" cena can
@@ -1516,11 +1572,7 @@ function breakProteinClusters(slotAssignments, { data, ctx, poolById, filteredPo
   const fixedByMeal = { comida: new Set(), cena: new Set() };
   for (const fd of data.fixedDishes ?? []) {
     if (!fd) continue;
-    const ids = new Set();
-    if (fd.recipeId) ids.add(fd.recipeId);
-    if (fd.id) ids.add(fd.id);
-    if (fd.catalogId) ids.add(fd.catalogId);
-    for (const r of catalogMatchesForFixedDish(fd)) ids.add(r.id);
+    const ids = allFixedDishIds([fd]);
     const meals = (fd.meals ?? ["Comida", "Cena"]).map((m) => String(m).toLowerCase());
     for (const meal of meals) {
       const bucket = meal.startsWith("cena") ? "cena" : "comida";

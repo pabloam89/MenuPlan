@@ -1279,3 +1279,120 @@ describe("dos_cuchara_mismo_dia", () => {
     expect(violations.map((v) => v.rule)).not.toContain("dos_cuchara_mismo_dia");
   });
 });
+
+describe("guarnicion_cena_consecutiva (misma base de hidratos en cenas de días consecutivos)", () => {
+  it("flags pasta lun_cena + pasta mar_cena", () => {
+    const pool = [
+      recipe({ id: "esp_lun", name: "Espaguetis a la boloñesa", category: "pasta_arroces", mainProtein: "ternera", mealRole: ["cena"] }),
+      recipe({ id: "mac_mar", name: "Macarrones con tomate", category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "esp_lun" },
+      { slotId: "mar_cena", recipeId: "mac_mar" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("guarnicion_cena_consecutiva");
+    expect(violations.find((v) => v.rule === "guarnicion_cena_consecutiva").slotId).toBe("mar_cena");
+  });
+
+  it("does NOT flag pasta lun_cena + pasta mié_cena (no son días consecutivos)", () => {
+    const pool = [
+      recipe({ id: "esp_lun", name: "Espaguetis a la boloñesa", category: "pasta_arroces", mainProtein: "ternera", mealRole: ["cena"] }),
+      recipe({ id: "pollo_mar", category: "carnes", mainProtein: "pollo", mealRole: ["cena"] }),
+      recipe({ id: "mac_mie", name: "Macarrones con tomate", category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena"), slot("mie_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "esp_lun" },
+      { slotId: "mar_cena", recipeId: "pollo_mar" },
+      { slotId: "mie_cena", recipeId: "mac_mie" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("guarnicion_cena_consecutiva");
+  });
+
+  it("applyFallback swaps the second cena to a different carb base and doesn't reintroduce the clash", () => {
+    const pool = [
+      recipe({ id: "esp_lun", name: "Espaguetis a la boloñesa", category: "pasta_arroces", mainProtein: "ternera", mealRole: ["cena"] }),
+      recipe({ id: "mac_mar", name: "Macarrones con tomate", category: "pasta_arroces", mainProtein: "none", mealRole: ["cena"] }),
+      recipe({ id: "tortilla_mar", name: "Tortilla francesa", category: "huevos", mainProtein: "huevo", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "esp_lun" },
+      { slotId: "mar_cena", recipeId: "mac_mar" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    const fixed = applyFallback(assignments, violations, pool, slots);
+    expect(fixed.find((s) => s.slotId === "mar_cena")?.recipeId).toBe("tortilla_mar");
+    expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("guarnicion_cena_consecutiva");
+  });
+});
+
+describe("proteina_cena_consecutiva (mismo grupo de proteína en cenas de días consecutivos)", () => {
+  it("flags huevo lun_cena + huevo mar_cena (el caso reportado: huevos varias noches seguidas)", () => {
+    const pool = [
+      recipe({ id: "huevos_lun", name: "Huevos rellenos", category: "huevos", mainProtein: "huevo", mealRole: ["cena"] }),
+      recipe({ id: "huevos_mar", name: "Huevos fritos con puntillas", category: "huevos", mainProtein: "huevo", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "huevos_lun" },
+      { slotId: "mar_cena", recipeId: "huevos_mar" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("proteina_cena_consecutiva");
+    expect(violations.find((v) => v.rule === "proteina_cena_consecutiva").slotId).toBe("mar_cena");
+  });
+
+  it("flags via extraProteins (cocido de ternera lun_cena + filete de ternera mar_cena)", () => {
+    const pool = [
+      recipe({
+        id: "cocido_lun", name: "Cocido madrileño", category: "legumbres", mainProtein: "legumbre",
+        extraProteins: ["ternera"], mealRole: ["cena"],
+      }),
+      recipe({ id: "filete_mar", name: "Filete de ternera", category: "carnes", mainProtein: "ternera", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "cocido_lun" },
+      { slotId: "mar_cena", recipeId: "filete_mar" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("proteina_cena_consecutiva");
+  });
+
+  it("does NOT flag huevo lun_cena + huevo mié_cena (no son días consecutivos)", () => {
+    const pool = [
+      recipe({ id: "huevos_lun", name: "Huevos rellenos", category: "huevos", mainProtein: "huevo", mealRole: ["cena"] }),
+      recipe({ id: "pollo_mar", category: "carnes", mainProtein: "pollo", mealRole: ["cena"] }),
+      recipe({ id: "huevos_mie", name: "Huevos fritos", category: "huevos", mainProtein: "huevo", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena"), slot("mie_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "huevos_lun" },
+      { slotId: "mar_cena", recipeId: "pollo_mar" },
+      { slotId: "mie_cena", recipeId: "huevos_mie" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("proteina_cena_consecutiva");
+  });
+
+  it("applyFallback swaps the second cena to a different protein group and doesn't reintroduce the clash", () => {
+    const pool = [
+      recipe({ id: "huevos_lun", name: "Huevos rellenos", category: "huevos", mainProtein: "huevo", mealRole: ["cena"] }),
+      recipe({ id: "huevos_mar", name: "Huevos fritos con puntillas", category: "huevos", mainProtein: "huevo", mealRole: ["cena"] }),
+      recipe({ id: "pescado_mar", name: "Merluza a la plancha", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["cena"] }),
+    ];
+    const slots = [slot("lun_cena"), slot("mar_cena")];
+    const assignments = [
+      { slotId: "lun_cena", recipeId: "huevos_lun" },
+      { slotId: "mar_cena", recipeId: "huevos_mar" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    const fixed = applyFallback(assignments, violations, pool, slots);
+    expect(fixed.find((s) => s.slotId === "mar_cena")?.recipeId).toBe("pescado_mar");
+    expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("proteina_cena_consecutiva");
+  });
+});

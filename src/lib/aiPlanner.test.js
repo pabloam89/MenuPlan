@@ -354,6 +354,101 @@ describe("generateGroupMenu: a forced fixed dish must not reintroduce a same-day
   });
 });
 
+describe("generateGroupMenu: a fixed dish forced after the freq cap is already met must not silently exceed it", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function mockLLMAlwaysReturns(slots) {
+    const text = JSON.stringify({ slots });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ content: [{ text }] }) }),
+    );
+  }
+
+  it("swaps away the excess huevo dish instead of only warning, when enforceFixedDishes forces an extra huevo dish in on top of a cap already met", async () => {
+    // The exact shape reported from a real menu: "Huevos: N/sem" configured,
+    // but the generated menu carried one more huevo dish than the cap.
+    // validateMenu's rule 11 (freq_max_exceeded, fixed 2026-08-08) already
+    // catches this — but only inside the main validate+fallback loop, which
+    // runs BEFORE enforceFixedDishes (step 4). A fixed huevo dish forced in
+    // afterwards can push the count back over the cap, and until now step 6's
+    // re-validation only warned about it (a warning that, since a
+    // since-fixed bug, never even reached the UI) instead of repairing it.
+    //
+    // enforceFixedDishes places a single (need=1) fixed dish on the FIRST free
+    // day in slot order (pickEvenlySpread(freeDays, 1) === freeDays[0]) — so
+    // with lun mocked first, the fixed dish deterministically lands on
+    // lun_cena. The OTHER huevo dish (mar_comida_1) is chronologically LATER,
+    // so it — not the fixed dish's own slot — is the one rule 11 attributes
+    // the excess to, which is exactly the case the repair must be able to fix.
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 2 };
+    const fixedRecipe = recipeCatalogById.huevos_007; // Huevos fritos con puntillas (cena)
+    expect(fixedRecipe, "fixture depends on huevos_007 existing").toBeTruthy();
+    expect(fixedRecipe.mealRole).toContain("cena");
+
+    const data = {
+      members: [{ id: "m1", age: 35 }],
+      groups: [group],
+      schedule: {},
+      timeWeekday: 90,
+      timeWeekend: 90,
+      freqs: { huevos: 1 },
+      fixedDishes: [
+        { name: fixedRecipe.name, catalogId: fixedRecipe.id, timesPerWeek: 1, meals: ["Cena"] },
+      ],
+    };
+
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+
+    const huevoPrimero = pool.find(
+      (r) => r.mainProtein === "huevo" && r.mealRole.includes("primero") && r.id !== fixedRecipe.id,
+    );
+    expect(huevoPrimero, "fixture needs a huevo primero distinct from the fixed dish").toBeTruthy();
+
+    const used = new Set([fixedRecipe.id, huevoPrimero.id]);
+    const pickDistinct = (pred) => {
+      const r = pool.find((c) => pred(c) && !used.has(c.id));
+      expect(r, "no distinct pool candidate matched a fixture predicate").toBeTruthy();
+      used.add(r.id);
+      return r;
+    };
+    const noHuevo = (r) => r.mainProtein !== "huevo";
+
+    // lun: nothing huevo — this is the day enforceFixedDishes will overwrite
+    // lun_cena with the fixed dish. mar: comida_1 is the one huevo dish in the
+    // INITIAL answer, which alone already sits exactly AT the cap of 1.
+    mockLLMAlwaysReturns([
+      { slotId: "lun_comida_1", recipeId: pickDistinct((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico") && noHuevo(r)).id },
+      { slotId: "lun_comida_2", recipeId: pickDistinct((r) => r.mealRole.includes("segundo") && noHuevo(r)).id },
+      { slotId: "lun_cena", recipeId: pickDistinct((r) => r.mealRole.includes("cena") && noHuevo(r) && r.category !== "legumbres").id },
+      { slotId: "mar_comida_1", recipeId: huevoPrimero.id },
+      { slotId: "mar_comida_2", recipeId: pickDistinct((r) => r.mealRole.includes("segundo") && noHuevo(r)).id },
+      { slotId: "mar_cena", recipeId: pickDistinct((r) => r.mealRole.includes("cena") && noHuevo(r) && r.category !== "legumbres").id },
+    ]);
+
+    const result = await generateGroupMenu(data, group);
+
+    // The fixed dish still gets its guaranteed placement — the fix corrects
+    // the excess huevo dish elsewhere, it never drops what the user pinned.
+    const fixedPlacements = result.slotAssignments.filter((s) => s.recipeId === fixedRecipe.id);
+    expect(fixedPlacements).toHaveLength(1);
+    expect(fixedPlacements[0].slotId).toBe("lun_cena");
+
+    // ...and the huevos cap (1/semana) holds in the FINAL menu, even though
+    // enforceFixedDishes forced a 2nd huevo dish in after the main loop had
+    // already satisfied the cap on its own — mar_comida_1 (huevoPrimero) is
+    // what must have been swapped away, since lun_cena is off-limits (fixed).
+    const huevoCount = result.slotAssignments.filter(
+      (s) => recipeCatalogById[s.recipeId] && FREQ_KEY_MATCHERS.huevos(recipeCatalogById[s.recipeId]),
+    ).length;
+    expect(huevoCount).toBeLessThanOrEqual(1);
+    expect(result.slotAssignments.find((s) => s.slotId === "mar_comida_1")?.recipeId).not.toBe(huevoPrimero.id);
+  });
+});
+
 describe("selectReplacementCandidates (single-dish swap)", () => {
   // Covers the manual "swap this dish" path (pickCatalogReplacement), which
   // picks from a much smaller pool than the full weekly generator and is the
@@ -748,13 +843,20 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     // that validateMenu's generic rule 6 has no way to distinguish from an
     // accidental one.
     // recipeId_repetido (sanctioned fixed-dish repeat) and the soft style
-    // backstops (dos_fritos_seguidos / dos_cuchara_mismo_dia) are best-effort
-    // and can survive the post-enforcement steps as warnings; they aren't the
-    // domains under test here, so they're excluded like recipeId_repetido.
+    // backstops (dos_fritos_seguidos / dos_cuchara_mismo_dia / proteina_cena_
+    // consecutiva) are best-effort and can survive the post-enforcement steps
+    // as warnings; they aren't the domains under test here, so they're
+    // excluded like recipeId_repetido. proteina_cena_consecutiva in particular
+    // fires here for the same root cause as recipeId_repetido itself: the ONLY
+    // two non-school-conflicting days available for this fixture (mar/mie) are
+    // adjacent, so the fixed dish's own sanctioned 2x/week repeat necessarily
+    // lands on consecutive cenas — the post-check correctly leaves it alone
+    // (touching either slot would mean overriding the user's own pin).
     const TOLERATED = new Set([
       "recipeId_repetido",
       "dos_fritos_seguidos",
       "dos_cuchara_mismo_dia",
+      "proteina_cena_consecutiva",
     ]);
     const finalCheck = validateMenu(result.slotAssignments, pool, ctx.slots, [], {});
     const unexpected = finalCheck.violations.filter((v) => !TOLERATED.has(v.rule));

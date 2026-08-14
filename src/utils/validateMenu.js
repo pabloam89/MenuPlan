@@ -722,6 +722,35 @@ export function validateMenu(
     }
   }
 
+  // 15. Same protein GROUP in consecutive cenas across days — e.g. huevos
+  // Friday cena followed by huevos Saturday cena (a tester reported exactly
+  // this: 3 egg dinners in a row). Mirrors rule 14 above but for protein
+  // group instead of carb base. Rule 3's mainMeals chain never catches this:
+  // within a day the chain link is comida_main -> cena, so that day's comida
+  // always sits BETWEEN two consecutive cenas — they're never adjacent pairs
+  // in that chain, no matter how many nights running they repeat.
+  const cenaProteinByDay = {};
+  for (const m of mealOrder) {
+    if (m.mealType !== "cena") continue;
+    const recipe = poolById[m.recipeId];
+    if (!recipe) continue;
+    const groups = proteinGroupsOf(recipe);
+    if (groups.size) cenaProteinByDay[m.daySlug] = { groups, slotId: m.slotId, name: recipe.name };
+  }
+  for (let i = 1; i < DAY_ORDER.length; i++) {
+    const prev = cenaProteinByDay[DAY_ORDER[i - 1]];
+    const curr = cenaProteinByDay[DAY_ORDER[i]];
+    if (!prev || !curr) continue;
+    const shared = [...curr.groups].find((g) => prev.groups.has(g));
+    if (shared) {
+      violations.push({
+        rule: "proteina_cena_consecutiva",
+        slotId: curr.slotId,
+        message: `"${curr.name}" repite el grupo de proteína "${shared}" de la cena del ${DAY_ORDER[i - 1]} ("${prev.name}")`,
+      });
+    }
+  }
+
   return { valid: violations.length === 0, violations };
 }
 
@@ -756,6 +785,7 @@ export const GUARD_FOR_RULE = {
   proteina_consecutiva: "protein",
   proteina_repetida_en_comida: "sibling",
   proteina_repetida_en_dia: "primeroGroup",
+  proteina_cena_consecutiva: "cenaConsecutiva",
   dos_fritos_seguidos: "frito",
   dos_cuchara_mismo_dia: "cuchara",
   cena_rapida_no_solicitada: "cenaRapida",
@@ -994,6 +1024,26 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       }
     }
 
+    // Protein groups of the immediately adjacent-day cenas (rule 15) — mirrors
+    // rule 14's dayCarbsUsed cross-day extension above, but for protein group
+    // instead of carb base.
+    let adjacentCenaGroups = null;
+    if (mealType === "cena") {
+      const dayIdx = DAY_ORDER.indexOf(daySlug);
+      for (const delta of [-1, 1]) {
+        const neighborDay = DAY_ORDER[dayIdx + delta];
+        if (!neighborDay) continue;
+        const neighborCenaId = result.find((s) => s.slotId === `${neighborDay}_cena`)?.recipeId;
+        const neighborRecipe = neighborCenaId ? poolById[neighborCenaId] : null;
+        if (!neighborRecipe) continue;
+        const g = proteinGroupsOf(neighborRecipe);
+        if (g.size) {
+          adjacentCenaGroups = adjacentCenaGroups ?? new Set();
+          for (const group of g) adjacentCenaGroups.add(group);
+        }
+      }
+    }
+
     // Cross-safety guards are split out from the hard constraints so they can
     // be relaxed if — and only if — insisting on all of them at once would
     // otherwise leave the offending dish in place. Keeping a KNOWN violation
@@ -1010,6 +1060,8 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       sibling: (r) => !(siblingProtein && r.mainProtein === siblingProtein),
       primeroGroup: (r) =>
         !(sameDayPrimeroGroups && [...proteinGroupsOf(r)].some((g) => sameDayPrimeroGroups.has(g))),
+      cenaConsecutiva: (r) =>
+        !(adjacentCenaGroups && [...proteinGroupsOf(r)].some((g) => adjacentCenaGroups.has(g))),
       frito: (r) => !(neighborFrito && isFrito(r)),
       cuchara: (r) => !(dayHasCuchara && isPlatoCuchara(r)),
       cenaRapida: (r) => ctx?.preferType === "cena_rapida" || r.category !== "cenas_rapidas",
@@ -1030,7 +1082,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // dropped first and `weight` last. Every extra guard kept while a better
     // candidate exists is fine; dropping the important ones first is what
     // produced visibly-bad menus.
-    const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "sibling", "protein", "carb"];
+    const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "cenaConsecutiva", "sibling", "protein", "carb"];
     const guardTiers = [];
     for (let drop = 0; drop <= RELAX_ORDER.length; drop++) {
       const dropped = new Set(RELAX_ORDER.slice(0, drop));
