@@ -3648,7 +3648,10 @@ export const MenuScreen = memo(function MenuScreen({
   onRetry,
   onToast,
   onTrackEvent,
+  user = null,
   activeMenu = null,
+  activeFavorite = false,
+  onToggleFavorite,
   onSwitchWeek,
   onOpenMenus,
   onOpenAnalytics,
@@ -4111,18 +4114,44 @@ export const MenuScreen = memo(function MenuScreen({
             </h2>
             <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
-          <button
-            type="button"
-            data-coach="menu-options"
-            onClick={() => setHeaderMenuOpen(true)}
-            aria-label="Opciones del menú"
-            aria-haspopup="menu"
-            aria-expanded={headerMenuOpen}
-            title="Opciones"
-            style={{ ...iconChipButtonStyle, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
-          >
-            <MenuIcon size={18} strokeWidth={2.4} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            {/* Guardar como favorito solo tiene sentido con cuenta: sin ella no
+                hay histórico/favoritos persistentes donde recuperarlo, así que
+                no ofrecemos algo que no podemos cumplir. */}
+            {hasMenu && onToggleFavorite && user && (
+              <button
+                type="button"
+                onClick={onToggleFavorite}
+                aria-label={activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+                aria-pressed={activeFavorite}
+                title={activeFavorite ? "Quitar de favoritos" : "Guardar en favoritos"}
+                style={{
+                  ...iconChipButtonStyle,
+                  background: activeFavorite ? "#fff0f3" : "#fff",
+                  borderColor: activeFavorite ? "#f6bcc9" : "#dbe7df",
+                }}
+              >
+                <Heart
+                  size={18}
+                  strokeWidth={2.4}
+                  color={activeFavorite ? "#e0405a" : "#2d5a3d"}
+                  fill={activeFavorite ? "#e0405a" : "none"}
+                />
+              </button>
+            )}
+            <button
+              type="button"
+              data-coach="menu-options"
+              onClick={() => setHeaderMenuOpen(true)}
+              aria-label="Opciones del menú"
+              aria-haspopup="menu"
+              aria-expanded={headerMenuOpen}
+              title="Opciones"
+              style={{ ...iconChipButtonStyle, background: headerMenuOpen ? "#e8f0ea" : "#fff" }}
+            >
+              <MenuIcon size={18} strokeWidth={2.4} />
+            </button>
+          </div>
           {headerMenuOpen && (
             <div
               onClick={() => setHeaderMenuOpen(false)}
@@ -4793,6 +4822,7 @@ export const MenuScreen = memo(function MenuScreen({
       {pdfExportOpen && createPortal(
         <MenuPdfExportModal
           data={data}
+          weekCount={menuWeeks.length > 0 ? menuWeeks.length : 1}
           onClose={() => setPdfExportOpen(false)}
           onConfirm={(exportOptions) => {
             setPdfExportOpen(false);

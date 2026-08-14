@@ -87,6 +87,10 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), devRecipeStepsApi(env), devDishPhotoApi(env)],
     server: {
       port: 5175,
+      // Falla en vez de saltar a otro puerto: así la URL local es siempre
+      // http://localhost:5175 y coincide con la redirect URL de Supabase OAuth
+      // (evita acabar rebotado al deploy de producción tras el login).
+      strictPort: true,
       host: true,
       proxy: {
         '/api/generate': {

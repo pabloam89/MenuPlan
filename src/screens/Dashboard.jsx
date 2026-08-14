@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ChevronRight,
   ClipboardList,
@@ -24,9 +24,12 @@ import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
-import menuCardPhoto from "../assets/dashboard/menu-card.png";
-import recipesCardPhoto from "../assets/dashboard/recipes-card.png";
-import pantryCardPhoto from "../assets/dashboard/pantry-card.png";
+import menuCardPhoto2 from "../assets/dashboard/menu-card-2.png";
+import menuCardPhoto3 from "../assets/dashboard/menu-card-3.png";
+import recipesCardPhoto2 from "../assets/dashboard/recipes-card-2.png";
+import recipesCardPhoto3 from "../assets/dashboard/recipes-card-3.png";
+import pantryCardPhoto2 from "../assets/dashboard/pantry-card-2.png";
+import pantryCardPhoto3 from "../assets/dashboard/pantry-card-3.png";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 
 const PAGE_BG = "#f4f8f5";
@@ -154,7 +157,7 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
 // ── Menu hero: the app is about generating menus, so this is the single, big,
 // full-width action that owns the home. Horizontal banner, left-anchored copy,
 // action arrow on the right over the photo. ────────────────────────────────
-function MenuHeroCard({ photo, onClick, id }) {
+function MenuHeroCard({ photos, onClick, id }) {
   return (
     <button
       type="button"
@@ -174,14 +177,7 @@ function MenuHeroCard({ photo, onClick, id }) {
         boxShadow: "0 16px 30px -14px rgba(20,47,29,.5)",
       }}
     >
-      <img
-        src={photo}
-        alt=""
-        style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-          objectFit: "cover", objectPosition: "center 45%",
-        }}
-      />
+      <RotatingPhoto photos={photos} objectPosition="center 45%" interval={2000} />
       {/* Darken only the top band (behind the copy) and let the rest of the
           photo show whole, so the dish stays the centre of attention. */}
       <div
@@ -220,7 +216,47 @@ function MenuHeroCard({ photo, onClick, id }) {
 
 // ── Quick action: full-bleed photo card with the title embedded ────────────
 
-function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = "center", aspectRatio = "4 / 5", onClick, id }) {
+/**
+ * Cycles through a list of photos with a slide-in + crossfade transition,
+ * same animation pattern as RotatingCardImage in Onboarding.
+ * Respects prefers-reduced-motion (stays on the first image if set).
+ */
+function RotatingPhoto({ photos, objectPosition = "center", interval = 2000 }) {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    if (!photos || photos.length <= 1) return undefined;
+    const reduced =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reduced) return undefined;
+    const t = setInterval(() => setIdx((v) => (v + 1) % photos.length), interval);
+    return () => clearInterval(t);
+  }, [photos, interval]);
+
+  return (
+    <>
+      {photos.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt=""
+          loading={i === 0 ? "eager" : "lazy"}
+          style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover", objectPosition,
+            opacity: i === idx ? 1 : 0,
+            transform: i === idx ? "translateX(0)" : "translateX(-18px)",
+            transition: "opacity .45s ease, transform .55s cubic-bezier(.34,1.08,.5,1)",
+          }}
+        />
+      ))}
+    </>
+  );
+}
+
+function QuickActionTile({ icon: Icon, title, subtitle, photo, photos, objectPosition = "center", aspectRatio = "4 / 5", onClick, id }) {
+  // photos[] takes priority; photo is kept for backward compat (single image)
+  const photoList = photos?.length ? photos : [photo].filter(Boolean);
   return (
     <button
       type="button"
@@ -239,15 +275,7 @@ function QuickActionTile({ icon: Icon, title, subtitle, photo, objectPosition = 
         boxShadow: "0 14px 26px -14px rgba(20,47,29,.45)",
       }}
     >
-      <img
-        src={photo}
-        alt=""
-        loading="lazy"
-        style={{
-          position: "absolute", inset: 0, width: "100%", height: "100%",
-          objectFit: "cover", objectPosition,
-        }}
-      />
+      <RotatingPhoto photos={photoList} objectPosition={objectPosition} interval={2000} />
       <div
         style={{
           position: "absolute", inset: 0,
@@ -528,7 +556,7 @@ export function DashboardScreen({
         <div style={{ marginBottom: 12 }}>
           <MenuHeroCard
             id="coach-generate-menu"
-            photo={menuCardPhoto}
+            photos={[menuCardPhoto2, menuCardPhoto3]}
             onClick={onGenerateNewMenu}
           />
         </div>
@@ -540,7 +568,7 @@ export function DashboardScreen({
             icon={Refrigerator}
             title="Actualizar despensa"
             subtitle="Foto, ticket o a mano"
-            photo={pantryCardPhoto}
+            photos={[pantryCardPhoto2, pantryCardPhoto3]}
             objectPosition="center 40%"
             aspectRatio="4 / 5"
             onClick={() => onNav("pantry")}
@@ -550,7 +578,7 @@ export function DashboardScreen({
             icon={Sparkles}
             title="Generar recetas"
             subtitle="Con lo que hay en casa"
-            photo={recipesCardPhoto}
+            photos={[recipesCardPhoto2, recipesCardPhoto3]}
             objectPosition="center 62%"
             aspectRatio="4 / 5"
             onClick={onOpenRecipePlanner}

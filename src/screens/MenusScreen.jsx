@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Calendar, ChevronRight, Loader2, Pencil, RotateCw, Sparkles, Star, Trash2, X } from "lucide-react";
-import { BottomNav, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer } from "../components/ui.jsx";
+import { Calendar, ChevronRight, Heart, History, Loader2, Pencil, RotateCw, Sparkles, Trash2, X } from "lucide-react";
+import { BottomNav, EmptyIllustration, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer } from "../components/ui.jsx";
 import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS, menuHasContent } from "../lib/menuArchive.js";
 
 const cardStyle = {
@@ -28,7 +28,35 @@ function SectionLabel({ children }) {
   );
 }
 
-function EmptyState({ text, onAction, actionLabel }) {
+function EmptyState({ text, subtitle, onAction, actionLabel, img, imgPosition, solidBand }) {
+  const actionButton = onAction ? (
+    <button
+      type="button"
+      onClick={onAction}
+      style={{
+        marginTop: 14, border: "none", borderRadius: 999, padding: "12px 22px",
+        background: "linear-gradient(135deg,#2d5a3d,#4cba6e)", color: "#fff",
+        fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit",
+      }}
+    >
+      {actionLabel}
+    </button>
+  ) : null;
+
+  if (img) {
+    return (
+      <EmptyIllustration
+        img={img}
+        title={text}
+        subtitle={subtitle}
+        imgPosition={imgPosition}
+        solidBand={solidBand}
+      >
+        {actionButton}
+      </EmptyIllustration>
+    );
+  }
+
   return (
     <div style={{ ...cardStyle, textAlign: "center", padding: "32px 20px" }}>
       <div
@@ -41,19 +69,7 @@ function EmptyState({ text, onAction, actionLabel }) {
         <Calendar size={22} color="#2d5a3d" />
       </div>
       <p style={{ fontSize: 14, color: "#5c6b60", margin: "0 0 16px", lineHeight: 1.5 }}>{text}</p>
-      {onAction && (
-        <button
-          type="button"
-          onClick={onAction}
-          style={{
-            border: "none", borderRadius: 999, padding: "12px 22px",
-            background: "linear-gradient(135deg,#2d5a3d,#4cba6e)", color: "#fff",
-            fontWeight: 800, fontSize: 14, cursor: "pointer", fontFamily: "inherit",
-          }}
-        >
-          {actionLabel}
-        </button>
-      )}
+      {actionButton}
     </div>
   );
 }
@@ -214,7 +230,7 @@ function ActiveMenuCard({ menu, onOpen, onRegenerate, onEdit, onDelete }) {
   );
 }
 
-function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, onDelete }) {
+function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, onDelete, isActive = false }) {
   const weeks = orderedWeeks(menu);
   const rangeLabel = formatMenuRangeLabel(menu);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -239,7 +255,19 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, on
           {isOpening ? <Loader2 size={18} style={{ animation: "mp-spin 1s linear infinite" }} /> : <Calendar size={18} />}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 14, fontWeight: 800, color: "#142f1d" }}>{rangeLabel}</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+            <span style={{ fontSize: 14, fontWeight: 800, color: "#142f1d" }}>{rangeLabel}</span>
+            {isActive && (
+              <span
+                style={{
+                  fontSize: 10.5, fontWeight: 800, color: "#2d5a3d", background: "#e4f2e9",
+                  borderRadius: 999, padding: "2px 8px", flexShrink: 0, letterSpacing: ".2px",
+                }}
+              >
+                Actual
+              </span>
+            )}
+          </div>
           <div style={{ fontSize: 12, color: "#9ab0a1", marginTop: 1 }}>
             {weeks.length} semana{weeks.length === 1 ? "" : "s"}
           </div>
@@ -248,37 +276,42 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, on
       <button
         type="button"
         onClick={onToggleFavorite}
-        aria-label="Marcar como favorito"
+        aria-label={menu.isFavorite ? "Quitar de favoritos" : "Marcar como favorito"}
+        aria-pressed={menu.isFavorite}
         style={{
           border: "none", background: "transparent", cursor: "pointer", padding: 6, flexShrink: 0,
         }}
       >
-        <Star size={18} color={menu.isFavorite ? "#f59e0b" : "#d5ddd8"} fill={menu.isFavorite ? "#f59e0b" : "none"} />
+        <Heart size={18} color={menu.isFavorite ? "#e0405a" : "#d5ddd8"} fill={menu.isFavorite ? "#e0405a" : "none"} />
       </button>
-      <button
-        type="button"
-        onClick={onReuse}
-        style={{
-          border: "1.5px solid #2d5a3d", borderRadius: 999, background: "#fff", color: "#2d5a3d",
-          fontWeight: 800, fontSize: 12.5, padding: "8px 12px", cursor: "pointer", fontFamily: "inherit",
-          display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
-        }}
-      >
-        <RotateCw size={13} /> Repetir
-      </button>
-      <button
-        type="button"
-        onClick={() => setConfirmDelete(true)}
-        aria-label="Borrar menú del histórico"
-        disabled={isOpening}
-        style={{
-          border: "none", background: "transparent",
-          cursor: isOpening ? "default" : "pointer", padding: 6, flexShrink: 0,
-          opacity: isOpening ? 0.4 : 1,
-        }}
-      >
-        <Trash2 size={17} color="#c3a2a0" />
-      </button>
+      {!isActive && (
+        <button
+          type="button"
+          onClick={onReuse}
+          style={{
+            border: "1.5px solid #2d5a3d", borderRadius: 999, background: "#fff", color: "#2d5a3d",
+            fontWeight: 800, fontSize: 12.5, padding: "8px 12px", cursor: "pointer", fontFamily: "inherit",
+            display: "flex", alignItems: "center", gap: 5, flexShrink: 0,
+          }}
+        >
+          <RotateCw size={13} /> Repetir
+        </button>
+      )}
+      {!isActive && (
+        <button
+          type="button"
+          onClick={() => setConfirmDelete(true)}
+          aria-label="Borrar menú del histórico"
+          disabled={isOpening}
+          style={{
+            border: "none", background: "transparent",
+            cursor: isOpening ? "default" : "pointer", padding: 6, flexShrink: 0,
+            opacity: isOpening ? 0.4 : 1,
+          }}
+        >
+          <Trash2 size={17} color="#c3a2a0" />
+        </button>
+      )}
 
       {confirmDelete && (
         <DeleteMenuConfirmSheet
@@ -423,6 +456,53 @@ function stepperBtnStyle(disabled) {
   };
 }
 
+// Segmented switch between saved favourites and the full history, each with a
+// strong-coloured icon (♥ rojo / 🕑 morado) so the two lists read at a glance.
+function MenuTabSwitch({ tab, onChange, favCount, histCount }) {
+  const tabs = [
+    { id: "favoritos", label: "Favoritos", Icon: Heart, ink: "#e0405a", tint: "#ffe4ea", count: favCount },
+    { id: "historicos", label: "Históricos", Icon: History, ink: "#7c3aed", tint: "#f0e9fe", count: histCount },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 8, background: "#eef3f0", borderRadius: 14, padding: 4, marginBottom: 16 }}>
+      {tabs.map((t) => {
+        const sel = tab === t.id;
+        return (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => onChange(t.id)}
+            style={{
+              flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
+              padding: "9px 0", borderRadius: 11, border: "none", cursor: "pointer", fontFamily: "inherit",
+              background: sel ? "#fff" : "transparent",
+              color: sel ? "#142f1d" : "#7a8a7f",
+              fontSize: 13.5, fontWeight: 800,
+              boxShadow: sel ? "0 2px 8px rgba(20,47,29,.1)" : "none",
+              transition: "all .15s",
+            }}
+          >
+            <span
+              style={{
+                width: 26, height: 26, borderRadius: 8, flexShrink: 0,
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: sel ? t.tint : "transparent",
+                color: t.ink,
+              }}
+            >
+              <t.Icon size={16} strokeWidth={2.5} fill={t.id === "favoritos" && sel ? t.ink : "none"} />
+            </span>
+            {t.label}
+            {t.count > 0 && (
+              <span style={{ fontSize: 11.5, fontWeight: 800, color: sel ? t.ink : "#9ab0a1" }}>{t.count}</span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function MenusScreen({
   data,
   hasAccount,
@@ -441,14 +521,19 @@ export function MenusScreen({
 }) {
   const [reuseTargetId, setReuseTargetId] = useState(null);
   const [openingId, setOpeningId] = useState(null);
+  const [tab, setTab] = useState("favoritos");
 
   // Only treat the active menú as present when it has real dishes — a
   // content-less/degenerate record must never render as "Menú actual".
   const rawActive = data.menus?.[data.activeMenuId] ?? null;
   const activeMenu = rawActive && menuHasContent(rawActive) ? rawActive : null;
-  const history = sortMenusDesc(data.menus).filter(
-    (m) => m.id !== data.activeMenuId && menuHasContent(m),
-  );
+  const contentMenus = sortMenusDesc(data.menus).filter(menuHasContent);
+  // Históricos never lists the active menú (it lives in "Actual"), but
+  // Favoritos must — otherwise favouriting the current menú with the ♥ on the
+  // menu screen would silently vanish, since it's still the active one.
+  const history = contentMenus.filter((m) => m.id !== data.activeMenuId);
+  const favorites = contentMenus.filter((m) => m.isFavorite);
+  const visibleList = tab === "favoritos" ? favorites : history;
   const reuseTarget = reuseTargetId ? data.menus?.[reuseTargetId] : null;
 
   return (
@@ -496,33 +581,70 @@ export function MenusScreen({
 
         <div style={{ height: 1, background: "#e6eee8", margin: "24px 0 18px" }} />
 
-        <SectionLabel>Histórico</SectionLabel>
         {!hasAccount ? (
-          <GuestHistoryPrompt onSignIn={onSignIn} />
-        ) : history.length === 0 ? (
-          <EmptyState text="Todavía no tienes menús anteriores. En cuanto generes uno nuevo, el actual pasará aquí." />
+          <>
+            <SectionLabel>Histórico</SectionLabel>
+            <GuestHistoryPrompt onSignIn={onSignIn} />
+          </>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {history.map((m) => (
-              <HistoryMenuRow
-                key={m.id}
-                menu={m}
-                onToggleFavorite={() => onToggleFavorite(m.id)}
-                onReuse={() => setReuseTargetId(m.id)}
-                onDelete={() => onDeleteHistory(m.id)}
-                isOpening={openingId === m.id}
-                onOpen={async () => {
-                  if (openingId) return;
-                  setOpeningId(m.id);
-                  try {
-                    await onOpenHistory(m.id);
-                  } finally {
-                    setOpeningId(null);
-                  }
-                }}
+          <>
+            <MenuTabSwitch
+              tab={tab}
+              onChange={setTab}
+              favCount={favorites.length}
+              histCount={history.length}
+            />
+            {visibleList.length === 0 ? (
+              <EmptyState
+                img={
+                  tab === "favoritos"
+                    ? "/avatares/cards/empty_menus_favoritos.png"
+                    : "/avatares/cards/empty_menus_historico.png"
+                }
+                imgPosition="center 22%"
+                text={
+                  tab === "favoritos"
+                    ? "Aún no has guardado menús favoritos"
+                    : "Todavía no tienes menús anteriores"
+                }
+                subtitle={
+                  tab === "favoritos"
+                    ? "Pulsa el ♥ en tu menú para guardarlo aquí y reutilizarlo cuando quieras."
+                    : "En cuanto generes uno nuevo, el actual pasará aquí."
+                }
               />
-            ))}
-          </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {visibleList.map((m) => {
+                  const isActive = m.id === data.activeMenuId;
+                  return (
+                    <HistoryMenuRow
+                      key={m.id}
+                      menu={m}
+                      isActive={isActive}
+                      onToggleFavorite={() => onToggleFavorite(m.id)}
+                      onReuse={() => setReuseTargetId(m.id)}
+                      onDelete={() => onDeleteHistory(m.id)}
+                      isOpening={openingId === m.id}
+                      onOpen={async () => {
+                        if (isActive) {
+                          onOpenCurrent();
+                          return;
+                        }
+                        if (openingId) return;
+                        setOpeningId(m.id);
+                        try {
+                          await onOpenHistory(m.id);
+                        } finally {
+                          setOpeningId(null);
+                        }
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            )}
+          </>
         )}
       </div>
 

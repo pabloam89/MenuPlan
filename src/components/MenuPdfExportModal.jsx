@@ -1,13 +1,19 @@
 import { useMemo, useState } from "react";
-import { CalendarDays, Check, Coffee, Download, Moon, School, Sun, X } from "lucide-react";
+import { CalendarDays, Check, Coffee, Download, FileText, Moon, School, Sun, UtensilsCrossed, X } from "lucide-react";
 import {
   defaultPdfExportOptions,
+  estimatePdfSheets,
   householdHasColeSchedule,
+  householdHasPostre,
+  pdfExportGroupOptions,
   pdfExportMealOptions,
 } from "../lib/menuExport.js";
+import { membersOfGroup } from "../lib/groups.js";
 import { slotKey } from "../lib/planner.js";
 import { householdHasSchoolMenu, SCHOOL_DAYS } from "../lib/schoolMenu.js";
-import { SegmentedControl, ToggleSwitch } from "./ui.jsx";
+import { GroupAvatarStack, groupAvatarFaces, SegmentedControl, ToggleSwitch } from "./ui.jsx";
+
+const POSTRE_ILLUSTRATION = "/avatares/cards/yogur_fruta.png";
 
 const MEAL_META = {
   Desayuno: { Icon: Coffee, tone: "#c98a3a", bg: "#fbf3e8" },
@@ -27,20 +33,26 @@ function coleKidsFirstNames(data) {
 }
 
 /**
- * Pre-download sheet: weekday vs weekend, meal picker, optional school menu.
+ * Pre-download sheet: weekday vs weekend, meal picker, postre, group filter and
+ * optional school menu. Also shows how many sheets the export will take.
  */
-export function MenuPdfExportModal({ data, onConfirm, onClose }) {
+export function MenuPdfExportModal({ data, weekCount = 1, onConfirm, onClose }) {
   const defaults = useMemo(() => defaultPdfExportOptions(data), [data]);
   const mealOptions = useMemo(() => pdfExportMealOptions(data), [data]);
+  const groupOptions = useMemo(() => pdfExportGroupOptions(data), [data]);
   const showSchool = useMemo(
     () => householdHasSchoolMenu(data?.schoolMenus) && householdHasColeSchedule(data),
     [data],
   );
+  const showPostre = useMemo(() => householdHasPostre(data), [data]);
+  const showGroups = groupOptions.length > 1;
   const coleNames = useMemo(() => coleKidsFirstNames(data), [data]);
 
   const [dayScope, setDayScope] = useState(defaults.dayScope);
   const [meals, setMeals] = useState(() => new Set(defaults.meals));
+  const [includePostre, setIncludePostre] = useState(defaults.includePostre);
   const [includeSchoolMenu, setIncludeSchoolMenu] = useState(defaults.includeSchoolMenu);
+  const [excludedGroups, setExcludedGroups] = useState(() => new Set());
 
   const toggleMeal = (meal) => {
     setMeals((prev) => {
@@ -55,13 +67,32 @@ export function MenuPdfExportModal({ data, onConfirm, onClose }) {
     });
   };
 
-  const handleConfirm = () => {
-    onConfirm({
-      dayScope,
-      meals: mealOptions.filter((m) => meals.has(m)),
-      includeSchoolMenu: showSchool && includeSchoolMenu,
+  const toggleGroup = (groupId) => {
+    setExcludedGroups((prev) => {
+      const next = new Set(prev);
+      if (next.has(groupId)) {
+        next.delete(groupId);
+      } else {
+        // Keep at least one group visible.
+        if (groupOptions.length - next.size <= 1) return prev;
+        next.add(groupId);
+      }
+      return next;
     });
   };
+
+  const exportOptions = {
+    dayScope,
+    meals: mealOptions.filter((m) => meals.has(m)),
+    includePostre: showPostre && includePostre,
+    includeSchoolMenu: showSchool && includeSchoolMenu,
+    excludedGroups: [...excludedGroups],
+  };
+
+  const visibleGroupCount = Math.max(1, groupOptions.length - excludedGroups.size);
+  const sheetCount = estimatePdfSheets(weekCount, visibleGroupCount, exportOptions);
+
+  const handleConfirm = () => onConfirm(exportOptions);
 
   const schoolHint = coleNames.length === 1
     ? `Lo que come ${coleNames[0]} en el comedor`
@@ -263,6 +294,126 @@ export function MenuPdfExportModal({ data, onConfirm, onClose }) {
             </div>
           </section>
 
+          {showPostre && (meals.has("Comida") || meals.has("Cena")) && (
+            <section
+              style={{
+                padding: "9px 12px",
+                borderRadius: 14,
+                background: "#faf0f6",
+                border: "1.5px solid #eccfe0",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: 11 }}>
+                <span
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    flexShrink: 0,
+                    background: "#fff",
+                    overflow: "hidden",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    boxShadow: "inset 0 0 0 1.5px #8a4a6a22",
+                  }}
+                >
+                  <img
+                    src={POSTRE_ILLUSTRATION}
+                    alt=""
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <ToggleSwitch
+                    checked={includePostre}
+                    onChange={setIncludePostre}
+                    label="Incluir postre"
+                  />
+                </div>
+              </div>
+            </section>
+          )}
+
+          {showGroups && (
+            <section>
+              <div style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                marginBottom: 8,
+                color: "#5a7262",
+                fontSize: 11.5,
+                fontWeight: 800,
+                letterSpacing: ".04em",
+                textTransform: "uppercase",
+              }}
+              >
+                <UtensilsCrossed size={13} strokeWidth={2.5} />
+                ¿De quién?
+              </div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {groupOptions.map((g) => {
+                  const active = !excludedGroups.has(g.id);
+                  const tone = g.color || "#2d5a3d";
+                  const groupObj = (data?.groups ?? []).find((x) => x.id === g.id);
+                  const faces = groupObj
+                    ? groupAvatarFaces(membersOfGroup(groupObj, data?.members ?? []), data?.members ?? [])
+                    : [];
+                  return (
+                    <button
+                      key={g.id}
+                      type="button"
+                      onClick={() => toggleGroup(g.id)}
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 9,
+                        padding: "6px 12px 6px 7px",
+                        borderRadius: 999,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                        background: active ? "#fff" : "#f3f6f4",
+                        border: `1.5px solid ${active ? tone : "#e2e8e4"}`,
+                        boxShadow: active ? `0 1px 6px ${tone}22` : "none",
+                        opacity: active ? 1 : 0.55,
+                        transition: "all .15s ease",
+                      }}
+                    >
+                      {faces.length > 0 ? (
+                        <GroupAvatarStack faces={faces} size={26} active={active} max={3} />
+                      ) : (
+                        <span
+                          style={{
+                            width: 26,
+                            height: 26,
+                            borderRadius: 999,
+                            flexShrink: 0,
+                            background: tone,
+                            color: "#fff",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            fontSize: 11,
+                            fontWeight: 900,
+                          }}
+                        >
+                          {g.label.slice(0, 1)}
+                        </span>
+                      )}
+                      <span style={{ fontSize: 13, fontWeight: 800, color: active ? "#142f1d" : "#7a8a7f" }}>
+                        {g.label}
+                      </span>
+                      {active
+                        ? <Check size={14} color={tone} strokeWidth={3} />
+                        : <X size={14} color="#9aa8a0" strokeWidth={3} />}
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+
           {showSchool && meals.has("Comida") && (
             <section
               style={{
@@ -303,6 +454,26 @@ export function MenuPdfExportModal({ data, onConfirm, onClose }) {
           )}
         </div>
 
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            marginTop: 14,
+            padding: "8px 12px",
+            borderRadius: 12,
+            background: "#f3f6f4",
+            color: "#5a7262",
+            fontSize: 12,
+            fontWeight: 700,
+          }}
+        >
+          <FileText size={14} strokeWidth={2.4} color="#7a8a7f" />
+          {sheetCount === 1
+            ? "Cabe en 1 folio A4"
+            : `Se imprimirá en ${sheetCount} folios A4`}
+        </div>
+
         <button
           type="button"
           onClick={handleConfirm}
@@ -312,7 +483,7 @@ export function MenuPdfExportModal({ data, onConfirm, onClose }) {
             justifyContent: "center",
             gap: 8,
             width: "100%",
-            marginTop: 16,
+            marginTop: 10,
             padding: "13px 16px",
             borderRadius: 14,
             border: "none",

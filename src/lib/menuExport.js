@@ -52,13 +52,33 @@ export function pdfExportMealOptions(data) {
   return PDF_EXPORT_MEALS.filter((m) => active.has(m));
 }
 
+/** True when the household has postre configured for any meal. */
+export function householdHasPostre(data) {
+  const postre = data?.extraMeals?.postre ?? "off";
+  return postre !== "off";
+}
+
+/** Groups (with members) that can be shown/hidden in the PDF picker. */
+export function pdfExportGroupOptions(data) {
+  return (data?.groups ?? [])
+    .map((g) => ({
+      id: g.id,
+      label: g.label,
+      color: g.color,
+      count: membersOfGroup(g, data?.members ?? []).length,
+    }))
+    .filter((g) => g.count > 0);
+}
+
 /** Sensible defaults for the pre-download sheet. */
 export function defaultPdfExportOptions(data) {
   const meals = pdfExportMealOptions(data);
   return {
     dayScope: "weekday",
     meals: meals.length ? meals : ["Comida", "Cena"],
+    includePostre: householdHasPostre(data),
     includeSchoolMenu: householdHasSchoolMenu(data?.schoolMenus) && householdHasColeSchedule(data),
+    excludedGroups: [],
   };
 }
 
@@ -70,8 +90,66 @@ export function normalizePdfExportOptions(exportIn, data) {
     : defaults.meals;
   merged.meals = picked.length ? picked : defaults.meals;
   merged.dayScope = merged.dayScope === "weekend" ? "weekend" : "weekday";
+  merged.includePostre = Boolean(merged.includePostre);
   merged.includeSchoolMenu = Boolean(merged.includeSchoolMenu);
+  merged.excludedGroups = Array.isArray(merged.excludedGroups) ? merged.excludedGroups : [];
   return merged;
+}
+
+/** Groups left visible once the excluded ones are removed (never empty). */
+function visibleGroupsFor(groups, exportOpts) {
+  const excluded = new Set(exportOpts?.excludedGroups ?? []);
+  const kept = (groups ?? []).filter((g) => !excluded.has(g.id) && !excluded.has(g.label));
+  return kept.length ? kept : (groups ?? []);
+}
+
+/**
+ * How many meal rows a single week strip renders (postre folds into
+ * Comida/Cena, so it never adds its own row).
+ */
+function pdfMealRowCount(exportOpts) {
+  return (exportOpts?.meals ?? []).filter((m) => PDF_EXPORT_MEALS.includes(m)).length || 1;
+}
+
+// Beyond ~8 "row·group" units per sheet the month pack becomes unreadable, so
+// we spill extra weeks onto more sheets instead of shrinking everything.
+const MAX_UNITS_PER_SHEET = 8;
+
+/** Weeks that comfortably fit on one sheet for the given density. */
+export function weeksPerSheet(groupsCount, exportOpts) {
+  const unitsPerWeek = pdfMealRowCount(exportOpts) * Math.max(1, groupsCount);
+  return Math.max(1, Math.floor(MAX_UNITS_PER_SHEET / unitsPerWeek));
+}
+
+/**
+ * Estimate how many A4 sheets the export needs. A single week always fits on
+ * one (roomy) sheet; multi-week packs spill once the density is too high.
+ */
+export function estimatePdfSheets(weekCount, groupsCount, exportOpts) {
+  if (weekCount <= 1) return 1;
+  return Math.max(1, Math.ceil(weekCount / weeksPerSheet(groupsCount, exportOpts)));
+}
+
+// Vertical budget of the "weeks" area on one A4 landscape sheet, in CSS px
+// (210mm printable minus header/footer/gaps). Two profiles: full-size (one
+// week per sheet) and compact (several weeks stacked).
+const SHEET_METRICS = {
+  full: { area: 626, dayHead: 30, gap: 0, rowMax: 118, rowMin: 46 },
+  compact: { area: 668, dayHead: 18, gap: 6, rowMax: 104, rowMin: 34 },
+};
+
+/**
+ * Height for each meal row: fills the sheet when content is dense, but is
+ * capped so a near-empty sheet doesn't blow every row up to a third of the
+ * page. Returns a px number the grid uses as its row track.
+ */
+export function capRowHeight(mealRows, weeksOnSheet, compact) {
+  const m = compact ? SHEET_METRICS.compact : SHEET_METRICS.full;
+  const rows = Math.max(1, mealRows);
+  const weeks = Math.max(1, weeksOnSheet);
+  const usable = m.area - weeks * m.dayHead - (weeks - 1) * m.gap;
+  const fill = usable / (weeks * rows);
+  return Math.round(Math.max(m.rowMin, Math.min(m.rowMax, fill)));
 }
 
 function scopeDays(dayScope) {
@@ -165,11 +243,58 @@ function escapeHtml(text) {
 }
 
 /** Inline Lucide-style SVG (print HTML can't mount React icons). */
-function lucideIcon(nodes, color, size = 18) {
+function lucideIcon(nodes, color, size = 18, cls = "meal-icon") {
   const body = nodes.map((d) => (
     d.startsWith("<") ? d : `<path d="${d}" />`
   )).join("");
-  return `<svg class="meal-icon" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.35" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+  return `<svg class="${cls}" xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="${color}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+}
+
+const MONTH_ABBR = [
+  "ene", "feb", "mar", "abr", "may", "jun",
+  "jul", "ago", "sep", "oct", "nov", "dic",
+];
+
+/** "3 – 28 ago" when the same month, else "28 ago – 2 sep". */
+function formatDateSpan(start, end) {
+  if (!start || !end) return "";
+  const d = (x) => x.getDate();
+  const m = (x) => MONTH_ABBR[x.getMonth()];
+  if (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) {
+    return d(start) === d(end) ? `${d(start)} ${m(end)}` : `${d(start)} – ${d(end)} ${m(end)}`;
+  }
+  return `${d(start)} ${m(start)} – ${d(end)} ${m(end)}`;
+}
+
+function chunkArray(arr, size) {
+  const n = Math.max(1, size);
+  const out = [];
+  for (let i = 0; i < arr.length; i += n) out.push(arr.slice(i, i + n));
+  return out.length ? out : [[]];
+}
+
+// Lucide paths for the header chips.
+const CHIP_ICONS = {
+  calendar: ['<rect width="18" height="18" x="3" y="4" rx="2" />', "M3 10h18", "M8 2v4", "M16 2v4"],
+  layers: [
+    "m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z",
+    "m6.08 9.5-3.48 1.59a1 1 0 0 0 0 1.81l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.81L17.92 9.5",
+    "m6.08 14.5-3.48 1.59a1 1 0 0 0 0 1.81l8.58 3.9a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.81l-3.48-1.59",
+  ],
+  weekday: ['<rect width="20" height="14" x="2" y="7" rx="2" ry="2" />', "M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"],
+  weekend: [
+    '<circle cx="12" cy="12" r="4" />',
+    "M12 2v2", "M12 20v2", "m4.93 4.93 1.41 1.41", "m17.66 17.66 1.41 1.41",
+    "M2 12h2", "M20 12h2", "m6.34 17.66-1.41 1.41", "m19.07 4.93-1.41 1.41",
+  ],
+};
+
+function chipHtml(iconKey, text) {
+  if (!text) return "";
+  const icon = CHIP_ICONS[iconKey]
+    ? lucideIcon(CHIP_ICONS[iconKey], "#2d5a3d", 13, "chip-icon")
+    : "";
+  return `<span class="chip">${icon}<span>${escapeHtml(text)}</span></span>`;
 }
 
 // Classic Lucide paths — Coffee / Salad / UtensilsCrossed / Sun / Cookie / Moon / IceCreamCone
@@ -263,12 +388,12 @@ function slotCourseName(slot, course) {
  *  - Cena folds plato + postre-de-cena the same way
  *  - Desayuno / Merienda stay their own rows
  */
-function buildPrintRows(data, mealFilter) {
+function buildPrintRows(data, mealFilter, includePostre = true) {
   const meals = getDayMeals(data);
   const allowed = mealFilter?.length
     ? new Set(mealFilter)
     : null;
-  const postreWhen = data?.extraMeals?.postre ?? "off";
+  const postreWhen = includePostre ? (data?.extraMeals?.postre ?? "off") : "off";
   const postreWithComida = postreWhen === "comida" || postreWhen === "ambas";
   const postreWithCena = postreWhen === "cena" || postreWhen === "ambas";
 
@@ -303,17 +428,30 @@ function buildPrintRows(data, mealFilter) {
   return rows;
 }
 
-function dishFontSize(rowCount, multiGroup, weekCount = 1) {
+function dishFontSize(rowCount, multiGroup, weekCount = 1, dayCount = 5) {
   const stacked = weekCount > 1;
+  let base;
   if (stacked) {
-    if (rowCount <= 2) return multiGroup ? 7.5 : 8.5;
-    if (rowCount === 3) return multiGroup ? 7 : 8;
-    return multiGroup ? 6.5 : 7.5;
+    if (rowCount <= 2) base = multiGroup ? 7.5 : 8.5;
+    else if (rowCount === 3) base = multiGroup ? 7 : 8;
+    else base = multiGroup ? 6.5 : 7.5;
+  } else if (rowCount <= 2) {
+    base = multiGroup ? 11.5 : 13;
+  } else if (rowCount === 3) {
+    base = multiGroup ? 10.5 : 12;
+  } else if (rowCount === 4) {
+    base = multiGroup ? 9.5 : 10.5;
+  } else {
+    base = multiGroup ? 8.5 : 9.5;
   }
-  if (rowCount <= 2) return multiGroup ? 11.5 : 13;
-  if (rowCount === 3) return multiGroup ? 10.5 : 12;
-  if (rowCount === 4) return multiGroup ? 9.5 : 10.5;
-  return multiGroup ? 8.5 : 9.5;
+  // Fewer day columns → much wider cells, so the base size (tuned for a full
+  // Lun–Vie band) looks tiny and lost. Bump it up for narrow scopes like the
+  // weekend (2 cols) so the dishes actually fill the space.
+  const widthBoost = dayCount <= 2 ? 1.6
+    : dayCount === 3 ? 1.32
+      : dayCount === 4 ? 1.12
+        : 1;
+  return Math.round(base * widthBoost * 10) / 10;
 }
 
 function familyPeopleHtml(members, assetBase) {
@@ -396,14 +534,16 @@ function renderWeekBlock({
   weekTotal,
   compact,
   mealFilter,
+  includePostre,
   includeSchoolMenu,
   labelColPx,
+  rowHeightPx,
 }) {
   const multiGroup = groups.length > 1;
   const days = visibleDays?.length ? visibleDays : DAYS;
   const activeSet = new Set(activeDays?.length ? activeDays : DAYS);
-  const printRows = buildPrintRows(data, mealFilter);
-  const dishPx = dishFontSize(printRows.length || 2, multiGroup, weekTotal);
+  const printRows = buildPrintRows(data, mealFilter, includePostre);
+  const dishPx = dishFontSize(printRows.length || 2, multiGroup, weekTotal, days.length);
   const iconSize = compact ? 14 : 18;
   const colPx = labelColPx ?? (compact ? 64 : 86);
 
@@ -490,8 +630,12 @@ function renderWeekBlock({
     </div>`;
   }).join("");
 
+  const rowTrack = rowHeightPx
+    ? `minmax(0, ${rowHeightPx}px)`
+    : "minmax(0, 1fr)";
+
   return `<section class="week-block">
-    <div class="grid" style="--dish-size:${dishPx}px;--label-col:${colPx}px;--day-cols:${days.length};grid-template-columns:var(--label-col) repeat(var(--day-cols),minmax(0,1fr));grid-template-rows:auto repeat(${Math.max(1, printRows.length)},minmax(0,1fr))">
+    <div class="grid" style="--dish-size:${dishPx}px;--label-col:${colPx}px;--day-cols:${days.length};grid-template-columns:var(--label-col) repeat(var(--day-cols),minmax(0,1fr));grid-template-rows:auto repeat(${Math.max(1, printRows.length)},${rowTrack})">
       <div class="corner"></div>
       ${dayHeads}
       ${mealRows}
@@ -514,7 +658,22 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
   const assetBase = opts.assetBase ?? "";
   const qrDataUrl = opts.qrDataUrl ?? "";
   const appUrl = opts.appUrl ?? "";
-  const peopleHtml = familyPeopleHtml(data.members, assetBase);
+
+  const exportOpts = normalizePdfExportOptions(opts.export, data);
+  // Only groups that actually have members count — an empty ghost group must not
+  // inflate the density (and force needless extra folios) or draw stray labels.
+  const groupsWithMembers = (groups ?? []).filter(
+    (g) => membersOfGroup(g, data.members ?? []).length > 0,
+  );
+  const realGroups = groupsWithMembers.length ? groupsWithMembers : (groups ?? []);
+  const visibleGroups = visibleGroupsFor(realGroups, exportOpts);
+
+  // Header avatars only show members of the groups we actually print.
+  const includedMemberIds = new Set(
+    visibleGroups.flatMap((g) => membersOfGroup(g, data.members ?? []).map((m) => m.id)),
+  );
+  const headerMembers = (data.members ?? []).filter((m) => includedMemberIds.has(m.id));
+  const peopleHtml = familyPeopleHtml(headerMembers, assetBase);
 
   const weeksIn = Array.isArray(opts.weeks) && opts.weeks.length > 0
     ? opts.weeks
@@ -527,47 +686,56 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
       }];
 
   const weekTotal = weeksIn.length;
-  const compact = weekTotal > 1;
+  const isMonth = weekTotal > 1;
   const monthLabel = monthBanner(weeksIn);
-  const exportOpts = normalizePdfExportOptions(opts.export, data);
 
-  const firstCal = resolveWeekCalendar(weeksIn[0], data.menuWeek);
+  // Split weeks across sheets when the density would make one page unreadable.
+  const perSheet = weeksPerSheet(visibleGroups.length, exportOpts);
+  const pages = isMonth ? chunkArray(weeksIn, perSheet) : [weeksIn];
+  const maxWeeksPerSheet = pages.length > 1 ? perSheet : weekTotal;
+  const compact = maxWeeksPerSheet > 1;
+
   const visibleDays = resolvePdfVisibleDays(exportOpts);
   const scopeLabel = exportOpts.dayScope === "weekend" ? "Fin de semana" : "Entre semana";
-  // Range label reflects the *active* days inside the scope (so a mid-week
-  // menú reads "Vie 14", not the whole greyed-out band).
-  const firstActive = new Set(firstCal.activeDays?.length ? firstCal.activeDays : DAYS);
-  const labelDays = visibleDays.filter((d) => firstActive.has(d));
-  const rangeDates = Object.fromEntries(
-    (labelDays.length ? labelDays : visibleDays)
-      .map((d) => [d, firstCal.dates[d]])
-      .filter(([, dt]) => dt),
-  );
-  const scopedRange = formatWeekRangeLabel(rangeDates, labelDays.length ? labelDays : visibleDays);
-  const spanLabel = weekTotal === 1
-    ? `${scopeLabel}${scopedRange ? ` · ${scopedRange}` : ""}`
-    : (monthLabel || `${scopeLabel}${scopedRange ? ` · ${scopedRange}` : ""}`);
+  const scopeIcon = exportOpts.dayScope === "weekend" ? "weekend" : "weekday";
 
-  const weekBlocks = weeksIn.map((week) => {
-    const plan = week.plan ?? menuPlan;
-    const schedule = week.schedule ?? data.schedule ?? {};
-    const { dates, activeDays } = resolveWeekCalendar(week, data.menuWeek);
-    return renderWeekBlock({
-      data,
-      menuPlan: plan,
-      groups,
-      schedule,
-      dates,
-      visibleDays,
-      activeDays,
-      weekTotal,
-      compact,
-      mealFilter: exportOpts.meals,
-      includeSchoolMenu: exportOpts.includeSchoolMenu,
-    });
-  }).join("\n");
+  const spanDatesForWeek = (week) => {
+    const cal = resolveWeekCalendar(week, data.menuWeek);
+    const active = new Set(cal.activeDays?.length ? cal.activeDays : DAYS);
+    const labelDays = visibleDays.filter((d) => active.has(d));
+    const useDays = labelDays.length ? labelDays : visibleDays;
+    const dts = useDays.map((d) => cal.dates[d]).filter(Boolean);
+    return dts.length ? { start: dts[0], end: dts[dts.length - 1] } : null;
+  };
+
+  // Full span from the first day of the first week to the last day of the last.
+  const firstSpan = spanDatesForWeek(weeksIn[0]);
+  const lastSpan = spanDatesForWeek(weeksIn[weeksIn.length - 1]);
+  const fullRange = firstSpan && lastSpan
+    ? formatDateSpan(firstSpan.start, lastSpan.end)
+    : "";
+
+  const chipsFor = () => {
+    if (isMonth) {
+      return [
+        fullRange ? chipHtml("calendar", fullRange) : "",
+        chipHtml("layers", `${weekTotal} semanas`),
+      ].join("");
+    }
+    return [
+      chipHtml(scopeIcon, scopeLabel),
+      fullRange ? chipHtml("calendar", fullRange) : "",
+    ].join("");
+  };
 
   const showColeLegend = exportOpts.includeSchoolMenu;
+  const title = isMonth ? "Menú del mes" : "Menú semanal";
+
+  // Cap meal-row height so a sparse sheet (e.g. one week alone) doesn't stretch
+  // its rows across the whole A4, leaving huge empty cells. Rows fill the page
+  // when content is dense and centre vertically when it isn't.
+  const mealRows = pdfMealRowCount(exportOpts);
+  const rowHeightPx = capRowHeight(mealRows, maxWeeksPerSheet, compact);
 
   const deco = (path, cls) => {
     const src = assetUrl(assetBase, path);
@@ -578,13 +746,69 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
 
   const qrBlock = qrDataUrl
     ? `<div class="qr-wrap">
-        <img class="qr" src="${escapeHtml(qrDataUrl)}" alt="QR MenuPlan" width="${compact ? 64 : 88}" height="${compact ? 64 : 88}" />
-        <span class="qr-cap">Ábrelo en el móvil</span>
-        ${appUrl ? `<span class="qr-url">${escapeHtml(appUrl.replace(/^https?:\/\//, ""))}</span>` : ""}
+        <img class="qr" src="${escapeHtml(qrDataUrl)}" alt="QR MenuPlan" width="${compact ? 46 : 60}" height="${compact ? 46 : 60}" />
+        <span class="qr-cap">Escanéame</span>
       </div>`
     : "";
 
-  const title = compact ? "Menú del mes" : "Menú semanal";
+  const totalPages = pages.length;
+  const sheetsHtml = pages.map((pageWeeks, pageIdx) => {
+    const weekBlocks = pageWeeks.map((week) => {
+      const plan = week.plan ?? menuPlan;
+      const schedule = week.schedule ?? data.schedule ?? {};
+      const { dates, activeDays } = resolveWeekCalendar(week, data.menuWeek);
+      return renderWeekBlock({
+        data,
+        menuPlan: plan,
+        groups: visibleGroups,
+        schedule,
+        dates,
+        visibleDays,
+        activeDays,
+        weekTotal: maxWeeksPerSheet,
+        compact,
+        mealFilter: exportOpts.meals,
+        includePostre: exportOpts.includePostre,
+        includeSchoolMenu: exportOpts.includeSchoolMenu,
+        rowHeightPx,
+      });
+    }).join("\n");
+
+    const folioTag = totalPages > 1
+      ? `<span class="folio">Folio ${pageIdx + 1} de ${totalPages}</span>`
+      : "";
+    const legendTag = showColeLegend
+      ? `<span class="legend"><span class="cole-dot"></span> Menú del cole</span>`
+      : "";
+    const footerHtml = (legendTag || folioTag)
+      ? `<footer class="footer">${legendTag || "<span></span>"}${folioTag}</footer>`
+      : "";
+
+    return `<div class="sheet${compact ? " compact" : ""}">
+    ${deco("/categories/frutas.png", "tl")}
+    ${deco("/categories/verduras.png", "tr")}
+    ${deco("/categories/panaderia.png", "bl")}
+    ${deco("/categories/huevos.png", "br")}
+
+    <header class="header">
+      <div class="header-left">
+        <span class="brand">MenuPlan</span>
+        <h1>${escapeHtml(title)}</h1>
+      </div>
+      <div class="header-mid">
+        <div class="chips">${chipsFor()}</div>
+        ${peopleHtml ? `<div class="people">${peopleHtml}</div>` : ""}
+      </div>
+      ${qrBlock}
+    </header>
+
+    <div class="weeks">
+      ${weekBlocks}
+    </div>
+
+    ${footerHtml}
+  </div>`;
+  }).join("\n");
 
   return `<!doctype html>
 <html lang="es">
@@ -620,6 +844,7 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
       radial-gradient(90% 70% at 100% 100%, rgba(201,138,58,.10), transparent 50%),
       linear-gradient(180deg, #fbf8f1 0%, #f3eee4 100%);
   }
+  .sheet + .sheet { margin-top: 18px; }
   .deco {
     position: absolute;
     width: ${compact ? "88px" : "120px"};
@@ -646,12 +871,35 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
   .header-left { min-width: 0; }
   .header-mid {
     display: flex;
+    flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 8px 12px;
+    gap: ${compact ? "6px" : "8px"};
     min-width: 0;
   }
+  .chips {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: ${compact ? "5px" : "7px"};
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: ${compact ? "3px 9px" : "4px 11px"};
+    border-radius: 999px;
+    background: #fff;
+    border: 1.5px solid rgba(45,90,61,.16);
+    color: #2d5a3d;
+    font-size: ${compact ? "10.5px" : "12px"};
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 1px 2px rgba(20,47,29,.05);
+  }
+  .chip-icon { display: block; flex-shrink: 0; }
   .brand {
     font-family: "Fraunces", Georgia, serif;
     font-weight: 700;
@@ -693,7 +941,12 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
     display: inline-flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: ${compact ? "8px" : "10px"};
+    justify-content: center;
+    gap: ${compact ? "6px" : "9px"};
+    padding: ${compact ? "3px 10px 3px 6px" : "4px 12px 4px 7px"};
+    border-radius: 999px;
+    background: rgba(45,90,61,.06);
+    border: 1.5px solid rgba(45,90,61,.12);
   }
   .person { display: inline-flex; align-items: center; gap: 5px; }
   .av {
@@ -739,17 +992,18 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: ${compact ? "4px" : "0"};
+    justify-content: center;
+    gap: ${compact ? "6px" : "0"};
   }
   .week-block {
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
     display: flex;
     flex-direction: column;
   }
 
   .grid {
-    flex: 1;
+    flex: 0 0 auto;
     min-height: 0;
     display: grid;
     /* grid-template-columns set inline per week (--label-col / --day-cols) */
@@ -920,9 +1174,17 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
   .legend {
     display: inline-flex;
     align-items: center;
-    gap: 2px;
-    margin-left: 10px;
+    gap: 3px;
     color: ${COLE_COLOR};
+    font-weight: 800;
+  }
+  .folio {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: rgba(45,90,61,.08);
+    color: #2d5a3d;
     font-weight: 800;
   }
 
@@ -936,39 +1198,12 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
       padding: 0;
       background: #fbf8f1;
     }
+    .sheet + .sheet { margin-top: 0; page-break-before: always; break-before: page; }
   }
 </style>
 </head>
 <body>
-  <div class="sheet${compact ? " compact" : ""}">
-    ${deco("/categories/frutas.png", "tl")}
-    ${deco("/categories/verduras.png", "tr")}
-    ${deco("/categories/panaderia.png", "bl")}
-    ${deco("/categories/huevos.png", "br")}
-
-    <header class="header">
-      <div class="header-left">
-        <span class="brand">MenuPlan</span>
-        <h1>${escapeHtml(title)}</h1>
-      </div>
-      <div class="header-mid">
-        <span class="pill">${escapeHtml(spanLabel)}</span>
-        ${peopleHtml ? `<div class="people">${peopleHtml}</div>` : ""}
-      </div>
-      ${qrBlock}
-    </header>
-
-    <div class="weeks">
-      ${weekBlocks}
-    </div>
-
-    <footer class="footer">
-      <span>Hecho con <strong>MenuPlan</strong> · para la nevera
-        ${showColeLegend ? `<span class="legend"><span class="cole-dot"></span> Menú del cole</span>` : ""}
-      </span>
-      <span>${escapeHtml(spanLabel)}</span>
-    </footer>
-  </div>
+  ${sheetsHtml}
 </body>
 </html>`;
 }

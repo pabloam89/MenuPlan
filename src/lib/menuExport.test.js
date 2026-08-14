@@ -3,7 +3,13 @@
 // neither of which exist under vitest's default "node" environment.
 
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { formatMenuText, buildMenuPrintHtml, downloadMenuPdf } from "./menuExport.js";
+import {
+  formatMenuText,
+  buildMenuPrintHtml,
+  downloadMenuPdf,
+  estimatePdfSheets,
+  weeksPerSheet,
+} from "./menuExport.js";
 import { registerRecipes } from "../data/recipes.js";
 
 const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
@@ -159,6 +165,163 @@ describe("buildMenuPrintHtml", () => {
     expect(html).toContain("Yogur con miel");
     expect(html).toContain('class="meal-label icon-only"');
     expect(html).not.toContain(">Postre<");
+  });
+
+  it("drops postre from the block when includePostre is false", () => {
+    registerRecipes([
+      { id: "test_cena_np", name: "Tortilla" },
+      { id: "test_postre_np", name: "Yogur con miel" },
+    ]);
+    const data = {
+      members: [],
+      groups: [group],
+      meals: ["Comida", "Cena"],
+      extraMeals: { postre: "cena" },
+    };
+    const menuPlan = {
+      [group.id]: {
+        "Lun-Cena": { recipeId: "test_cena_np", eaters: 2 },
+        "Lun-Postre": { recipeId: "test_postre_np", eaters: 2, extraMeal: "postre" },
+      },
+    };
+
+    const html = buildMenuPrintHtml(data, menuPlan, [group], {
+      export: { dayScope: "weekday", meals: ["Comida", "Cena"], includePostre: false },
+    });
+
+    expect(html).toContain("Tortilla");
+    expect(html).not.toContain("Yogur con miel");
+  });
+
+  it("excludes a group's menu when listed in excludedGroups", () => {
+    registerRecipes([
+      { id: "test_adult_dish", name: "Solomillo" },
+      { id: "test_kid_dish", name: "Macarrones" },
+    ]);
+    const adults = { id: "g-adults", label: "Adultos", memberIds: ["ad1"] };
+    const kids = { id: "g-kids", label: "Niños", memberIds: ["kid1"] };
+    const data = {
+      members: [
+        { id: "ad1", name: "Ana" },
+        { id: "kid1", name: "Leo" },
+      ],
+      groups: [adults, kids],
+      meals: ["Comida", "Cena"],
+    };
+    const menuPlan = {
+      [adults.id]: { "Lun-Comida": { recipeId: "test_adult_dish", eaters: 2 } },
+      [kids.id]: { "Lun-Comida": { recipeId: "test_kid_dish", eaters: 1 } },
+    };
+
+    const html = buildMenuPrintHtml(data, menuPlan, [adults, kids], {
+      export: { dayScope: "weekday", meals: ["Comida", "Cena"], excludedGroups: ["g-kids"] },
+    });
+
+    expect(html).toContain("Solomillo");
+    expect(html).not.toContain("Macarrones");
+    // Excluded group's member drops out of the header avatars too.
+    expect(html).toContain(">Ana<");
+    expect(html).not.toContain(">Leo<");
+  });
+
+  it("estimates sheet count from density and spills dense month packs", () => {
+    // 2 rows × 1 group → 4 weeks/sheet.
+    expect(weeksPerSheet(1, { meals: ["Comida", "Cena"] })).toBe(4);
+    // 2 rows × 2 groups → 2 weeks/sheet.
+    expect(weeksPerSheet(2, { meals: ["Comida", "Cena"] })).toBe(2);
+    // Single week always one sheet.
+    expect(estimatePdfSheets(1, 2, { meals: ["Desayuno", "Comida", "Cena"] })).toBe(1);
+    // 4 weeks × 1 group × (Comida+Cena) → fits on a single folio.
+    expect(estimatePdfSheets(4, 1, { meals: ["Comida", "Cena"] })).toBe(1);
+    // 4 weeks × 2 groups × (Comida+Cena) → 2 sheets.
+    expect(estimatePdfSheets(4, 2, { meals: ["Comida", "Cena"] })).toBe(2);
+  });
+
+  it("splits a dense multi-week export across multiple A4 sheets", () => {
+    registerRecipes([
+      { id: "wk1a", name: "Paella" },
+      { id: "wk2a", name: "Cocido" },
+      { id: "wk3a", name: "Fabada" },
+      { id: "wk4a", name: "Gazpacho" },
+    ]);
+    const adults = { id: "g-ad", label: "Adultos", memberIds: ["ad1"] };
+    const kids = { id: "g-ki", label: "Niños", memberIds: ["ki1"] };
+    const data = {
+      members: [{ id: "ad1", name: "Ana" }, { id: "ki1", name: "Leo" }],
+      groups: [adults, kids],
+      meals: ["Comida", "Cena"],
+    };
+    const mk = (id) => ({ [adults.id]: { "Lun-Comida": { recipeId: id, eaters: 2 } }, [kids.id]: {} });
+    const weeks = [
+      { plan: mk("wk1a"), startISO: "2026-08-03", startDayIdx: 0 },
+      { plan: mk("wk2a"), startISO: "2026-08-10", startDayIdx: 0 },
+      { plan: mk("wk3a"), startISO: "2026-08-17", startDayIdx: 0 },
+      { plan: mk("wk4a"), startISO: "2026-08-24", startDayIdx: 0 },
+    ];
+
+    const html = buildMenuPrintHtml(data, weeks[0].plan, [adults, kids], {
+      weeks,
+      export: { dayScope: "weekday", meals: ["Comida", "Cena"] },
+    });
+
+    // 4 weeks × 2 groups → 2 weeks/sheet → 2 sheets.
+    expect((html.match(/class="sheet/g) ?? []).length).toBe(2);
+    expect(html).toContain("Folio 1 de 2");
+    expect(html).toContain("Folio 2 de 2");
+    expect(html).toContain("page-break-before: always");
+  });
+
+  it("keeps a 4-week comida+cena pack on one folio (ignores empty ghost groups)", () => {
+    registerRecipes([
+      { id: "gh1", name: "Paella" },
+      { id: "gh2", name: "Cocido" },
+      { id: "gh3", name: "Fabada" },
+      { id: "gh4", name: "Lentejas" },
+    ]);
+    const familia = { id: "g-fam", label: "Familia", memberIds: ["m1", "m2", "m3"] };
+    const ghost = { id: "g-ghost", label: "Bebé", memberIds: [] };
+    const data = {
+      members: [
+        { id: "m1", name: "Pablo" },
+        { id: "m2", name: "Isa" },
+        { id: "m3", name: "Cova" },
+      ],
+      groups: [familia, ghost],
+      meals: ["Comida", "Cena"],
+    };
+    const mk = (id) => ({ [familia.id]: { "Lun-Comida": { recipeId: id, eaters: 3 } } });
+    const weeks = [
+      { plan: mk("gh1"), startISO: "2026-08-03", startDayIdx: 0 },
+      { plan: mk("gh2"), startISO: "2026-08-10", startDayIdx: 0 },
+      { plan: mk("gh3"), startISO: "2026-08-17", startDayIdx: 0 },
+      { plan: mk("gh4"), startISO: "2026-08-24", startDayIdx: 0 },
+    ];
+
+    const html = buildMenuPrintHtml(data, weeks[0].plan, [familia, ghost], {
+      weeks,
+      export: { dayScope: "weekday", meals: ["Comida", "Cena"] },
+    });
+
+    // One folio, no folio counter, and no stray group labels (single real group).
+    expect((html.match(/class="sheet/g) ?? []).length).toBe(1);
+    expect(html).not.toContain("Folio 1 de");
+    expect(html).not.toContain('class="group"');
+    expect(html).toContain("Paella");
+    expect(html).toContain("Lentejas");
+  });
+
+  it("renders header chips with icons instead of a dotted pill", () => {
+    registerRecipes([{ id: "chip_dish", name: "Lentejas" }]);
+    const data = baseData();
+    const menuPlan = { [group.id]: { "Lun-Comida": { recipeId: "chip_dish", eaters: 2 } } };
+
+    const html = buildMenuPrintHtml(data, menuPlan, [group], {
+      export: { dayScope: "weekday", meals: ["Comida", "Cena"] },
+    });
+
+    expect(html).toContain('class="chip"');
+    expect(html).toContain('class="chip-icon"');
+    expect(html).toContain("Entre semana");
   });
 
   it("hides postre in the Cena block when that day has no dinner dish", () => {
