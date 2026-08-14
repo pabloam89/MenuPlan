@@ -93,7 +93,7 @@ import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
 import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtras } from "./Onboarding.jsx";
-import { downloadMenu, shareMenu } from "../lib/menuExport.js";
+import { downloadMenuPdf, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
 import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
@@ -3913,9 +3913,9 @@ export const MenuScreen = memo(function MenuScreen({
 
   const handleDownload = async () => {
     try {
-      await downloadMenu(data, menuPlan, data.groups);
-      onToast?.("Menú descargado");
-      onTrackEvent?.("menu_exported", { method: "download" });
+      const result = await downloadMenuPdf(data, menuPlan, data.groups);
+      onToast?.(result.method === "print" ? "Elige \"Guardar como PDF\" en el diálogo de impresión" : "Menú descargado");
+      onTrackEvent?.("menu_exported", { method: result.method });
     } catch {
       onToast?.("No se pudo descargar el menú");
     }

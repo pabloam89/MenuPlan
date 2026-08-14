@@ -82,6 +82,95 @@ export function formatMenuText(data, menuPlan, groups) {
   return lines.join("\n").trim();
 }
 
+function escapeHtml(text) {
+  return String(text ?? "").replace(/[&<>"']/g, (c) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]
+  ));
+}
+
+/**
+ * Printable HTML for the weekly menu — same content as formatMenuText, laid
+ * out for a real PDF via the browser's own print pipeline (see
+ * downloadMenuPdf) rather than a raw text dump saved with a .txt extension.
+ */
+export function buildMenuPrintHtml(data, menuPlan, groups) {
+  const dates = getWeekDates();
+  const weekLabel = formatWeekRangeLabel(dates);
+  const meals = getDayMeals(data);
+  const multiGroup = groups.length > 1;
+
+  const dayBlocks = [];
+  for (const day of DAYS) {
+    const date = dates[day];
+    const header = date
+      ? `${DAY_FULL[day] ?? day}, ${longDate(date)}`
+      : (DAY_FULL[day] ?? day);
+
+    const rows = [];
+    for (const meal of meals) {
+      for (const group of groups) {
+        const slot = menuPlan[group.id]?.[`${day}-${meal}`];
+        if (!slot?.recipeId) continue;
+
+        const dishes = [];
+        if (slot.firstRecipeId) {
+          const first = RECIPES_BY_ID[slot.firstRecipeId];
+          if (first) dishes.push(first.name);
+        }
+        const recipe = RECIPES_BY_ID[slot.recipeId];
+        if (recipe) dishes.push(recipe.name);
+        if (dishes.length === 0) continue;
+
+        const groupTag = multiGroup ? `<span class="tag">${escapeHtml(group.label)}</span>` : "";
+        const tupperTag = slot.mode === "tupper" ? `<span class="tag">tupper</span>` : "";
+        rows.push(
+          `<div class="row"><span class="meal">${escapeHtml(meal)}</span>` +
+          `<span class="dishes">${escapeHtml(dishes.join(" · "))}</span>` +
+          `${groupTag}${tupperTag}</div>`,
+        );
+      }
+    }
+
+    if (rows.length > 0) {
+      dayBlocks.push(`<section class="day"><h2>${escapeHtml(header)}</h2>${rows.join("")}</section>`);
+    }
+  }
+
+  const familyLine = data.members?.length
+    ? `<p class="family">Familia: ${escapeHtml(data.members.map((m) => m.name).join(", "))}</p>`
+    : "";
+
+  return `<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Menú semanal — ${escapeHtml(weekLabel)}</title>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; color: #142f1d; margin: 0; padding: 28px 32px; }
+  h1 { font-size: 22px; margin: 0 0 2px; }
+  .week { font-size: 13px; color: #5a6a5f; margin: 0 0 20px; }
+  .day { break-inside: avoid; page-break-inside: avoid; margin-bottom: 16px; }
+  .day h2 { font-size: 14px; margin: 0 0 6px; padding-bottom: 4px; border-bottom: 1.5px solid #2d5a3d; color: #1a3a24; }
+  .row { display: flex; align-items: baseline; gap: 8px; padding: 3px 0; font-size: 12.5px; }
+  .meal { flex: 0 0 68px; font-weight: 700; color: #2d5a3d; }
+  .dishes { flex: 1; }
+  .tag { font-size: 10px; font-weight: 700; text-transform: uppercase; color: #7a8a7f; border: 1px solid #d5ddd7; border-radius: 999px; padding: 1px 7px; }
+  .family { margin-top: 18px; font-size: 12px; color: #5a6a5f; }
+  @media print {
+    body { padding: 0; }
+  }
+</style>
+</head>
+<body>
+  <h1>Menú semanal</h1>
+  <p class="week">${escapeHtml(weekLabel)}</p>
+  ${dayBlocks.join("")}
+  ${familyLine}
+</body>
+</html>`;
+}
+
 export function formatShoppingText(shopping) {
   const rawItems = shopping?.items ?? [];
   if (!rawItems.length) return "La lista de la compra está vacía.";
@@ -156,6 +245,36 @@ export async function downloadMenu(data, menuPlan, groups) {
   const filename = `menu-${formatWeekRangeLabel(getWeekDates()).replace(/\s+/g, "")}.txt`;
   downloadText(text, filename);
   return { method: "download" };
+}
+
+/**
+ * A real PDF, not a .txt with the wrong extension: opens the printable HTML
+ * (buildMenuPrintHtml) in a new tab and triggers the browser's own print
+ * dialog, where "Guardar como PDF" produces an actual PDF file — no new
+ * client-side PDF-generation dependency needed. window.open is called
+ * synchronously (before any await) so it fires within the same click-driven
+ * task as the button press and isn't caught by popup blockers; if a blocker
+ * (or an embedded/sandboxed webview) still refuses the window, this falls
+ * back to the plain-text download so the action does something rather than
+ * silently failing.
+ */
+export async function downloadMenuPdf(data, menuPlan, groups) {
+  const win = typeof window !== "undefined" ? window.open("", "_blank") : null;
+  if (!win) return downloadMenu(data, menuPlan, groups);
+
+  const html = buildMenuPrintHtml(data, menuPlan, groups);
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
+
+  await new Promise((resolve) => {
+    if (win.document.readyState === "complete") resolve();
+    else win.addEventListener("load", resolve, { once: true });
+  });
+
+  win.focus();
+  win.print();
+  return { method: "print" };
 }
 
 export async function shareShoppingList(shopping) {
