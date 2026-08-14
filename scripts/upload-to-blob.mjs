@@ -5,16 +5,21 @@
 //
 // Requires BLOB_READ_WRITE_TOKEN in .env.local (Vercel → Storage → your Blob → Tokens).
 // Reads every .jpg in output/dishes/, uploads to dishes/<combo_id>.jpg (public),
-// and writes output/manifest.json mapping combo_id → public CDN URL.
+// and writes output/manifest.json mapping combo_id → public CDN URL. Also
+// generates the small WebP derivatives the app serves instead of the full
+// original (see scripts/lib/dishDerivatives.mjs) and writes
+// output/derivatives-manifest.json mapping original URL → { width: url }.
 
 import { put } from "@vercel/blob";
 import { readFileSync, writeFileSync, readdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { generateDerivatives, DERIVATIVE_BUCKETS } from "./lib/dishDerivatives.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const IN_DIR = join(__dirname, "../output/dishes");
 const MANIFEST = join(__dirname, "../output/manifest.json");
+const DERIVATIVES_MANIFEST = join(__dirname, "../output/derivatives-manifest.json");
 
 const TOKEN = process.env.BLOB_READ_WRITE_TOKEN;
 if (!TOKEN) {
@@ -33,6 +38,7 @@ console.log(`📤  Subiendo ${files.length} imágenes a Vercel Blob…\n`);
 
 // Resume support: keep existing manifest entries and skip already-uploaded ids.
 const manifest = existsSync(MANIFEST) ? JSON.parse(readFileSync(MANIFEST, "utf8")) : {};
+const derivativesManifest = existsSync(DERIVATIVES_MANIFEST) ? JSON.parse(readFileSync(DERIVATIVES_MANIFEST, "utf8")) : {};
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 let uploaded = 0, skipped = 0, failed = 0;
@@ -56,10 +62,26 @@ for (let i = 0; i < files.length; i++) {
       allowOverwrite: true,
     });
     manifest[comboId] = blob.url;
+
+    const derivatives = await generateDerivatives(buffer);
+    const urlsByWidth = {};
+    for (const width of DERIVATIVE_BUCKETS) {
+      const dBlob = await put(`dishes/derivatives/${comboId}-${width}.webp`, derivatives[width], {
+        access: "public",
+        token: TOKEN,
+        contentType: "image/webp",
+        addRandomSuffix: false,
+        allowOverwrite: true,
+      });
+      urlsByWidth[width] = dBlob.url;
+    }
+    derivativesManifest[blob.url] = urlsByWidth;
+
     uploaded++;
     console.log(`✅  [${i + 1}/${files.length}] ${comboId} → ${blob.url}`);
-    // Persist manifest incrementally so an interruption never loses progress.
+    // Persist manifests incrementally so an interruption never loses progress.
     writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
+    writeFileSync(DERIVATIVES_MANIFEST, JSON.stringify(derivativesManifest, null, 2));
   } catch (err) {
     failed++;
     console.error(`❌  ${comboId}: ${err.message?.slice(0, 150)}`);
@@ -69,5 +91,7 @@ for (let i = 0; i < files.length; i++) {
 }
 
 writeFileSync(MANIFEST, JSON.stringify(manifest, null, 2));
+writeFileSync(DERIVATIVES_MANIFEST, JSON.stringify(derivativesManifest, null, 2));
 console.log(`\n✨  Hecho. subidas=${uploaded} saltadas=${skipped} fallidas=${failed}`);
 console.log(`   Manifest → ${MANIFEST}`);
+console.log(`   Derivados → ${DERIVATIVES_MANIFEST}`);

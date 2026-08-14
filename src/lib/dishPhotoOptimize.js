@@ -1,21 +1,45 @@
-// On-the-fly image optimization for dish photos: the origin blobs are
-// ~1.5-1.8 MB / ~1024px, far too heavy for thumbnails and cards. wsrv.nl
-// resizes + converts to WebP at the edge (origin stays cached separately).
-// Temporary until we ship pre-generated derivatives with sharp.
-// WebP only: wsrv.nl's free endpoint returns HTTP 400 for `output=avif`, and a
-// failed <source> in a <picture> does NOT fall back to <img src> — it just
-// shows nothing. So we stick to WebP, which every target browser supports.
+// Dish photo optimization. Two tiers:
+//  1. Pre-generated WebP derivatives (scripts/lib/dishDerivatives.mjs) — built
+//     once at upload time (or via the one-off scripts/backfill-dish-derivatives.mjs
+//     for dishes uploaded before this existed) and served directly, no
+//     per-request work.
+//  2. wsrv.nl fallback for any dish that doesn't have derivatives yet: resizes
+//     + converts to WebP at the edge from the ~1.5-1.8MB/1024px origin blob.
+//     WebP only — wsrv.nl's free endpoint returns HTTP 400 for `output=avif`,
+//     and a failed <source> in a <picture> does NOT fall back to <img src>,
+//     it just shows nothing.
 // Some callers pass a locally-picked photo (data: URI from the device photo
-// picker) rather than a Blob origin URL — wsrv.nl can't fetch those, so we
-// pass them through untouched instead of proxying.
+// picker) rather than a Blob origin URL — neither tier can resize those, so
+// they pass through untouched.
+import derivativesManifest from "../assets/dishes/dishImageDerivatives.json";
+
 function isRemoteUrl(url) {
   return typeof url === "string" && /^https?:\/\//.test(url);
+}
+
+const DERIVATIVE_BUCKETS = [200, 500, 900];
+function pickBucket(w) {
+  for (const b of DERIVATIVE_BUCKETS) if (w <= b) return b;
+  return DERIVATIVE_BUCKETS[DERIVATIVE_BUCKETS.length - 1];
+}
+
+function derivativesFor(url) {
+  return derivativesManifest[url.split("?")[0]] ?? null;
+}
+
+function wsrvImg(url, w) {
+  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
 }
 
 export function deckImg(url, w = 720) {
   if (!url) return null;
   if (!isRemoteUrl(url)) return url;
-  return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
+  const derivatives = derivativesFor(url);
+  if (derivatives) {
+    const bucket = pickBucket(w);
+    if (derivatives[bucket]) return derivatives[bucket];
+  }
+  return wsrvImg(url, w);
 }
 
 // Responsive srcset with width descriptors so the browser fetches the size
