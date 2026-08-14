@@ -124,9 +124,10 @@ function garnishClashesWithMain(g, recipe) {
  *   `filterGarnishes`). Defaults to the full unfiltered catalog, but every
  *   real caller should pass the filtered list — this default only exists so
  *   call sites that genuinely have no restriction context don't crash.
+ * @param {"off"|"week"|"weekdays"|"weekend"} [garnishRepeat]
  * @returns {Array<{slotId: string, recipeId: string, garnishId?: string}>}
  */
-export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, safeGarnishes = guarniciones) {
+export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, safeGarnishes = guarniciones, garnishRepeat = "off") {
   // Collect carbs already used by main recipes, per day
   const dayUsedCarbs = {};
   // Track whether each day already leans vegetable (a salad/veg main), so the
@@ -137,6 +138,10 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
   // bomb (arroz de primero + patatas de guarnición). Computed from mains only,
   // before any garnish carbs are folded into dayUsedCarbs below.
   const dayHasStarchMain = {};
+  const WEEKEND = new Set(["sab", "dom"]);
+  let weekAnchor = null;
+  let weekdayAnchor = null;
+  let weekendAnchor = null;
   for (const { slotId, recipeId } of slotAssignments) {
     const daySlug = slotId.split("_")[0];
     const recipe = poolById[recipeId];
@@ -281,6 +286,23 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
     }
 
     if (!garnish) return slot;
+
+    // Batch-cook mode: reuse the first garnish of the period (whole week /
+    // weekdays / weekend) instead of picking a new side every day.
+    const isWeekend = WEEKEND.has(daySlug);
+    if (garnishRepeat === "week" && weekAnchor) {
+      garnish = safeGarnishes.find((g) => g.id === weekAnchor) ?? garnish;
+    } else if (garnishRepeat === "weekdays" && !isWeekend && weekdayAnchor) {
+      garnish = safeGarnishes.find((g) => g.id === weekdayAnchor) ?? garnish;
+    } else if (garnishRepeat === "weekend" && isWeekend && weekendAnchor) {
+      garnish = safeGarnishes.find((g) => g.id === weekendAnchor) ?? garnish;
+    } else if (garnishRepeat === "week" && !weekAnchor) {
+      weekAnchor = garnish.id;
+    } else if (garnishRepeat === "weekdays" && !isWeekend && !weekdayAnchor) {
+      weekdayAnchor = garnish.id;
+    } else if (garnishRepeat === "weekend" && isWeekend && !weekendAnchor) {
+      weekendAnchor = garnish.id;
+    }
 
     usedGarnishIds.add(garnish.id);
 

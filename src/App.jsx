@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Soup, Utensils } from "lucide-react";
+import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Soup, Utensils, Play, Eraser, X } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
   OnboardingMembers,
@@ -42,7 +42,7 @@ import {
   migrateGroupsForBabies,
   memberIsBaby,
   canSplitMenus,
-  hasUnderageMember,
+  hasChildMember,
   createIndividualMenuGroup,
   individualMenuGroupFor,
   pruneExpiredIndividualMenus,
@@ -270,6 +270,13 @@ const INITIAL_DATA = {
   // schoolMenus: { shared: { "Lun-Primero": "...", "Lun-Segundo": "...", "Lun-Postre": "..." },
   //                byMember: { [memberId]: { ... } } }
   schoolMenus: { shared: {}, byMember: {} },
+  // Advanced: kids' dinner mirrors adults' lunch that day (and adults' lunch
+  // avoids the school menu). Only meaningful with a school menu uploaded and
+  // separate Adultos/Niños groups.
+  kidDinnerMatchesAdultLunch: false,
+  // Reuse the first day's garnish across the week / weekdays / weekend.
+  // off | week | weekdays | weekend
+  garnishRepeat: "off",
   // Active goal ids selected globally (used as fallback when a group has no
   // override yet, and as the canonical list before menuModel is set).
   goals: [],
@@ -598,6 +605,8 @@ function migrate(state) {
     (d.menus && Object.keys(d.menus).length > 0) ||
     planHasDishes(state.menuPlan);
   if (typeof d.expertMode !== "boolean") d.expertMode = false;
+  if (typeof d.kidDinnerMatchesAdultLunch !== "boolean") d.kidDinnerMatchesAdultLunch = false;
+  if (!["off", "week", "weekdays", "weekend"].includes(d.garnishRepeat)) d.garnishRepeat = "off";
   if (typeof d.modePrompted !== "boolean") {
     // Cuentas ya en marcha no deben ver de repente el selector de modo: se da
     // por respondido (quedan en básico). Los usuarios nuevos lo verán una vez.
@@ -2753,11 +2762,12 @@ export default function App() {
   // Meal Style → Meal Extras (structure/desayuno/merienda/postre/cenas rápidas)
   // → Repeat → Cooking.
   // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
-  // real choice: no split possible if everyone's an adult, nothing to upload
-  // if nobody in the house is underage (baby or child).
+  // real choice: no kids to diverge from adults, nothing to upload if nobody
+  // is on the kids' menu (pure babies don't use the school cafeteria flow).
   const ONB_STEP_COUNT = 10;
   const skipMenuModel = !canSplitMenus(data.members);
-  const skipSchoolMenu = !hasUnderageMember(data.members);
+  // School cafeteria only applies to kids (Niños), not pure babies.
+  const skipSchoolMenu = !hasChildMember(data.members);
   // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (6, se asume
   // equilibrado) y "¿Cómo completamos el menú?" (7, la estructura de plato se
   // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
@@ -3601,81 +3611,154 @@ export default function App() {
       {onbResumeOpen && (
         <div
           onClick={() => setOnbResumeOpen(false)}
+          className="mp-overlay-in"
           style={{
             position: "fixed", inset: 0, zIndex: 300,
-            background: "rgba(20,47,29,.4)",
-            backdropFilter: "blur(2px)",
+            background: "rgba(0,0,0,.5)",
             display: "flex", alignItems: "center", justifyContent: "center",
-            padding: "0 22px",
-            animation: "mpModalFadeIn .2s ease",
+            padding: "0 24px",
           }}
         >
           <div
             onClick={(e) => e.stopPropagation()}
+            className="mp-sheet-up"
             style={{
               position: "relative",
-              width: "100%",
-              maxWidth: 360,
               background: "#fff",
-              borderRadius: 24,
-              padding: "28px 22px 20px",
-              boxShadow: "0 18px 50px rgba(20,47,29,.32)",
-              animation: "mpModalPop .38s cubic-bezier(.34,1.56,.5,1) both",
+              borderRadius: 26,
+              padding: "26px 22px 18px",
+              width: "100%", maxWidth: 360, boxSizing: "border-box",
+              boxShadow: "0 24px 60px rgba(0,0,0,.25)",
             }}
           >
-            <div style={{
-              position: "absolute", top: -24, left: 24,
-              width: 52, height: 52, borderRadius: "50% 50% 50% 8px",
-              background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 6px 16px rgba(45,90,61,.4)",
-              animation: "mpModalBob 2.4s ease-in-out infinite",
-            }}>
-              <RotateCcw size={24} color="#fff" />
-            </div>
-            <div style={{ marginTop: 20 }}>
-              <h3 style={{ margin: "0 0 6px", fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.4px" }}>
-                ¿Continuar donde lo dejaste?
-              </h3>
-              <p style={{ margin: "0 0 20px", fontSize: 13.5, color: "#5a7a66", lineHeight: 1.5 }}>
-                Tienes una configuración guardada. Puedes seguir editándola o empezar desde cero.
-              </p>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <button
-                type="button"
-                onClick={resumeOnboardingOrGenerate}
-                style={{
-                  width: "100%", padding: "13px 16px", borderRadius: 13, border: "none",
-                  background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
-                  color: "#fff", fontSize: 14.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                Continuar donde lo dejé
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setOnbResumeOpen(false);
-                  clearState();
-                  if (user?.id) clearUserState(user.id);
-                  setData(ensureRosters(INITIAL_DATA));
-                  setMenuPlan({});
-                  setShopping({ items: [] });
-                  setSelectedSlot(null);
-                  setOnbStep(0);
-                  setAiRecipes([]);
-                  setMenuError(null);
-                  _doGoToOnboardingStep(0);
-                }}
-                style={{
-                  width: "100%", padding: "12px 16px", borderRadius: 13,
-                  border: "1.5px solid #cfe0d4", background: "#fff",
-                  color: "#2d5a3d", fontSize: 13.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                Empezar de cero
-              </button>
+            <button
+              type="button"
+              onClick={() => setOnbResumeOpen(false)}
+              aria-label="Cerrar"
+              style={{
+                position: "absolute", top: 14, right: 14,
+                width: 32, height: 32, borderRadius: 999,
+                border: "none", background: "#f0f4f1",
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", color: "#5a7a66",
+              }}
+            >
+              <X size={16} strokeWidth={2.4} />
+            </button>
+
+            <h3 style={{ margin: "0 0 6px", fontSize: 20, fontWeight: 900, color: "#142f1d", textAlign: "center", letterSpacing: "-.01em", paddingRight: 28 }}>
+              ¿Cómo quieres generar?
+            </h3>
+            <p style={{ margin: "0 auto 18px", fontSize: 13.5, color: "#7a9485", textAlign: "center", lineHeight: 1.45, maxWidth: 280 }}>
+              Tienes una configuración guardada. Elige cómo seguir.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                {
+                  key: "continue",
+                  Icon: Play,
+                  iconColor: "#2d5a3d",
+                  iconBg: "#e7f3ec",
+                  primary: true,
+                  title: "Continuar donde lo dejé",
+                  subtitle: "Sigue con familia, despensa y preferencias.",
+                  onClick: resumeOnboardingOrGenerate,
+                },
+                {
+                  key: "soft",
+                  Icon: Eraser,
+                  iconColor: "#8a5a00",
+                  iconBg: "#fbeecd",
+                  primary: false,
+                  title: "Empezar de cero",
+                  subtitle: "Se guarda la familia; el resto se reinicia.",
+                  onClick: () => {
+                    setOnbResumeOpen(false);
+                    const members = data.members ?? [];
+                    const rosters = data.rosters;
+                    const activeRosterId = data.activeRosterId;
+                    setMenuPlan({});
+                    setShopping({ items: [] });
+                    setSelectedSlot(null);
+                    setAiRecipes([]);
+                    setMenuError(null);
+                    setOnbStep(0);
+                    setData((d) =>
+                      ensureRosters({
+                        ...INITIAL_DATA,
+                        members: d.members ?? members,
+                        rosters: d.rosters ?? rosters,
+                        activeRosterId: d.activeRosterId ?? activeRosterId,
+                        expertMode: d.expertMode,
+                        modePrompted: true,
+                      }),
+                    );
+                    startQuickMenu();
+                  },
+                },
+                {
+                  key: "hard",
+                  Icon: Trash2,
+                  iconColor: "#a8402b",
+                  iconBg: "#fdecea",
+                  primary: false,
+                  title: "Empezar de cero del todo",
+                  subtitle: "Borra familia, menús y configuración.",
+                  onClick: () => {
+                    setOnbResumeOpen(false);
+                    clearState();
+                    if (user?.id) clearUserState(user.id);
+                    setData(ensureRosters(INITIAL_DATA));
+                    setMenuPlan({});
+                    setShopping({ items: [] });
+                    setSelectedSlot(null);
+                    setOnbStep(0);
+                    setAiRecipes([]);
+                    setMenuError(null);
+                    _doGoToOnboardingStep(0);
+                  },
+                },
+              ].map(({ key, Icon, iconColor, iconBg, primary, title, subtitle, onClick }) => (
+                <button
+                  key={key}
+                  type="button"
+                  onClick={onClick}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 14,
+                    width: "100%",
+                    padding: "14px 14px",
+                    borderRadius: 18,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    textAlign: "left",
+                    border: primary ? "2.5px solid #bfe0cb" : "1.5px solid #e8ede9",
+                    background: primary ? "#eef6f0" : "#f7f9f8",
+                    boxShadow: primary ? "0 4px 14px rgba(45,90,61,.12)" : "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      flex: "0 0 auto",
+                      width: 44,
+                      height: 44,
+                      borderRadius: 14,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      background: iconBg,
+                    }}
+                  >
+                    <Icon size={20} color={iconColor} strokeWidth={2.2} />
+                  </span>
+                  <span style={{ minWidth: 0 }}>
+                    <span style={{ display: "block", fontSize: 14.5, fontWeight: 800, color: "#142f1d" }}>{title}</span>
+                    <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#7a8a7f", marginTop: 2, lineHeight: 1.3 }}>{subtitle}</span>
+                  </span>
+                </button>
+              ))}
             </div>
           </div>
         </div>

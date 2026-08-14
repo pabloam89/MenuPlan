@@ -262,7 +262,8 @@ RESTRICCIONES POR SLOT:
 - Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/quinoa/cuscús/pan) en la CENA de ese día.
 - Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
 - Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
-- Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido.
+- Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido (≤ 15 min).
+- Si un slot trae preferType "comida_rapida", asígnale un plato de comida rápido (≤ 15 min): ensalada, filete/pescado a la plancha, tortilla, revuelto… NUNCA uses category "cenas_rapidas" ahí.
 - NUNCA uses una receta de category "cenas_rapidas" en un slot que NO tenga preferType "cena_rapida". Esa categoría es solo para el hueco marcado explícitamente por el usuario como cena rápida.
 - Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente timesPerWeek veces a lo largo de la semana, en slots del tipo indicado en meals (comida o cena) y REPARTIDO en días distintos (no días seguidos). Colócalo en la posición que le corresponda por su mealRole: si es "primero" va en comida_1, si es "segundo" va en comida_2, si es "cena" en el hueco de cena. NUNCA pongas una verdura/primero como segundo (plato principal): el día debe conservar su proteína. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
 
@@ -319,12 +320,22 @@ export function buildGroupContext(data, group) {
   const planDays =
     Number.isInteger(group.days) && group.days > 0 ? DAYS.slice(0, group.days) : DAYS;
 
+  // Kid dinner = adults' lunch: adults' comida must avoid school proteins/carbs
+  // from household kids; kids' cena slots are skipped and filled after Adultos.
+  const linkKidDinner = Boolean(data.kidDinnerMatchesAdultLunch);
+  const isAdultsGroup = group.label === "Adultos";
+  const isKidsGroup = group.label === "Niños";
+  const schoolSourceMembers =
+    linkKidDinner && isAdultsGroup
+      ? (data.members ?? []).filter((m) => stageForAge(resolveMemberAge(m)).id !== "adulto")
+      : groupMembers;
+
   for (const day of planDays) {
     const daySlug = DAY_SLUG[day];
     const isWeekend = day === "Sáb" || day === "Dom";
 
     const schoolProteins = new Set(
-      groupMembers
+      schoolSourceMembers
         .map((m) => {
           const courses = getSchoolDish(data.schoolMenus, m.id, day);
           if (!hasAnySchoolDish(courses)) return null;
@@ -341,7 +352,7 @@ export function buildGroupContext(data, group) {
     // would otherwise false-positive the taxonomy against a dessert, not a
     // real carb-bearing course.
     const schoolCarbs = new Set(
-      groupMembers
+      schoolSourceMembers
         .map((m) => {
           const courses = getSchoolDish(data.schoolMenus, m.id, day);
           if (!hasAnySchoolDish(courses)) return null;
@@ -352,7 +363,7 @@ export function buildGroupContext(data, group) {
     );
 
     // Collect school menu text for context
-    for (const m of groupMembers) {
+    for (const m of schoolSourceMembers) {
       const courses = getSchoolDish(data.schoolMenus, m.id, day);
       if (hasAnySchoolDish(courses)) {
         const parts = [courses.primero, courses.segundo, courses.postre].filter(Boolean);
@@ -384,7 +395,36 @@ export function buildGroupContext(data, group) {
           slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico" });
         } else if (slotTypeSel === "unico" || mealStructure === "1_plato") {
           // Single complete dish: only one slot, no primero+segundo.
-          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime, slotId: `${daySlug}_comida_1`, position: "plato_unico", preferType: "plato_unico" });
+          const slot = {
+            day, daySlug, mealType, eaters, mode: mode.mode,
+            maxTime: slotTypeSel === "rapida" ? Math.min(maxTime, 15) : maxTime,
+            slotId: `${daySlug}_comida_1`,
+            position: "plato_unico",
+            preferType: slotTypeSel === "rapida" ? "comida_rapida" : "plato_unico",
+          };
+          if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
+            slot.schoolProteinsToAvoid = Array.from(schoolProteins);
+          }
+          if (linkKidDinner && isAdultsGroup && schoolCarbs.size > 0) {
+            slot.schoolCarbsToAvoid = Array.from(schoolCarbs);
+          }
+          slots.push(slot);
+        } else if (slotTypeSel === "rapida") {
+          // Quick lunch: one light dish ≤15 min (ensalada, plancha…).
+          const slot = {
+            day, daySlug, mealType, eaters, mode: mode.mode,
+            maxTime: Math.min(maxTime, 15),
+            slotId: `${daySlug}_comida_1`,
+            position: "plato_unico",
+            preferType: "comida_rapida",
+          };
+          if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
+            slot.schoolProteinsToAvoid = Array.from(schoolProteins);
+          }
+          if (linkKidDinner && isAdultsGroup && schoolCarbs.size > 0) {
+            slot.schoolCarbsToAvoid = Array.from(schoolCarbs);
+          }
+          slots.push(slot);
         } else {
           // The user reads the cook-time slider as the budget for the WHOLE
           // comida, not per dish. So split it (primeros are quicker → 40%,
@@ -392,14 +432,23 @@ export function buildGroupContext(data, group) {
           // which used to let primero+segundo sum up to 1.4× the limit.
           const primeroMaxTime = Math.max(10, Math.round(maxTime * 0.4));
           const segundoMaxTime = Math.max(10, maxTime - primeroMaxTime);
-          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" });
-          slots.push({ day, daySlug, mealType, eaters, mode: mode.mode, maxTime: segundoMaxTime, slotId: `${daySlug}_comida_2`, position: "segundo" });
+          const primero = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime: primeroMaxTime, slotId: `${daySlug}_comida_1`, position: "primero" };
+          const segundo = { day, daySlug, mealType, eaters, mode: mode.mode, maxTime: segundoMaxTime, slotId: `${daySlug}_comida_2`, position: "segundo" };
+          if (linkKidDinner && isAdultsGroup && schoolProteins.size > 0) {
+            segundo.schoolProteinsToAvoid = Array.from(schoolProteins);
+          }
+          if (linkKidDinner && isAdultsGroup && schoolCarbs.size > 0) {
+            segundo.schoolCarbsToAvoid = Array.from(schoolCarbs);
+          }
+          slots.push(primero, segundo);
         }
       } else {
+        // Kids' dinner is filled from adults' lunch after generation.
+        if (linkKidDinner && isKidsGroup) continue;
         const isQuick = slotTypeSel === "rapida";
         const slot = {
           day, daySlug, mealType, eaters, mode: mode.mode,
-          maxTime: isQuick ? Math.min(maxTime, 20) : maxTime,
+          maxTime: isQuick ? Math.min(maxTime, 15) : maxTime,
           slotId: `${daySlug}_cena`,
         };
         if (isQuick) slot.preferType = "cena_rapida";
@@ -523,6 +572,14 @@ function recipeMatchesPreferType(recipe, preferType) {
   if (!recipe) return false;
   if (preferType === "plato_unico") return (recipe.mealRole ?? []).includes("plato_unico");
   if (preferType === "cena_rapida") return recipe.category === "cenas_rapidas";
+  if (preferType === "comida_rapida") {
+    const roles = recipe.mealRole ?? [];
+    return (
+      (recipe.time ?? 99) <= 15 &&
+      recipe.category !== "cenas_rapidas" &&
+      (roles.includes("plato_unico") || roles.includes("segundo") || roles.includes("primero"))
+    );
+  }
   return true;
 }
 
@@ -955,7 +1012,13 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // 5. Pair "principal" recipes with garnishes (deterministic, no LLM).
   //    User-pinned combos (dish chosen from the catalog) take priority.
-  slotAssignments = pairGarnishes(slotAssignments, poolById, pinnedGarnishMap(data.fixedDishes), safeGarnishes);
+  slotAssignments = pairGarnishes(
+    slotAssignments,
+    poolById,
+    pinnedGarnishMap(data.fixedDishes),
+    safeGarnishes,
+    data.garnishRepeat ?? "off",
+  );
 
   // 6. Re-validate the FULLY-enforced menu. Steps 4/4b run AFTER the
   //    validate+fallback loop and can, in principle, reintroduce a rule
@@ -1197,6 +1260,9 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     const pool = filterOffMenuRecipes("desayunos", { ...safety, hasKids });
     if (pool.length) {
       DAYS.forEach((day, i) => {
+        // Same rule as comida/cena: if nobody eats breakfast at home that day,
+        // don't invent a desayuno slot.
+        if (!modeForGroupSlot(group, data.members, data.schedule, day, "Desayuno").cook) return;
         let r;
         if (em.desayuno === "igual") r = pool[0];
         else if (em.desayuno === "findes") {
@@ -1215,6 +1281,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     if (pool.length) {
       const days = em.merienda === "laborables" ? DAYS.slice(0, 5) : DAYS;
       days.forEach((day, i) => {
+        if (!modeForGroupSlot(group, data.members, data.schedule, day, "Merienda").cook) return;
         out.push({
           planKey: `${day}-Merienda`,
           recipeId: pool[(i + weekIndex) % pool.length].id,
@@ -1225,10 +1292,9 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     }
   }
 
-  // Postre — always offerable. off | comida | cena | ambas (v1: one dessert/day,
-  // `when` records the intended slot for the UI subtitle). Effort (inmediato /
-  // cazo / horno) and the fruta/yogur toggle filter the pool; desserts never
-  // share the comida/cena cook-time budget.
+  // Postre — off | comida | cena | ambas. Only place it when at least one of
+  // the meals it's attached to is actually cooked that day (fuera/cole/off on
+  // the parent meal → no dessert, same as no comida_rapida / cena_rapida).
   if (em.postre && em.postre !== "off") {
     const pool = filterPostrePool(
       filterOffMenuRecipes("postres", { ...safety, hasKids }),
@@ -1236,12 +1302,20 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
     );
     if (pool.length) {
       DAYS.forEach((day, i) => {
+        const when = em.postre;
+        const cooksComida =
+          (when === "comida" || when === "ambas") &&
+          modeForGroupSlot(group, data.members, data.schedule, day, "Comida").cook;
+        const cooksCena =
+          (when === "cena" || when === "ambas") &&
+          modeForGroupSlot(group, data.members, data.schedule, day, "Cena").cook;
+        if (!cooksComida && !cooksCena) return;
         out.push({
           planKey: `${day}-Postre`,
           recipeId: pool[(i + weekIndex) % pool.length].id,
           eaters,
           mealKey: "postre",
-          when: em.postre,
+          when,
         });
       });
     }
@@ -1363,6 +1437,58 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     for (const [key, slot] of Object.entries(byDayMeal)) {
       if (slot.recipeId) {
         plan[group.id][key] = slot;
+        placedSlots++;
+      }
+    }
+  }
+
+  // Kid dinner = adults' lunch: copy Adultos' Comida main into Niños' Cena.
+  if (data.kidDinnerMatchesAdultLunch) {
+    const adults = activeGroups.find((g) => g.label === "Adultos");
+    const kids = activeGroups.find((g) => g.label === "Niños");
+    if (adults && kids) {
+      const kidsMembers = membersOfGroup(kids, data.members);
+      for (const day of DAYS) {
+        const lunch = plan[adults.id]?.[`${day}-Comida`];
+        if (!lunch?.recipeId) continue;
+        const mode = modeForGroupSlot(kids, data.members, data.schedule, day, "Cena");
+        if (!mode.cook) continue;
+        const eaters = kidsMembers.filter((m) => {
+          const status = data.schedule[slotKey(m.id, day, "Cena")] ?? "casa";
+          return status === "casa" || status === "tupper";
+        }).length;
+        if (eaters <= 0) continue;
+
+        const adultFrontendId = lunch.recipeId;
+        const baseId = adultFrontendId.includes("__")
+          ? adultFrontendId.split("__").slice(1).join("__")
+          : adultFrontendId;
+        const catalogRecipe = recipeCatalogById[baseId] ?? userRecipeById[baseId];
+        if (!catalogRecipe) continue;
+
+        const kidsFrontendId = multi ? `${kids.id}__${baseId}` : baseId;
+        if (!seenRecipeIds.has(kidsFrontendId)) {
+          seenRecipeIds.add(kidsFrontendId);
+          const fr = catalogToFrontendRecipe(catalogRecipe, eaters, []);
+          if (multi) fr.id = kidsFrontendId;
+          fr.baseRecipeId = baseId;
+          // Carry adults' garnish into the kids copy when present on the lunch main.
+          const adultFr = allRecipes.find((r) => r.id === adultFrontendId);
+          if (adultFr?.garnishId) {
+            const garnish = guarnicionById[adultFr.garnishId];
+            if (garnish) applyGarnishToRecipe(fr, garnish, eaters, []);
+          }
+          allRecipes.push(fr);
+        }
+
+        plan[kids.id][`${day}-Cena`] = {
+          recipeId: kidsFrontendId,
+          firstRecipeId: null,
+          eaters,
+          mode: mode.mode,
+          warnings: [],
+          fromAdultLunch: true,
+        };
         placedSlots++;
       }
     }

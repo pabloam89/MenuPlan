@@ -26,3 +26,15 @@ export function getSchoolDish(schoolMenus, memberId, day) {
 export function hasAnySchoolDish(courses) {
   return Boolean(courses && (courses.primero || courses.segundo || courses.postre));
 }
+
+/** True when the household has uploaded any school dish (shared or per-kid). */
+export function householdHasSchoolMenu(schoolMenus) {
+  if (!schoolMenus || typeof schoolMenus !== "object") return false;
+  if (Object.keys(schoolMenus.shared ?? {}).some((k) => String(schoolMenus.shared[k] ?? "").trim())) {
+    return true;
+  }
+  for (const courses of Object.values(schoolMenus.byMember ?? {})) {
+    if (courses && Object.keys(courses).some((k) => String(courses[k] ?? "").trim())) return true;
+  }
+  return false;
+}

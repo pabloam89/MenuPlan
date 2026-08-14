@@ -111,6 +111,7 @@ import {
   migrateGroupsForBabies,
   reconcileTierGroups,
   resolveMemberAge,
+  tierForMember,
   uid,
 } from "../lib/groups.js";
 import {
@@ -124,7 +125,7 @@ import {
 } from "../lib/planner.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 import { POSTRE_TIPOS, POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
-import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
+import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu } from "../lib/schoolMenu.js";
 import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
 
@@ -2218,6 +2219,7 @@ export function OnboardingRestrictions({
               img="/avatares/cards/cook_alergias.jpg"
               title="Alergias"
               subtitle="e intolerancias"
+              accent={CARD_ACCENT_TEAL}
               active={mainTab === "alergias"}
               onClick={() => setMainTab("alergias")}
             />
@@ -2230,6 +2232,7 @@ export function OnboardingRestrictions({
               ]}
               title="Salud"
               subtitle="crónico y temporal"
+              accent={CARD_ACCENT_TEAL}
               active={mainTab === "salud"}
               onClick={() => setMainTab("salud")}
             />
@@ -2436,9 +2439,28 @@ function RotatingCardImage({ images, interval = 2500, alt = "" }) {
   );
 }
 
-function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClick, imgRatio = "1 / 1" }) {
+/** Forest green for nested choices; teal for top section switchers (Alergias, Comidas…). */
+const CARD_ACCENT = "#2d5a3d";
+const CARD_ACCENT_TEAL = "#0f766e";
+
+function RestrictionTabCard({
+  Icon,
+  img,
+  images,
+  title,
+  subtitle,
+  active,
+  onClick,
+  imgRatio = "1 / 1",
+  accent = CARD_ACCENT,
+}) {
   const illustrated = Boolean(img || (images && images.length));
   if (illustrated) {
+    const shadow = active
+      ? accent === CARD_ACCENT_TEAL
+        ? "0 6px 18px rgba(15,118,110,.22)"
+        : "0 6px 18px rgba(45,90,61,.22)"
+      : "0 1px 2px rgba(0,0,0,.04)";
     return (
       <button
         type="button"
@@ -2454,19 +2476,19 @@ function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClic
           padding: 0,
           overflow: "hidden",
           borderRadius: 15,
-          border: `2px solid ${active ? "#2d5a3d" : "#e0eae3"}`,
-          background: active ? "#2d5a3d" : "#fff",
+          border: `2px solid ${active ? accent : "#e0eae3"}`,
+          background: active ? accent : "#fff",
           cursor: "pointer",
           fontFamily: "inherit",
           transition: "all .16s ease",
-          boxShadow: active ? "0 6px 18px rgba(45,90,61,.22)" : "0 1px 2px rgba(0,0,0,.04)",
+          boxShadow: shadow,
         }}
       >
         {active && (
           <span
             style={{
               position: "absolute", top: 8, right: 8, zIndex: 2,
-              width: 20, height: 20, borderRadius: "50%", background: "#2d5a3d",
+              width: 20, height: 20, borderRadius: "50%", background: accent,
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 1px 4px rgba(20,47,29,.3)",
             }}
@@ -2499,7 +2521,7 @@ function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClic
             flexDirection: "column",
             justifyContent: "center",
             padding: "8px 6px 9px",
-            background: active ? "#2d5a3d" : "#fff",
+            background: active ? accent : "#fff",
             textAlign: "center",
             color: active ? "#fff" : "#142f1d",
           }}
@@ -2511,13 +2533,13 @@ function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClic
     );
   }
   return (
-    <button type="button" onClick={onClick} aria-pressed={active} style={mealStyleCardStyle(active)}>
+    <button type="button" onClick={onClick} aria-pressed={active} style={mealStyleCardStyle(active, accent)}>
       {active && (
         <span style={{ position: "absolute", top: 6, right: 6, display: "flex" }}>
           <Check size={11} color="#fff" />
         </span>
       )}
-      <div style={mealStyleIconStyle(active)}>
+      <div style={mealStyleIconStyle(active, accent)}>
         <Icon size={16} />
       </div>
       <div style={{ textAlign: "center", lineHeight: 1.2, color: active ? "#fff" : "#142f1d" }}>
@@ -2642,6 +2664,7 @@ export function OnboardingRepeat({
           Icon={Refrigerator}
           title="En casa"
           subtitle="nevera y despensa"
+          accent={CARD_ACCENT_TEAL}
           active={mainTab === "casa"}
           onClick={() => setMainTab("casa")}
         />
@@ -2649,6 +2672,7 @@ export function OnboardingRepeat({
           Icon={Star}
           title="Favoritas"
           subtitle="y platos fijos"
+          accent={CARD_ACCENT_TEAL}
           active={mainTab === "favoritas"}
           onClick={() => setMainTab("favoritas")}
         />
@@ -4168,7 +4192,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
                 img={t.img}
                 title={t.title}
                 subtitle={t.subtitle}
-                imgRatio="4 / 3"
+                imgRatio="2 / 1"
                 active={(data.mealStructure ?? "primero_segundo") === t.id}
                 onClick={() => setData((d) => ({ ...d, mealStructure: t.id }))}
               />
@@ -4642,14 +4666,14 @@ function PostreInmediatoPicker({ value, onChange }) {
                 justifyContent: "center",
               }}
             >
-              {k.id === "mix" ? (
+              {k.img ? (
+                <img src={k.img} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
+              ) : (
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
                   <img src="/categories/cut/frutas.png" alt="" style={{ width: 28, height: 28, objectFit: "contain" }} />
                   <span style={{ fontWeight: 800, fontSize: 13, color: "#2d5a3d", lineHeight: 1 }}>+</span>
                   <img src="/ingredients/yogur-cut.png" alt="" style={{ width: 26, height: 26, objectFit: "contain" }} />
                 </span>
-              ) : (
-                <img src={k.img} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
               )}
             </div>
             <div
@@ -5749,9 +5773,7 @@ const SCHOOL_SCOPE_CARDS = [
 ];
 
 export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, onReset, demoScript = false }) {
-  const schoolKids = data.members.filter(
-    (m) => stageForAge(memberAge(m)).id !== "adulto"
-  );
+  const schoolKids = data.members.filter((m) => tierForMember(m) === "child");
   const [scope, setScope] = useState("shared");
   const [uploadOpen, setUploadOpen] = useState(false);
   const [activeKidId, setActiveKidId] = useState(schoolKids[0]?.id ?? null);
@@ -6397,6 +6419,60 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       </WizardSheet>
       )}
 
+      {hasAnyDish && !importing && data.expertMode && householdHasSchoolMenu(data.schoolMenus) && (
+        <button
+          type="button"
+          onClick={() =>
+            setData((d) => ({
+              ...d,
+              kidDinnerMatchesAdultLunch: !d.kidDinnerMatchesAdultLunch,
+              ...(d.menuModel !== "separate"
+                ? { menuModel: "separate", groups: groupsFromModel(d.members ?? [], "separate") }
+                : {}),
+            }))
+          }
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "flex-start",
+            gap: 12,
+            padding: "12px 14px",
+            borderRadius: 14,
+            border: `2px solid ${data.kidDinnerMatchesAdultLunch ? "#2d5a3d" : "#e0eae3"}`,
+            background: data.kidDinnerMatchesAdultLunch ? "#eef6f0" : "#fff",
+            cursor: "pointer",
+            fontFamily: "inherit",
+            textAlign: "left",
+            marginBottom: 12,
+          }}
+        >
+          <span
+            style={{
+              flexShrink: 0,
+              width: 22,
+              height: 22,
+              borderRadius: 7,
+              marginTop: 1,
+              border: `2px solid ${data.kidDinnerMatchesAdultLunch ? "#2d5a3d" : "#c5d4cb"}`,
+              background: data.kidDinnerMatchesAdultLunch ? "#2d5a3d" : "#fff",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {data.kidDinnerMatchesAdultLunch && <Check size={13} color="#fff" strokeWidth={3} />}
+          </span>
+          <span style={{ minWidth: 0 }}>
+            <span style={{ display: "block", fontSize: 13.5, fontWeight: 800, color: "#142f1d" }}>
+              Cena de los niños = comida de los adultos
+            </span>
+            <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#6b7d70", marginTop: 3, lineHeight: 1.35 }}>
+              Ajustamos la comida familiar para que no coincida con el cole, y esa misma comida se sirve de cena a los niños.
+            </span>
+          </span>
+        </button>
+      )}
+
       {/* La revisión manual solo aparece cuando ya hay un menú cargado: nadie
           va a teclear la semana entera a mano, así que en blanco solo estorba.
           Al subir algo, se abre con la UI de MenuPlan (cards por día). */}
@@ -7008,7 +7084,7 @@ function FreqNumberInput({ value, color, onChange }) {
   );
 }
 
-export function mealStyleCardStyle(selected) {
+export function mealStyleCardStyle(selected, accent = "#2d5a3d") {
   return {
     position: "relative",
     flex: 1,
@@ -7020,16 +7096,20 @@ export function mealStyleCardStyle(selected) {
     gap: 6,
     padding: "12px 4px 10px",
     borderRadius: 15,
-    border: `1.5px solid ${selected ? "#2d5a3d" : "#e0eae3"}`,
-    background: selected ? "#2d5a3d" : "#fff",
+    border: `1.5px solid ${selected ? accent : "#e0eae3"}`,
+    background: selected ? accent : "#fff",
     cursor: "pointer",
     fontFamily: "inherit",
     transition: "all .16s ease",
-    boxShadow: selected ? "0 6px 18px rgba(45,90,61,.22)" : "0 1px 2px rgba(0,0,0,.04)",
+    boxShadow: selected
+      ? accent === "#0f766e"
+        ? "0 6px 18px rgba(15,118,110,.22)"
+        : "0 6px 18px rgba(45,90,61,.22)"
+      : "0 1px 2px rgba(0,0,0,.04)",
   };
 }
 
-export function mealStyleIconStyle(selected) {
+export function mealStyleIconStyle(selected, accent = "#2d5a3d") {
   return {
     width: 32,
     height: 32,
@@ -7039,7 +7119,7 @@ export function mealStyleIconStyle(selected) {
     alignItems: "center",
     justifyContent: "center",
     background: selected ? "rgba(255,255,255,.18)" : "#eef5f0",
-    color: selected ? "#fff" : "#2d5a3d",
+    color: selected ? "#fff" : accent,
   };
 }
 
@@ -7866,43 +7946,43 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   }, [styleableGroups, activeGroupId]);
   const subjectId = activeGroupId;
 
-  // ── Cenas rápidas (weekly exceptions) ──
+  // ── Comidas / cenas rápidas (≤15 min, weekly exceptions) ──
   // Live on the household week (data.slotType), independent of the menu tab.
   const slotTypeMap = data.slotType ?? {};
   const hasCena = getMeals(data).includes("Cena");
-  const toggleCenaRapida = (day) => {
+  const hasComida = getMeals(data).includes("Comida");
+  const toggleMealRapida = (day, meal) => {
     setData((d) => {
-      const key = `${day}|Cena`;
+      const key = `${day}|${meal}`;
       const next = { ...(d.slotType ?? {}) };
       const manual = { ...(d.manualSlotType ?? {}) };
-      if (next[key]) {
+      if (next[key] === "rapida") {
         delete next[key];
-        // Clearing here also drops any manual override for this slot.
         delete manual[key];
       } else {
         next[key] = "rapida";
+        // Plato único and rápida can't both apply to the same comida slot.
+        if (meal === "Comida" && next[key]) {
+          /* rapida wins: preferType becomes comida_rapida */
+        }
       }
       return { ...d, slotType: next, manualSlotType: manual };
     });
   };
 
-  // A "quick dinner" only makes sense on nights someone actually eats at home,
-  // so we map the grid against the schedule: a day is enabled when at least one
-  // NON-baby member has dinner at home ("casa"/"tupper"). Nights where everyone
-  // is out (fuera/cole/off) — or the household has no non-baby members — are
-  // dimmed and non-interactive. With no schedule set yet everything defaults to
-  // "casa", so the grid stays fully enabled until the user marks nights out.
+  // A quick meal only makes sense when someone eats that meal at home.
   const nonBabyMembers = (data.members ?? []).filter((m) => !memberIsBaby(m));
-  const dinnerAtHome = (day) =>
+  const mealAtHome = (day, meal) =>
     nonBabyMembers.some((m) => {
-      const s = data.schedule?.[slotKey(m.id, day, "Cena")] ?? "casa";
+      const s = data.schedule?.[slotKey(m.id, day, meal)] ?? "casa";
       return s === "casa" || s === "tupper";
     });
+  const dinnerAtHome = (day) => mealAtHome(day, "Cena");
+  const lunchAtHome = (day) => mealAtHome(day, "Comida");
   // La rejilla va siempre de lunes a domingo sin envolver: la semana no se
   // "atraviesa" (nada de empezar en miércoles y arrastrar Lun/Mar a la cola).
   // Las semanas parciales se resuelven con el selector de semanas, no aquí.
   const cenaDays = DAYS;
-  const anyDinnerDayOff = cenaDays.some((d) => !dinnerAtHome(d));
   const weekDates = useMemo(
     () => getWeekDatesByMenuWeek({
       offset: data.menuWeek?.offset ?? 0,
@@ -8001,6 +8081,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 img={t.img}
                 title={t.label}
                 subtitle={t.subtitle}
+                imgRatio="2 / 1"
                 active={(em.desayuno ?? "variado") === t.id}
                 onClick={() => setExtraMeal("desayuno", t.id)}
               />
@@ -8022,7 +8103,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 img={t.img}
                 title={t.title}
                 subtitle={t.subtitle}
-                imgRatio="4 / 3"
+                imgRatio="2 / 1"
                 active={structureId === t.id}
                 onClick={() =>
                   setData((d) => ({
@@ -8037,53 +8118,95 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
       ),
     );
   }
-  if (expert && hasCena) {
+  if (expert && (hasComida || hasCena)) {
     comidaSections.push(
-      extrasSection("cenas",
+      extrasSection("rapidas",
         <>
-          <SectionTitle Icon={Moon} color={mealTimeColor("Cena")}>Cena</SectionTitle>
-          <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
-            Toca las noches <b>ligeras y sin complicaciones</b>.
+          <SectionTitle Icon={Zap} color="#d56b9a">Rápidas · ≤ 15 min</SectionTitle>
+          <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.4 }}>
+            Toca los días que quieres ligeros: ensalada, plancha, tortilla…
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
-            {cenaDays.map((d) => {
-              const off = !dinnerAtHome(d);
-              const active = !off && slotTypeMap[`${d}|Cena`] === "rapida";
-              const dayNum = calendarDayNumber(d, weekDates);
-              const tint = mealTimeColor("Cena");
-              return (
-                <button
-                  key={d}
-                  type="button"
-                  disabled={off}
-                  onClick={() => !off && toggleCenaRapida(d)}
-                  title={off ? `Nadie cena en casa el ${dayLabel(d).toLowerCase()}` : `Cena del ${dayLabel(d).toLowerCase()}`}
-                  style={{
-                    aspectRatio: "1 / 1",
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 2,
-                    borderRadius: 12,
-                    border: active ? "none" : off ? "1.5px dashed #e6ebe8" : `1.5px solid ${tint}44`,
-                    background: active ? tint : "transparent",
-                    color: active ? "#fff" : off ? "#c5cdc8" : tint,
-                    cursor: off ? "not-allowed" : "pointer",
-                    fontFamily: "inherit",
-                    padding: 0,
-                  }}
-                >
-                  <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1 }}>{dayNum}</span>
-                  <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1, opacity: 0.9 }}>{d.slice(0, 2)}</span>
-                </button>
-              );
-            })}
-          </div>
-          {anyDinnerDayOff && (
-            <p style={{ fontSize: 11, color: "#9aa8a0", margin: "8px 0 0", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 6 }}>
-              <Ban size={12} /> Las noches en que nadie cena en casa aparecen desactivadas.
-            </p>
+          {hasComida && (
+            <div style={{ marginBottom: hasCena ? 14 : 0 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 800, color: mealTimeColor("Comida"), marginBottom: 8, letterSpacing: ".02em" }}>
+                COMIDA
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+                {cenaDays.map((d) => {
+                  const off = !lunchAtHome(d);
+                  const active = !off && slotTypeMap[`${d}|Comida`] === "rapida";
+                  const dayNum = calendarDayNumber(d, weekDates);
+                  const tint = mealTimeColor("Comida");
+                  return (
+                    <button
+                      key={`comida-${d}`}
+                      type="button"
+                      disabled={off}
+                      onClick={() => !off && toggleMealRapida(d, "Comida")}
+                      style={{
+                        aspectRatio: "1 / 1",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 2,
+                        borderRadius: 12,
+                        border: active ? "none" : off ? "1.5px dashed #e6ebe8" : `1.5px solid ${tint}44`,
+                        background: active ? tint : "transparent",
+                        color: active ? "#fff" : off ? "#c5cdc8" : tint,
+                        cursor: off ? "not-allowed" : "pointer",
+                        fontFamily: "inherit",
+                        padding: 0,
+                      }}
+                    >
+                      <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1 }}>{dayNum}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1, opacity: 0.9 }}>{d.slice(0, 2)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          {hasCena && (
+            <div>
+              <div style={{ fontSize: 11.5, fontWeight: 800, color: mealTimeColor("Cena"), marginBottom: 8, letterSpacing: ".02em" }}>
+                CENA
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+                {cenaDays.map((d) => {
+                  const off = !dinnerAtHome(d);
+                  const active = !off && slotTypeMap[`${d}|Cena`] === "rapida";
+                  const dayNum = calendarDayNumber(d, weekDates);
+                  const tint = mealTimeColor("Cena");
+                  return (
+                    <button
+                      key={`cena-${d}`}
+                      type="button"
+                      disabled={off}
+                      onClick={() => !off && toggleMealRapida(d, "Cena")}
+                      style={{
+                        aspectRatio: "1 / 1",
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 2,
+                        borderRadius: 12,
+                        border: active ? "none" : off ? "1.5px dashed #e6ebe8" : `1.5px solid ${tint}44`,
+                        background: active ? tint : "transparent",
+                        color: active ? "#fff" : off ? "#c5cdc8" : tint,
+                        cursor: off ? "not-allowed" : "pointer",
+                        fontFamily: "inherit",
+                        padding: 0,
+                      }}
+                    >
+                      <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1 }}>{dayNum}</span>
+                      <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1, opacity: 0.9 }}>{d.slice(0, 2)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           )}
         </>,
       ),
@@ -8101,6 +8224,52 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
             (id) => (em.merienda ?? "off") === id,
             (id) => setExtraMeal("merienda", id),
           )}
+        </>,
+      ),
+    );
+  }
+  if (expert) {
+    otrosSections.push(
+      extrasSection("guarnicion",
+        <>
+          <SectionTitle Icon={Salad} color="#2d8659">Guarnición</SectionTitle>
+          <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
+            Cocina una vez y repite el complemento.
+          </p>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { id: "off", label: "Cada día distinta" },
+              { id: "week", label: "Toda la semana" },
+              { id: "weekdays", label: "Solo entre semana" },
+              { id: "weekend", label: "Solo finde" },
+            ].map((opt) => {
+              const active = (data.garnishRepeat ?? "off") === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setData((d) => ({ ...d, garnishRepeat: opt.id }))}
+                  style={{
+                    flex: 1,
+                    minWidth: 0,
+                    padding: "10px 6px",
+                    borderRadius: 12,
+                    border: active ? "2px solid #2d8659" : "1.5px solid #dde8e1",
+                    background: active ? "#2d8659" : "#fff",
+                    color: active ? "#fff" : "#142f1d",
+                    fontSize: 11,
+                    fontWeight: 800,
+                    lineHeight: 1.2,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    textAlign: "center",
+                  }}
+                >
+                  {opt.label}
+                </button>
+              );
+            })}
+          </div>
         </>,
       ),
     );
@@ -8135,6 +8304,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                     img={t.img}
                     title={t.title}
                     subtitle={t.subtitle}
+                    imgRatio="2 / 1"
                     active={postreTipo === t.id}
                     onClick={() => setExtraMeal("postreTipo", t.id)}
                   />
@@ -8166,6 +8336,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 img={t.img}
                 title={t.label}
                 subtitle={t.subtitle}
+                imgRatio="2 / 1"
                 active={(data.pantryMode ?? "prefer") === t.id}
                 onClick={() => setData((d) => ({ ...d, pantryMode: t.id, useHomeStock: t.id !== "off" }))}
               />
@@ -8206,14 +8377,16 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
             title="Comidas"
             subtitle="desayuno, comida y cena"
             imgRatio="4 / 3"
+            accent={CARD_ACCENT_TEAL}
             active={extrasTab === "comidas"}
             onClick={() => setExtrasTab("comidas")}
           />
           <RestrictionTabCard
             img="/avatares/cards/otros.png"
             title="Otros"
-            subtitle="postre y despensa"
+            subtitle="postre, despensa y guarnición"
             imgRatio="4 / 3"
+            accent={CARD_ACCENT_TEAL}
             active={extrasTab === "otros"}
             onClick={() => setExtrasTab("otros")}
           />

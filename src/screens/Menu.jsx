@@ -92,6 +92,7 @@ import { RestrictionConflictBanner } from "../components/RestrictionConflictBann
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
+import { MenuPdfExportModal } from "../components/MenuPdfExportModal.jsx";
 import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtras } from "./Onboarding.jsx";
 import { downloadMenuPdf, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps } from "../lib/aiPlanner.js";
@@ -3685,6 +3686,7 @@ export const MenuScreen = memo(function MenuScreen({
 }) {
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
+  const [pdfExportOpen, setPdfExportOpen] = useState(false);
   const [showIconCoach, setShowIconCoach] = useState(false);
   // Menu flexibility: tap a dish's ⋮ → spotlight the dish + a liquid-glass
   // action card anchored to it. "Cambiar" and "Duplicar" arm a two-tap mode
@@ -3911,11 +3913,32 @@ export const MenuScreen = memo(function MenuScreen({
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = () => {
+    setPdfExportOpen(true);
+  };
+
+  const runPdfDownload = async (exportOptions) => {
     try {
-      const result = await downloadMenuPdf(data, menuPlan, data.groups);
+      const weeks = menuWeeks.length > 0
+        ? menuWeeks
+        : [{
+            plan: menuPlan,
+            offset: data.menuWeek?.offset ?? 0,
+            startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+            schedule: data.schedule,
+          }];
+      const result = await downloadMenuPdf(data, menuPlan, data.groups, {
+        weeks,
+        export: exportOptions,
+      });
       onToast?.(result.method === "print" ? "Elige \"Guardar como PDF\" en el diálogo de impresión" : "Menú descargado");
-      onTrackEvent?.("menu_exported", { method: result.method });
+      onTrackEvent?.("menu_exported", {
+        method: result.method,
+        weekCount: weeks.length,
+        pdfDayScope: exportOptions.dayScope,
+        pdfMeals: exportOptions.meals?.join(","),
+        pdfSchoolMenu: exportOptions.includeSchoolMenu,
+      });
     } catch {
       onToast?.("No se pudo descargar el menú");
     }
@@ -4784,6 +4807,18 @@ export const MenuScreen = memo(function MenuScreen({
             onRegenerate();
           }}
         />
+      )}
+
+      {pdfExportOpen && createPortal(
+        <MenuPdfExportModal
+          data={data}
+          onClose={() => setPdfExportOpen(false)}
+          onConfirm={(exportOptions) => {
+            setPdfExportOpen(false);
+            runPdfDownload(exportOptions);
+          }}
+        />,
+        document.body,
       )}
 
       {showIconCoach && <MenuCoachTour onClose={() => setShowIconCoach(false)} />}

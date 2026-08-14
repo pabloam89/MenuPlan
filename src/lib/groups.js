@@ -52,19 +52,25 @@ export function hasBabyMember(members) {
   return members.some((m) => memberIsBaby(m));
 }
 
+/** True when someone belongs on the kids' menu (Hijo/a, Amigo/a, or a baby
+ * marked "ya come como niño" via notBaby + child role). Pure babies do NOT
+ * count — they already have a dedicated baby pool. */
+export function hasChildMember(members) {
+  return splitMembersByStage(members).children.length > 0;
+}
+
 /** True when a member is younger than adult (baby or child by age), i.e. the
  * household has someone a school/daycare menu could apply to. */
 export function hasUnderageMember(members) {
   return members.some((m) => stageForAge(resolveMemberAge(m)).id !== "adulto");
 }
 
-/** True when "Menús separados" would actually produce more than one menu —
- * i.e. members span at least two tiers (adults/children/babies). If
- * everyone falls into the same tier there's nothing to split. */
+/** True when "Menús separados" is worth asking: there is at least one child
+ * menu to diverge from adults. Adults+babies alone don't need the question —
+ * babies already get their own pool under "same" (Familia + Bebé). */
 export function canSplitMenus(members) {
-  const { adults, children, babies } = splitMembersByStage(members);
-  const nonEmptyTiers = [adults, children, babies].filter((g) => g.length > 0).length;
-  return nonEmptyTiers > 1;
+  const { adults, children } = splitMembersByStage(members);
+  return adults.length > 0 && children.length > 0;
 }
 
 /** True when this group's menu must use only baby recipes. */
