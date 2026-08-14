@@ -1,5 +1,5 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
-import { DAYS, getMeals } from "./planner.js";
+import { DAYS, getDayMeals } from "./planner.js";
 import { formatWeekRangeLabel, getWeekDates } from "./weekCalendar.js";
 import {
   enrichItem,
@@ -26,7 +26,11 @@ const DAY_FULL = {
 export function formatMenuText(data, menuPlan, groups) {
   const dates = getWeekDates();
   const weekLabel = formatWeekRangeLabel(dates);
-  const meals = getMeals(data);
+  // getDayMeals (not getMeals): getMeals only ever returns the two main meals
+  // the AI planner budgets for (Comida/Cena) — desayuno/merienda/postre are
+  // planned separately (see planExtraMealsForGroup) and were silently dropped
+  // from the exported/shared text even when active and shown on screen.
+  const meals = getDayMeals(data);
   const multiGroup = groups.length > 1;
 
   const lines = [`MENÚ SEMANAL — ${weekLabel}`, ""];
@@ -56,7 +60,9 @@ export function formatMenuText(data, menuPlan, groups) {
         if (recipe) dishes.push(recipe.name);
 
         if (dishes.length > 0) {
-          const mealPad = meal === "Comida" ? "  Comida" : "  Cena  ";
+          // Padded to the widest label ("Desayuno"/"Merienda", 8 chars) so every
+          // row's colon lines up regardless of which meals are active.
+          const mealPad = "  " + meal.padEnd(8);
           dayLines.push(`${mealPad}:${groupLabel} ${dishes.join(" · ")}${tupper}`);
         }
       }

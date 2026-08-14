@@ -890,6 +890,65 @@ describe("generateMenuWithAI extra meals (desayuno/merienda/postre) for a normal
     expect(week0Again.plan[group.id]["Lun-Postre"]?.recipeId).toBe(postreWeek0);
     expect(week0Again.plan[group.id]["Lun-Desayuno"]?.recipeId).toBe(desayunoWeek0);
   });
+
+  it("varies desayuno/merienda/postre across independent single-week generations (no crossWeek at all)", async () => {
+    // Tester report: postres always came back in the exact same order — turned
+    // out planExtraMealsForGroup rotates with pool[(dayIndex + weekIndex) %
+    // pool.length], and a plain "Generar menú" (weekCount 1, the overwhelming
+    // majority of real usage — see App.jsx's crossWeek = weekCount <= 1 ? null
+    // : {...}) never passes a crossWeek at all, so the offset silently defaulted
+    // to a hardcoded 0 on every single call. Every regeneration therefore
+    // produced the identical Lun→Dom postre mapping. Fixed by falling back to a
+    // fresh random offset instead of 0 when there's no crossWeek to be
+    // consistent with (the previous test already locks down that an EXPLICIT
+    // weekIndex must stay fully reproducible — this one only relaxes the
+    // no-crossWeek default).
+    const group = { id: "g1", label: "Familia", memberIds: ["m1"], days: 1 };
+    const data = {
+      members: [{ id: "m1", age: 35 }],
+      groups: [group],
+      schedule: {},
+      extraMeals: { desayuno: "variado", postre: "cena" },
+    };
+
+    const ctx = buildGroupContext(data, group);
+    const { recipes: pool } = filterRecipes(ctx.filterOpts);
+    const primero = pool.find((r) => r.mealRole.includes("primero") && !r.mealRole.includes("plato_unico"));
+    const segundo = pool.find((r) => r.mealRole.includes("segundo") && r.id !== primero?.id);
+    const cena = pool.find((r) => r.mealRole.includes("cena"));
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          content: [
+            {
+              text: JSON.stringify({
+                slots: [
+                  { slotId: "lun_comida_1", recipeId: primero.id },
+                  { slotId: "lun_comida_2", recipeId: segundo.id },
+                  { slotId: "lun_cena", recipeId: cena.id },
+                ],
+              }),
+            },
+          ],
+        }),
+      }),
+    );
+
+    const runs = [];
+    for (let i = 0; i < 10; i++) {
+      const { plan } = await generateMenuWithAI(data);
+      runs.push([plan[group.id]["Lun-Postre"]?.recipeId, plan[group.id]["Lun-Desayuno"]?.recipeId]);
+    }
+    for (const [postre, desayuno] of runs) {
+      expect(postre).toBeTruthy();
+      expect(desayuno).toBeTruthy();
+    }
+    const distinct = new Set(runs.map((r) => r.join("|")));
+    expect(distinct.size).toBeGreaterThan(1);
+  });
 });
 
 describe("callModel retry on transient overload", () => {

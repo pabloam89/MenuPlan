@@ -1331,8 +1331,22 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
 
   // Deterministic optional meals — injected AFTER the AI comida/cena plan so
   // they never touch the model. Same hydration/prefix rules as main dishes.
+  // Rotation offset: planExtraMealsForGroup walks its pool with
+  // pool[(dayIndex + offset) % pool.length], so with a fixed offset the
+  // Lun..Dom mapping is 100% deterministic — e.g. postre always landed on
+  // "Macedonia, Yogur, Fruta, Natillas..." in that exact order, week after
+  // week, because a plain single-week "Generar menú" has no crossWeek and the
+  // offset defaulted to a hardcoded 0 every single call. crossWeek.weekIndex
+  // must stay authoritative when this IS one week of a genuine multi-week
+  // batch (consecutive weeks need to keep rotating relative to each other,
+  // and re-running the SAME weekIndex must reproduce the SAME result — see
+  // "varies desayuno/merienda/postre across weeks" below); otherwise pick a
+  // fresh random offset per call so hitting "Generar menú" again actually
+  // varies the desayuno/merienda/postre picks instead of replaying the same
+  // week-shaped sequence forever.
+  const extraMealsWeekIndex = crossWeek?.weekIndex ?? Math.floor(Math.random() * 1000);
   for (const group of activeGroups) {
-    for (const a of planExtraMealsForGroup(group, data, crossWeek?.weekIndex ?? 0)) {
+    for (const a of planExtraMealsForGroup(group, data, extraMealsWeekIndex)) {
       const catalogRecipe = recipeCatalogById[a.recipeId];
       if (!catalogRecipe) continue;
       const frontendId = (multi ? `${group.id}__` : "") + a.recipeId;
