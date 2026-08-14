@@ -54,6 +54,7 @@ import {
   Globe,
   Users2,
   Lock,
+  IceCream,
 } from "lucide-react";
 import { ProgressDots, SegmentedControl } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
@@ -280,6 +281,7 @@ const MEAL_ROLE_ICONS = {
   segundo: UtensilsCrossed,
   plato_unico: UtensilsCrossed,
   cena: Moon,
+  postre: IceCream,
 };
 
 // Lunch is not a stored mealRole — we infer primero/segundo/plato_unico from
@@ -2377,6 +2379,20 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
                   label="Cena rápida"
                   checked={form.quickDinner}
                   onToggle={toggleQuickDinner}
+                />
+                <OptionRow
+                  icon={Apple}
+                  color="#c0504d"
+                  label="Merienda"
+                  checked={form.mealRole.includes("merienda")}
+                  onToggle={() => toggleMealRole("merienda")}
+                />
+                <OptionRow
+                  icon={IceCream}
+                  color="#c0568f"
+                  label="Postre"
+                  checked={form.mealRole.includes("postre")}
+                  onToggle={() => toggleMealRole("postre")}
                   last
                 />
               </OptionSection>

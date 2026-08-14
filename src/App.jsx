@@ -2031,12 +2031,29 @@ export default function App() {
     if (id === "shopping") trackEvent(user, "shopping_opened", "shopping");
   }, [screen, user, pantryOrigin]);
 
-  const goToOnboardingStep = useCallback((step) => {
+  // Internal: navigate directly, no gate. Used after the resume dialog resolves.
+  const _doGoToOnboardingStep = useCallback((step) => {
     dirRef.current = "forward";
     setFirstRunOnboarding(false);
     setOnbStep(step);
     setScreen("onboarding");
   }, []);
+
+  // Dialog state: when the user re-enters the wizard with data already saved,
+  // ask whether to continue or start fresh instead of silently overwriting.
+  const [onbResumeOpen, setOnbResumeOpen] = useState(false);
+  const [pendingOnbStep, setPendingOnbStep] = useState(0);
+
+  const goToOnboardingStep = useCallback((step) => {
+    // Show the "continue / start fresh" dialog whenever there's an existing
+    // household. First-run splash never goes through this helper.
+    if ((data.members?.length ?? 0) > 0) {
+      setPendingOnbStep(step);
+      setOnbResumeOpen(true);
+      return;
+    }
+    _doGoToOnboardingStep(step);
+  }, [data.members, _doGoToOnboardingStep]);
 
   // "Editar preferencias" from Settings/Account used to just jump into the
   // restrictions step of the full onboarding wizard — "Atrás" then stepped
@@ -2049,8 +2066,8 @@ export default function App() {
   const [editPreferencesOrigin, setEditPreferencesOrigin] = useState(null);
   const openEditPreferences = useCallback((origin) => {
     setEditPreferencesOrigin(origin);
-    goToOnboardingStep(3);
-  }, [goToOnboardingStep]);
+    _doGoToOnboardingStep(3);
+  }, [_doGoToOnboardingStep]);
 
   // "¿Para quién es el menú?" — when the profile already has members, offer to
   // reuse the household or start fresh for a different group, instead of always
@@ -2092,8 +2109,8 @@ export default function App() {
     setShopping({ items: [] });
     setSelectedSlot(null);
     setQuickMenu(false);
-    goToOnboardingStep(0);
-  }, [goToOnboardingStep]);
+    _doGoToOnboardingStep(0);
+  }, [_doGoToOnboardingStep]);
 
   // Switching back to a group also has to restore the menú it last generated:
   // `menuPlan`/`shopping` live outside `data`, so swapping the roster alone
@@ -3565,6 +3582,89 @@ export default function App() {
           </div>
         );
       })()}
+
+      {onbResumeOpen && (
+        <div
+          onClick={() => setOnbResumeOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 300,
+            background: "rgba(20,47,29,.4)",
+            backdropFilter: "blur(2px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0 22px",
+            animation: "mpModalFadeIn .2s ease",
+          }}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "relative",
+              width: "100%",
+              maxWidth: 360,
+              background: "#fff",
+              borderRadius: 24,
+              padding: "28px 22px 20px",
+              boxShadow: "0 18px 50px rgba(20,47,29,.32)",
+              animation: "mpModalPop .38s cubic-bezier(.34,1.56,.5,1) both",
+            }}
+          >
+            <div style={{
+              position: "absolute", top: -24, left: 24,
+              width: 52, height: 52, borderRadius: "50% 50% 50% 8px",
+              background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 6px 16px rgba(45,90,61,.4)",
+              animation: "mpModalBob 2.4s ease-in-out infinite",
+            }}>
+              <RotateCcw size={24} color="#fff" />
+            </div>
+            <div style={{ marginTop: 20 }}>
+              <h3 style={{ margin: "0 0 6px", fontSize: 19, fontWeight: 900, color: "#142f1d", letterSpacing: "-.4px" }}>
+                ¿Continuar donde lo dejaste?
+              </h3>
+              <p style={{ margin: "0 0 20px", fontSize: 13.5, color: "#5a7a66", lineHeight: 1.5 }}>
+                Tienes una configuración guardada. Puedes seguir editándola o empezar desde cero.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => { setOnbResumeOpen(false); _doGoToOnboardingStep(pendingOnbStep); }}
+                style={{
+                  width: "100%", padding: "13px 16px", borderRadius: 13, border: "none",
+                  background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+                  color: "#fff", fontSize: 14.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                Continuar donde lo dejé
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setOnbResumeOpen(false);
+                  clearState();
+                  if (user?.id) clearUserState(user.id);
+                  setData(ensureRosters(INITIAL_DATA));
+                  setMenuPlan({});
+                  setShopping({ items: [] });
+                  setSelectedSlot(null);
+                  setOnbStep(0);
+                  setAiRecipes([]);
+                  setMenuError(null);
+                  _doGoToOnboardingStep(0);
+                }}
+                style={{
+                  width: "100%", padding: "12px 16px", borderRadius: 13,
+                  border: "1.5px solid #cfe0d4", background: "#fff",
+                  color: "#2d5a3d", fontSize: 13.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                Empezar de cero
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {whoForOpen && (
         <div
