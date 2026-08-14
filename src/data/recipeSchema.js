@@ -111,6 +111,11 @@ export const RecipeSchema = z
     // folds these in alongside every recipe's real ingredients. Only set on
     // dishes genuinely common as a finished supermarket product.
     productAliases: z.array(z.string().min(1)).optional(),
+    // Off-menu postre effort. Optional so comida/cena recipes stay untouched.
+    // inmediato = yogur/fruta; cazo = arroz con leche/natillas; horno = flan/tarta.
+    effort: z.enum(["inmediato", "cazo", "horno"]).optional(),
+    // Only for effort "inmediato": the fruta vs yogur micro-toggle.
+    dessertKind: z.enum(["fruta", "yogur"]).optional(),
   })
   .superRefine((recipe, ctx) => {
     const { type, mealRole, id } = recipe;

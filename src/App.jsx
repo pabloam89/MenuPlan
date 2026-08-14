@@ -260,7 +260,8 @@ const INITIAL_DATA = {
   // Optional "off-menu" meals, planned deterministically from the light pool
   // (fruit/yogur/pan…), never by the AI. desayuno: off|variado|findes|igual ·
   // merienda (kids only): off|semana|laborables · postre: off|comida|cena|ambas.
-  extraMeals: { desayuno: "off", merienda: "off", postre: "off" },
+  // postreTipo: inmediato|cazo|horno · postreInmediato: fruta|yogur|mix.
+  extraMeals: { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" },
   // Estructura de plato global (fallback del per-grupo mealStructureByGroup).
   // En modo básico se elige aquí (un solo control, aplica a todos). "1_plato" o
   // "primero_segundo".
@@ -379,7 +380,7 @@ function resolveModeData(data) {
   return {
     ...data,
     // Solo comidas y cenas: sin desayuno, merienda ni postre.
-    extraMeals: { desayuno: "off", merienda: "off", postre: "off" },
+    extraMeals: { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" },
     // Sin cenas rápidas.
     slotType: cleanedSlotType,
     // Nivel de cocina normal.
@@ -456,12 +457,14 @@ function migrate(state) {
     d.meals = ["Comida", "Cena"];
   }
   if (!d.extraMeals || typeof d.extraMeals !== "object") {
-    d.extraMeals = { desayuno: "off", merienda: "off", postre: "off" };
+    d.extraMeals = { desayuno: "off", merienda: "off", postre: "off", postreTipo: "inmediato", postreInmediato: "mix" };
   } else {
     d.extraMeals = {
       desayuno: d.extraMeals.desayuno ?? "off",
       merienda: d.extraMeals.merienda ?? "off",
       postre: d.extraMeals.postre ?? "off",
+      postreTipo: d.extraMeals.postreTipo ?? "inmediato",
+      postreInmediato: d.extraMeals.postreInmediato ?? "mix",
     };
   }
   if (!d.freqs || typeof d.freqs !== "object") {

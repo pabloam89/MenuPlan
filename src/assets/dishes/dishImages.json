@@ -1454,5 +1454,15 @@
   "guarniciones_022": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_022.jpg?v=2",
   "cenas_rapidas_013": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_013.jpg?v=2",
   "cenas_rapidas_016": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_016.jpg?v=2",
-  "cenas_rapidas_017": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_017.jpg?v=2"
+  "cenas_rapidas_017": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_017.jpg?v=2",
+  "postres_013": "/postres/postres_013.jpg",
+  "postres_014": "/postres/postres_014.jpg",
+  "postres_015": "/postres/postres_015.jpg",
+  "postres_016": "/postres/postres_016.jpg",
+  "postres_017": "/postres/postres_017.jpg",
+  "postres_018": "/postres/postres_018.jpg",
+  "fruta_temporada_invierno": "/seasonal-fruit/fruta_temporada_invierno.jpg",
+  "fruta_temporada_primavera": "/seasonal-fruit/fruta_temporada_primavera.jpg",
+  "fruta_temporada_verano": "/seasonal-fruit/fruta_temporada_verano.jpg",
+  "fruta_temporada_otono": "/seasonal-fruit/fruta_temporada_otono.jpg"
 }

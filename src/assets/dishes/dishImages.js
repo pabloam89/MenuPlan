@@ -8,6 +8,7 @@
 //   - dish + garnish:    "carnes_002+guarniciones_001"
 
 import manifest from "./dishImages.json";
+import { isSeasonalFruitRecipe, seasonalFruitMeta } from "../../lib/postres.js";
 
 // Precompute a fallback per dish: the first available combo photo for each base
 // dish id. Covers dishes that exist ONLY as dish+garnish combos (no standalone
@@ -50,6 +51,7 @@ export function dishImageUrl(recipeId, garnishId) {
  */
 export function dishImageForRecipe(recipe) {
   if (!recipe) return null;
+  if (isSeasonalFruitRecipe(recipe)) return seasonalFruitMeta().image;
   if (recipe.photo) return recipe.photo;
   let baseId = recipe.baseRecipeId ?? recipe.id;
   // Strip group prefix (e.g. "groupA__carnes_001" → "carnes_001") for recipes

@@ -194,13 +194,10 @@ const fieldStyle = {
   background: "#fff",
 };
 
-// name (wraps — free to break onto 2 lines, it's the column that gives up
-// room) | categoría (icon) | gap-only spacer (keeps Cat. from crowding
-// Cantidad) | valor (toggled: cantidad/peso) | precio (always on — a
-// ticket-sourced item always has one) | trash.
+// icon | name (wraps) | spacer | valor (toggled) | precio | trash
 const ROW_GRID = {
   display: "grid",
-  gridTemplateColumns: "minmax(0,1fr) 26px 14px 62px 48px 24px",
+  gridTemplateColumns: "30px minmax(0,1fr) 62px 48px 24px",
   gap: 6,
   alignItems: "center",
 };
@@ -759,9 +756,7 @@ export function PantryScreen({
   useEffect(() => {
     if (canEditPantryPrefs && !data?.pantryPrefsSeen) setShowPantryPrefs(true);
   }, [canEditPantryPrefs, data?.pantryPrefsSeen]);
-  // "Añadir ingredientes" (escrito/voz/foto) starts collapsed so the screen
-  // reads as "here's what you have", not a form — expands on demand.
-  const [showAddInput, setShowAddInput] = useState(false);
+  // (showAddInput removed — PantryInput is always visible with its own tab control)
   // Category + purchase-date + ticket filters, tucked behind a "Filtros"
   // toggle like Añadir ingredientes above — same collapsed-by-default pattern.
   const [showFilters, setShowFilters] = useState(false);
@@ -1151,7 +1146,7 @@ export function PantryScreen({
                         }}
                       >
                         {editing ? (
-                          <span style={{ gridColumn: "1 / 6", display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                          <span style={{ gridColumn: "1 / 5", display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
                             <span style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
                               <input
                                 type="text"
@@ -1207,13 +1202,11 @@ export function PantryScreen({
                           </span>
                         ) : (
                           <>
+                            <AisleIcon aisle={aisle} name={item.ingredientName} size={28} />
                             <span style={{ minWidth: 0 }}>
                               <span
                                 style={{
                                   display: "block",
-                                  // Matches the allergy checklist's label size
-                                  // (Onboarding.jsx AllergenRow) so "copy" reads
-                                  // consistently across both list-style screens.
                                   fontSize: 12,
                                   fontWeight: 700,
                                   color: INK,
@@ -1225,8 +1218,6 @@ export function PantryScreen({
                                 {item.ingredientName}
                               </span>
                             </span>
-                            <AisleIcon aisle={aisle} name={item.ingredientName} />
-                            <span />
                             <button
                               type="button"
                               onClick={() => startEdit(item)}
@@ -1313,90 +1304,12 @@ export function PantryScreen({
           </div>
         )}
 
-        <div style={pantryIsEmpty ? { textAlign: "center", marginTop: 12 } : undefined}>
-          {pantryIsEmpty ? (
-            <button
-              type="button"
-              data-coach="pantry-add"
-              onClick={() => setShowAddInput((v) => !v)}
-              aria-expanded={showAddInput}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 7,
-                padding: "11px 20px",
-                borderRadius: 13,
-                border: "none",
-                background: GREEN,
-                color: "#fff",
-                fontSize: 14,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              <Plus size={15} strokeWidth={2.8} />
-              Añadir ingredientes
-            </button>
-          ) : (
-            <button
-              type="button"
-              data-coach="pantry-add"
-              onClick={() => setShowAddInput((v) => !v)}
-              aria-expanded={showAddInput}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                boxSizing: "border-box",
-                padding: "6px 10px",
-                borderRadius: 10,
-                border: `1.5px solid ${showAddInput ? "#c7ddce" : "#e5ebe7"}`,
-                background: showAddInput ? "#eef5f0" : "#fff",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                textAlign: "left",
-              }}
-            >
-              <span
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: 6,
-                  flexShrink: 0,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  // Embedded: this is a secondary/utility action sitting under an
-                  // already green-heavy screen, so it's an outline instead of a
-                  // 6th solid-green block. Standalone "En casa" (Nav) keeps the
-                  // original solid fill — it's the only accent on that screen.
-                  ...(embedded
-                    ? { border: "1.5px solid #2d5a3d", color: "#2d5a3d", background: "transparent" }
-                    : { background: GREEN, color: "#fff" }),
-                }}
-              >
-                <Plus size={11} strokeWidth={2.8} />
-              </span>
-              <span style={{ minWidth: 0, fontSize: 12, fontWeight: 800, color: INK }}>
-                Añadir ingredientes
-              </span>
-              <ChevronDown
-                size={14}
-                color="#8aa092"
-                style={{ transform: showAddInput ? "rotate(180deg)" : "none", transition: "transform .15s", flexShrink: 0 }}
-              />
-            </button>
-          )}
-
-          {showAddInput && (
-            <div style={{ marginTop: 12 }}>
-              <PantryInput
-                onSaved={handleSaved}
-                onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
-              />
-            </div>
-          )}
+        <div style={{ height: 3, borderRadius: 99, background: "#d8e8dc", margin: "16px 0 14px" }} />
+        <div data-coach="pantry-add">
+          <PantryInput
+            onSaved={handleSaved}
+            onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
+          />
         </div>
     </>
   );

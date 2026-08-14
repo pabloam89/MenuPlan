@@ -22,6 +22,8 @@ import {
   Sun,
   Sunset,
   Moon,
+  Apple,
+  IceCream,
   ChevronDown,
   ChevronUp,
   CircleDot,
@@ -121,9 +123,41 @@ import {
   slotKey,
 } from "../lib/planner.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
+import { POSTRE_TIPOS, POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish } from "../lib/schoolMenu.js";
 import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
+
+const MEAL_STRUCTURE_CARDS = [
+  {
+    id: "primero_segundo",
+    title: "Primero y segundo",
+    subtitle: "Dos platos",
+    img: "/avatares/cards/estructura_primero_segundo.png",
+  },
+  {
+    id: "1_plato",
+    title: "Plato combinado",
+    subtitle: "Un solo plato",
+    img: "/avatares/cards/estructura_plato_combinado.png",
+  },
+];
+
+const DESPENSA_OPTS = [
+  { id: "only", label: "Solo la despensa", subtitle: "Lo que hay en casa", img: "/avatares/cards/despensa_solo.png" },
+  { id: "prefer", label: "Usar la despensa", subtitle: "Combina con recetas", img: "/avatares/cards/despensa_usar.png" },
+  { id: "off", label: "Sin despensa", subtitle: "Recetas desde cero", img: "/avatares/cards/despensa_sin.png" },
+];
+const DESAYUNO_OPTS = [
+  { id: "variado", label: "Variado", subtitle: "Cada día algo distinto", img: "/avatares/cards/desayuno_variado.png" },
+  { id: "findes", label: "Igual entre semana", subtitle: "Diferente el finde", img: "/avatares/cards/desayuno_lunes_viernes.png" },
+  { id: "igual", label: "Siempre igual", subtitle: "La misma rutina", img: "/avatares/cards/desayuno_igual.png" },
+];
+const MERIENDA_OPTS = [
+  { id: "off", label: "Sin merienda", Icon: X },
+  { id: "semana", label: "Toda la semana", Icon: CalendarDays },
+  { id: "laborables", label: "Solo L–V", Icon: BriefcaseBusiness },
+];
 
 const PantryScreen = lazy(() =>
   import("./Pantry.jsx").then((m) => ({ default: m.PantryScreen })),
@@ -2402,7 +2436,7 @@ function RotatingCardImage({ images, interval = 2500, alt = "" }) {
   );
 }
 
-function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClick }) {
+function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClick, imgRatio = "1 / 1" }) {
   const illustrated = Boolean(img || (images && images.length));
   if (illustrated) {
     return (
@@ -2421,7 +2455,7 @@ function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClic
           overflow: "hidden",
           borderRadius: 15,
           border: `2px solid ${active ? "#2d5a3d" : "#e0eae3"}`,
-          background: "#fff",
+          background: active ? "#2d5a3d" : "#fff",
           cursor: "pointer",
           fontFamily: "inherit",
           transition: "all .16s ease",
@@ -2440,7 +2474,7 @@ function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClic
             <Check size={12} color="#fff" strokeWidth={3} />
           </span>
         )}
-        <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "#f4f7f5" }}>
+        <div style={{ position: "relative", width: "100%", aspectRatio: imgRatio, background: "#f4f7f5" }}>
           {images && images.length > 1 ? (
             <RotatingCardImage images={images} alt={title} />
           ) : (
@@ -2448,11 +2482,28 @@ function RestrictionTabCard({ Icon, img, images, title, subtitle, active, onClic
               src={img ?? images?.[0]}
               alt=""
               loading="lazy"
-              style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: imgRatio === "1 / 1" ? "contain" : "cover",
+                objectPosition: "center 28%",
+                display: "block",
+              }}
             />
           )}
         </div>
-        <div style={{ padding: "8px 6px 9px", background: active ? "#2d5a3d" : "#fff", textAlign: "center", color: active ? "#fff" : "#142f1d" }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            padding: "8px 6px 9px",
+            background: active ? "#2d5a3d" : "#fff",
+            textAlign: "center",
+            color: active ? "#fff" : "#142f1d",
+          }}
+        >
           <div style={{ fontSize: 12, fontWeight: 800 }}>{title}</div>
           <div style={{ fontSize: 10, fontWeight: 600, marginTop: 1, opacity: 0.9 }}>{subtitle}</div>
         </div>
@@ -4111,37 +4162,17 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
           <div style={{ height: 1, background: "#d6e9dc", margin: "0 0 20px" }} />
           <SectionTitle>¿Uno o dos platos en la comida?</SectionTitle>
           <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
-            {[
-              { id: "primero_segundo", label: "Primero y segundo", Icon: Layers2 },
-              { id: "1_plato", label: "Un solo plato", Icon: CircleDot },
-            ].map(({ id, label, Icon }) => {
-              const sel = (data.mealStructure ?? "primero_segundo") === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setData((d) => ({ ...d, mealStructure: id }))}
-                  style={{
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 6,
-                    padding: "14px 8px 12px",
-                    borderRadius: 14,
-                    cursor: "pointer",
-                    background: sel ? "#2d5a3d" : "#f4f7f5",
-                    border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                    color: sel ? "#fff" : "#9ab0a1",
-                    transition: "all .15s ease",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  <Icon size={20} />
-                  <span style={{ fontSize: 12, fontWeight: 700 }}>{label}</span>
-                </button>
-              );
-            })}
+            {MEAL_STRUCTURE_CARDS.map((t) => (
+              <RestrictionTabCard
+                key={t.id}
+                img={t.img}
+                title={t.title}
+                subtitle={t.subtitle}
+                imgRatio="4 / 3"
+                active={(data.mealStructure ?? "primero_segundo") === t.id}
+                onClick={() => setData((d) => ({ ...d, mealStructure: t.id }))}
+              />
+            ))}
           </div>
         </>
       )}
@@ -4530,19 +4561,117 @@ function QuickFillSegment({ value, onChange, options }) {
   );
 }
 
-function SectionTitle({ children }) {
+function SectionTitle({ children, img, Icon, color }) {
+  const ink = color ?? "#1a3a24";
   return (
     <div
       style={{
-        fontSize: 11,
-        fontWeight: 800,
-        color: "#1a3a24",
-        textTransform: "uppercase",
-        letterSpacing: 1,
+        display: "flex",
+        alignItems: "center",
+        gap: 8,
         marginBottom: 8,
       }}
     >
-      {children}
+      {(img || Icon) && (
+        <span
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: 8,
+            background: color ? `${color}22` : "#eef4f0",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+            flexShrink: 0,
+          }}
+        >
+          {img ? (
+            <img src={img} alt="" style={{ width: "84%", height: "84%", objectFit: "contain" }} />
+          ) : (
+            <Icon size={15} color={ink} strokeWidth={2.4} />
+          )}
+        </span>
+      )}
+      <div
+        style={{
+          fontSize: 11,
+          fontWeight: 800,
+          color: ink,
+          textTransform: "uppercase",
+          letterSpacing: 1,
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function PostreInmediatoPicker({ value, onChange }) {
+  return (
+    <div style={{ display: "flex", gap: 8 }}>
+      {POSTRE_INMEDIATO_KINDS.map((k) => {
+        const sel = value === k.id;
+        return (
+          <button
+            key={k.id}
+            type="button"
+            onClick={() => onChange(k.id)}
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "stretch",
+              padding: 0,
+              overflow: "hidden",
+              borderRadius: 14,
+              border: `2px solid ${sel ? "#2d5a3d" : "#e0eae3"}`,
+              background: sel ? "#2d5a3d" : "#fff",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: sel ? "0 6px 18px rgba(45,90,61,.18)" : "0 1px 2px rgba(0,0,0,.04)",
+            }}
+          >
+            <div
+              style={{
+                height: 52,
+                background: "#f4f7f5",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {k.id === "mix" ? (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
+                  <img src="/categories/cut/frutas.png" alt="" style={{ width: 28, height: 28, objectFit: "contain" }} />
+                  <span style={{ fontWeight: 800, fontSize: 13, color: "#2d5a3d", lineHeight: 1 }}>+</span>
+                  <img src="/ingredients/yogur-cut.png" alt="" style={{ width: 26, height: 26, objectFit: "contain" }} />
+                </span>
+              ) : (
+                <img src={k.img} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
+              )}
+            </div>
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "6px 4px 7px",
+                background: sel ? "#2d5a3d" : "#fff",
+                color: sel ? "#fff" : "#142f1d",
+                textAlign: "center",
+                fontWeight: 800,
+                fontSize: 11.5,
+                borderTop: sel ? "none" : "1px solid #eef2f0",
+              }}
+            >
+              {k.label}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -7723,6 +7852,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   );
   const hasMultipleGroups = styleableGroups.length > 1;
   const [activeGroupId, setActiveGroupId] = useState(null);
+  const [extrasTab, setExtrasTab] = useState("comidas");
   const autoSelectedGroupRef = useRef(false);
   useEffect(() => {
     if (!autoSelectedGroupRef.current && styleableGroups.length > 0) {
@@ -7773,6 +7903,13 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   // Las semanas parciales se resuelven con el selector de semanas, no aquí.
   const cenaDays = DAYS;
   const anyDinnerDayOff = cenaDays.some((d) => !dinnerAtHome(d));
+  const weekDates = useMemo(
+    () => getWeekDatesByMenuWeek({
+      offset: data.menuWeek?.offset ?? 0,
+      startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+    }).dates,
+    [data.menuWeek],
+  );
 
   // ── Desayuno / merienda / postre ── state lives in data.extraMeals;
   // desayuno on/off itself is set upstream in "¿Dónde coméis?".
@@ -7842,192 +7979,78 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     </div>
   );
 
-  // Notorious horizontal rule between sections — was just top-margin before,
-  // which read as one long undifferentiated block.
-  const Divider = () => <div style={{ height: 1, background: "#d7e6dc", margin: "22px 0" }} />;
-
-  // Modo avanzado revela despensa, desayuno, merienda, postre y cenas rápidas.
-  // En modo básico solo quedan comidas y cenas (+ estructura de plato).
   const expert = Boolean(data.expertMode);
-  const blocks = [];
-  if (hasMultipleGroups) {
-    blocks.push(
-      <div key="menu">
-        <GroupScopePicker
-          groups={styleableGroups}
-          scope={activeGroupId ?? "all"}
-          onChange={(id) => setActiveGroupId(id === "all" ? null : id)}
-          members={data.members ?? []}
-        />
-      </div>,
-    );
-  }
-  // Pantry usage lens for menu generation — sits before the plate structure so
-  // "what we cook with" is decided before "how many courses". Writes the 3-way
-  // data.pantryMode and keeps the legacy useHomeStock boolean in sync (off ⇄
-  // false) so the "En casa" toggle in "¿Qué repetimos?" stays consistent.
-  // Solo en modo avanzado: en básico se asume "usar la despensa".
-  if (expert) {
-    blocks.push(
-      <div key="despensa">
-        <SectionTitle>Despensa</SectionTitle>
-        {segmented(
-          [
-            { id: "only", label: "Solo la despensa", Icon: Refrigerator },
-            { id: "prefer", label: "Usar la despensa", Icon: Sparkles },
-            { id: "off", label: "Sin despensa", Icon: X },
-          ],
-          (id) => (data.pantryMode ?? "prefer") === id,
-          (id) =>
-            setData((d) => ({ ...d, pantryMode: id, useHomeStock: id !== "off" })),
-        )}
-      </div>,
+  const postreOn = em.postre && em.postre !== "off";
+  const postreTipo = em.postreTipo ?? "inmediato";
+  const structureId = data.mealStructureByGroup?.[subjectId] ?? "primero_segundo";
+
+  const showExtrasTabs = expert;
+
+  const extrasSection = (key, children) => ({ key, children });
+
+  const comidaSections = [];
+  if (expert && optDesayunoOn) {
+    comidaSections.push(
+      extrasSection("desayuno",
+        <>
+          <SectionTitle Icon={Coffee} color={mealTimeColor("Desayuno")}>Desayuno</SectionTitle>
+          <div style={{ display: "flex", gap: 8 }}>
+            {DESAYUNO_OPTS.map((t) => (
+              <RestrictionTabCard
+                key={t.id}
+                img={t.img}
+                title={t.label}
+                subtitle={t.subtitle}
+                active={(em.desayuno ?? "variado") === t.id}
+                onClick={() => setExtraMeal("desayuno", t.id)}
+              />
+            ))}
+          </div>
+        </>,
+      ),
     );
   }
   if (subjectId) {
-    blocks.push(
-      <div key="estructura">
-        <SectionTitle>Estructura de la comida</SectionTitle>
-        {segmented(
-          [
-            { id: "primero_segundo", label: "Primero y segundo", Icon: Layers2 },
-            { id: "1_plato", label: "Un solo plato", Icon: CircleDot },
-          ],
-          (id) => (data.mealStructureByGroup?.[subjectId] ?? "primero_segundo") === id,
-          (id) =>
-            setData((d) => ({
-              ...d,
-              mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: id },
-            })),
-        )}
-      </div>,
-    );
-  }
-  if (expert && optDesayunoOn) {
-    blocks.push(
-      <div key="desayuno">
-        <SectionTitle>Desayuno</SectionTitle>
-        {segmented(
-          [
-            { id: "variado", label: "Variado", Icon: Shuffle },
-            { id: "findes", label: "Igual entre semana", Icon: CalendarDays },
-            { id: "igual", label: "Siempre igual", Icon: Repeat },
-          ],
-          (id) => (em.desayuno ?? "variado") === id,
-          (id) => setExtraMeal("desayuno", id),
-        )}
-      </div>,
-    );
-  }
-  if (expert && optHasKids) {
-    blocks.push(
-      <div key="merienda">
-        <SectionTitle>Merienda</SectionTitle>
-        {segmented(
-          [
-            { id: "off", label: "Sin merienda", Icon: X },
-            { id: "semana", label: "Toda la semana", Icon: CalendarDays },
-            { id: "laborables", label: "Solo L–V", Icon: BriefcaseBusiness },
-          ],
-          (id) => (em.merienda ?? "off") === id,
-          (id) => setExtraMeal("merienda", id),
-        )}
-      </div>,
-    );
-  }
-  if (expert) {
-    blocks.push(
-    <div key="postre">
-      <SectionTitle>Postre</SectionTitle>
-      {segmented(
-        [
-          { id: "comida", label: "Comida", Icon: Sun, tint: "#c9820a" },
-          { id: "cena", label: "Cena", Icon: Moon, tint: "#5a7a9a" },
-          {
-            id: "ambas",
-            label: "Ambos",
-            Icon: UtensilsCrossed,
-            tint: "#5a7a9a",
-            fill: "linear-gradient(135deg, #c9820a 0%, #5a7a9a 100%)",
-          },
-        ],
-        // "Ambos" only lights up once both individual ones are true — it's a
-        // shortcut, not a fourth independent state — so it's derived rather
-        // than tracked separately.
-        (id) => (id === "ambas" ? em.postre === "ambas" : postreHas(id)),
-        (id) => (id === "ambas" ? setExtraMeal("postre", em.postre === "ambas" ? "off" : "ambas") : togglePostre(id)),
-      )}
-    </div>,
+    comidaSections.push(
+      extrasSection("estructura",
+        <>
+          <SectionTitle Icon={Sun} color={mealTimeColor("Comida")}>Comida</SectionTitle>
+          <div style={{ display: "flex", gap: 8 }}>
+            {MEAL_STRUCTURE_CARDS.map((t) => (
+              <RestrictionTabCard
+                key={t.id}
+                img={t.img}
+                title={t.title}
+                subtitle={t.subtitle}
+                imgRatio="4 / 3"
+                active={structureId === t.id}
+                onClick={() =>
+                  setData((d) => ({
+                    ...d,
+                    mealStructureByGroup: { ...(d.mealStructureByGroup ?? {}), [subjectId]: t.id },
+                  }))
+                }
+              />
+            ))}
+          </div>
+        </>,
+      ),
     );
   }
   if (expert && hasCena) {
-    blocks.push(
-      <div key="cenas-rapidas">
-        <SectionTitle>Cenas rápidas</SectionTitle>
-        <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.45 }}>
-          Toca las noches que quieras <b>ligeras y sin complicaciones</b>.
-        </p>
-
-        <div
-          style={{
-            background: "#fafcfb",
-            border: "1px solid #e8efe9",
-            borderRadius: 18,
-            padding: 12,
-          }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "auto repeat(7, 1fr)",
-              gap: 5,
-              alignItems: "center",
-            }}
-          >
-            <div />
-            {cenaDays.map((d) => {
-              const isWeekend = d === "Sáb" || d === "Dom";
-              const off = !dinnerAtHome(d);
-              return (
-                <div
-                  key={`h-${d}`}
-                  style={{ display: "flex", justifyContent: "center", paddingBottom: 6 }}
-                >
-                  <span
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: 10,
-                      fontWeight: 800,
-                      background: off ? "#eef2ef" : isWeekend ? "#2d5a3d" : "rgba(45,90,61,.1)",
-                      color: off ? "#b7c3bb" : isWeekend ? "#a8d5b5" : "#2d5a3d",
-                    }}
-                  >
-                    {d.slice(0, 2)}
-                  </span>
-                </div>
-              );
-            })}
-
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                paddingRight: 7,
-                color: "#7a9080",
-              }}
-              title="Cena"
-            >
-              <Moon size={15} />
-            </div>
+    comidaSections.push(
+      extrasSection("cenas",
+        <>
+          <SectionTitle Icon={Moon} color={mealTimeColor("Cena")}>Cena</SectionTitle>
+          <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
+            Toca las noches <b>ligeras y sin complicaciones</b>.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
             {cenaDays.map((d) => {
               const off = !dinnerAtHome(d);
               const active = !off && slotTypeMap[`${d}|Cena`] === "rapida";
+              const dayNum = calendarDayNumber(d, weekDates);
+              const tint = mealTimeColor("Cena");
               return (
                 <button
                   key={d}
@@ -8036,41 +8059,129 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                   onClick={() => !off && toggleCenaRapida(d)}
                   title={off ? `Nadie cena en casa el ${dayLabel(d).toLowerCase()}` : `Cena del ${dayLabel(d).toLowerCase()}`}
                   style={{
+                    aspectRatio: "1 / 1",
                     display: "flex",
+                    flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    width: "100%",
-                    minHeight: 44,
+                    gap: 2,
                     borderRadius: 12,
-                    border: active ? "none" : off ? "1.5px dashed #e6ebe8" : "1.5px solid #e6efe9",
-                    background: active ? "#2f7dc0" : off ? "#f4f7f5" : "#fff",
-                    color: active ? "#fff" : off ? "#cfd8d2" : "#c0ccc4",
+                    border: active ? "none" : off ? "1.5px dashed #e6ebe8" : `1.5px solid ${tint}44`,
+                    background: active ? tint : "transparent",
+                    color: active ? "#fff" : off ? "#c5cdc8" : tint,
                     cursor: off ? "not-allowed" : "pointer",
-                    opacity: off ? 0.7 : 1,
                     fontFamily: "inherit",
-                    transition: "all .15s ease",
-                    boxShadow: active ? "0 3px 10px rgba(47,125,192,.32)" : "none",
+                    padding: 0,
                   }}
                 >
-                  {off ? <Ban size={13} /> : active ? <Zap size={17} /> : <Moon size={14} />}
+                  <span style={{ fontSize: 13, fontWeight: 800, lineHeight: 1 }}>{dayNum}</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, lineHeight: 1, opacity: 0.9 }}>{d.slice(0, 2)}</span>
                 </button>
               );
             })}
           </div>
           {anyDinnerDayOff && (
-            <p style={{ fontSize: 11, color: "#9aa8a0", margin: "10px 2px 0", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 6 }}>
+            <p style={{ fontSize: 11, color: "#9aa8a0", margin: "8px 0 0", lineHeight: 1.4, display: "flex", alignItems: "center", gap: 6 }}>
               <Ban size={12} /> Las noches en que nadie cena en casa aparecen desactivadas.
             </p>
           )}
-        </div>
-      </div>,
+        </>,
+      ),
     );
   }
+
+  const otrosSections = [];
+  if (expert && optHasKids) {
+    otrosSections.push(
+      extrasSection("merienda",
+        <>
+          <SectionTitle Icon={Apple} color="#c0504d">Merienda</SectionTitle>
+          {segmented(
+            MERIENDA_OPTS,
+            (id) => (em.merienda ?? "off") === id,
+            (id) => setExtraMeal("merienda", id),
+          )}
+        </>,
+      ),
+    );
+  }
+  if (expert) {
+    otrosSections.push(
+      extrasSection("postre",
+        <>
+          <SectionTitle Icon={IceCream} color="#c0568f">Postre</SectionTitle>
+          {segmented(
+            [
+              { id: "comida", label: "Comida", Icon: Sun, tint: "#c9820a" },
+              { id: "cena", label: "Cena", Icon: Moon, tint: "#5a7a9a" },
+              {
+                id: "ambas",
+                label: "Ambos",
+                Icon: UtensilsCrossed,
+                tint: "#5a7a9a",
+                fill: "linear-gradient(135deg, #c9820a 0%, #5a7a9a 100%)",
+              },
+            ],
+            (id) => (id === "ambas" ? em.postre === "ambas" : postreHas(id)),
+            (id) => (id === "ambas" ? setExtraMeal("postre", em.postre === "ambas" ? "off" : "ambas") : togglePostre(id)),
+          )}
+          {postreOn && (
+            <div style={{ marginTop: 14 }}>
+              <SectionTitle>Cómo lo preparas</SectionTitle>
+              <div style={{ display: "flex", gap: 8 }}>
+                {POSTRE_TIPOS.map((t) => (
+                  <RestrictionTabCard
+                    key={t.id}
+                    img={t.img}
+                    title={t.title}
+                    subtitle={t.subtitle}
+                    active={postreTipo === t.id}
+                    onClick={() => setExtraMeal("postreTipo", t.id)}
+                  />
+                ))}
+              </div>
+              {postreTipo === "inmediato" && (
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ height: 1, background: "#d7e6dc", margin: "0 0 14px" }} />
+                  <SectionTitle>¿Qué prefieres aquí?</SectionTitle>
+                  <PostreInmediatoPicker
+                    value={em.postreInmediato ?? "mix"}
+                    onChange={(id) => setExtraMeal("postreInmediato", id)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </>,
+      ),
+    );
+    otrosSections.push(
+      extrasSection("despensa",
+        <>
+          <SectionTitle Icon={Refrigerator} color="#2d5a3d">Despensa</SectionTitle>
+          <div style={{ display: "flex", gap: 8 }}>
+            {DESPENSA_OPTS.map((t) => (
+              <RestrictionTabCard
+                key={t.id}
+                img={t.img}
+                title={t.label}
+                subtitle={t.subtitle}
+                active={(data.pantryMode ?? "prefer") === t.id}
+                onClick={() => setData((d) => ({ ...d, pantryMode: t.id, useHomeStock: t.id !== "off" }))}
+              />
+            ))}
+          </div>
+        </>,
+      ),
+    );
+  }
+
+  const visibleSections = showExtrasTabs && extrasTab === "otros" ? otrosSections : comidaSections;
 
   return (
     <OnboardingShell
       title="¿Cómo completamos el menú?"
-      subtitle={expert ? "Platos, desayuno, merienda, postre y cenas rápidas." : "Estructura de tus comidas y cenas."}
+      subtitle="Toca para ajustar. Si te vale, sigue."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
@@ -8078,15 +8189,51 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
       onFinish={onFinish}
       bg="#f5f9f6"
     >
-      {blocks.map((block, idx) => (
-        <Fragment key={block.key ?? idx}>
-          {idx > 0 && <Divider />}
-          {block}
-        </Fragment>
+      {hasMultipleGroups && (
+        <div style={{ marginBottom: 12 }}>
+          <GroupScopePicker
+            groups={styleableGroups}
+            scope={activeGroupId ?? "all"}
+            onChange={(id) => setActiveGroupId(id === "all" ? null : id)}
+            members={data.members ?? []}
+          />
+        </div>
+      )}
+      {showExtrasTabs && (
+        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
+          <RestrictionTabCard
+            img="/avatares/cards/comidas.png"
+            title="Comidas"
+            subtitle="desayuno, comida y cena"
+            imgRatio="4 / 3"
+            active={extrasTab === "comidas"}
+            onClick={() => setExtrasTab("comidas")}
+          />
+          <RestrictionTabCard
+            img="/avatares/cards/otros.png"
+            title="Otros"
+            subtitle="postre y despensa"
+            imgRatio="4 / 3"
+            active={extrasTab === "otros"}
+            onClick={() => setExtrasTab("otros")}
+          />
+        </div>
+      )}
+      {visibleSections.map((s, i) => (
+        <div
+          key={s.key}
+          style={{
+            padding: i === visibleSections.length - 1 ? "12px 0 0" : "12px 0",
+            borderBottom: i === visibleSections.length - 1 ? "none" : "1px solid #d7e6dc",
+          }}
+        >
+          {s.children}
+        </div>
       ))}
     </OnboardingShell>
   );
 }
+
 
 export function OnboardingGoals({ data, setData, onNext, onBack, onFinish, onReset }) {
   // Auto-create groups if the user skipped MenuModel; otherwise the per-group

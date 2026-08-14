@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -674,6 +674,129 @@ function IngredientPickCard({ name, added, onToggle }) {
   );
 }
 
+// Category card for the compact 3-column illustrated grid
+function CategoryCard({ aisle, onSelect }) {
+  const Icon = AISLE_ICONS[aisle] ?? UtensilsCrossed;
+  const color = AISLE_COLORS[aisle] ?? GREEN;
+  const img = aisleImageSrc(aisle);
+  const [failed, setFailed] = useState(false);
+  const showImg = Boolean(img) && !failed;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(aisle)}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end",
+        gap: 0, padding: 0, border: "none", borderRadius: 14, cursor: "pointer",
+        fontFamily: "inherit", overflow: "hidden", background: "transparent",
+        aspectRatio: "1 / 1", position: "relative",
+      }}
+    >
+      <span
+        style={{
+          position: "absolute", inset: 0, borderRadius: 14,
+          background: showImg ? `${color}22` : `${color}18`,
+          border: `1.5px solid ${color}33`,
+        }}
+      />
+      {showImg ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{
+            position: "absolute", inset: 0, width: "100%", height: "100%",
+            objectFit: "cover", borderRadius: 14,
+          }}
+        />
+      ) : (
+        <span
+          style={{
+            position: "absolute", inset: 0, display: "flex",
+            alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Icon size={32} color={color} strokeWidth={1.8} />
+        </span>
+      )}
+      <span
+        style={{
+          position: "relative", zIndex: 1, width: "100%", padding: "5px 6px 7px",
+          background: `linear-gradient(to top, ${color}dd 0%, ${color}88 60%, transparent 100%)`,
+          borderBottomLeftRadius: 13, borderBottomRightRadius: 13,
+          fontSize: 10.5, fontWeight: 800, color: "#fff", textAlign: "center",
+          lineHeight: 1.2, letterSpacing: "-.1px",
+          textShadow: "0 1px 3px rgba(0,0,0,.4)",
+        }}
+      >
+        {aisle}
+      </span>
+    </button>
+  );
+}
+
+// Ingredient card for the compact 5-column grid (illustration + name + check)
+function IngredientThumbCard({ name, added, onToggle }) {
+  const img = ingredientThumbSrc(name);
+  const [failed, setFailed] = useState(false);
+  const showImg = Boolean(img) && !failed;
+  return (
+    <button
+      type="button"
+      onClick={() => onToggle(name)}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        gap: 0, padding: 0, border: "none", borderRadius: 8, cursor: "pointer",
+        fontFamily: "inherit", overflow: "hidden",
+        background: added ? "#e8f5ec" : "#eef2f0",
+        outline: added ? `2px solid ${GREEN}` : "none",
+        outlineOffset: -2,
+        transition: "background .14s ease, outline .14s ease",
+        aspectRatio: "1 / 1", position: "relative",
+      }}
+    >
+      {showImg ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }}
+        />
+      ) : (
+        <span style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <UtensilsCrossed size={14} color="#bcc9c4" strokeWidth={1.5} />
+        </span>
+      )}
+      <span
+        style={{
+          position: "absolute", bottom: 0, left: 0, right: 0,
+          padding: "3px 2px 4px",
+          background: added
+            ? `linear-gradient(to top, ${GREEN}ee 0%, ${GREEN}77 60%, transparent 100%)`
+            : "linear-gradient(to top, rgba(20,47,29,.72) 0%, rgba(20,47,29,.3) 60%, transparent 100%)",
+          fontSize: 7.5, fontWeight: 800, color: "#fff", textAlign: "center",
+          lineHeight: 1.1, letterSpacing: "-.05px",
+          textShadow: "0 1px 2px rgba(0,0,0,.5)",
+        }}
+      >
+        {name}
+      </span>
+      {added && (
+        <span
+          style={{
+            position: "absolute", top: 2, right: 2,
+            width: 12, height: 12, borderRadius: 999,
+            background: GREEN, display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 1px 3px rgba(0,0,0,.25)",
+          }}
+        >
+          <Check size={7} strokeWidth={3.5} color="#fff" />
+        </span>
+      )}
+    </button>
+  );
+}
+
 // Exported so PantryInput (src/components/PantryInput.jsx) can reuse the
 // exact same search/browse-by-category ingredient picker for its "Escrito"
 // mode instead of re-implementing it.
@@ -691,8 +814,11 @@ export function IngredientPicker({
   onToggle,
   onAddCustom,
   compact = false,
-  onPlus,
-  plusDisabled = false,
+  onPlus: _onPlus,
+  plusDisabled: _plusDisabled = false,
+  onUpload,
+  uploadOpen = false,
+  uploadLoading = false,
 }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [showAll, setShowAll] = useState(false);
@@ -716,80 +842,204 @@ export function IngredientPicker({
   const exactExists = q.length > 0 && INGREDIENT_CATALOG.some((n) => normText(n) === q);
   const hiddenCount = browsing && !showAll ? full.length - curated.length : 0;
 
+  // Compact mode: illustrated category grid → ingredient grid
+  if (compact) {
+    const aisleColor = aisle ? (AISLE_COLORS[aisle] ?? GREEN) : GREEN;
+    const AisleIconComp = aisle ? (AISLE_ICONS[aisle] ?? UtensilsCrossed) : null;
+    const aisleImg = aisle ? aisleImageSrc(aisle) : null;
+    return (
+      <div style={{ marginBottom: 14 }}>
+        {/* Search bar — left icon becomes category mini-thumb when active */}
+        <div
+          style={{
+            display: "flex", alignItems: "center", gap: 7, height: 40,
+            padding: "0 10px 0 10px", borderRadius: 12, marginBottom: 10,
+            background: (q || aisle) ? "#fff" : "#f0f5f2",
+            border: `1.5px solid ${(q || aisle) ? GREEN : "transparent"}`,
+            transition: "background .15s, border-color .15s",
+          }}
+        >
+          {/* Left slot: category mini-thumb (tappable → back) or search icon */}
+          {!q && aisle ? (
+            <button
+              type="button"
+              onClick={() => setAisle(null)}
+              aria-label={`Volver a categorias`}
+              style={{
+                border: "none", background: "none", padding: 0,
+                cursor: "pointer", display: "inline-flex", flexShrink: 0,
+              }}
+            >
+              <span style={{
+                width: 26, height: 26, borderRadius: 8, overflow: "hidden",
+                background: `${aisleColor}25`, flexShrink: 0,
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                border: `1px solid ${aisleColor}40`,
+              }}>
+                {aisleImg
+                  ? <img src={aisleImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  : AisleIconComp && <AisleIconComp size={13} color={aisleColor} strokeWidth={2} />
+                }
+              </span>
+            </button>
+          ) : (
+            <Search size={15} color={(q || aisle) ? GREEN : "#9ab0a1"} style={{ flexShrink: 0 }} />
+          )}
+          <input
+            value={query}
+            onChange={(e) => { onQueryChange(e.target.value); if (e.target.value) onAisleChange(null); }}
+            placeholder={aisle && !q ? `Buscar en ${aisle}...` : "Buscar ingrediente..."}
+            style={{
+              flex: 1, minWidth: 0, border: "none", outline: "none",
+              background: "transparent", fontFamily: "inherit",
+              fontSize: 12, fontWeight: 700, color: INK,
+            }}
+          />
+          {/* Dismiss: clear query OR clear aisle */}
+          {(query || (!query && aisle)) && (
+            <button
+              type="button"
+              onClick={() => query ? onQueryChange("") : setAisle(null)}
+              aria-label="Limpiar"
+              style={{ border: "none", background: "transparent", cursor: "pointer", color: "#c0cfc8", display: "flex", padding: 2, flexShrink: 0 }}
+            >
+              <X size={14} />
+            </button>
+          )}
+          {/* Upload button — only shown when caller wires onUpload */}
+          {onUpload && (
+            <button
+              type="button"
+              onClick={onUpload}
+              aria-label="Subir foto o ticket"
+              style={{
+                border: "none", cursor: "pointer", display: "inline-flex",
+                alignItems: "center", justifyContent: "center", flexShrink: 0,
+                width: 30, height: 30, borderRadius: 8, padding: 0,
+                background: uploadOpen ? GREEN : "#eaf3ec",
+                color: uploadOpen ? "#fff" : GREEN,
+                transition: "background .15s, color .15s",
+              }}
+            >
+              {uploadLoading
+                ? <Loader2 size={14} style={{ animation: "spin 0.8s linear infinite" }} />
+                : <Camera size={14} strokeWidth={2.2} />}
+            </button>
+          )}
+        </div>
+
+        {/* Search results (4-col thumb grid) */}
+        {q && results.length > 0 && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9 }}>
+            {results.map((name) => (
+              <IngredientThumbCard
+                key={name}
+                name={name}
+                added={addedNames.has(name.toLowerCase())}
+                onToggle={onToggle}
+              />
+            ))}
+          </div>
+        )}
+        {q && results.length === 0 && (
+          <p style={{ textAlign: "center", color: "#9ab0a1", fontSize: 12.5, margin: "20px 0 8px" }}>
+            Sin resultados
+          </p>
+        )}
+
+        {/* Category grid (default, no search, no aisle) */}
+        {!q && !aisle && (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
+            {SHOPPING_AISLES.map((a) => (
+              <CategoryCard key={a} aisle={a} onSelect={setAisle} />
+            ))}
+          </div>
+        )}
+
+        {/* Ingredient grid (aisle selected, no search) */}
+        {!q && aisle && (
+          <>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9 }}>
+              {(showAll ? full : curated).map((name) => (
+                <IngredientThumbCard
+                  key={name}
+                  name={name}
+                  added={addedNames.has(name.toLowerCase())}
+                  onToggle={onToggle}
+                />
+              ))}
+            </div>
+            {hiddenCount > 0 && (
+              <button
+                type="button"
+                onClick={() => setShowAll(true)}
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
+                  marginTop: 9, padding: "9px 12px", borderRadius: 11,
+                  border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN, cursor: "pointer",
+                  fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+                }}
+              >
+                Ver todos ({hiddenCount} mas)
+                <ChevronDown size={13} />
+              </button>
+            )}
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Non-compact (RecipePlanner) mode: search + dropdown Categorias button
   return (
     <div style={{ marginBottom: 14 }}>
       <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
         <div
           style={{
-            flex: 1,
-            minWidth: 0,
-            maxWidth: compact ? 200 : undefined,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            height: 42,
-            padding: "0 12px",
-            borderRadius: 12,
-            background: "#fff",
-            border: `2px solid ${GREEN}`,
+            flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8,
+            height: 42, padding: "0 12px", borderRadius: 12,
+            background: "#fff", border: `2px solid ${GREEN}`,
           }}
         >
           <Search size={16} color={GREEN} style={{ flexShrink: 0 }} />
           <input
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            onKeyDown={(e) => {
-              if (compact && e.key === "Enter") {
-                e.preventDefault();
-                if (!plusDisabled) onPlus?.();
-              }
-            }}
-            placeholder="Buscar…"
-            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: compact ? 11.5 : 12.5, fontWeight: 800, color: INK }}
+            placeholder="Buscar..."
+            style={{ flex: 1, minWidth: 0, border: "none", outline: "none", background: "transparent", fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, color: INK }}
           />
           {query && (
             <button
               type="button"
               onClick={() => onQueryChange("")}
-              aria-label="Limpiar búsqueda"
+              aria-label="Limpiar busqueda"
               style={{ border: "none", background: "transparent", cursor: "pointer", color: "#9ab0a1", display: "flex", padding: 2 }}
             >
               <X size={15} />
             </button>
           )}
         </div>
-        {compact && <div style={{ flex: 1, minWidth: 0 }} />}
         <button
           ref={catBtnRef}
           type="button"
           onClick={() => setFiltersOpen((v) => !v)}
           aria-haspopup="listbox"
           aria-expanded={filtersOpen}
-          aria-label="Categorías"
-          title="Categorías"
+          aria-label="Categorias"
+          title="Categorias"
           style={{
-            position: "relative",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-            height: 42,
-            padding: "0 12px",
-            borderRadius: 12,
-            cursor: "pointer",
-            flexShrink: 0,
+            position: "relative", display: "inline-flex", alignItems: "center",
+            justifyContent: "center", gap: 6, height: 42, padding: "0 12px",
+            borderRadius: 12, cursor: "pointer", flexShrink: 0,
             border: `1.5px solid ${filtersOpen || aisle ? GREEN : "#e8efe9"}`,
             background: filtersOpen || aisle ? GREEN : "#fff",
             color: filtersOpen || aisle ? "#fff" : "#5a7066",
-            fontSize: compact ? 11.5 : 12.5,
-            fontWeight: 800,
-            fontFamily: "inherit",
-            boxShadow: compact && !filtersOpen && !aisle ? "0 1px 3px rgba(20,47,29,.08)" : undefined,
+            fontSize: 12.5, fontWeight: 800, fontFamily: "inherit",
           }}
         >
-          <SlidersHorizontal size={compact ? 14 : 15} />
-          Categorías
-          {!compact && (filtersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+          <SlidersHorizontal size={15} />
+          {"Categor\u00EDas"}
+          {filtersOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
         </button>
       </div>
 
@@ -830,12 +1080,12 @@ export function IngredientPicker({
             fontFamily: "inherit", fontSize: 12.5, fontWeight: 800,
           }}
         >
-          Ver todos ({hiddenCount} más)
+          Ver todos ({hiddenCount} mas)
           <ChevronDown size={14} />
         </button>
       )}
 
-      {q && !exactExists && !compact && (
+      {q && !exactExists && (
         <button
           type="button"
           onClick={() => onAddCustom(query.trim())}
@@ -847,7 +1097,7 @@ export function IngredientPicker({
           }}
         >
           <Plus size={15} strokeWidth={2.6} />
-          Añadir “{query.trim()}”
+          {`A\u00F1adir "${query.trim()}"`}
         </button>
       )}
     </div>

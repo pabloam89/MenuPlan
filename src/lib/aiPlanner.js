@@ -18,6 +18,7 @@ import {
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
+import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
 import { buildAdaptationMap } from "./substitutions.js";
@@ -1027,7 +1028,7 @@ export const CATEGORY_ICON = {
 };
 
 export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []) {
-  const r = catalogRecipe;
+  const r = applySeasonalFruit(catalogRecipe);
   const servings = Math.max(1, eaters);
   const factor = servings / r.baseServings;
 
@@ -1094,7 +1095,7 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
     healthFlags: r.healthFlags ?? [],
     prepSummary: r.description || r.name,
     steps: r.steps ?? [],
-    image: `/dishes/${r.id}.webp`,
+    image: r.photo ?? `/dishes/${r.id}.webp`,
     photo: r.photo ?? undefined,
     ingredients,
     // Appliance variants (airfryer, horno, thermomix…) — used to show the
@@ -1192,9 +1193,14 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   }
 
   // Postre — always offerable. off | comida | cena | ambas (v1: one dessert/day,
-  // `when` records the intended slot for the UI subtitle).
+  // `when` records the intended slot for the UI subtitle). Effort (inmediato /
+  // cazo / horno) and the fruta/yogur toggle filter the pool; desserts never
+  // share the comida/cena cook-time budget.
   if (em.postre && em.postre !== "off") {
-    const pool = filterOffMenuRecipes("postres", { ...safety, hasKids });
+    const pool = filterPostrePool(
+      filterOffMenuRecipes("postres", { ...safety, hasKids }),
+      em,
+    );
     if (pool.length) {
       DAYS.forEach((day, i) => {
         out.push({

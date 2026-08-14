@@ -208,6 +208,7 @@ const ALIASES = [
   [/mostaza/, "mostaza"],
   [/mayonesa|alioli|allioli/, "mayonesa"],
   [/ketchup/, "ketchup"],
+  [/soja texturizada|proteina de soja|soja granulada/, "tofu"],
   [/salsa de soja|soja/, "salsa-soja"],
   [/levadura/, "levadura"],
   [/maicena|almidon/, "maicena"],

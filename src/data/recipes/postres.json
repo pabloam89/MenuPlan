@@ -17,6 +17,8 @@
     "tupperFriendly": true,
     "allergens": [],
     "season": "all",
+    "effort": "inmediato",
+    "dessertKind": "fruta",
     "ingredients": [
       { "name": "Manzana", "amount": 1, "unit": "ud" },
       { "name": "Plátano", "amount": 1, "unit": "ud" },
@@ -50,6 +52,8 @@
     "tupperFriendly": false,
     "allergens": ["lactosa", "frutos_secos"],
     "season": "all",
+    "effort": "inmediato",
+    "dessertKind": "yogur",
     "ingredients": [
       { "name": "Yogur natural", "amount": 250, "unit": "g" },
       { "name": "Miel", "amount": 20, "unit": "ml" },
@@ -65,7 +69,7 @@
   },
   {
     "id": "postres_003",
-    "name": "Fruta fresca",
+    "name": "Fruta de temporada",
     "category": "postres",
     "mainProtein": "none",
     "mealRole": ["postre"],
@@ -81,16 +85,18 @@
     "tupperFriendly": true,
     "allergens": [],
     "season": "all",
+    "effort": "inmediato",
+    "dessertKind": "fruta",
     "ingredients": [
       { "name": "Manzana", "amount": 1, "unit": "ud" },
       { "name": "Naranja", "amount": 1, "unit": "ud" }
     ],
     "steps": [
-      "Lava la fruta",
+      "Lava la fruta de temporada",
       "Pela o trocea según la pieza",
       "Sirve"
     ],
-    "description": "Pieza de fruta fresca de temporada como postre ligero"
+    "description": "Pieza de fruta de temporada como postre ligero. El planner elige naranja, fresa, melocotón o uva según el mes."
   },
   {
     "id": "postres_004",
@@ -110,6 +116,7 @@
     "tupperFriendly": true,
     "allergens": ["lactosa", "huevo"],
     "season": "all",
+    "effort": "cazo",
     "ingredients": [
       { "name": "Leche", "amount": 500, "unit": "ml" },
       { "name": "Huevo", "amount": 3, "unit": "ud" },
@@ -143,6 +150,7 @@
     "tupperFriendly": true,
     "allergens": ["lactosa", "huevo"],
     "season": "all",
+    "effort": "horno",
     "ingredients": [
       { "name": "Leche", "amount": 500, "unit": "ml" },
       { "name": "Huevo", "amount": 4, "unit": "ud" },
@@ -155,7 +163,15 @@
       "Enfría bien antes de desmoldar"
     ],
     "description": "Flan de huevo casero al baño maría",
-    "productAliases": ["Flan"]
+    "productAliases": ["Flan"],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 180°C. Haz un caramelo, forra los moldes, bate huevos con leche y azúcar, y cuece al baño maría unos 40 minutos."
+      }
+    ]
   },
   {
     "id": "postres_006",
@@ -176,6 +192,7 @@
     "tupperFriendly": true,
     "allergens": ["lactosa"],
     "season": "all",
+    "effort": "cazo",
     "ingredients": [
       { "name": "Arroz", "amount": 150, "unit": "g" },
       { "name": "Leche", "amount": 800, "unit": "ml" },
@@ -209,6 +226,7 @@
     "tupperFriendly": true,
     "allergens": [],
     "season": "invierno",
+    "effort": "horno",
     "ingredients": [
       { "name": "Manzana", "amount": 4, "unit": "ud" },
       { "name": "Azúcar", "amount": 40, "unit": "g" },
@@ -247,6 +265,8 @@
     "tupperFriendly": true,
     "allergens": ["lactosa"],
     "season": "all",
+    "effort": "inmediato",
+    "dessertKind": "yogur",
     "ingredients": [
       { "name": "Yogur natural", "amount": 250, "unit": "g" }
     ],
@@ -274,6 +294,8 @@
     "tupperFriendly": true,
     "allergens": ["lactosa"],
     "season": "all",
+    "effort": "inmediato",
+    "dessertKind": "yogur",
     "ingredients": [
       { "name": "Yogur natural", "amount": 250, "unit": "g" },
       { "name": "Plátano", "amount": 1, "unit": "ud" },
@@ -287,89 +309,227 @@
     "description": "Yogur natural con plátano y fresas troceadas"
   },
   {
-    "id": "postres_010",
-    "name": "Piña con canela",
+    "id": "postres_013",
+    "name": "Yogur de frutas",
     "category": "postres",
     "mainProtein": "none",
     "mealRole": ["postre"],
     "type": "completo",
-    "time": 5,
+    "time": 1,
     "difficulty": "facil",
-    "kcal": 70,
-    "protein_g": 1,
-    "carbs_g": 17,
-    "fat_g": 0,
-    "baseServings": 2,
-    "kidFriendly": true,
-    "tupperFriendly": true,
-    "allergens": [],
-    "season": "all",
-    "ingredients": [
-      { "name": "Piña natural", "amount": 300, "unit": "g" },
-      { "name": "Canela en polvo", "amount": 2, "unit": "g" }
-    ],
-    "steps": [
-      "Corta la piña en rodajas o dados",
-      "Espolvorea con canela",
-      "Sirve fría"
-    ],
-    "description": "Piña natural troceada con un toque de canela"
-  },
-  {
-    "id": "postres_011",
-    "name": "Requesón con miel",
-    "category": "postres",
-    "mainProtein": "none",
-    "mealRole": ["postre"],
-    "type": "completo",
-    "time": 3,
-    "difficulty": "facil",
-    "kcal": 190,
-    "protein_g": 14,
+    "kcal": 110,
+    "protein_g": 4,
     "carbs_g": 16,
-    "fat_g": 8,
+    "fat_g": 3,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": ["lactosa"],
     "season": "all",
+    "effort": "inmediato",
+    "dessertKind": "yogur",
     "ingredients": [
-      { "name": "Requesón", "amount": 200, "unit": "g" },
-      { "name": "Miel", "amount": 20, "unit": "ml" }
+      { "name": "Yogur de sabores", "amount": 250, "unit": "g" }
     ],
     "steps": [
-      "Reparte el requesón en dos cuencos",
-      "Termina con un hilo de miel"
+      "Abre los yogures",
+      "Sirve fríos"
     ],
-    "description": "Requesón fresco con un hilo de miel, un postre ligero y saciante"
+    "description": "Yogur de sabores de nevera, el postre más rápido",
+    "productAliases": ["Yogur de fresa", "Yogur de frutas"]
   },
   {
-    "id": "postres_012",
-    "name": "Gelatina de fruta",
+    "id": "postres_014",
+    "name": "Compota de manzana",
     "category": "postres",
     "mainProtein": "none",
     "mealRole": ["postre"],
     "type": "completo",
-    "time": 10,
+    "time": 25,
     "difficulty": "facil",
-    "kcal": 55,
-    "protein_g": 2,
-    "carbs_g": 12,
+    "kcal": 130,
+    "protein_g": 1,
+    "carbs_g": 32,
     "fat_g": 0,
     "baseServings": 4,
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [],
-    "season": "all",
+    "season": "invierno",
+    "effort": "cazo",
     "ingredients": [
-      { "name": "Gelatina neutra en polvo", "amount": 10, "unit": "g" },
-      { "name": "Zumo de fruta natural", "amount": 500, "unit": "ml" }
+      { "name": "Manzana", "amount": 4, "unit": "ud" },
+      { "name": "Azúcar", "amount": 40, "unit": "g" },
+      { "name": "Canela", "amount": 2, "unit": "g" },
+      { "name": "Limón", "amount": 1, "unit": "ud" }
     ],
     "steps": [
-      "Disuelve la gelatina en un poco de zumo templado",
-      "Mezcla con el resto del zumo",
-      "Reparte en moldes y deja cuajar en la nevera al menos 2 horas"
+      "Pela y trocea las manzanas",
+      "Ponlas en un cazo con un chorrito de agua, el azúcar, la canela y un poco de limón",
+      "Cuece a fuego suave 20 minutos hasta que estén tiernas",
+      "Sirve tibia o fría"
     ],
-    "description": "Gelatina casera de zumo de fruta natural"
+    "description": "Compota de manzana casera con canela, de cazo"
+  },
+  {
+    "id": "postres_015",
+    "name": "Crema de chocolate",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 280,
+    "protein_g": 6,
+    "carbs_g": 28,
+    "fat_g": 16,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["lactosa"],
+    "season": "all",
+    "effort": "cazo",
+    "ingredients": [
+      { "name": "Leche", "amount": 400, "unit": "ml" },
+      { "name": "Chocolate negro", "amount": 120, "unit": "g" },
+      { "name": "Azúcar", "amount": 40, "unit": "g" },
+      { "name": "Maicena", "amount": 20, "unit": "g" }
+    ],
+    "steps": [
+      "Calienta la leche con el azúcar",
+      "Añade el chocolate troceado y remueve hasta que se funda",
+      "Disuelve la maicena en un poco de leche fría y cuaja a fuego suave",
+      "Reparte en cuencos y enfría"
+    ],
+    "description": "Crema de chocolate de cazo, para enfriar en la nevera"
+  },
+  {
+    "id": "postres_016",
+    "name": "Tarta de limón",
+    "category": "postres",
+    "mainProtein": "huevo",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 70,
+    "difficulty": "elaborada",
+    "kcal": 340,
+    "protein_g": 7,
+    "carbs_g": 42,
+    "fat_g": 16,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten", "huevo", "lactosa"],
+    "season": "all",
+    "effort": "horno",
+    "ingredients": [
+      { "name": "Galletas María", "amount": 200, "unit": "g" },
+      { "name": "Mantequilla", "amount": 80, "unit": "g" },
+      { "name": "Leche condensada", "amount": 400, "unit": "g" },
+      { "name": "Limón", "amount": 3, "unit": "ud" },
+      { "name": "Huevo", "amount": 3, "unit": "ud" }
+    ],
+    "steps": [
+      "Tritura las galletas con la mantequilla y forra un molde",
+      "Mezcla la leche condensada con el zumo y la ralladura de limón y las yemas",
+      "Vierte sobre la base y hornea a 160°C unos 25 minutos",
+      "Enfría bien en la nevera antes de desmoldar"
+    ],
+    "description": "Tarta de limón casera con base de galleta",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "elaborada",
+        "prepSummary": "Precalienta el horno a 160°C. Haz la base de galleta, mezcla el relleno de limón y hornea 25 minutos. Deja enfriar en la nevera."
+      }
+    ]
+  },
+  {
+    "id": "postres_017",
+    "name": "Tarta de queso",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 80,
+    "difficulty": "elaborada",
+    "kcal": 380,
+    "protein_g": 9,
+    "carbs_g": 32,
+    "fat_g": 24,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": ["gluten", "huevo", "lactosa"],
+    "season": "all",
+    "effort": "horno",
+    "ingredients": [
+      { "name": "Galletas María", "amount": 180, "unit": "g" },
+      { "name": "Mantequilla", "amount": 80, "unit": "g" },
+      { "name": "Queso crema", "amount": 400, "unit": "g" },
+      { "name": "Nata para montar", "amount": 200, "unit": "ml" },
+      { "name": "Azúcar", "amount": 120, "unit": "g" },
+      { "name": "Huevo", "amount": 3, "unit": "ud" }
+    ],
+    "steps": [
+      "Tritura las galletas con la mantequilla y forra un molde desmontable",
+      "Bate el queso crema con el azúcar, añade huevos y nata",
+      "Vierte sobre la base y hornea a 170°C unos 50 minutos al baño maría",
+      "Enfría en la nevera al menos 4 horas"
+    ],
+    "description": "Tarta de queso al horno, para hacer de antemano",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 80,
+        "difficulty": "elaborada",
+        "prepSummary": "Precalienta el horno a 170°C. Prepara la base de galleta, bate el relleno y hornea al baño maría unos 50 minutos. Enfría en la nevera."
+      }
+    ]
+  },
+  {
+    "id": "postres_018",
+    "name": "Bizcocho de yogur",
+    "category": "postres",
+    "mainProtein": "huevo",
+    "mealRole": ["postre"],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "normal",
+    "kcal": 290,
+    "protein_g": 6,
+    "carbs_g": 38,
+    "fat_g": 12,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": ["gluten", "huevo", "lactosa"],
+    "season": "all",
+    "effort": "horno",
+    "ingredients": [
+      { "name": "Yogur natural", "amount": 125, "unit": "g" },
+      { "name": "Harina", "amount": 250, "unit": "g" },
+      { "name": "Azúcar", "amount": 180, "unit": "g" },
+      { "name": "Huevo", "amount": 3, "unit": "ud" },
+      { "name": "Aceite de girasol", "amount": 80, "unit": "ml" },
+      { "name": "Levadura química", "amount": 16, "unit": "g" }
+    ],
+    "steps": [
+      "Usa el vaso de yogur como medida: 1 yogur, 2 de azúcar, 3 de harina",
+      "Mezcla yogur, huevos, azúcar y aceite; añade harina y levadura",
+      "Vierte en un molde enharinado y hornea a 180°C unos 40 minutos",
+      "Deja templar antes de desmoldar"
+    ],
+    "description": "Bizcocho de yogur de toda la vida, el de las medidas del vasito",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 180°C. Mezcla con las medidas del vaso de yogur, vierte en el molde y hornea unos 40 minutos."
+      }
+    ]
   }
 ]

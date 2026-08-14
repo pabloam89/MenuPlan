@@ -350,14 +350,7 @@ function toDisplayUnit(qty, unit) {
 
 // Ways in, each landing in the same chip list below for quantity/unit review —
 // only how a chip gets there changes. "Ticket" is an action (opens the receipt
-// wizard) rather than a persistent panel, so it's only offered when the parent
-// wires onUploadReceipt.
-function modesFor(hasReceipt) {
-  const list = [{ id: "photo", label: "Subir foto", Icon: Camera }];
-  if (hasReceipt) list.push({ id: "ticket", label: "Subir ticket", Icon: Receipt });
-  list.push({ id: "text", label: "Añadir a mano", Icon: Pencil });
-  return list;
-}
+// (modesFor removed — upload is now a single combined button)
 
 function ModeToggle({ mode, onSelect, modes }) {
   return (
@@ -376,8 +369,12 @@ function ModeToggle({ mode, onSelect, modes }) {
               ...(selected ? modeToggleBtnOnStyle : {}),
             }}
           >
-            <Icon size={13} strokeWidth={2.4} />
-            {label}
+            <Icon size={14} strokeWidth={2.3} />
+            {selected && (
+              <span style={{ fontSize: 11, fontWeight: 800, whiteSpace: "nowrap" }}>
+                {label}
+              </span>
+            )}
           </button>
         );
       })}
@@ -399,7 +396,7 @@ function ModeToggle({ mode, onSelect, modes }) {
  */
 export function PantryInput({ onSaved, onUploadReceipt = null }) {
   const { user } = useAuth();
-  const [mode, setMode] = useState("text");
+  const [tab, setTab] = useState("text"); // "text" | "upload"
   const [chips, setChips] = useState([]);
   const [saving, setSaving] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
@@ -408,7 +405,6 @@ export function PantryInput({ onSaved, onUploadReceipt = null }) {
   const [pickAisle, setPickAisle] = useState(null);
   const [focusQtyIndex, setFocusQtyIndex] = useState(null);
   const fileInputRef = useRef(null);
-  const modes = modesFor(Boolean(onUploadReceipt));
 
   const addChips = (parsedList, source, qtyUnitByRaw) => {
     setChips((prev) => {
@@ -461,19 +457,8 @@ export function PantryInput({ onSaved, onUploadReceipt = null }) {
     if (files.length > 0) handlePhotoFiles(files);
   };
 
-  // Selecting "Subir foto" IS the trigger — no extra tap on a camera button.
-  // Called straight from the segment's own click handler (not an effect) so
-  // it still counts as a direct user gesture and reliably opens the picker.
-  // "Subir ticket" is a one-shot action: it opens the receipt wizard and
-  // leaves the current panel untouched.
-  const selectMode = (id) => {
-    if (id === "ticket") {
-      onUploadReceipt?.();
-      return;
-    }
-    setMode(id);
-    if (id === "photo") fileInputRef.current?.click();
-  };
+  const triggerPhoto = () => { fileInputRef.current?.click(); };
+  const triggerTicket = () => { onUploadReceipt?.(); };
 
   // ── Chip actions ──
   const removeChip = (idx) => {
@@ -594,9 +579,45 @@ export function PantryInput({ onSaved, onUploadReceipt = null }) {
 
   return (
     <div>
-      <ModeToggle mode={mode} onSelect={selectMode} modes={modes} />
+      {/* Segmented control: Añadir a mano | Subir */}
+      <div style={{
+        display: "flex", gap: 2, padding: 2, borderRadius: 10,
+        background: "#eef4ef", border: "1px solid #dce8e0", marginBottom: 10,
+      }}>
+        <button
+          type="button"
+          onClick={() => setTab("text")}
+          aria-pressed={tab === "text"}
+          style={{
+            flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
+            gap: 6, padding: "7px 10px", borderRadius: 8, border: "none",
+            background: tab === "text" ? GREEN : "transparent",
+            color: tab === "text" ? "#fff" : "#5a7066",
+            fontSize: 12, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
+          }}
+        >
+          <Pencil size={13} strokeWidth={2.3} />
+          A mano
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("upload")}
+          aria-pressed={tab === "upload"}
+          style={{
+            flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center",
+            gap: 6, padding: "7px 10px", borderRadius: 8, border: "none",
+            background: tab === "upload" ? GREEN : "transparent",
+            color: tab === "upload" ? "#fff" : "#5a7066",
+            fontSize: 12, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
+          }}
+        >
+          <Camera size={13} strokeWidth={2.3} />
+          Subir
+        </button>
+      </div>
 
-      {mode === "text" && (
+      {/* A mano: ingredient picker grid */}
+      {tab === "text" && (
         <IngredientPicker
           query={pickQuery}
           onQueryChange={setPickQuery}
@@ -611,20 +632,28 @@ export function PantryInput({ onSaved, onUploadReceipt = null }) {
         />
       )}
 
-      {mode === "photo" && (
-        <div>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={photoLoading}
-            style={{ ...photoCardStyle, cursor: photoLoading ? "wait" : "pointer" }}
-          >
-            {photoLoading ? <Loader2 size={22} className="mp-spin" color={GREEN} /> : <Camera size={22} color={GREEN} />}
-            <span style={{ fontSize: 13, fontWeight: 700, color: INK }}>
-              {photoLoading ? "Leyendo las fotos…" : "Toca para elegir una o varias fotos"}
-            </span>
+      {/* Subir: foto + ticket cards */}
+      {tab === "upload" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12 }}>
+          <button type="button" onClick={triggerPhoto} disabled={photoLoading} style={uploadCardStyle}>
+            {photoLoading
+              ? <Loader2 size={20} className="mp-spin" color={GREEN} />
+              : <Camera size={20} color={GREEN} strokeWidth={2} />}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>Foto de despensa</div>
+              <div style={{ fontSize: 11, color: "#7a9082", marginTop: 1 }}>Sube una foto de tu nevera o armario</div>
+            </div>
           </button>
-          {photoError && <p style={{ margin: "8px 0 0", fontSize: 11.5, color: "#c0392b" }}>{photoError}</p>}
+          {onUploadReceipt && (
+            <button type="button" onClick={triggerTicket} style={uploadCardStyle}>
+              <Receipt size={20} color={GREEN} strokeWidth={2} />
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d" }}>Ticket de compra</div>
+                <div style={{ fontSize: 11, color: "#7a9082", marginTop: 1 }}>Escanea un ticket para rellenar la despensa</div>
+              </div>
+            </button>
+          )}
+          {photoError && <p style={{ margin: 0, fontSize: 11.5, color: "#c0392b" }}>{photoError}</p>}
         </div>
       )}
 
@@ -659,14 +688,21 @@ export function PantryInput({ onSaved, onUploadReceipt = null }) {
   );
 }
 
+const uploadCardStyle = {
+  display: "flex", alignItems: "center", gap: 12, width: "100%",
+  padding: "12px 14px", borderRadius: 12,
+  border: "1.5px solid #dde9e2", background: "#fff",
+  cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+};
+
 const modeToggleStyle = {
   display: "flex",
   gap: 2,
   padding: 2,
-  borderRadius: 11,
+  borderRadius: 10,
   background: "#eef4ef",
   border: "1px solid #dce8e0",
-  marginBottom: 12,
+  marginBottom: 10,
 };
 
 const modeToggleBtnStyle = {
@@ -675,29 +711,17 @@ const modeToggleBtnStyle = {
   alignItems: "center",
   justifyContent: "center",
   gap: 5,
-  padding: "7px 0",
-  borderRadius: 9,
+  padding: "5px 8px",
+  borderRadius: 8,
   border: "none",
   background: "transparent",
   color: "#5a7066",
-  fontSize: 11.5,
+  fontSize: 11,
   fontWeight: 800,
   fontFamily: "inherit",
   cursor: "pointer",
+  minWidth: 0,
 };
 
 const modeToggleBtnOnStyle = { background: GREEN, color: "#fff" };
 
-const photoCardStyle = {
-  display: "flex",
-  flexDirection: "column",
-  alignItems: "center",
-  justifyContent: "center",
-  gap: 8,
-  width: "100%",
-  padding: "22px 14px",
-  borderRadius: 14,
-  border: "1.5px dashed #bcdcc7",
-  background: "#fff",
-  fontFamily: "inherit",
-};

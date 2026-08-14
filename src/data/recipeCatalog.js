@@ -97,6 +97,8 @@ function rowToRecipe(row) {
     description: row.description,
     ...(row.methods ? { methods: row.methods } : {}),
     ...(row.product_aliases?.length ? { productAliases: row.product_aliases } : {}),
+    ...(row.effort ? { effort: row.effort } : {}),
+    ...(row.dessert_kind ? { dessertKind: row.dessert_kind } : {}),
   };
 }
 
