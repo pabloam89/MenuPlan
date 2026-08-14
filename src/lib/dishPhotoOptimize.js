@@ -32,3 +32,19 @@ export function deckSrcSet(url, w = 720) {
   if (hi > lo) parts.push(`${deckImg(url, hi)} ${hi}w`);
   return parts.join(", ");
 }
+
+// The deck tile a user taps is already loaded at a smaller width than the
+// DishDetail hero (deckImg(url, 720)) — different width means a different
+// wsrv.nl URL, so opening the sheet always triggers a fresh proxy resize
+// (the slow part users notice). Firing this on pointerdown, before the tap
+// even registers, gives that resize a head start that overlaps with the
+// sheet's opening animation instead of starting cold when the sheet mounts.
+const prefetchedHeroes = new Set();
+export function prefetchDeckHero(url, w = 720) {
+  if (!isRemoteUrl(url)) return;
+  const key = `${url}|${w}`;
+  if (prefetchedHeroes.has(key)) return;
+  prefetchedHeroes.add(key);
+  const img = new Image();
+  img.src = deckImg(url, w);
+}

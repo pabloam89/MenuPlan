@@ -99,7 +99,7 @@ import { generateRecipeSteps } from "../lib/aiPlanner.js";
 import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/planner.js";
 import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
-import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
+import { deckImg, deckSrcSet, prefetchDeckHero } from "../lib/dishPhotoOptimize.js";
 import {
   MEAL_STYLES,
   DEFAULT_MEAL_STYLE,
@@ -1933,6 +1933,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
   const badgeGroups = tile.groups ?? (group ? [group] : []);
   const [failed, setFailed] = useState(false);
   const recipe = isEmpty ? null : RECIPES_BY_ID[dish.recipeId];
+  const srcUrl = recipe ? dishImageForRecipe(recipe) : null;
   const sel = isEmpty
     ? { slot, groupId: group.id, day, meal, group, course: "main", empty: true }
     : recipe
@@ -1942,6 +1943,10 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     () => sel && onDishLongPress?.(sel),
     () => sel && onDishTap?.(sel),
   );
+  const onPointerDownPrefetch = (e) => {
+    press.onPointerDown?.(e);
+    if (srcUrl) prefetchDeckHero(srcUrl, 720);
+  };
   const emptyMealLabel = MEAL_META[meal]?.label ?? meal;
   if (isEmpty) {
     // Use the meal's own MenuPlan icon (Comida = Sol, Cena = Luna…) inside a soft
@@ -2013,7 +2018,6 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
     );
   }
   if (!recipe) return null;
-  const srcUrl = dishImageForRecipe(recipe);
   const optimized = deckImg(srcUrl, imgWidth);
   const visual = visualForRecipe(recipe);
   const mealLabel = MEAL_META[meal]?.label ?? meal;
@@ -2028,6 +2032,7 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       data-slot={`${day}-${meal}`}
       data-course={dish?.courseKey}
       {...press}
+      onPointerDown={onPointerDownPrefetch}
       style={{
         position: "relative",
         width: "100%",
