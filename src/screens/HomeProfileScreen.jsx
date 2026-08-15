@@ -214,21 +214,21 @@ function MemberCard({ member, allMembers }) {
 // ── Family illustration pools by child count ─────────────────────────────────
 
 const FAMILIA_PHOTOS = {
-  0: ["/avatares/cards/familia/familia_0.png"],
-  1: ["/avatares/cards/familia/familia_1_1.png", "/avatares/cards/familia/familia_1_2.png"],
-  2: ["/avatares/cards/familia/familia_2_1.png", "/avatares/cards/familia/familia_2_2.png"],
-  3: ["/avatares/cards/familia/familia_3_1.png", "/avatares/cards/familia/familia_3_2.png"],
-  4: ["/avatares/cards/familia/familia_4.png"],
+  0: ["/avatares/cards/familia/familia_0.jpg"],
+  1: ["/avatares/cards/familia/familia_1_1.jpg", "/avatares/cards/familia/familia_1_2.jpg"],
+  2: ["/avatares/cards/familia/familia_2_1.jpg", "/avatares/cards/familia/familia_2_2.jpg"],
+  3: ["/avatares/cards/familia/familia_3_1.jpg", "/avatares/cards/familia/familia_3_2.jpg"],
+  4: ["/avatares/cards/familia/familia_4.jpg"],
   5: [
-    "/avatares/cards/familia/familia_5_1.png",
-    "/avatares/cards/familia/familia_5_2.png",
-    "/avatares/cards/familia/familia_5_3.png",
-    "/avatares/cards/familia/familia_5_4.png",
-    "/avatares/cards/familia/familia_5_5.png",
+    "/avatares/cards/familia/familia_5_1.jpg",
+    "/avatares/cards/familia/familia_5_2.jpg",
+    "/avatares/cards/familia/familia_5_3.jpg",
+    "/avatares/cards/familia/familia_5_4.jpg",
+    "/avatares/cards/familia/familia_5_5.jpg",
   ],
-  6: ["/avatares/cards/familia/familia_6_1.png", "/avatares/cards/familia/familia_6_2.png"],
+  6: ["/avatares/cards/familia/familia_6_1.jpg", "/avatares/cards/familia/familia_6_2.jpg"],
 };
-const FAMILIA_FALLBACK = ["/avatares/cards/familia/familia_7plus.png"];
+const FAMILIA_FALLBACK = ["/avatares/cards/familia/familia_7plus.jpg"];
 
 function familyPhotos(members) {
   const childCount = members.filter((m) => {
@@ -491,7 +491,7 @@ export function HomeProfileScreen({
         {/* ── 3. Tus ajustes generales ───────────────── */}
         <div style={{ marginBottom: 14 }}>
           <CompactNavRow
-            photos={["/avatares/cards/ajustes_generales.png"]}
+            photos={["/avatares/cards/ajustes_generales.jpg"]}
             title="Tus ajustes generales"
             subtitle="Personaliza cómo la IA genera tu menú y tus recetas."
             onClick={() => setShowGeneral((v) => !v)}
@@ -531,19 +531,19 @@ export function HomeProfileScreen({
         {/* ── Cuenta y datos ─────────────────────── */}
         <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
           <ActionCardV
-            img="/avatares/cards/cerrar_sesion.png"
+            img="/avatares/cards/cerrar_sesion.jpg"
             title="Cerrar sesión"
             accent={GREEN}
             onClick={onSignOut}
           />
           <ActionCardV
-            img="/avatares/cards/reiniciar_menu.png"
+            img="/avatares/cards/reiniciar_menu.jpg"
             title="Reiniciar menú"
             accent="#c0392b"
             onClick={onReset}
           />
           <ActionCardV
-            img="/avatares/cards/eliminar_cuenta.png"
+            img="/avatares/cards/eliminar_cuenta.jpg"
             title="Eliminar cuenta"
             accent="#c0392b"
             onClick={onDeleteAccount}

@@ -295,7 +295,7 @@ function PantryEmptyEntry({ revealed, canUploadReceipt, onReveal, onSaved, onUpl
       <div style={{ display: "flex", gap: 12, alignItems: "stretch", marginBottom: 14 }}>
         <PantryModeCard label="Añadir a mano" active={tab === "text"} onClick={() => setTab("text")}>
           <img
-            src="/avatares/cards/subir_a_mano.png"
+            src="/avatares/cards/subir_a_mano.jpg"
             alt="Añadir a mano"
             style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
           />
@@ -304,7 +304,7 @@ function PantryEmptyEntry({ revealed, canUploadReceipt, onReveal, onSaved, onUpl
           <RotatingCardImage
             images={
               canUploadReceipt
-                ? ["/avatares/cards/subir%20foto.png", "/avatares/cards/escanear.png"]
+                ? ["/avatares/cards/subir%20foto.png", "/avatares/cards/escanear.jpg"]
                 : ["/avatares/cards/subir%20foto.png"]
             }
             alt="Subir foto o ticket"

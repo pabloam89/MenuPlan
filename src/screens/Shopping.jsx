@@ -2255,7 +2255,7 @@ function CaptureSheet({ onClose, onScan, onManual }) {
           icon={Receipt}
           iconColor="#fff"
           iconBg="#2d5a3d"
-          img="/avatares/cards/escanear.png"
+          img="/avatares/cards/escanear.jpg"
           title="Escanear ticket"
           subtitle="Marca como comprado lo que coincida"
           onClick={onScan}
@@ -2264,7 +2264,7 @@ function CaptureSheet({ onClose, onScan, onManual }) {
           icon={Plus}
           iconColor="#fff"
           iconBg="#e07b39"
-          img="/avatares/cards/subir_a_mano.png"
+          img="/avatares/cards/subir_a_mano.jpg"
           title="Añadir a mano"
           subtitle="Un producto y su precio"
           onClick={onManual}
@@ -3468,7 +3468,7 @@ function EmptyList({ onAdd }) {
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
-        img="/avatares/cards/sin_compra.png"
+        img="/avatares/cards/sin_compra.jpg"
         title="Nada pendiente"
         subtitle="Añade lo que necesites o genera la lista desde el menú de esta semana."
         maxWidth={240}

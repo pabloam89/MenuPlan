@@ -4903,7 +4903,7 @@ function EmptyState({ onRegenerate }) {
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
-        img="/avatares/cards/aun_no_menu_generado.png"
+        img="/avatares/cards/aun_no_menu_generado.jpg"
         title="Aún no tienes menú esta semana"
         subtitle='Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.'
         maxWidth={240}

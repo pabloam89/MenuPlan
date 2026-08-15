@@ -17,10 +17,24 @@ const WIDTH = 360;
 const QUALITY = 85;
 const RAW_THRESHOLD_BYTES = 150 * 1024; // already-optimized files sit well under this
 
+// Recursive: raw batches have slipped in at the top level twice already
+// (13 onboarding cards, then 12 more) and a third time inside cards/familia/
+// (16 files, 22MB) — scanning subfolders too means the next one gets caught
+// by just re-running this script instead of needing a manual audit.
+async function collectPngs(dir) {
+  const entries = await readdir(dir, { withFileTypes: true });
+  const files = [];
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...(await collectPngs(full)));
+    else if (entry.name.endsWith(".png")) files.push(full);
+  }
+  return files;
+}
+
 async function main() {
-  const files = (await readdir(DIR)).filter((f) => f.endsWith(".png"));
-  for (const file of files) {
-    const full = path.join(DIR, file);
+  const files = await collectPngs(DIR);
+  for (const full of files) {
     const before = (await stat(full)).size;
     if (before <= RAW_THRESHOLD_BYTES) continue;
 
@@ -29,11 +43,11 @@ async function main() {
       const ratio = WIDTH / img.width;
       img.resize({ w: WIDTH, h: Math.round(img.height * ratio), mode: ResizeStrategy.BICUBIC });
     }
-    const dst = path.join(DIR, file.replace(/\.png$/, ".jpg"));
+    const dst = full.replace(/\.png$/, ".jpg");
     await img.write(dst, { quality: QUALITY });
     await rm(full);
     const after = (await stat(dst)).size;
-    console.log(`${file} -> ${path.basename(dst)}  ${before >> 10}KB -> ${after >> 10}KB`);
+    console.log(`${path.relative(DIR, full)} -> ${path.basename(dst)}  ${before >> 10}KB -> ${after >> 10}KB`);
   }
 }
 
