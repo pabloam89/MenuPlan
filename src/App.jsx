@@ -964,7 +964,7 @@ export default function App() {
     registerRecipes(own.map((r) => catalogToFrontendRecipe(r, eaters)));
   }, [data.userRecipes, data.members]);
 
-  const { user, signInWithGoogle, signOut } = useAuth();
+  const { user, session, signInWithGoogle, signOut } = useAuth();
 
   // Debounced: serializar todo el estado a localStorage en cada pulsación de
   // tecla del onboarding es perceptible en móviles modestos. Si la cuota está
@@ -2823,13 +2823,34 @@ export default function App() {
     back(() => setScreen("dashboard"));
   }, []);
 
+  // Deletes the actual Supabase Auth account (not just app data) via
+  // api/delete-account — required for App Store 5.1.1(v). Every user-scoped
+  // table cascades from auth.users(id), so this one call is enough; there's
+  // no separate clearUserState() step anymore. Must run while the access
+  // token is still valid, so before signOut(). If the server call fails, the
+  // user stays signed in with their data intact (so they can retry) instead
+  // of the app claiming "deleted" when it wasn't.
   const doDeleteAccount = useCallback(async () => {
+    if (user?.id && session?.access_token) {
+      try {
+        const res = await fetch("/api/delete-account", {
+          method: "POST",
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body?.error || `HTTP ${res.status}`);
+        }
+      } catch (err) {
+        console.error("[delete-account] failed", err);
+        setResetConfirm(null);
+        showToast("No se pudo eliminar la cuenta. Inténtalo de nuevo.");
+        return;
+      }
+    }
+
     setResetConfirm(null);
     clearState();
-    // Must happen before signOut(): the delete is authorized by the current
-    // session (RLS on user_id = auth.uid()), so it has to run while still
-    // logged in.
-    if (user?.id) await clearUserState(user.id);
     setData(ensureRosters(INITIAL_DATA));
     setMenuPlan({});
     setShopping({ items: [] });
@@ -2839,7 +2860,7 @@ export default function App() {
     setMenuError(null);
     setScreen("splash");
     await signOut();
-  }, [signOut, user]);
+  }, [signOut, user, session, showToast]);
 
   // Order: Members → Menu Model → School Menu → Restrictions → Week → Schedule →
   // Meal Style → Meal Extras (structure/desayuno/merienda/postre/cenas rápidas)
