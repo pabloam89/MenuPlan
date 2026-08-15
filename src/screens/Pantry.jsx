@@ -153,6 +153,176 @@ const AISLE_UI = {
 
 const pageTitle = { fontSize: 20, fontWeight: 900, color: INK, margin: 0, letterSpacing: "-.3px" };
 
+// Teal frame shared with EmptyIllustration, so the empty-state choice cards read
+// as the same family.
+const EMPTY_ACCENT = "#0f766e";
+
+// Illustration that cross-fades + slides between several images on a timer —
+// same treatment as the onboarding Alergias card. Images that 404 (e.g. an
+// asset not generated yet) are dropped so the card never flashes a blank frame.
+function RotatingCardImage({ images, interval = 2000, alt = "" }) {
+  const [idx, setIdx] = useState(0);
+  const [failed, setFailed] = useState(() => new Set());
+  const valid = images.filter((s) => !failed.has(s));
+  useEffect(() => {
+    if (valid.length <= 1) return undefined;
+    const reduce =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return undefined;
+    const t = setInterval(() => setIdx((v) => (v + 1) % valid.length), interval);
+    return () => clearInterval(t);
+  }, [valid.length, interval]);
+  const active = valid.length ? idx % valid.length : 0;
+  return (
+    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
+      {valid.map((src, i) => (
+        <img
+          key={src}
+          src={src}
+          alt={i === active ? alt : ""}
+          loading="lazy"
+          onError={() => setFailed((prev) => new Set(prev).add(src))}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            opacity: i === active ? 1 : 0,
+            transform: i === active ? "translateX(0)" : "translateX(-22px)",
+            transition: "opacity .45s ease, transform .55s cubic-bezier(.34,1.08,.5,1)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Big illustrated mode card — doubles as the segmented selector between "a mano"
+// and "subir foto o ticket". Active card gets the teal frame + a solid teal label
+// band; the inactive one stays quiet.
+function PantryModeCard({ label, active, onClick, children }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      style={{
+        flex: 1,
+        minWidth: 0,
+        display: "flex",
+        flexDirection: "column",
+        border: `3px solid ${active ? EMPTY_ACCENT : "#dce8e0"}`,
+        borderRadius: 18,
+        overflow: "hidden",
+        background: "#fff",
+        cursor: "pointer",
+        fontFamily: "inherit",
+        padding: 0,
+        boxShadow: active ? "0 12px 32px -18px rgba(15,118,110,.5)" : "0 6px 18px -14px rgba(20,47,29,.4)",
+        opacity: active ? 1 : 0.85,
+        transition: "border-color .18s, box-shadow .18s, opacity .18s",
+      }}
+    >
+      <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "#eef4ef" }}>
+        {children}
+      </div>
+      <div
+        style={{
+          padding: "10px 8px",
+          fontSize: 13,
+          fontWeight: 800,
+          textAlign: "center",
+          background: active ? EMPTY_ACCENT : "#fff",
+          color: active ? "#fff" : "#5a7066",
+        }}
+      >
+        {label}
+      </div>
+    </button>
+  );
+}
+
+// Empty pantry entry point: the Midjourney empty illustration + an "Añadir
+// ingredientes" button. On tap the illustration gives way (mini fade/slide) to
+// two big illustrated cards that select the input mode — "a mano" active by
+// default — with the "subir foto o ticket" card rotating between the pantry-photo
+// and ticket illustrations.
+function PantryEmptyEntry({ revealed, canUploadReceipt, onReveal, onSaved, onUploadReceipt }) {
+  const [tab, setTab] = useState("text");
+
+  if (!revealed) {
+    return (
+      <div style={{ padding: "32px 0 8px" }}>
+        <EmptyIllustration
+          img="/avatares/cards/empty_despensa.jpg"
+          title="Tu nevera y tu despensa están vacías"
+          subtitle="Añade lo que tienes en casa para tus recetas y tu lista de la compra."
+          maxWidth={300}
+          imgAspect="16 / 12"
+        >
+          <button
+            type="button"
+            onClick={onReveal}
+            style={{
+              marginTop: 14,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 7,
+              padding: "11px 20px",
+              borderRadius: 13,
+              border: "none",
+              background: GREEN,
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            <Plus size={15} strokeWidth={2.8} /> Añadir ingredientes
+          </button>
+        </EmptyIllustration>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ animation: "pantryChoiceIn .28s cubic-bezier(.34,1.08,.5,1) both" }} data-coach="pantry-add">
+      <div style={{ display: "flex", gap: 12, alignItems: "stretch", marginBottom: 14 }}>
+        <PantryModeCard label="Añadir a mano" active={tab === "text"} onClick={() => setTab("text")}>
+          <img
+            src="/avatares/cards/subir_a_mano.png"
+            alt="Añadir a mano"
+            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          />
+        </PantryModeCard>
+        <PantryModeCard label="Subir foto o ticket" active={tab === "upload"} onClick={() => setTab("upload")}>
+          <RotatingCardImage
+            images={
+              canUploadReceipt
+                ? ["/avatares/cards/subir%20foto.png", "/avatares/cards/escanear.png"]
+                : ["/avatares/cards/subir%20foto.png"]
+            }
+            alt="Subir foto o ticket"
+          />
+        </PantryModeCard>
+      </div>
+      <PantryInput
+        hideTabs
+        tab={tab}
+        onTabChange={setTab}
+        onSaved={onSaved}
+        onUploadReceipt={onUploadReceipt}
+      />
+      <style>{`@keyframes pantryChoiceIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
+    </div>
+  );
+}
+
 // Compact icon buttons in the "En casa" header (top-right): upload a ticket
 // and open the spend/tickets analytics. Square so two sit neatly beside the
 // title without competing with it.
@@ -745,6 +915,11 @@ export function PantryScreen({
     if (canEditPantryPrefs && !data?.pantryPrefsSeen) setShowPantryPrefs(true);
   }, [canEditPantryPrefs, data?.pantryPrefsSeen]);
   // (showAddInput removed — PantryInput is always visible with its own tab control)
+  // Empty-state entry: a centered prompt that, on tap, reveals two illustrated
+  // choice cards (a mano / subir foto o ticket) and then opens PantryInput in
+  // the picked mode. Local state, so leaving without adding anything resets it
+  // back to the illustration on the next visit.
+  const [emptyRevealed, setEmptyRevealed] = useState(false);
   // Category + purchase-date + ticket filters, tucked behind a "Filtros"
   // toggle like Añadir ingredientes above — same collapsed-by-default pattern.
   const [showFilters, setShowFilters] = useState(false);
@@ -1273,25 +1448,25 @@ export function PantryScreen({
           </>
         )}
 
-        {pantryIsEmpty && (
-          <div style={{ padding: "40px 20px 4px" }}>
-            <EmptyIllustration
-              img="/avatares/cards/empty_despensa.jpg"
-              title="Tu nevera y tu despensa están vacías"
-              subtitle="Añade lo que tienes en casa y lo usaremos en tus recetas y en tu lista de la compra."
-              maxWidth={240}
-              imgAspect="16 / 12"
-            />
-          </div>
-        )}
-
-        <div style={{ height: 3, borderRadius: 99, background: "#d8e8dc", margin: "16px 0 14px" }} />
-        <div data-coach="pantry-add">
-          <PantryInput
+        {pantryIsEmpty ? (
+          <PantryEmptyEntry
+            revealed={emptyRevealed}
+            canUploadReceipt={canUploadReceipt}
+            onReveal={() => setEmptyRevealed(true)}
             onSaved={handleSaved}
             onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
           />
-        </div>
+        ) : (
+          <>
+            <div style={{ height: 3, borderRadius: 99, background: "#d8e8dc", margin: "16px 0 14px" }} />
+            <div data-coach="pantry-add">
+              <PantryInput
+                onSaved={handleSaved}
+                onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
+              />
+            </div>
+          </>
+        )}
     </>
   );
 

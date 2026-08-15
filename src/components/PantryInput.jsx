@@ -394,9 +394,21 @@ function ModeToggle({ mode, onSelect, modes }) {
  * lib/pantry.js instead (mergeLocalPantryIntoCloud folds it into the account
  * on first login).
  */
-export function PantryInput({ onSaved, onUploadReceipt = null }) {
+export function PantryInput({
+  onSaved,
+  onUploadReceipt = null,
+  initialTab = "text",
+  // Optional controlled tab: when `tab`/`onTabChange` are passed (e.g. the empty
+  // state drives the mode from its big illustrated cards), PantryInput follows
+  // them and `hideTabs` drops its own segmented control to avoid a double selector.
+  tab: tabProp,
+  onTabChange,
+  hideTabs = false,
+}) {
   const { user } = useAuth();
-  const [tab, setTab] = useState("text"); // "text" | "upload"
+  const [tabState, setTabState] = useState(initialTab); // "text" | "upload"
+  const tab = tabProp ?? tabState;
+  const setTab = onTabChange ?? setTabState;
   const [chips, setChips] = useState([]);
   const [saving, setSaving] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
@@ -580,6 +592,7 @@ export function PantryInput({ onSaved, onUploadReceipt = null }) {
   return (
     <div>
       {/* Segmented control: Añadir a mano | Subir */}
+      {!hideTabs && (
       <div style={{
         display: "flex", gap: 2, padding: 2, borderRadius: 10,
         background: "#eef4ef", border: "1px solid #dce8e0", marginBottom: 10,
@@ -615,6 +628,7 @@ export function PantryInput({ onSaved, onUploadReceipt = null }) {
           Subir
         </button>
       </div>
+      )}
 
       {/* A mano: ingredient picker grid */}
       {tab === "text" && (
