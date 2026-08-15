@@ -3480,7 +3480,7 @@ function EmptyList({ onAdd }) {
           data-coach="shop-add"
           onClick={onAdd}
           style={{
-            marginTop: 14, display: "inline-flex", alignItems: "center", gap: 7,
+            marginTop: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
             padding: "11px 20px", borderRadius: 13, border: "none",
             background: "#2d5a3d", color: "#fff", fontSize: 14, fontWeight: 800,
             cursor: "pointer", fontFamily: "inherit",

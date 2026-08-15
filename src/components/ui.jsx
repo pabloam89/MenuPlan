@@ -174,15 +174,16 @@ export function EmptyIllustration({
           display: "flex",
           flexDirection: "column",
           justifyContent: "center",
+          alignItems: "center",
         }}
       >
         {title && (
-          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: solidBand ? "#fff" : "#142f1d", lineHeight: 1.4 }}>
+          <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: solidBand ? "#fff" : "#142f1d", lineHeight: 1.4, width: "100%" }}>
             {title}
           </p>
         )}
         {subtitle && (
-          <p style={{ margin: title ? "6px 0 0" : 0, fontSize: 13, color: solidBand ? "rgba(255,255,255,.88)" : "#5c6b60", lineHeight: 1.5 }}>
+          <p style={{ margin: title ? "6px 0 0" : 0, fontSize: 13, color: solidBand ? "rgba(255,255,255,.88)" : "#5c6b60", lineHeight: 1.5, width: "100%" }}>
             {subtitle}
           </p>
         )}
