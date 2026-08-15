@@ -41,15 +41,25 @@ export default async function handler(req, res) {
   try {
     const { data: userData, error: userErr } = await admin.auth.getUser(accessToken);
     if (userErr || !userData?.user) {
+      console.error("[delete-account] getUser failed", userErr?.status, userErr?.name, userErr?.message);
       return res.status(401).json({ error: "Sesión inválida." });
     }
 
     const { error: deleteErr } = await admin.auth.admin.deleteUser(userData.user.id);
-    if (deleteErr) throw deleteErr;
+    if (deleteErr) {
+      console.error(
+        "[delete-account] deleteUser failed",
+        deleteErr.status,
+        deleteErr.name,
+        deleteErr.code,
+        deleteErr.message,
+      );
+      throw deleteErr;
+    }
 
     return res.status(200).json({ ok: true });
   } catch (err) {
-    console.error("[delete-account]", err?.message);
+    console.error("[delete-account] unhandled", err?.name, err?.message, err?.stack);
     return res.status(500).json({ error: "No se pudo eliminar la cuenta." });
   }
 }
