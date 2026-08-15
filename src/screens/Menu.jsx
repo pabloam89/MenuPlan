@@ -3856,7 +3856,19 @@ export const MenuScreen = memo(function MenuScreen({
     return getWeekDatesByMenuWeek({ offset: 0, startDayIdx });
   }, [data.menuWeek]);
   const weekLabel = useMemo(() => formatWeekRangeLabel(weekDates, activeDays), [weekDates, activeDays]);
-  const hasMenu = !isGenerating && !error && Object.keys(menuPlan).length > 0;
+  const multiGroup = data.groups.length > 1;
+  const visibleGroups = useMemo(() => {
+    if (!multiGroup || scope === "all") return data.groups;
+    return data.groups.filter((g) => g.id === scope);
+  }, [data.groups, multiGroup, scope]);
+  // A plan can have keys (or leftover recipe ids on days outside this week)
+  // without anything to paint in the current deck — treat that as empty so
+  // the "Generar" card shows instead of a blank Semana view.
+  const hasVisibleMenu = useMemo(
+    () => (activeDays ?? []).some((day) => getDeckDayTiles(day, data, menuPlan, visibleGroups).length > 0),
+    [activeDays, data, menuPlan, visibleGroups],
+  );
+  const hasMenu = !isGenerating && !error && hasVisibleMenu;
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
   const currentWeekIdx = useMemo(
     () => menuWeeks.findIndex((w) => w.offset === data.menuWeek?.offset),
@@ -3866,12 +3878,6 @@ export const MenuScreen = memo(function MenuScreen({
     () => summarizeMenuRestrictionConflicts(restrictionConflicts),
     [restrictionConflicts],
   );
-  const multiGroup = data.groups.length > 1;
-
-  const visibleGroups = useMemo(() => {
-    if (!multiGroup || scope === "all") return data.groups;
-    return data.groups.filter((g) => g.id === scope);
-  }, [data.groups, multiGroup, scope]);
 
   // Menús with members — the scope chips for the day-level "Regenerar" (a chip
   // per menú + "Todos"), revealed inline on each day header by DayRegenButton.
@@ -4407,11 +4413,11 @@ export const MenuScreen = memo(function MenuScreen({
         <ErrorCard error={error} onRetry={onRetry} />
       )}
 
-      {!isGenerating && !error && Object.keys(menuPlan).length === 0 && (
+      {!isGenerating && !error && !hasVisibleMenu && (
         <EmptyState onRegenerate={onRegenerate} />
       )}
 
-      {!isGenerating && !error && Object.keys(menuPlan).length > 0 && (
+      {!isGenerating && !error && hasVisibleMenu && (
       <div>
         {restrictionWarning && (
           // Keyed on the message text so a NEW conflict (different dishes/
