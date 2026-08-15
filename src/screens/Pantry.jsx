@@ -1279,6 +1279,7 @@ export function PantryScreen({
               img="/avatares/cards/empty_despensa.jpg"
               title="Tu nevera y tu despensa están vacías"
               subtitle="Añade lo que tienes en casa y lo usaremos en tus recetas y en tu lista de la compra."
+              maxWidth={240}
               imgAspect="16 / 12"
             />
           </div>

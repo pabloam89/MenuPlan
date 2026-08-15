@@ -27,8 +27,10 @@ export function RecipesScreen({
   scopeGroups = [],
   // Base catalog ids the user discarded "para siempre" (No me gusta). Shown in
   // the "Descartados" tab; onRecoverRecipe clears one so it rejoins the pool.
+  // onDiscardRecipe marks one as discarded directly from the Catálogo tab.
   discardedIds = [],
   onRecoverRecipe,
+  onDiscardRecipe,
   onSetFavoriteScope,
   onOpenRecipe,
   onNav,
@@ -186,6 +188,9 @@ export function RecipesScreen({
             extraRecipes={userRecipes}
             onCombineGarnish={onCombineGarnish}
             initialCategory={catalogInitialCategory}
+            discardedIds={new Set(discardedIds)}
+            onDiscardRecipe={onDiscardRecipe}
+            onRecoverRecipe={onRecoverRecipe}
           />
         )}
 

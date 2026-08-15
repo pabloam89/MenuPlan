@@ -1,31 +1,21 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  ChevronRight,
   ChevronDown,
+  ChevronRight,
   ChevronUp,
   User,
   Users,
   BookOpen,
-  SlidersHorizontal,
   Globe,
   Users2,
   Lock,
-  LogOut,
   Camera,
-  Plus,
   Check,
   Info,
-  Trash2,
-  UserX,
-  BookOpenCheck,
-  ChefHat,
-  Sparkles,
-  Settings as SettingsIcon,
 } from "lucide-react";
-import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
+import { Avatar, BottomNav, bottomNavSpacer, EmptyIllustration, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
-import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -221,6 +211,141 @@ function MemberCard({ member, allMembers }) {
   );
 }
 
+// ── Family illustration pools by child count ─────────────────────────────────
+
+const FAMILIA_PHOTOS = {
+  0: ["/avatares/cards/familia/familia_0.png"],
+  1: ["/avatares/cards/familia/familia_1_1.png", "/avatares/cards/familia/familia_1_2.png"],
+  2: ["/avatares/cards/familia/familia_2_1.png", "/avatares/cards/familia/familia_2_2.png"],
+  3: ["/avatares/cards/familia/familia_3_1.png", "/avatares/cards/familia/familia_3_2.png"],
+  4: ["/avatares/cards/familia/familia_4.png"],
+  5: [
+    "/avatares/cards/familia/familia_5_1.png",
+    "/avatares/cards/familia/familia_5_2.png",
+    "/avatares/cards/familia/familia_5_3.png",
+    "/avatares/cards/familia/familia_5_4.png",
+    "/avatares/cards/familia/familia_5_5.png",
+  ],
+  6: ["/avatares/cards/familia/familia_6_1.png", "/avatares/cards/familia/familia_6_2.png"],
+};
+const FAMILIA_FALLBACK = ["/avatares/cards/familia/familia_7plus.png"];
+
+function familyPhotos(members) {
+  const childCount = members.filter((m) => {
+    const age = resolveMemberAge(m);
+    return age !== null && age < 18;
+  }).length;
+  return FAMILIA_PHOTOS[Math.min(childCount, 6)] ?? FAMILIA_FALLBACK;
+}
+
+// ── Family vertical card (rotating illustration + CTA) ───────────────────────
+
+// ── Compact horizontal nav row (illustration 40% + copy + chevron) ──────────
+
+function CompactNavRow({ photos = [], title, subtitle, chevron, onClick, emptyLabel }) {
+  const [idx, setIdx] = useState(0);
+
+  useEffect(() => {
+    if (photos.length <= 1) return;
+    const t = setInterval(() => setIdx((i) => (i + 1) % photos.length), 5000);
+    return () => clearInterval(t);
+  }, [photos.length]);
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        width: "100%", display: "flex", alignItems: "stretch",
+        padding: 0, overflow: "hidden", minHeight: 112,
+        background: "#fff", border: "1.5px solid #cfe3d8", borderRadius: 16,
+        cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+      }}
+    >
+      <div style={{
+        width: "40%", flexShrink: 0, position: "relative", overflow: "hidden",
+        background: "#0f766e", minHeight: 112,
+      }}>
+        {photos.length === 0 ? (
+          <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, opacity: 0.75 }}>
+            <Users size={22} color="#fff" />
+            {emptyLabel && <span style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>{emptyLabel}</span>}
+          </div>
+        ) : (
+          photos.map((src, i) => (
+            <img
+              key={src}
+              src={src}
+              alt=""
+              style={{
+                position: "absolute",
+                inset: 0, width: "100%", height: "100%",
+                objectFit: "cover", objectPosition: "center",
+                opacity: i === idx ? 1 : 0,
+                transition: "opacity .8s ease",
+                display: "block",
+              }}
+            />
+          ))
+        )}
+      </div>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", minWidth: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: subtitle ? "0 0 2px" : 0, fontSize: 14, fontWeight: 800, color: INK }}>
+            {title}
+          </p>
+          {subtitle && (
+            <p style={{ margin: 0, fontSize: 12, color: "#7a9485", lineHeight: 1.4 }}>
+              {subtitle}
+            </p>
+          )}
+        </div>
+        {chevron}
+      </div>
+    </button>
+  );
+}
+
+function FamilyCardV({ members, onEditMembers }) {
+  const photos = members.length === 0 ? [] : familyPhotos(members);
+  return (
+    <div style={{ marginBottom: 10 }}>
+      <CompactNavRow
+        photos={photos}
+        title="Gestionar tu familia"
+        subtitle="Edita quién come en casa y sus perfiles."
+        emptyLabel="Vacío"
+        onClick={onEditMembers}
+        chevron={<ChevronRight size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />}
+      />
+    </div>
+  );
+}
+
+// ── Vertical action card (illustration on top, copy + chevron below) ─────────
+
+function ActionCardV({ img, title, accent, onClick }) {
+  return (
+    <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
+      <EmptyIllustration
+        img={img}
+        imgAspect="1 / 1"
+        imgPosition="center top"
+        accent={accent}
+        maxWidth={200}
+        onClick={onClick}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 4, width: "100%" }}>
+          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: INK, flex: 1, lineHeight: 1.3, textAlign: "left" }}>
+            {title}
+          </p>
+          <ChevronRight size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />
+        </div>
+      </EmptyIllustration>
+    </div>
+  );
+}
+
 // ── Label with divider ─────────────────────────────────────────────────────
 
 function FieldLabel({ children }) {
@@ -247,6 +372,7 @@ export function HomeProfileScreen({
 }) {
   const g = googleInfo(user);
   const fileInputRef = useRef(null);
+  const [showGeneral, setShowGeneral] = useState(false);
 
   const recipeMode = data.recipeMode ?? "preferred";
   const defaultVisibility = data.defaultRecipeVisibility ?? "public";
@@ -348,25 +474,6 @@ export function HomeProfileScreen({
               </div>
             </div>
 
-            {/* Divider */}
-            <div style={{ height: 1, background: "#f0f4f1", margin: "0 16px" }} />
-
-            {/* Cerrar sesión row */}
-            <button
-              type="button"
-              onClick={onSignOut}
-              style={{
-                width: "100%", display: "flex", alignItems: "center", gap: 10,
-                padding: "12px 16px", border: "none", background: "transparent",
-                cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-              }}
-            >
-              <div style={{ width: 32, height: 32, borderRadius: 9, background: "#fff0ee", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <LogOut size={14} color="#c0392b" />
-              </div>
-              <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: "#c0392b" }}>Cerrar sesión</span>
-              <ChevronRight size={15} color="#d0a0a0" />
-            </button>
           </Card>
         ) : (
           <Card style={{ marginBottom: 14, padding: "18px 16px" }}>
@@ -379,162 +486,69 @@ export function HomeProfileScreen({
         )}
 
         {/* ── 2. Tu familia ─────────────────────────── */}
-        <Section
-          iconEl={<Users size={16} color={GREEN} />}
-          iconColor={GREEN}
-          iconBg="#e6f3ea"
-          title="Tu familia"
-          defaultOpen={false}
-          action={
-            <button
-              type="button"
-              onClick={onEditMembers}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 5,
-                padding: "6px 11px", borderRadius: 9,
-                border: `1.5px solid ${GREEN}`, background: "#f0f7f2",
-                color: GREEN, fontSize: 12, fontWeight: 800,
-                cursor: "pointer", fontFamily: "inherit",
-              }}
-            >
-              <SettingsIcon size={12} />
-              Gestionar
-            </button>
-          }
-        >
-          {members.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "10px 0 4px" }}>
-              <p style={{ margin: "0 0 12px", fontSize: 13, color: "#9ab0a1", lineHeight: 1.5 }}>
-                Añade tu familia para personalizar el menú automáticamente.
-              </p>
-              <button
-                type="button"
-                onClick={onEditMembers}
-                style={{
-                  display: "inline-flex", alignItems: "center", gap: 7,
-                  padding: "10px 18px", borderRadius: 11, border: `1.5px solid ${GREEN}`,
-                  background: "transparent", color: GREEN, fontSize: 13, fontWeight: 800,
-                  cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                <Plus size={14} strokeWidth={2.8} /> Añadir primer miembro
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-              {members.map((m) => (
-                <MemberCard key={m.id} member={m} allMembers={members} />
-              ))}
-            </div>
-          )}
-        </Section>
+        <FamilyCardV members={members} onEditMembers={onEditMembers} />
 
         {/* ── 3. Tus ajustes generales ───────────────── */}
-        <Section
-          iconEl={<BookOpen size={16} color="#9647c9" />}
-          iconColor="#9647c9"
-          iconBg="#f2e7fb"
-          title="Tus ajustes generales"
+        <div style={{ marginBottom: 14 }}>
+          <CompactNavRow
+            photos={["/avatares/cards/ajustes_generales.png"]}
+            title="Tus ajustes generales"
+            subtitle="Personaliza cómo la IA genera tu menú y tus recetas."
+            onClick={() => setShowGeneral((v) => !v)}
+            chevron={showGeneral
+              ? <ChevronUp size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />
+              : <ChevronDown size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />
+            }
+          />
 
-        >
-          <FieldLabel>Recetas en el menú generado</FieldLabel>
-          <div style={{ display: "flex", gap: 7, marginBottom: 18 }}>
-            {RECIPE_MODES.map((opt) => (
-              <SegOpt key={opt.id} {...opt} active={recipeMode === opt.id} onClick={(id) => setField("recipeMode", id)} />
-            ))}
-          </div>
+          {showGeneral && (
+            <div style={{
+              background: "#fff", border: "1.5px solid #e3ebe6",
+              borderRadius: 14, padding: "14px 16px", marginTop: 10,
+            }}>
+              <FieldLabel>Recetas en el menú generado</FieldLabel>
+              <div style={{ display: "flex", gap: 7, marginBottom: 18 }}>
+                {RECIPE_MODES.map((opt) => (
+                  <SegOpt key={opt.id} {...opt} active={recipeMode === opt.id} onClick={(id) => setField("recipeMode", id)} />
+                ))}
+              </div>
 
-          <FieldLabel>Visibilidad por defecto al crear recetas</FieldLabel>
-          <div style={{ display: "flex", gap: 7 }}>
-            {VIS_MODES.map((opt) => (
-              <SegOpt key={opt.id} {...opt} active={defaultVisibility === opt.id} onClick={(id) => setField("defaultRecipeVisibility", id)} />
-            ))}
-          </div>
-          {userRecipes.length > 0 && (
-            <p style={{ margin: "10px 0 0", fontSize: 11.5, color: "#9ab0a1" }}>
-              {userRecipes.length} receta{userRecipes.length === 1 ? "" : "s"} propia{userRecipes.length === 1 ? "" : "s"}.
-            </p>
+              <FieldLabel>Visibilidad por defecto al crear recetas</FieldLabel>
+              <div style={{ display: "flex", gap: 7 }}>
+                {VIS_MODES.map((opt) => (
+                  <SegOpt key={opt.id} {...opt} active={defaultVisibility === opt.id} onClick={(id) => setField("defaultRecipeVisibility", id)} />
+                ))}
+              </div>
+              {userRecipes.length > 0 && (
+                <p style={{ margin: "10px 0 0", fontSize: 11.5, color: "#9ab0a1" }}>
+                  {userRecipes.length} receta{userRecipes.length === 1 ? "" : "s"} propia{userRecipes.length === 1 ? "" : "s"}.
+                </p>
+              )}
+            </div>
           )}
-        </Section>
+        </div>
 
-        {/* ── 4. Preferencias del menú ───────────────── */}
-        <Section
-          iconEl={<SlidersHorizontal size={16} color="#2f6fb8" />}
-          iconColor="#2f6fb8"
-          iconBg="#e5eff9"
-          title="Preferencias del menú"
-        >
-          <FieldLabel>¿Quién cocina y cómo?</FieldLabel>
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-            {[
-              { id: "basic",  Icon: BookOpenCheck, label: "Básico" },
-              { id: "normal", Icon: ChefHat,       label: "Normal" },
-              { id: "pro",    Icon: Sparkles,       label: "Me gusta cocinar" },
-            ].map(({ id, Icon, label }) => {
-              const sel = (data.cookLevel ?? "normal") === id;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => setField("cookLevel", id)}
-                  style={{
-                    flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-                    gap: 6, padding: "14px 8px 12px", borderRadius: 14, cursor: "pointer",
-                    background: sel ? "#2d5a3d" : "#f4f7f5",
-                    border: `1.5px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                    transition: "all .15s ease", fontFamily: "inherit",
-                  }}
-                >
-                  <Icon size={20} color={sel ? "#fff" : "#9ab0a1"} />
-                  <span style={{ fontWeight: 700, fontSize: 12, color: sel ? "#fff" : "#5a7066", textAlign: "center", lineHeight: 1.2 }}>
-                    {label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          <FieldLabel>¿Cuánto tiempo tienes para cocinar?</FieldLabel>
-          <CookTimeEditor data={data} setData={setData} />
-        </Section>
-
-        {/* ── Zona de peligro ─────────────────────── */}
-        <Card style={{ borderColor: "#f0d0cc", marginBottom: 8 }}>
-          {/* Reiniciar datos */}
-          <button
-            type="button"
+        {/* ── Cuenta y datos ─────────────────────── */}
+        <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+          <ActionCardV
+            img="/avatares/cards/cerrar_sesion.png"
+            title="Cerrar sesión"
+            accent={GREEN}
+            onClick={onSignOut}
+          />
+          <ActionCardV
+            img="/avatares/cards/reiniciar_menu.png"
+            title="Reiniciar menú"
+            accent="#c0392b"
             onClick={onReset}
-            style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 12,
-              padding: "13px 14px", border: "none", background: "transparent",
-              cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-              borderBottom: "1px solid #fce8e6",
-            }}
-          >
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "#fff0ee", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Trash2 size={15} color="#c0392b" />
-            </div>
-            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: "#c0392b" }}>Reiniciar menú</span>
-            <ChevronRight size={15} color="#d0a0a0" />
-          </button>
-
-          {/* Eliminar cuenta */}
-          <button
-            type="button"
+          />
+          <ActionCardV
+            img="/avatares/cards/eliminar_cuenta.png"
+            title="Eliminar cuenta"
+            accent="#c0392b"
             onClick={onDeleteAccount}
-            style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 12,
-              padding: "13px 14px", border: "none", background: "transparent",
-              cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-            }}
-          >
-            <div style={{ width: 34, height: 34, borderRadius: 10, background: "#fff0ee", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <UserX size={15} color="#c0392b" />
-            </div>
-            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 700, color: "#c0392b" }}>Eliminar cuenta</span>
-            <ChevronRight size={15} color="#d0a0a0" />
-          </button>
-        </Card>
+          />
+        </div>
 
         {/* Version */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "12px 0 0", opacity: 0.5 }}>

@@ -139,9 +139,12 @@ export function EmptyIllustration({
   solidBand = false,
   imgAspect = "16 / 10",
   imgPosition = "center 40%",
+  onClick,
 }) {
   return (
     <div
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
       style={{
         width: "100%",
         maxWidth,
@@ -154,6 +157,7 @@ export function EmptyIllustration({
         boxShadow: "0 12px 32px -20px rgba(20,47,29,.4)",
         display: "flex",
         flexDirection: "column",
+        cursor: onClick ? "pointer" : undefined,
       }}
     >
       <img
@@ -1299,7 +1303,7 @@ export function WizardSheet({ icon: Icon, iconColor = "#2d5a3d", title, subtitle
 // Big tappable option row for WizardSheet — icon bubble + title (+ optional
 // subtitle), same shape as onboarding's RepeatChoiceCard so a "choose one of
 // these paths" moment always reads the same everywhere in the app.
-export function WizardOptionCard({ icon: Icon, iconColor, iconBg, title, subtitle, onClick }) {
+export function WizardOptionCard({ icon: Icon, iconColor, iconBg, img, title, subtitle, onClick }) {
   return (
     <button
       type="button"
@@ -1324,16 +1328,21 @@ export function WizardOptionCard({ icon: Icon, iconColor, iconBg, title, subtitl
       <span
         style={{
           flex: "0 0 auto",
-          width: 46,
-          height: 46,
-          borderRadius: 14,
+          width: 72,
+          height: 72,
+          borderRadius: 16,
+          overflow: "hidden",
           display: "inline-flex",
           alignItems: "center",
           justifyContent: "center",
           background: iconBg,
+          ...(img ? { border: "2.5px solid #0f766e", boxShadow: "0 0 0 1px rgba(15,118,110,.12)" } : {}),
         }}
       >
-        <Icon size={21} color={iconColor} strokeWidth={2.2} />
+        {img
+          ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          : <Icon size={21} color={iconColor} strokeWidth={2.2} />
+        }
       </span>
       <span style={{ minWidth: 0 }}>
         <span style={{ display: "block", fontSize: 15, fontWeight: 800, color: "#142f1d" }}>{title}</span>

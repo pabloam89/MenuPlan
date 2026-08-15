@@ -32,6 +32,8 @@ import {
   ChevronDown,
   Trash2,
   Pencil,
+  Ban,
+  RotateCcw,
 } from "lucide-react";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
@@ -212,6 +214,11 @@ export function CatalogBrowserSheet({
   // Demo only: preselect a category so we land straight on its dish list (with
   // real thumbnails) instead of the category grid.
   initialCategory = null,
+  // Catálogo tab: set of catalog ids the user already discarded (para siempre).
+  // Shows a toggle button on each card; onDiscardRecipe marks one, onRecoverRecipe clears it.
+  discardedIds = null,
+  onDiscardRecipe = null,
+  onRecoverRecipe = null,
 }) {
   const fullCatalog = useMemo(
     () =>
@@ -639,6 +646,8 @@ export function CatalogBrowserSheet({
               ownView={ownRecipesView}
               onCombine={onCombineGarnish && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
               animDelay={i < 12 ? i * 18 : 0}
+              discarded={discardedIds ? discardedIds.has(r.id) : false}
+              onDiscard={discardedIds && r.source !== "user" ? (discardedIds.has(r.id) ? () => onRecoverRecipe?.(r.id) : () => onDiscardRecipe?.(r.id)) : undefined}
             />
           ))}
       {results.length === 0 && (
@@ -1416,6 +1425,7 @@ function VisibilityMiniPill({ visibility = "private", onChange }) {
 function RecipeCard({
   recipe, reference = false, added, garnishId, onAdd, onRemove, onOpenGarnish,
   onOpenRecipe, favorite, onSetFavoriteScope, scopeGroups = [], onOpenScopePicker, onChangeVisibility, onDelete, onEdit, onCombine, ownView = false, animDelay = 0,
+  discarded = false, onDiscard,
 }) {
   const hasScopeChoice = scopeGroups.length > 1 && onOpenScopePicker;
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -1581,6 +1591,24 @@ function RecipeCard({
                 >
                   <Plus size={9} strokeWidth={3} />
                 </span>
+              </button>
+            )}
+            {onDiscard && (
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onDiscard(); }}
+                aria-label={discarded ? `Recuperar ${recipe.name}` : `Descartar ${recipe.name}`}
+                title={discarded ? "Recuperar (vuelve al catálogo)" : "Descartar (No me gusta)"}
+                style={{
+                  width: 34, height: 34, borderRadius: 10, flexShrink: 0, cursor: "pointer",
+                  border: discarded ? "none" : "1.5px solid #f5d0d6",
+                  background: discarded ? "#fde8eb" : "#fff",
+                  color: discarded ? "#c0392b" : "#c9adb0",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all .15s ease",
+                }}
+              >
+                {discarded ? <RotateCcw size={15} /> : <Ban size={15} />}
               </button>
             )}
             <RecipeProvenance recipe={recipe} />

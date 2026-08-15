@@ -217,6 +217,12 @@ const ALIASES = [
   [/mermelada|confitura/, "mermelada"],
   [/vino/, "vino-blanco"],
   [/almendra|nuez|nueces|avellana|pistacho|anacardo/, "almendras"],
+  // Variants that reuse a dedicated illustration instead of a generic family.
+  [/menta|hierbabuena/, "menta"],
+  [/\brape\b/, "monkfish"],
+  [/trucha/, "truchas-enteras"],
+  [/chuletas? de cerdo/, "chuletas-de-cerdo"],
+  [/^lomo$|lomo de cerdo/, "cinta-de-lomo"],
 ];
 
 // Anything the aliases miss but that still has a recognisable visual family.

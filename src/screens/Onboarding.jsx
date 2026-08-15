@@ -8122,16 +8122,15 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     comidaSections.push(
       extrasSection("rapidas",
         <>
-          <SectionTitle Icon={Zap} color="#d56b9a">Rápidas · ≤ 15 min</SectionTitle>
+          <SectionTitle Icon={Zap} color="#d56b9a">Rápidas (≤ 15 min)</SectionTitle>
           <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.4 }}>
             Toca los días que quieres ligeros: ensalada, plancha, tortilla…
           </p>
           {hasComida && (
             <div style={{ marginBottom: hasCena ? 14 : 0 }}>
-              <div style={{ fontSize: 11.5, fontWeight: 800, color: mealTimeColor("Comida"), marginBottom: 8, letterSpacing: ".02em" }}>
-                COMIDA
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Sun size={14} strokeWidth={2.4} color={mealTimeColor("Comida")} style={{ flexShrink: 0 }} />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, flex: 1 }}>
             {cenaDays.map((d) => {
                   const off = !lunchAtHome(d);
                   const active = !off && slotTypeMap[`${d}|Comida`] === "rapida";
@@ -8164,15 +8163,15 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                     </button>
               );
             })}
-            </div>
+                </div>
+              </div>
             </div>
           )}
           {hasCena && (
             <div>
-              <div style={{ fontSize: 11.5, fontWeight: 800, color: mealTimeColor("Cena"), marginBottom: 8, letterSpacing: ".02em" }}>
-                CENA
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Moon size={14} strokeWidth={2.4} color={mealTimeColor("Cena")} style={{ flexShrink: 0 }} />
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6, flex: 1 }}>
             {cenaDays.map((d) => {
               const off = !dinnerAtHome(d);
               const active = !off && slotTypeMap[`${d}|Cena`] === "rapida";
@@ -8205,7 +8204,8 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 </button>
               );
             })}
-          </div>
+                </div>
+              </div>
             </div>
           )}
         </>,
@@ -9125,7 +9125,17 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                       style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
                     />
                   </div>
-                  <div style={{ padding: "7px 5px 8px", background: sel ? "#2d5a3d" : "#fff", textAlign: "center" }}>
+                  <div
+                    style={{
+                      flex: 1,
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "center",
+                      padding: "7px 5px 8px",
+                      background: sel ? "#2d5a3d" : "#fff",
+                      textAlign: "center",
+                    }}
+                  >
                     <span style={{ display: "block", fontWeight: 800, fontSize: 11.5, lineHeight: 1.15, color: sel ? "#fff" : "#25402f" }}>
                       {l.label}
                     </span>

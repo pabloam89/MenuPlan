@@ -2317,6 +2317,21 @@ export default function App() {
     showToast("Receta recuperada");
   }, [showToast, user]);
 
+  // Descartar desde el catálogo (Recetas ▸ Catálogo): añade al listado permanente
+  // "No me gusta" sin pasar por el menú. Equivalente a elegir «No me gusta» desde
+  // el menú; se puede revertir desde la pestaña Descartados.
+  const handleDiscardRecipe = useCallback((recipeId) => {
+    if (!recipeId) return;
+    setData((d) => {
+      const forever = [...(d.discards?.forever ?? [])];
+      if (!forever.includes(recipeId)) forever.push(recipeId);
+      const cooldownUntil = { ...(d.discards?.cooldownUntil ?? {}) };
+      delete cooldownUntil[recipeId];
+      return { ...d, discards: { forever, cooldownUntil } };
+    });
+    showToast("Receta descartada — aparece en la pestaña Descartados");
+  }, [showToast]);
+
   // Selectable scopes for a favorite: the household's distinct menu-group labels
   // (excluding the single-family "Familia"). Empty/one → no per-group choice.
   const favoriteScopeGroups = useMemo(() => {
@@ -3052,6 +3067,7 @@ export default function App() {
                 // back to 0 too — it may still be pointing at a later step
                 // left over from a previous (abandoned) attempt.
                 setFirstRunOnboarding(true);
+                setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
                 setOnbStep(0);
                 setScreen(!FORCE_VALUE_PROPS && valuePropsSeen ? "onboarding" : "valueProps");
               })
@@ -3381,6 +3397,7 @@ export default function App() {
                 scopeGroups={favoriteScopeGroups}
                 discardedIds={data.discards?.forever ?? []}
                 onRecoverRecipe={handleUndiscardRecipe}
+                onDiscardRecipe={handleDiscardRecipe}
                 onSetFavoriteScope={handleSetFavoriteScope}
                 onOpenRecipe={handleOpenCatalogRecipe}
                 onNav={handleNav}
@@ -3456,7 +3473,6 @@ export default function App() {
               onBack={() => back(() => setScreen("profile"))}
               onNext={() => back(() => setScreen("profile"))}
               nextLabel="Guardar"
-              showMenuModel
             />
           </div>
         )}
@@ -3730,6 +3746,7 @@ export default function App() {
                   Icon: Play,
                   iconColor: "#2d5a3d",
                   iconBg: "#e7f3ec",
+                  img: "/avatares/cards/continuar_donde_lo_deje.png",
                   primary: true,
                   title: "Continuar donde lo dejé",
                   subtitle: "Sigue con familia, despensa y preferencias.",
@@ -3740,6 +3757,7 @@ export default function App() {
                   Icon: Eraser,
                   iconColor: "#8a5a00",
                   iconBg: "#fbeecd",
+                  img: "/avatares/cards/empezar_de_cero.png",
                   primary: false,
                   title: "Empezar de cero",
                   subtitle: "Se guarda la familia; el resto se reinicia.",
@@ -3772,6 +3790,7 @@ export default function App() {
                   Icon: Trash2,
                   iconColor: "#a8402b",
                   iconBg: "#fdecea",
+                  img: "/avatares/cards/empezar_de_cero_todo.png",
                   primary: false,
                   title: "Empezar de cero del todo",
                   subtitle: "Borra familia, menús y configuración.",
@@ -3789,7 +3808,7 @@ export default function App() {
                     _doGoToOnboardingStep(0);
                   },
                 },
-              ].map(({ key, Icon, iconColor, iconBg, primary, title, subtitle, onClick }) => (
+              ].map(({ key, Icon, iconColor, iconBg, img, primary, title, subtitle, onClick }) => (
                 <button
                   key={key}
                   type="button"
@@ -3812,16 +3831,21 @@ export default function App() {
                   <span
                     style={{
                       flex: "0 0 auto",
-                      width: 44,
-                      height: 44,
-                      borderRadius: 14,
+                      width: 72,
+                      height: 72,
+                      borderRadius: 16,
+                      overflow: "hidden",
                       display: "inline-flex",
                       alignItems: "center",
                       justifyContent: "center",
                       background: iconBg,
+                      ...(img ? { border: "2.5px solid #0f766e", boxShadow: "0 0 0 1px rgba(15,118,110,.12)" } : {}),
                     }}
                   >
-                    <Icon size={20} color={iconColor} strokeWidth={2.2} />
+                    {img
+                      ? <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      : <Icon size={20} color={iconColor} strokeWidth={2.2} />
+                    }
                   </span>
                   <span style={{ minWidth: 0 }}>
                     <span style={{ display: "block", fontSize: 14.5, fontWeight: 800, color: "#142f1d" }}>{title}</span>

@@ -85,7 +85,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -4896,36 +4896,14 @@ function ErrorCard({ error, onRetry }) {
 function EmptyState({ onRegenerate }) {
   return (
     <div style={{ padding: "0 16px" }}>
-      <div
-        style={{
-          padding: "20px 16px",
-          background: "#fff",
-          border: "1px dashed #d9e5dd",
-          borderRadius: 16,
-          textAlign: "center",
-        }}
+      <EmptyIllustration
+        img="/avatares/cards/aun_no_menu_generado.png"
+        title="Aún no tienes menú esta semana"
+        subtitle='Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.'
+        imgAspect="4 / 3"
+        imgPosition="center 20%"
+        maxWidth={380}
       >
-        <div
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 12,
-            background: "#eaf2ec",
-            color: "#3f6948",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            marginBottom: 10,
-          }}
-        >
-          <Wand2 size={18} />
-        </div>
-        <div style={{ fontSize: 14, fontWeight: 900, color: "#15331c", marginBottom: 4 }}>
-          Aún no tienes menú esta semana
-        </div>
-        <div style={{ fontSize: 12, color: "#8d978f", marginBottom: 14, lineHeight: 1.45 }}>
-          Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.
-        </div>
         {onRegenerate && (
           <button
             type="button"
@@ -4943,13 +4921,14 @@ function EmptyState({ onRegenerate }) {
               fontWeight: 900,
               cursor: "pointer",
               fontFamily: "inherit",
+              marginTop: 4,
             }}
           >
             <Wand2 size={13} />
             Generar
           </button>
         )}
-      </div>
+      </EmptyIllustration>
     </div>
   );
 }

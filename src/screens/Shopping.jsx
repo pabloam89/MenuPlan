@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import {
   BottomNav,
+  EmptyIllustration,
   ProgressDots,
   SegmentedControl,
   WeekRangeBadge,
@@ -1110,7 +1111,7 @@ export function ShoppingScreen({
             marginBottom: 16,
           }}
         >
-          <WeekRangeBadge label={weekLabel} hideLabel />
+          {!isEmpty && <WeekRangeBadge label={weekLabel} hideLabel />}
           {orderedAll.length > 1 && (
             <div
               role="group"
@@ -2254,6 +2255,7 @@ function CaptureSheet({ onClose, onScan, onManual }) {
           icon={Receipt}
           iconColor="#fff"
           iconBg="#2d5a3d"
+          img="/avatares/cards/escanear.png"
           title="Escanear ticket"
           subtitle="Marca como comprado lo que coincida"
           onClick={onScan}
@@ -2262,6 +2264,7 @@ function CaptureSheet({ onClose, onScan, onManual }) {
           icon={Plus}
           iconColor="#fff"
           iconBg="#e07b39"
+          img="/avatares/cards/subir_a_mano.png"
           title="Añadir a mano"
           subtitle="Un producto y su precio"
           onClick={onManual}
@@ -3463,13 +3466,38 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
 
 function EmptyList({ onAdd }) {
   return (
-    <div style={{ padding: "48px 0", textAlign: "center" }}>
-      <p style={{ fontSize: 14, fontWeight: 600, color: "#7a8a7f", margin: "0 0 16px" }}>
-        Nada pendiente
-      </p>
-      <button type="button" data-coach="shop-add" onClick={onAdd} style={primaryBtnStyle}>
-        Añadir
-      </button>
+    <div style={{ padding: "12px 0 24px" }}>
+      <EmptyIllustration
+        img="/avatares/cards/sin_compra.png"
+        title="Nada pendiente"
+        subtitle="Añade lo que necesites o genera la lista desde el menú de esta semana."
+        imgAspect="4 / 3"
+        imgPosition="center 30%"
+        maxWidth={380}
+      >
+        <button
+          type="button"
+          data-coach="shop-add"
+          onClick={onAdd}
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "10px 20px",
+            borderRadius: 12,
+            border: "none",
+            background: "#1a3a24",
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            marginTop: 4,
+          }}
+        >
+          Añadir
+        </button>
+      </EmptyIllustration>
     </div>
   );
 }

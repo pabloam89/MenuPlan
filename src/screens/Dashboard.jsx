@@ -177,7 +177,7 @@ function MenuHeroCard({ photos, onClick, id }) {
         boxShadow: "0 16px 30px -14px rgba(20,47,29,.5)",
       }}
     >
-      <RotatingPhoto photos={photos} objectPosition="center 45%" interval={2000} />
+      <RotatingPhoto photos={photos} objectPosition="center 45%" interval={5000} />
       {/* Darken only the top band (behind the copy) and let the rest of the
           photo show whole, so the dish stays the centre of attention. */}
       <div
@@ -275,7 +275,7 @@ function QuickActionTile({ icon: Icon, title, subtitle, photo, photos, objectPos
         boxShadow: "0 14px 26px -14px rgba(20,47,29,.45)",
       }}
     >
-      <RotatingPhoto photos={photoList} objectPosition={objectPosition} interval={2000} />
+      <RotatingPhoto photos={photoList} objectPosition={objectPosition} interval={5000} />
       <div
         style={{
           position: "absolute", inset: 0,
