@@ -18,10 +18,13 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const supabaseUrl = process.env.VITE_SUPABASE_URL;
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // Different environments got their Supabase vars from different sources
+  // (the app's own VITE_-prefixed vars vs. the native Vercel<>Supabase
+  // integration's SUPABASE_URL/SUPABASE_SECRET_KEY naming), so accept either.
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
   if (!supabaseUrl || !serviceRoleKey) {
-    console.error("[delete-account] missing VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY");
+    console.error("[delete-account] missing Supabase URL or service-role/secret key env vars");
     return res.status(500).json({ error: "Servidor mal configurado." });
   }
 
