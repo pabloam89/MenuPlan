@@ -3466,35 +3466,27 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
 
 function EmptyList({ onAdd }) {
   return (
-    <div style={{ padding: "12px 0 24px" }}>
+    <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
         img="/avatares/cards/sin_compra.png"
         title="Nada pendiente"
         subtitle="Añade lo que necesites o genera la lista desde el menú de esta semana."
-        imgAspect="4 / 3"
-        imgPosition="center 30%"
-        maxWidth={380}
+        maxWidth={240}
+        imgAspect="1 / 1"
+        imgPosition="center"
       >
         <button
           type="button"
           data-coach="shop-add"
           onClick={onAdd}
           style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "10px 20px",
-            borderRadius: 12,
-            border: "none",
-            background: "#1a3a24",
-            color: "#fff",
-            fontSize: 13,
-            fontWeight: 800,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            marginTop: 4,
+            marginTop: 14, display: "inline-flex", alignItems: "center", gap: 7,
+            padding: "11px 20px", borderRadius: 13, border: "none",
+            background: "#2d5a3d", color: "#fff", fontSize: 14, fontWeight: 800,
+            cursor: "pointer", fontFamily: "inherit",
           }}
         >
+          <Plus size={15} strokeWidth={2.8} />
           Añadir
         </button>
       </EmptyIllustration>

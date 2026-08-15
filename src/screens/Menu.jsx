@@ -4895,36 +4895,27 @@ function ErrorCard({ error, onRetry }) {
 
 function EmptyState({ onRegenerate }) {
   return (
-    <div style={{ padding: "0 16px" }}>
+    <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
         img="/avatares/cards/aun_no_menu_generado.png"
         title="Aún no tienes menú esta semana"
         subtitle='Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.'
-        imgAspect="4 / 3"
-        imgPosition="center 20%"
-        maxWidth={380}
+        maxWidth={240}
+        imgAspect="1 / 1"
+        imgPosition="center"
       >
         {onRegenerate && (
           <button
             type="button"
             onClick={onRegenerate}
             style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 6,
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "none",
-              background: "#1a3a24",
-              color: "#fff",
-              fontSize: 12,
-              fontWeight: 900,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              marginTop: 4,
+              marginTop: 14, display: "inline-flex", alignItems: "center", gap: 7,
+              padding: "11px 20px", borderRadius: 13, border: "none",
+              background: "#2d5a3d", color: "#fff", fontSize: 14, fontWeight: 800,
+              cursor: "pointer", fontFamily: "inherit",
             }}
           >
-            <Wand2 size={13} />
+            <Wand2 size={15} strokeWidth={2.8} />
             Generar
           </button>
         )}
