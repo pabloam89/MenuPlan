@@ -123,13 +123,22 @@ export async function addPantryItems(userId, items) {
     if (error) console.error("[pantry] insert failed", error);
     else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
   }
-  for (const u of toUpdate) {
-    const { data, error } = await supabase
-      .from("user_pantry")
-      .update({ qty: u.qty })
-      .eq("user_id", userId)
-      .eq("id", u.id)
-      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at");
+  // Top-ups fire together rather than one after another. Each row needs its own
+  // statement (a different qty per id), but awaiting them in sequence made a
+  // receipt scan cost one full round-trip PER already-owned product — a 30-item
+  // shop meant 30 chained requests, several seconds of staring at a spinner on
+  // mobile. Concurrently it's one round-trip's worth of waiting.
+  const updated = await Promise.all(
+    toUpdate.map((u) =>
+      supabase
+        .from("user_pantry")
+        .update({ qty: u.qty })
+        .eq("user_id", userId)
+        .eq("id", u.id)
+        .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at"),
+    ),
+  );
+  for (const { data, error } of updated) {
     if (error) console.error("[pantry] top-up failed", error);
     else if (data?.[0]) rows.push({ ...mapRow(data[0]), isNew: false });
   }
