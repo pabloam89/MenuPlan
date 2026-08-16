@@ -11,6 +11,7 @@ import {
   Heart,
   Camera,
   LogOut,
+  ShieldCheck,
   UtensilsCrossed,
   Ban,
   Wrench,
@@ -778,6 +779,32 @@ export function AccountScreen({
                 <span style={{ fontSize: 13, fontWeight: 600, color: INK }}>{formatDate(g.createdAt ? new Date(g.createdAt).getTime() : null)}</span>
               </div>
             </Card>
+            <a
+              href="/privacidad.html"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+                width: "100%",
+                marginTop: 12,
+                padding: "14px",
+                borderRadius: 14,
+                border: "1.5px solid #e3e8e4",
+                background: "#fff",
+                color: INK,
+                fontSize: 14,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textDecoration: "none",
+                boxSizing: "border-box",
+              }}
+            >
+              <ShieldCheck size={16} /> Política de privacidad
+            </a>
             <button
               type="button"
               onClick={onSignOut}

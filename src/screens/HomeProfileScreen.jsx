@@ -12,6 +12,7 @@ import {
   Camera,
   Check,
   Info,
+  ShieldCheck,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer, EmptyIllustration, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -550,8 +551,22 @@ export function HomeProfileScreen({
           />
         </div>
 
+        {/* Política de privacidad */}
+        <a
+          href="/privacidad.html"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            marginTop: 14, padding: "10px 0", textDecoration: "none",
+          }}
+        >
+          <ShieldCheck size={13} color="#7a9485" />
+          <span style={{ fontSize: 12.5, color: "#7a9485", fontWeight: 700 }}>Política de privacidad</span>
+        </a>
+
         {/* Version */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "12px 0 0", opacity: 0.5 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "0 0 0", opacity: 0.5 }}>
           <Info size={12} color="#7a9485" />
           <span style={{ fontSize: 11.5, color: "#7a9485", fontWeight: 600 }}>MenuPlan v1.0</span>
         </div>
