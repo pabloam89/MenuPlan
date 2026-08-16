@@ -133,9 +133,17 @@ export function estimatePdfSheets(weekCount, groupsCount, exportOpts) {
 // Vertical budget of the "weeks" area on one A4 landscape sheet, in CSS px
 // (210mm printable minus header/footer/gaps). Two profiles: full-size (one
 // week per sheet) and compact (several weeks stacked).
+// rowMax is a guard against the degenerate case (a sheet with a single meal
+// row ballooning to the full page height), NOT a general size limit: capRowHeight
+// already divides the usable area by the row count, so leaving it alone fills
+// the sheet exactly. The old 118px/104px caps fought that — a normal
+// Comida+Cena week had ~298px of room per row and got squeezed into 118px,
+// wasting a third of the page and pushing dense days into .cell's
+// overflow:hidden. Set just above the two-row share so only a 1-row sheet is
+// ever capped.
 const SHEET_METRICS = {
-  full: { area: 626, dayHead: 30, gap: 0, rowMax: 118, rowMin: 46 },
-  compact: { area: 668, dayHead: 18, gap: 6, rowMax: 104, rowMin: 34 },
+  full: { area: 626, dayHead: 30, gap: 0, rowMax: 300, rowMin: 46 },
+  compact: { area: 668, dayHead: 18, gap: 6, rowMax: 260, rowMin: 34 },
 };
 
 /**
@@ -630,13 +638,20 @@ function renderWeekBlock({
     </div>`;
   }).join("");
 
-  // min-content (not 0) as the floor: with `minmax(0, Npx)` every meal row was
-  // pinned to the SAME height no matter what it held, so a dense day (two
-  // groups × primero+segundo, or a long dish name) got clipped by .cell's
-  // overflow:hidden while the Desayuno row right above it sat half empty.
-  // Rows can now take the height their content actually needs and only borrow
-  // it from the slack the sparser rows weren't using; Npx stays the growth
-  // limit, so a light sheet still spreads out evenly the way it did before.
+  // Two separate things were clipping dense days, and both are fixed here:
+  //
+  // 1. The floor was 0 (`minmax(0, Npx)`), which pinned EVERY meal row to the
+  //    same height no matter what it held — a day with two groups ×
+  //    primero+segundo got cut off by .cell's overflow:hidden while the row
+  //    above it sat half empty. min-content lets a row take what its content
+  //    actually needs.
+  //
+  // 2. The growth limit was capRowHeight()'s Npx, which caps at rowMax (118px)
+  //    — sensible when several weeks stack, but on a single-week sheet with
+  //    only Comida+Cena it left ~325px of the page unused while squeezing the
+  //    dishes into 118px boxes. That cap is raised in SHEET_METRICS so the
+  //    rows actually use the sheet (see the note there) — which both looks
+  //    right and leaves far more headroom before anything can clip.
   const rowTrack = rowHeightPx
     ? `minmax(min-content, ${rowHeightPx}px)`
     : "minmax(min-content, 1fr)";
