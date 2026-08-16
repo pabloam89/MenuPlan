@@ -375,7 +375,7 @@ export function matchSchoolDishToCatalog(name) {
   const trimmed = String(name ?? "").trim();
   if (!trimmed) return null;
 
-  const parts = trimmed.split(/\s*[\/;]\s*/).filter(Boolean);
+  const parts = trimmed.split(/\s*[/;]\s*/).filter(Boolean);
 
   const byScore = (part) => (a, b) => {
     const sa = catalogOverlapScore(part, a.name);

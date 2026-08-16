@@ -14,6 +14,20 @@
  *   {{@Sartén}} / {{@Plancha}} → utensilio, con fallback si el usuario no lo tiene
  */
 
+import { isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
+
+/**
+ * Cantidad legible para la ficha: redondea hacia arriba (media cebolla no se
+ * compra) y sube de escala en el kilo y el litro.
+ */
+export function formatQty(qty, unit) {
+  if (isQualitativeUnit(unit)) return qualitativeUnitLabel(unit);
+  if (unit === "ud") return `${Math.ceil(qty)} ${Math.ceil(qty) === 1 ? "ud" : "uds"}`;
+  if (unit === "g" && qty >= 1000) return `${(qty / 1000).toFixed(1)} kg`;
+  if (unit === "ml" && qty >= 1000) return `${(qty / 1000).toFixed(1)} l`;
+  return `${Math.ceil(qty)} ${unit}`;
+}
+
 // Debe coincidir con STEP_KINDS en src/data/recipeSchema.js.
 export const STEP_KINDS = [
   "prep", "activo", "paralelo", "pasivo", "espera", "opcional", "emplatado",
@@ -129,7 +143,7 @@ export function removeRichStep(rich, idx) {
     .map((s) => {
       if (!Number.isInteger(s?.during)) return s;
       if (s.during === idx) {
-        const { during, ...rest } = s;
+        const { during: _during, ...rest } = s;
         return { ...rest, kind: "activo" };
       }
       return s.during > idx ? { ...s, during: s.during - 1 } : s;

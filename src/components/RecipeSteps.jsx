@@ -5,17 +5,9 @@
  * viven en src/lib/recipeSteps.js.
  */
 
-import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
+import { isQualitativeUnit } from "../lib/ingredientCategories.js";
 import { kitchenHint } from "../lib/kitchenUnits.js";
-import { buildStepDisplay, formatStepMinutes } from "../lib/recipeSteps.js";
-
-export function formatQty(qty, unit) {
-  if (isQualitativeUnit(unit)) return qualitativeUnitLabel(unit);
-  if (unit === "ud") return `${Math.ceil(qty)} ${Math.ceil(qty) === 1 ? "ud" : "uds"}`;
-  if (unit === "g" && qty >= 1000) return `${(qty / 1000).toFixed(1)} kg`;
-  if (unit === "ml" && qty >= 1000) return `${(qty / 1000).toFixed(1)} l`;
-  return `${Math.ceil(qty)} ${unit}`;
-}
+import { buildStepDisplay, formatQty, formatStepMinutes } from "../lib/recipeSteps.js";
 
 function findIngredientForMarker(marker, ingredients) {
   if (!ingredients?.length) return null;
@@ -41,7 +33,7 @@ function pluralizeEs(word, n) {
 }
 
 /** Cantidad en lenguaje de cocina para el text del paso (dientes, al gusto, chorrito…). */
-export function formatStepIngredient(ing, mode = "auto") {
+function formatStepIngredient(ing, mode = "auto") {
   const qty = ing.qtyScaled ?? ing.qty;
   const name = ing.name.charAt(0).toLowerCase() + ing.name.slice(1);
   const hint = ing.hint ?? kitchenHint(ing.name, qty, ing.unit);
@@ -100,7 +92,7 @@ function resolveCookwareMarker(name, kitchenTools) {
 }
 
 /** Sustituye {{@Plancha}} (utensilio), {{Ingrediente}} o {{Ingrediente|modo}}. */
-export function renderStepText(text, ingredients, kitchenTools = []) {
+function renderStepText(text, ingredients, kitchenTools = []) {
   if (!text) return text;
   if (!text.includes("{{")) return text;
 
