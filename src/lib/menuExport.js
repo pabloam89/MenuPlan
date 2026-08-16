@@ -1285,6 +1285,56 @@ export async function downloadMenu(data, menuPlan, groups) {
   return { method: "download" };
 }
 
+// --dish-size (dishFontSize()) is picked from row/group/week counts — how
+// MANY things share a cell — never from the actual dish TEXT. Real recipe
+// names vary a lot in length, and a day that stacks a home dish + a "cole"
+// line + a second group's own dishes can need noticeably more room than a
+// light day right next to it in the same fixed-height row (.cell has
+// overflow:hidden), so a size tuned for the common case clips the dense one.
+//
+// Font-size can't be computed from a string alone before it's laid out (word
+// wrap depends on the real column width, font metrics, etc.), but by the time
+// this runs the print window has already rendered real DOM — so measure the
+// actual overflow (scrollHeight ignores overflow:hidden and always reports
+// the true content height) and shrink in small steps until it fits, floored
+// at a size still used elsewhere in this file for the densest existing case
+// (see dishFontSize's stacked+multiGroup branch) so it never goes illegible.
+//
+// Shrinks the whole grid uniformly rather than per-cell: a week where every
+// cell has a mismatched font size would look broken, and it's exactly how
+// dishFontSize() already sizes things (one value for the whole sheet).
+function fitPrintTextToCells(win) {
+  const MIN_DISH_PX = 6.5;
+  const STEP_PX = 0.4;
+  const MAX_STEPS = 40;
+
+  // Best-effort only: this is a cosmetic refinement on top of an already-
+  // printable document. A test double or an unusually locked-down popup might
+  // not implement the full DOM surface this needs (querySelectorAll,
+  // getComputedStyle, scrollHeight) — never let that stop win.print() itself.
+  try {
+    const grids = win?.document?.querySelectorAll?.(".grid");
+    if (!grids) return;
+
+    for (const grid of grids) {
+      const cells = [...grid.querySelectorAll(".cell")];
+      if (!cells.length) continue;
+
+      const overflows = () => cells.some((c) => c.scrollHeight > c.clientHeight + 0.5);
+
+      let size = parseFloat(win.getComputedStyle(grid).getPropertyValue("--dish-size")) || 12;
+      let steps = 0;
+      while (overflows() && size > MIN_DISH_PX && steps < MAX_STEPS) {
+        size = Math.max(MIN_DISH_PX, size - STEP_PX);
+        grid.style.setProperty("--dish-size", `${size}px`);
+        steps += 1;
+      }
+    }
+  } catch (err) {
+    console.warn("[menuExport] fitPrintTextToCells skipped:", err?.message);
+  }
+}
+
 /**
  * Printable fridge PDF on a single A4. Pass opts.weeks (from
  * orderedWeeks(activeMenu)) to stack every week as compact strips under one
@@ -1339,6 +1389,8 @@ export async function downloadMenuPdf(data, menuPlan, groups, opts = {}) {
   if (win.document.fonts?.ready) {
     try { await win.document.fonts.ready; } catch { /* ignore */ }
   }
+
+  fitPrintTextToCells(win);
 
   win.focus();
   win.print();
