@@ -89,7 +89,7 @@ import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
-import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc } from "../lib/stages.js";
+import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
 import { CatalogBrowserSheet, categoryColor } from "./CatalogBrowserSheet.jsx";
@@ -1005,7 +1005,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                                   transition: "transform .14s cubic-bezier(.34,1.56,.64,1), box-shadow .14s ease, border-color .14s ease",
                                 }}
                               >
-                                <img src={`/avatares/${folder}/${k}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                                <img src={avatarThumbSrcByKey(k)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                               </button>
                             );
                           })}
@@ -1256,7 +1256,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                 >
                   <span style={{ width: 36, height: 36, borderRadius: 999, overflow: "hidden", background: p.tint, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: `0 3px 10px ${p.tint}44` }}>
                     {AVATAR_FOLDER[p.key] ? (
-                      <img src={`/avatares/${AVATAR_FOLDER[p.key]}/${DEFAULT_AVATAR[p.key] ?? `${AVATAR_FOLDER[p.key]}_1`}.png`} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <img src={avatarThumbSrcByKey(DEFAULT_AVATAR[p.key] ?? `${AVATAR_FOLDER[p.key]}_1`)} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                     ) : (
                       <Icon size={18} strokeWidth={2.3} />
                     )}
