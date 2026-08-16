@@ -1,4 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
+import { blocked } from "./_guard.js";
 
 // Generates a single dish photo on demand for the recipe-creation wizard
 // (src/screens/RecipePlanner.jsx). Reuses, verbatim, the fixed style formula
@@ -117,6 +118,11 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  // Image generation is the most expensive call in the app and a real user only
+  // triggers it when saving a recipe, so this ceiling is deliberately far
+  // tighter than /api/generate's.
+  if (await blocked(req, res, { bucket: "dish-photo", limit: 20, windowSec: 3600 })) return;
 
   const apiKey = process.env.GEMINI_AI_STUDIO_KEY;
   if (!apiKey) {

@@ -179,6 +179,13 @@ const USAGE_TAG_COLORS = {
 
 // Minimal snapshot of the signed-in Google account stamped on a saved recipe
 // so the catalog can show who created it. Mirrors Settings.jsx#googleInfo.
+//
+// Deliberately does NOT store the email: a recipe published with
+// visibility="public" is readable by the `anon` role (see the "Public recipes
+// readable" RLS policy), so anything kept here is world-readable. The UI only
+// ever renders `name` and `avatar` (Menu.jsx#RecipeProvenance), so the email
+// was pure exposure — it leaked every publisher's address to anyone hitting
+// the REST endpoint unauthenticated.
 function ownerFromUser(user) {
   if (!user) return null;
   const meta = user.user_metadata ?? {};
@@ -186,7 +193,6 @@ function ownerFromUser(user) {
     id: user.id ?? null,
     name: meta.full_name ?? meta.name ?? user.email?.split("@")[0] ?? "Anónimo",
     avatar: meta.avatar_url ?? meta.picture ?? null,
-    email: user.email ?? null,
   };
 }
 

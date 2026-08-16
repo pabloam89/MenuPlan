@@ -1,4 +1,5 @@
 import { Redis } from "@upstash/redis";
+import { blocked } from "./_guard.js";
 
 // Lazy, server-side cache of appliance-adapted recipe steps.
 //
@@ -151,6 +152,8 @@ export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
   }
+
+  if (await blocked(req, res, { bucket: "recipe-steps", limit: 40, windowSec: 600 })) return;
 
   const {
     recipeId,
