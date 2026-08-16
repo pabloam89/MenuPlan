@@ -14,8 +14,11 @@
  *   4. Tiempo abreviado: "min", nunca "minutos".
  *   5. `kind` dentro de la taxonomía; el último paso suele ser "emplatado".
  *
- * Solo mira `stepsRich` (las recetas ya enriquecidas). Los `steps` planos legacy
- * NO se comprueban, para no romper por datos antiguos aún sin reescribir.
+ * Cubre las dos familias de pasos enriquecidos, que siguen las MISMAS reglas:
+ * el `stepsRich` de cada receta (método tradicional) y las listas por
+ * electrodoméstico de recipeStepsByAppliance.json. Los `steps` planos legacy NO
+ * se comprueban, para no romper por datos antiguos aún sin reescribir — y en el
+ * fichero por electrodoméstico eso incluye las listas que aún son string[].
  *
  * Uso:
  *   node scripts/check-step-wording.mjs [--category=pescados]
@@ -109,7 +112,31 @@ for (const file of files) {
   }
 }
 
+// Pasos por electrodoméstico: mismas reglas, mismo lint. Solo las listas ya
+// enriquecidas; las que siguen siendo string[] son datos viejos aún sin rehacer.
+const APPLIANCE_STEPS_PATH = join(ROOT, "src", "data", "recipeStepsByAppliance.json");
+let applianceLists = 0;
+let applianceLegacy = 0;
+const applianceSteps = JSON.parse(readFileSync(APPLIANCE_STEPS_PATH, "utf8"));
+
+for (const [recipeId, byAppliance] of Object.entries(applianceSteps)) {
+  for (const [appliance, steps] of Object.entries(byAppliance ?? {})) {
+    if (!Array.isArray(steps) || steps.length === 0) continue;
+    if (steps.some((s) => typeof s === "string")) {
+      applianceLegacy += 1;
+      continue;
+    }
+    applianceLists += 1;
+    steps.forEach((step, i) =>
+      checkStep(`${recipeId}/${appliance}`, i, step, i === steps.length - 1));
+  }
+}
+
 console.log(`Revisadas ${recipesWithRich} recetas con stepsRich.`);
+console.log(
+  `Revisadas ${applianceLists} listas por electrodoméstico`
+  + (applianceLegacy ? ` (${applianceLegacy} aún en formato plano, sin comprobar).` : "."),
+);
 if (warns.length) {
   console.log(`\n⚠️  ${warns.length} avisos:`);
   for (const w of warns) console.log(`  · ${w}`);

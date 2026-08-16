@@ -77,7 +77,7 @@ import guarnicionesData from "../data/recipes/guarniciones.json";
 import { categoryColor, categoryIcon, categoryLabel, isKnownCategory } from "./CatalogBrowserSheet.jsx";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
-import { formatQty } from "../lib/recipeSteps.js";
+import { formatQty, resolveApplianceSteps } from "../lib/recipeSteps.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
 import { mealTimeColor, mealTimeBg } from "../lib/mealTimes.js";
 import { kitchenHint, pantryPieceCountLabel } from "../lib/kitchenUnits.js";
@@ -5393,6 +5393,16 @@ export function DishDetail({
     };
   }, [recipe, activeAppliance, stepsByAppliance, richSteps, mainPlainSteps]);
 
+  // Los pasos por electrodoméstico llegan de cuatro sitios (caché en memoria,
+  // bundle del demo, bundle precomputado y /api/recipe-steps) y no todos usan el
+  // mismo formato: el bundle ya viene enriquecido y la API todavía devuelve
+  // strings. Se resuelve aquí, en el render, para que la forma que traiga cada
+  // fuente dé igual y el stepper se pinte siempre que haya metadatos.
+  const applianceStepList = useMemo(() => {
+    if (activeAppliance === "base") return { rich: null, plain: mainPlainSteps };
+    return resolveApplianceSteps(steps);
+  }, [activeAppliance, steps, mainPlainSteps]);
+
   return (
     <div className="mp-overlay-in" style={detailOverlayStyle} onClick={onClose}>
       <div className="mp-sheet-up" style={detailSheetStyle} onClick={(e) => e.stopPropagation()}>
@@ -5773,9 +5783,11 @@ export function DishDetail({
                     })}
                   </div>
                 )}
-                {/* En el método tradicional, si la receta trae pasos estructurados
-                    (stepsRich) se pinta el stepper con tiempo + tipo. Los métodos
-                    por electrodoméstico usan los pasos planos (bundle/API). */}
+                {/* Todos los métodos pintan el mismo stepper con tiempo + tipo:
+                    en los electrodomésticos es donde más importa, porque es lo
+                    que distingue el rato que el aparato cocina solo del rato que
+                    hay que estar delante. Si los pasos llegan sin metadatos
+                    (recetas de usuario vía API), cae a la lista numerada. */}
                 {activeAppliance === "base" && richSteps?.length > 0 ? (
                   <RecipeStepList rich={richSteps} plain={mainPlainSteps} ingredients={ingredients} kitchenTools={kitchenTools} />
                 ) : stepsLoading ? (
@@ -5789,8 +5801,13 @@ export function DishDetail({
                     Preparando el paso a paso…
                     <style>{`@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }`}</style>
                   </div>
-                ) : (activeAppliance === "base" ? mainPlainSteps : steps).length > 0 ? (
-                  <RecipeStepList plain={activeAppliance === "base" ? mainPlainSteps : steps} />
+                ) : applianceStepList.plain.length > 0 ? (
+                  <RecipeStepList
+                    rich={applianceStepList.rich}
+                    plain={applianceStepList.plain}
+                    ingredients={ingredients}
+                    kitchenTools={kitchenTools}
+                  />
                 ) : (
                   <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
                     No se pudo cargar el paso a paso. Cierra y vuelve a abrir el plato para reintentar.

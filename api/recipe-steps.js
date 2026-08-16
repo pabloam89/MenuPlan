@@ -25,14 +25,26 @@ const APPLIANCE_LABELS = {
 };
 
 const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
-const MAX_STEPS = 6;
+// Tope de seguridad, no de estilo: el endpoint es público (ver _guard.js) y la
+// salida la paga nuestra clave. El prompt ya pide los pasos que pida la receta.
+const MAX_STEPS = 14;
 const CACHE_TTL_SECONDS = 90 * 24 * 60 * 60; // 90 días
 
 // Versión del prompt de generación. Los pasos se cachean en Redis, así que un
 // cambio de prompt no llega a las recetas ya generadas a menos que cambie la
 // clave. Súbela cada vez que cambies el `system` de generateSteps().
 // v2: prohíbe inventar ingredientes fuera de la lista de la receta.
-const PROMPT_VERSION = "v2";
+// v3: pasos enriquecidos {text, minutes, kind} en vez de strings, para que el
+//     stepper se pinte igual que en el método tradicional. La subida invalida
+//     los 90 días de respuestas planas que hubiera cacheadas.
+const PROMPT_VERSION = "v3";
+
+// Taxonomía de `kind`. Espejo de STEP_KINDS en src/lib/recipeSteps.js: este
+// fichero se mantiene autocontenido (igual que api/_prompts.js) y el test
+// api/recipe-steps.test.js verifica que las dos listas no se separen.
+export const STEP_KINDS = [
+  "prep", "activo", "paralelo", "pasivo", "espera", "opcional", "emplatado",
+];
 
 function pickEnv(...names) {
   for (const n of names) {
@@ -90,12 +102,32 @@ function recipeFingerprint(parts) {
     .slice(0, 16);
 }
 
+// Normaliza a `stepsRich`. Tolera que llegue un array de strings, que es lo que
+// devolvía este endpoint hasta v3 y lo que sigue habiendo en las entradas de
+// Redis todavía vivas: se leen igual y salen como pasos sin metadatos, que el
+// cliente pinta como la lista numerada de siempre.
 function sanitizeSteps(raw) {
   if (!Array.isArray(raw)) return [];
-  return raw
-    .map((s) => String(s ?? "").trim())
-    .filter(Boolean)
-    .slice(0, MAX_STEPS);
+  const out = [];
+  for (const s of raw.slice(0, MAX_STEPS)) {
+    const text = String((typeof s === "string" ? s : s?.text) ?? "").trim();
+    if (!text) continue;
+
+    const step = { text };
+    const mins = Number(s?.minutes);
+    if (Number.isFinite(mins) && mins > 0) step.minutes = Math.max(1, Math.round(mins));
+    if (STEP_KINDS.includes(s?.kind)) step.kind = s.kind;
+
+    // `during` solo sobrevive en paralelos que apuntan hacia atrás; uno roto
+    // dejaría un "Mientras tanto" colgando de nada, así que degrada a activo.
+    if (step.kind === "paralelo") {
+      const during = Number(s?.during);
+      if (Number.isInteger(during) && during >= 0 && during < out.length) step.during = during;
+      else step.kind = "activo";
+    }
+    out.push(step);
+  }
+  return out;
 }
 
 function extractJson(text) {
@@ -121,9 +153,30 @@ async function generateSteps({ name, applianceLabel, prepSummary, ingredients, b
   const system =
     "Eres un cocinero español. Adaptas el paso a paso de una receta al " +
     "electrodoméstico indicado. Devuelves SOLO un JSON válido " +
-    '{"steps":["…"]} con 3 a 5 pasos breves (máx 90 caracteres cada uno), ' +
-    "en español, coherentes con el electrodoméstico (temperaturas, tiempos, " +
-    "programas), sin markdown ni texto fuera del JSON.\n" +
+    '{"steps":[{"text":"…","minutes":0,"kind":"pasivo"}]} en español, sin ' +
+    "markdown ni texto fuera del JSON. Los pasos son OBJETOS, no strings.\n" +
+    "FORMATO DE CADA PASO:\n" +
+    "· text: UNA sola acción, en INFINITIVO ('Cortar…', 'Hornear…'), empezando " +
+    "en mayúscula y terminando en punto, máx 140 caracteres. Si se pasa, " +
+    "PÁRTELO en dos pasos: no hay número máximo de pasos. Tiempo en 'min', " +
+    "temperatura '200 °C'. Incluye programas/potencias propios del aparato.\n" +
+    "· minutes: minutos enteros de ESE paso.\n" +
+    "· kind: prep (mise en place) | activo (hay que estar delante) | pasivo " +
+    "(el aparato cocina solo y puedes irte) | espera (solo pasa el tiempo: " +
+    "despresurizar, templar, reposar) | paralelo (se hace mientras corre un " +
+    "paso anterior; lleva `during` con el índice 0-based de ese paso) | " +
+    "emplatado (servir) | opcional.\n" +
+    "CRITERIO DEL kind: la gracia de estos aparatos es que cocinan SOLOS, así " +
+    "que el paso de cocción es 'pasivo' con sus minutes casi siempre. " +
+    "Marcarlo 'activo' es el peor error: borra la única ventaja del aparato. " +
+    "Solo es 'activo' si hay que estar delante (agitar la cesta, vigilar). " +
+    "Si un paso 'pasivo' dura 10 min o más y después hay preparaciones que no " +
+    "dependen de lo que se cocina, ésas van kind:'paralelo' con su `during`.\n" +
+    "MARCADORES: la PRIMERA vez que aparece un ingrediente escríbelo como " +
+    "{{Nombre}} con el nombre EXACTO de la lista `ingredientes` (la app lo " +
+    "sustituye por la cantidad ya escalada), sin artículo ni cantidad " +
+    "delante: 'Picar {{Ajo}}.' es correcto, 'Picar el {{Ajo}}.' no. Después " +
+    "referéncialo en texto normal ('el ajo picado').\n" +
     // Sin esta restricción el modelo inventaba acompañamientos que no están en
     // la receta ("pone con brócoli pero el modo Thermomix cocina arroz"),
     // contradiciendo el nombre, la foto y la lista de la compra del plato.
@@ -152,7 +205,9 @@ async function generateSteps({ name, applianceLabel, prepSummary, ingredients, b
     },
     body: JSON.stringify({
       model: ANTHROPIC_MODEL,
-      max_tokens: 512,
+      // Los pasos pasaron de strings cortos a objetos con metadatos y sin tope
+      // de número: con 512 la respuesta se cortaba a media llave y no parseaba.
+      max_tokens: 2000,
       system,
       messages: [{ role: "user", content: JSON.stringify(userPayload) }],
     }),

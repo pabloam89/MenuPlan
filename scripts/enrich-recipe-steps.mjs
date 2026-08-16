@@ -126,14 +126,6 @@ function extractJson(text) {
   }
 }
 
-function sanitizeSteps(raw) {
-  if (!Array.isArray(raw)) return [];
-  return raw
-    .map((s) => String(s ?? "").trim())
-    .filter(Boolean);
-}
-
-
 /**
  * Reescribe los marcadores al nombre EXACTO del ingrediente. Aunque el payload
  * ya manda nombre y cantidad por separado, el modelo se despista y a veces
@@ -254,11 +246,58 @@ const SYSTEM = [
   "  La suma de minutos de los pasos que NO son pasivo/espera debe ser coherente y",
   "  no superar el tiempo_total_min.",
   "",
-  "Para `byAppliance`: para CADA electrodoméstico pedido, 3 a 5 pasos (strings)",
-  "adaptados a esa técnica (programas, temperaturas y tiempos propios del aparato),",
-  "con el MISMO estilo en infinitivo, usando EXCLUSIVAMENTE los ingredientes de la",
-  "lista. Solo cambia la técnica, nunca los ingredientes; si un paso tradicional",
-  "usa algo que no está en la lista, omítelo.",
+  "Para `byAppliance`: para CADA electrodoméstico pedido, los pasos adaptados a esa",
+  "técnica (programas, temperaturas y tiempos propios del aparato). Son OBJETOS con",
+  "EXACTAMENTE el mismo formato y las mismas reglas que `steps`: mismo estilo en",
+  "infinitivo, límite duro de 140 caracteres, una sola acción por paso, marcadores",
+  "{{Ingrediente}} la primera vez que aparece cada uno, y los campos minutes y kind.",
+  "No son strings sueltos: van igual de completos que el método tradicional.",
+  "· Usa EXCLUSIVAMENTE los ingredientes de la lista. Solo cambia la TÉCNICA, nunca",
+  "  los ingredientes; si un paso tradicional usa algo que no está, omítelo.",
+  "· Sin tope de pasos: los que pida el aparato, normalmente 4 a 8.",
+  "",
+  "EL `kind` EN ELECTRODOMÉSTICOS (lo más importante de esta parte):",
+  "La razón de usar estos aparatos es que cocinan SOLOS. Ese es justo el dato que",
+  "el cocinero quiere ver, así que afina el kind en vez de marcarlo todo 'activo':",
+  "· El paso de cocción del aparato es 'pasivo' casi siempre, con sus minutes: el",
+  "  horno hornea, la airfryer fríe, la olla cuece y la Thermomix remueve sola. El",
+  "  cocinero se va. Marcar eso 'activo' es el error más grave que puedes cometer",
+  "  aquí, porque borra la única ventaja del aparato.",
+  "· Es 'activo' solo si de verdad hay que estar delante: dorar en Thermomix con el",
+  "  cubilete quitado vigilando, sacar la cesta de la airfryer a media cocción para",
+  "  agitar, saltear antes de cerrar la olla.",
+  "· 'espera' para los tiempos muertos propios del cacharro, que hoy no se ven y",
+  "  descuadran la planificación: despresurizar la olla exprés (2-5 min), reposar",
+  "  dentro del horno apagado, atemperar antes de desmoldar.",
+  "· 'prep' para el mise en place y 'emplatado' para servir, igual que en el base.",
+  "",
+  "PARALELOS: AQUÍ DEBE HABER MÁS QUE EN EL MÉTODO TRADICIONAL, NO MENOS.",
+  "Estos aparatos dejan un hueco largo de cocción desatendida, y ese hueco es",
+  "precisamente cuando se prepara todo lo demás. Aplica esta regla mecánicamente:",
+  "· REGLA: si un paso 'pasivo' dura 10 min o más y DESPUÉS hay pasos de 'prep'",
+  "  (cortar, picar, rallar, montar la fuente) que no necesitan lo que se está",
+  "  cocinando, esos pasos son kind:'paralelo' con `during` = índice del pasivo.",
+  "  Se hacen mientras el horno hornea; ponerlos como 'prep' sueltos miente sobre",
+  "  el tiempo real y es el fallo más habitual.",
+  "· Ejemplo real: airfryer, índice 3 = 'Cocinar las patatas 35 min' (pasivo). Los",
+  "  pasos de cortar el tomate, el pimiento y la cebolla que vienen detrás van",
+  "  kind:'paralelo' y during:3, no 'prep'.",
+  "· Igual con el precalentado: si el índice 0 es 'Precalentar el horno 10 min', el",
+  "  mise en place posterior es paralelo con during:0.",
+  "· No fuerces paralelos imposibles: si el paso NECESITA lo que se está cocinando",
+  "  (pelar las patatas que aún están en el horno), NO es paralelo.",
+  "",
+  "NOTAS POR APARATO:",
+  "· Thermomix: indica siempre tiempo / temperatura / velocidad ('5 min / 100 °C /",
+  "  vel 1'), y giro inverso cuando toque no romper el alimento. El vaso hace de",
+  "  recipiente único, así que hay pocos paralelos reales dentro del vaso.",
+  "· Airfryer: temperatura y minutos, y di cuándo agitar la cesta o dar la vuelta.",
+  "  Precalentar suele ser un buen paralelo del mise en place.",
+  "· Horno: precalentado (paralelo al mise en place), altura/bandeja si importa, y",
+  "  el horneado como pasivo con sus minutes.",
+  "· Olla exprés: distingue el tiempo DESDE que sube la válvula, y añade el paso de",
+  "  despresurizar como 'espera'.",
+  "· Vaporera y microondas: potencia/temperatura y minutos; la cocción es pasiva.",
   "",
   "Para `nutrients`: estima por RACIÓN, coherente con kcal y macros dados,",
   "los gramos de fibra, de azúcares y de grasas saturadas, y los mg de sodio.",
@@ -275,7 +314,10 @@ async function callModel(payload) {
     },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 2800,
+      // Holgado a propósito: solo se paga por lo que se genera, y quedarse corto
+      // no degrada la respuesta, la corta a media llave y tira la receta entera
+      // (una receta con 5 electrodomésticos enriquecidos pasa de 2800 de sobra).
+      max_tokens: 8000,
       system: SYSTEM,
       messages: [{ role: "user", content: JSON.stringify(payload) }],
     }),
@@ -310,7 +352,29 @@ async function callModelWithRetry(payload, label) {
   throw lastErr;
 }
 
-function enrichPayload(recipe, appliances) {
+// El `formato_salida` se arma con lo que esta tarea necesita de verdad. Antes
+// pedía siempre las tres cosas y se descartaba lo que sobrara: con los pasos por
+// electrodoméstico ya enriquecidos eso desbordaba max_tokens, la respuesta se
+// cortaba a media llave y fallaba entera por "respuesta no-JSON". Pedir solo lo
+// que se va a aplicar también abarata la repesca de una sola parte.
+function enrichPayload(recipe, appliances, { wantBase, wantNutrients } = {}) {
+  const formato = {};
+  if (wantBase) {
+    formato.steps = [
+      { text: "string con {{Marcadores}}", minutes: 0, kind: "activo" },
+      { text: "string", minutes: 0, kind: "paralelo", during: 0 },
+    ];
+  }
+  if (appliances.length > 0) {
+    formato.byAppliance = Object.fromEntries(appliances.map((a) => [a, [
+      { text: "string con {{Marcadores}}", minutes: 0, kind: "prep" },
+      { text: "string", minutes: 0, kind: "pasivo" },
+    ]]));
+  }
+  if (wantNutrients) {
+    formato.nutrients = { fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
+  }
+
   return {
     receta: recipe.name,
     categoria: recipe.category,
@@ -326,14 +390,10 @@ function enrichPayload(recipe, appliances) {
     })),
     pasos_actuales_referencia: recipe.steps ?? [],
     electrodomesticos: appliances.map((a) => APPLIANCE_LABELS[a] ?? a),
-    formato_salida: {
-      steps: [
-        { text: "string con {{Marcadores}}", minutes: 0, kind: "activo" },
-        { text: "string", minutes: 0, kind: "paralelo", during: 0 },
-      ],
-      byAppliance: Object.fromEntries(appliances.map((a) => [a, ["string"]])),
-      nutrients: { fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 },
-    },
+    formato_salida: formato,
+    // Solo devuelve estas claves: sin esto el modelo rellena por su cuenta las
+    // partes que ya no le pedimos y vuelve a desbordar el presupuesto.
+    devuelve_solo: Object.keys(formato),
   };
 }
 
@@ -446,11 +506,18 @@ function applyResult(task, out) {
   }
 
   if (task.missingAppliances.length > 0 && out.byAppliance && typeof out.byAppliance === "object") {
+    const names = (recipe.ingredients ?? []).map((i) => i.name);
     for (const a of task.missingAppliances) {
-      const steps = sanitizeSteps(out.byAppliance[a]).map(stripStepMarkers);
-      if (steps.length >= 2) {
+      // Mismo tratamiento que los pasos base: se guardan enriquecidos y CON
+      // marcadores, que la app resuelve al pintar. Antes se aplanaban a string,
+      // y por eso cambiar de método tiraba el stepper (tipo de paso, tiempos y
+      // cantidades escaladas) justo en los aparatos que más lucen: lo que el
+      // cocinero quiere saber de una Thermomix es cuánto rato puede irse.
+      const rich = normalizeRichSteps(out.byAppliance[a])
+        .map((s) => ({ ...s, text: normalizeMarkers(s.text, names) }));
+      if (rich.length >= 2) {
         applianceSteps[recipe.id] = applianceSteps[recipe.id] ?? {};
-        applianceSteps[recipe.id][a] = steps;
+        applianceSteps[recipe.id][a] = rich;
         touchedApplianceFile = true;
       }
     }
@@ -465,7 +532,11 @@ async function worker() {
     const task = queue.shift();
     const label = `${task.recipe.id} — ${task.recipe.name}`;
     try {
-      const out = await callModelWithRetry(enrichPayload(task.recipe, task.appliances), label);
+      const payload = enrichPayload(task.recipe, task.missingAppliances, {
+        wantBase: task.needBase,
+        wantNutrients: task.needNutrients,
+      });
+      const out = await callModelWithRetry(payload, label);
       applyResult(task, out);
       ok += 1;
       console.log(`✓ [${ok + failed}/${total}] ${label}`);

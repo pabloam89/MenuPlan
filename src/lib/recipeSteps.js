@@ -131,6 +131,31 @@ export function richToPlainSteps(rich) {
   return (rich ?? []).map((s) => stripStepMarkers(s?.text ?? ""));
 }
 
+/** ¿Los pasos aportan algo más que el texto? Un stepper donde todo pone "A
+ * continuación" y sin tiempos se lee peor que la lista numerada de siempre. */
+export function hasRichMetadata(rich) {
+  return Array.isArray(rich) && rich.some((s) => s?.kind || s?.minutes);
+}
+
+/**
+ * Resuelve una lista de pasos por electrodoméstico, que puede venir en dos
+ * formatos: el rico `{text, minutes, kind}` que hornea enrich-recipe-steps.mjs,
+ * o el `string[]` plano de antes. Conviven porque /api/recipe-steps sigue
+ * devolviendo planos para recetas de usuario, y su caché en Redis guarda 90
+ * días de respuestas del formato viejo.
+ *
+ * Devuelve `rich` solo si los pasos traen metadatos de verdad; `plain` sirve
+ * siempre de fallback y va sin marcadores, porque se pinta tal cual.
+ */
+export function resolveApplianceSteps(raw) {
+  const rich = normalizeRichSteps(raw);
+  if (rich.length === 0) return { rich: null, plain: [] };
+  return {
+    rich: hasRichMetadata(rich) ? rich : null,
+    plain: richToPlainSteps(rich),
+  };
+}
+
 /**
  * Borra un paso arreglando los `during` que quedan colgando: los que apuntaban
  * al paso borrado pierden su ancla (pasan a "activo") y los que apuntaban más
