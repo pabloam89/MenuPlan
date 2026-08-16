@@ -630,9 +630,16 @@ function renderWeekBlock({
     </div>`;
   }).join("");
 
+  // min-content (not 0) as the floor: with `minmax(0, Npx)` every meal row was
+  // pinned to the SAME height no matter what it held, so a dense day (two
+  // groups × primero+segundo, or a long dish name) got clipped by .cell's
+  // overflow:hidden while the Desayuno row right above it sat half empty.
+  // Rows can now take the height their content actually needs and only borrow
+  // it from the slack the sparser rows weren't using; Npx stays the growth
+  // limit, so a light sheet still spreads out evenly the way it did before.
   const rowTrack = rowHeightPx
-    ? `minmax(0, ${rowHeightPx}px)`
-    : "minmax(0, 1fr)";
+    ? `minmax(min-content, ${rowHeightPx}px)`
+    : "minmax(min-content, 1fr)";
 
   return `<section class="week-block">
     <div class="grid" style="--dish-size:${dishPx}px;--label-col:${colPx}px;--day-cols:${days.length};grid-template-columns:var(--label-col) repeat(var(--day-cols),minmax(0,1fr));grid-template-rows:auto repeat(${Math.max(1, printRows.length)},${rowTrack})">
@@ -1285,48 +1292,60 @@ export async function downloadMenu(data, menuPlan, groups) {
   return { method: "download" };
 }
 
-// --dish-size (dishFontSize()) is picked from row/group/week counts — how
-// MANY things share a cell — never from the actual dish TEXT. Real recipe
-// names vary a lot in length, and a day that stacks a home dish + a "cole"
-// line + a second group's own dishes can need noticeably more room than a
-// light day right next to it in the same fixed-height row (.cell has
-// overflow:hidden), so a size tuned for the common case clips the dense one.
+// Second half of the "dense day gets clipped" fix, after the min-content row
+// floor in renderWeekBlock().
 //
-// Font-size can't be computed from a string alone before it's laid out (word
-// wrap depends on the real column width, font metrics, etc.), but by the time
-// this runs the print window has already rendered real DOM — so measure the
-// actual overflow (scrollHeight ignores overflow:hidden and always reports
-// the true content height) and shrink in small steps until it fits, floored
-// at a size still used elsewhere in this file for the densest existing case
-// (see dishFontSize's stacked+multiGroup branch) so it never goes illegible.
+// Letting rows grow to their content solves the common case by spending the
+// slack the sparser rows weren't using, but a sheet whose rows ALL need more
+// than their share still ends up taller than the page — and .sheet is a fixed
+// height with overflow:hidden, so the excess would be cut off the bottom
+// instead of inside a cell. --dish-size can't be derived from the dish text
+// up front (wrapping depends on the real column width and font metrics), but
+// here the print document is already laid out, so measure what it actually
+// came out as and shrink until the whole thing fits.
 //
-// Shrinks the whole grid uniformly rather than per-cell: a week where every
-// cell has a mismatched font size would look broken, and it's exactly how
-// dishFontSize() already sizes things (one value for the whole sheet).
+// Floored at the size dishFontSize() already uses for its densest case, so it
+// never trades a clipped sheet for an unreadable one; a sheet that still
+// doesn't fit at that floor is left alone (nothing better to do than print it
+// and let the user drop a meal row or split the export).
+//
+// Shrinks per sheet, uniformly: mismatched font sizes between neighbouring
+// cells look like a bug, and one size per sheet is how dishFontSize() already
+// works.
 function fitPrintTextToCells(win) {
   const MIN_DISH_PX = 6.5;
   const STEP_PX = 0.4;
   const MAX_STEPS = 40;
 
-  // Best-effort only: this is a cosmetic refinement on top of an already-
-  // printable document. A test double or an unusually locked-down popup might
-  // not implement the full DOM surface this needs (querySelectorAll,
+  // Best-effort only: this is a refinement on top of an already-printable
+  // document. A test double or an unusually locked-down popup might not
+  // implement the full DOM surface this needs (querySelectorAll,
   // getComputedStyle, scrollHeight) — never let that stop win.print() itself.
   try {
-    const grids = win?.document?.querySelectorAll?.(".grid");
-    if (!grids) return;
+    const sheets = win?.document?.querySelectorAll?.(".sheet");
+    if (!sheets) return;
 
-    for (const grid of grids) {
-      const cells = [...grid.querySelectorAll(".cell")];
-      if (!cells.length) continue;
+    for (const sheet of sheets) {
+      const grids = [...sheet.querySelectorAll(".grid")];
+      if (!grids.length) continue;
 
-      const overflows = () => cells.some((c) => c.scrollHeight > c.clientHeight + 0.5);
+      // .weeks is the flex child that holds the grids between the header and
+      // the footer, so it's what actually has to fit — measuring .sheet itself
+      // would miss the overflow (it's the element doing the clipping).
+      const weeks = sheet.querySelector(".weeks");
+      const overflows = () => {
+        if (weeks && weeks.scrollHeight > weeks.clientHeight + 0.5) return true;
+        return grids.some((g) => [...g.querySelectorAll(".cell")]
+          .some((c) => c.scrollHeight > c.clientHeight + 0.5));
+      };
 
-      let size = parseFloat(win.getComputedStyle(grid).getPropertyValue("--dish-size")) || 12;
+      let size = parseFloat(
+        win.getComputedStyle(grids[0]).getPropertyValue("--dish-size"),
+      ) || 12;
       let steps = 0;
       while (overflows() && size > MIN_DISH_PX && steps < MAX_STEPS) {
         size = Math.max(MIN_DISH_PX, size - STEP_PX);
-        grid.style.setProperty("--dish-size", `${size}px`);
+        for (const g of grids) g.style.setProperty("--dish-size", `${size}px`);
         steps += 1;
       }
     }
