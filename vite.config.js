@@ -49,6 +49,46 @@ function devRecipeStepsApi(env) {
   }
 }
 
+// Same idea as devRecipeStepsApi, for the main /api/generate endpoint.
+//
+// This used to be a straight vite proxy to api.anthropic.com, which meant dev
+// never exercised api/generate.js at all. That stopped being viable once the
+// endpoint began owning the system prompts: the client now sends `task` and
+// expects the server to resolve it, so proxying the body untouched to Anthropic
+// would send an unknown `task` field and no system prompt. Mounting the real
+// handler keeps dev and production on the same code path.
+function devGenerateApi(env) {
+  return {
+    name: 'dev-generate-api',
+    configureServer(server) {
+      process.env.ANTHROPIC_API_KEY =
+        process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY || env.VITE_ANTHROPIC_API_KEY || ''
+
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url || !req.url.startsWith('/api/generate')) return next()
+        // /api/generate-dish-photo has its own middleware below
+        if (req.url.startsWith('/api/generate-dish-photo')) return next()
+        if (req.method !== 'POST') return next()
+        try {
+          const { default: handler } = await import('./api/generate.js')
+          req.body = await readJsonBody(req)
+          res.status = (code) => { res.statusCode = code; return res }
+          res.json = (obj) => {
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(obj))
+          }
+          res.setHeader = res.setHeader.bind(res)
+          await handler(req, res)
+        } catch (err) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: err?.message || 'dev handler error' }))
+        }
+      })
+    },
+  }
+}
+
 // Same idea as devRecipeStepsApi, for the recipe-planner's AI dish photo
 // generation (fixed catalog style formula + Gemini image model).
 function devDishPhotoApi(env) {
@@ -84,7 +124,7 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [react(), devRecipeStepsApi(env), devDishPhotoApi(env)],
+    plugins: [react(), devGenerateApi(env), devRecipeStepsApi(env), devDishPhotoApi(env)],
     server: {
       port: 5175,
       // Falla en vez de saltar a otro puerto: así la URL local es siempre
@@ -92,24 +132,6 @@ export default defineConfig(({ mode }) => {
       // (evita acabar rebotado al deploy de producción tras el login).
       strictPort: true,
       host: true,
-      proxy: {
-        '/api/generate': {
-          target: 'https://api.anthropic.com',
-          changeOrigin: true,
-          secure: false,
-          rewrite: () => '/v1/messages',
-          configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.setHeader('anthropic-dangerous-direct-browser-access', 'true');
-              proxyReq.setHeader('anthropic-version', '2023-06-01');
-              proxyReq.setHeader('anthropic-beta', 'pdfs-2024-09-25');
-              const apiKey = env.VITE_ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY || '';
-              if (apiKey) proxyReq.setHeader('x-api-key', apiKey);
-            });
-            proxy.on('error', (err) => console.error('Proxy error:', err.message));
-          },
-        },
-      },
     },
   }
 })

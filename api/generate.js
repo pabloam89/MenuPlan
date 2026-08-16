@@ -1,4 +1,5 @@
 import { blocked } from "./_guard.js";
+import { SYSTEM_PROMPTS } from "./_prompts.js";
 
 // Server-side proxy to the Anthropic API.
 //
@@ -12,13 +13,10 @@ import { blocked } from "./_guard.js";
 //     it to our key.
 //   · `max_tokens` is clamped. 32000 is what the school-menu PDF import needs
 //     (src/lib/menuParser.js); nothing legitimate asks for more.
-//
-// KNOWN GAP: `system` is still taken from the client, because the four callers
-// (aiPlanner, menuParser, receiptParser, userRecipes) each build their own and
-// moving them server-side is a real refactor. So a determined caller can still
-// steer the model — they just can't pick an expensive one, can't ask for
-// unbounded output, and get throttled. Closing this properly means owning the
-// system prompts here.
+//   · `system` is NOT accepted from the client. The caller names a `task` and
+//     the prompt is looked up in api/_prompts.js, so this endpoint can only
+//     ever run one of MenuPlan's own jobs instead of acting as a
+//     general-purpose LLM for whoever finds the URL.
 //
 // Keep ALLOWED_MODELS in sync with src/lib/aiModels.js.
 const ALLOWED_MODELS = new Set(["claude-sonnet-4-6", "claude-haiku-4-5-20251001"]);
@@ -42,11 +40,18 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { model, max_tokens, system, messages } = req.body ?? {};
+    const { model, max_tokens, task, messages } = req.body ?? {};
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({ error: "messages is required" });
     }
+
+    // An unknown task gets no system prompt rather than a fallback one: silently
+    // running someone else's job would be worse than the caller seeing a 400.
+    if (task != null && !Object.hasOwn(SYSTEM_PROMPTS, task)) {
+      return res.status(400).json({ error: "Unknown task" });
+    }
+    const system = task != null ? SYSTEM_PROMPTS[task] : undefined;
 
     const safeModel = ALLOWED_MODELS.has(model) ? model : DEFAULT_MODEL;
     const requested = Number(max_tokens);

@@ -36,58 +36,9 @@ export const MenuSchema = z.object({
 // PDF → Claude document API
 // ---------------------------------------------------------------------------
 
-const SYSTEM_PROMPT = `You are a school menu extraction tool. Given a document containing a school lunch menu, extract ALL weeks into structured JSON.
-
-CRITICAL RULES:
-1. Return ONLY valid JSON. No markdown, no backticks, no text.
-2. Extract EVERY week in the document. A typical monthly menu has 4-5 weeks. Do NOT stop after the first week.
-3. Each day has 3 items: primero (starter/carb), segundo (protein), postre (dessert/fruit).
-4. Keep dish names in the original language of the document.
-5. Days without meals (holidays, "sin clase") → sinClase: true, dishes null.
-6. The kcal/macros line is metadata, NOT a dish.
-7. Concatenate wrapped dish names: "Espinacas salteadas con" + "garbanzos" → "Espinacas salteadas con garbanzos"
-8. Do NOT include titles, headers, or school names as dishes.
-9. If nutritional info exists, extract kcal and macros {p, hc, g}. Otherwise null.
-10. The document may span multiple pages. Extract across all pages.
-
-Day names MUST be in Spanish: lunes, martes, miercoles, jueves, viernes.
-
-Schema:
-{
-  "semanas": [
-    {
-      "numero": 1,
-      "fechaInicio": "1 Jun" or null,
-      "dias": [
-        {
-          "dia": "lunes",
-          "sinClase": false,
-          "primero": "Ensalada mixta",
-          "segundo": "Pechuga plancha con tomate",
-          "postre": "Manzana",
-          "kcal": 640,
-          "macros": {"p": 28, "hc": 72, "g": 20}
-        },
-        {
-          "dia": "martes",
-          "sinClase": false,
-          "primero": "Crema de calabaza",
-          "segundo": "Merluza al horno con patata",
-          "postre": "Yogur natural",
-          "kcal": 620,
-          "macros": {"p": 30, "hc": 65, "g": 18}
-        }
-      ]
-    },
-    {
-      "numero": 2,
-      "fechaInicio": "8 Jun",
-      "dias": [...]
-    }
-  ]
-}
-
-IMPORTANT: The semanas array must contain ALL weeks, not just week 1.`;
+// El system prompt que antes vivia aqui (SYSTEM_PROMPT) ahora es propiedad
+// del servidor: api/_prompts.js. El cliente solo envia un `task`, para que
+// /api/generate no pueda usarse como LLM generico con un prompt cualquiera.
 
 function extractJson(text) {
   const trimmed = String(text ?? "").trim();
@@ -118,11 +69,11 @@ function extractJson(text) {
   return parsed;
 }
 
-async function callClaude(messages, { system } = {}) {
+async function callClaude(messages, { task } = {}) {
   const body = {
     model: PARSER_MODEL,
     max_tokens: 32000,
-    system,
+    task,
     messages,
   };
 
@@ -158,7 +109,7 @@ async function fileToBase64(file) {
 async function parseDocumentMenu(userContent) {
   const rawText = await callClaude(
     [{ role: "user", content: userContent }],
-    { system: SYSTEM_PROMPT }
+    { task: "school-menu" }
   );
 
   const parsed = extractJson(rawText);
@@ -179,7 +130,7 @@ async function parseDocumentMenu(userContent) {
         content: `The JSON has validation errors:\n${errorMsg}\n\nFix them and return ONLY the corrected complete JSON.`,
       },
     ],
-    { system: SYSTEM_PROMPT }
+    { task: "school-menu" }
   );
 
   const retryParsed = extractJson(retryText);

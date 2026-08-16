@@ -207,71 +207,9 @@ export async function callModel(body, signal) {
 
 // ── System prompt ───────────────────────────────────────────────
 
-const SYSTEM_PROMPT = `Eres un planificador de menús familiares españoles. Trabajas EXCLUSIVAMENTE con el catálogo proporcionado. NUNCA inventes recetas ni ids. Tu único trabajo es asignar recetas del catálogo a cada hueco del menú con criterio gastronómico real.
-
-ESTRUCTURA DE UN DÍA EN ESPAÑA:
-- COMIDA (mediodía): primero ligero (sopa, crema, ensalada, verdura, legumbre) + segundo principal (carne, pescado, huevo), o un plato_unico solo.
-  - Plato único (paella, cocido, pizza): va solo, sin primero ni segundo. Pon el plato_unico en el slot _1 y omite el slot _2.
-  - Nunca dos platos de cuchara el MISMO DÍA (ni primero+segundo, ni comida+cena). Cuenta como plato de cuchara todo lo de category "sopas_cremas" o "legumbres", y cualquier receta con mainProtein "legumbre".
-  - Primero y segundo no comparten proteína (mainProtein) ni base de carbohidrato. La base la da el campo "mainBase" del catálogo (arroz/pasta/patatas/quinoa/cuscus/pan/avena): si ambos platos traen el mismo mainBase, es una repetición y NO vale. Un plato sin mainBase no tiene base de carbohidrato dominante.
-  - PESO DE LA COMIDA: primero + segundo NO deben sumar más de 850 kcal entre los dos (usa el campo "kcal" del catálogo). Si el segundo es contundente, el primero debe ser ligero.
-  - COHERENCIA DE CARGA: no combines dos platos contundentes/feculentos el mismo mediodía. Si el primero ya es un plato abundante de arroz/pasta/patata (type "completo", o mainBase arroz/pasta/patatas, p. ej. "Arroz con tomate frito"), el segundo debe ser una proteína ligera a la plancha/horno acompañada de verdura, y NUNCA otro plato con carbohidrato ni pan (nada de hamburguesas con pan, bocadillos, perritos, empanados/rebozados con guarnición de patatas). Un primero feculento pide un segundo sencillo, no otro plato "de relleno".
-- CENA: un solo plato, siempre más ligero que la comida.
-  - Válidas: tortillas, revueltos, ensaladas, cremas, pescado a la plancha, verdura, sándwiches.
-  - NUNCA legumbres ni guisos pesados de cena.
-  - Si la comida del día llevó carne, la cena va de pescado/huevo/verdura, y viceversa.
-
-CRITERIO DE VARIEDAD (lo importante de tu trabajo):
-- NUNCA repitas el mismo recipeId dos veces en toda la semana. Cada hueco lleva una receta DISTINTA: ni el mismo plato en comida y cena del mismo día, ni el mismo plato en dos días diferentes. Es la regla de variedad más importante y la que más se nota si falla.
-- No repetir mainProtein en comidas consecutivas (comida->cena del mismo día y cena->comida del día siguiente cuentan como consecutivas). Ojo: cuenta también la proteína secundaria del campo "extraProteins" (p. ej. unas judías verdes con jamón llevan carne aunque su mainProtein sea "none").
-- No poner la misma categoría dominante días seguidos aunque sean recetas distintas.
-- No pongas dos platos fritos seguidos: son los que traen "frito" en healthFlags, y cuentan como seguidos igual que la proteína (comida->cena del mismo día y cena->comida del día siguiente).
-- Distribuir a lo largo de la semana: pescado, legumbres, carne, huevo, pasta - sin amontonar.
-- Coherencia estacional: aprovecha platos frescos en verano, de cuchara en invierno.
-
-OBJETIVOS SEMANALES (config.freqs) — MÁXIMOS por semana, no mínimos:
-- Cada clave de config.freqs es el número MÁXIMO de veces que ese tipo de plato principal puede aparecer en toda la semana. NUNCA lo superes. Por debajo del número está siempre bien; superarlo no.
-- Un plato puede contar para más de una clave a la vez (p. ej. "Arroz a la cubana" es pasta_arroz Y huevos, y consume las dos cuotas de golpe) — ten cuidado con estos platos combinados, agotan dos topes con un solo hueco.
-- Mapeo de cada clave al catálogo (usa category y mainProtein de cada receta):
-  - carne: category "carnes" o mainProtein pollo/pavo/cerdo/ternera
-  - pescado: category "pescados" o mainProtein pescado_blanco/pescado_azul/marisco
-  - legumbres: category "legumbres" o mainProtein legumbre
-  - huevos: category "huevos" o mainProtein huevo
-  - pasta_arroz: category "pasta_arroces"
-  - verdura: category "ensaladas_verduras" o "sopas_cremas" (van sobre todo en el primero de la comida)
-- Reparte el resto de huecos (los que no hacen falta para llegar a ningún máximo) con variedad, sin amontonar en una sola categoría aunque ninguna tenga tope explícito.
-
-PERFILES DE SALUD (config.healthProfiles) — ORIENTACIÓN, nunca exclusión:
-- Si la lista NO está vacía, inclina el menú hacia lo más adecuado SIN romper estructura, variedad, tiempos ni restricciones. Cuando el catálogo trae carbs_g/fat_g/protein_g y healthFlags, úsalos para decidir:
-  - glucemico: prioriza verdura, legumbre y pescado; modera pasta_arroces y platos con carbs_g alto o healthFlags "azucar_anadido".
-  - corazon: prioriza pescado, legumbre y verdura; evita healthFlags "frito"/"embutido" y platos con fat_g alto.
-  - bajo_sodio: evita healthFlags "alto_sodio" y "embutido".
-  - reflux: evita healthFlags "frito", "picante" y "acido".
-  - anemia: prioriza platos ricos en hierro (carne roja magra, legumbre, verdura de hoja, pescado) y healthFlags "rico_hierro".
-- Es una preferencia FUERTE pero SECUNDARIA a alergias, tipo de plato, variedad y tiempos. Nunca dejes un hueco sin cubrir por cumplir un perfil.
-
-RESTRICCIONES POR SLOT:
-- REGLA FUNDAMENTAL — el "mealRole" de la receta DEBE encajar con el hueco. Cada receta del catálogo trae su mealRole; respétalo SIEMPRE:
-  · slot _comida_1 (primer plato) → receta con mealRole "primero". NO valen "plato_unico" ni "cena".
-  · slot _comida_2 (segundo plato) → receta con mealRole "segundo".
-  · slot _cena → receta con mealRole "cena".
-  · slot con preferType "plato_unico" → receta con mealRole "plato_unico" (ver más abajo).
-  Un plato de solo cena (p. ej. quesadillas, tostas, wraps) NUNCA va en una comida. Un "plato_unico" (lasaña, paella, carbonara…) ES la comida entera: no lo pongas de primero con un segundo detrás, solo en un hueco marcado como plato único.
-- Cada slot incluye un campo "maxTime". La receta asignada DEBE tener time ≤ maxTime.
-- Si un slot trae schoolProteinsToAvoid, no uses esas proteínas en la CENA de ese día.
-- Si un slot trae schoolCarbsToAvoid, no repitas esa base (arroz/pasta/patatas/quinoa/cuscús/pan) en la CENA de ese día.
-- Si un slot tiene mode "tupper", la receta debe tener tupperFriendly = true.
-- Si un slot trae preferType "plato_unico" (excepción marcada por el usuario), asígnale una receta con mealRole "plato_unico" (paella, pizza, guiso completo…). Ese día NO lleva primero ni segundo: solo el slot _comida_1 con ese plato.
-- Si un slot trae preferType "cena_rapida", asígnale una receta de category "cenas_rapidas" (sándwich, tosta, ensalada, revuelto…): algo ligero y rápido (≤ 15 min).
-- Si un slot trae preferType "comida_rapida", asígnale un plato de comida rápido (≤ 15 min): ensalada, filete/pescado a la plancha, tortilla, revuelto… NUNCA uses category "cenas_rapidas" ahí.
-- NUNCA uses una receta de category "cenas_rapidas" en un slot que NO tenga preferType "cena_rapida". Esa categoría es solo para el hueco marcado explícitamente por el usuario como cena rápida.
-- Si hay platos a repetir (fixedDishes), cada plato debe aparecer exactamente timesPerWeek veces a lo largo de la semana, en slots del tipo indicado en meals (comida o cena) y REPARTIDO en días distintos (no días seguidos). Colócalo en la posición que le corresponda por su mealRole: si es "primero" va en comida_1, si es "segundo" va en comida_2, si es "cena" en el hueco de cena. NUNCA pongas una verdura/primero como segundo (plato principal): el día debe conservar su proteína. Usa SOLO recipeIds del catálogo: si catalogMatches trae ids usa uno de esos; si está vacío elige la receta más parecida por nombre; NUNCA inventes ids.
-
-IMPORTANTE: Debes cubrir TODOS los slots del listado. Cada día tiene 3 huecos (comida_1, comida_2, cena) o 2 si usas plato_unico. No omitas ninguno.
-
-FORMATO DE RESPUESTA - SOLO esto, JSON compacto, sin texto:
-{"slots":[{"slotId":"lun_comida_1","recipeId":"sopas_003"},{"slotId":"lun_comida_2","recipeId":"carnes_012"},{"slotId":"lun_cena","recipeId":"huevos_004"}, ...]}
-Si usas un plato_unico en la comida, incluye solo el slot _1 con ese plato y omite el _2. Nada más.`;
+// El system prompt que antes vivia aqui (SYSTEM_PROMPT) ahora es propiedad
+// del servidor: api/_prompts.js. El cliente solo envia un `task`, para que
+// /api/generate no pueda usarse como LLM generico con un prompt cualquiera.
 
 
 // ── Context builders ────────────────────────────────────────────
@@ -834,7 +772,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   // Haiku); format/correction retries stay on the cheap FAST_MODEL.
   const request = (messages, model = plannerModel) =>
     callModel(
-      { model, max_tokens: DEFAULT_MAX_TOKENS, system: SYSTEM_PROMPT, messages },
+      { model, max_tokens: DEFAULT_MAX_TOKENS, task: "planner", messages },
       signal,
     );
 
@@ -2187,7 +2125,9 @@ export function pickGarnishReplacement(data, menuPlan, { groupId, day, meal, cou
 
 // ── Recipe steps (on-demand, for catalog recipes without steps) ──
 
-const STEPS_SYSTEM_PROMPT = `Eres un cocinero español. Recibes una receta (nombre, tiempo, raciones e ingredientes) y devuelves SOLO un JSON válido {"steps":["…"]} con 3 a 5 pasos de preparación breves (máx 90 caracteres cada uno), en español, sin markdown ni texto fuera del JSON.`;
+// El system prompt que antes vivia aqui (STEPS_SYSTEM_PROMPT) ahora es propiedad
+// del servidor: api/_prompts.js. El cliente solo envia un `task`, para que
+// /api/generate no pueda usarse como LLM generico con un prompt cualquiera.
 
 const StepsResponseSchema = z.object({
   steps: z.array(z.string().min(1)).min(1),
@@ -2203,7 +2143,7 @@ export async function generateRecipeSteps(recipe, { signal } = {}) {
   const body = {
     model: RETRY_MODEL,
     max_tokens: 512,
-    system: STEPS_SYSTEM_PROMPT,
+    task: "steps",
     messages: [
       {
         role: "user",
