@@ -43,7 +43,7 @@ function recipeToRow(recipe, userId) {
     allergens: recipe.allergens ?? [],
     ingredients: recipe.ingredients ?? [],
     steps: recipe.steps ?? [],
-    // Paso a paso estructurado (ver 0011_user_recipes_steps_rich.sql). Opcional:
+    // Paso a paso estructurado (ver 0013_user_recipes_steps_rich.sql). Opcional:
     // `steps` sigue siendo el fallback para las recetas que no lo tengan.
     steps_rich: recipe.stepsRich ?? null,
     description: recipe.description ?? null,
