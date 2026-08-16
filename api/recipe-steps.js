@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { Redis } from "@upstash/redis";
 import { blocked } from "./_guard.js";
 
@@ -25,6 +26,7 @@ const APPLIANCE_LABELS = {
 
 const ANTHROPIC_MODEL = "claude-haiku-4-5-20251001";
 const MAX_STEPS = 6;
+const CACHE_TTL_SECONDS = 90 * 24 * 60 * 60; // 90 días
 
 // Versión del prompt de generación. Los pasos se cachean en Redis, así que un
 // cambio de prompt no llega a las recetas ya generadas a menos que cambie la
@@ -62,6 +64,30 @@ function getRedis() {
   } catch {
     return null;
   }
+}
+
+// The cache key has to cover the recipe CONTENT, not just its id.
+//
+// This endpoint takes no session (see api/_guard.js), so the caller controls
+// both the id — which used to be the whole cache key — and the name/ingredients
+// /baseSteps that build the prompt. That combination let anyone write chosen
+// steps into the shared entry for a REAL recipe id and have them served to
+// every other user who opened that dish: send `recipeId` of a catalog dish with
+// ingredients of your choosing, and the generated result got cached under the
+// real id. In an app people rely on for allergies, tampered steps are not a
+// prank.
+//
+// Folding a hash of the content into the key makes the cache content-addressed:
+// a caller can only ever read back an entry that matches the exact inputs they
+// sent, so a poisoned variant lands on its own key and is never served to
+// anyone else. Real clients send the same catalog data for a given id, so they
+// still hit the cache — and when a recipe legitimately changes, the key changes
+// with it and the steps are regenerated, which is what we'd want anyway.
+function recipeFingerprint(parts) {
+  return createHash("sha256")
+    .update(JSON.stringify(parts))
+    .digest("hex")
+    .slice(0, 16);
 }
 
 function sanitizeSteps(raw) {
@@ -170,7 +196,7 @@ export default async function handler(req, res) {
   }
 
   const applianceLabel = APPLIANCE_LABELS[appliance] ?? appliance;
-  const cacheKey = `recipe:steps:${PROMPT_VERSION}:${recipeId}`;
+  const cacheKey = `recipe:steps:${PROMPT_VERSION}:${recipeId}:${recipeFingerprint({ name, ingredients, baseSteps, prepSummary, time })}`;
   const redis = getRedis();
 
   // 1) Try cache
@@ -210,6 +236,11 @@ export default async function handler(req, res) {
   if (redis) {
     try {
       await redis.hset(cacheKey, { [appliance]: JSON.stringify(steps) });
+      // Keys used to be one-per-recipe and never expired. Now that the content
+      // fingerprint is part of the key, every recipe edit mints a new one, so
+      // without a TTL the set would grow without bound. Steps are cheap to
+      // regenerate, so a long expiry costs nothing and keeps Redis tidy.
+      await redis.expire(cacheKey, CACHE_TTL_SECONDS);
     } catch (err) {
       console.warn("[recipe-steps] redis write failed:", err?.message);
     }
