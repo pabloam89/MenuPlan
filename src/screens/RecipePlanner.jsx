@@ -45,6 +45,7 @@ import {
   Sprout,
   Package,
   ChevronDown,
+  ChevronLeft,
   ChevronUp,
   ThumbsUp,
   ThumbsDown,
@@ -73,7 +74,9 @@ import {
   generateDishPhotoWithAI,
   suggestRecipeIngredients,
 } from "../lib/userRecipes.js";
-import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle } from "../lib/ingredientCategories.js";
+import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle, ingredientStem } from "../lib/ingredientCategories.js";
+import { RecipeStepList } from "../components/RecipeSteps.jsx";
+import { STEP_KIND_META, removeRichStep, richToPlainSteps } from "../lib/recipeSteps.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 import { deckImg, deckSrcSet } from "../lib/dishPhotoOptimize.js";
@@ -844,7 +847,10 @@ export function IngredientPicker({
   const full = useMemo(() => (aisle ? INGREDIENT_CATALOG_BY_AISLE[aisle] ?? [] : []), [aisle]);
   const browsing = !q && aisle;
   const results = useMemo(() => {
-    if (q) return INGREDIENT_CATALOG.filter((n) => normText(n).includes(q)).slice(0, 40);
+    if (q) {
+      const qStem = ingredientStem(q);
+      return INGREDIENT_CATALOG.filter((n) => normText(n).includes(q) || ingredientStem(n).includes(qStem)).slice(0, 40);
+    }
     if (!aisle) return [];
     return showAll ? full : curated;
   }, [q, aisle, showAll, curated, full]);
@@ -853,47 +859,19 @@ export function IngredientPicker({
 
   // Compact mode: illustrated category grid → ingredient grid
   if (compact) {
-    const aisleColor = aisle ? (AISLE_COLORS[aisle] ?? GREEN) : GREEN;
-    const AisleIconComp = aisle ? (AISLE_ICONS[aisle] ?? UtensilsCrossed) : null;
-    const aisleImg = aisle ? aisleImageSrc(aisle) : null;
     return (
       <div style={{ marginBottom: 14 }}>
-        {/* Search bar — left icon becomes category mini-thumb when active */}
+        <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
         <div
           style={{
-            display: "flex", alignItems: "center", gap: 7, height: 40,
-            padding: "0 10px 0 10px", borderRadius: 12, marginBottom: 10,
+            flex: 1, display: "flex", alignItems: "center", gap: 7, height: 40,
+            padding: "0 10px 0 10px", borderRadius: 12, minWidth: 0,
             background: (q || aisle) ? "#fff" : "#f0f5f2",
             border: `1.5px solid ${(q || aisle) ? GREEN : "transparent"}`,
             transition: "background .15s, border-color .15s",
           }}
         >
-          {/* Left slot: category mini-thumb (tappable → back) or search icon */}
-          {!q && aisle ? (
-            <button
-              type="button"
-              onClick={() => setAisle(null)}
-              aria-label={`Volver a categorias`}
-              style={{
-                border: "none", background: "none", padding: 0,
-                cursor: "pointer", display: "inline-flex", flexShrink: 0,
-              }}
-            >
-              <span style={{
-                width: 26, height: 26, borderRadius: 8, overflow: "hidden",
-                background: `${aisleColor}25`, flexShrink: 0,
-                display: "inline-flex", alignItems: "center", justifyContent: "center",
-                border: `1px solid ${aisleColor}40`,
-              }}>
-                {aisleImg
-                  ? <img src={aisleImg} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  : AisleIconComp && <AisleIconComp size={13} color={aisleColor} strokeWidth={2} />
-                }
-              </span>
-            </button>
-          ) : (
-            <Search size={15} color={(q || aisle) ? GREEN : "#9ab0a1"} style={{ flexShrink: 0 }} />
-          )}
+          <Search size={15} color={(q || aisle) ? GREEN : "#9ab0a1"} style={{ flexShrink: 0 }} />
           <input
             value={query}
             onChange={(e) => { onQueryChange(e.target.value); if (e.target.value) onAisleChange(null); }}
@@ -935,6 +913,26 @@ export function IngredientPicker({
                 : <Camera size={14} strokeWidth={2.2} />}
             </button>
           )}
+        </div>
+        {/* Categorías button — same row as search, always visible when an aisle is active */}
+        {aisle && (
+          <button
+            type="button"
+            onClick={() => setAisle(null)}
+            aria-label="Volver a categorías"
+            style={{
+              flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 5,
+              height: 40, padding: "0 10px 0 8px", borderRadius: 11,
+              border: "1.5px solid #d7e6dc", background: "#fff",
+              color: GREEN, cursor: "pointer",
+              fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <ChevronLeft size={14} strokeWidth={2.6} />
+            Categorías
+          </button>
+        )}
         </div>
 
         {/* Search results (4-col thumb grid) */}
@@ -1448,49 +1446,119 @@ function autoGrowTextarea(el) {
 // Editable preview of the AI-generated steps (step 3) — same list carries
 // through to the review step, so tweaking a step here or there is enough,
 // no need to re-run the AI just to fix a small wording issue.
+/**
+ * Pasos del borrador en formato rico. Una receta antigua (o un modelo que se
+ * despistó y devolvió strings) solo tiene `steps` planos: se envuelven para que
+ * el editor tenga siempre la misma forma con la que trabajar.
+ */
+function draftRichSteps(draft) {
+  if (draft?.stepsRich?.length) return draft.stepsRich;
+  return (draft?.steps ?? []).map((text) => ({ text }));
+}
+
+/**
+ * Ingredientes del borrador en la forma que espera el resolutor de marcadores
+ * ({{Ajo}} → "2 dientes de ajo"), que lee `qty` y no `amount`.
+ */
+function stepPreviewIngredients(draft) {
+  return (draft?.ingredients ?? []).map((i) => ({
+    name: i.name,
+    qty: Number(i.amount) || 0,
+    unit: i.unit,
+  }));
+}
+
+/**
+ * Editor del paso a paso. Trabaja sobre `stepsRich` ({ text, minutes, kind }),
+ * el mismo formato que el catálogo, para que lo que se edita aquí sea
+ * exactamente lo que luego pinta el stepper del detalle del menú.
+ * El texto puede llevar marcadores ({{Ajo}}, {{@Sartén}}): se editan en crudo
+ * y se resuelven al pintar, así que la vista previa del último paso del asistente
+ * es donde se ve el resultado final.
+ */
 function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
   return (
     <div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {steps.map((s, i) => (
-          <div
-            key={i}
-            style={{ display: "flex", alignItems: "flex-start", gap: 8 }}
-          >
-            <span style={{
-              flexShrink: 0, width: 18, marginTop: 8, fontSize: 12, fontWeight: 900,
-              color: GREEN, textAlign: "center",
-            }}>
-              {i + 1}
-            </span>
-            <textarea
-              ref={autoGrowTextarea}
-              value={s}
-              onChange={(e) => { onUpdate(i, e.target.value); autoGrowTextarea(e.target); }}
-              rows={1}
-              style={{
-                flex: 1, minWidth: 0, resize: "none", overflow: "hidden", boxSizing: "border-box",
-                border: "none", background: "#fff", borderRadius: 10, padding: "6px 8px",
-                fontSize: 13.5, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
-              }}
-            />
-            <button
-              type="button"
-              onClick={() => onRemove(i)}
-              aria-label="Quitar paso"
-              disabled={steps.length <= 1}
-              style={{
-                width: 28, height: 28, marginTop: 4, borderRadius: 8, border: "none", flexShrink: 0,
-                background: steps.length <= 1 ? "#f3f5f3" : "#fdf1ef",
-                color: steps.length <= 1 ? "#c3cdc7" : "#c0392b",
-                cursor: steps.length <= 1 ? "default" : "pointer",
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        {steps.map((s, i) => {
+          const meta = STEP_KIND_META[s.kind] ?? null;
+          return (
+            <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+              <span style={{
+                flexShrink: 0, width: 20, height: 20, marginTop: 6, borderRadius: 999,
+                fontSize: 11, fontWeight: 900, color: "#fff",
+                background: meta?.color ?? GREEN,
                 display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
-        ))}
+              }}>
+                {i + 1}
+              </span>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <textarea
+                  ref={autoGrowTextarea}
+                  value={s.text}
+                  onChange={(e) => { onUpdate(i, { text: e.target.value }); autoGrowTextarea(e.target); }}
+                  rows={1}
+                  style={{
+                    width: "100%", resize: "none", overflow: "hidden", boxSizing: "border-box",
+                    border: "none", background: "#fff", borderRadius: 10, padding: "6px 8px",
+                    fontSize: 13.5, fontFamily: "inherit", color: INK, outline: "none", lineHeight: 1.4,
+                  }}
+                />
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
+                  <select
+                    value={s.kind ?? "activo"}
+                    onChange={(e) => onUpdate(i, { kind: e.target.value })}
+                    aria-label="Tipo de paso"
+                    style={{
+                      border: "none", borderRadius: 999, padding: "3px 8px",
+                      background: `${(STEP_KIND_META[s.kind] ?? STEP_KIND_META.activo).color}1a`,
+                      color: (STEP_KIND_META[s.kind] ?? STEP_KIND_META.activo).color,
+                      fontSize: 10.5, fontWeight: 800, fontFamily: "inherit", cursor: "pointer",
+                    }}
+                  >
+                    {Object.entries(STEP_KIND_META).map(([id, m]) => (
+                      <option key={id} value={id}>{m.label}</option>
+                    ))}
+                  </select>
+                  <span style={{
+                    display: "inline-flex", alignItems: "center", gap: 3,
+                    padding: "3px 8px", borderRadius: 999, background: "#f4f7f4",
+                  }}>
+                    <input
+                      type="number"
+                      min={0}
+                      value={s.minutes ?? ""}
+                      placeholder="–"
+                      onChange={(e) => onUpdate(i, { minutes: e.target.value === "" ? undefined : Number(e.target.value) })}
+                      aria-label="Minutos del paso"
+                      style={{
+                        width: 30, border: "none", background: "transparent", outline: "none",
+                        fontSize: 10.5, fontWeight: 800, color: "#5a7066", fontFamily: "inherit",
+                        textAlign: "right",
+                      }}
+                    />
+                    <span style={{ fontSize: 10.5, fontWeight: 800, color: "#5a7066" }}>min</span>
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => onRemove(i)}
+                aria-label="Quitar paso"
+                disabled={steps.length <= 1}
+                style={{
+                  width: 28, height: 28, marginTop: 4, borderRadius: 8, border: "none", flexShrink: 0,
+                  background: steps.length <= 1 ? "#f3f5f3" : "#fdf1ef",
+                  color: steps.length <= 1 ? "#c3cdc7" : "#c0392b",
+                  cursor: steps.length <= 1 ? "default" : "pointer",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+          );
+        })}
       </div>
       <button
         type="button"
@@ -1652,7 +1720,7 @@ function VisibilitySheet({ onConfirm, onClose }) {
  * into data.userRecipes, where it becomes usable exactly like a catalog dish
  * (see filterRecipes.js / aiPlanner.js / CatalogBrowserSheet.jsx).
  */
-export function RecipePlannerScreen({ userRecipes = [], user = null, setData, onClose, onSaved, editRecipe = null, autoDemo = false, onDemoStep = null, onDemoScroll = null }) {
+export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTools = [], setData, onClose, onSaved, editRecipe = null, autoDemo = false, onDemoStep = null, onDemoScroll = null }) {
   // Editing an existing recipe: jump straight to the review step with the
   // recipe already loaded (no AI re-run), and let "Atrás" walk back through
   // the wizard to tweak anything. Saving updates the same recipe (by id).
@@ -2176,11 +2244,27 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
     onSaved?.(finalRecipe, { edited: !!editRecipe });
   };
 
-  const updateStepAt = (idx, value) =>
-    setDraft((d) => (d ? { ...d, steps: d.steps.map((s, i) => (i === idx ? value : s)) } : d));
+  // El paso a paso se edita en formato rico ({ text, minutes, kind }) porque es
+  // lo que pinta el detalle del menú. `steps` (plano) se deriva en cada cambio
+  // en vez de editarse aparte: si se tocaran por separado acabarían diciendo
+  // cosas distintas y el detalle mostraría la versión vieja.
+  const editableSteps = useMemo(
+    () => draftRichSteps(draft),
+    [draft],
+  );
+
+  const setSteps = (updater) =>
+    setDraft((d) => {
+      if (!d) return d;
+      const next = updater(draftRichSteps(d));
+      return { ...d, stepsRich: next, steps: richToPlainSteps(next) };
+    });
+
+  const updateStepAt = (idx, patch) =>
+    setSteps((list) => list.map((s, i) => (i === idx ? { ...s, ...patch } : s)));
   const removeStepAt = (idx) =>
-    setDraft((d) => (d && d.steps.length > 1 ? { ...d, steps: d.steps.filter((_, i) => i !== idx) } : d));
-  const addStep = () => setDraft((d) => (d ? { ...d, steps: [...d.steps, ""] } : d));
+    setSteps((list) => (list.length > 1 ? removeRichStep(list, idx) : list));
+  const addStep = () => setSteps((list) => [...list, { text: "", kind: "activo" }]);
 
   const goBack = () => {
     if (step === 0) { onClose(); return; }
@@ -2479,7 +2563,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
               <div style={{ borderTop: "1px solid #e8efe9", paddingTop: 16 }}>
                 <FieldLabel icon={ListOrdered} color={GREEN}>Así ha quedado el paso a paso (editable)</FieldLabel>
                 <EditableStepsList
-                  steps={draft.steps}
+                  steps={editableSteps}
                   onUpdate={updateStepAt}
                   onRemove={removeStepAt}
                   onAdd={addStep}
@@ -2510,6 +2594,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, setData, on
             updateForm={updateForm}
             userRecipes={userRecipes}
             userGarnishesOnly={userGarnishesOnly}
+            kitchenTools={kitchenTools}
             confirmedAllergens={confirmedAllergens}
             onRetry={runAI}
             saved={saved}
@@ -2801,7 +2886,7 @@ function DishPreviewCard({ draft, photo, allergens = [], user }) {
 
 function ReviewStep({
   aiState, aiError, draft, form, user, updateForm,
-  userRecipes = [], userGarnishesOnly = [],
+  userRecipes = [], userGarnishesOnly = [], kitchenTools = [],
   confirmedAllergens, onRetry, saved, photo,
 }) {
   if (aiState === "loading" || aiState === "idle") {
@@ -2862,11 +2947,14 @@ function ReviewStep({
 
       <div>
         <FieldLabel icon={ListOrdered} color={GREEN}>Pasos</FieldLabel>
-        <ol style={{ margin: 0, paddingLeft: 18, display: "flex", flexDirection: "column", gap: 6 }}>
-          {draft.steps.map((s, i) => (
-            <li key={i} style={{ fontSize: 13, color: "#3d5c48", lineHeight: 1.4 }}>{s}</li>
-          ))}
-        </ol>
+        {/* Mismo componente que el detalle del menú: lo que se ve aquí, con los
+            marcadores ya resueltos, es exactamente lo que verá al cocinar. */}
+        <RecipeStepList
+          rich={draft.stepsRich ?? null}
+          plain={draft.steps ?? []}
+          ingredients={stepPreviewIngredients(draft)}
+          kitchenTools={kitchenTools}
+        />
       </div>
     </div>
   );

@@ -56,10 +56,18 @@
       }
     ],
     "steps": [
-      "Cocer los macarrones en agua con sal",
-      "Sofreír cebolla y ajo, añadir tomate y orégano",
-      "Cocer la salsa 10 min a fuego lento",
-      "Mezclar con la pasta escurrida"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Pelar y picar ajo fino.",
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
+      "Añadir el ajo picado y sofreír 1 min hasta que se dore ligeramente.",
+      "Añadir tomate triturado y orégano a la sartén y remover.",
+      "Cocer la salsa a fuego suave, sin tapar, hasta que espese ligeramente.",
+      "Cocer macarrones en el agua hirviendo con sal según el tiempo indicado en el envase.",
+      "Escurrir los macarrones cuando estén al dente y reservar.",
+      "Añadir los macarrones escurridos a la sartén con la salsa y mezclar a fuego suave 1 min.",
+      "Servir los macarrones en platos hondos."
     ],
     "description": "Macarrones con salsa de tomate casera y orégano",
     "methods": [
@@ -69,7 +77,73 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo, luego añade el tomate triturado y el orégano para la salsa. Incorpora los macarrones y el agua, cocinando a 100°C, velocidad cuchara, giro inverso, hasta que la pasta esté al dente."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla grande con agua abundante y sal.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min hasta que se dore ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Orégano|pizca}} a la sartén y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la salsa a fuego suave, sin tapar, hasta que espese ligeramente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer {{Macarrones}} en el agua hirviendo con sal según el tiempo indicado en el envase.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir los macarrones cuando estén al dente y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los macarrones escurridos a la sartén con la salsa y mezclar a fuego suave 1 min.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los macarrones en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 7,
+    "saturated_fat_g": 2,
+    "sodium_mg": 380
   },
   {
     "id": "pasta_arroces_002",
@@ -137,10 +211,20 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla, ajo y zanahoria rallada",
-      "Añadir la carne y dorar desmenuzando",
-      "Incorporar tomate y vino, cocer 20 min",
-      "Servir sobre los espaguetis cocidos"
+      "Pelar cebolla y picarla en dados finos. Pelar ajo y picarlo muy fino.",
+      "Pelar zanahoria y rallarla con un rallador fino.",
+      "Calentar aceite de oliva en sartén grande a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada y el ajo picado en la sartén a fuego medio hasta que estén transparentes.",
+      "Añadir la zanahoria rallada y sofreír junto con la cebolla hasta que esté tierna.",
+      "Incorporar carne picada de ternera y saltear a fuego fuerte, desmenuzando con una cuchara, hasta que se dore por completo.",
+      "Añadir vino tinto y remover hasta que se evapore el alcohol.",
+      "Incorporar tomate triturado y remover bien.",
+      "Tapar la sartén y cocer a fuego suave hasta que la salsa espese.",
+      "Llevar a ebullición una olla con abundante agua y sal.",
+      "Cocer espaguetis en el agua hirviendo hasta que estén al dente, según el tiempo indicado en el paquete.",
+      "Escurrir los espaguetis y volcarlos en la sartén con la boloñesa.",
+      "Mezclar a fuego suave hasta que los espaguetis queden bien integrados con la salsa.",
+      "Servir los espaguetis con la salsa boloñesa bien repartida."
     ],
     "description": "Espaguetis con ragú de carne picada, tomate y zanahoria",
     "methods": [
@@ -156,7 +240,84 @@
         "difficulty": "facil",
         "prepSummary": "Pica las verduras en el vaso, sofríelas con aceite, añade la carne y el vino para dorar. Incorpora el tomate y cocina la salsa a temperatura y velocidad controladas. Los espaguetis se pueden cocer en el vaso o cestillo."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y picarla en dados finos. Pelar {{Ajo}} y picarlo muy fino.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y rallarla con un rallador fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} grande a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado en la sartén a fuego medio hasta que estén transparentes.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria rallada y sofreír junto con la cebolla hasta que esté tierna.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Carne picada de ternera}} y saltear a fuego fuerte, desmenuzando con una cuchara, hasta que se dore por completo.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vino tinto}} y remover hasta que se evapore el alcohol.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y remover bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la sartén y cocer a fuego suave hasta que la salsa espese.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Llevar a ebullición una olla con abundante agua y {{Sal|gusto}}.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 8
+      },
+      {
+        "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, según el tiempo indicado en el paquete.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir los espaguetis y volcarlos en la sartén con la boloñesa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar a fuego suave hasta que los espaguetis queden bien integrados con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los espaguetis con la salsa boloñesa bien repartida.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 8,
+    "saturated_fat_g": 6,
+    "sodium_mg": 320
   },
   {
     "id": "pasta_arroces_003",
@@ -202,10 +363,15 @@
       }
     ],
     "steps": [
-      "Rehogar el ajo en aceite",
-      "Añadir el arroz y sofreírlo 1 min sin dejar de remover",
-      "Incorporar tomate y agua, salpimentar",
-      "Cocer tapado 18 min a fuego lento"
+      "Pelar y picar ajo muy fino.",
+      "Calentar aceite de oliva en una cazuela a fuego medio.",
+      "Sofreír el ajo picado en el aceite caliente hasta que esté dorado y fragante, sin que llegue a quemarse.",
+      "Añadir arroz y sofreír sin parar de remover hasta que los granos estén ligeramente translúcidos.",
+      "Incorporar tomate triturado y remover para integrar bien con el arroz.",
+      "Añadir 360 ml de agua, remover y llevar a ebullición a fuego fuerte.",
+      "Tapar la cazuela, bajar a fuego suave y cocer hasta que el arroz haya absorbido todo el líquido y esté tierno.",
+      "Retirar del fuego y dejar reposar tapado 2 min antes de servir.",
+      "Servir el arroz con tomate en platos hondos recién hecho."
     ],
     "description": "Arroz blanco cocido con salsa de tomate frito",
     "methods": [
@@ -227,7 +393,58 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo y el tomate en la olla. Añade el arroz y 1.5 veces su volumen de agua, cierra la olla y cocina a presión durante 6-7 minutos. Deja despresurizar de forma natural para un arroz perfecto."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Ajo}} muy fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado en el aceite caliente hasta que esté dorado y fragante, sin que llegue a quemarse.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y sofreír sin parar de remover hasta que los granos estén ligeramente translúcidos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y remover para integrar bien con el arroz.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir 360 ml de agua, remover y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la cazuela, bajar a fuego suave y cocer hasta que el arroz haya absorbido todo el líquido y esté tierno.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar tapado 2 min antes de servir.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el arroz con tomate en platos hondos recién hecho.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "pasta_arroces_004",
@@ -294,10 +511,19 @@
       }
     ],
     "steps": [
-      "Dorar la costilla y la morcilla en cazuela de barro",
-      "Añadir tomate y pimentón, sofreír",
-      "Incorporar arroz, garbanzos, patata y caldo",
-      "Hornear a 200°C 25 min hasta que el arroz esté seco"
+      "Pelar patata y cortar en rodajas de unos 5 mm de grosor.",
+      "Calentar aceite de oliva en una cazuela de barro a fuego medio.",
+      "Dorar costilla de cerdo en el aceite caliente hasta que esté dorada por todos los lados; retirar y reservar.",
+      "Dorar morcilla en la misma cazuela a fuego medio hasta que esté marcada; retirar y reservar.",
+      "Añadir tomate triturado a la cazuela y sofreír a fuego medio durante 3 min hasta que reduzca ligeramente.",
+      "Incorporar pimentón al sofrito y remover 30 segundos a fuego suave para que no se queme.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Repartir arroz de forma uniforme sobre el sofrito en la cazuela de barro.",
+      "Distribuir garbanzos cocidos, las rodajas de patata, la costilla reservada y la morcilla reservada sobre el arroz.",
+      "Verter agua o caldo caliente hasta cubrir el arroz unos 2 cm por encima (aprox. 360 ml); salpimentar al gusto.",
+      "Hornear la cazuela destapada a 200 °C durante 25 min hasta que el arroz esté seco y la superficie ligeramente dorada.",
+      "Retirar la cazuela del horno y dejar reposar 3 min antes de servir.",
+      "Servir el arroz al horno directamente en la cazuela de barro."
     ],
     "description": "Arroz al horno valenciano con costilla, morcilla y garbanzos",
     "methods": [
@@ -307,7 +533,78 @@
         "difficulty": "normal",
         "prepSummary": "Prepara un sofrito con la costilla y el tomate, añade el arroz y el caldo (o agua con pimentón) en una cazuela de barro. Hornea a 190°C durante 45-50 minutos, incorporando la morcilla y las patatas cortadas a mitad de cocción para que se doren y el arroz quede suelto y con socarrat en el fondo."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en rodajas de unos 5 mm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela de barro a fuego medio.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar {{Costilla de cerdo}} en el aceite caliente hasta que esté dorada por todos los lados; retirar y reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar {{Morcilla}} en la misma cazuela a fuego medio hasta que esté marcada; retirar y reservar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} a la cazuela y sofreír a fuego medio durante 3 min hasta que reduzca ligeramente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Pimentón|pizca}} al sofrito y remover 30 segundos a fuego suave para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Repartir {{Arroz}} de forma uniforme sobre el sofrito en la cazuela de barro.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Distribuir {{Garbanzos cocidos}}, las rodajas de patata, la costilla reservada y la morcilla reservada sobre el arroz.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter agua o caldo caliente hasta cubrir el arroz unos 2 cm por encima (aprox. 360 ml); salpimentar al gusto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear la cazuela destapada a 200 °C durante 25 min hasta que el arroz esté seco y la superficie ligeramente dorada.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la cazuela del horno y dejar reposar 3 min antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el arroz al horno directamente en la cazuela de barro.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 4,
+    "saturated_fat_g": 7,
+    "sodium_mg": 420
   },
   {
     "id": "pasta_arroces_005",
@@ -362,13 +659,93 @@
       }
     ],
     "steps": [
-      "Cocer los espaguetis al dente",
-      "Dorar la panceta en dados sin aceite extra",
-      "Mezclar huevos con parmesano rallado",
-      "Juntar pasta caliente con panceta y mezcla de huevo fuera del fuego"
+      "Rallar queso parmesano finamente y reservar.",
+      "Cortar panceta en dados de unos 5 mm y reservar.",
+      "Batir huevo en un bol.",
+      "Añadir el queso parmesano rallado al huevo batido y mezclar hasta obtener una crema homogénea. Reservar.",
+      "Llevar a ebullición una olla con agua abundante y sal al gusto.",
+      "Cocer espaguetis en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del paquete.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la panceta en dados hasta que esté dorada y crujiente.",
+      "Escurrir los espaguetis reservando un vaso del agua de cocción.",
+      "Retirar la sartén del fuego e incorporar los espaguetis escurridos a la panceta.",
+      "Añadir la crema de huevo y parmesano sobre la pasta y remover con rapidez.",
+      "Añadir el agua de cocción reservada poco a poco hasta que la salsa ligue y quede cremosa sin cuajar el huevo.",
+      "Servir de inmediato con más queso parmesano rallado al gusto."
     ],
     "description": "Espaguetis carbonara con panceta, huevo y parmesano",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Rallar {{Queso parmesano}} finamente y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Panceta}} en dados de unos 5 mm y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el queso parmesano rallado al huevo batido y mezclar hasta obtener una crema homogénea. Reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y sal al gusto.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del paquete.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la panceta en dados hasta que esté dorada y crujiente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los espaguetis reservando un vaso del agua de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego e incorporar los espaguetis escurridos a la panceta.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la crema de huevo y parmesano sobre la pasta y remover con rapidez.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el agua de cocción reservada poco a poco hasta que la salsa ligue y quede cremosa sin cuajar el huevo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato con más queso parmesano rallado al gusto.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 9,
+    "sodium_mg": 520
   },
   {
     "id": "pasta_arroces_006",
@@ -433,10 +810,18 @@
       }
     ],
     "steps": [
-      "Cocer los macarrones en agua con sal",
-      "Sofreír cebolla y ajo, añadir tomate",
-      "Incorporar el atún escurrido y orégano",
-      "Mezclar con la pasta"
+      "Picar cebolla en trozos finos y picar ajo.",
+      "Llevar a ebullición una olla con agua abundante y sal.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
+      "Añadir el ajo picado y sofreír 1 min hasta que se dore ligeramente.",
+      "Incorporar tomate triturado a la sartén y remover. Cocer a fuego medio hasta que reduzca.",
+      "Cocer macarrones en el agua hirviendo según el tiempo indicado en el paquete, hasta que estén al dente.",
+      "Escurrir atún en conserva y desmenuzarlo con un tenedor.",
+      "Añadir el atún desmenuzado a la salsa de tomate y mezclar a fuego suave.",
+      "Añadir orégano a la salsa y remover para integrar.",
+      "Escurrir los macarrones y añadirlos a la sartén con la salsa. Mezclar bien a fuego suave hasta que estén integrados.",
+      "Servir los macarrones en platos hondos y añadir orégano al gusto."
     ],
     "description": "Macarrones con salsa de tomate y atún en conserva",
     "methods": [
@@ -446,7 +831,73 @@
         "difficulty": "facil",
         "prepSummary": "Pica la cebolla y el ajo, sofríelos con aceite. Añade el tomate triturado, orégano y un poco de agua, cocina unos minutos. Incorpora los macarrones y cocina el tiempo indicado en el paquete. Finalmente, añade el atún escurrido y mezcla."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} en trozos finos y picar {{Ajo}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y sal.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la sartén hasta que esté transparente.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min hasta que se dore ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} a la sartén y remover. Cocer a fuego medio hasta que reduzca.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer {{Macarrones}} en el agua hirviendo según el tiempo indicado en el paquete, hasta que estén al dente.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir {{Atún en conserva}} y desmenuzarlo con un tenedor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el atún desmenuzado a la salsa de tomate y mezclar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Orégano|pizca}} a la salsa y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los macarrones y añadirlos a la sartén con la salsa. Mezclar bien a fuego suave hasta que estén integrados.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los macarrones en platos hondos y añadir orégano al gusto.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 2,
+    "sodium_mg": 420
   },
   {
     "id": "pasta_arroces_007",
@@ -512,10 +963,22 @@
       }
     ],
     "steps": [
-      "Dorar el pollo troceado y reservar",
-      "Sofreír cebolla, pimiento y tomate con pimentón",
-      "Añadir arroz, sofreír removiendo 1 min, incorporar caldo y pollo",
-      "Cocer 18 min a fuego lento sin remover"
+      "Cortar contramuslo de pollo en trozos de unos 4 cm.",
+      "Salpimentar los trozos de contramuslo de pollo y reservar.",
+      "Picar cebolla en brunoise fina.",
+      "Cortar pimiento rojo en dados pequeños.",
+      "Calentar aceite de oliva en una cazuela amplia a fuego medio hasta que esté caliente.",
+      "Dorar los trozos de contramuslo de pollo en la cazuela a fuego medio-fuerte hasta que estén dorados por todos los lados.",
+      "Retirar el contramuslo de pollo dorado y reservar en un plato.",
+      "Sofreír la cebolla picada y el pimiento rojo en la misma cazuela a fuego medio hasta que estén tiernos.",
+      "Añadir tomate triturado y pimentón al sofrito; remover hasta integrar.",
+      "Cocinar el sofrito a fuego medio hasta que el tomate pierda el agua.",
+      "Añadir arroz y remover hasta que los granos queden bien impregnados del sofrito.",
+      "Incorporar el contramuslo de pollo reservado y guisantes; remover para integrar.",
+      "Cubrir con 360 ml de agua caliente, llevar a ebullición a fuego fuerte y ajustar de sal.",
+      "Cocer a fuego suave, tapado, sin remover hasta que el arroz haya absorbido todo el líquido.",
+      "Retirar del fuego y dejar reposar tapado antes de servir.",
+      "Servir el arroz con pollo directamente de la cazuela, repartiendo el pollo de forma uniforme."
     ],
     "description": "Arroz caldoso con trozos de pollo, pimiento y guisantes",
     "methods": [
@@ -537,7 +1000,93 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el pollo y las verduras en la olla abierta. Añade el arroz, tomate, pimentón y el caldo (1.5 veces el volumen de arroz), cierra la olla y cocina a presión media-alta durante 8-10 minutos desde que sube la válvula. Deja reposar unos minutos antes de abrir."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Contramuslo de pollo}} en trozos de unos 4 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar los trozos de contramuslo de pollo y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en brunoise fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una cazuela amplia a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los trozos de contramuslo de pollo en la cazuela a fuego medio-fuerte hasta que estén dorados por todos los lados.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el contramuslo de pollo dorado y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el pimiento rojo en la misma cazuela a fuego medio hasta que estén tiernos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Pimentón}} al sofrito; remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocinar el sofrito a fuego medio hasta que el tomate pierda el agua.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y remover hasta que los granos queden bien impregnados del sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el contramuslo de pollo reservado y {{Guisantes}}; remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con 360 ml de agua caliente, llevar a ebullición a fuego fuerte y ajustar de sal.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave, tapado, sin remover hasta que el arroz haya absorbido todo el líquido.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar tapado antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el arroz con pollo directamente de la cazuela, repartiendo el pollo de forma uniforme.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 3,
+    "sodium_mg": 320
   },
   {
     "id": "pasta_arroces_008",
@@ -605,10 +1154,18 @@
       }
     ],
     "steps": [
-      "Dorar la carne picada y reservar",
-      "Sofreír cebolla, pimiento y ajo, añadir tomate y pimentón",
-      "Tostar los fideos en la salsa, añadir caldo",
-      "Incorporar la carne y cocer 12 min"
+      "Picar cebolla y pimiento verde en trozos pequeños. Picar ajo fino. Reservar por separado.",
+      "Calentar aceite de oliva en una sartén amplia a fuego fuerte hasta que esté caliente.",
+      "Añadir carne picada de cerdo y dorar a fuego fuerte, removiendo, hasta que pierda el color rosado y esté dorada.",
+      "Retirar la carne de la sartén y reservar en un plato.",
+      "Bajar a fuego medio. Sofreír la cebolla y el pimiento verde picados en la misma sartén hasta que estén tiernos.",
+      "Añadir el ajo picado y pimentón y sofreír hasta que el ajo esté dorado, sin que se queme.",
+      "Añadir tomate triturado y sofreír a fuego medio hasta que reduzca y la salsa esté concentrada.",
+      "Añadir fideos gruesos y tostar en la salsa a fuego medio, removiendo, hasta que se doren ligeramente.",
+      "Cubrir los fideos con agua caliente o caldo hasta superarlos en 1 cm. Llevar a ebullición a fuego fuerte.",
+      "Incorporar la carne reservada, remover y cocer a fuego medio hasta que los fideos estén tiernos y absorban el caldo.",
+      "Retirar del fuego y dejar reposar 1 min antes de servir.",
+      "Servir los fideos con la carne directamente en platos hondos."
     ],
     "description": "Fideos gruesos guisados con carne picada y sofrito",
     "methods": [
@@ -618,7 +1175,73 @@
         "difficulty": "facil",
         "prepSummary": "Pica la cebolla, pimiento y ajo. Sofríe con aceite, añade la carne y sofríe. Incorpora el tomate, pimentón, fideos y agua/caldo. Cocina a temperatura y tiempo indicados para los fideos."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} y {{Pimiento verde}} en trozos pequeños. Picar {{Ajo}} fino. Reservar por separado.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén amplia a fuego fuerte hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Carne picada de cerdo}} y dorar a fuego fuerte, removiendo, hasta que pierda el color rosado y esté dorada.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la carne de la sartén y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio. Sofreír la cebolla y el pimiento verde picados en la misma sartén hasta que estén tiernos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y {{Pimentón|pizca}} y sofreír hasta que el ajo esté dorado, sin que se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca y la salsa esté concentrada.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Fideos gruesos}} y tostar en la salsa a fuego medio, removiendo, hasta que se doren ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir los fideos con agua caliente o caldo hasta superarlos en 1 cm. Llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la carne reservada, remover y cocer a fuego medio hasta que los fideos estén tiernos y absorban el caldo.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar 1 min antes de servir.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir los fideos con la carne directamente en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320
   },
   {
     "id": "pasta_arroces_009",
@@ -677,13 +1300,87 @@
       }
     ],
     "steps": [
-      "Cocer el arroz blanco 18 min",
-      "Hacer salsa de tomate con ajo",
-      "Freír los huevos y el plátano en rodajas",
-      "Servir arroz con tomate, huevo y plátano"
+      "Pelar ajo y picar fino. Reservar.",
+      "Pelar plátano macho y cortar en rodajas de 1 cm. Reservar.",
+      "Llevar a ebullición una olla con agua y sal a fuego fuerte.",
+      "Añadir arroz al agua hirviendo y cocer a fuego medio durante 18 min hasta que esté tierno.",
+      "Calentar aceite de oliva en sartén a fuego medio y sofreír el ajo picado 1 min hasta que empiece a dorarse.",
+      "Añadir tomate triturado a la sartén con el ajo y cocer a fuego suave 8 min hasta que la salsa espese.",
+      "Retirar la salsa de tomate de la sartén y reservar.",
+      "Calentar aceite de oliva en sartén a fuego fuerte y freír las rodajas de plátano macho 2 min hasta que estén doradas.",
+      "Dar la vuelta a las rodajas de plátano macho y freír 2 min más hasta que estén doradas por el otro lado. Retirar y reservar.",
+      "Freír huevo en la misma sartén a fuego medio hasta que la clara esté cuajada y el borde dorado.",
+      "Escurrir el arroz cocido.",
+      "Servir el arroz en plato junto a la salsa de tomate, el huevo frito y las rodajas de plátano macho."
     ],
     "description": "Arroz blanco con tomate frito, huevo frito y plátano",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Ajo}} y picar fino. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Plátano macho}} y cortar en rodajas de 1 cm. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua y {{Sal|gusto}} a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} al agua hirviendo y cocer a fuego medio durante 18 min hasta que esté tierno.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio y sofreír el ajo picado 1 min hasta que empiece a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} a la sartén con el ajo y cocer a fuego suave 8 min hasta que la salsa espese.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la salsa de tomate de la sartén y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte y freír las rodajas de plátano macho 2 min hasta que estén doradas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a las rodajas de plátano macho y freír 2 min más hasta que estén doradas por el otro lado. Retirar y reservar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír {{Huevo}} en la misma sartén a fuego medio hasta que la clara esté cuajada y el borde dorado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir el arroz cocido.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Servir el arroz en plato junto a la salsa de tomate, el huevo frito y las rodajas de plátano macho.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 9,
+    "saturated_fat_g": 4,
+    "sodium_mg": 320
   },
   {
     "id": "pasta_arroces_010",
@@ -745,10 +1442,16 @@
       }
     ],
     "steps": [
-      "Triturar albahaca, piñones, ajo, parmesano y aceite",
-      "Cocer la pasta al dente",
-      "Reservar un poco de agua de cocción",
-      "Mezclar la pasta con el pesto y un chorrito de agua"
+      "Rallar queso parmesano con un rallador fino y reservar.",
+      "Llevar una olla con agua abundante y sal a ebullición a fuego fuerte.",
+      "Cocer espaguetis en el agua hirviendo siguiendo el tiempo indicado en el envase, hasta que estén al dente.",
+      "Poner albahaca fresca, piñones, ajo, el queso parmesano rallado y aceite de oliva en el vaso de la batidora.",
+      "Triturar todos los ingredientes del vaso hasta obtener una pasta homogénea y reservar el pesto.",
+      "Reservar un cazo pequeño con agua de cocción de la olla antes de escurrir los espaguetis.",
+      "Escurrir los espaguetis y devolverlos a la olla a fuego suave.",
+      "Añadir el pesto reservado a la olla y mezclar bien con los espaguetis hasta que queden uniformemente cubiertos.",
+      "Añadir un chorrito del agua de cocción reservada y remover hasta que la salsa ligue y tenga textura cremosa.",
+      "Servir los espaguetis al pesto en platos hondos."
     ],
     "description": "Espaguetis con pesto casero de albahaca y piñones",
     "methods": [
@@ -758,7 +1461,63 @@
         "difficulty": "facil",
         "prepSummary": "La Thermomix es ideal para esta receta. Primero, tritura los ingredientes del pesto en el vaso a velocidad progresiva durante unos segundos. Luego, sin limpiar el vaso, añade agua y sal, calienta y cocina los espaguetis según el tiempo indicado en el paquete."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Rallar {{Queso parmesano}} con un rallador fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar una olla con agua abundante y {{Sal|gusto}} a ebullición a fuego fuerte.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer {{Espaguetis}} en el agua hirviendo siguiendo el tiempo indicado en el envase, hasta que estén al dente.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Poner {{Albahaca fresca}}, {{Piñones}}, {{Ajo}}, el queso parmesano rallado y {{Aceite de oliva}} en el vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar todos los ingredientes del vaso hasta obtener una pasta homogénea y reservar el pesto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reservar un cazo pequeño con agua de cocción de la olla antes de escurrir los espaguetis.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los espaguetis y devolverlos a la olla a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pesto reservado a la olla y mezclar bien con los espaguetis hasta que queden uniformemente cubiertos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito del agua de cocción reservada y remover hasta que la salsa ligue y tenga textura cremosa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los espaguetis al pesto en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320
   },
   {
     "id": "pasta_arroces_011",
@@ -825,10 +1584,17 @@
       }
     ],
     "steps": [
-      "Sofreír las verduras troceadas 5 min",
-      "Añadir tomate y pimentón, rehogar",
-      "Incorporar arroz y caldo caliente",
-      "Cocer 18 min a fuego lento sin remover"
+      "Cortar judías verdes en trozos de 2-3 cm y zanahoria en dados pequeños.",
+      "Cortar pimiento rojo en dados pequeños.",
+      "Calentar aceite de oliva en una cazuela amplia a fuego medio.",
+      "Sofreír las judías verdes, la zanahoria y el pimiento rojo hasta que estén ligeramente tiernos, unos 5 min.",
+      "Añadir guisantes y remover para integrar con el resto de verduras.",
+      "Añadir tomate triturado y pimentón y sofreír hasta que el tomate pierda el agua, unos 2 min.",
+      "Añadir arroz y remover para que se impregne bien del sofrito durante 1 min.",
+      "Añadir 360 ml de agua caliente, llevar a ebullición a fuego fuerte y remover una sola vez.",
+      "Reducir a fuego suave, tapar la cazuela y cocer hasta que el arroz absorba todo el líquido, unos 16 min.",
+      "Retirar del fuego y dejar reposar tapado 2 min antes de servir.",
+      "Servir el arroz con verduras directamente de la cazuela."
     ],
     "description": "Arroz seco con verduras de temporada al estilo paella",
     "methods": [
@@ -850,7 +1616,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe las verduras en la olla abierta con aceite. Añade el arroz, tomate, pimentón y 1.5 veces su volumen de agua caliente. Cierra la olla y cocina a presión (posición 2) durante 5-7 minutos. Apaga el fuego y deja despresurizar sola."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Judías verdes}} en trozos de 2-3 cm y {{Zanahoria}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una cazuela amplia a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír las judías verdes, la zanahoria y el pimiento rojo hasta que estén ligeramente tiernos, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} y remover para integrar con el resto de verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Pimentón|pizca}} y sofreír hasta que el tomate pierda el agua, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y remover para que se impregne bien del sofrito durante 1 min.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir 360 ml de agua caliente, llevar a ebullición a fuego fuerte y remover una sola vez.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir a fuego suave, tapar la cazuela y cocer hasta que el arroz absorba todo el líquido, unos 16 min.",
+        "minutes": 16,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar tapado 2 min antes de servir.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el arroz con verduras directamente de la cazuela.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 6,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "pasta_arroces_012",
@@ -914,10 +1741,17 @@
       }
     ],
     "steps": [
-      "Cocer los espaguetis al dente",
-      "Saltear ajo y guindilla en aceite, añadir gambas",
-      "Verter vino blanco y dejar reducir",
-      "Mezclar con la pasta y perejil"
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Laminar ajo finamente y reservar.",
+      "Cortar guindilla en rodajas finas y reservar.",
+      "Cocer espaguetis en el agua hirviendo hasta que estén al dente, unos 8 min.",
+      "Calentar sartén a fuego medio con aceite de oliva.",
+      "Sofreír el ajo laminado y la guindilla en rodajas hasta que el ajo esté dorado, unos 2 min.",
+      "Añadir gambas peladas y saltear a fuego fuerte hasta que estén rosadas, unos 2 min.",
+      "Verter vino blanco y remover a fuego fuerte hasta que se evapore el alcohol, unos 2 min.",
+      "Escurrir los espaguetis y añadirlos a la sartén.",
+      "Mezclar a fuego suave hasta que la pasta quede bien ligada con la salsa, 1 min.",
+      "Picar perejil fino y esparcir sobre la pasta antes de servir."
     ],
     "description": "Espaguetis salteados con gambas al ajillo y vino blanco",
     "methods": [
@@ -927,7 +1761,68 @@
         "difficulty": "facil",
         "prepSummary": "Cocina la pasta en el vaso con agua y sal. Luego, en el mismo vaso, sofríe el ajo y la guindilla, añade las gambas y el vino blanco para hacer la salsa, y finalmente mezcla todo."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición una olla grande con agua abundante y {{Sal|gusto}}.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Laminar {{Ajo}} finamente y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Guindilla}} en rodajas finas y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cocer {{Espaguetis}} en el agua hirviendo hasta que estén al dente, unos 8 min.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado y la guindilla en rodajas hasta que el ajo esté dorado, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Gambas peladas}} y saltear a fuego fuerte hasta que estén rosadas, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino blanco}} y remover a fuego fuerte hasta que se evapore el alcohol, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los espaguetis y añadirlos a la sartén.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar a fuego suave hasta que la pasta quede bien ligada con la salsa, 1 min.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Picar {{Perejil|gusto}} fino y esparcir sobre la pasta antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 2,
+    "sodium_mg": 420
   },
   {
     "id": "pasta_arroces_013",
@@ -996,10 +1891,19 @@
       }
     ],
     "steps": [
-      "Sofreír sepia troceada con cebolla y ajo",
-      "Añadir tomate y la tinta disuelta en caldo",
-      "Incorporar el arroz y repartir bien",
-      "Cocer 18 min a fuego medio sin remover"
+      "Pelar y picar cebolla en trozos finos.",
+      "Pelar y picar ajo en trozos finos.",
+      "Cortar sepia en trozos de bocado de unos 2 cm.",
+      "Disolver tinta de calamar en caldo de pescado removiendo hasta que se integre por completo. Reservar.",
+      "Calentar aceite de oliva en una paella o cazuela ancha a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada y el ajo picado a fuego medio, removiendo, hasta que estén blandos y translúcidos.",
+      "Añadir la sepia troceada y saltear a fuego fuerte hasta que se dore ligeramente por fuera.",
+      "Añadir tomate triturado y sofreír a fuego medio hasta que pierda el agua y el conjunto se concentre.",
+      "Incorporar arroz y remover durante 1 min hasta que los granos queden impregnados del sofrito.",
+      "Verter el caldo con la tinta reservado, repartir bien el arroz en una capa uniforme y llevar a ebullición.",
+      "Cocer a fuego medio-suave, sin remover, hasta que el arroz absorba el caldo y esté en su punto.",
+      "Retirar del fuego y dejar reposar tapado 2 min antes de servir.",
+      "Servir el arroz negro directamente desde la cazuela, repartiendo la sepia de forma uniforme entre los platos."
     ],
     "description": "Arroz teñido con tinta de calamar y sepia troceada",
     "methods": [
@@ -1021,7 +1925,78 @@
         "difficulty": "normal",
         "prepSummary": "Se sofríen las verduras y la sepia en la olla. Se añade el arroz, la tinta y el caldo, se cierra la olla y se cocina a presión durante 7-8 minutos. Se despresuriza y se deja reposar unos minutos antes de servir."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} en trozos finos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Sepia}} en trozos de bocado de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Disolver {{Tinta de calamar}} en {{Caldo de pescado}} removiendo hasta que se integre por completo. Reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una paella o cazuela ancha a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado a fuego medio, removiendo, hasta que estén blandos y translúcidos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la sepia troceada y saltear a fuego fuerte hasta que se dore ligeramente por fuera.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua y el conjunto se concentre.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Arroz}} y remover durante 1 min hasta que los granos queden impregnados del sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el caldo con la tinta reservado, repartir bien el arroz en una capa uniforme y llevar a ebullición.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio-suave, sin remover, hasta que el arroz absorba el caldo y esté en su punto.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar tapado 2 min antes de servir.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el arroz negro directamente desde la cazuela, repartiendo la sepia de forma uniforme entre los platos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 2,
+    "sodium_mg": 520
   },
   {
     "id": "pasta_arroces_014",
@@ -1092,10 +2067,19 @@
       }
     ],
     "steps": [
-      "Cocer la pasta al dente",
-      "Pochar la cebolla y el ajo, y saltear los champiñones laminados",
-      "Añadir el salmón en dados y la nata, y cocer a fuego suave hasta ligar la salsa",
-      "Mezclar con la pasta y terminar con perejil picado"
+      "Laminar champiñones y reservar.",
+      "Picar cebolla en trozos finos y reservar.",
+      "Picar ajo fino y reservar.",
+      "Cortar salmón en dados de unos 2 cm y reservar.",
+      "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+      "Cocer macarrones en el agua hirviendo hasta que estén al dente, según el tiempo del paquete.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada y el ajo picado en la sartén hasta que estén tiernos y ligeramente dorados.",
+      "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
+      "Añadir los dados de salmón y saltear a fuego medio hasta que estén sellados por fuera, unos 2 min.",
+      "Añadir nata y remover a fuego suave hasta que la salsa ligue y espese ligeramente.",
+      "Escurrir los macarrones y añadirlos a la sartén; remover hasta que se integren bien con la salsa.",
+      "Picar perejil y repartir sobre la pasta antes de servir."
     ],
     "description": "Pasta con salmón, champiñones y cebolla en una salsa suave y sedosa",
     "methods": [
@@ -1105,7 +2089,78 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla, el ajo y los champiñones en el vaso. Añade la pasta, el agua y la sal, cocinando el tiempo indicado en el paquete. Incorpora el salmón en dados y la nata, y mezcla a baja velocidad hasta integrar una salsa suave y sedosa. Termina con perejil."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Champiñones}} y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos finos y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Salmón}} en dados de unos 2 cm y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer {{Macarrones}} en el agua hirviendo hasta que estén al dente, según el tiempo del paquete.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado en la sartén hasta que estén tiernos y ligeramente dorados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de salmón y saltear a fuego medio hasta que estén sellados por fuera, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nata}} y remover a fuego suave hasta que la salsa ligue y espese ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los macarrones y añadirlos a la sartén; remover hasta que se integren bien con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Picar {{Perejil|gusto}} y repartir sobre la pasta antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 6,
+    "sodium_mg": 320
   },
   {
     "id": "pasta_arroces_015",
@@ -1173,13 +2228,113 @@
       }
     ],
     "steps": [
-      "Cocer el arroz y enfriar (mejor del día anterior)",
-      "Hacer tortilla con los huevos y trocear",
-      "Saltear zanahoria en dados, guisantes y jamón",
-      "Añadir arroz y soja, saltear a fuego fuerte 3 min"
+      "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+      "Añadir arroz y cocer según el paquete hasta que esté tierno.",
+      "Pelar zanahoria y cortar en dados de 5 mm.",
+      "Cortar jamón cocido en dados de 5 mm.",
+      "Batir huevo en un bol con salsa de soja hasta que estén homogéneos.",
+      "Escurrir el arroz cocido y extender en una bandeja para que enfríe.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Añadir el huevo batido y cuajar sin remover hasta que esté hecho por dentro.",
+      "Retirar la tortilla de la sartén y cortar en dados de 5 mm. Reservar.",
+      "Subir el fuego a fuerte en la misma sartén. Saltear la zanahoria 2 min hasta que empiece a estar tierna.",
+      "Añadir guisantes y saltear junto a la zanahoria 1 min hasta que estén calientes.",
+      "Añadir el jamón cocido y saltear 1 min removiendo hasta que se integre con las verduras.",
+      "Añadir el arroz frío y saltear a fuego fuerte 2 min removiendo sin parar hasta que esté suelto.",
+      "Verter salsa de soja sobre el arroz y saltear 1 min removiendo hasta que tome color uniforme.",
+      "Añadir los dados de tortilla reservados y mezclar con suavidad hasta incorporarlos sin que se deshagan.",
+      "Servir de inmediato."
     ],
     "description": "Arroz salteado con tortilla, guisantes, zanahoria y jamón",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y cocer según el paquete hasta que esté tierno.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en dados de 5 mm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón cocido}} en dados de 5 mm.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol con {{Salsa de soja|pizca}} hasta que estén homogéneos.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Escurrir el arroz cocido y extender en una bandeja para que enfríe.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el huevo batido y cuajar sin remover hasta que esté hecho por dentro.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la tortilla de la sartén y cortar en dados de 5 mm. Reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Subir el fuego a fuerte en la misma sartén. Saltear la zanahoria 2 min hasta que empiece a estar tierna.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} y saltear junto a la zanahoria 1 min hasta que estén calientes.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el jamón cocido y saltear 1 min removiendo hasta que se integre con las verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el arroz frío y saltear a fuego fuerte 2 min removiendo sin parar hasta que esté suelto.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Salsa de soja}} sobre el arroz y saltear 1 min removiendo hasta que tome color uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de tortilla reservados y mezclar con suavidad hasta incorporarlos sin que se deshagan.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 3,
+    "sodium_mg": 780
   },
   {
     "id": "pasta_arroces_016",
@@ -1243,10 +2398,20 @@
       }
     ],
     "steps": [
-      "Cocer los tallarines al dente",
-      "Saltear pollo en tiras a fuego fuerte",
-      "Añadir pimiento y calabacín en juliana con ajo",
-      "Incorporar pasta y soja, saltear 2 min"
+      "Cortar pechuga de pollo en tiras finas de 1 cm de grosor.",
+      "Cortar pimiento rojo en juliana fina.",
+      "Cortar calabacín en juliana fina.",
+      "Picar ajo muy fino.",
+      "Llevar a ebullición una olla grande con agua abundante y salsa de soja.",
+      "Añadir tallarines cuando el agua rompa a hervir y cocer hasta que estén al dente, según el tiempo del paquete.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Saltear las tiras de pechuga de pollo en sartén a fuego fuerte hasta que estén doradas por fuera y cocidas por dentro.",
+      "Añadir el pimiento rojo, el calabacín y el ajo picado a sartén.",
+      "Saltear las verduras a fuego fuerte hasta que estén tiernas pero con mordida.",
+      "Escurrir los tallarines al dente y reservar un poco del agua de cocción.",
+      "Incorporar los tallarines escurridos a sartén y añadir salsa de soja.",
+      "Saltear a fuego fuerte removiendo constantemente hasta que todo esté bien integrado.",
+      "Servir los tallarines con pollo directamente desde sartén al plato, bien calientes."
     ],
     "description": "Tallarines salteados con tiras de pollo y verduras",
     "methods": [
@@ -1256,7 +2421,83 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo, pollo y verduras en el vaso. Añade los tallarines, agua (o caldo) y salsa de soja, y cocina a la temperatura y tiempo indicados para la pasta, usando la mariposa para remover."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en tiras finas de 1 cm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en juliana fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en juliana fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla grande con agua abundante y {{Salsa de soja|gusto}}.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Tallarines}} cuando el agua rompa a hervir y cocer hasta que estén al dente, según el tiempo del paquete.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear las tiras de pechuga de pollo en {{@Sartén}} a fuego fuerte hasta que estén doradas por fuera y cocidas por dentro.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pimiento rojo, el calabacín y el ajo picado a {{@Sartén}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear las verduras a fuego fuerte hasta que estén tiernas pero con mordida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los tallarines al dente y reservar un poco del agua de cocción.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Incorporar los tallarines escurridos a {{@Sartén}} y añadir {{Salsa de soja}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear a fuego fuerte removiendo constantemente hasta que todo esté bien integrado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los tallarines con pollo directamente desde {{@Sartén}} al plato, bien calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 2,
+    "sodium_mg": 620
   },
   {
     "id": "pasta_arroces_017",
@@ -1322,10 +2563,22 @@
       }
     ],
     "steps": [
-      "Hacer boloñesa con carne, cebolla y tomate",
-      "Montar capas: placa, boloñesa, bechamel, repetir",
-      "Terminar con bechamel y queso rallado",
-      "Hornear a 190°C 30 min hasta gratinar"
+      "Cortar cebolla en dados finos.",
+      "Calentar aceite de oliva en una sartén grande a fuego medio.",
+      "Sofreír la cebolla picada en sartén hasta que esté transparente, unos 5 min a fuego medio.",
+      "Añadir carne picada de ternera y saltear a fuego fuerte hasta que pierda el color rosado por completo.",
+      "Añadir tomate triturado, remover y cocer a fuego suave hasta que la salsa reduzca y espese, unos 10 min.",
+      "Cocer placas de lasaña en una olla con agua hirviendo con sal el tiempo indicado en el envase; escurrir y reservar sobre un paño limpio.",
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Cubrir la base de una bandeja para horno con una capa fina de bechamel.",
+      "Disponer una capa de placas de lasaña sobre la bechamel, cubriendo toda la superficie sin solapar.",
+      "Extender la mitad de la boloñesa sobre las placas de lasaña de forma uniforme.",
+      "Verter una capa de bechamel sobre la boloñesa y alisar con una espátula.",
+      "Repetir el orden: placas de lasaña, el resto de la boloñesa y otra capa de bechamel.",
+      "Cubrir la superficie con el resto de la bechamel y esparcir queso rallado por encima de manera uniforme.",
+      "Hornear en el horno precalentado a 190 °C durante 25 min hasta que la superficie esté dorada y burbujeante.",
+      "Retirar la bandeja del horno y dejar reposar 5 min antes de cortar.",
+      "Cortar en porciones y servir directamente desde la bandeja."
     ],
     "description": "Lasaña de placas con ragú de ternera, bechamel y queso gratinado",
     "methods": [
@@ -1341,7 +2594,94 @@
         "difficulty": "normal",
         "prepSummary": "Monta la lasaña en un molde pequeño apto para airfryer. Cocina a 170-180°C durante 25-30 minutos, vigilando que no se dore demasiado rápido y cubriendo si es necesario para un gratinado perfecto."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en dados finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén grande a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en {{@Sartén}} hasta que esté transparente, unos 5 min a fuego medio.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Carne picada de ternera}} y saltear a fuego fuerte hasta que pierda el color rosado por completo.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, remover y cocer a fuego suave hasta que la salsa reduzca y espese, unos 10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer {{Placas de lasaña}} en una olla con agua hirviendo con sal el tiempo indicado en el envase; escurrir y reservar sobre un paño limpio.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "paralelo",
+        "during": 4
+      },
+      {
+        "text": "Cubrir la base de una bandeja para horno con una capa fina de {{Bechamel}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer una capa de placas de lasaña sobre la bechamel, cubriendo toda la superficie sin solapar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender la mitad de la boloñesa sobre las placas de lasaña de forma uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter una capa de bechamel sobre la boloñesa y alisar con una espátula.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repetir el orden: placas de lasaña, el resto de la boloñesa y otra capa de bechamel.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir la superficie con el resto de la bechamel y esparcir {{Queso rallado}} por encima de manera uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear en el horno precalentado a 190 °C durante 25 min hasta que la superficie esté dorada y burbujeante.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y dejar reposar 5 min antes de cortar.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar en porciones y servir directamente desde la bandeja.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 7,
+    "saturated_fat_g": 12,
+    "sodium_mg": 520
   },
   {
     "id": "pasta_arroces_018",
@@ -1411,10 +2751,27 @@
       }
     ],
     "steps": [
-      "Sofreír carne con cebolla y tomate",
-      "Cocer las placas, rellenar y enrollar",
-      "Colocar en fuente y cubrir con bechamel",
-      "Espolvorear queso y hornear a 190°C 25 min"
+      "Pelar y picar cebolla muy fina.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente, a fuego suave.",
+      "Añadir carne picada de ternera y sofreír a fuego medio hasta que pierda el color rosado, removiendo con frecuencia.",
+      "Incorporar tomate triturado y remover para integrar.",
+      "Cocer a fuego suave hasta que el relleno reduzca y espese.",
+      "Retirar el relleno del fuego y reservar.",
+      "Llevar a ebullición una olla con abundante agua con sal.",
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Cocer placas de cannelones según el tiempo indicado en el envase, removiendo ocasionalmente.",
+      "Escurrir las placas y extenderlas sobre un paño limpio hasta que se enfríen.",
+      "Disponer una porción del relleno en el borde de cada placa.",
+      "Enrollar cada placa con cuidado hasta formar los cannelones.",
+      "Verter una fina capa de bechamel en el fondo de una fuente apta para horno.",
+      "Colocar los cannelones sobre la bechamel, bien juntos y en una sola capa.",
+      "Cubrir los cannelones con el resto de la bechamel, repartiéndola de forma uniforme.",
+      "Espolvorear queso rallado sobre la bechamel.",
+      "Añadir nuez moscada por encima del queso.",
+      "Hornear a 190 °C durante 20 min, hasta que la superficie esté dorada y burbujeante.",
+      "Retirar la fuente del horno y dejar reposar 3 min antes de servir.",
+      "Servir los cannelones directamente de la fuente, bien calientes."
     ],
     "description": "Cannelones rellenos de carne con bechamel y queso gratinado",
     "methods": [
@@ -1436,7 +2793,119 @@
         "difficulty": "normal",
         "prepSummary": "Una vez montados los canelones con su bechamel y queso (preparados aparte), gratínalos en la airfryer en pequeñas porciones. Precalienta a 180°C y cocina durante 15-20 minutos hasta que el queso esté fundido y dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} muy fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente, a fuego suave.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Carne picada de ternera}} y sofreír a fuego medio hasta que pierda el color rosado, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que el relleno reduzca y espese.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el relleno del fuego y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con abundante agua con sal.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "paralelo",
+        "during": 7
+      },
+      {
+        "text": "Cocer {{Placas de cannelones}} según el tiempo indicado en el envase, removiendo ocasionalmente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las placas y extenderlas sobre un paño limpio hasta que se enfríen.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer una porción del relleno en el borde de cada placa.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Enrollar cada placa con cuidado hasta formar los cannelones.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter una fina capa de {{Bechamel}} en el fondo de una fuente apta para horno.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los cannelones sobre la bechamel, bien juntos y en una sola capa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir los cannelones con el resto de la bechamel, repartiéndola de forma uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Espolvorear {{Queso rallado}} sobre la bechamel.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nuez moscada|pizca}} por encima del queso.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 190 °C durante 20 min, hasta que la superficie esté dorada y burbujeante.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la fuente del horno y dejar reposar 3 min antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir los cannelones directamente de la fuente, bien calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 12,
+    "sodium_mg": 520
   },
   {
     "id": "pasta_arroces_019",
@@ -1506,13 +2975,88 @@
       }
     ],
     "steps": [
-      "Sofreír sepia con ajo y tomate",
-      "Añadir arroz, sofreír removiendo 1 min, verter caldo caliente",
-      "Cocer 15 min, añadir gambas y almejas",
-      "Cocer 5 min más hasta que se abran las almejas"
+      "Picar ajo fino y cortar sepia en trozos pequeños.",
+      "Calentar aceite de oliva en una cazuela a fuego medio.",
+      "Sofreír el ajo picado hasta que empiece a dorarse, sin que se queme.",
+      "Añadir la sepia troceada y saltear a fuego fuerte hasta que pierda el agua y tome color.",
+      "Añadir tomate triturado y sofreír a fuego medio hasta que reduzca y oscurezca.",
+      "Añadir arroz y remover sin parar durante 1 min para que se impregne del sofrito.",
+      "Calentar caldo de pescado en un cazo aparte hasta que rompa a hervir.",
+      "Verter el caldo caliente sobre el arroz, subir a fuego fuerte y llevar a ebullición.",
+      "Bajar a fuego medio y cocer el arroz sin tapar durante 10 min, removiendo de vez en cuando.",
+      "Añadir gambas y almejas y cocer a fuego medio hasta que las almejas se abran.",
+      "Retirar del fuego y reposar 2 min antes de servir para que el arroz asiente.",
+      "Servir el arroz caldoso directamente en la cazuela o en platos hondos."
     ],
     "description": "Arroz caldoso con gambas, almejas y sepia",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} fino y cortar {{Sepia}} en trozos pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado hasta que empiece a dorarse, sin que se queme.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la sepia troceada y saltear a fuego fuerte hasta que pierda el agua y tome color.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que reduzca y oscurezca.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y remover sin parar durante 1 min para que se impregne del sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Caldo de pescado}} en un cazo aparte hasta que rompa a hervir.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 4
+      },
+      {
+        "text": "Verter el caldo caliente sobre el arroz, subir a fuego fuerte y llevar a ebullición.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y cocer el arroz sin tapar durante 10 min, removiendo de vez en cuando.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Gambas}} y {{Almejas}} y cocer a fuego medio hasta que las almejas se abran.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y reposar 2 min antes de servir para que el arroz asiente.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el arroz caldoso directamente en la cazuela o en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 2,
+    "sodium_mg": 680
   },
   {
     "id": "pasta_arroces_020",
@@ -1576,10 +3120,17 @@
       }
     ],
     "steps": [
-      "Cocer la pasta al dente",
-      "Saltear las verduras en dados a fuego fuerte",
-      "Añadir ajo y albahaca",
-      "Mezclar con la pasta y un chorrito de aceite"
+      "Cortar calabacín, pimiento rojo y berenjena en dados de 1 cm.",
+      "Laminar ajo finamente.",
+      "Llevar a ebullición una olla con abundante agua salada a fuego fuerte.",
+      "Cocer penne en el agua hirviendo hasta que estén al dente, según el tiempo del paquete.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Saltear los dados de calabacín, pimiento rojo y berenjena a fuego fuerte hasta que se doren, removiendo con frecuencia.",
+      "Añadir el ajo laminado a la sartén y sofreír a fuego medio hasta que esté dorado, sin que se queme.",
+      "Escurrir la pasta cocida y añadirla a la sartén con las verduras.",
+      "Mezclar a fuego medio durante 1 min hasta que la pasta quede bien integrada con las verduras.",
+      "Añadir albahaca picada, remover y retirar del fuego.",
+      "Servir la pasta con verduras en platos hondos calientes."
     ],
     "description": "Penne con calabacín, berenjena y pimiento salteados",
     "methods": [
@@ -1589,7 +3140,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo y las verduras con aceite en el vaso. Luego, añade el agua y la pasta, cocinando a la temperatura y tiempo indicados para la pasta, logrando un plato completo y sabroso sin esfuerzo."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Calabacín}}, {{Pimiento rojo}} y {{Berenjena}} en dados de 1 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} finamente.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con abundante agua salada a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer {{Penne}} en el agua hirviendo hasta que estén al dente, según el tiempo del paquete.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear los dados de calabacín, pimiento rojo y berenjena a fuego fuerte hasta que se doren, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado a la sartén y sofreír a fuego medio hasta que esté dorado, sin que se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir la pasta cocida y añadirla a la sartén con las verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar a fuego medio durante 1 min hasta que la pasta quede bien integrada con las verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Albahaca}} picada, remover y retirar del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la pasta con verduras en platos hondos calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 6,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "pasta_arroces_021",
@@ -1658,10 +3270,23 @@
       }
     ],
     "steps": [
-      "Hacer caldo con las cabezas de gamba y recortes de rape",
-      "Sofreír ajo, tomate y pimentón",
-      "Añadir arroz, sofreír removiendo 1 min y verter caldo",
-      "Cocer 18 min, servir pescado y arroz aparte"
+      "Pelar gambas, reservar las colas y apartar las cabezas para el caldo.",
+      "Limpiar rape y cortar en dados de unos 3 cm; reservar.",
+      "Picar ajo muy fino; reservar.",
+      "Verter caldo de pescado en un cazo, añadir las cabezas de las gambas reservadas y llevar a ebullición a fuego fuerte.",
+      "Cocer el caldo a fuego medio durante 5 min, colar y mantener caliente a fuego suave.",
+      "Calentar aceite de oliva en una paella o cazuela amplia a fuego medio.",
+      "Sofreír el ajo picado hasta que esté dorado, sin que se queme.",
+      "Añadir tomate triturado y sofreír a fuego medio hasta que pierda el agua y se concentre, unos 3 min.",
+      "Añadir pimentón y remover 20 segundos fuera del fuego para que no se queme.",
+      "Incorporar arroz y sofreír removiendo a fuego medio durante 1 min hasta que los granos estén nacarados.",
+      "Verter el caldo caliente colado en proporción 2,2:1 sobre el arroz y remover una sola vez para igualar.",
+      "Cocer a fuego fuerte los primeros 5 min sin tapar y sin remover.",
+      "Bajar a fuego suave y cocer 13 min más hasta que el arroz absorba todo el caldo.",
+      "Calentar una plancha a fuego fuerte y marcar los dados de rape 1 min por cada lado hasta que estén dorados.",
+      "Marcar las colas de gambas en la misma plancha a fuego fuerte durante 1 min hasta que estén rosadas.",
+      "Retirar el arroz del fuego y dejar reposar tapado 2 min.",
+      "Servir el arroz en un plato y el rape y las gambas marcadas aparte, al estilo tradicional."
     ],
     "description": "Arroz seco cocinado en caldo de pescado, servido aparte",
     "methods": [
@@ -1677,7 +3302,98 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe el ajo y el tomate en la Thermomix. Añade el arroz, pimentón y caldo, programando 18-20 minutos, 100°C, giro inverso, velocidad cuchara. Incorpora el rape y las gambas los últimos 5 minutos para una cocción perfecta y sin pegarse."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Gambas}}, reservar las colas y apartar las cabezas para el caldo.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Rape}} y cortar en dados de unos 3 cm; reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino; reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Caldo de pescado}} en un cazo, añadir las cabezas de las gambas reservadas y llevar a ebullición a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer el caldo a fuego medio durante 5 min, colar y mantener caliente a fuego suave.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una paella o cazuela amplia a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado hasta que esté dorado, sin que se queme.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua y se concentre, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimentón|pizca}} y remover 20 segundos fuera del fuego para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Arroz}} y sofreír removiendo a fuego medio durante 1 min hasta que los granos estén nacarados.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el caldo caliente colado en proporción 2,2:1 sobre el arroz y remover una sola vez para igualar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego fuerte los primeros 5 min sin tapar y sin remover.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Bajar a fuego suave y cocer 13 min más hasta que el arroz absorba todo el caldo.",
+        "minutes": 13,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar una {{@Plancha}} a fuego fuerte y marcar los dados de rape 1 min por cada lado hasta que estén dorados.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Marcar las colas de gambas en la misma {{@Plancha}} a fuego fuerte durante 1 min hasta que estén rosadas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el arroz del fuego y dejar reposar tapado 2 min.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el arroz en un plato y el rape y las gambas marcadas aparte, al estilo tradicional.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 3,
+    "saturated_fat_g": 2,
+    "sodium_mg": 520
   },
   {
     "id": "pasta_arroces_022",
@@ -1731,10 +3447,15 @@
       }
     ],
     "steps": [
-      "Cocer la pasta al dente reservando agua de cocción",
-      "Dorar ajo laminado y guindilla en aceite a fuego lento",
-      "Añadir la pasta con un cucharón de agua de cocción",
-      "Saltear 1 min y servir con perejil"
+      "Llevar una olla grande con agua abundante y sal a ebullición a fuego fuerte.",
+      "Laminar ajo en rodajas finas y cortar guindilla en aros, retirando las semillas si se desea menos picante.",
+      "Añadir espaguetis al agua hirviendo y cocer según el tiempo del fabricante hasta que estén al dente.",
+      "Calentar aceite de oliva en sartén a fuego suave hasta que esté templado.",
+      "Añadir el ajo laminado y los aros de guindilla al aceite templado y sofreír a fuego suave hasta que el ajo esté dorado y fragante.",
+      "Reservar 1 cazo del agua de cocción antes de escurrir los espaguetis.",
+      "Escurrir los espaguetis y añadirlos a la sartén con el aceite, el ajo y la guindilla.",
+      "Añadir el agua de cocción reservada y saltear a fuego medio removiendo hasta que la salsa ligue y cubra la pasta.",
+      "Picar perejil fino y espolvorear sobre la pasta justo antes de servir."
     ],
     "description": "Espaguetis aglio e olio con ajo dorado y guindilla",
     "methods": [
@@ -1744,7 +3465,59 @@
         "difficulty": "facil",
         "prepSummary": "Pica el ajo y la guindilla, sofríelos con aceite en el vaso. Después, añade el agua y la sal, calienta y cocina los espaguetis al dente, integrando todo al finalizar."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Llevar una olla grande con agua abundante y {{Sal|gusto}} a ebullición a fuego fuerte.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Laminar {{Ajo}} en rodajas finas y cortar {{Guindilla}} en aros, retirando las semillas si se desea menos picante.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Espaguetis}} al agua hirviendo y cocer según el tiempo del fabricante hasta que estén al dente.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego suave hasta que esté templado.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Añadir el ajo laminado y los aros de guindilla al aceite templado y sofreír a fuego suave hasta que el ajo esté dorado y fragante.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Reservar 1 cazo del agua de cocción antes de escurrir los espaguetis.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir los espaguetis y añadirlos a la sartén con el aceite, el ajo y la guindilla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el agua de cocción reservada y saltear a fuego medio removiendo hasta que la salsa ligue y cubra la pasta.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y espolvorear sobre la pasta justo antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 2,
+    "sodium_mg": 290
   },
   {
     "id": "pasta_arroces_023",
@@ -1812,10 +3585,18 @@
       }
     ],
     "steps": [
-      "Dorar el pollo troceado y reservar",
-      "Sofreír pimiento, ajo y tomate con pimentón",
-      "Tostar los fideos en la salsa, añadir caldo",
-      "Incorporar el pollo y cocer 12 min"
+      "Cortar contramuslo de pollo en trozos de bocado y salpimentar.",
+      "Cortar pimiento rojo en brunoise fina y picar ajo.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Dorar el contramuslo troceado en la sartén caliente hasta que esté dorado por todos los lados; retirar y reservar.",
+      "Bajar a fuego medio y sofreír el pimiento rojo y el ajo en la misma sartén hasta que estén tiernos.",
+      "Añadir tomate triturado y pimentón al sofrito; remover y cocer hasta que el tomate pierda el agua y se concentre.",
+      "Incorporar fideos n°2 y tostar removiendo sin parar hasta que estén dorados de forma uniforme.",
+      "Verter caldo de pollo caliente y llevar a ebullición a fuego fuerte.",
+      "Incorporar el contramuslo reservado, repartir de forma uniforme y bajar a fuego medio.",
+      "Cocer sin tapar hasta que los fideos absorban el caldo y estén al dente y el pollo esté cocinado por completo.",
+      "Retirar del fuego y dejar reposar 2 min antes de servir.",
+      "Servir la fideuá directamente en la sartén o repartir en platos hondos."
     ],
     "description": "Fideos tostados con pollo y pimiento en caldo",
     "methods": [
@@ -1831,7 +3612,73 @@
         "difficulty": "facil",
         "prepSummary": "Sofreír el pollo y las verduras en el vaso. Incorporar los fideos y el caldo, programar temperatura Varoma, giro inverso y velocidad cuchara durante el tiempo necesario para que la pasta absorba el líquido."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Contramuslo de pollo}} en trozos de bocado y salpimentar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en brunoise fina y picar {{Ajo}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el contramuslo troceado en la sartén caliente hasta que esté dorado por todos los lados; retirar y reservar.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír el pimiento rojo y el ajo en la misma sartén hasta que estén tiernos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Pimentón|pizca}} al sofrito; remover y cocer hasta que el tomate pierda el agua y se concentre.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Fideos n°2}} y tostar removiendo sin parar hasta que estén dorados de forma uniforme.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Caldo de pollo}} caliente y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el contramuslo reservado, repartir de forma uniforme y bajar a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer sin tapar hasta que los fideos absorban el caldo y estén al dente y el pollo esté cocinado por completo.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar 2 min antes de servir.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la fideuá directamente en la sartén o repartir en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 3,
+    "sodium_mg": 520
   },
   {
     "id": "pasta_arroces_024",
@@ -1898,13 +3745,63 @@
       }
     ],
     "steps": [
-      "Cocer la pasta al dente y enfriar bajo agua",
-      "Cortar los tomates cherry y la mozzarella en dados",
-      "Mezclar con la rúcula, las aceitunas y el pesto",
-      "Terminar con un hilo de aceite de oliva"
+      "Llevar a ebullición una olla con agua abundante y sal.",
+      "Cocer fusilli en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del paquete.",
+      "Cortar tomate cherry por la mitad.",
+      "Cortar mozzarella fresca en dados de 1 cm.",
+      "Escurrir los fusilli y enfriar bajo agua fría hasta que estén a temperatura ambiente.",
+      "Añadir los tomates cherry, la mozzarella, rúcula, aceitunas negras y pesto a la pasta escurrida.",
+      "Mezclar todo con suavidad hasta que el pesto cubra bien la pasta y el resto de ingredientes.",
+      "Servir con aceite de oliva por encima."
     ],
     "description": "Ensalada fría de pasta con cherry, mozzarella, rúcula, aceitunas y pesto",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y sal.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer {{Fusilli}} en el agua hirviendo hasta que estén al dente, siguiendo el tiempo del paquete.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Tomate cherry}} por la mitad.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Mozzarella fresca}} en dados de 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir los fusilli y enfriar bajo agua fría hasta que estén a temperatura ambiente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los tomates cherry, la mozzarella, {{Rúcula}}, {{Aceitunas negras}} y {{Pesto}} a la pasta escurrida.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar todo con suavidad hasta que el pesto cubra bien la pasta y el resto de ingredientes.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir con {{Aceite de oliva|chorrito}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 6,
+    "sodium_mg": 420
   },
   {
     "id": "pasta_arroces_025",
@@ -1968,10 +3865,20 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla y champiñones en mantequilla",
-      "Añadir arroz, sofreír removiendo 1 min y verter vino",
-      "Ir añadiendo caldo caliente cucharón a cucharón removiendo",
-      "Fuera del fuego añadir parmesano y mantequilla"
+      "Cortar cebolla en dados pequeños.",
+      "Limpiar champiñones y laminar.",
+      "Rallar queso parmesano y reservar.",
+      "Calentar caldo de verduras en un cazo a fuego suave hasta que esté caliente; mantener a fuego mínimo.",
+      "Fundir mantequilla en una olla a fuego medio.",
+      "Sofreír la cebolla en la mantequilla fundida hasta que esté transparente.",
+      "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
+      "Añadir arroz arborio y sofreír, removiendo sin parar, hasta que los granos estén nacarados.",
+      "Verter vino blanco y remover hasta que el arroz lo absorba por completo.",
+      "Añadir el caldo caliente cucharón a cucharón, removiendo sin parar y esperando a que cada adición se absorba.",
+      "Retirar la olla del fuego cuando el arroz esté al dente y cremoso.",
+      "Añadir el queso parmesano rallado y remover con energía hasta integrar por completo.",
+      "Tapar la olla y dejar reposar 2 min para que el risotto asiente.",
+      "Servir el risotto en platos hondos inmediatamente."
     ],
     "description": "Risotto cremoso de champiñones con parmesano",
     "methods": [
@@ -1981,6 +3888,82 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y los champiñones, luego tuesta el arroz con el vino. Incorpora el caldo y cocina 15-18 min a 100°C, velocidad cuchara, giro inverso, hasta obtener la cremosidad deseada, finalizando con mantequilla y parmesano."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Champiñones}} y laminar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Queso parmesano}} y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Caldo de verduras}} en un cazo a fuego suave hasta que esté caliente; mantener a fuego mínimo.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla en la mantequilla fundida hasta que esté transparente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz arborio}} y sofreír, removiendo sin parar, hasta que los granos estén nacarados.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino blanco}} y remover hasta que el arroz lo absorba por completo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el caldo caliente cucharón a cucharón, removiendo sin parar y esperando a que cada adición se absorba.",
+        "minutes": 18,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego cuando el arroz esté al dente y cremoso.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el queso parmesano rallado y remover con energía hasta integrar por completo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla y dejar reposar 2 min para que el risotto asiente.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el risotto en platos hondos inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 8,
+    "sodium_mg": 420
   }
 ]

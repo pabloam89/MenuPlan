@@ -51,10 +51,17 @@
       }
     ],
     "steps": [
-      "Pochar cebolla en aceite",
-      "Añadir calabacín y patata troceados, cubrir con agua",
-      "Cocer 15 min hasta que estén tiernos",
-      "Triturar con el quesito hasta textura fina"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Pelar patata y cortar en dados de 2 cm aproximadamente.",
+      "Lavar calabacín y cortar en rodajas de 1 cm sin pelar.",
+      "Calentar aceite de oliva en una olla a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada hasta que esté transparente, unos 4 min a fuego medio.",
+      "Añadir el calabacín y la patata a la olla y remover para mezclar con el sofrito.",
+      "Cubrir las verduras con agua fría hasta sobrepasarlas 2 cm y llevar a ebullición a fuego fuerte.",
+      "Cocer a fuego medio hasta que la patata y el calabacín estén tiernos, unos 15 min.",
+      "Retirar del fuego y añadir quesito en porciones al caldo con las verduras.",
+      "Triturar el conjunto con una batidora de mano hasta obtener una textura fina y homogénea.",
+      "Servir la crema bien caliente en boles, ajustando la textura con un poco de agua si fuera necesario."
     ],
     "description": "Crema suave de calabacín con patata y quesito",
     "methods": [
@@ -70,7 +77,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla en la olla, añade el resto de verduras troceadas con agua o caldo. Cierra y cocina a presión durante 5-7 minutos. Una vez despresurizada, tritura hasta obtener una crema fina y añade el quesito."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de 2 cm aproximadamente.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Calabacín}} y cortar en rodajas de 1 cm sin pelar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente, unos 4 min a fuego medio.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el calabacín y la patata a la olla y remover para mezclar con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir las verduras con agua fría hasta sobrepasarlas 2 cm y llevar a ebullición a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que la patata y el calabacín estén tiernos, unos 15 min.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y añadir {{Quesito en porciones}} al caldo con las verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar el conjunto con una batidora de mano hasta obtener una textura fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema bien caliente en boles, ajustando la textura con un poco de agua si fuera necesario.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 3,
+    "sodium_mg": 180
   },
   {
     "id": "sopas_cremas_002",
@@ -123,10 +191,13 @@
       }
     ],
     "steps": [
-      "Calentar el caldo con zanahoria rallada",
-      "Cuando hierva, añadir los fideos",
-      "Cocer 5 min a fuego medio",
-      "Servir con un chorrito de aceite y perejil"
+      "Pelar y rallar zanahoria con un rallador fino. Reservar.",
+      "Verter caldo de pollo en una olla y llevar a ebullición a fuego fuerte.",
+      "Añadir la zanahoria rallada al caldo cuando rompa a hervir. Remover.",
+      "Incorporar fideos finos y cocer a fuego medio hasta que estén tiernos, unos 5 min.",
+      "Picar perejil fino mientras cuecen los fideos.",
+      "Retirar la olla del fuego. Repartir la sopa en 2 boles.",
+      "Añadir aceite de oliva sobre cada bol y espolvorear el perejil picado. Servir."
     ],
     "description": "Sopa caliente de fideos finos en caldo de pollo",
     "methods": [
@@ -142,7 +213,49 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la zanahoria en la olla con aceite. Añade el caldo y los fideos, cierra la olla y cocina 3-4 minutos desde que sube la válvula. Despresuriza y sirve con perejil."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y rallar {{Zanahoria}} con un rallador fino. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Caldo de pollo}} en una olla y llevar a ebullición a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria rallada al caldo cuando rompa a hervir. Remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Fideos finos}} y cocer a fuego medio hasta que estén tiernos, unos 5 min.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Perejil}} fino mientras cuecen los fideos.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Retirar la olla del fuego. Repartir la sopa en 2 boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} sobre cada bol y espolvorear el perejil picado. Servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 520
   },
   {
     "id": "sopas_cremas_003",
@@ -199,10 +312,19 @@
       }
     ],
     "steps": [
-      "Pochar cebolla en aceite",
-      "Añadir calabaza, patata y zanahoria troceadas",
-      "Cubrir con agua y cocer 20 min",
-      "Triturar con nuez moscada hasta textura cremosa"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Pelar calabaza y cortar en trozos de unos 3 cm.",
+      "Pelar patata y cortar en trozos similares a la calabaza.",
+      "Pelar zanahoria y cortar en rodajas de 1 cm.",
+      "Calentar aceite de oliva en una olla a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada a fuego medio hasta que esté transparente, unos 4 min.",
+      "Añadir la calabaza, la patata y la zanahoria a la olla y remover para mezclar con el sofrito.",
+      "Cubrir las verduras con agua fría hasta superarlas 2 cm y llevar a ebullición a fuego fuerte.",
+      "Tapar la olla y cocer a fuego suave hasta que la calabaza y la patata estén tiernas, unos 18 min.",
+      "Retirar la olla del fuego y escurrir parte del caldo, reservándolo en un bol aparte.",
+      "Añadir nuez moscada a las verduras y triturar con una batidora hasta obtener una textura cremosa y homogénea.",
+      "Incorporar el caldo reservado poco a poco hasta alcanzar la consistencia deseada y remover bien.",
+      "Servir la crema caliente en cuencos."
     ],
     "description": "Crema de calabaza con zanahoria y un toque de nuez moscada",
     "methods": [
@@ -230,7 +352,78 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe las verduras en la olla express con aceite. Añade agua o caldo, cierra la olla y cocina a presión durante 5-7 minutos desde que sube la válvula. Libera la presión y tritura hasta obtener una crema homogénea en tiempo récord."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Calabaza}} y cortar en trozos de unos 3 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos similares a la calabaza.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada a fuego medio hasta que esté transparente, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la calabaza, la patata y la zanahoria a la olla y remover para mezclar con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir las verduras con agua fría hasta superarlas 2 cm y llevar a ebullición a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla y cocer a fuego suave hasta que la calabaza y la patata estén tiernas, unos 18 min.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la olla del fuego y escurrir parte del caldo, reservándolo en un bol aparte.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nuez moscada|pizca}} a las verduras y triturar con una batidora hasta obtener una textura cremosa y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el caldo reservado poco a poco hasta alcanzar la consistencia deseada y remover bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en cuencos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 7,
+    "saturated_fat_g": 1,
+    "sodium_mg": 35
   },
   {
     "id": "sopas_cremas_004",
@@ -295,10 +488,16 @@
       }
     ],
     "steps": [
-      "Remojar el pan en agua",
-      "Triturar tomate, pepino, pimiento y ajo con el pan",
-      "Añadir aceite y vinagre mezclando bien",
-      "Colar si se desea, servir muy frío"
+      "Cortar tomate maduro en trozos grandes y reservar en el vaso de la batidora.",
+      "Pelar pepino, cortar en trozos y añadir al vaso.",
+      "Retirar las semillas de pimiento verde, cortar en trozos y añadir al vaso.",
+      "Pelar ajo y añadir al vaso.",
+      "Sumergir pan del día anterior en agua fría durante 2 min hasta que se ablande, escurrir y añadir al vaso.",
+      "Triturar todos los ingredientes del vaso a potencia máxima durante 2 min hasta obtener una crema fina y homogénea.",
+      "Añadir aceite de oliva y vinagre de jerez al vaso y triturar 30 segundos más hasta que estén integrados.",
+      "Pasar la crema por un colador fino presionando con una cuchara hasta que escurra todo el líquido; descartar los sólidos.",
+      "Refrigerar el gazpacho en la nevera hasta que esté muy frío, mínimo 30 min antes de servir.",
+      "Servir el gazpacho bien frío en cuencos o vasos."
     ],
     "description": "Sopa fría de tomate, pepino y pimiento al estilo andaluz",
     "methods": [
@@ -311,7 +510,63 @@
     ],
     "productAliases": [
       "Gazpacho"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tomate maduro}} en trozos grandes y reservar en el vaso de la batidora.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Pepino}}, cortar en trozos y añadir al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar las semillas de {{Pimiento verde}}, cortar en trozos y añadir al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y añadir al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Sumergir {{Pan del día anterior}} en agua fría durante 2 min hasta que se ablande, escurrir y añadir al vaso.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Triturar todos los ingredientes del vaso a potencia máxima durante 2 min hasta obtener una crema fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y {{Vinagre de Jerez}} al vaso y triturar 30 segundos más hasta que estén integrados.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Pasar la crema por un colador fino presionando con una cuchara hasta que escurra todo el líquido; descartar los sólidos.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar el gazpacho en la nevera hasta que esté muy frío, mínimo 30 min antes de servir.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el gazpacho bien frío en cuencos o vasos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 7,
+    "saturated_fat_g": 1,
+    "sodium_mg": 85
   },
   {
     "id": "sopas_cremas_005",
@@ -380,10 +635,14 @@
       }
     ],
     "steps": [
-      "Triturar tomate, pan remojado, ajo y vinagre",
-      "Ir añadiendo el aceite en hilo mientras se tritura",
-      "Enfriar en nevera al menos 1 h",
-      "Servir con picatostes de jamón y huevo cocido picado"
+      "Cortar tomate maduro en trozos grandes y reservar en el vaso de la batidora.",
+      "Cortar pan del día anterior en trozos y añadir al vaso junto con los tomates.",
+      "Añadir ajo, vinagre de jerez y triturar a máxima potencia hasta que la mezcla esté completamente lisa.",
+      "Añadir aceite de oliva en hilo fino y continuo mientras la batidora sigue funcionando a velocidad media, hasta que emulsione.",
+      "Refrigerar el salmorejo en la nevera hasta que esté bien frío.",
+      "Picar jamón serrano en trozos pequeños y reservar.",
+      "Picar huevo cocido en trozos pequeños y reservar.",
+      "Servir el salmorejo en cuencos y repartir por encima el jamón picado y el huevo cocido picado."
     ],
     "description": "Crema fría espesa de tomate y pan con jamón y huevo",
     "methods": [
@@ -396,7 +655,53 @@
     ],
     "productAliases": [
       "Salmorejo"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tomate maduro}} en trozos grandes y reservar en el vaso de la batidora.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pan del día anterior}} en trozos y añadir al vaso junto con los tomates.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Ajo}}, {{Vinagre de Jerez}} y triturar a máxima potencia hasta que la mezcla esté completamente lisa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} en hilo fino y continuo mientras la batidora sigue funcionando a velocidad media, hasta que emulsione.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar el salmorejo en la nevera hasta que esté bien frío.",
+        "minutes": 60,
+        "kind": "espera"
+      },
+      {
+        "text": "Picar {{Jamón serrano}} en trozos pequeños y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Huevo cocido}} en trozos pequeños y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Servir el salmorejo en cuencos y repartir por encima el jamón picado y el huevo cocido picado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 3,
+    "sodium_mg": 420
   },
   {
     "id": "sopas_cremas_006",
@@ -448,10 +753,17 @@
       }
     ],
     "steps": [
-      "Pochar cebolla en aceite",
-      "Añadir zanahoria, patata y jengibre",
-      "Cubrir con agua y cocer 20 min",
-      "Triturar hasta textura cremosa"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Pelar zanahoria y cortar en rodajas de 1 cm.",
+      "Pelar patata y cortar en dados de 2 cm.",
+      "Pelar jengibre fresco y picar fino.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente, unos 3 min.",
+      "Añadir la zanahoria, la patata y el jengibre picado; remover 1 min para integrar.",
+      "Cubrir con agua fría hasta sobrepasar las verduras unos 2 cm y llevar a ebullición.",
+      "Tapar y cocer a fuego suave hasta que la zanahoria y la patata estén tiernas.",
+      "Retirar del fuego y triturar con un batidor de mano hasta obtener una crema lisa y homogénea.",
+      "Servir la crema en boles calientes."
     ],
     "description": "Crema suave de zanahoria con un toque de jengibre",
     "methods": [
@@ -479,7 +791,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el jengibre en la olla, añade las zanahorias y patatas, cubre con agua o caldo. Cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza y tritura hasta obtener una crema homogénea."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 1 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Jengibre fresco}} y picar fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria, la patata y el jengibre picado; remover 1 min para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con agua fría hasta sobrepasar las verduras unos 2 cm y llevar a ebullición.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego suave hasta que la zanahoria y la patata estén tiernas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y triturar con un batidor de mano hasta obtener una crema lisa y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema en boles calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 8,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "sopas_cremas_007",
@@ -546,10 +919,20 @@
       }
     ],
     "steps": [
-      "Dorar ajos y jamón en aceite, añadir pimentón",
-      "Incorporar pan en rebanadas y caldo caliente",
-      "Cocer 10 min a fuego suave",
-      "Cascar los huevos encima y hornear 5 min a 200°C"
+      "Pelar ajo y laminar finamente.",
+      "Cortar jamón serrano en tiras o tacos pequeños.",
+      "Cortar pan del día anterior en rebanadas de 1 cm.",
+      "Calentar aceite de oliva en una cazuela de barro o olla a fuego medio.",
+      "Sofreír el ajo laminado hasta que se dore ligeramente; retirar si se dora demasiado rápido.",
+      "Añadir el jamón serrano y saltear 1 min hasta que suelte su grasa.",
+      "Retirar la cazuela del fuego, añadir pimentón y remover rápido para que no se queme.",
+      "Incorporar las rebanadas de pan y remover para que se impregnen bien del sofrito.",
+      "Verter caldo de carne caliente, llevar a ebullición y reducir a fuego suave.",
+      "Cocer a fuego suave, tapado, hasta que el pan se deshaga y la sopa espese.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Cascar huevo uno a uno sobre la sopa directamente en la cazuela apta para horno.",
+      "Hornear la cazuela a 200 °C hasta que la clara cuaje pero la yema quede ligeramente líquida.",
+      "Retirar del horno con cuidado y servir la sopa castellana directamente en la cazuela."
     ],
     "description": "Sopa de ajo con pan, jamón y huevo escalfado",
     "methods": [
@@ -565,7 +948,84 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo y el jamón en la olla abierta. Añade el pimentón, el pan y el caldo, cierra la olla y cocina 5 minutos desde que suba la válvula. Despresuriza, abre y escalfa los huevos con el calor residual."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Ajo}} y laminar finamente.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón serrano}} en tiras o tacos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pan del día anterior}} en rebanadas de 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela de barro o olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado hasta que se dore ligeramente; retirar si se dora demasiado rápido.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el jamón serrano y saltear 1 min hasta que suelte su grasa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la cazuela del fuego, añadir {{Pimentón|pizca}} y remover rápido para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las rebanadas de pan y remover para que se impregnen bien del sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Caldo de carne}} caliente, llevar a ebullición y reducir a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave, tapado, hasta que el pan se deshaga y la sopa espese.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 9
+      },
+      {
+        "text": "Cascar {{Huevo}} uno a uno sobre la sopa directamente en la cazuela apta para horno.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear la cazuela a 200 °C hasta que la clara cuaje pero la yema quede ligeramente líquida.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno con cuidado y servir la sopa castellana directamente en la cazuela.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 780
   },
   {
     "id": "sopas_cremas_008",
@@ -619,10 +1079,17 @@
       }
     ],
     "steps": [
-      "Pochar puerro y cebolla en aceite",
-      "Añadir patata y cubrir con agua",
-      "Cocer 20 min y triturar fino",
-      "Añadir nata, enfriar en nevera y servir fría"
+      "Pelar y cortar puerro en rodajas finas, desechando la parte verde más oscura.",
+      "Pelar y cortar cebolla en trozos medianos.",
+      "Pelar y cortar patata en dados de unos 2 cm.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír el puerro y la cebolla en la olla hasta que estén blandos y transparentes, sin que se doren.",
+      "Añadir la patata a la olla y cubrir con agua fría hasta superar los ingredientes unos 2 cm.",
+      "Llevar a ebullición a fuego fuerte; cuando rompa a hervir, reducir a fuego medio y cocer hasta que la patata esté tierna.",
+      "Retirar la olla del fuego y triturar el contenido con un batidor de mano hasta obtener una crema completamente fina.",
+      "Añadir nata a la crema y remover hasta que quede integrada de forma homogénea.",
+      "Dejar enfriar la crema a temperatura ambiente y después refrigerar en la nevera hasta que esté bien fría.",
+      "Servir la vichyssoise bien fría en boles o tazas."
     ],
     "description": "Crema fría de puerro y patata con nata",
     "methods": [
@@ -638,7 +1105,68 @@
         "difficulty": "facil",
         "prepSummary": "La olla express reduce drásticamente el tiempo de cocción de las verduras. Sofríe los puerros y cebolla en la olla, añade las patatas y agua, cierra y cocina 7-10 minutos a presión, luego tritura con la nata hasta lograr una crema suave."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y cortar {{Puerro}} en rodajas finas, desechando la parte verde más oscura.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y cortar {{Cebolla}} en trozos medianos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y cortar {{Patata}} en dados de unos 2 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el puerro y la cebolla en la olla hasta que estén blandos y transparentes, sin que se doren.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la patata a la olla y cubrir con agua fría hasta superar los ingredientes unos 2 cm.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte; cuando rompa a hervir, reducir a fuego medio y cocer hasta que la patata esté tierna.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la olla del fuego y triturar el contenido con un batidor de mano hasta obtener una crema completamente fina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nata}} a la crema y remover hasta que quede integrada de forma homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar enfriar la crema a temperatura ambiente y después refrigerar en la nevera hasta que esté bien fría.",
+        "minutes": 120,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la vichyssoise bien fría en boles o tazas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 95
   },
   {
     "id": "sopas_cremas_009",
@@ -685,10 +1213,17 @@
       }
     ],
     "steps": [
-      "Limpiar puerros y trocear la parte blanca y verde claro",
-      "Pochar con cebolla en aceite",
-      "Añadir patata y agua, cocer 20 min",
-      "Triturar hasta textura cremosa"
+      "Pelar patata y cortar en dados de 2 cm.",
+      "Retirar la raíz y las hojas exteriores duras de puerro.",
+      "Cortar la parte blanca y verde claro del puerro en rodajas de 1 cm.",
+      "Pelar cebolla y picar en trozos medianos.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír el puerro y la cebolla en el aceite caliente a fuego medio, removiendo de vez en cuando, hasta que estén blandos y transparentes.",
+      "Añadir los dados de patata a la olla y remover para integrar con el sofrito.",
+      "Cubrir las verduras con 400 ml de agua fría y llevar a ebullición a fuego fuerte.",
+      "Bajar a fuego suave, tapar la olla y cocer hasta que la patata esté tierna.",
+      "Retirar la olla del fuego y triturar el contenido con un túrmix hasta obtener una textura cremosa y homogénea.",
+      "Servir la crema caliente en boles."
     ],
     "description": "Crema caliente de puerros con patata",
     "methods": [
@@ -704,7 +1239,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe las verduras en la olla con aceite. Añade agua o caldo hasta cubrir, cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza y tritura hasta obtener una crema suave."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de 2 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar la raíz y las hojas exteriores duras de {{Puerro}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la parte blanca y verde claro del puerro en rodajas de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y picar en trozos medianos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el puerro y la cebolla en el aceite caliente a fuego medio, removiendo de vez en cuando, hasta que estén blandos y transparentes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de patata a la olla y remover para integrar con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir las verduras con 400 ml de agua fría y llevar a ebullición a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego suave, tapar la olla y cocer hasta que la patata esté tierna.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la olla del fuego y triturar el contenido con un túrmix hasta obtener una textura cremosa y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 40
   },
   {
     "id": "sopas_cremas_010",
@@ -763,10 +1359,16 @@
       }
     ],
     "steps": [
-      "Pochar la cebolla en juliana con mantequilla 20 min",
-      "Añadir vino y dejar evaporar",
-      "Incorporar el caldo y cocer 15 min",
-      "Servir con pan tostado y gratinar con queso"
+      "Laminar cebolla en juliana fina.",
+      "Calentar mantequilla en una olla a fuego medio hasta que se funda.",
+      "Añadir la cebolla laminada a la olla y sofreír a fuego suave, removiendo con frecuencia, hasta que esté dorada y muy tierna.",
+      "Incorporar vino blanco y remover hasta que se evapore el alcohol.",
+      "Añadir caldo de carne, llevar a ebullición y cocer a fuego suave hasta que la sopa esté sabrosa y bien integrada.",
+      "Cortar pan en rebanadas y tostar en el horno a 180 °C hasta que estén doradas y crujientes.",
+      "Rallar queso gruyère finamente.",
+      "Distribuir la sopa en cazuelas individuales aptas para horno y colocar las rebanadas de pan tostado encima.",
+      "Cubrir la superficie de cada cazuela con el queso gruyère rallado y gratinar en el horno a 200 °C hasta que el queso esté fundido y dorado.",
+      "Servir las cazuelas inmediatamente, con cuidado de no quemarse."
     ],
     "description": "Sopa de cebolla caramelizada gratinada con queso",
     "methods": [
@@ -788,7 +1390,65 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe las cebollas con la mantequilla en la olla express abierta a fuego medio hasta que estén bien caramelizadas (aprox. 15-20 min). Añade el vino y el caldo, cierra la olla y cocina a presión durante 10-12 minutos. Sirve la sopa en cuencos individuales, cubre con pan y queso, y gratina en el horno a 200°C durante 5-10 minutos hasta que el queso se funda y dore."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Cebolla}} en juliana fina.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Mantequilla}} en una olla a fuego medio hasta que se funda.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la cebolla laminada a la olla y sofreír a fuego suave, removiendo con frecuencia, hasta que esté dorada y muy tierna.",
+        "minutes": 20,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Vino blanco}} y remover hasta que se evapore el alcohol.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Caldo de carne}}, llevar a ebullición y cocer a fuego suave hasta que la sopa esté sabrosa y bien integrada.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Pan}} en rebanadas y tostar en el horno a 180 °C hasta que estén doradas y crujientes.",
+        "minutes": 8,
+        "kind": "paralelo",
+        "during": 4
+      },
+      {
+        "text": "Rallar {{Queso gruyère}} finamente.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 4
+      },
+      {
+        "text": "Distribuir la sopa en cazuelas individuales aptas para horno y colocar las rebanadas de pan tostado encima.",
+        "minutes": 2,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Cubrir la superficie de cada cazuela con el queso gruyère rallado y gratinar en el horno a 200 °C hasta que el queso esté fundido y dorado.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las cazuelas inmediatamente, con cuidado de no quemarse.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 8,
+    "saturated_fat_g": 6,
+    "sodium_mg": 520
   },
   {
     "id": "sopas_cremas_011",
@@ -845,10 +1505,18 @@
       }
     ],
     "steps": [
-      "Pochar cebolla y puerro",
-      "Añadir el resto de verduras troceadas",
-      "Cubrir con agua y cocer 20 min",
-      "Triturar hasta textura fina"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Limpiar puerro y cortar en rodajas finas.",
+      "Pelar zanahoria y cortar en rodajas de 1 cm.",
+      "Pelar patata y cortar en trozos medianos.",
+      "Cortar calabacín en trozos medianos, sin pelar.",
+      "Calentar aceite de oliva en una olla a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada y el puerro en rodajas hasta que estén blandos y translúcidos, unos 5 min.",
+      "Añadir la zanahoria, la patata y el calabacín a la olla y remover para integrar con el sofrito.",
+      "Cubrir las verduras con agua fría hasta superarlas 2 cm y llevar a ebullición a fuego fuerte.",
+      "Cocer a fuego medio hasta que la patata y la zanahoria estén tiernas, unos 15 min.",
+      "Retirar la olla del fuego y triturar todas las verduras con el caldo hasta obtener una textura fina y homogénea.",
+      "Servir la crema caliente en boles."
     ],
     "description": "Crema suave de verduras variadas con patata",
     "methods": [
@@ -876,7 +1544,73 @@
         "difficulty": "facil",
         "prepSummary": "Corta las verduras y cocínalas en un recipiente apto para microondas con un poco de agua durante 10-15 minutos a máxima potencia hasta que estén tiernas. Luego, tritura con el aceite de oliva y un poco de líquido de cocción."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Puerro}} y cortar en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos medianos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en trozos medianos, sin pelar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el puerro en rodajas hasta que estén blandos y translúcidos, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria, la patata y el calabacín a la olla y remover para integrar con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir las verduras con agua fría hasta superarlas 2 cm y llevar a ebullición a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que la patata y la zanahoria estén tiernas, unos 15 min.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la olla del fuego y triturar todas las verduras con el caldo hasta obtener una textura fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 40
   },
   {
     "id": "sopas_cremas_012",
@@ -935,10 +1669,20 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla y ajo, añadir champiñones",
-      "Incorporar patata y cubrir con agua",
-      "Cocer 15 min hasta que esté tierno",
-      "Triturar y añadir nata caliente"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Pelar y picar ajo fino.",
+      "Limpiar champiñones y cortar en cuartos.",
+      "Pelar patata y cortar en dados de unos 2 cm.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla picada en la olla hasta que esté transparente, unos 3 min.",
+      "Añadir el ajo picado y sofreír 1 min hasta que desprenda aroma.",
+      "Incorporar los champiñones cortados y saltear a fuego fuerte hasta que suelten el agua y se doren, unos 3 min.",
+      "Añadir los dados de patata y cubrir con 400 ml de agua. Llevar a ebullición.",
+      "Tapar la olla y cocer a fuego suave hasta que la patata esté tierna, unos 15 min.",
+      "Calentar nata en un cazo pequeño a fuego suave hasta que esté caliente, sin que llegue a hervir.",
+      "Retirar la olla del fuego y triturar el contenido con un batidor de mano hasta obtener una crema lisa.",
+      "Añadir la nata caliente a la crema y mezclar hasta integrar. Salpimentar al gusto.",
+      "Servir la crema en boles calientes."
     ],
     "description": "Crema de champiñones con nata y un toque de ajo",
     "methods": [
@@ -954,7 +1698,84 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo en la olla con aceite. Añade los champiñones y la patata, cubre con agua/caldo y cocina a presión alta durante 5-7 minutos. Libera la presión, añade la nata y tritura con una batidora de mano."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Champiñones}} y cortar en cuartos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la olla hasta que esté transparente, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min hasta que desprenda aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar los champiñones cortados y saltear a fuego fuerte hasta que suelten el agua y se doren, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de patata y cubrir con 400 ml de agua. Llevar a ebullición.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla y cocer a fuego suave hasta que la patata esté tierna, unos 15 min.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Nata}} en un cazo pequeño a fuego suave hasta que esté caliente, sin que llegue a hervir.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 9
+      },
+      {
+        "text": "Retirar la olla del fuego y triturar el contenido con un batidor de mano hasta obtener una crema lisa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la nata caliente a la crema y mezclar hasta integrar. Salpimentar al gusto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema en boles calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 320
   },
   {
     "id": "sopas_cremas_013",
@@ -1002,10 +1823,15 @@
       }
     ],
     "steps": [
-      "Pelar y trocear las patatas",
-      "Cocer en agua con sal 20 min",
-      "Escurrir y aplastar con tenedor o pasapurés",
-      "Añadir leche caliente, mantequilla y nuez moscada"
+      "Pelar patata y cortar en trozos de tamaño similar.",
+      "Llevar a ebullición una olla con agua abundante a fuego fuerte.",
+      "Cocer los trozos de patata en el agua hirviendo a fuego medio hasta que estén tiernos, unos 20 min.",
+      "Calentar leche en un cazo a fuego suave hasta que esté caliente, sin que llegue a hervir.",
+      "Escurrir las patatas cocidas y aplastar con un pasapurés hasta obtener una textura lisa.",
+      "Añadir mantequilla y la leche caliente al puré y remover a fuego suave hasta integrar.",
+      "Añadir nuez moscada y remover hasta que el puré quede homogéneo.",
+      "Extender el puré en una fuente apta para horno y gratinar a 200 °C hasta que la superficie esté dorada, unos 5 min.",
+      "Retirar del horno y servir de inmediato en plato hondo o cuenco."
     ],
     "description": "Puré de patatas cremoso con mantequilla y nuez moscada",
     "methods": [
@@ -1040,7 +1866,59 @@
         "prepSummary": "Pincha las patatas enteras o trocéalas y cocínalas en el microondas a máxima potencia durante 10-12 minutos, volteando a mitad, hasta que estén muy tiernas. Luego machaca y mezcla con el resto de ingredientes para un puré exprés."
       }
     ],
-    "productAliases": []
+    "productAliases": [],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua abundante a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer los trozos de patata en el agua hirviendo a fuego medio hasta que estén tiernos, unos 20 min.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Leche}} en un cazo a fuego suave hasta que esté caliente, sin que llegue a hervir.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Escurrir las patatas cocidas y aplastar con un pasapurés hasta obtener una textura lisa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Mantequilla}} y la leche caliente al puré y remover a fuego suave hasta integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nuez moscada|pizca}} y remover hasta que el puré quede homogéneo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender el puré en una fuente apta para horno y gratinar a 200 °C hasta que la superficie esté dorada, unos 5 min.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y servir de inmediato en plato hondo o cuenco.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 3,
+    "saturated_fat_g": 6,
+    "sodium_mg": 55
   },
   {
     "id": "sopas_cremas_014",
@@ -1092,10 +1970,16 @@
       }
     ],
     "steps": [
-      "Trocear espárragos desechando la parte leñosa",
-      "Pochar cebolla y ajo",
-      "Añadir espárragos y patata, cubrir con agua",
-      "Cocer 15 min y triturar fino"
+      "Pelar patata y cortar en dados de 1 cm aproximadamente.",
+      "Cortar cebolla en trozos pequeños y laminar ajo.",
+      "Retirar la parte leñosa de espárragos trigueros y cortar en trozos de 3 cm.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla y el ajo en el aceite caliente hasta que estén translúcidos, unos 4 min.",
+      "Añadir los espárragos y la patata a la olla y remover para integrar con el sofrito.",
+      "Cubrir las verduras con agua fría hasta superarlas en 1 cm y llevar a ebullición a fuego fuerte.",
+      "Tapar la olla, bajar a fuego suave y cocer hasta que la patata esté tierna, unos 15 min.",
+      "Retirar del fuego y triturar el conjunto con un túrmix hasta obtener una crema fina.",
+      "Servir la crema caliente en boles."
     ],
     "description": "Crema de espárragos trigueros con patata",
     "methods": [
@@ -1123,7 +2007,63 @@
         "difficulty": "facil",
         "prepSummary": "Corta las verduras y cocínalas en un recipiente apto para microondas con un poco de agua durante 10-12 minutos a máxima potencia, hasta que estén tiernas. Luego, tritura con el aceite de oliva y un poco de líquido hasta obtener una crema fina."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de 1 cm aproximadamente.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Cebolla}} en trozos pequeños y laminar {{Ajo}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar la parte leñosa de {{Espárragos trigueros}} y cortar en trozos de 3 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo en el aceite caliente hasta que estén translúcidos, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los espárragos y la patata a la olla y remover para integrar con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir las verduras con agua fría hasta superarlas en 1 cm y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla, bajar a fuego suave y cocer hasta que la patata esté tierna, unos 15 min.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y triturar el conjunto con un túrmix hasta obtener una crema fina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 45
   },
   {
     "id": "sopas_cremas_015",
@@ -1184,10 +2124,17 @@
       }
     ],
     "steps": [
-      "Remojar pan y almendras peladas en agua fría",
-      "Triturar con ajo, aceite y vinagre hasta mezclar bien",
-      "Ajustar consistencia con agua fría",
-      "Servir muy frío con uvas peladas"
+      "Cubrir pan del día anterior con agua fría y dejar reposar hasta que esté completamente empapado.",
+      "Escurrir el pan remojado y reservar el agua de remojo.",
+      "Pelar ajo y retirar el germen central para suavizar el sabor.",
+      "Lavar uvas, pelarlas y reservarlas en frío hasta el momento de servir.",
+      "Introducir almendras crudas, el pan escurrido y el ajo en el vaso de la batidora.",
+      "Triturar a máxima potencia durante 2 min hasta obtener una pasta muy fina y homogénea.",
+      "Añadir aceite de oliva en hilo fino mientras sigue triturando, hasta que emulsione.",
+      "Añadir vinagre de jerez y triturar 30 segundos más hasta integrar.",
+      "Agregar agua fría del remojo poco a poco y triturar hasta lograr la consistencia deseada.",
+      "Refrigerar el ajoblanco en la nevera hasta que esté muy frío, mínimo 30 min.",
+      "Servir el ajoblanco en boles fríos y repartir las uvas peladas por encima."
     ],
     "description": "Sopa fría de almendras y ajo con uvas, típica de Málaga",
     "methods": [
@@ -1197,7 +2144,68 @@
         "difficulty": "facil",
         "prepSummary": "La Thermomix es perfecta para el ajoblanco. Tritura todos los ingredientes (almendras, pan, ajo, agua, aceite, vinagre y sal) a velocidad progresiva hasta lograr una crema muy fina y emulsionada. Sirve bien frío con las uvas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cubrir {{Pan del día anterior}} con agua fría y dejar reposar hasta que esté completamente empapado.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Escurrir el pan remojado y reservar el agua de remojo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y retirar el germen central para suavizar el sabor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Uvas}}, pelarlas y reservarlas en frío hasta el momento de servir.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Introducir {{Almendras crudas}}, el pan escurrido y el ajo en el vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar a máxima potencia durante 2 min hasta obtener una pasta muy fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} en hilo fino mientras sigue triturando, hasta que emulsione.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vinagre de Jerez}} y triturar 30 segundos más hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Agregar agua fría del remojo poco a poco y triturar hasta lograr la consistencia deseada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar el ajoblanco en la nevera hasta que esté muy frío, mínimo 30 min.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el ajoblanco en boles fríos y repartir las uvas peladas por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 2,
+    "sodium_mg": 120
   },
   {
     "id": "sopas_cremas_016",
@@ -1249,10 +2257,16 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla y ajo en aceite",
-      "Añadir tomate troceado y orégano",
-      "Cocer 15 min a fuego lento",
-      "Triturar y servir caliente"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Pelar y picar ajo fino.",
+      "Cortar tomate maduro en trozos irregulares.",
+      "Calentar aceite de oliva en una olla a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada en el aceite caliente a fuego medio hasta que esté transparente, unos 4 min.",
+      "Añadir el ajo picado y sofreír 1 min más hasta que desprenda aroma.",
+      "Añadir el tomate troceado y orégano y remover para mezclar todo.",
+      "Tapar la olla y cocer a fuego suave hasta que el tomate esté muy tierno, unos 15 min.",
+      "Retirar del fuego y triturar la mezcla con una batidora hasta obtener una crema fina y homogénea.",
+      "Servir la sopa caliente en boles."
     ],
     "description": "Sopa caliente de tomate natural con orégano",
     "methods": [
@@ -1280,7 +2294,63 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo en la olla express. Incorpora los tomates y el orégano, cierra la olla y cocina a presión durante 5-7 minutos. Una vez despresurizada, tritura todo hasta lograr una sopa cremosa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} en trozos irregulares.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en el aceite caliente a fuego medio hasta que esté transparente, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min más hasta que desprenda aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate troceado y {{Orégano|pizca}} y remover para mezclar todo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla y cocer a fuego suave hasta que el tomate esté muy tierno, unos 15 min.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y triturar la mezcla con una batidora hasta obtener una crema fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la sopa caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 8,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   },
   {
     "id": "sopas_cremas_017",
@@ -1332,10 +2402,15 @@
       }
     ],
     "steps": [
-      "Pochar cebolla y ajo",
-      "Añadir brócoli en ramilletes y patata",
-      "Cubrir con agua y cocer 12 min",
-      "Triturar hasta textura fina y cremosa"
+      "Pelar y picar cebolla en trozos pequeños. Pelar ajo y picar fino. Pelar patata y cortar en trozos de unos 2 cm.",
+      "Separar brócoli en ramilletes medianos, desechando el tronco más grueso.",
+      "Calentar aceite de oliva en una olla a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada y el ajo picado hasta que estén blandos y translúcidos, unos 3 min.",
+      "Añadir los ramilletes de brócoli y la patata cortada. Remover para mezclar con el sofrito.",
+      "Cubrir las verduras con agua hasta que queden justas sumergidas y llevar a ebullición a fuego fuerte.",
+      "Reducir a fuego medio y cocer hasta que la patata y el brócoli estén tiernos, unos 12 min.",
+      "Retirar del fuego y triturar con un batidor de mano hasta obtener una textura fina y cremosa.",
+      "Servir la crema caliente en boles."
     ],
     "description": "Crema de brócoli con patata, suave y nutritiva",
     "methods": [
@@ -1363,7 +2438,58 @@
         "difficulty": "facil",
         "prepSummary": "Coloca todos los vegetales troceados con un chorrito de agua en un recipiente apto para microondas. Cocina a máxima potencia durante 12-15 minutos hasta que estén muy tiernos. Luego, tritura con el aceite de oliva hasta obtener una crema suave."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños. Pelar {{Ajo}} y picar fino. Pelar {{Patata}} y cortar en trozos de unos 2 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Separar {{Brócoli}} en ramilletes medianos, desechando el tronco más grueso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado hasta que estén blandos y translúcidos, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los ramilletes de brócoli y la patata cortada. Remover para mezclar con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir las verduras con agua hasta que queden justas sumergidas y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir a fuego medio y cocer hasta que la patata y el brócoli estén tiernos, unos 12 min.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y triturar con un batidor de mano hasta obtener una textura fina y cremosa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "sopas_cremas_018",
@@ -1421,12 +2547,80 @@
       }
     ],
     "steps": [
-      "Dorar ajos laminados en aceite a fuego suave",
-      "Añadir pimentón y el pan en rebanadas",
-      "Verter caldo caliente y cocer 10 min",
-      "Cascar los huevos encima y dejar cuajar 3 min"
+      "Laminar ajo en láminas finas y uniformes.",
+      "Cortar pan del día anterior en rebanadas de aproximadamente 1 cm de grosor.",
+      "Calentar aceite de oliva en una olla a fuego suave hasta que esté caliente.",
+      "Añadir el ajo laminado y sofreír a fuego suave hasta que se dore ligeramente, sin que se queme.",
+      "Retirar la olla del fuego y añadir pimentón removiendo rápidamente para que no se queme.",
+      "Añadir las rebanadas de pan y remover para que se impregnen bien del aceite con pimentón.",
+      "Verter caldo de carne en la olla, llevar a ebullición a fuego fuerte y después bajar a fuego medio.",
+      "Cocer a fuego medio durante 10 min hasta que el pan se deshaga y la sopa espese.",
+      "Cascar huevo sobre la sopa con cuidado, uno a uno, sin romper la yema.",
+      "Tapar la olla y cocer a fuego suave durante 3 min hasta que la clara cuaje pero la yema quede líquida.",
+      "Servir la sopa en cuencos hondos calientes, con un huevo por ración."
     ],
-    "description": "Sopa de ajo tradicional con pan, pimentón y huevo"
+    "description": "Sopa de ajo tradicional con pan, pimentón y huevo",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas y uniformes.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pan del día anterior}} en rebanadas de aproximadamente 1 cm de grosor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego suave hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y sofreír a fuego suave hasta que se dore ligeramente, sin que se queme.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la olla del fuego y añadir {{Pimentón|pizca}} removiendo rápidamente para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las rebanadas de pan y remover para que se impregnen bien del aceite con pimentón.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Caldo de carne}} en la olla, llevar a ebullición a fuego fuerte y después bajar a fuego medio.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio durante 10 min hasta que el pan se deshaga y la sopa espese.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cascar {{Huevo}} sobre la sopa con cuidado, uno a uno, sin romper la yema.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla y cocer a fuego suave durante 3 min hasta que la clara cuaje pero la yema quede líquida.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir la sopa en cuencos hondos calientes, con un huevo por ración.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 2,
+    "sodium_mg": 620
   },
   {
     "id": "sopas_cremas_019",
@@ -1486,10 +2680,16 @@
       }
     ],
     "steps": [
-      "Cortar todas las verduras en tiras finas",
-      "Rehogar en aceite 3 min",
-      "Añadir caldo caliente",
-      "Cocer 15 min hasta que las verduras estén tiernas"
+      "Limpiar y laminar puerro en tiras finas de unos 3 mm.",
+      "Pelar y cortar zanahoria en tiras finas de juliana de unos 3 mm.",
+      "Despuntar y cortar judías verdes en tiras finas del mismo tamaño.",
+      "Pelar y cortar nabo en tiras finas de juliana.",
+      "Retirar las hojas exteriores y cortar repollo en tiras finas de juliana.",
+      "Calentar aceite de oliva en una olla a fuego medio hasta que esté caliente.",
+      "Sofreír el puerro, la zanahoria, las judías verdes, el nabo y el repollo en la olla durante 3 min, removiendo con frecuencia.",
+      "Añadir caldo de verduras y llevar a ebullición a fuego fuerte.",
+      "Cocer a fuego suave, tapado, hasta que las verduras estén tiernas.",
+      "Servir la sopa bien caliente en boles hondos."
     ],
     "description": "Sopa ligera de verduras cortadas en tiras finas",
     "methods": [
@@ -1505,7 +2705,63 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe las verduras en la olla con el aceite, añade el caldo y cierra la tapa. Cocina a presión durante 6 minutos desde que sube la válvula, obteniendo una sopa rápida y con verduras perfectamente tiernas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Limpiar y laminar {{Puerro}} en tiras finas de unos 3 mm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y cortar {{Zanahoria}} en tiras finas de juliana de unos 3 mm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Despuntar y cortar {{Judías verdes}} en tiras finas del mismo tamaño.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y cortar {{Nabo}} en tiras finas de juliana.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar las hojas exteriores y cortar {{Repollo}} en tiras finas de juliana.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el puerro, la zanahoria, las judías verdes, el nabo y el repollo en la olla durante 3 min, removiendo con frecuencia.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Caldo de verduras}} y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave, tapado, hasta que las verduras estén tiernas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir la sopa bien caliente en boles hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 380
   },
   {
     "id": "sopas_cremas_020",
@@ -1562,10 +2818,17 @@
       }
     ],
     "steps": [
-      "Pochar cebolla y zanahoria",
-      "Añadir tomate, comino y lentejas rojas",
-      "Cubrir con agua y cocer 20 min",
-      "Triturar hasta textura cremosa"
+      "Pelar y picar cebolla en trozos pequeños.",
+      "Pelar zanahoria y cortar en rodajas de unos 5 mm.",
+      "Calentar aceite de oliva en una olla a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
+      "Añadir la zanahoria cortada y sofreír 3 min hasta que empiece a ablandarse.",
+      "Añadir tomate triturado y comino y remover 2 min a fuego medio.",
+      "Añadir lentejas rojas y cubrir con 600 ml de agua fría.",
+      "Llevar a ebullición a fuego fuerte y bajar a fuego suave cuando rompa a hervir.",
+      "Tapar y cocer a fuego suave hasta que las lentejas estén completamente tiernas, unos 18 min.",
+      "Retirar del fuego y triturar con un túrmix hasta obtener una crema lisa y homogénea.",
+      "Servir la crema caliente en boles."
     ],
     "description": "Crema espesa de lentejas rojas con zanahoria y comino",
     "methods": [
@@ -1581,6 +2844,67 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe las verduras picadas en la olla con aceite. Incorpora las lentejas, tomate triturado, comino y agua. Cierra la olla y cocina a presión durante 8-10 minutos desde que sube la válvula. Despresuriza, y tritura directamente en la olla con una batidora de mano hasta conseguir u"
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de unos 5 mm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una olla a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria cortada y sofreír 3 min hasta que empiece a ablandarse.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Comino|pizca}} y remover 2 min a fuego medio.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Lentejas rojas}} y cubrir con 600 ml de agua fría.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte y bajar a fuego suave cuando rompa a hervir.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego suave hasta que las lentejas estén completamente tiernas, unos 18 min.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y triturar con un túrmix hasta obtener una crema lisa y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 9,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   }
 ]

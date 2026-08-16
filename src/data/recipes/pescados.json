@@ -60,10 +60,16 @@
       }
     ],
     "steps": [
-      "Dorar ajos laminados en aceite y añadir harina",
-      "Verter vino y caldo de pescado, mover la cazuela",
-      "Colocar la merluza y los guisantes",
-      "Cocer 10 min a fuego suave moviendo la cazuela para ligar"
+      "Laminar ajo en láminas finas.",
+      "Picar perejil finamente y reservar.",
+      "Calentar aceite de oliva en una cazuela a fuego medio hasta que esté caliente.",
+      "Sofreír el ajo laminado a fuego suave hasta que esté dorado sin quemarse.",
+      "Añadir harina y remover sin parar durante 1 min hasta que se integre con el aceite.",
+      "Verter vino blanco y remover hasta que el alcohol se evapore y la salsa ligue.",
+      "Colocar merluza en rodajas en la cazuela en una sola capa.",
+      "Añadir guisantes repartidos entre las rodajas.",
+      "Cocer a fuego suave 10 min, moviendo la cazuela en círculos para ligar la salsa.",
+      "Añadir el perejil picado, remover suavemente y servir en la misma cazuela."
     ],
     "description": "Merluza en salsa verde con ajo, perejil y guisantes",
     "methods": [
@@ -79,7 +85,63 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo en el vaso, añade la harina, el vino y el caldo para la salsa, cocinando a 100°C. Luego, incorpora la merluza y los guisantes, y cocina a 100°C, giro inverso, velocidad cuchara durante 8-10 minutos, asegurando que el pescado se cocine suavemente sin deshacerse."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} finamente y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una cazuela a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado a fuego suave hasta que esté dorado sin quemarse.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Harina}} y remover sin parar durante 1 min hasta que se integre con el aceite.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino blanco}} y remover hasta que el alcohol se evapore y la salsa ligue.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar {{Merluza en rodajas}} en la cazuela en una sola capa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} repartidos entre las rodajas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave 10 min, moviendo la cazuela en círculos para ligar la salsa.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el perejil picado, remover suavemente y servir en la misma cazuela.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "pescados_002",
@@ -139,10 +201,17 @@
       }
     ],
     "steps": [
-      "Cortar patatas y cebolla finas y colocar en bandeja con aceite",
-      "Hornear a 200°C durante 15 min",
-      "Colocar el salmón encima, rociar con limón y eneldo",
-      "Hornear 15 min más"
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Pelar patata y cebolla.",
+      "Laminar la patata pelada en rodajas finas de unos 3 mm.",
+      "Laminar la cebolla pelada en aros finos.",
+      "Cortar limón por la mitad y reservar.",
+      "Disponer las rodajas de patata y los aros de cebolla en una bandeja de horno. Regar con aceite de oliva y salpimentar.",
+      "Hornear la bandeja a 200 °C durante 15 min, hasta que la patata empiece a estar tierna.",
+      "Retirar la bandeja del horno y colocar lomos de salmón sobre la cama de patatas y cebolla.",
+      "Exprimir el limón sobre el salmón y espolvorear eneldo por encima.",
+      "Hornear a 200 °C durante 15 min más, hasta que el salmón esté opaco y se desmenuce con facilidad.",
+      "Retirar la bandeja del horno y servir el salmón sobre las patatas y la cebolla."
     ],
     "description": "Lomos de salmón asados al horno sobre cama de patatas",
     "methods": [
@@ -158,7 +227,68 @@
         "difficulty": "facil",
         "prepSummary": "Corta las patatas en rodajas finas y la cebolla en juliana. Cocínalas en la airfryer a 180°C durante 15-20 minutos, agitando a mitad. Añade el salmón con limón y eneldo, y cocina todo junto 10-12 minutos más a 190°C para un acabado crujiente y jugoso."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Patata}} y {{Cebolla}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar la patata pelada en rodajas finas de unos 3 mm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar la cebolla pelada en aros finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} por la mitad y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer las rodajas de patata y los aros de cebolla en una bandeja de horno. Regar con {{Aceite de oliva|chorrito}} y salpimentar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la bandeja a 200 °C durante 15 min, hasta que la patata empiece a estar tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y colocar {{Lomos de salmón}} sobre la cama de patatas y cebolla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Exprimir el limón sobre el salmón y espolvorear {{Eneldo|pizca}} por encima.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 200 °C durante 15 min más, hasta que el salmón esté opaco y se desmenuce con facilidad.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir el salmón sobre las patatas y la cebolla.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 5,
+    "sodium_mg": 220
   },
   {
     "id": "pescados_003",
@@ -215,10 +345,14 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla, ajo y pimiento",
-      "Añadir tomate y cocer 10 min",
-      "Colocar el bacalao sobre la salsa",
-      "Tapar y cocer 12 min a fuego suave"
+      "Pelar cebolla y ajo, y limpiar pimiento verde; cortar la cebolla y el pimiento en trozos pequeños y picar el ajo fino.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla, el ajo y el pimiento verde en la sartén hasta que estén tiernos y la cebolla esté transparente.",
+      "Añadir tomate triturado al sofrito y remover para integrar.",
+      "Cocer la salsa a fuego medio hasta que reduzca ligeramente y pierda el sabor ácido del tomate.",
+      "Colocar bacalao desalado sobre la salsa con la piel hacia abajo.",
+      "Tapar la sartén y cocer a fuego suave hasta que el bacalao esté opaco y se desmenuce con facilidad.",
+      "Servir el bacalao con la salsa de tomate por encima directamente desde la sartén."
     ],
     "description": "Bacalao desalado guisado en salsa de tomate casera",
     "methods": [
@@ -240,7 +374,53 @@
         "difficulty": "facil",
         "prepSummary": "Haz un sofrito con las verduras en la olla abierta. Añade el tomate y el bacalao. Cierra la olla y cocina a presión durante 3-5 minutos desde que sube la válvula, dependiendo del grosor del bacalao. Despresuriza y sirve. El truco es no sobrecocer el pescado para que no se deshaga"
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y {{Ajo}}, y limpiar {{Pimiento verde}}; cortar la cebolla y el pimiento en trozos pequeños y picar el ajo fino.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla, el ajo y el pimiento verde en la sartén hasta que estén tiernos y la cebolla esté transparente.",
+        "minutes": 7,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} al sofrito y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la salsa a fuego medio hasta que reduzca ligeramente y pierda el sabor ácido del tomate.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar {{Bacalao desalado}} sobre la salsa con la piel hacia abajo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la sartén y cocer a fuego suave hasta que el bacalao esté opaco y se desmenuce con facilidad.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el bacalao con la salsa de tomate por encima directamente desde la sartén.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 7,
+    "saturated_fat_g": 2,
+    "sodium_mg": 520
   },
   {
     "id": "pescados_004",
@@ -293,10 +473,15 @@
       }
     ],
     "steps": [
-      "Limpiar y salar las sardinas",
-      "Calentar la plancha a fuego fuerte",
-      "Cocinar 3 min por cada lado",
-      "Servir con aceite, ajo picado, perejil y limón"
+      "Limpiar sardinas bajo el grifo, retirar las escamas y las vísceras, y secar bien con papel de cocina.",
+      "Picar ajo muy fino y reservar.",
+      "Cortar limón en gajos y reservar.",
+      "Calentar plancha a fuego fuerte hasta que esté muy caliente.",
+      "Pincelar las sardinas con aceite de oliva y salpimentar por ambos lados.",
+      "Colocar las sardinas sobre la plancha y dorar 3 min por el primer lado sin moverlas.",
+      "Dar la vuelta a las sardinas y dorar 3 min por el segundo lado hasta que estén cocinadas.",
+      "Retirar las sardinas a la fuente de servir, espolvorear el ajo picado y perejil picado por encima.",
+      "Servir acompañadas de los gajos de limón al lado."
     ],
     "description": "Sardinas frescas a la plancha con ajo y limón",
     "methods": [
@@ -312,7 +497,57 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con función grill si es posible. Coloca las sardinas en una bandeja con papel de horno y cocina 10-12 minutos, dándoles un golpe de grill al final para un exterior dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Limpiar {{Sardinas}} bajo el grifo, retirar las escamas y las vísceras, y secar bien con papel de cocina.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en gajos y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté muy caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pincelar las sardinas con {{Aceite de oliva}} y salpimentar por ambos lados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar las sardinas sobre la plancha y dorar 3 min por el primer lado sin moverlas.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a las sardinas y dorar 3 min por el segundo lado hasta que estén cocinadas.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las sardinas a la fuente de servir, espolvorear el ajo picado y {{Perejil|pizca}} picado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir acompañadas de los gajos de limón al lado.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 6,
+    "sodium_mg": 380
   },
   {
     "id": "pescados_005",
@@ -370,10 +605,16 @@
       }
     ],
     "steps": [
-      "Hacer una cama de patata y cebolla en rodajas finas",
-      "Hornear las verduras 15 min a 200°C",
-      "Colocar la lubina encima con limón y perejil",
-      "Hornear 18 min más"
+      "Pelar patata y cebolla, y laminarlas en rodajas de unos 3 mm de grosor.",
+      "Cortar limón en rodajas finas.",
+      "Picar perejil finamente y reservar.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Extender las rodajas de patata y cebolla en una bandeja de horno, regar con aceite de oliva y salpimentar al gusto.",
+      "Hornear las verduras durante 15 min a 200 °C hasta que comiencen a estar tiernas.",
+      "Retirar la bandeja del horno y colocar lubina entera encima de la cama de verduras.",
+      "Disponer las rodajas de limón sobre la lubina y espolvorear el perejil picado.",
+      "Hornear el conjunto 18 min a 200 °C hasta que la lubina esté cocinada y la piel ligeramente dorada.",
+      "Retirar del horno y servir la lubina sobre la cama de verduras, con el jugo de cocción por encima."
     ],
     "description": "Lubina entera al horno sobre cama de patata y cebolla",
     "methods": [
@@ -389,7 +630,63 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta la airfryer a 180°C. Coloca la lubina y las verduras cortadas finas en la cesta, rocía con aceite y cocina unos 25 minutos, volteando las verduras a mitad para una cocción uniforme."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y {{Cebolla}}, y laminarlas en rodajas de unos 3 mm de grosor.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en rodajas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} finamente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Extender las rodajas de patata y cebolla en una bandeja de horno, regar con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear las verduras durante 15 min a 200 °C hasta que comiencen a estar tiernas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y colocar {{Lubina entera}} encima de la cama de verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer las rodajas de limón sobre la lubina y espolvorear el perejil picado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear el conjunto 18 min a 200 °C hasta que la lubina esté cocinada y la piel ligeramente dorada.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y servir la lubina sobre la cama de verduras, con el jugo de cocción por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 2,
+    "sodium_mg": 120
   },
   {
     "id": "pescados_006",
@@ -437,10 +734,12 @@
       }
     ],
     "steps": [
-      "Salpimentar las rodajas de atún",
-      "Calentar la plancha a fuego fuerte con aceite",
-      "Cocinar 2 min por cada lado dejando el centro rosado",
-      "Servir con ajo picado y limón"
+      "Picar ajo muy fino y reservar.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Salpimentar rodajas de atún fresco por ambas caras.",
+      "Añadir aceite de oliva sobre la plancha caliente y extender.",
+      "Colocar las rodajas de atún sobre la plancha y cocinar 2 min por cada lado hasta que el centro quede rosado.",
+      "Retirar el atún, distribuir el ajo picado por encima y exprimir limón al gusto antes de servir."
     ],
     "description": "Rodajas de atún fresco a la plancha, rosadas por dentro",
     "methods": [
@@ -456,7 +755,44 @@
         "difficulty": "facil",
         "prepSummary": "Marinar el atún con aceite de oliva, ajo picado, sal y pimienta. Precalentar el horno a 200-220°C, preferiblemente con función grill. Colocar el atún en una bandeja y cocinar 8-12 minutos, según el grosor, hasta que esté sellado por fuera y tierno por dentro, sirviendo con limón."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar {{Rodajas de atún fresco}} por ambas caras.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} sobre la plancha caliente y extender.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar las rodajas de atún sobre la plancha y cocinar 2 min por cada lado hasta que el centro quede rosado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el atún, distribuir el ajo picado por encima y exprimir {{Limón}} al gusto antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 4,
+    "sodium_mg": 210
   },
   {
     "id": "pescados_007",
@@ -511,10 +847,15 @@
       }
     ],
     "steps": [
-      "Salpimentar la merluza y secar con papel",
-      "Pasar por harina y huevo batido",
-      "Freír en aceite caliente hasta dorar",
-      "Escurrir y servir con limón"
+      "Secar merluza en rodajas con papel de cocina y salpimentar por ambos lados.",
+      "Batir huevo en un bol hasta que esté homogéneo.",
+      "Disponer harina en un plato llano.",
+      "Pasar cada rodaja de merluza por la harina, sacudir el exceso y luego sumergir en el huevo batido.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír las rodajas rebozadas hasta que estén doradas por un lado, unos 3 min, sin moverlas.",
+      "Dar la vuelta a las rodajas y freír por el otro lado hasta que estén doradas, otros 2 min.",
+      "Escurrir la merluza sobre papel de cocina para eliminar el exceso de aceite.",
+      "Cortar limón en gajos y servir la merluza rebozada con los gajos de limón al lado."
     ],
     "description": "Rodajas de merluza rebozadas en huevo y harina",
     "methods": [
@@ -530,7 +871,58 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200-220°C. Reboza la merluza, rocíala con un poco de aceite y colócala en una bandeja con papel de horno. Hornea durante 20-25 minutos, volteando a mitad, hasta que esté dorada y crujiente."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Secar {{Merluza en rodajas}} con papel de cocina y salpimentar por ambos lados.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer {{Harina}} en un plato llano.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada rodaja de merluza por la harina, sacudir el exceso y luego sumergir en el huevo batido.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las rodajas rebozadas hasta que estén doradas por un lado, unos 3 min, sin moverlas.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a las rodajas y freír por el otro lado hasta que estén doradas, otros 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir la merluza sobre papel de cocina para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar {{Limón}} en gajos y servir la merluza rebozada con los gajos de limón al lado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 320
   },
   {
     "id": "pescados_008",
@@ -588,10 +980,18 @@
       }
     ],
     "steps": [
-      "Hacer cama de patata, cebolla y tomate en rodajas",
-      "Hornear las verduras 15 min a 200°C",
-      "Colocar la dorada con limón dentro",
-      "Hornear 18 min más"
+      "Pelar patata y cebolla, y cortar ambas en rodajas de unos 5 mm de grosor.",
+      "Cortar tomate en rodajas de unos 5 mm de grosor.",
+      "Cortar limón por la mitad: reservar una mitad en rodajas finas y la otra para el zumo final.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Disponer las rodajas de patata en una bandeja de horno formando una cama uniforme.",
+      "Colocar encima las rodajas de cebolla y luego las de tomate, cubriéndolas en una sola capa.",
+      "Regar las verduras con aceite de oliva y salpimentar al gusto.",
+      "Hornear la cama de verduras durante 15 min a 200 °C hasta que la patata empiece a estar tierna.",
+      "Limpiar dorada entera por dentro y colocar en su cavidad las rodajas de limón reservadas.",
+      "Retirar la bandeja del horno y colocar la dorada encima de la cama de verduras.",
+      "Hornear 18 min más a 200 °C hasta que la piel esté dorada y la carne se separe fácilmente de la espina.",
+      "Retirar la bandeja del horno y exprimir la mitad del limón reservada sobre la dorada antes de servir."
     ],
     "description": "Dorada entera al horno con patata, tomate y cebolla",
     "methods": [
@@ -607,7 +1007,73 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta la airfryer a 190°C. Corta las patatas muy finas y las verduras en juliana. Cocina la dorada con las verduras y un chorrito de aceite durante 20-25 minutos, volteando a mitad para una cocción uniforme y piel crujiente."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y {{Cebolla}}, y cortar ambas en rodajas de unos 5 mm de grosor.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate}} en rodajas de unos 5 mm de grosor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} por la mitad: reservar una mitad en rodajas finas y la otra para el zumo final.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Disponer las rodajas de patata en una bandeja de horno formando una cama uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar encima las rodajas de cebolla y luego las de tomate, cubriéndolas en una sola capa.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar las verduras con {{Aceite de oliva|chorrito}} y salpimentar al gusto.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la cama de verduras durante 15 min a 200 °C hasta que la patata empiece a estar tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Limpiar {{Dorada entera}} por dentro y colocar en su cavidad las rodajas de limón reservadas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar la bandeja del horno y colocar la dorada encima de la cama de verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear 18 min más a 200 °C hasta que la piel esté dorada y la carne se separe fácilmente de la espina.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y exprimir la mitad del limón reservada sobre la dorada antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 3,
+    "sodium_mg": 320
   },
   {
     "id": "pescados_009",
@@ -655,10 +1121,12 @@
       }
     ],
     "steps": [
-      "Salpimentar los lomos de salmón",
-      "Cocinar a la plancha con aceite, piel abajo, 4 min",
-      "Dar la vuelta y cocinar 2 min más",
-      "Servir con limón y eneldo"
+      "Salpimentar lomos de salmón por ambas caras y reservar.",
+      "Cortar limón en gajos y reservar.",
+      "Calentar plancha a fuego fuerte con aceite de oliva hasta que humee.",
+      "Colocar los lomos de salmón con la piel hacia abajo y dorar a fuego fuerte durante 4 min sin moverlos.",
+      "Dar la vuelta a los lomos de salmón y cocer 2 min más hasta que el centro esté apenas opaco.",
+      "Servir los lomos de salmón con los gajos de limón y espolvorear eneldo por encima."
     ],
     "description": "Lomos de salmón a la plancha con la piel crujiente",
     "methods": [
@@ -674,7 +1142,43 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Coloca el salmón untado con aceite de oliva y eneldo en una bandeja. Hornea durante 12-15 minutos hasta que esté cocido y ligeramente dorado. Sirve con un chorrito de limón."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Salpimentar {{Lomos de salmón}} por ambas caras y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en gajos y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}} hasta que humee.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los lomos de salmón con la piel hacia abajo y dorar a fuego fuerte durante 4 min sin moverlos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a los lomos de salmón y cocer 2 min más hasta que el centro esté apenas opaco.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los lomos de salmón con los gajos de limón y espolvorear {{Eneldo|pizca}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 6,
+    "sodium_mg": 280
   },
   {
     "id": "pescados_010",
@@ -721,10 +1225,14 @@
       }
     ],
     "steps": [
-      "Confitar ajos laminados y guindilla en aceite a fuego lento",
-      "Retirar ajos y colocar el bacalao piel arriba",
-      "Cocer a fuego muy suave 10 min",
-      "Mover la cazuela en vaivén para que ligue la salsa"
+      "Laminar ajo en láminas finas.",
+      "Verter aceite de oliva en una cazuela de fondo grueso y calentar a fuego suave.",
+      "Añadir el ajo laminado y guindilla al aceite caliente y confitar hasta que el ajo esté dorado y tierno.",
+      "Retirar el ajo dorado y la guindilla con una espumadera y reservar fuera de la cazuela.",
+      "Bajar el fuego al mínimo y colocar bacalao desalado con la piel hacia arriba en la cazuela con el aceite.",
+      "Cocer el bacalao a fuego muy suave durante 10 min hasta que la carne esté opaca y se vea que suelta gelatina.",
+      "Retirar la cazuela del fuego y mover en vaivén continuo hasta que la gelatina y el aceite liguen formando una salsa cremosa.",
+      "Colocar el bacalao en el plato, naparlo con la salsa pil-pil y disponer encima el ajo reservado y la guindilla."
     ],
     "description": "Bacalao confitado en aceite de oliva ligado con su gelatina",
     "methods": [
@@ -734,7 +1242,53 @@
         "difficulty": "normal",
         "prepSummary": "Confitar el bacalao a baja temperatura (aprox. 80°C) con el aceite, ajo y guindilla durante unos 15 minutos. Retirar el bacalao y mezclar bien el aceite restante a velocidad progresiva (3-4) hasta obtener la salsa pil-pil, unos 5 minutos."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Aceite de oliva}} en una cazuela de fondo grueso y calentar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y {{Guindilla}} al aceite caliente y confitar hasta que el ajo esté dorado y tierno.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el ajo dorado y la guindilla con una espumadera y reservar fuera de la cazuela.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego al mínimo y colocar {{Bacalao desalado}} con la piel hacia arriba en la cazuela con el aceite.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer el bacalao a fuego muy suave durante 10 min hasta que la carne esté opaca y se vea que suelta gelatina.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la cazuela del fuego y mover en vaivén continuo hasta que la gelatina y el aceite liguen formando una salsa cremosa.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar el bacalao en el plato, naparlo con la salsa pil-pil y disponer encima el ajo reservado y la guindilla.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 4,
+    "sodium_mg": 520
   },
   {
     "id": "pescados_011",
@@ -789,10 +1343,13 @@
       }
     ],
     "steps": [
-      "Limpiar y cortar los calamares en anillas",
-      "Pasar por harina y huevo batido",
-      "Freír en aceite muy caliente 2 min",
-      "Escurrir y servir con limón"
+      "Limpiar calamares bajo el grifo, retirar la piel y las vísceras, y cortar en anillas de unos 1 cm de grosor.",
+      "Batir huevo en un bol hasta que esté homogéneo.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que alcance unos 180 °C.",
+      "Pasar las anillas de calamar por harina, sacudir el exceso y sumergirlas en el huevo batido.",
+      "Freír las anillas en el aceite caliente, en tandas, hasta que estén doradas y crujientes, unos 2 min por tanda.",
+      "Escurrir las anillas sobre papel absorbente para eliminar el exceso de aceite.",
+      "Cortar limón en gajos y servir los calamares recién fritos acompañados de los gajos de limón."
     ],
     "description": "Anillas de calamar rebozadas en harina y huevo, fritas",
     "methods": [
@@ -808,7 +1365,49 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con ventilador. Coloca los calamares rebozados en una bandeja con papel de horno, rocía con aceite y hornea 15-20 minutos, volteándolos a mitad, hasta que estén dorados."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Limpiar {{Calamares}} bajo el grifo, retirar la piel y las vísceras, y cortar en anillas de unos 1 cm de grosor.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego fuerte hasta que alcance unos 180 °C.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pasar las anillas de calamar por {{Harina}}, sacudir el exceso y sumergirlas en el huevo batido.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Freír las anillas en el aceite caliente, en tandas, hasta que estén doradas y crujientes, unos 2 min por tanda.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las anillas sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en gajos y servir los calamares recién fritos acompañados de los gajos de limón.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 280
   },
   {
     "id": "pescados_012",
@@ -826,6 +1425,10 @@
     "protein_g": 22,
     "carbs_g": 3,
     "fat_g": 18,
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 700,
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
@@ -865,6 +1468,28 @@
       "Cuando el ajo empiece a dorar, añadir las gambas",
       "Saltear 2 min a fuego fuerte",
       "Retirar del fuego y añadir perejil"
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar los ajos, cortar la guindilla y picar el perejil para tenerlo todo a mano.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar el aceite a fuego medio con los ajos y la guindilla hasta que el ajo empiece a dorar, sin quemarlo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Subir a fuego fuerte, añadir las gambas y saltear 2 min hasta que estén rosadas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego, añadir el perejil y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ],
     "description": "Gambas salteadas en aceite de oliva con ajo y guindilla",
     "methods": [
@@ -944,10 +1569,19 @@
       }
     ],
     "steps": [
-      "Colocar verduras en rodajas en bandeja con aceite",
-      "Hornear 15 min a 200°C",
-      "Poner la merluza encima con limón",
-      "Hornear 15 min más"
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Pelar patata y cortar en rodajas finas de unos 3 mm.",
+      "Pelar cebolla y cortar en aros finos.",
+      "Lavar pimiento rojo y cortar en aros finos, retirando las semillas.",
+      "Lavar tomate y cortar en rodajas de unos 4 mm.",
+      "Cortar limón en rodajas finas.",
+      "Extender la patata en una sola capa sobre una bandeja de horno y regar con aceite de oliva.",
+      "Distribuir la cebolla, el pimiento rojo y el tomate sobre la patata, formando una cama de verduras uniforme.",
+      "Hornear la bandeja de verduras durante 15 min a 200 °C hasta que la patata empiece a estar tierna.",
+      "Retirar la bandeja del horno y colocar merluza en lomos sobre las verduras con la piel hacia abajo.",
+      "Disponer las rodajas de limón sobre los lomos de merluza y regar con un chorrito de aceite de oliva.",
+      "Hornear de nuevo a 200 °C durante 12 min, hasta que la merluza esté opaca y se desmenuce con facilidad.",
+      "Retirar la bandeja del horno y servir los lomos de merluza sobre la cama de verduras, con el jugo de cocción por encima."
     ],
     "description": "Lomos de merluza al horno sobre verduras asadas",
     "methods": [
@@ -963,7 +1597,78 @@
         "difficulty": "facil",
         "prepSummary": "Corta las patatas y verduras muy finas para asegurar una cocción uniforme. Precalienta la airfryer a 180°C, cocina las verduras con un poco de aceite durante 10-15 min, luego añade la merluza y cocina 8-10 min más hasta que esté cocida y ligeramente dorada."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en rodajas finas de unos 3 mm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y cortar en aros finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Pimiento rojo}} y cortar en aros finos, retirando las semillas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Tomate}} y cortar en rodajas de unos 4 mm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en rodajas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender la patata en una sola capa sobre una bandeja de horno y regar con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Distribuir la cebolla, el pimiento rojo y el tomate sobre la patata, formando una cama de verduras uniforme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la bandeja de verduras durante 15 min a 200 °C hasta que la patata empiece a estar tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y colocar {{Merluza en lomos}} sobre las verduras con la piel hacia abajo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer las rodajas de limón sobre los lomos de merluza y regar con un chorrito de aceite de oliva.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear de nuevo a 200 °C durante 12 min, hasta que la merluza esté opaca y se desmenuce con facilidad.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir los lomos de merluza sobre la cama de verduras, con el jugo de cocción por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 2,
+    "sodium_mg": 120
   },
   {
     "id": "pescados_014",
@@ -1018,10 +1723,14 @@
       }
     ],
     "steps": [
-      "Cortar el bacalao en trozos y secar bien",
-      "Pasar por harina y huevo batido",
-      "Freír en aceite caliente hasta dorar",
-      "Escurrir y servir con limón"
+      "Cortar bacalao desalado en trozos de unos 5 cm y secar cada pieza con papel absorbente.",
+      "Batir huevo en un bol hasta que la clara y la yema queden integradas.",
+      "Extender harina en un plato llano para rebozar.",
+      "Pasar cada trozo de bacalao por la harina, sacudir el exceso y sumergir en el huevo batido hasta cubrir bien.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que el aceite alcance unos 180 °C.",
+      "Freír los trozos de bacalao rebozados en tandas hasta que estén dorados por ambos lados, unos 3 min por cada lado.",
+      "Escurrir el bacalao frito sobre papel absorbente para eliminar el exceso de aceite.",
+      "Cortar limón en gajos y servir el bacalao acompañado del limón para exprimir al gusto."
     ],
     "description": "Trozos de bacalao desalado rebozados en harina y huevo",
     "methods": [
@@ -1037,7 +1746,53 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca el bacalao rebozado en una bandeja con papel de horno y hornea durante 20-25 minutos, o hasta que esté dorado y cocido por dentro. Un chorrito de aceite sobre el rebozado ayuda a que quede más crujiente."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Bacalao desalado}} en trozos de unos 5 cm y secar cada pieza con papel absorbente.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que la clara y la yema queden integradas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Harina}} en un plato llano para rebozar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada trozo de bacalao por la harina, sacudir el exceso y sumergir en el huevo batido hasta cubrir bien.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego fuerte hasta que el aceite alcance unos 180 °C.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los trozos de bacalao rebozados en tandas hasta que estén dorados por ambos lados, unos 3 min por cada lado.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir el bacalao frito sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar {{Limón}} en gajos y servir el bacalao acompañado del limón para exprimir al gusto.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 4,
+    "sodium_mg": 520
   },
   {
     "id": "pescados_015",
@@ -1098,10 +1853,16 @@
       }
     ],
     "steps": [
-      "Rellenar cada trucha con lonchas de jamón",
-      "Enharinar por fuera",
-      "Freír en aceite con ajo 5 min por lado",
-      "Servir con limón"
+      "Laminar ajo en láminas finas.",
+      "Abrir truchas enteras por el lomo sin separar los filetes y limpiar el interior con papel absorbente.",
+      "Rellenar el interior de cada trucha con jamón serrano en lonchas, distribuyéndolas de forma uniforme.",
+      "Cerrar cada trucha y enharinar con harina por ambos lados; sacudir el exceso.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté bien caliente.",
+      "Añadir el ajo laminado y sofreír hasta que empiece a dorarse.",
+      "Incorporar las truchas enharinadas y freír a fuego medio durante 5 min sin moverlas, hasta que el fondo esté dorado.",
+      "Dar la vuelta a las truchas con cuidado y freír 5 min más por el otro lado hasta que estén doradas y bien hechas.",
+      "Cortar limón en gajos.",
+      "Retirar las truchas a una fuente y servir con los gajos de limón al lado."
     ],
     "description": "Trucha entera rellena de jamón serrano, enharinada y frita",
     "methods": [
@@ -1117,7 +1878,64 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Rellena la trucha con el jamón, sazona, rocía con aceite y hornea 20 minutos hasta que esté hecha y ligeramente dorada. El truco es un refrito de ajo en sartén para verter por encima al servir."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Abrir {{Truchas enteras}} por el lomo sin separar los filetes y limpiar el interior con papel absorbente.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Rellenar el interior de cada trucha con {{Jamón serrano}} en lonchas, distribuyéndolas de forma uniforme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cerrar cada trucha y enharinar con {{Harina}} por ambos lados; sacudir el exceso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y sofreír hasta que empiece a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las truchas enharinadas y freír a fuego medio durante 5 min sin moverlas, hasta que el fondo esté dorado.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a las truchas con cuidado y freír 5 min más por el otro lado hasta que estén doradas y bien hechas.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar {{Limón}} en gajos.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 7
+      },
+      {
+        "text": "Retirar las truchas a una fuente y servir con los gajos de limón al lado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 5,
+    "sodium_mg": 780
   },
   {
     "id": "pescados_016",
@@ -1186,10 +2004,16 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla y ajo, añadir harina",
-      "Incorporar vino blanco y caldo",
-      "Añadir el rape troceado y cocer 10 min",
-      "Incorporar las almejas y cocer hasta que se abran"
+      "Pelar y picar fino cebolla y ajo.",
+      "Cortar rape en trozos de bocado de unos 3 cm.",
+      "Calentar aceite de oliva en una cazuela a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada y el ajo picado a fuego medio hasta que estén transparentes, unos 4 min.",
+      "Añadir harina al sofrito y remover sin parar durante 1 min hasta que se integre y pierda el sabor a crudo.",
+      "Verter vino blanco y remover hasta que se evapore el alcohol, unos 2 min.",
+      "Incorporar los trozos de rape a la cazuela y cocer a fuego medio durante 5 min.",
+      "Añadir almejas, tapar la cazuela y cocer a fuego medio hasta que todas las almejas estén abiertas, unos 3 min.",
+      "Picar fino perejil mientras las almejas se abren.",
+      "Espolvorear el perejil picado sobre la cazuela y servir de inmediato."
     ],
     "description": "Rape guisado en salsa marinera con almejas y vino blanco",
     "methods": [
@@ -1205,7 +2029,64 @@
         "difficulty": "facil",
         "prepSummary": "Trocea cebolla y ajo, sofríe en el vaso con aceite. Añade la harina, el vino y un poco de agua o caldo, y cocina la salsa. Incorpora el rape y las almejas, cocinando a temperatura Varoma o a 90°C, velocidad cuchara, hasta que el pescado esté en su punto y las almejas abiertas. El"
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar fino {{Cebolla}} y {{Ajo}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Rape}} en trozos de bocado de unos 3 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una cazuela a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado a fuego medio hasta que estén transparentes, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Harina}} al sofrito y remover sin parar durante 1 min hasta que se integre y pierda el sabor a crudo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino blanco}} y remover hasta que se evapore el alcohol, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar los trozos de rape a la cazuela y cocer a fuego medio durante 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Almejas}}, tapar la cazuela y cocer a fuego medio hasta que todas las almejas estén abiertas, unos 3 min.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar fino {{Perejil}} mientras las almejas se abren.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 7
+      },
+      {
+        "text": "Espolvorear el perejil picado sobre la cazuela y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 3,
+    "sodium_mg": 420
   },
   {
     "id": "pescados_017",
@@ -1260,10 +2141,16 @@
       }
     ],
     "steps": [
-      "Cortar la merluza en bastones gruesos",
-      "Pasar por harina, huevo y pan rallado",
-      "Freír en aceite caliente hasta dorar",
-      "Escurrir sobre papel absorbente"
+      "Cortar merluza en lomos en bastones de unos 3 cm de grosor y salpimentar.",
+      "Batir huevo en un bol hondo hasta que esté homogéneo.",
+      "Disponer harina y pan rallado en 2 platos separados.",
+      "Pasar cada bastón de merluza primero por la harina, sacudiendo el exceso.",
+      "Bañar cada bastón enharinado en el huevo batido hasta que quede bien cubierto.",
+      "Rebozar cada bastón en el pan rallado, presionando ligeramente para que se adhiera.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los bastones rebozados a fuego fuerte hasta que estén dorados por todos los lados, unos 3 min.",
+      "Retirar los palitos de la sartén y escurrir sobre papel absorbente hasta que pierdan el exceso de aceite.",
+      "Servir los palitos de merluza calientes."
     ],
     "description": "Bastones de merluza empanados caseros, ideal para niños",
     "methods": [
@@ -1279,7 +2166,63 @@
         "difficulty": "facil",
         "prepSummary": "Hornea los palitos a 200°C con calor arriba y abajo durante 15-20 minutos, o hasta que estén bien dorados y crujientes, dándoles la vuelta una vez a mitad de cocción."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Merluza en lomos}} en bastones de unos 3 cm de grosor y salpimentar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hondo hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer {{Harina}} y {{Pan rallado}} en 2 platos separados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada bastón de merluza primero por la harina, sacudiendo el exceso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Bañar cada bastón enharinado en el huevo batido hasta que quede bien cubierto.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Rebozar cada bastón en el pan rallado, presionando ligeramente para que se adhiera.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los bastones rebozados a fuego fuerte hasta que estén dorados por todos los lados, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los palitos de la sartén y escurrir sobre papel absorbente hasta que pierdan el exceso de aceite.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir los palitos de merluza calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 320
   },
   {
     "id": "pescados_018",
@@ -1342,10 +2285,20 @@
       }
     ],
     "steps": [
-      "Cortar verduras en tiras finas",
-      "Colocar cada lomo sobre papel de horno con las verduras",
-      "Aliñar con aceite, limón y eneldo, cerrar el paquete",
-      "Hornear a 200°C durante 18 min"
+      "Lavar y pelar zanahoria, luego laminar en tiras finas de unos 3 mm.",
+      "Cortar calabacín en tiras finas de unos 3 mm, sin pelarlo.",
+      "Cortar puerro en tiras finas, usando solo la parte blanca y verde tierna.",
+      "Cortar limón por la mitad: reservar una mitad en rodajas finas y la otra para exprimir el zumo.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Cortar 2 rectángulos de papel de horno de unos 40 × 30 cm y disponerlos sobre la bandeja.",
+      "Repartir las tiras de zanahoria, calabacín y puerro en el centro de cada rectángulo de papel.",
+      "Colocar lomos de salmón sobre el lecho de verduras, uno en cada paquete.",
+      "Aliñar cada lomo con aceite de oliva, el zumo de limón y las rodajas de limón reservadas.",
+      "Espolvorear eneldo sobre cada lomo.",
+      "Cerrar cada papillote plegando los bordes del papel con varios dobleces apretados para que no escape el vapor.",
+      "Hornear los papillotes a 200 °C durante 18 min, hasta que el papel esté hinchado y ligeramente dorado.",
+      "Retirar la bandeja del horno y abrir los papillotes con cuidado por el centro, apartando el vapor hacia arriba.",
+      "Servir el salmón directamente en el papel o trasladarlo al plato junto con las verduras y el jugo acumulado."
     ],
     "description": "Salmón cocinado al vapor en papillote con verduras en juliana",
     "methods": [
@@ -1379,7 +2332,83 @@
         "difficulty": "facil",
         "prepSummary": "Añade 250ml de agua a la olla y coloca una rejilla. Pon los papillotes bien cerrados sobre la rejilla. Cocina a presión alta durante 5-7 minutos y libera la presión rápidamente para evitar que el salmón se seque."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar y pelar {{Zanahoria}}, luego laminar en tiras finas de unos 3 mm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en tiras finas de unos 3 mm, sin pelarlo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Puerro}} en tiras finas, usando solo la parte blanca y verde tierna.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} por la mitad: reservar una mitad en rodajas finas y la otra para exprimir el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar 2 rectángulos de papel de horno de unos 40 × 30 cm y disponerlos sobre la bandeja.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir las tiras de zanahoria, calabacín y puerro en el centro de cada rectángulo de papel.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Lomos de salmón}} sobre el lecho de verduras, uno en cada paquete.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar cada lomo con {{Aceite de oliva|chorrito}}, el zumo de limón y las rodajas de limón reservadas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Espolvorear {{Eneldo|pizca}} sobre cada lomo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cerrar cada papillote plegando los bordes del papel con varios dobleces apretados para que no escape el vapor.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear los papillotes a 200 °C durante 18 min, hasta que el papel esté hinchado y ligeramente dorado.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y abrir los papillotes con cuidado por el centro, apartando el vapor hacia arriba.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir el salmón directamente en el papel o trasladarlo al plato junto con las verduras y el jugo acumulado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 5,
+    "sodium_mg": 95
   },
   {
     "id": "pescados_019",
@@ -1436,10 +2465,14 @@
       }
     ],
     "steps": [
-      "Pochar la cebolla en juliana a fuego lento 15 min",
-      "Añadir tomate, vino y laurel",
-      "Colocar el atún sobre la cebolla",
-      "Tapar y cocer 8 min a fuego suave"
+      "Pelar cebolla y laminar en juliana fina.",
+      "Cortar atún fresco en 2 filetes o tacos uniformes y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla laminada a fuego suave hasta que esté tierna y ligeramente dorada.",
+      "Añadir tomate triturado, vino blanco y laurel; remover para integrar.",
+      "Cocer la salsa a fuego medio hasta que el alcohol se evapore y la salsa reduzca ligeramente, unos 2 min.",
+      "Colocar el atún sobre la salsa, tapar y cocer a fuego suave hasta que el atún esté justo cocinado en el centro.",
+      "Retirar el laurel y servir el atún con la cebolla y la salsa por encima."
     ],
     "description": "Atún fresco guisado sobre cama de cebolla pochada al vino",
     "methods": [
@@ -1461,7 +2494,53 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla en la olla abierta con aceite. Añade el tomate, vino y laurel, cierra y cocina a presión durante 5 minutos. Abre, incorpora el atún en trozos y cocina sin tapa a fuego medio otros 5-7 minutos hasta que el atún esté hecho y la salsa reducida, logrando un guiso rá"
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y laminar en juliana fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Atún fresco}} en 2 filetes o tacos uniformes y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla laminada a fuego suave hasta que esté tierna y ligeramente dorada.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, {{Vino blanco}} y {{Laurel}}; remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la salsa a fuego medio hasta que el alcohol se evapore y la salsa reduzca ligeramente, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar el atún sobre la salsa, tapar y cocer a fuego suave hasta que el atún esté justo cocinado en el centro.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel y servir el atún con la cebolla y la salsa por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 7,
+    "saturated_fat_g": 3,
+    "sodium_mg": 180
   },
   {
     "id": "pescados_020",
@@ -1514,10 +2593,16 @@
       }
     ],
     "steps": [
-      "Salpimentar las rodajas de emperador",
-      "Cocinar a la plancha con aceite 3 min por lado",
-      "Hacer salsa rápida con ajo, perejil y limón",
-      "Verter sobre el pescado al servir"
+      "Picar ajo muy fino y reservar.",
+      "Picar perejil fino y reservar.",
+      "Exprimir limón y reservar el zumo.",
+      "Salpimentar rodajas de emperador por ambas caras.",
+      "Calentar plancha a fuego fuerte hasta que esté muy caliente.",
+      "Añadir aceite de oliva sobre la plancha y colocar las rodajas de emperador.",
+      "Cocinar las rodajas de emperador 3 min por el primer lado sin moverlas, hasta que se doren.",
+      "Dar la vuelta a las rodajas de emperador y cocinar 3 min por el segundo lado hasta que estén hechas.",
+      "Mezclar en un bol el ajo picado, el perejil picado y el zumo de limón hasta obtener una salsa homogénea.",
+      "Retirar las rodajas de emperador de la plancha y verter la salsa por encima. Servir de inmediato."
     ],
     "description": "Rodajas de pez espada a la plancha con ajo y perejil",
     "methods": [
@@ -1533,7 +2618,64 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con función grill o calor arriba y abajo. Coloca el emperador marinado con aceite, ajo y perejil en una bandeja y hornea/gratina durante 10-15 minutos hasta que esté cocido y ligeramente dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Rodajas de emperador}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté muy caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} sobre la plancha y colocar las rodajas de emperador.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocinar las rodajas de emperador 3 min por el primer lado sin moverlas, hasta que se doren.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a las rodajas de emperador y cocinar 3 min por el segundo lado hasta que estén hechas.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar en un bol el ajo picado, el perejil picado y el zumo de limón hasta obtener una salsa homogénea.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 7
+      },
+      {
+        "text": "Retirar las rodajas de emperador de la plancha y verter la salsa por encima. Servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 3,
+    "sodium_mg": 320
   },
   {
     "id": "pescados_021",
@@ -1604,10 +2746,21 @@
       }
     ],
     "steps": [
-      "Sofreír sepia y gambas y reservar",
-      "Tostar los fideos con ajo y tomate",
-      "Añadir pimentón y caldo caliente",
-      "Cocer 10 min, incorporar el marisco y dejar reposar"
+      "Cortar sepia en trozos de bocado de aproximadamente 2 cm.",
+      "Picar ajo muy fino.",
+      "Calentar caldo de pescado en un cazo a fuego medio hasta que esté caliente; retirar del fuego y reservar.",
+      "Calentar aceite de oliva en una paella o sartén amplia a fuego fuerte.",
+      "Sofreír la sepia troceada en el aceite caliente durante 3 min hasta que esté dorada; retirar y reservar.",
+      "Sofreír gambas en la misma sartén a fuego fuerte durante 2 min hasta que cambien de color; retirar y reservar.",
+      "Sofreír el ajo picado en la misma sartén a fuego medio durante 1 min hasta que esté dorado sin quemarse.",
+      "Añadir tomate triturado y sofreír a fuego medio durante 3 min hasta que reduzca y oscurezca.",
+      "Añadir pimentón y remover durante 30 segundos hasta integrarlo; retirar la sartén del fuego un instante para evitar que se queme.",
+      "Añadir fideos n°2 y tostarlos a fuego medio durante 3 min removiendo hasta que estén dorados.",
+      "Verter el caldo caliente reservado, remover para repartir los fideos en capa uniforme y llevar a ebullición a fuego fuerte.",
+      "Cocer a fuego medio sin remover durante 8 min hasta que los fideos absorban casi todo el caldo.",
+      "Incorporar la sepia y las gambas reservadas distribuyéndolas por la superficie; cocer 2 min más hasta que el caldo restante se absorba.",
+      "Retirar del fuego, tapar con un paño limpio y dejar reposar 5 min para que los fideos terminen de hidratarse.",
+      "Servir la fideuá directamente desde la sartén."
     ],
     "description": "Fideos tostados con gambas y sepia en caldo de pescado",
     "methods": [
@@ -1617,7 +2770,88 @@
         "difficulty": "normal",
         "prepSummary": "Sella las gambas y la sepia, y sofríe el ajo y tomate en una paellera o cazuela apta para horno. Añade los fideos y tuéstalos ligeramente antes de incorporar el caldo caliente. Termina la cocción en el horno precalentado a 200°C durante unos 15-20 minutos, hasta que los fideos ab"
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Sepia}} en trozos de bocado de aproximadamente 2 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Caldo de pescado}} en un cazo a fuego medio hasta que esté caliente; retirar del fuego y reservar.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una paella o sartén amplia a fuego fuerte.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la sepia troceada en el aceite caliente durante 3 min hasta que esté dorada; retirar y reservar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír {{Gambas}} en la misma sartén a fuego fuerte durante 2 min hasta que cambien de color; retirar y reservar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado en la misma sartén a fuego medio durante 1 min hasta que esté dorado sin quemarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír a fuego medio durante 3 min hasta que reduzca y oscurezca.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimentón|pizca}} y remover durante 30 segundos hasta integrarlo; retirar la sartén del fuego un instante para evitar que se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Fideos n°2}} y tostarlos a fuego medio durante 3 min removiendo hasta que estén dorados.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el caldo caliente reservado, remover para repartir los fideos en capa uniforme y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio sin remover durante 8 min hasta que los fideos absorban casi todo el caldo.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Incorporar la sepia y las gambas reservadas distribuyéndolas por la superficie; cocer 2 min más hasta que el caldo restante se absorba.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego, tapar con un paño limpio y dejar reposar 5 min para que los fideos terminen de hidratarse.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la fideuá directamente desde la sartén.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 3,
+    "sodium_mg": 520
   },
   {
     "id": "pescados_022",
@@ -1675,10 +2909,16 @@
       }
     ],
     "steps": [
-      "Colocar los lomos en bandeja de horno",
-      "Aliñar con aceite, ajo laminado, limón y vino",
-      "Hornear a 190°C durante 18 min",
-      "Espolvorear perejil al servir"
+      "Laminar ajo en rodajas finas.",
+      "Cortar limón en rodajas de medio centímetro.",
+      "Picar perejil fino y reservar.",
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Disponer rosada en lomos en una bandeja de horno con la piel hacia abajo.",
+      "Repartir el ajo laminado sobre los lomos.",
+      "Colocar las rodajas de limón encima del pescado.",
+      "Verter aceite de oliva y vino blanco sobre los lomos.",
+      "Hornear en el centro del horno a 190 °C durante 18 min, hasta que el pescado esté opaco y se desmenuce al tocarlo.",
+      "Retirar la bandeja del horno y espolvorear el perejil picado sobre los lomos antes de servir."
     ],
     "description": "Lomos de rosada al horno con limón, ajo y vino blanco",
     "methods": [
@@ -1694,7 +2934,63 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta la airfryer a 180°C. Dispón la rosada en la cesta con el resto de ingredientes, asegurándote de que el limón y el ajo estén bien distribuidos. Cocina por 12-15 minutos, revisando el punto de cocción para que quede jugosa por dentro y ligeramente dorada por fuera."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en rodajas de medio centímetro.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Disponer {{Rosada en lomos}} en una bandeja de horno con la piel hacia abajo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir el ajo laminado sobre los lomos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar las rodajas de limón encima del pescado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Aceite de oliva|chorrito}} y {{Vino blanco}} sobre los lomos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear en el centro del horno a 190 °C durante 18 min, hasta que el pescado esté opaco y se desmenuce al tocarlo.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y espolvorear el perejil picado sobre los lomos antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "pescados_023",
@@ -1747,10 +3043,15 @@
       }
     ],
     "steps": [
-      "Limpiar la caballa y abrirla en lomos",
-      "Marcar a la plancha bien caliente por ambos lados",
-      "Majar el ajo y el perejil con el aceite",
-      "Servir con el aliño y unas gotas de limón"
+      "Cortar limón por la mitad y reservar una mitad para el zumo y la otra para decorar.",
+      "Picar ajo muy fino y picar perejil igualmente fino.",
+      "Mezclar el ajo picado y el perejil picado con aceite de oliva en un bol pequeño hasta integrar bien.",
+      "Limpiar caballa, retirar las espinas centrales y abrirla en lomos iguales. Secar bien con papel de cocina.",
+      "Calentar plancha a fuego fuerte hasta que humee ligeramente.",
+      "Colocar los lomos de caballa con la piel hacia abajo en la plancha caliente y dorar 3 min sin moverlos, hasta que la piel esté crujiente.",
+      "Dar la vuelta a los lomos y cocinar 1 min por el lado de la carne, hasta que esté opaca en el centro.",
+      "Retirar los lomos de la plancha y disponer en el plato con la piel hacia arriba.",
+      "Exprimir la mitad del limón reservada sobre los lomos y repartir el aliño de ajo, perejil y aceite de oliva por encima. Servir de inmediato."
     ],
     "description": "Caballa a la plancha con un aliño de ajo, perejil y limón",
     "methods": [
@@ -1760,7 +3061,58 @@
         "difficulty": "facil",
         "prepSummary": "Coloca los lomos de caballa en la freidora de aire a 190°C durante 8-10 minutos hasta que la piel quede dorada. Sirve con el aliño de ajo, perejil, aceite y limón."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Limón}} por la mitad y reservar una mitad para el zumo y la otra para decorar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino y picar {{Perejil}} igualmente fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el ajo picado y el perejil picado con {{Aceite de oliva}} en un bol pequeño hasta integrar bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Caballa}}, retirar las espinas centrales y abrirla en lomos iguales. Secar bien con papel de cocina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los lomos de caballa con la piel hacia abajo en la plancha caliente y dorar 3 min sin moverlos, hasta que la piel esté crujiente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a los lomos y cocinar 1 min por el lado de la carne, hasta que esté opaca en el centro.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los lomos de la plancha y disponer en el plato con la piel hacia arriba.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Exprimir la mitad del limón reservada sobre los lomos y repartir el aliño de ajo, perejil y aceite de oliva por encima. Servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 4,
+    "sodium_mg": 85
   },
   {
     "id": "pescados_024",
@@ -1818,10 +3170,18 @@
       }
     ],
     "steps": [
-      "Disponer patata y cebolla en rodajas en bandeja",
-      "Hornear 15 min a 200°C",
-      "Colocar la pescadilla encima con limón y aceite",
-      "Hornear 12 min más y servir con perejil"
+      "Pelar patata y cortar en rodajas de unos 3 mm de grosor.",
+      "Pelar cebolla y cortar en rodajas finas.",
+      "Cortar limón en rodajas finas.",
+      "Picar perejil fino y reservar.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Disponer las rodajas de patata en una sola capa sobre una bandeja de horno.",
+      "Colocar las rodajas de cebolla sobre la patata y regar con aceite de oliva.",
+      "Hornear la bandeja durante 15 min hasta que la patata empiece a estar tierna.",
+      "Retirar la bandeja del horno y colocar pescadilla en lomos con la piel hacia abajo sobre la cama de verduras.",
+      "Disponer las rodajas de limón sobre los lomos y regar con el resto del aceite de oliva.",
+      "Hornear 12 min más hasta que la pescadilla esté opaca y se desmenuce con facilidad.",
+      "Retirar del horno y servir con el perejil picado esparcido por encima."
     ],
     "description": "Lomos de pescadilla al horno con patata y cebolla",
     "methods": [
@@ -1837,7 +3197,73 @@
         "difficulty": "facil",
         "prepSummary": "Precalentar la airfryer a 180°C. Cocinar las patatas y cebolla en rodajas finas con un poco de aceite durante 15-18 minutos, removiendo a mitad. Incorporar la pescadilla, salpimentar y rociar con limón, cocinando 7-9 minutos adicionales hasta que el pescado esté tierno y dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en rodajas de unos 3 mm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y cortar en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en rodajas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Disponer las rodajas de patata en una sola capa sobre una bandeja de horno.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar las rodajas de cebolla sobre la patata y regar con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la bandeja durante 15 min hasta que la patata empiece a estar tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y colocar {{Pescadilla en lomos}} con la piel hacia abajo sobre la cama de verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer las rodajas de limón sobre los lomos y regar con el resto del aceite de oliva.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear 12 min más hasta que la pescadilla esté opaca y se desmenuce con facilidad.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y servir con el perejil picado esparcido por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "pescados_025",
@@ -1900,10 +3326,17 @@
       }
     ],
     "steps": [
-      "Pochar la cebolla en juliana a fuego lento 10 min",
-      "Añadir los calamares en anillas con ajo",
-      "Verter el vino y añadir laurel",
-      "Tapar y cocer 15 min a fuego suave"
+      "Pelar cebolla y laminar en juliana fina.",
+      "Pelar ajo y picar fino.",
+      "Limpiar calamares y cortar en anillas de 1 cm.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Añadir la cebolla laminada y sofreír a fuego suave hasta que esté transparente y blanda.",
+      "Añadir el ajo picado y sofreír 1 min hasta que desprenda aroma.",
+      "Añadir las anillas de calamar y saltear a fuego fuerte hasta que cambien de color.",
+      "Verter vino blanco y añadir laurel; remover para integrar.",
+      "Tapar la sartén y cocer a fuego suave hasta que los calamares estén tiernos.",
+      "Picar perejil fino mientras cuecen los calamares.",
+      "Retirar el laurel, espolvorear el perejil picado y servir en plato hondo."
     ],
     "description": "Calamares en anillas guisados con abundante cebolla pochada",
     "methods": [
@@ -1925,6 +3358,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo en la olla a presión. Añade los calamares, el vino, el laurel y un chorrito de agua. Cierra la olla y cocina durante 8-10 minutos desde que sube la válvula. Despresuriza y, si es necesario, reduce la salsa a fuego vivo sin tapa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y laminar en juliana fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y picar fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Calamares}} y cortar en anillas de 1 cm.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la cebolla laminada y sofreír a fuego suave hasta que esté transparente y blanda.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min hasta que desprenda aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las anillas de calamar y saltear a fuego fuerte hasta que cambien de color.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino blanco}} y añadir {{Laurel}}; remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la sartén y cocer a fuego suave hasta que los calamares estén tiernos.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Perejil}} fino mientras cuecen los calamares.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 8
+      },
+      {
+        "text": "Retirar el laurel, espolvorear el perejil picado y servir en plato hondo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 3,
+    "sodium_mg": 320
   }
 ]

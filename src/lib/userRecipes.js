@@ -3,12 +3,15 @@ import { uid } from "./groups.js";
 import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } from "./aiPlanner.js";
 import { FAST_MODEL } from "./aiModels.js";
 import { EU_ALLERGENS } from "./allergens.js";
+import { normalizeRichSteps, richToPlainSteps } from "./recipeSteps.js";
+import { StepRichSchema } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import {
   SHOPPING_AISLES,
   guessShoppingAisle,
   normalizeName,
+  ingredientStem,
   QUALITATIVE_INGREDIENT_UNITS,
   isQualitativeUnit,
 } from "./ingredientCategories.js";
@@ -54,45 +57,90 @@ export const CURATED_INGREDIENTS_BY_AISLE = {
     "Chuleta de cerdo", "Costilla", "Cordero", "Chorizo", "Salchicha",
     "Jamón serrano", "Jamón cocido", "Bacon", "Carne picada", "Hamburguesa",
     "Morcilla", "Panceta", "Lomo",
+    "Secreto ibérico", "Pluma ibérica", "Presa ibérica", "Carrillera",
+    "Rabo de toro", "Morcillo", "Entrecot", "Butifarra", "Fuet",
+    "Lomo embuchado", "Cecina", "Sobrasada", "Chistorra", "Longaniza",
   ],
   Pescado: [
     "Merluza", "Salmón", "Bacalao", "Atún", "Gambas", "Langostinos", "Sardinas",
     "Calamar", "Sepia", "Mejillones", "Rape", "Lubina", "Dorada", "Boquerones",
     "Trucha", "Pulpo", "Almejas",
+    "Ventresca", "Mojama", "Bonito del norte", "Anchoa en aceite",
+    "Percebe", "Navaja", "Berberecho", "Cigala", "Vieira", "Zamburiña",
   ],
   Legumbres: [
     "Lentejas", "Garbanzos", "Alubias blancas", "Alubias pintas", "Judías",
     "Habas", "Tofu", "Soja texturizada",
+    "Garrofón", "Judión", "Alubia de Tolosa",
   ],
   "Pasta y arroz": [
     "Arroz", "Arroz integral", "Espaguetis", "Macarrones", "Fideos", "Cuscús",
     "Quinoa", "Lasaña", "Ñoquis",
+    "Arroz bomba", "Fideo nº2",
   ],
   Lácteos: [
-    "Leche", "Nata", "Queso rallado", "Queso fresco", "Yogur natural",
-    "Mantequilla", "Requesón", "Mozzarella", "Queso parmesano", "Nata para cocinar",
+    "Leche", "Nata", "Yogur natural", "Mantequilla", "Nata para cocinar",
+    "Queso rallado", "Queso en lonchas", "Queso de untar", "Queso crema",
+    "Queso fresco", "Queso de Burgos", "Requesón", "Cuajada", "Queso cottage",
+    "Queso tierno", "Queso semicurado", "Queso curado",
+    "Queso manchego", "Queso de oveja", "Idiazábal", "Roncal", "Zamorano",
+    "Mahón", "Tetilla", "Arzúa-Ulloa", "San Simón",
+    "Torta del Casar", "Torta de la Serena",
+    "Queso de cabra", "Rulo de cabra",
+    "Cabrales", "Queso azul", "Roquefort", "Gorgonzola", "Valdeón", "Stilton",
+    "Mozzarella", "Mozzarella de búfala", "Burrata", "Ricotta", "Mascarpone",
+    "Queso parmesano", "Pecorino", "Grana Padano",
+    "Feta", "Halloumi",
+    "Camembert", "Brie",
+    "Cheddar", "Gouda", "Edam", "Emmental", "Gruyère", "Comté", "Havarti",
+    "Provolone", "Scamorza", "Fontina", "Taleggio", "Raclette",
   ],
   Huevos: ["Huevo"],
   Panadería: [
-    "Pan", "Pan rallado", "Harina", "Avena", "Pan de molde", "Pan integral",
+    "Pan", "Pan rústico", "Hogaza", "Barra de pan", "Baguette", "Chapata",
+    "Pan de pueblo", "Pan de payés", "Pan candeal", "Pan gallego", "Pan de cristal",
+    "Pan de molde", "Pan integral", "Pan de centeno", "Pan de semillas", "Pan de cereal",
+    "Pan de leche", "Pan de Viena", "Pan de masa madre",
+    "Mollete", "Telera", "Panecillo", "Pan pita", "Pan árabe", "Naan",
+    "Pan de hamburguesa", "Pan de perrito", "Pan bao",
+    "Tortilla de trigo", "Tortilla de maíz",
+    "Focaccia", "Brioche", "Croissant", "Bagel",
+    "Picos", "Colines", "Biscote",
+    "Pan rallado", "Harina", "Avena",
   ],
   Especias: [
     "Sal", "Pimienta negra", "Pimentón dulce", "Comino", "Orégano", "Perejil",
     "Laurel", "Curry", "Cúrcuma", "Canela", "Ajo en polvo", "Guindilla",
     "Albahaca", "Romero", "Tomillo", "Jengibre", "Azafrán",
+    "Sal en escamas", "Sal ahumada", "Flor de sal", "Pimienta blanca",
+    "Pimienta de Sichuan", "Pimentón ahumado", "Pimentón picante", "Pimentón de la Vera",
+    "Ñora", "Anís estrellado", "Cardamomo", "Clavo", "Nuez moscada", "Sumac",
+    "Zaatar", "Ras el hanout", "Garam masala", "Cinco especias", "Hierbas provenzales",
+    "Eneldo", "Estragón", "Cilantro fresco", "Cilantro en grano", "Mostaza en grano",
+    "Azafrán en hebra",
   ],
   "Aceites y conservas": [
     "Aceite de oliva", "Vinagre", "Caldo de verduras", "Caldo de pollo",
     "Salsa de tomate", "Tomate triturado", "Miel", "Mostaza", "Salsa de soja",
     "Aceitunas", "Maicena", "Almendras", "Nueces", "Azúcar", "Vino blanco", "Vino tinto",
+    "Wasabi", "Tahini", "Miso", "Gochujang", "Harissa", "Salsa Worcestershire",
+    "Vinagre de Jerez", "Vinagre balsámico", "Vinagre de manzana", "Vinagre de arroz",
+    "Salsa de ostra", "Salsa de pescado", "Aceite de sésamo", "Aceite de coco",
+    "Aceite de girasol", "AOVE picual", "AOVE arbequina", "Pedro Ximénez",
+    "Piñón", "Avellana", "Pistacho", "Dátil", "Orejón", "Pasa sultana",
+    "Membrillo en pasta", "Chocolate 70%", "Cacao puro", "Levadura fresca",
+    "Masa madre", "Hojaldre", "Masa quebrada", "Oblea de empanadilla",
+    "Alga nori", "Alga wakame", "Leche de coco", "Leche de almendras",
+    "Edamame", "Tempeh", "Seitán",
   ],
 };
 
 function dedupeByNormalizedName(names) {
   const seen = new Map();
   for (const name of names) {
-    const key = name.toLowerCase();
-    if (!seen.has(key)) seen.set(key, name);
+    const key = ingredientStem(name);
+    if (!key || seen.has(key)) continue;
+    seen.set(key, name);
   }
   return [...seen.values()].sort((a, b) => a.localeCompare(b, "es"));
 }
@@ -533,6 +581,9 @@ export const UserRecipeDraftSchema = z.object({
   season: z.enum(["all", "verano", "invierno"]),
   ingredients: z.array(IngredientSchema).min(1),
   steps: z.array(z.string().min(1)).min(1),
+  // Paso a paso estructurado, mismo formato que el catálogo. Opcional: si el
+  // modelo devuelve pasos sin metadatos, `steps` (plano) sigue funcionando.
+  stepsRich: z.array(StepRichSchema).min(1).optional(),
   description: z.string().min(1),
 });
 
@@ -573,7 +624,9 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
 
   const body = {
     model: FAST_MODEL,
-    max_tokens: 1200,
+    // Los pasos pasaron de strings a objetos {text, minutes, kind} y sin tope
+    // de número de pasos: una receta larga se truncaba a medio JSON con 1200.
+    max_tokens: 2600,
     task: "structure-recipe",
     messages: [{ role: "user", content: JSON.stringify(userPayload) }],
   };
@@ -618,6 +671,19 @@ export async function generateUserRecipeDraft(input, { signal } = {}) {
     // need the model's version of. Use the user's list directly instead of
     // trusting the echo, so this entire failure mode can't happen.
     parsed.ingredients = userPayload.ingredients;
+
+    // El modelo devuelve `steps` como objetos enriquecidos; normalizarlos aquí
+    // (tolera también un array de strings, que es a lo que cae un modelo rápido
+    // cuando se despista) y derivar de ahí los `steps` planos, que siguen
+    // siendo la fuente de verdad / fallback y no pueden llevar marcadores.
+    // Solo se guarda `stepsRich` si los pasos traen metadatos de verdad: un
+    // stepper donde todo pone "A continuación" y sin tiempos es peor que la
+    // lista numerada de siempre.
+    const rich = normalizeRichSteps(parsed.steps);
+    if (rich.length > 0) {
+      parsed.steps = richToPlainSteps(rich);
+      parsed.stepsRich = rich.some((s) => s.kind || s.minutes) ? rich : undefined;
+    }
   }
 
   const validation = UserRecipeDraftSchema.safeParse(parsed);

@@ -5,7 +5,9 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "avena",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 5,
     "difficulty": "facil",
@@ -16,22 +18,83 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["lactosa", "gluten"],
+    "allergens": [
+      "lactosa",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Yogur natural", "amount": 250, "unit": "g" },
-      { "name": "Plátano", "amount": 1, "unit": "ud" },
-      { "name": "Fresas", "amount": 100, "unit": "g" },
-      { "name": "Copos de avena", "amount": 40, "unit": "g" },
-      { "name": "Miel", "amount": 15, "unit": "ml" }
+      {
+        "name": "Yogur natural",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Fresas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Reparte el yogur en dos boles",
-      "Añade el plátano en rodajas y las fresas troceadas",
-      "Reparte los copos de avena por encima",
-      "Termina con un hilo de miel"
+      "Laminar plátano en rodajas de unos 5 mm.",
+      "Cortar fresas en cuartos, retirando el pedúnculo.",
+      "Repartir yogur natural a partes iguales en 2 boles.",
+      "Disponer las rodajas de plátano y las fresas cortadas sobre el yogur.",
+      "Repartir copos de avena por encima de la fruta.",
+      "Verter miel en hilo fino sobre cada bol y servir."
     ],
-    "description": "Bol de yogur natural con plátano, fresas, avena y un toque de miel"
+    "description": "Bol de yogur natural con plátano, fresas, avena y un toque de miel",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Plátano}} en rodajas de unos 5 mm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Fresas}} en cuartos, retirando el pedúnculo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Yogur natural}} a partes iguales en 2 boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Disponer las rodajas de plátano y las fresas cortadas sobre el yogur.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Repartir {{Copos de avena}} por encima de la fruta.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Verter {{Miel|chorrito}} en hilo fino sobre cada bol y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 28,
+    "saturated_fat_g": 2,
+    "sodium_mg": 55
   },
   {
     "id": "desayunos_002",
@@ -39,7 +102,9 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "pan",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 6,
     "difficulty": "facil",
@@ -50,21 +115,65 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan", "amount": 160, "unit": "g" },
-      { "name": "Tomate maduro", "amount": 120, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Sal", "amount": 1, "unit": "g" }
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Tuesta las rebanadas de pan",
-      "Ralla el tomate maduro",
-      "Reparte el tomate sobre las tostadas",
-      "Añade un hilo de aceite de oliva y una pizca de sal"
+      "Rallar tomate maduro sobre un bol hasta obtener la pulpa; desechar la piel.",
+      "Tostar pan en la tostadora hasta que esté dorado y crujiente.",
+      "Repartir la pulpa de tomate rallado sobre las tostadas de forma uniforme.",
+      "Añadir aceite de oliva sobre cada tostada y terminar con sal."
     ],
-    "description": "Clásica tostada de pan con tomate rallado, aceite de oliva y sal"
+    "description": "Clásica tostada de pan con tomate rallado, aceite de oliva y sal",
+    "stepsRich": [
+      {
+        "text": "Rallar {{Tomate maduro}} sobre un bol hasta obtener la pulpa; desechar la piel.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Tostar {{Pan}} en la tostadora hasta que esté dorado y crujiente.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Repartir la pulpa de tomate rallado sobre las tostadas de forma uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} sobre cada tostada y terminar con {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 280
   },
   {
     "id": "desayunos_003",
@@ -72,7 +181,9 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "pan",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 5,
     "difficulty": "facil",
@@ -83,28 +194,68 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan", "amount": 160, "unit": "g" },
-      { "name": "Mantequilla", "amount": 20, "unit": "g" },
-      { "name": "Mermelada", "amount": 40, "unit": "g" }
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Mermelada",
+        "amount": 40,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Tuesta el pan",
-      "Unta la mantequilla mientras está caliente",
-      "Extiende la mermelada por encima"
+      "Tostar pan en la tostadora o bajo el grill hasta que esté dorado y crujiente.",
+      "Untar mantequilla sobre el pan recién tostado mientras aún está caliente, para que se funda.",
+      "Extender mermelada por encima de la mantequilla y servir de inmediato."
     ],
-    "description": "Tostada clásica con mantequilla y mermelada"
+    "description": "Tostada clásica con mantequilla y mermelada",
+    "stepsRich": [
+      {
+        "text": "Tostar {{Pan}} en la tostadora o bajo el grill hasta que esté dorado y crujiente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Untar {{Mantequilla}} sobre el pan recién tostado mientras aún está caliente, para que se funda.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Extender {{Mermelada}} por encima de la mantequilla y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 18,
+    "saturated_fat_g": 6,
+    "sodium_mg": 210
   },
   {
     "id": "desayunos_004",
     "name": "Tostada de jamón serrano y aceite",
     "category": "desayunos",
     "mainProtein": "none",
-    "extraProteins": ["cerdo"],
+    "extraProteins": [
+      "cerdo"
+    ],
     "mainBase": "pan",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 6,
     "difficulty": "facil",
@@ -115,29 +266,84 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan", "amount": 160, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 60, "unit": "g" },
-      { "name": "Tomate maduro", "amount": 100, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Tuesta el pan y frota o unta con tomate rallado",
-      "Añade un hilo de aceite de oliva",
-      "Coloca las lonchas de jamón serrano por encima"
+      "Rallar tomate maduro sobre un bol pequeño hasta obtener la pulpa; desechar la piel.",
+      "Tostar pan en la tostadora o en una sartén a fuego medio hasta que esté dorado y crujiente.",
+      "Untar la pulpa de tomate rallado sobre cada rebanada tostada de manera uniforme.",
+      "Regar con aceite de oliva por encima del tomate.",
+      "Disponer jamón serrano sobre cada tostada y servir de inmediato."
     ],
-    "description": "Tostada con tomate, aceite y jamón serrano"
+    "description": "Tostada con tomate, aceite y jamón serrano",
+    "stepsRich": [
+      {
+        "text": "Rallar {{Tomate maduro}} sobre un bol pequeño hasta obtener la pulpa; desechar la piel.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Tostar {{Pan}} en la tostadora o en una sartén a fuego medio hasta que esté dorado y crujiente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Untar la pulpa de tomate rallado sobre cada rebanada tostada de manera uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Regar con {{Aceite de oliva|chorrito}} por encima del tomate.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer {{Jamón serrano}} sobre cada tostada y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 3,
+    "sodium_mg": 820
   },
   {
     "id": "desayunos_005",
     "name": "Tostada de pavo y queso",
     "category": "desayunos",
     "mainProtein": "none",
-    "extraProteins": ["pavo"],
+    "extraProteins": [
+      "pavo"
+    ],
     "mainBase": "pan",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 6,
     "difficulty": "facil",
@@ -148,20 +354,71 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan", "amount": 160, "unit": "g" },
-      { "name": "Pechuga de pavo", "amount": 80, "unit": "g" },
-      { "name": "Queso en lonchas", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" }
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pavo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso en lonchas",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Tuesta el pan",
-      "Coloca el queso en lonchas y deja que temple",
-      "Añade la pechuga de pavo y un hilo de aceite"
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Tostar pan en la plancha hasta que esté dorado por ambas caras.",
+      "Colocar queso en lonchas sobre el pan tostado y esperar hasta que empiece a fundir con el calor residual.",
+      "Disponer pechuga de pavo sobre el queso.",
+      "Añadir aceite de oliva por encima y servir de inmediato."
     ],
-    "description": "Tostada de fiambre de pavo con queso"
+    "description": "Tostada de fiambre de pavo con queso",
+    "stepsRich": [
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar {{Pan}} en la {{@Plancha}} hasta que esté dorado por ambas caras.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar {{Queso en lonchas}} sobre el pan tostado y esperar hasta que empiece a fundir con el calor residual.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Disponer {{Pechuga de pavo}} sobre el queso.",
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 520
   },
   {
     "id": "desayunos_006",
@@ -169,7 +426,9 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "pan",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 7,
     "difficulty": "facil",
@@ -180,28 +439,86 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan", "amount": 160, "unit": "g" },
-      { "name": "Aguacate", "amount": 1, "unit": "ud" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 5, "unit": "ml" },
-      { "name": "Sal", "amount": 1, "unit": "g" }
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Tuesta el pan",
-      "Machaca el aguacate con unas gotas de limón y sal",
-      "Extiende sobre la tostada y añade un hilo de aceite"
+      "Cortar pan en rebanadas y tostar en la tostadora hasta que estén doradas y crujientes.",
+      "Partir limón por la mitad y exprimir el zumo en un bol pequeño.",
+      "Abrir aguacate, retirar el hueso y extraer la pulpa con una cuchara al bol.",
+      "Añadir el zumo de limón y sal a la pulpa; machacar con un tenedor hasta obtener una crema rústica.",
+      "Extender la crema de aguacate sobre las tostadas y añadir aceite de oliva por encima antes de servir."
     ],
-    "description": "Tostada de aguacate machacado con limón y aceite de oliva"
+    "description": "Tostada de aguacate machacado con limón y aceite de oliva",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan}} en rebanadas y tostar en la tostadora hasta que estén doradas y crujientes.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Partir {{Limón}} por la mitad y exprimir el zumo en un bol pequeño.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Abrir {{Aguacate}}, retirar el hueso y extraer la pulpa con una cuchara al bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el zumo de limón y {{Sal|gusto}} a la pulpa; machacar con un tenedor hasta obtener una crema rústica.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender la crema de aguacate sobre las tostadas y añadir {{Aceite de oliva|chorrito}} por encima antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 7,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 280
   },
   {
     "id": "desayunos_007",
     "name": "Leche con cereales",
     "category": "desayunos",
     "mainProtein": "none",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 3,
     "difficulty": "facil",
@@ -212,18 +529,50 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["lactosa", "gluten"],
+    "allergens": [
+      "lactosa",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Leche", "amount": 400, "unit": "ml" },
-      { "name": "Cereales", "amount": 80, "unit": "g" }
+      {
+        "name": "Leche",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Cereales",
+        "amount": 80,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Reparte los cereales en dos boles",
-      "Vierte la leche por encima",
-      "Sirve al momento para que no se ablanden"
+      "Repartir cereales en 2 boles individuales.",
+      "Verter leche sobre los cereales de cada bol.",
+      "Servir de inmediato para que los cereales no se ablanden."
     ],
-    "description": "Bol de leche con cereales, desayuno rápido de siempre"
+    "description": "Bol de leche con cereales, desayuno rápido de siempre",
+    "stepsRich": [
+      {
+        "text": "Repartir {{Cereales}} en 2 boles individuales.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Leche}} sobre los cereales de cada bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato para que los cereales no se ablanden.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 14,
+    "saturated_fat_g": 2,
+    "sodium_mg": 120
   },
   {
     "id": "desayunos_008",
@@ -231,7 +580,9 @@
     "category": "desayunos",
     "mainProtein": "none",
     "mainBase": "avena",
-    "mealRole": ["desayuno"],
+    "mealRole": [
+      "desayuno"
+    ],
     "type": "completo",
     "time": 10,
     "difficulty": "facil",
@@ -242,19 +593,65 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["lactosa", "gluten"],
+    "allergens": [
+      "lactosa",
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Copos de avena", "amount": 80, "unit": "g" },
-      { "name": "Leche", "amount": 350, "unit": "ml" },
-      { "name": "Plátano", "amount": 1, "unit": "ud" },
-      { "name": "Miel", "amount": 15, "unit": "ml" }
+      {
+        "name": "Copos de avena",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 350,
+        "unit": "ml"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Miel",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Calienta la leche con la avena a fuego suave, removiendo",
-      "Cocina 4-5 minutos hasta que espese",
-      "Sirve con el plátano en rodajas y un hilo de miel"
+      "Laminar plátano en rodajas de unos 5 mm y reservar.",
+      "Verter leche y copos de avena en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+      "Cocer la mezcla a fuego suave, removiendo sin parar, hasta que espese y tenga textura cremosa, unos 5 min.",
+      "Repartir el porridge en 2 boles, disponer las rodajas de plátano encima y añadir miel por encima."
     ],
-    "description": "Gachas de avena con leche, plátano y miel"
+    "description": "Gachas de avena con leche, plátano y miel",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Plátano}} en rodajas de unos 5 mm y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Leche}} y {{Copos de avena}} en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la mezcla a fuego suave, removiendo sin parar, hasta que espese y tenga textura cremosa, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el porridge en 2 boles, disponer las rodajas de plátano encima y añadir {{Miel|chorrito}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 18,
+    "saturated_fat_g": 2,
+    "sodium_mg": 85
   }
 ]

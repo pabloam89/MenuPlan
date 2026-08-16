@@ -25,7 +25,6 @@ import {
   Apple,
   IceCream,
   ChevronDown,
-  ChevronUp,
   CircleDot,
   Drumstick,
   Expand,
@@ -35,7 +34,6 @@ import {
   Layers2,
   Loader2,
   Minus,
-  Pencil,
   Plus,
   School,
   Leaf,
@@ -59,6 +57,7 @@ import {
   Star,
   Tag,
   Trash2,
+  Eraser,
   Upload,
   Zap,
   User,
@@ -125,9 +124,10 @@ import {
 } from "../lib/planner.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 import { POSTRE_TIPOS, POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
-import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu } from "../lib/schoolMenu.js";
+import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, normalizeSchoolMenus, replaceSchoolWeeks, setSchoolDishAt, clearSchoolWeek, clearSchoolScope, getSchoolIconOverride, setSchoolIconOverride } from "../lib/schoolMenu.js";
 import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
+import { SchoolMenuDeck } from "./SchoolMenuDeck.jsx";
 
 const MEAL_STRUCTURE_CARDS = [
   {
@@ -435,15 +435,6 @@ const DEFAULT_AVATAR = {
 };
 const avatarSrc = (profileKey, avatarKey) =>
   memberAvatarSrc({ profileKey, avatarKey });
-
-// School-menu editor: friendly day names + per-course chip styling so the
-// manual grid matches the rest of the onboarding (soft coloured plaques).
-const SCHOOL_DAY_LABELS = { Lun: "Lunes", Mar: "Martes", "Mié": "Miércoles", Jue: "Jueves", Vie: "Viernes" };
-const SCHOOL_COURSE_META = {
-  Primero: { short: "1º", placeholder: "Primer plato (ej: lentejas)", bg: "#e7f2eb", color: "#2d7a4a" },
-  Segundo: { short: "2º", placeholder: "Segundo plato (ej: tortilla)", bg: "#fdf0e2", color: "#c77d2e" },
-  Postre:  { short: "P",  placeholder: "Postre (fruta, yogur…)",       bg: "#fbe9f1", color: "#c2417f" },
-};
 
 // Read a picked image and downscale it to a 160px square JPEG data URL, so
 // member avatars stay tiny in localStorage. Mirrors HomeProfileScreen's helper.
@@ -5772,6 +5763,84 @@ const SCHOOL_SCOPE_CARDS = [
   },
 ];
 
+// Turn a parser week label ("Semana 1 (1 Jun)") into a title + a Mon–Fri date
+// range for the multi-select. School weeks run Lun–Vie, so the end date is the
+// start + 4 days. Falls back gracefully when the label has no parseable date.
+const ES_MONTHS = {
+  ene: 0, enero: 0, feb: 1, febrero: 1, mar: 2, marzo: 2, abr: 3, abril: 3,
+  may: 4, mayo: 4, jun: 5, junio: 5, jul: 6, julio: 6, ago: 7, agosto: 7,
+  sep: 8, sept: 8, set: 8, setiembre: 8, septiembre: 8, oct: 9, octubre: 9,
+  nov: 10, noviembre: 10, dic: 11, diciembre: 11,
+};
+const ES_MONTH_SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
+
+function parseSpanishDate(str) {
+  const tokens = String(str ?? "").toLowerCase().replace(/\./g, "").split(/[\s/-]+/).filter(Boolean);
+  let day = null;
+  let month = null;
+  for (const t of tokens) {
+    if (/^\d{1,2}$/.test(t)) {
+      if (day == null) day = Number(t);
+    } else if (ES_MONTHS[t] != null && month == null) {
+      month = ES_MONTHS[t];
+    }
+  }
+  if (day == null || month == null) return null;
+  return { day, month };
+}
+
+function weekChipLabel(weekLabel, i) {
+  const raw = String(weekLabel ?? "").trim();
+  const m = raw.match(/^(.*?)\s*\(([^)]*)\)\s*$/);
+  const title = (m ? m[1] : raw).trim() || `Semana ${i + 1}`;
+  const start = parseSpanishDate(m ? m[2] : "");
+  if (!start) return { title, range: null };
+  const year = new Date().getFullYear();
+  const startDate = new Date(year, start.month, start.day);
+  const endDate = new Date(year, start.month, start.day + 4);
+  const sameMonth = startDate.getMonth() === endDate.getMonth();
+  const range = sameMonth
+    ? `${startDate.getDate()}–${endDate.getDate()} ${ES_MONTH_SHORT[endDate.getMonth()]}`
+    : `${startDate.getDate()} ${ES_MONTH_SHORT[startDate.getMonth()]} – ${endDate.getDate()} ${ES_MONTH_SHORT[endDate.getMonth()]}`;
+  return { title, range };
+}
+
+function weekPagerArrow(disabled) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 30,
+    height: 30,
+    borderRadius: 999,
+    border: "1px solid #e6eee8",
+    background: disabled ? "#f7f9f7" : "#fff",
+    color: disabled ? "#c3cdc6" : "#2d5a3d",
+    cursor: disabled ? "default" : "pointer",
+    fontFamily: "inherit",
+    padding: 0,
+    flexShrink: 0,
+  };
+}
+
+function schoolToolBtn(danger) {
+  return {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    border: `1.5px solid ${danger ? "#f0d5cf" : "#d7e5dc"}`,
+    background: danger ? "#fdf3f0" : "#fff",
+    color: danger ? "#c0492e" : "#2d5a3d",
+    cursor: "pointer",
+    fontFamily: "inherit",
+    padding: 0,
+    flexShrink: 0,
+  };
+}
+
 export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, onReset, demoScript = false }) {
   const schoolKids = data.members.filter((m) => tierForMember(m) === "child");
   const [scope, setScope] = useState("shared");
@@ -5783,7 +5852,10 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   const [importError, setImportError] = useState(null);
   const [importedFileName, setImportedFileName] = useState("");
   const [parsedWeeks, setParsedWeeks] = useState([]);
-  const [selectedWeekIdx, setSelectedWeekIdx] = useState(0);
+  // Multi-select of detected weeks (indices into parsedWeeks) and which stored
+  // week the review deck is currently showing.
+  const [selectedWeekIdxs, setSelectedWeekIdxs] = useState(() => new Set());
+  const [viewPos, setViewPos] = useState(0);
   const fileInputRef = useRef(null);
 
   // The AI-parsing step has no real progress signal (it's one request), so a
@@ -5865,59 +5937,133 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     });
   }, [data.schoolMenus]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const targetMap =
-    scope === "shared"
-      ? data.schoolMenus?.shared ?? {}
-      : data.schoolMenus?.byMember?.[activeKidId] ?? {};
+  // ─── Multi-week derivation ──────────────────────────────────────────────
+  // The stored menú can now hold several weeks; the review deck shows one at a
+  // time. `scopeWeekIndices` are the global week indices that actually carry
+  // dishes for the active scope/member, so the week switcher only offers real
+  // weeks and edits always target the right one.
+  const entryHas = (map) => Boolean(map && Object.keys(map).some((k) => String(map[k] ?? "").trim()));
+  const smNorm = useMemo(() => normalizeSchoolMenus(data.schoolMenus), [data.schoolMenus]);
+  const scopeWeekIndices = useMemo(() => {
+    const out = [];
+    smNorm.weeks.forEach((w, i) => {
+      const has = scope === "shared" ? entryHas(w.shared) : entryHas(w.byMember?.[activeKidId]);
+      if (has) out.push(i);
+    });
+    return out;
+  }, [smNorm, scope, activeKidId]); // eslint-disable-line react-hooks/exhaustive-deps
+  const weekCount = scopeWeekIndices.length;
+  const hasAnyDish = weekCount > 0;
 
-  const hasAnyDish = Object.keys(targetMap).length > 0;
-  const [reviewOpen, setReviewOpen] = useState(hasAnyDish);
-  // Whenever the active scope/member already has dishes, auto-open the editor.
   useEffect(() => {
-    if (hasAnyDish) setReviewOpen(true);
-  }, [hasAnyDish]);
+    if (viewPos > Math.max(0, weekCount - 1)) setViewPos(0);
+  }, [weekCount, viewPos]);
 
-  const replaceDishes = (next) => {
-    setData((d) => {
-      const sm = d.schoolMenus ?? { shared: {}, byMember: {} };
-      if (scope === "shared") {
-        return { ...d, schoolMenus: { ...sm, shared: next } };
+  const globalWeekIndex = scopeWeekIndices[viewPos] ?? scopeWeekIndices[0] ?? 0;
+  const weekObj = smNorm.weeks[globalWeekIndex] ?? smNorm.weeks[0];
+  const entries = scope === "shared" ? weekObj.shared : (weekObj.byMember?.[activeKidId] ?? {});
+  // Pre-computed catalog IDs from the parse step, keyed same as entries.
+  const weekCatalogIds = weekObj.catalogIds ?? {};
+
+  // Manual category overrides for the visible week/scope, keyed "Day-Course".
+  const iconOverrides = useMemo(() => {
+    const out = {};
+    for (const day of SCHOOL_DAYS) {
+      for (const course of SCHOOL_COURSES) {
+        const v = getSchoolIconOverride(data.schoolMenus, { weekIndex: globalWeekIndex, scope, kidId: activeKidId, day, course });
+        if (v) out[`${day}-${course}`] = v;
       }
-      if (!activeKidId) return d;
-      return {
-        ...d,
-        schoolMenus: {
-          ...sm,
-          byMember: { ...(sm.byMember ?? {}), [activeKidId]: next },
-        },
-      };
+    }
+    return out;
+  }, [data.schoolMenus, globalWeekIndex, scope, activeKidId]);
+
+  // Replace the whole stored menú for the active scope with a single week (used
+  // by the error fallback and the value-prop demo). The multi-week path goes
+  // through `applyWeekSelection` below.
+  const replaceDishes = (next) => {
+    setData((d) => ({
+      ...d,
+      schoolMenus: replaceSchoolWeeks(d.schoolMenus, {
+        scope,
+        kidId: activeKidId,
+        weeksEntries: [next],
+      }),
+    }));
+  };
+
+  // Store exactly the detected weeks the user has ticked, in order, for the
+  // active scope. Empty selection clears the scope (the way to "not use" a menú
+  // is to simply untick every week).
+  const applyWeekSelection = (idxSet, weeksSource = parsedWeeks) => {
+    const ordered = [...idxSet].sort((a, b) => a - b);
+    const weeksEntries = ordered.map((i) => weeksSource[i]?.entries ?? {});
+    const weeksCatalogIds = ordered.map((i) => weeksSource[i]?.catalogIds ?? {});
+    setData((d) => ({
+      ...d,
+      schoolMenus: replaceSchoolWeeks(d.schoolMenus, {
+        scope,
+        kidId: activeKidId,
+        weeksEntries,
+        weeksCatalogIds,
+      }),
+    }));
+    setViewPos(0);
+  };
+
+  const toggleWeek = (i) => {
+    setSelectedWeekIdxs((prev) => {
+      const next = new Set(prev);
+      if (next.has(i)) next.delete(i);
+      else next.add(i);
+      applyWeekSelection(next);
+      return next;
     });
   };
 
-  const setDish = (day, course, value) => {
+  // Delete just the currently-viewed week for the active scope (per-week borrar).
+  const clearWeek = () => {
+    if (!window.confirm("¿Borrar esta semana del menú del cole?")) return;
+    setData((d) => ({
+      ...d,
+      schoolMenus: clearSchoolWeek(d.schoolMenus, {
+        scope,
+        kidId: activeKidId,
+        weekIndex: globalWeekIndex,
+      }),
+    }));
+    setViewPos((p) => Math.max(0, p - 1));
+  };
+
+  // Empty the whole menú for the active scope (all weeks) — "vaciar menú".
+  const clearMenu = () => {
+    if (!window.confirm("¿Vaciar el menú del cole?")) return;
+    setData((d) => ({
+      ...d,
+      schoolMenus: clearSchoolScope(d.schoolMenus, { scope, kidId: activeKidId }),
+    }));
+    setViewPos(0);
+  };
+
+  // Edit a single course in the currently-viewed week (name + optional category).
+  const editDish = (day, course, { name, category }) => {
     setData((d) => {
-      const sm = d.schoolMenus ?? { shared: {}, byMember: {} };
-      const trimmed = value.trim();
-      if (scope === "shared") {
-        const next = { ...(sm.shared ?? {}) };
-        const k = `${day}-${course}`;
-        if (trimmed) next[k] = trimmed;
-        else delete next[k];
-        return { ...d, schoolMenus: { ...sm, shared: next } };
-      }
-      if (!activeKidId) return d;
-      const cur = sm.byMember?.[activeKidId] ?? {};
-      const next = { ...cur };
-      const k = `${day}-${course}`;
-      if (trimmed) next[k] = trimmed;
-      else delete next[k];
-      return {
-        ...d,
-        schoolMenus: {
-          ...sm,
-          byMember: { ...(sm.byMember ?? {}), [activeKidId]: next },
-        },
-      };
+      let sm = setSchoolDishAt(d.schoolMenus, {
+        scope,
+        kidId: activeKidId,
+        weekIndex: globalWeekIndex,
+        day,
+        course,
+        value: name,
+      });
+      sm = setSchoolIconOverride(sm, {
+        weekIndex: globalWeekIndex,
+        scope,
+        kidId: activeKidId,
+        day,
+        course,
+        value: (name ?? "").trim() ? category : null,
+      });
+      return { ...d, schoolMenus: sm };
     });
   };
 
@@ -5934,29 +6080,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     setScope(value);
     setImportError(null);
     setUploadOpen(true);
-  };
-
-  const clearAll = () => {
-    if (!window.confirm("¿Borrar el menú del cole de esta vista?")) return;
-    setData((d) => {
-      const sm = d.schoolMenus ?? { shared: {}, byMember: {} };
-      if (scope === "shared") {
-        return { ...d, schoolMenus: { ...sm, shared: {} } };
-      }
-      if (!activeKidId) return d;
-      return {
-        ...d,
-        schoolMenus: {
-          ...sm,
-          byMember: { ...(sm.byMember ?? {}), [activeKidId]: {} },
-        },
-      };
-    });
-    setImportedFileName("");
-    setImportStatus("");
-    setImportProgress(0);
-    setParsedWeeks([]);
-    setSelectedWeekIdx(0);
   };
 
   const handleFile = async (file) => {
@@ -5999,29 +6122,22 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           "No detecté platos automáticamente. Edita las celdas manualmente abajo."
         );
         setParsedWeeks([]);
+        setSelectedWeekIdxs(new Set());
       } else {
         setParsedWeeks(weeks);
-        const bestIdx = selectBestWeek(weeks);
-        setSelectedWeekIdx(bestIdx);
-        const selectedEntries = weeks[bestIdx]?.entries ?? entries;
-        replaceDishes(selectedEntries);
+        // Preselect every detected week that actually carries dishes so the user
+        // sees the whole capture and can untick the ones they don't want. If for
+        // some reason none has dishes, fall back to the single best week.
+        const withDishes = weeks
+          .map((w, i) => ({ i, n: Object.keys(w.entries ?? {}).length }))
+          .filter((x) => x.n > 0)
+          .map((x) => x.i);
+        const defaultSel = withDishes.length ? withDishes : [selectBestWeek(weeks)];
+        const selSet = new Set(defaultSel);
+        setSelectedWeekIdxs(selSet);
+        applyWeekSelection(selSet, weeks);
         setImportedFileName(file.name ?? "");
-
-        if (weeks.length > 1) {
-          const daysInWeek = new Set(
-            Object.keys(selectedEntries).map((k) => k.split("-")[0])
-          ).size;
-          setImportStatus(
-            `Detectadas ${weeks.length} semanas · Semana ${bestIdx + 1} seleccionada (${daysInWeek}/5 días)`
-          );
-        } else {
-          const daysWithSomething = new Set(
-            Object.keys(selectedEntries).map((k) => k.split("-")[0])
-          ).size;
-          setImportStatus(
-            `Detectados ${daysWithSomething}/5 días (${detected} platos) · revisa antes de continuar`
-          );
-        }
+        setImportStatus("");
       }
     } catch (err) {
       setImportError(err?.message ?? "No se pudo procesar el archivo");
@@ -6122,7 +6238,11 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, ...(hasAnyDish ? { marginBottom: 16 } : { height: "100%", paddingBottom: 4 }) }}>
+      {/* Before any menú is loaded: the two big choice cards double as the
+          upload entry point. Once a menú exists we drop them entirely (the deck
+          below is the focus); upload/delete live in the review toolbar. */}
+      {!hasAnyDish && (
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%", paddingBottom: 4 }}>
         {SCHOOL_SCOPE_CARDS.map(({ value, img, label, desc }) => {
           const sel = scope === value;
           return (
@@ -6131,10 +6251,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               type="button"
               onClick={() => openUpload(value)}
               style={{
-                // Sin menú subido, las dos cards se reparten la pantalla (sin
-                // scroll). En cuanto hay algo que revisar, se vuelven compactas
-                // para dejar sitio al panel de revisión debajo.
-                ...(hasAnyDish ? {} : { flex: 1, minHeight: 0 }),
+                flex: 1,
+                minHeight: 0,
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "stretch",
@@ -6154,20 +6272,14 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               <img
                 src={img}
                 alt=""
-          style={{
+                style={{
                   width: "100%",
-                  // Comparte el alto disponible con la otra card (flex) para que
-                  // ambas quepan sin scroll; la imagen se encoge en pantallas
-                  // bajas en vez de forzar altura fija. Con menú subido, altura
-                  // compacta fija.
-                  ...(hasAnyDish ? { height: 120 } : { flex: 1, minHeight: 90 }),
+                  flex: 1,
+                  minHeight: 90,
+                  borderBottom: `1px solid ${sel ? "rgba(255,255,255,.15)" : "#e8ede9"}`,
                   objectFit: "cover",
-                  // Full-width cards only show a thin horizontal slice of these
-                  // square renders; 20% lands on the faces in one and on both
-                  // trays in the other, where centring shows only hair.
                   objectPosition: "center 20%",
                   display: "block",
-                  borderBottom: `1px solid ${sel ? "rgba(255,255,255,.15)" : "#e8ede9"}`,
                 }}
               />
               <span style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "11px 16px 13px" }}>
@@ -6177,14 +6289,14 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                 </span>
                 {sel && (
                   <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
                       gap: 4,
                       background: "rgba(255,255,255,.2)",
                       color: "#fff",
-                  fontSize: 12,
-                  fontWeight: 700,
+                      fontSize: 12,
+                      fontWeight: 700,
                       padding: "4px 10px",
                       borderRadius: 20,
                     }}
@@ -6197,6 +6309,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             );
           })}
         </div>
+      )}
 
       {uploadOpen && (
       <WizardSheet
@@ -6333,7 +6446,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                     }}
                   >
                     {importedFileName}
-            {importStatus ? ` · ${importStatus}` : ""}
                   </div>
         )
       )}
@@ -6355,66 +6467,62 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       )}
 
 
+      {/* Multi-select of every detected week: tick the ones you want to use.
+          Each ticked week becomes a distinct week of your menú. Unticking them
+          all is how you "don't use" a menú — no explicit empty button needed.
+          Stacked full-width rows, each showing its date range (Mon–Fri). */}
       {parsedWeeks.length > 1 && !importing && (
-        <div style={{ marginBottom: 8 }}>
-          <select
-            value={selectedWeekIdx}
-            onChange={(e) => {
-              const i = Number(e.target.value);
-              setSelectedWeekIdx(i);
-              replaceDishes(parsedWeeks[i].entries);
-              const days = new Set(
-                Object.keys(parsedWeeks[i].entries).map((k) => k.split("-")[0])
-              ).size;
-              setImportStatus(
-                `Detectadas ${parsedWeeks.length} semanas · Semana ${i + 1} seleccionada (${days}/5 días)`
-              );
-            }}
-            style={{
-              padding: "6px 12px",
-              borderRadius: 8,
-              border: "1.5px solid #2d5a3d",
-              background: "#fff",
-              color: "#2d5a3d",
-              fontSize: 16,
-              fontWeight: 700,
-              cursor: "pointer",
-              width: "100%",
-              fontFamily: "inherit",
-            }}
-          >
-            {parsedWeeks.map((w, i) => (
-              <option key={i} value={i}>
-                {w.weekLabel || `Semana ${i + 1}`}
-              </option>
-            ))}
-          </select>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+          {parsedWeeks.map((w, i) => {
+            const sel = selectedWeekIdxs.has(i);
+            const dishes = Object.keys(w.entries ?? {}).length;
+            const disabled = dishes === 0;
+            const { title, range } = weekChipLabel(w.weekLabel, i);
+            return (
+              <button
+                key={i}
+                type="button"
+                onClick={() => !disabled && toggleWeek(i)}
+                disabled={disabled}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  width: "100%",
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  border: `1.5px solid ${sel ? "#2d5a3d" : "#d7e5dc"}`,
+                  background: disabled ? "#f1f4f2" : sel ? "#2d5a3d" : "#fff",
+                  color: disabled ? "#aebbb2" : sel ? "#fff" : "#2d5a3d",
+                  fontFamily: "inherit",
+                  cursor: disabled ? "default" : "pointer",
+                  textAlign: "left",
+                  transition: "all .15s ease",
+                }}
+              >
+                <span style={{ width: 82, flexShrink: 0, fontSize: 13.5, fontWeight: 800 }}>{title}</span>
+                <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: disabled ? "#b9c4bd" : sel ? "rgba(255,255,255,.82)" : "#7a9080", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                  {range || ""}
+                </span>
+                <span
+                  style={{
+                    width: 18,
+                    height: 18,
+                    borderRadius: 6,
+                    flexShrink: 0,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: `1.5px solid ${sel ? "rgba(255,255,255,.85)" : "#c5d4cb"}`,
+                    background: sel ? "rgba(255,255,255,.2)" : "#fff",
+                  }}
+                >
+                  {sel && <Check size={12} strokeWidth={3.4} color="#fff" />}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      )}
-
-      {/* Emptying only makes sense once there's something to empty — offering it
-          next to the upload box on a blank screen just looked like a threat. */}
-      {hasAnyDish && !importing && (
-        <button
-          type="button"
-          onClick={clearAll}
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 6,
-            background: "none",
-            border: "none",
-            color: "#a35a1f",
-            fontSize: 12.5,
-            fontWeight: 800,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            padding: "6px 2px",
-            marginBottom: 4,
-          }}
-        >
-          <Trash2 size={13} /> Vaciar este menú
-        </button>
       )}
       </WizardSheet>
       )}
@@ -6473,124 +6581,82 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
         </button>
       )}
 
-      {/* La revisión manual solo aparece cuando ya hay un menú cargado: nadie
-          va a teclear la semana entera a mano, así que en blanco solo estorba.
-          Al subir algo, se abre con la UI de MenuPlan (cards por día). */}
+      {/* Deck-style review — same look & feel as the Menús section. The review
+          only shows once there's a menú loaded; tapping any tile renames the
+          dish in place (OCR fixes). */}
       {hasAnyDish && (
-      <button
-        type="button"
-        onClick={() => setReviewOpen((v) => !v)}
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 8,
-          padding: "12px 14px",
-          borderRadius: 12,
-          border: `1.5px solid ${reviewOpen ? "#cfe3d6" : "#e3ebe6"}`,
-          background: reviewOpen ? "#f2f8f4" : "#fff",
-          cursor: "pointer",
-          marginBottom: reviewOpen ? 10 : 0,
-        }}
-        aria-expanded={reviewOpen}
-      >
-        <span
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 9,
-            fontSize: 13,
-            fontWeight: 800,
-            color: "#1a3a24",
-          }}
-        >
-          <span style={{
-            width: 26, height: 26, borderRadius: 8, background: "#e3f0e8",
-            display: "inline-flex", alignItems: "center", justifyContent: "center",
-            color: "#2d5a3d", flexShrink: 0,
-          }}>
-            <Pencil size={14} />
-          </span>
-          Revisar / editar el menú
-        </span>
-        {reviewOpen ? (
-          <ChevronUp size={17} color="#2d5a3d" />
-        ) : (
-          <ChevronDown size={17} color="#2d5a3d" />
-        )}
-      </button>
-      )}
-
-      {hasAnyDish && reviewOpen && (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        {SCHOOL_DAYS.map((day) => (
-          <div
-            key={day}
-            style={{
-              background: "#fff",
-              border: "1px solid #e6efe9",
-              borderRadius: 16,
-              padding: 14,
-              boxShadow: "0 4px 16px rgba(45,90,61,.06)",
-            }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 11 }}>
-              <span style={{ fontSize: 13.5, fontWeight: 900, color: "#15301f", letterSpacing: "-.2px", flexShrink: 0 }}>
-                {SCHOOL_DAY_LABELS[day] ?? day}
-              </span>
-              <span style={{ flex: 1, borderTop: "1px dashed #cfdcd4" }} />
-            </div>
-            {SCHOOL_COURSES.map((course, ci) => {
-              const k = `${day}-${course}`;
-              const value = targetMap[k] ?? "";
-              const meta = SCHOOL_COURSE_META[course];
-              return (
-                <div
-                  key={course}
-                  style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: ci < SCHOOL_COURSES.length - 1 ? 8 : 0 }}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {/* Toolbar: week selector (lateral chevrons, like the Menús pager) on
+              the left; upload + delete icon buttons on the right. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {weekCount > 1 ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0, flex: 1 }}>
+                <button
+                  type="button"
+                  onClick={() => viewPos > 0 && setViewPos(viewPos - 1)}
+                  disabled={viewPos <= 0}
+                  aria-label="Semana anterior"
+                  style={weekPagerArrow(viewPos <= 0)}
                 >
-                  <span
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 9,
-                      background: meta.bg,
-                      color: meta.color,
-                      fontSize: 12,
-                      fontWeight: 900,
-                      display: "inline-flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                    }}
-                  >
-                    {meta.short}
+                  <ChevronLeft size={16} />
+                </button>
+                <span style={{ minWidth: 0 }}>
+                  <span style={{ display: "block", fontSize: 13, fontWeight: 800, color: "#15301f" }}>
+                    {(() => { const { title } = weekChipLabel(smNorm.weeks[scopeWeekIndices[viewPos]]?.label, viewPos); return title; })()}
                   </span>
-                  <input
-                    value={value}
-                    onChange={(e) => setDish(day, course, e.target.value)}
-                    placeholder={meta.placeholder}
-                    style={{
-                      flex: 1,
-                      minWidth: 0,
-                      height: 38,
-                      padding: "0 12px",
-                      borderRadius: 10,
-                      border: "1.5px solid #e3ebe6",
-                      fontSize: 14,
-                      outline: "none",
-                      background: "#fbfdfc",
-                      boxSizing: "border-box",
-                      fontFamily: "inherit",
-                    }}
-                  />
-                </div>
-              );
-            })}
+                  {(() => {
+                    const { range } = weekChipLabel(smNorm.weeks[scopeWeekIndices[viewPos]]?.label, viewPos);
+                    return range ? (
+                      <span style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#7a9080" }}>{range}</span>
+                    ) : null;
+                  })()}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => viewPos < weekCount - 1 && setViewPos(viewPos + 1)}
+                  disabled={viewPos >= weekCount - 1}
+                  aria-label="Semana siguiente"
+                  style={weekPagerArrow(viewPos >= weekCount - 1)}
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            ) : (
+              <span style={{ flex: 1 }} />
+            )}
+            <button
+              type="button"
+              onClick={() => openUpload(scope)}
+              aria-label="Subir otro menú"
+              title="Cambiar / subir otro"
+              style={schoolToolBtn(false)}
+            >
+              <Upload size={16} />
+            </button>
+            {weekCount > 1 && (
+              <button
+                type="button"
+                onClick={clearWeek}
+                aria-label="Borrar esta semana"
+                title="Borrar esta semana"
+                style={schoolToolBtn(true)}
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={clearMenu}
+              aria-label="Vaciar menú"
+              title="Vaciar menú"
+              style={schoolToolBtn(true)}
+            >
+              <Eraser size={16} />
+            </button>
           </div>
-        ))}
-      </div>
+
+          <SchoolMenuDeck entries={entries} overrides={iconOverrides} catalogIds={weekCatalogIds} onEditDish={editDish} />
+        </div>
       )}
     </OnboardingShell>
   );

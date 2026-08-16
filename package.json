@@ -13,7 +13,9 @@
     "pretest": "node scripts/validate-catalog.mjs",
     "test": "vitest run",
     "check:catalog": "node scripts/validate-catalog.mjs",
-    "check:duplicates": "node scripts/detect-duplicate-dishes.mjs"
+    "check:duplicates": "node scripts/detect-duplicate-dishes.mjs",
+    "enrich:steps": "node scripts/enrich-recipe-steps.mjs",
+    "check:wording": "node scripts/check-step-wording.mjs"
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.1",

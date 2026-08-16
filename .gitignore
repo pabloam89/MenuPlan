@@ -38,3 +38,10 @@ dish-gallery/.vercel/
 dish-gallery/review/
 approvals-live.json
 /Tickets Compra Sintéticos/
+# Ledger local de la pasada de enriquecimiento (scripts/enrich-recipe-steps.mjs)
+scripts/.enrich-base-done.json
+
+# Salidas de las pruebas de generación de fotos: son cientos de MB de imágenes
+# descartables que se regeneran con scripts/gen-test-photos.mjs.
+scripts/test-photos/
+scripts/prompt-test/

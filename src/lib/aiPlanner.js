@@ -1123,12 +1123,21 @@ export function catalogToFrontendRecipe(catalogRecipe, eaters, restrictions = []
       protein: r.protein_g,
       carbs: r.carbs_g,
       fat: r.fat_g,
+      // Secondary nutrients (optional — only present once enriched). Carried
+      // through so DishDetail can show the collapsed "más nutrientes" block.
+      ...(r.fiber_g != null ? { fiber: r.fiber_g } : {}),
+      ...(r.sugar_g != null ? { sugar: r.sugar_g } : {}),
+      ...(r.saturated_fat_g != null ? { saturatedFat: r.saturated_fat_g } : {}),
+      ...(r.sodium_mg != null ? { sodium: r.sodium_mg } : {}),
     },
     // Heuristic flags (see lib/healthFlags.js) carried through so the menu/
     // dish detail can show a "menú más cuidado" badge (lib/healthProfileMatch.js).
     healthFlags: r.healthFlags ?? [],
     prepSummary: r.description || r.name,
     steps: r.steps ?? [],
+    // Structured steps (optional): carried through so DishDetail can render the
+    // stepper with time + kind. Falls back to `steps` when absent.
+    stepsRich: r.stepsRich,
     image: r.photo ?? `/dishes/${r.id}.webp`,
     photo: r.photo ?? undefined,
     ingredients,
@@ -1581,9 +1590,8 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   if (garnish.description) {
     fr.prepSummary = `${fr.prepSummary}. ${garnish.description}`;
   }
-  if (garnish.steps?.length) {
-    fr.steps = [...(fr.steps ?? []), ...garnish.steps];
-  }
+  // Los pasos ya no se fusionan aquí: DishDetail muestra plato y guarnición
+  // por separado (selector Primer plato / Guarnición / Combinado) con stepsRich.
   return fr;
 }
 

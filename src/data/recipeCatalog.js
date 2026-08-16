@@ -94,6 +94,7 @@ function rowToRecipe(row) {
     allergens: row.allergens ?? [],
     ingredients: row.ingredients,
     steps: row.steps,
+    ...(row.steps_rich ? { stepsRich: row.steps_rich } : {}),
     description: row.description,
     ...(row.methods ? { methods: row.methods } : {}),
     ...(row.product_aliases?.length ? { productAliases: row.product_aliases } : {}),

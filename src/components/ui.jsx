@@ -262,11 +262,11 @@ export function bottomNavSpacer() {
 // (Menús + Análisis-cocina from "Menú"; Análisis-gasto + tickets from
 // "En casa"; Perfil from "Inicio") instead of competing for one of 5 slots.
 const NAV_ITEMS = [
-  { id: "dashboard", icon: Home,          label: "Inicio" },
-  { id: "pantry",    icon: Refrigerator,  label: "En casa" },
-  { id: "menu",      icon: ClipboardList, label: "Menú", highlight: true },
-  { id: "recipes",   icon: BookOpen,      label: "Recetas" },
-  { id: "shopping",  icon: ShoppingCart,  label: "Compra" },
+  { id: "dashboard", icon: Home,          label: "Inicio",  color: "#e8854a" },
+  { id: "pantry",    icon: Refrigerator,  label: "En casa", color: "#3a9e7a" },
+  { id: "menu",      icon: ClipboardList, label: "Menú",    highlight: true },
+  { id: "recipes",   icon: BookOpen,      label: "Recetas", color: "#d45c7a" },
+  { id: "shopping",  icon: ShoppingCart,  label: "Compra",  color: "#5a82d4" },
 ];
 
 export function BottomNav({ active, onNav }) {
@@ -331,35 +331,28 @@ export function BottomNav({ active, onNav }) {
               }}
             >
               {it.highlight ? (
-                // The core "Menú" tab is elevated in a solid green circle so it
-                // stands out as the primary destination in the nav.
                 <span
                   style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: "50%",
-                    background: "#2d5a3d",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    boxShadow: "0 3px 10px rgba(45,90,61,.35)",
-                    marginTop: -2,
+                    width: 34, height: 34, borderRadius: "50%",
+                    background: "#2d5a3d", display: "inline-flex",
+                    alignItems: "center", justifyContent: "center",
+                    boxShadow: "0 3px 10px rgba(45,90,61,.35)", marginTop: -2,
                   }}
                 >
                   <it.icon size={19} color="#fff" strokeWidth={2.4} />
                 </span>
               ) : (
                 <it.icon
-                  size={20}
-                  color={sel ? "#2d5a3d" : "#9ab0a1"}
-                  strokeWidth={sel ? 2.4 : 2}
+                  size={22}
+                  color={sel ? it.color : "#c2d4cb"}
+                  strokeWidth={sel ? 2.4 : 1.8}
                 />
               )}
               <span
                 style={{
                   fontSize: 10,
                   fontWeight: sel || it.highlight ? 800 : 600,
-                  color: sel || it.highlight ? "#1a3a24" : "#9ab0a1",
+                  color: it.highlight ? "#1a3a24" : sel ? it.color : "#9ab0a1",
                   letterSpacing: ".2px",
                   lineHeight: 1,
                 }}

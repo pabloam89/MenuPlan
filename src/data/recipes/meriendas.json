@@ -4,7 +4,9 @@
     "name": "Smoothie de kéfir y fruta",
     "category": "meriendas",
     "mainProtein": "none",
-    "mealRole": ["merienda"],
+    "mealRole": [
+      "merienda"
+    ],
     "type": "completo",
     "time": 5,
     "difficulty": "facil",
@@ -15,21 +17,71 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Kéfir", "amount": 300, "unit": "ml" },
-      { "name": "Plátano", "amount": 1, "unit": "ud" },
-      { "name": "Fresas", "amount": 120, "unit": "g" },
-      { "name": "Miel", "amount": 10, "unit": "ml" }
+      {
+        "name": "Kéfir",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Fresas",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Pela el plátano y limpia las fresas",
-      "Pon el kéfir y la fruta en la batidora",
-      "Añade la miel y tritura hasta que quede cremoso",
-      "Sirve bien frío"
+      "Pelar plátano y cortar en trozos.",
+      "Retirar el pedúnculo a fresas y cortar en mitades.",
+      "Añadir kéfir, el plátano troceado y las fresas al vaso de la batidora.",
+      "Añadir miel y triturar hasta que la mezcla quede cremosa y sin grumos.",
+      "Servir de inmediato en vasos bien fríos."
     ],
-    "description": "Batido cremoso de kéfir con plátano y fresas endulzado con miel"
+    "description": "Batido cremoso de kéfir con plátano y fresas endulzado con miel",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Plátano}} y cortar en trozos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar el pedúnculo a {{Fresas}} y cortar en mitades.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Kéfir}}, el plátano troceado y las fresas al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel|chorrito}} y triturar hasta que la mezcla quede cremosa y sin grumos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato en vasos bien fríos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 24,
+    "saturated_fat_g": 2,
+    "sodium_mg": 70
   },
   {
     "id": "meriendas_002",
@@ -37,7 +89,9 @@
     "category": "meriendas",
     "mainProtein": "none",
     "mainBase": "pan",
-    "mealRole": ["merienda"],
+    "mealRole": [
+      "merienda"
+    ],
     "type": "completo",
     "time": 5,
     "difficulty": "facil",
@@ -48,29 +102,73 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan", "amount": 160, "unit": "g" },
-      { "name": "Plátano", "amount": 2, "unit": "ud" },
-      { "name": "Miel", "amount": 20, "unit": "ml" }
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Plátano",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Miel",
+        "amount": 20,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Tuesta ligeramente las rebanadas de pan",
-      "Corta el plátano en rodajas finas",
-      "Coloca el plátano sobre las tostadas",
-      "Termina con un hilo de miel"
+      "Tostar pan en una tostadora o bajo el grill del horno hasta que esté dorado y crujiente.",
+      "Laminar plátano en rodajas de unos 5 mm.",
+      "Disponer las rodajas de plátano sobre las tostadas, cubriéndolas bien.",
+      "Repartir miel en hilo fino sobre el plátano y servir de inmediato."
     ],
-    "description": "Merienda rápida de tostada con plátano en rodajas y miel"
+    "description": "Merienda rápida de tostada con plátano en rodajas y miel",
+    "stepsRich": [
+      {
+        "text": "Tostar {{Pan}} en una tostadora o bajo el grill del horno hasta que esté dorado y crujiente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Laminar {{Plátano}} en rodajas de unos 5 mm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer las rodajas de plátano sobre las tostadas, cubriéndolas bien.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Repartir {{Miel|chorrito}} en hilo fino sobre el plátano y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 22,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "meriendas_003",
     "name": "Bocadillo de jamón serrano",
     "category": "meriendas",
     "mainProtein": "none",
-    "extraProteins": ["cerdo"],
+    "extraProteins": [
+      "cerdo"
+    ],
     "mainBase": "pan",
-    "mealRole": ["merienda"],
+    "mealRole": [
+      "merienda"
+    ],
     "type": "completo",
     "time": 6,
     "difficulty": "facil",
@@ -81,29 +179,84 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan de barra", "amount": 200, "unit": "g" },
-      { "name": "Jamón serrano", "amount": 80, "unit": "g" },
-      { "name": "Tomate maduro", "amount": 80, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" }
+      {
+        "name": "Pan de barra",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Abre el pan y frota con tomate",
-      "Añade un hilo de aceite de oliva",
-      "Rellena con el jamón serrano"
+      "Cortar pan de barra por la mitad a lo largo para abrir cada pieza.",
+      "Cortar tomate maduro por la mitad y rallar la pulpa sobre cada mitad de pan hasta que quede bien impregnada.",
+      "Repartir aceite de oliva por encima de la pulpa de tomate en cada mitad de pan.",
+      "Distribuir jamón serrano sobre la base de cada bocadillo y cerrar con la tapa de pan.",
+      "Servir de inmediato para que el pan no se ablande."
     ],
-    "description": "Bocadillo de jamón serrano con tomate y aceite"
+    "description": "Bocadillo de jamón serrano con tomate y aceite",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de barra}} por la mitad a lo largo para abrir cada pieza.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} por la mitad y rallar la pulpa sobre cada mitad de pan hasta que quede bien impregnada.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir {{Aceite de oliva|chorrito}} por encima de la pulpa de tomate en cada mitad de pan.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Distribuir {{Jamón serrano}} sobre la base de cada bocadillo y cerrar con la tapa de pan.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir de inmediato para que el pan no se ablande.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 3,
+    "sodium_mg": 920
   },
   {
     "id": "meriendas_004",
     "name": "Bocadillo de pavo y queso",
     "category": "meriendas",
     "mainProtein": "none",
-    "extraProteins": ["pavo"],
+    "extraProteins": [
+      "pavo"
+    ],
     "mainBase": "pan",
-    "mealRole": ["merienda"],
+    "mealRole": [
+      "merienda"
+    ],
     "type": "completo",
     "time": 6,
     "difficulty": "facil",
@@ -114,26 +267,70 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "lactosa"],
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Pan de barra", "amount": 200, "unit": "g" },
-      { "name": "Pechuga de pavo", "amount": 90, "unit": "g" },
-      { "name": "Queso en lonchas", "amount": 50, "unit": "g" }
+      {
+        "name": "Pan de barra",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pavo",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Queso en lonchas",
+        "amount": 50,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Abre el pan",
-      "Coloca el queso en lonchas",
-      "Rellena con la pechuga de pavo y cierra"
+      "Cortar pan de barra por la mitad a lo largo sin llegar al fondo, dejando las dos mitades unidas.",
+      "Disponer queso en lonchas sobre la mitad inferior del pan, cubriéndola de manera uniforme.",
+      "Colocar pechuga de pavo sobre el queso, distribuyendo las lonchas en una sola capa.",
+      "Cerrar el bocadillo presionando ligeramente y servir."
     ],
-    "description": "Bocadillo de fiambre de pavo con queso"
+    "description": "Bocadillo de fiambre de pavo con queso",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de barra}} por la mitad a lo largo sin llegar al fondo, dejando las dos mitades unidas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer {{Queso en lonchas}} sobre la mitad inferior del pan, cubriéndola de manera uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar {{Pechuga de pavo}} sobre el queso, distribuyendo las lonchas en una sola capa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cerrar el bocadillo presionando ligeramente y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 680
   },
   {
     "id": "meriendas_005",
     "name": "Fruta con frutos secos",
     "category": "meriendas",
     "mainProtein": "none",
-    "mealRole": ["merienda"],
+    "mealRole": [
+      "merienda"
+    ],
     "type": "completo",
     "time": 5,
     "difficulty": "facil",
@@ -144,26 +341,69 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": true,
-    "allergens": ["frutos_secos"],
+    "allergens": [
+      "frutos_secos"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Manzana", "amount": 1, "unit": "ud" },
-      { "name": "Plátano", "amount": 1, "unit": "ud" },
-      { "name": "Nueces", "amount": 40, "unit": "g" }
+      {
+        "name": "Manzana",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Nueces",
+        "amount": 40,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Trocea la manzana y el plátano",
-      "Reparte en dos cuencos",
-      "Añade las nueces por encima"
+      "Pelar plátano y cortarlo en rodajas.",
+      "Lavar manzana, retirar el corazón y cortarla en trozos.",
+      "Repartir la manzana y el plátano en 2 cuencos.",
+      "Añadir nueces por encima de la fruta y servir."
     ],
-    "description": "Merienda de fruta troceada con nueces"
+    "description": "Merienda de fruta troceada con nueces",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Plátano}} y cortarlo en rodajas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Manzana}}, retirar el corazón y cortarla en trozos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir la manzana y el plátano en 2 cuencos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Nueces}} por encima de la fruta y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 22,
+    "saturated_fat_g": 1,
+    "sodium_mg": 5
   },
   {
     "id": "meriendas_006",
     "name": "Batido de leche y cacao",
     "category": "meriendas",
     "mainProtein": "none",
-    "mealRole": ["merienda"],
+    "mealRole": [
+      "merienda"
+    ],
     "type": "completo",
     "time": 3,
     "difficulty": "facil",
@@ -174,17 +414,47 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Leche", "amount": 400, "unit": "ml" },
-      { "name": "Cacao en polvo", "amount": 30, "unit": "g" }
+      {
+        "name": "Leche",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Cacao en polvo",
+        "amount": 30,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Calienta o enfría la leche a tu gusto",
-      "Disuelve bien el cacao en polvo",
-      "Remueve y sirve"
+      "Verter leche en un cazo y calentar a fuego medio hasta que esté templada, o dejarla fría según preferencia.",
+      "Añadir cacao en polvo a la leche y remover con energía hasta que el cacao quede completamente disuelto sin grumos.",
+      "Servir el batido repartido en 2 vasos."
     ],
-    "description": "Vaso de leche con cacao, la merienda clásica de la infancia"
+    "description": "Vaso de leche con cacao, la merienda clásica de la infancia",
+    "stepsRich": [
+      {
+        "text": "Verter {{Leche}} en un cazo y calentar a fuego medio hasta que esté templada, o dejarla fría según preferencia.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Cacao en polvo}} a la leche y remover con energía hasta que el cacao quede completamente disuelto sin grumos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el batido repartido en 2 vasos.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 18,
+    "saturated_fat_g": 3,
+    "sodium_mg": 110
   }
 ]

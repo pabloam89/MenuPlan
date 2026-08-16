@@ -1,6 +1,7 @@
 import { z } from "zod";
 import Papa from "papaparse";
 import { PARSER_MODEL } from "./aiModels.js";
+import { catalogMatchesForFixedDish } from "./fixedDishes.js";
 
 // ---------------------------------------------------------------------------
 // Schema (matches the API prompt's output format)
@@ -313,6 +314,123 @@ export function parseCsvMenu(text) {
 }
 
 // ---------------------------------------------------------------------------
+// Catalog matching: school dish name → best catalog recipe id
+// ---------------------------------------------------------------------------
+
+function normCatalog(s) {
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
+
+// Words that describe cooking technique or state, not the main ingredient.
+// Stripping them from school dish names improves catalog matching.
+const TECHNIQUE_WORDS = new Set([
+  "asado","asada","cocido","cocida","frito","frita","guisado","guisada",
+  "estofado","estofada","plancha","horno","rebozado","rebozada","empanado",
+  "empanada","ecologico","ecologica","integral","casero","casera","tradicional",
+  "natural","aliñado","aliñada","salteado","salteada","vapor","gratinado",
+  "gratinada","marinado","marinada","escabechado","escabechada","ahumado",
+  "ahumada","confitado","confitada","bio","ecо",
+]);
+
+const STOP_CATALOG = new Set([
+  "con","del","una","los","las","para","sin","por","que","muy","hay",
+  "esta","este","como","mas","sus","les","nos","son","han","fue","ser",
+  "unos","unas","otro","otra","algo","bien","solo","alla","ello","ella",
+]);
+
+function catalogKeywords(name) {
+  return normCatalog(name)
+    .split(/[\s\-/,;]+/)
+    .filter((w) => w.length > 3 && !STOP_CATALOG.has(w) && !TECHNIQUE_WORDS.has(w));
+}
+
+function catalogOverlapScore(school, catalogName) {
+  const ws = new Set(catalogKeywords(school));
+  const wc = new Set(catalogKeywords(catalogName));
+  if (!ws.size || !wc.size) return 0;
+  let n = 0;
+  for (const w of ws) if (wc.has(w)) n++;
+  return n / Math.min(ws.size, wc.size);
+}
+
+/**
+ * Match a free-text school dish name to the best catalog recipe id.
+ * Runs at parse time so the result is persisted with the menu data.
+ *
+ * Strategy:
+ *  1. For each "/" part of the name (alternating menus):
+ *     a. Direct substring match (catalogMatchesForFixedDish)
+ *     b. Keyword fallback: collect candidates from each content word,
+ *        rank by word-overlap + name-length proximity.
+ * Returns the matched recipe id or null.
+ *
+ * Technique/adjective words (ecológico, casero, asado…) are stripped so
+ * "Lentejas ecológicas guisadas" matches "Lentejas con verduras" correctly.
+ */
+export function matchSchoolDishToCatalog(name) {
+  const trimmed = String(name ?? "").trim();
+  if (!trimmed) return null;
+
+  const parts = trimmed.split(/\s*[\/;]\s*/).filter(Boolean);
+
+  const byScore = (part) => (a, b) => {
+    const sa = catalogOverlapScore(part, a.name);
+    const sb = catalogOverlapScore(part, b.name);
+    if (sb !== sa) return sb - sa;
+    const wantedLen = normCatalog(part).length;
+    return (
+      Math.abs(normCatalog(a.name).length - wantedLen) -
+      Math.abs(normCatalog(b.name).length - wantedLen)
+    );
+  };
+
+  for (const part of parts) {
+    // 1. Direct substring match.
+    const direct = catalogMatchesForFixedDish({ name: part });
+    if (direct.length) {
+      const wanted = normCatalog(part);
+      const exact = direct.find((r) => normCatalog(r.name) === wanted);
+      if (exact) return exact.id;
+      return direct.slice().sort(byScore(part))[0].id;
+    }
+
+    // 2. Keyword fallback: collect from each significant word.
+    const keywords = catalogKeywords(part);
+    const seen = new Map();
+    for (const kw of keywords) {
+      for (const r of catalogMatchesForFixedDish({ name: kw })) {
+        if (!seen.has(r.id)) seen.set(r.id, r);
+      }
+    }
+    if (seen.size) {
+      return [...seen.values()].sort(byScore(part))[0].id;
+    }
+  }
+  return null;
+}
+
+/**
+ * For weeks that were built by non-AI fallback paths (OCR, CSV text parsers)
+ * and therefore lack `catalogIds`, compute and attach them.
+ * Weeks that already have catalogIds are left untouched.
+ */
+export function enrichWeeksWithCatalogIds(weeks) {
+  return (weeks ?? []).map((week) => {
+    if (week.catalogIds && Object.keys(week.catalogIds).length > 0) return week;
+    const catalogIds = {};
+    for (const [key, dishName] of Object.entries(week.entries ?? {})) {
+      const id = matchSchoolDishToCatalog(dishName);
+      if (id) catalogIds[key] = id;
+    }
+    return { ...week, catalogIds };
+  });
+}
+
+// ---------------------------------------------------------------------------
 // Bridge: MenuSchema → existing weeks format for the UI
 // ---------------------------------------------------------------------------
 
@@ -324,18 +442,31 @@ const DAY_MAP = {
   viernes: "Vie",
 };
 
+const WEEK_COURSES = [
+  ["primero", "Primero"],
+  ["segundo", "Segundo"],
+  ["postre", "Postre"],
+];
+
 export function menuToWeeksFormat(menu) {
   const semanas = menu.semanas ?? menu;
 
   return (Array.isArray(semanas) ? semanas : []).map((week) => {
     const entries = {};
+    const catalogIds = {};
 
     for (const dayData of week.dias ?? []) {
       const prefix = DAY_MAP[dayData.dia];
       if (!prefix || dayData.sinClase) continue;
-      if (dayData.primero) entries[`${prefix}-Primero`] = dayData.primero;
-      if (dayData.segundo) entries[`${prefix}-Segundo`] = dayData.segundo;
-      if (dayData.postre) entries[`${prefix}-Postre`] = dayData.postre;
+
+      for (const [field, label] of WEEK_COURSES) {
+        const dishName = dayData[field];
+        if (!dishName) continue;
+        const key = `${prefix}-${label}`;
+        entries[key] = dishName;
+        const id = matchSchoolDishToCatalog(dishName);
+        if (id) catalogIds[key] = id;
+      }
     }
 
     return {
@@ -343,6 +474,7 @@ export function menuToWeeksFormat(menu) {
         ? `Semana ${week.numero} (${week.fechaInicio})`
         : `Semana ${week.numero}`,
       entries,
+      catalogIds,
     };
   });
 }

@@ -63,10 +63,22 @@
       }
     ],
     "steps": [
-      "Dorar el pollo en aceite en la paella",
-      "Añadir judías y garrofón, sofreír con tomate y pimentón",
-      "Verter agua caliente con azafrán y cocer 20 min",
-      "Añadir arroz, distribuir y cocer 18 min sin remover"
+      "Cortar contramuslo de pollo en trozos de unos 4 cm.",
+      "Cortar judías verdes en trozos de unos 3 cm.",
+      "Calentar la paella a fuego fuerte y añadir aceite de oliva.",
+      "Dorar el pollo en la paella a fuego fuerte hasta que esté bien dorado por todos los lados.",
+      "Añadir las judías verdes y garrofón y saltear a fuego medio hasta que estén ligeramente dorados, unos 3 min.",
+      "Incorporar tomate triturado y sofreír a fuego medio hasta que pierda el agua y quede concentrado.",
+      "Añadir pimentón y remover durante 20 segundos hasta que se integre; retirar la paella del fuego para que no se queme.",
+      "Llevar a ebullición 600 ml de agua en un cazo aparte.",
+      "Disolver azafrán en un poco del agua caliente dentro del cazo y remover.",
+      "Verter el agua con azafrán en la paella y volver a poner a fuego fuerte hasta que rompa a hervir.",
+      "Cocer el caldo a fuego medio durante 10 min para que el pollo y las verduras se terminen de cocinar y el caldo coja sabor.",
+      "Añadir arroz distribuyéndolo de forma uniforme por toda la paella sin remover.",
+      "Cocer a fuego fuerte los primeros 5 min sin remover en ningún momento.",
+      "Bajar a fuego medio-suave y cocer hasta que el arroz absorba todo el caldo y esté en su punto, unos 13 min más.",
+      "Retirar del fuego y dejar reposar la paella tapada con papel de periódico o un paño limpio durante 2 min.",
+      "Servir la paella directamente en la mesa desde la misma paella."
     ],
     "description": "Paella valenciana de pollo con judías verdes y garrofón",
     "methods": [
@@ -76,7 +88,93 @@
         "difficulty": "normal",
         "prepSummary": "Comienza dorando el pollo y las verduras en una paellera sobre la encimera. Añade el tomate, pimentón y arroz, luego el caldo con azafrán. Tras un hervor, hornea a 180°C durante 20-25 minutos hasta que el arroz absorba el líquido, logrando una cocción uniforme."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Contramuslo de pollo}} en trozos de unos 4 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Judías verdes}} en trozos de unos 3 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar la paella a fuego fuerte y añadir {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el pollo en la paella a fuego fuerte hasta que esté bien dorado por todos los lados.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las judías verdes y {{Garrofón}} y saltear a fuego medio hasta que estén ligeramente dorados, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y sofreír a fuego medio hasta que pierda el agua y quede concentrado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimentón|pizca}} y remover durante 20 segundos hasta que se integre; retirar la paella del fuego para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición 600 ml de agua en un cazo aparte.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disolver {{Azafrán|pizca}} en un poco del agua caliente dentro del cazo y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el agua con azafrán en la paella y volver a poner a fuego fuerte hasta que rompa a hervir.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer el caldo a fuego medio durante 10 min para que el pollo y las verduras se terminen de cocinar y el caldo coja sabor.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Arroz}} distribuyéndolo de forma uniforme por toda la paella sin remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego fuerte los primeros 5 min sin remover en ningún momento.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio-suave y cocer hasta que el arroz absorba todo el caldo y esté en su punto, unos 13 min más.",
+        "minutes": 13,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar la paella tapada con papel de periódico o un paño limpio durante 2 min.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la paella directamente en la mesa desde la misma paella.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 320
   },
   {
     "id": "platos_unicos_002",
@@ -137,10 +235,17 @@
       }
     ],
     "steps": [
-      "Amasar harina con levadura, agua, sal y aceite",
-      "Dejar reposar 30 min tapada",
-      "Estirar la masa, cubrir con tomate y mozzarella",
-      "Hornear a 230°C durante 10 min"
+      "Desmenuzar levadura fresca en un bol con 150 ml de agua tibia y remover hasta que se disuelva por completo.",
+      "Añadir harina al bol y verter aceite de oliva; mezclar hasta obtener una masa homogénea.",
+      "Amasar la masa sobre la encimera enharinada durante 8 min hasta que esté elástica y no se pegue.",
+      "Tapar la masa con un paño húmedo y dejar reposar hasta que doble su volumen.",
+      "Precalentar el horno a 230 °C con calor arriba y abajo.",
+      "Estirar la masa sobre papel de hornear formando un disco fino de unos 30 cm de diámetro.",
+      "Extender tomate triturado sobre la masa dejando 1 cm de borde libre.",
+      "Laminar mozzarella y repartir las láminas de forma uniforme sobre el tomate.",
+      "Espolvorear orégano sobre la mozzarella.",
+      "Hornear la pizza en la rejilla central a 230 °C hasta que los bordes estén dorados y el queso burbujee.",
+      "Retirar la pizza del horno, cortar en porciones y servir de inmediato."
     ],
     "description": "Pizza casera con masa fina, tomate y mozzarella",
     "methods": [
@@ -156,7 +261,69 @@
         "difficulty": "normal",
         "prepSummary": "Amasa y forma una o varias pizzas pequeñas que quepan en la cesta de la airfryer. Cocínalas en la airfryer precalentada a 180-190°C durante 10-15 minutos, vigilando que la masa quede crujiente y el queso bien fundido."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Desmenuzar {{Levadura fresca}} en un bol con 150 ml de agua tibia y remover hasta que se disuelva por completo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Harina}} al bol y verter {{Aceite de oliva|chorrito}}; mezclar hasta obtener una masa homogénea.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Amasar la masa sobre la encimera enharinada durante 8 min hasta que esté elástica y no se pegue.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la masa con un paño húmedo y dejar reposar hasta que doble su volumen.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 230 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Estirar la masa sobre papel de hornear formando un disco fino de unos 30 cm de diámetro.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Tomate triturado}} sobre la masa dejando 1 cm de borde libre.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Mozzarella}} y repartir las láminas de forma uniforme sobre el tomate.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Espolvorear {{Orégano|pizca}} sobre la mozzarella.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la pizza en la rejilla central a 230 °C hasta que los bordes estén dorados y el queso burbujee.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la pizza del horno, cortar en porciones y servir de inmediato.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 8,
+    "sodium_mg": 480
   },
   {
     "id": "platos_unicos_003",
@@ -229,10 +396,86 @@
       }
     ],
     "steps": [
-      "Hacer bechamel con mantequilla, harina y leche, añadir jamón picado",
-      "Enfriar la masa al menos 3 h en nevera",
-      "Formar croquetas y pasar por huevo y pan rallado",
-      "Freír en aceite caliente hasta dorar"
+      "Picar el jamón serrano en dados muy finos",
+      "Fundir la mantequilla en un cazo a fuego medio-suave",
+      "Calentar la leche en otro cazo hasta que esté caliente sin hervir",
+      "Añadir la harina al roux y remover con varillas 2 min hasta obtener una pasta lisa",
+      "Incorporar la leche caliente poco a poco sin dejar de remover hasta obtener bechamel",
+      "Añadir el jamón picado y la nuez moscada; remover 1 min para integrar",
+      "Extender la bechamel en bandeja, cubrir con film a piel y refrigerar mínimo 3 horas",
+      "Batir el huevo en un bol y disponer el pan rallado en un plato aparte",
+      "Dar forma ovalada a las croquetas con las manos enharinadas",
+      "Pasar cada croqueta por huevo batido y luego por pan rallado cubriendo bien",
+      "Calentar el aceite en sartén profunda a fuego fuerte hasta alcanzar 180 °C",
+      "Freír por tandas 2-3 min hasta que estén doradas; escurrir y servir calientes"
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Jamón serrano}} en dados muy finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego medio-suave sin que se dore.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Leche}} en otro cazo a fuego suave hasta que esté caliente, sin que llegue a hervir.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Añadir {{Harina}} al roux de golpe y remover con varillas 2 min hasta obtener una pasta lisa y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la leche caliente poco a poco sin dejar de remover, esperando a que cada adición se integre antes de añadir la siguiente.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el jamón picado y {{Nuez moscada|pizca}}; remover 1 min a fuego suave para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender la bechamel en una bandeja, cubrir con film a piel y refrigerar al menos 3 horas hasta que la masa esté compacta.",
+        "minutes": 180,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hondo y disponer {{Pan rallado}} en un plato aparte.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Tomar porciones de masa fría y dar forma ovalada con las manos ligeramente enharinadas.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Pasar cada croqueta por el huevo batido y luego por el pan rallado, cubriendo bien toda la superficie.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en una sartén profunda a fuego fuerte hasta alcanzar 180 °C.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las croquetas por tandas 2-3 min, sin amontonarlas, hasta que estén doradas y crujientes.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir sobre papel absorbente y servir calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ],
     "description": "Croquetas cremosas de bechamel con jamón serrano",
     "methods": [
@@ -254,7 +497,11 @@
         "difficulty": "normal",
         "prepSummary": "Para una versión más ligera, hornea las croquetas ya empanadas. Precalienta el horno a 200°C con calor arriba y abajo, rocía las croquetas con un poco de aceite y hornea durante 20-25 minutos, girándolas una vez, hasta que estén doradas."
       }
-    ]
+    ],
+    "fiber_g": 1,
+    "sugar_g": 5,
+    "saturated_fat_g": 10,
+    "sodium_mg": 620
   },
   {
     "id": "platos_unicos_004",
@@ -321,10 +568,29 @@
       }
     ],
     "steps": [
-      "Hacer masa con harina, agua, aceite y sal",
-      "Sofreír cebolla, pimiento y tomate, añadir atún",
-      "Estirar la masa, rellenar y cerrar con otra capa",
-      "Pintar con huevo y hornear a 190°C 30 min"
+      "Picar cebolla en daditos finos.",
+      "Cortar pimiento rojo en tiras pequeñas.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada y el pimiento rojo a fuego medio hasta que estén tiernos.",
+      "Añadir tomate triturado al sofrito y remover hasta integrar.",
+      "Cocer a fuego medio hasta que el sofrito reduzca y espese.",
+      "Escurrir atún en conserva y desmenuzarlo sobre un plato.",
+      "Añadir el atún desmenuzado al sofrito, mezclar bien y retirar del fuego. Reservar.",
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Poner harina en un bol grande. Añadir sal y el aceite de oliva restante.",
+      "Añadir 65 ml de agua tibia a la mezcla de harina y amasar hasta obtener una masa homogénea.",
+      "Dividir la masa en 2 porciones iguales.",
+      "Estirar cada porción con un rodillo hasta obtener 2 láminas finas del tamaño de la bandeja.",
+      "Disponer la primera lámina sobre una bandeja de horno ligeramente engrasada.",
+      "Repartir el relleno de atún sobre la lámina dejando 1 cm de borde libre en todo el contorno.",
+      "Cubrir con la segunda lámina de masa.",
+      "Sellar los bordes presionando con los dedos y doblar el borde hacia arriba pellizcándolo para cerrar bien.",
+      "Batir huevo en un bol pequeño hasta homogeneizar.",
+      "Pintar toda la superficie de la empanada con el huevo batido usando un pincel.",
+      "Hacer 2 o 3 cortes pequeños en el centro de la empanada para permitir la salida de vapor.",
+      "Hornear a 190 °C hasta que la superficie esté dorada.",
+      "Retirar del horno y dejar reposar la empanada antes de cortar.",
+      "Cortar la empanada en porciones y servir."
     ],
     "description": "Empanada gallega de masa casera rellena de atún y pimiento",
     "methods": [
@@ -340,7 +606,128 @@
         "difficulty": "normal",
         "prepSummary": "Elabora la masa y el relleno. Forma una empanada de tamaño adecuado para tu airfryer y cocina a 170-180°C durante 20-25 minutos, volteándola a mitad, hasta que esté dorada. Asegúrate de no sobrecargar la cesta."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} en daditos finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en tiras pequeñas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el pimiento rojo a fuego medio hasta que estén tiernos.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} al sofrito y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que el sofrito reduzca y espese.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir {{Atún en conserva}} y desmenuzarlo sobre un plato.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el atún desmenuzado al sofrito, mezclar bien y retirar del fuego. Reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Poner {{Harina}} en un bol grande. Añadir {{Sal|gusto}} y el aceite de oliva restante.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir 65 ml de agua tibia a la mezcla de harina y amasar hasta obtener una masa homogénea.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dividir la masa en 2 porciones iguales.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Estirar cada porción con un rodillo hasta obtener 2 láminas finas del tamaño de la bandeja.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer la primera lámina sobre una bandeja de horno ligeramente engrasada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el relleno de atún sobre la lámina dejando 1 cm de borde libre en todo el contorno.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con la segunda lámina de masa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sellar los bordes presionando con los dedos y doblar el borde hacia arriba pellizcándolo para cerrar bien.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol pequeño hasta homogeneizar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pintar toda la superficie de la empanada con el huevo batido usando un pincel.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hacer 2 o 3 cortes pequeños en el centro de la empanada para permitir la salida de vapor.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 190 °C hasta que la superficie esté dorada.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y dejar reposar la empanada antes de cortar.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar la empanada en porciones y servir.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 520
   },
   {
     "id": "platos_unicos_005",
@@ -406,10 +793,19 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla y pimiento, añadir tomate y atún",
-      "Incorporar huevo cocido picado y enfriar",
-      "Rellenar las obleas y cerrar con tenedor",
-      "Freír en aceite caliente u hornear a 200°C 15 min"
+      "Pelar cebolla y cortar en brunoise fina. Lavar pimiento verde y cortar también en brunoise fina.",
+      "Escurrir atún en conserva y desmenuzar con un tenedor. Reservar.",
+      "Pelar huevo cocido y picar en trozos pequeños. Reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla y el pimiento verde picados a fuego medio hasta que estén tiernos, unos 6 min.",
+      "Añadir tomate triturado y remover. Cocer a fuego medio hasta que el líquido reduzca, unos 4 min.",
+      "Añadir el atún desmenuzado y el huevo cocido picado. Mezclar y retirar del fuego.",
+      "Dejar enfriar el relleno hasta que esté a temperatura ambiente antes de rellenar las obleas.",
+      "Disponer obleas de empanadilla sobre una superficie plana. Colocar una cucharada de relleno en el centro de cada oblea.",
+      "Doblar cada oblea por la mitad y sellar el borde presionando con un tenedor para que no se abran.",
+      "Calentar el aceite de oliva restante en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír las empanadillas en el aceite caliente hasta que estén doradas por ambos lados, unos 2 min por lado.",
+      "Escurrir las empanadillas sobre papel absorbente y servir calientes."
     ],
     "description": "Empanadillas rellenas de atún con pimiento y huevo",
     "methods": [
@@ -425,7 +821,78 @@
         "difficulty": "facil",
         "prepSummary": "Elabora el sofrito en una sartén. Rellena las obleas, séllalas y píntalas con huevo o aceite antes de hornear a 190-200°C durante 15-20 minutos, hasta que estén doradas y crujientes."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y cortar en brunoise fina. Lavar {{Pimiento verde}} y cortar también en brunoise fina.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir {{Atún en conserva}} y desmenuzar con un tenedor. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Huevo cocido}} y picar en trozos pequeños. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el pimiento verde picados a fuego medio hasta que estén tiernos, unos 6 min.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover. Cocer a fuego medio hasta que el líquido reduzca, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el atún desmenuzado y el huevo cocido picado. Mezclar y retirar del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar enfriar el relleno hasta que esté a temperatura ambiente antes de rellenar las obleas.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Disponer {{Obleas de empanadilla}} sobre una superficie plana. Colocar una cucharada de relleno en el centro de cada oblea.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Doblar cada oblea por la mitad y sellar el borde presionando con un tenedor para que no se abran.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar el aceite de oliva restante en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las empanadillas en el aceite caliente hasta que estén doradas por ambos lados, unos 2 min por lado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las empanadillas sobre papel absorbente y servir calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 520
   },
   {
     "id": "platos_unicos_006",
@@ -488,10 +955,17 @@
       }
     ],
     "steps": [
-      "Batir harina, huevos y leche hasta masa fina",
-      "Hacer crepes finas en sartén con mantequilla",
-      "Rellenar con jamón y queso",
-      "Doblar y calentar para fundir el queso"
+      "Tamizar harina en un bol amplio y añadir huevo; batir con varillas hasta incorporar.",
+      "Incorporar leche poco a poco sin dejar de remover hasta obtener una masa fina y sin grumos.",
+      "Calentar sartén a fuego medio y fundir mantequilla hasta que cubra toda la base.",
+      "Verter un cucharón de masa y mover la sartén en círculos hasta que cubra la base con una capa fina.",
+      "Cocer la crepe hasta que los bordes se despeguen y la base esté dorada; girar y cocer 30 segundos más.",
+      "Repetir el proceso con el resto de la masa hasta obtener 4 crepes; reservar apiladas.",
+      "Cortar jamón cocido en tiras y disponer sobre cada crepe extendida.",
+      "Colocar queso en lonchas sobre el jamón cubriendo la mitad de la crepe.",
+      "Doblar cada crepe por la mitad y luego en cuartos para formar un triángulo.",
+      "Calentar la sartén a fuego suave y dorar las crepes rellenas 2 min por cada lado hasta que el queso se funda.",
+      "Servir las crepes calientes, 2 por ración, recién sacadas de la sartén."
     ],
     "description": "Crepes finas rellenas de jamón cocido y queso fundido",
     "methods": [
@@ -507,7 +981,68 @@
         "difficulty": "facil",
         "prepSummary": "Tras cocinar los crepes en sartén y rellenarlos con jamón y queso, colócalos en una fuente apta para horno. Gratina a 180°C durante 8-10 minutos hasta que el queso se funda y los crepes estén calientes y ligeramente dorados."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Tamizar {{Harina}} en un bol amplio y añadir {{Huevo}}; batir con varillas hasta incorporar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Incorporar {{Leche}} poco a poco sin dejar de remover hasta obtener una masa fina y sin grumos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio y fundir {{Mantequilla}} hasta que cubra toda la base.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter un cucharón de masa y mover la sartén en círculos hasta que cubra la base con una capa fina.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la crepe hasta que los bordes se despeguen y la base esté dorada; girar y cocer 30 segundos más.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repetir el proceso con el resto de la masa hasta obtener 4 crepes; reservar apiladas.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar {{Jamón cocido}} en tiras y disponer sobre cada crepe extendida.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Queso en lonchas}} sobre el jamón cubriendo la mitad de la crepe.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Doblar cada crepe por la mitad y luego en cuartos para formar un triángulo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar la sartén a fuego suave y dorar las crepes rellenas 2 min por cada lado hasta que el queso se funda.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las crepes calientes, 2 por ración, recién sacadas de la sartén.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 5,
+    "saturated_fat_g": 10,
+    "sodium_mg": 620
   },
   {
     "id": "platos_unicos_007",
@@ -573,10 +1108,21 @@
       }
     ],
     "steps": [
-      "Forrar molde con masa quebrada y pinchar el fondo",
-      "Saltear calabacín y puerro en aceite",
-      "Batir huevos con nata y queso, mezclar con verduras",
-      "Verter sobre la masa y hornear a 180°C 30 min"
+      "Precalentar el horno a 180 °C con calor arriba y abajo.",
+      "Lavar calabacín y cortar en dados pequeños.",
+      "Lavar puerro y cortar en rodajas finas.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír el puerro en la sartén a fuego medio hasta que esté tierno, unos 3 min.",
+      "Añadir el calabacín a la sartén y saltear a fuego medio hasta que esté dorado, unos 4 min.",
+      "Retirar la sartén del fuego y reservar las verduras.",
+      "Cascar huevo en un bol y batir con varillas hasta que estén bien integrados.",
+      "Añadir nata a los huevos batidos y mezclar hasta obtener una mezcla homogénea.",
+      "Añadir queso rallado a la mezcla de huevos y nata y remover hasta integrar.",
+      "Incorporar las verduras reservadas a la mezcla y remover para distribuirlas de manera uniforme.",
+      "Extender masa quebrada sobre el molde, presionar bien los bordes y pinchar el fondo con un tenedor.",
+      "Verter la mezcla de verduras y huevos sobre la masa quebrada en el molde de manera uniforme.",
+      "Hornear a 180 °C durante 30 min hasta que el relleno esté cuajado y la superficie dorada.",
+      "Retirar del horno, dejar reposar 5 min y servir cortada en porciones."
     ],
     "description": "Quiche de masa quebrada con calabacín, puerro y queso",
     "methods": [
@@ -592,7 +1138,88 @@
         "difficulty": "normal",
         "prepSummary": "Utiliza un molde apto para airfryer que quepa bien. Precalienta a 170°C. Cocina la masa quebrada unos 5-7 minutos, luego vierte el relleno y hornea por 30-35 minutos, vigilando que no se dore demasiado rápido por encima."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Lavar {{Calabacín}} y cortar en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Puerro}} y cortar en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el puerro en la sartén a fuego medio hasta que esté tierno, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el calabacín a la sartén y saltear a fuego medio hasta que esté dorado, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y reservar las verduras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un bol y batir con varillas hasta que estén bien integrados.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Nata}} a los huevos batidos y mezclar hasta obtener una mezcla homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Queso rallado}} a la mezcla de huevos y nata y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Incorporar las verduras reservadas a la mezcla y remover para distribuirlas de manera uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Masa quebrada}} sobre el molde, presionar bien los bordes y pinchar el fondo con un tenedor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter la mezcla de verduras y huevos sobre la masa quebrada en el molde de manera uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 180 °C durante 30 min hasta que el relleno esté cuajado y la superficie dorada.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno, dejar reposar 5 min y servir cortada en porciones.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 12,
+    "sodium_mg": 380
   },
   {
     "id": "platos_unicos_008",
@@ -651,10 +1278,21 @@
       }
     ],
     "steps": [
-      "Hornear patatas enteras 30 min a 200°C",
-      "Vaciar parcialmente y reservar la pulpa",
-      "Sofreír carne con cebolla y tomate, mezclar con pulpa",
-      "Rellenar, añadir queso y gratinar 10 min"
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Lavar patata grande y pincharlas por varias partes con un tenedor.",
+      "Colocar las patatas en la bandeja del horno y hornear hasta que estén tiernas.",
+      "Pelar y picar cebolla en trozos muy finos.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente, unos 5 min a fuego medio.",
+      "Añadir carne picada de ternera a la sartén y saltear hasta que pierda el color rosado.",
+      "Incorporar tomate triturado a la sartén y cocer a fuego suave hasta que se reduzca, unos 5 min.",
+      "Retirar las patatas del horno y dejar templar 2 min hasta que se puedan manipular.",
+      "Cortar cada patata por la mitad a lo largo y vaciar la pulpa con una cuchara, dejando 1 cm de borde.",
+      "Añadir la pulpa de las patatas a la sartén con la carne y mezclar bien hasta obtener un relleno homogéneo.",
+      "Rellenar cada mitad de patata con la mezcla de carne, presionando ligeramente para que quede compacta.",
+      "Repartir queso rallado por encima de cada patata rellena.",
+      "Hornear las patatas rellenas a 200 °C con gratinador hasta que el queso esté dorado y burbujeante.",
+      "Retirar del horno y servir las patatas rellenas inmediatamente."
     ],
     "description": "Patatas asadas rellenas de carne picada gratinadas con queso",
     "methods": [
@@ -670,7 +1308,93 @@
         "difficulty": "normal",
         "prepSummary": "Cocina las patatas en la airfryer a 190°C durante 30-40 min hasta que estén tiernas. Vacía la pulpa, mezcla con el relleno de carne previamente cocinado, rellena las patatas, espolvorea queso y cocina en la airfryer a 180°C por 10-15 min hasta que el queso esté fundido y dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Patata grande}} y pincharlas por varias partes con un tenedor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar las patatas en la bandeja del horno y hornear hasta que estén tiernas.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos muy finos.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente, unos 5 min a fuego medio.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Añadir {{Carne picada de ternera}} a la sartén y saltear hasta que pierda el color rosado.",
+        "minutes": 4,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} a la sartén y cocer a fuego suave hasta que se reduzca, unos 5 min.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Retirar las patatas del horno y dejar templar 2 min hasta que se puedan manipular.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar cada patata por la mitad a lo largo y vaciar la pulpa con una cuchara, dejando 1 cm de borde.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la pulpa de las patatas a la sartén con la carne y mezclar bien hasta obtener un relleno homogéneo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Rellenar cada mitad de patata con la mezcla de carne, presionando ligeramente para que quede compacta.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Queso rallado}} por encima de cada patata rellena.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear las patatas rellenas a 200 °C con gratinador hasta que el queso esté dorado y burbujeante.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y servir las patatas rellenas inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 9,
+    "sodium_mg": 320
   },
   {
     "id": "platos_unicos_009",
@@ -730,10 +1454,16 @@
       }
     ],
     "steps": [
-      "Hacer el pollo a la plancha y cortar en tiras",
-      "Trocear lechuga y tomate",
-      "Mezclar yogur con un poco de limón y sal",
-      "Montar los wraps y enrollar"
+      "Cortar pechuga de pollo en tiras de grosor uniforme y salpimentar al gusto.",
+      "Calentar plancha a fuego fuerte con aceite de oliva.",
+      "Dorar las tiras de pechuga en la plancha caliente durante 3 min por cada lado, hasta que estén doradas y cocidas por dentro.",
+      "Picar lechuga en tiras finas y cortar tomate en dados pequeños.",
+      "Retirar las tiras de pechuga de la plancha y reservar.",
+      "Mezclar yogur natural con sal en un bol pequeño hasta obtener una salsa homogénea.",
+      "Calentar tortilla de trigo en la plancha a fuego medio 30 segundos por cada lado, hasta que estén flexibles.",
+      "Extender la salsa de yogur sobre cada tortilla caliente, dejando un borde libre de 2 cm.",
+      "Distribuir la lechuga picada, el tomate en dados y las tiras de pechuga sobre cada tortilla.",
+      "Enrollar cada tortilla con firmeza, doblar los laterales hacia dentro y servir al momento."
     ],
     "description": "Tortilla de trigo enrollada con pollo a la plancha y verduras",
     "methods": [
@@ -749,7 +1479,64 @@
         "difficulty": "facil",
         "prepSummary": "Hornea la pechuga de pollo cortada en tiras a 200°C durante 15-20 minutos, dándole la vuelta para que se dore uniformemente y quede cocida. Puedes calentar las tortillas en el horno durante los últimos minutos para ablandarlas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en tiras de grosor uniforme y salpimentar al gusto.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar las tiras de pechuga en la plancha caliente durante 3 min por cada lado, hasta que estén doradas y cocidas por dentro.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Picar {{Lechuga}} en tiras finas y cortar {{Tomate}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Retirar las tiras de pechuga de la plancha y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar {{Yogur natural}} con {{Sal|gusto}} en un bol pequeño hasta obtener una salsa homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Tortilla de trigo}} en la plancha a fuego medio 30 segundos por cada lado, hasta que estén flexibles.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender la salsa de yogur sobre cada tortilla caliente, dejando un borde libre de 2 cm.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Distribuir la lechuga picada, el tomate en dados y las tiras de pechuga sobre cada tortilla.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Enrollar cada tortilla con firmeza, doblar los laterales hacia dentro y servir al momento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 420
   },
   {
     "id": "platos_unicos_010",
@@ -820,10 +1607,21 @@
       }
     ],
     "steps": [
-      "Hacer bechamel con mantequilla, harina y leche",
-      "Añadir bacalao desmigado y perejil, enfriar 3 h",
-      "Formar croquetas y empanar con huevo y pan rallado",
-      "Freír en aceite caliente hasta dorar"
+      "Desmigar bacalao desalado con los dedos, retirando espinas y piel, hasta obtener hebras finas. Reservar.",
+      "Picar perejil muy fino. Reservar.",
+      "Fundir mantequilla en un cazo a fuego medio hasta que esté completamente líquida.",
+      "Añadir harina de golpe y remover sin parar con unas varillas a fuego medio hasta que la mezcla se despegue de las paredes.",
+      "Incorporar leche poco a poco, sin dejar de remover con las varillas a fuego medio, hasta que la bechamel esté espesa y sin grumos.",
+      "Añadir el bacalao desmigado y el perejil picado a la bechamel. Remover a fuego suave durante 2 min hasta que estén integrados.",
+      "Salpimentar la masa al gusto y remover para integrar.",
+      "Extender la masa en un recipiente plano y tapar con film a piel. Refrigerar hasta que esté completamente firme.",
+      "Batir huevo en un bol hondo. Disponer pan rallado en un recipiente plano aparte.",
+      "Tomar porciones de masa fría y dar forma alargada con las manos hasta obtener croquetas uniformes.",
+      "Pasar cada croqueta por el huevo batido y después por el pan rallado, presionando para que quede bien cubierta. Reservar en un plato.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que alcance unos 180 °C.",
+      "Freír las croquetas en tandas sin amontonar, girándolas, hasta que estén doradas por todos los lados.",
+      "Retirar las croquetas y escurrir sobre papel absorbente.",
+      "Servir las croquetas calientes."
     ],
     "description": "Croquetas cremosas de bechamel con bacalao desmigado",
     "methods": [
@@ -845,7 +1643,88 @@
         "difficulty": "normal",
         "prepSummary": "La Thermomix es ideal para cocer el bacalao y elaborar la bechamel de forma rápida y sin grumos. Una vez lista la masa de croquetas, se enfría, se forman y se fríen de la manera tradicional o se cocinan en airfryer/horno para el acabado final."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Desmigar {{Bacalao desalado}} con los dedos, retirando espinas y piel, hasta obtener hebras finas. Reservar.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil|gusto}} muy fino. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego medio hasta que esté completamente líquida.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Harina}} de golpe y remover sin parar con unas varillas a fuego medio hasta que la mezcla se despegue de las paredes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Leche}} poco a poco, sin dejar de remover con las varillas a fuego medio, hasta que la bechamel esté espesa y sin grumos.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el bacalao desmigado y el perejil picado a la bechamel. Remover a fuego suave durante 2 min hasta que estén integrados.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar la masa al gusto y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender la masa en un recipiente plano y tapar con film a piel. Refrigerar hasta que esté completamente firme.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hondo. Disponer {{Pan rallado}} en un recipiente plano aparte.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Tomar porciones de masa fría y dar forma alargada con las manos hasta obtener croquetas uniformes.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada croqueta por el huevo batido y después por el pan rallado, presionando para que quede bien cubierta. Reservar en un plato.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que alcance unos 180 °C.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las croquetas en tandas sin amontonar, girándolas, hasta que estén doradas por todos los lados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las croquetas y escurrir sobre papel absorbente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las croquetas calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 5,
+    "saturated_fat_g": 9,
+    "sodium_mg": 520
   },
   {
     "id": "platos_unicos_011",
@@ -908,13 +1787,93 @@
       }
     ],
     "steps": [
-      "Humedecer el pan desmigado la noche anterior",
-      "Freír ajo, panceta y chorizo en aceite",
-      "Añadir pimentón y el pan húmedo",
-      "Remover a fuego medio hasta que las migas queden sueltas"
+      "Desmigar pan del día anterior en trozos pequeños con las manos.",
+      "Humedecer el pan desmigado con un poco de agua fría hasta que esté ligeramente húmedo pero no empapado.",
+      "Cortar chorizo en rodajas finas.",
+      "Cortar panceta en trozos pequeños.",
+      "Laminar ajo.",
+      "Lavar uvas y reservar en un bol.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír el ajo laminado a fuego suave hasta que se dore ligeramente.",
+      "Añadir la panceta y el chorizo a la sartén y sofreír a fuego medio hasta que estén dorados.",
+      "Retirar la sartén del fuego y añadir pimentón, removiendo rápido para que no se queme.",
+      "Incorporar el pan desmigado y húmedo a la sartén y mezclar bien con el sofrito.",
+      "Remover las migas a fuego medio sin parar hasta que queden sueltas y ligeramente doradas.",
+      "Servir las migas en plato hondo acompañadas de las uvas reservadas."
     ],
     "description": "Migas de pan con chorizo, panceta y uvas",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Desmigar {{Pan del día anterior}} en trozos pequeños con las manos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Humedecer el pan desmigado con un poco de agua fría hasta que esté ligeramente húmedo pero no empapado.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Panceta}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Uvas}} y reservar en un bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado a fuego suave hasta que se dore ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la panceta y el chorizo a la sartén y sofreír a fuego medio hasta que estén dorados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y añadir {{Pimentón|pizca}}, removiendo rápido para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el pan desmigado y húmedo a la sartén y mezclar bien con el sofrito.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover las migas a fuego medio sin parar hasta que queden sueltas y ligeramente doradas.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las migas en plato hondo acompañadas de las uvas reservadas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 8,
+    "sodium_mg": 620
   },
   {
     "id": "platos_unicos_012",
@@ -976,10 +1935,20 @@
       }
     ],
     "steps": [
-      "Cocer el arroz y mezclar con cebolla, ajo y champiñones sofritos",
-      "Vaciar los pimientos por arriba",
-      "Rellenar con el arroz y cubrir con tomate",
-      "Hornear a 190°C 25 min"
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Picar cebolla en trozos finos.",
+      "Picar ajo fino.",
+      "Laminar champiñones.",
+      "Cortar la parte superior de pimientos rojos a modo de tapa y retirar las semillas y venas del interior.",
+      "Llevar a ebullición agua con sal en un cazo a fuego fuerte, añadir arroz y cocer 12 min hasta que esté tierno. Escurrir y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada en la sartén a fuego medio hasta que esté transparente, unos 4 min.",
+      "Añadir el ajo picado y los champiñones laminados a la sartén y saltear a fuego medio hasta que los champiñones suelten su agua y se doren.",
+      "Añadir tomate triturado al sofrito y remover a fuego medio durante 2 min hasta que se integre. Retirar del fuego.",
+      "Mezclar el arroz escurrido con el sofrito en la sartén hasta obtener un relleno homogéneo.",
+      "Disponer los pimientos en una bandeja de horno y rellenar cada uno con la mezcla de arroz, apretando ligeramente.",
+      "Hornear los pimientos rellenos en el horno a 190 °C durante 25 min hasta que la piel esté tierna y ligeramente tostada.",
+      "Retirar los pimientos del horno y servir inmediatamente."
     ],
     "description": "Pimientos rojos rellenos de arroz con champiñones",
     "methods": [
@@ -995,7 +1964,83 @@
         "difficulty": "normal",
         "prepSummary": "Prepara el relleno en una sartén. Rellena los pimientos y colócalos en la cesta de la airfryer. Cocina a 170-180°C durante 30-35 minutos, girando a mitad de cocción y añadiendo un poco de agua en la base si es necesario para mantener la humedad y evitar que se sequen."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Champiñones}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la parte superior de {{Pimientos rojos}} a modo de tapa y retirar las semillas y venas del interior.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte, añadir {{Arroz}} y cocer 12 min hasta que esté tierno. Escurrir y reservar.",
+        "minutes": 14,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la sartén a fuego medio hasta que esté transparente, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y los champiñones laminados a la sartén y saltear a fuego medio hasta que los champiñones suelten su agua y se doren.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} al sofrito y remover a fuego medio durante 2 min hasta que se integre. Retirar del fuego.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar el arroz escurrido con el sofrito en la sartén hasta obtener un relleno homogéneo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los pimientos en una bandeja de horno y rellenar cada uno con la mezcla de arroz, apretando ligeramente.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear los pimientos rellenos en el horno a 190 °C durante 25 min hasta que la piel esté tierna y ligeramente tostada.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los pimientos del horno y servir inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 8,
+    "saturated_fat_g": 2,
+    "sodium_mg": 210
   },
   {
     "id": "platos_unicos_013",
@@ -1058,10 +2103,19 @@
       }
     ],
     "steps": [
-      "Hacer masa de pizza con harina, levadura, agua y aceite",
-      "Estirar en círculo y rellenar la mitad con tomate, mozzarella y jamón",
-      "Doblar y sellar los bordes con tenedor",
-      "Hornear a 220°C 15 min hasta dorar"
+      "Desmenuzar levadura fresca en un bol con 150 ml de agua tibia y remover hasta que se disuelva por completo.",
+      "Añadir harina al bol y mezclar hasta obtener una masa homogénea.",
+      "Incorporar aceite de oliva a la masa y amasar sobre una superficie enharinada hasta que esté lisa y elástica.",
+      "Tapar la masa con un paño y dejar reposar hasta que doble su volumen.",
+      "Precalentar el horno a 220 °C con calor arriba y abajo.",
+      "Cortar jamón cocido en trozos pequeños y reservar.",
+      "Cortar mozzarella en láminas finas y reservar.",
+      "Estirar la masa sobre una superficie enharinada formando un círculo de unos 30 cm de diámetro.",
+      "Extender tomate triturado sobre la mitad del círculo de masa, dejando 2 cm libres en el borde.",
+      "Disponer la mozzarella laminada sobre el tomate triturado y repartir el jamón cocido encima.",
+      "Doblar la mitad de masa sin relleno sobre la mitad rellena y sellar el borde presionando con un tenedor.",
+      "Colocar el calzone en una bandeja de horno ligeramente enharinada y hornear a 220 °C hasta que esté dorado.",
+      "Retirar del horno, dejar reposar 2 min y servir el calzone cortado al gusto."
     ],
     "description": "Pizza cerrada rellena de tomate, mozzarella y jamón",
     "methods": [
@@ -1077,7 +2131,79 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta la airfryer a 175-185°C. Cocina el calzone (o calzones pequeños) durante 25-30 minutos, volteándolo a mitad del tiempo para un dorado uniforme."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Desmenuzar {{Levadura fresca}} en un bol con 150 ml de agua tibia y remover hasta que se disuelva por completo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Harina}} al bol y mezclar hasta obtener una masa homogénea.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Incorporar {{Aceite de oliva|chorrito}} a la masa y amasar sobre una superficie enharinada hasta que esté lisa y elástica.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la masa con un paño y dejar reposar hasta que doble su volumen.",
+        "minutes": 15,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 220 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Cortar {{Jamón cocido}} en trozos pequeños y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Mozzarella}} en láminas finas y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Estirar la masa sobre una superficie enharinada formando un círculo de unos 30 cm de diámetro.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender {{Tomate triturado}} sobre la mitad del círculo de masa, dejando 2 cm libres en el borde.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer la mozzarella laminada sobre el tomate triturado y repartir el jamón cocido encima.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Doblar la mitad de masa sin relleno sobre la mitad rellena y sellar el borde presionando con un tenedor.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar el calzone en una bandeja de horno ligeramente enharinada y hornear a 220 °C hasta que esté dorado.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno, dejar reposar 2 min y servir el calzone cortado al gusto.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 8,
+    "sodium_mg": 620
   },
   {
     "id": "platos_unicos_014",
@@ -1135,10 +2261,15 @@
       }
     ],
     "steps": [
-      "Tostar las rebanadas de pan",
-      "Aplastar aguacate con limón y sal",
-      "Hacer los huevos a la plancha o poché",
-      "Montar las tostas con aguacate, huevo y tomates cherry"
+      "Cortar pan de hogaza en 4 rebanadas de grosor medio y reservar.",
+      "Cortar tomate cherry por la mitad y reservar.",
+      "Partir aguacate por la mitad, retirar el hueso y extraer la pulpa con una cuchara.",
+      "Exprimir limón sobre la pulpa del aguacate y aplastar con un tenedor hasta obtener una crema rústica.",
+      "Calentar plancha a fuego fuerte y tostar las rebanadas de pan de hogaza 2 min por cada lado hasta que estén doradas.",
+      "Verter aceite de oliva en sartén y calentar a fuego medio.",
+      "Cascar huevo en la sartén con el aceite caliente y freír 2 min hasta que la clara esté cuajada y la yema tierna.",
+      "Extender la crema de aguacate sobre las rebanadas de pan de hogaza tostadas.",
+      "Colocar 1 huevo frito sobre cada tosta y distribuir los tomate cherry por encima."
     ],
     "description": "Tostadas de pan con aguacate machacado y huevo",
     "methods": [
@@ -1154,7 +2285,58 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Tuesta las rebanadas de pan directamente en la rejilla durante 5-7 minutos. Para los huevos, hornéalos en cuencos individuales ligeramente engrasados durante 10-12 minutos hasta que la clara esté cuajada y la yema líquida."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de hogaza}} en 4 rebanadas de grosor medio y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate cherry}} por la mitad y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Partir {{Aguacate}} por la mitad, retirar el hueso y extraer la pulpa con una cuchara.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} sobre la pulpa del aguacate y aplastar con un tenedor hasta obtener una crema rústica.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte y tostar las rebanadas de pan de hogaza 2 min por cada lado hasta que estén doradas.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Aceite de oliva|chorrito}} en {{@Sartén}} y calentar a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cascar {{Huevo}} en la sartén con el aceite caliente y freír 2 min hasta que la clara esté cuajada y la yema tierna.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender la crema de aguacate sobre las rebanadas de pan de hogaza tostadas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Colocar 1 huevo frito sobre cada tosta y distribuir los tomate cherry por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "platos_unicos_015",
@@ -1213,10 +2395,17 @@
       }
     ],
     "steps": [
-      "Cortar patatas en dados y freír hasta dorar",
-      "Hacer salsa brava con tomate, ajo y pimentón picante",
-      "Freír los huevos con la yema líquida",
-      "Servir patatas con salsa y huevo encima"
+      "Pelar patata y cortar en dados de unos 2 cm.",
+      "Laminar ajo.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los dados de patata en el aceite caliente hasta que estén dorados y crujientes por fuera.",
+      "Retirar las patatas con una espumadera y escurrir sobre papel absorbente. Reservar.",
+      "Sofreír el ajo laminado en el aceite restante de la sartén a fuego suave hasta que se dore ligeramente.",
+      "Añadir pimentón picante al sofrito de ajo y remover durante 20 segundos para que no se queme.",
+      "Añadir tomate triturado, remover bien y cocer a fuego medio hasta que la salsa espese y reduzca.",
+      "Calentar un chorrito de aceite en otra sartén a fuego medio hasta que esté caliente.",
+      "Freír huevo de uno en uno en el aceite caliente hasta que la clara cuaje pero la yema quede líquida.",
+      "Disponer las patatas en el plato, cubrir con la salsa brava y colocar un huevo frito encima de cada ración. Servir de inmediato."
     ],
     "description": "Patatas fritas en dados con salsa brava y huevo frito",
     "methods": [
@@ -1232,7 +2421,68 @@
         "difficulty": "facil",
         "prepSummary": "Asa las patatas cortadas en dados con aceite y pimentón en el horno precalentado a 200°C durante 35-40 minutos, volteándolas para que doren por todos lados. Prepara la salsa brava y el huevo frito en la sartén mientras las patatas se hornean."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de unos 2 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los dados de patata en el aceite caliente hasta que estén dorados y crujientes por fuera.",
+        "minutes": 12,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las patatas con una espumadera y escurrir sobre papel absorbente. Reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Sofreír el ajo laminado en el aceite restante de la {{@Sartén}} a fuego suave hasta que se dore ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimentón picante}} al sofrito de ajo y remover durante 20 segundos para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, remover bien y cocer a fuego medio hasta que la salsa espese y reduzca.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar un chorrito de aceite en otra {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír {{Huevo}} de uno en uno en el aceite caliente hasta que la clara cuaje pero la yema quede líquida.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer las patatas en el plato, cubrir con la salsa brava y colocar un huevo frito encima de cada ración. Servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 320
   },
   {
     "id": "platos_unicos_016",
@@ -1286,13 +2536,118 @@
       }
     ],
     "steps": [
-      "Confitar patata y cebolla en aceite",
-      "Cuajar la tortilla jugosa",
-      "Abrir el pan y rellenar con la tortilla",
-      "Presionar ligeramente y servir"
+      "Pelar patata y laminar en rodajas de unos 3 mm de grosor.",
+      "Pelar cebolla y cortar en juliana fina.",
+      "Calentar aceite de oliva en sartén a fuego suave hasta que esté templado.",
+      "Añadir las láminas de patata y la cebolla en juliana; confitar a fuego suave hasta que estén tiernas y sin color.",
+      "Cascar huevo en un bol amplio y batir hasta que estén bien integrados.",
+      "Escurrir la patata y la cebolla del aceite y reservar el aceite sobrante.",
+      "Añadir la patata y la cebolla escurridas al bol con el huevo batido y mezclar bien.",
+      "Dejar reposar la mezcla en el bol durante 2 min para que el huevo empape la patata.",
+      "Calentar 1 cucharada del aceite reservado en la sartén a fuego medio hasta que esté caliente.",
+      "Verter la mezcla de huevo, patata y cebolla en la sartén y extender de forma uniforme.",
+      "Cocer a fuego suave hasta que los bordes cuajen pero el centro quede ligeramente jugoso.",
+      "Dar la vuelta a la tortilla con la ayuda de un plato y deslizarla de nuevo a la sartén.",
+      "Cocer 1 min hasta que el exterior esté cuajado y el interior jugoso.",
+      "Retirar la tortilla de la sartén y dejar reposar 2 min antes de cortar.",
+      "Cortar pan de barra en 2 porciones iguales y abrir cada una por la mitad a lo largo.",
+      "Cortar la tortilla en porciones que encajen en el pan y disponer sobre la base de cada porción.",
+      "Tapar con la parte superior del pan, presionar ligeramente y servir de inmediato."
     ],
     "description": "Bocadillo de pan crujiente con tortilla de patata jugosa",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y laminar en rodajas de unos 3 mm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y cortar en juliana fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego suave hasta que esté templado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las láminas de patata y la cebolla en juliana; confitar a fuego suave hasta que estén tiernas y sin color.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un bol amplio y batir hasta que estén bien integrados.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Escurrir la patata y la cebolla del aceite y reservar el aceite sobrante.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la patata y la cebolla escurridas al bol con el huevo batido y mezclar bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Dejar reposar la mezcla en el bol durante 2 min para que el huevo empape la patata.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar 1 cucharada del aceite reservado en la {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la mezcla de huevo, patata y cebolla en la sartén y extender de forma uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que los bordes cuajen pero el centro quede ligeramente jugoso.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a la tortilla con la ayuda de un plato y deslizarla de nuevo a la sartén.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer 1 min hasta que el exterior esté cuajado y el interior jugoso.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la tortilla de la sartén y dejar reposar 2 min antes de cortar.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar {{Pan de barra}} en 2 porciones iguales y abrir cada una por la mitad a lo largo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la tortilla en porciones que encajen en el pan y disponer sobre la base de cada porción.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Tapar con la parte superior del pan, presionar ligeramente y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 5,
+    "sodium_mg": 420
   },
   {
     "id": "platos_unicos_017",
@@ -1352,10 +2707,21 @@
       }
     ],
     "steps": [
-      "Saltear pollo en tiras con pimiento a fuego fuerte",
-      "Calentar las tortillas en sartén seca",
-      "Rellenar con pollo, arroz y queso",
-      "Enrollar cerrando los extremos"
+      "Cortar pechuga de pollo en tiras de 1 cm de grosor.",
+      "Cortar pimiento rojo en tiras del mismo tamaño que el pollo.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Saltear las tiras de pollo en la sartén a fuego fuerte hasta que estén doradas por fuera y cocidas por dentro.",
+      "Añadir las tiras de pimiento rojo a la sartén y saltear a fuego fuerte hasta que estén tiernas pero con algo de mordida.",
+      "Incorporar arroz cocido a la sartén y mezclar con el pollo y el pimiento.",
+      "Saltear todo junto a fuego fuerte hasta que el arroz esté bien integrado y caliente.",
+      "Retirar la sartén del fuego y reservar el relleno.",
+      "Calentar tortilla de trigo en una sartén limpia y seca a fuego medio 30 segundos por cada cara hasta que estén flexibles.",
+      "Disponer cada tortilla en plano y repartir el relleno de pollo, pimiento y arroz en el centro, dejando 3 cm libres en los laterales.",
+      "Espolvorear queso rallado sobre el relleno de cada tortilla.",
+      "Plegar los extremos laterales de cada tortilla hacia dentro.",
+      "Enrollar cada tortilla desde el borde más cercano hasta cerrar el burrito con firmeza.",
+      "Colocar los burritos con el cierre hacia abajo en la sartén a fuego medio hasta que el exterior quede sellado y crujiente.",
+      "Servir de inmediato."
     ],
     "description": "Burritos de tortilla de trigo con pollo, arroz y queso",
     "methods": [
@@ -1377,7 +2743,88 @@
         "difficulty": "normal",
         "prepSummary": "Prepara el sofrito de pimiento y cocina el pollo troceado en el vaso. Añade el arroz cocido para integrarlo y calentarlo, obteniendo un relleno jugoso. Las tortillas se calientan aparte."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en tiras de 1 cm de grosor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en tiras del mismo tamaño que el pollo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear las tiras de pollo en la sartén a fuego fuerte hasta que estén doradas por fuera y cocidas por dentro.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las tiras de pimiento rojo a la sartén y saltear a fuego fuerte hasta que estén tiernas pero con algo de mordida.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Arroz cocido}} a la sartén y mezclar con el pollo y el pimiento.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear todo junto a fuego fuerte hasta que el arroz esté bien integrado y caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y reservar el relleno.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Tortilla de trigo}} en una sartén limpia y seca a fuego medio 30 segundos por cada cara hasta que estén flexibles.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer cada tortilla en plano y repartir el relleno de pollo, pimiento y arroz en el centro, dejando 3 cm libres en los laterales.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Espolvorear {{Queso rallado}} sobre el relleno de cada tortilla.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Plegar los extremos laterales de cada tortilla hacia dentro.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Enrollar cada tortilla desde el borde más cercano hasta cerrar el burrito con firmeza.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Colocar los burritos con el cierre hacia abajo en la sartén a fuego medio hasta que el exterior quede sellado y crujiente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 6,
+    "sodium_mg": 420
   },
   {
     "id": "platos_unicos_018",
@@ -1447,10 +2894,21 @@
       }
     ],
     "steps": [
-      "Sofreír sepia con ajo y tomate en la paella",
-      "Añadir caldo con azafrán, cocer 5 min",
-      "Incorporar arroz, repartir y cocer 12 min",
-      "Añadir gambas y mejillones, cocer 6 min más"
+      "Picar ajo fino y reservar.",
+      "Cortar sepia en trozos pequeños y reservar.",
+      "Calentar aceite de oliva en una paella a fuego medio hasta que esté caliente.",
+      "Sofreír el ajo picado en el aceite caliente durante 1 min, hasta que esté dorado pero sin quemarse.",
+      "Añadir la sepia troceada y saltear a fuego medio hasta que pierda el agua y empiece a dorarse.",
+      "Incorporar tomate triturado y sofreír a fuego medio hasta que se evapore el líquido y el sofrito se oscurezca.",
+      "Disolver azafrán en 500 ml de agua caliente en un cazo y llevar a ebullición.",
+      "Verter el caldo con azafrán sobre el sofrito y cocer a fuego fuerte hasta que rompa a hervir.",
+      "Añadir arroz, repartir de forma uniforme por la paella y no remover más.",
+      "Cocer el arroz a fuego fuerte los primeros 5 min, luego reducir a fuego medio hasta que absorba casi todo el caldo.",
+      "Colocar gambas y mejillones sobre el arroz, distribuyéndolos de forma uniforme.",
+      "Cocer a fuego medio hasta que los mejillones se abran y las gambas estén rosadas.",
+      "Subir el fuego a fuerte durante los últimos 30 segundos hasta que el fondo suene seco y se forme el socarrat.",
+      "Retirar la paella del fuego y dejar reposar 2 min antes de servir.",
+      "Servir directamente desde la paella."
     ],
     "description": "Paella de arroz con gambas, mejillones y sepia",
     "methods": [
@@ -1460,7 +2918,89 @@
         "difficulty": "normal",
         "prepSummary": "Prepara el sofrito y saltea el marisco en una paellera apta para horno en la encimera. Añade el arroz y el caldo caliente, luego hornea a 200°C durante 20-25 minutos para una cocción uniforme y un socarrat perfecto."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Sepia}} en trozos pequeños y reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una paella a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado en el aceite caliente durante 1 min, hasta que esté dorado pero sin quemarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la sepia troceada y saltear a fuego medio hasta que pierda el agua y empiece a dorarse.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y sofreír a fuego medio hasta que se evapore el líquido y el sofrito se oscurezca.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Disolver {{Azafrán|pizca}} en 500 ml de agua caliente en un cazo y llevar a ebullición.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 5
+      },
+      {
+        "text": "Verter el caldo con azafrán sobre el sofrito y cocer a fuego fuerte hasta que rompa a hervir.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}}, repartir de forma uniforme por la paella y no remover más.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer el arroz a fuego fuerte los primeros 5 min, luego reducir a fuego medio hasta que absorba casi todo el caldo.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar {{Gambas}} y {{Mejillones}} sobre el arroz, distribuyéndolos de forma uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que los mejillones se abran y las gambas estén rosadas.",
+        "minutes": 6,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Subir el fuego a fuerte durante los últimos 30 segundos hasta que el fondo suene seco y se forme el socarrat.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la paella del fuego y dejar reposar 2 min antes de servir.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir directamente desde la paella.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 3,
+    "sodium_mg": 420
   },
   {
     "id": "platos_unicos_019",
@@ -1517,10 +3057,17 @@
       }
     ],
     "steps": [
-      "Calentar la tortilla en sartén con un poco de aceite",
-      "Repartir queso, jamón y pimiento en media tortilla",
-      "Doblar por la mitad y cocinar 2 min por lado",
-      "Cortar en triángulos y servir"
+      "Cortar pimiento rojo en tiras finas y reservar.",
+      "Cortar jamón cocido en trozos pequeños y reservar.",
+      "Calentar sartén a fuego medio con aceite de oliva.",
+      "Colocar tortilla de trigo en la sartén caliente.",
+      "Repartir queso rallado sobre toda la superficie de la tortilla.",
+      "Distribuir el jamón cocido y el pimiento rojo sobre la mitad de la tortilla.",
+      "Doblar la tortilla por la mitad, cubriendo el relleno con la mitad vacía.",
+      "Cocinar a fuego medio hasta que se dore por la parte inferior, unos 2 min.",
+      "Dar la vuelta con cuidado y cocinar hasta que se dore el otro lado, unos 2 min.",
+      "Retirar de la sartén y dejar reposar 1 min sobre una tabla.",
+      "Cortar en 3 triángulos y servir inmediatamente."
     ],
     "description": "Tortilla de trigo doblada con queso fundido, jamón y pimiento",
     "methods": [
@@ -1536,7 +3083,68 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Hornea la quesadilla montada sobre papel de horno durante 10-12 minutos, hasta que el queso esté fundido y la tortilla ligeramente dorada y crujiente."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pimiento rojo}} en tiras finas y reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón cocido}} en trozos pequeños y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar {{Tortilla de trigo}} en la sartén caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir {{Queso rallado}} sobre toda la superficie de la tortilla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Distribuir el jamón cocido y el pimiento rojo sobre la mitad de la tortilla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Doblar la tortilla por la mitad, cubriendo el relleno con la mitad vacía.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocinar a fuego medio hasta que se dore por la parte inferior, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta con cuidado y cocinar hasta que se dore el otro lado, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar de la sartén y dejar reposar 1 min sobre una tabla.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar en 3 triángulos y servir inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 9,
+    "sodium_mg": 680
   },
   {
     "id": "platos_unicos_020",
@@ -1607,11 +3215,20 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla, ajo y chorizo en rodajas",
-      "Freír la patata cortada en dados hasta que esté tierna e incorporarla a la salsa",
-      "Añadir pimiento choricero y tomate, cocer 15 min",
-      "Hacer huecos en la salsa y cascar los huevos",
-      "Tapar y cocer 5 min hasta que la clara cuaje"
+      "Pelar y cortar patata en dados de 1 cm aproximadamente.",
+      "Pelar y picar cebolla en brunoise fina.",
+      "Picar ajo fino.",
+      "Cortar chorizo en rodajas de 0,5 cm.",
+      "Abrir pimiento choricero, raspar la pulpa con una cuchara y reservarla.",
+      "Calentar aceite de oliva en una sartén honda a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada en el aceite caliente a fuego suave hasta que esté transparente, unos 4 min.",
+      "Añadir el ajo picado y el chorizo en rodajas; sofreír a fuego medio hasta que el chorizo suelte su grasa, unos 2 min.",
+      "Añadir la patata en dados a la sartén y saltear a fuego medio hasta que empiece a dorarse por fuera, unos 5 min.",
+      "Incorporar la pulpa del pimiento choricero y tomate triturado; remover para mezclar bien.",
+      "Tapar la sartén y cocer a fuego suave hasta que la patata esté tierna y la salsa haya reducido, unos 10 min.",
+      "Hacer 4 huecos en la salsa con una cuchara y cascar huevo en cada uno con cuidado.",
+      "Tapar la sartén y cocer a fuego suave hasta que la clara esté cuajada y la yema quede cremosa, unos 5 min.",
+      "Servir directamente de la sartén, bien caliente."
     ],
     "description": "Huevos escalfados en salsa de tomate con chorizo, pimiento y patata en dados",
     "methods": [
@@ -1621,6 +3238,82 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla, ajo y chorizo en una cazuela apta para horno. Incorpora el pimiento choricero y el tomate, cocina unos minutos. Haz huecos, casca los huevos y hornea a 180°C durante 10-15 minutos hasta que las claras estén cuajadas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y cortar {{Patata}} en dados de 1 cm aproximadamente.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas de 0,5 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Abrir {{Pimiento choricero}}, raspar la pulpa con una cuchara y reservarla.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una sartén honda a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en el aceite caliente a fuego suave hasta que esté transparente, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y el chorizo en rodajas; sofreír a fuego medio hasta que el chorizo suelte su grasa, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la patata en dados a la {{@Sartén}} y saltear a fuego medio hasta que empiece a dorarse por fuera, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la pulpa del pimiento choricero y {{Tomate triturado}}; remover para mezclar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la sartén y cocer a fuego suave hasta que la patata esté tierna y la salsa haya reducido, unos 10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Hacer 4 huecos en la salsa con una cuchara y cascar {{Huevo}} en cada uno con cuidado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la sartén y cocer a fuego suave hasta que la clara esté cuajada y la yema quede cremosa, unos 5 min.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir directamente de la sartén, bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 7,
+    "sodium_mg": 480
   }
 ]

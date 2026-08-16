@@ -49,10 +49,12 @@
       }
     ],
     "steps": [
-      "Untar las rebanadas con mantequilla",
-      "Rellenar con jamón y queso",
-      "Tostar en sandwichera o sartén",
-      "Cortar en diagonal y servir"
+      "Untar mantequilla por una cara de cada rebanada de pan de molde.",
+      "Colocar jamón cocido sobre la cara sin mantequilla de 2 rebanadas.",
+      "Añadir queso en lonchas encima del jamón cocido y tapar con las otras 2 rebanadas, con la mantequilla hacia afuera.",
+      "Calentar sartén a fuego medio y colocar los sándwiches con la cara con mantequilla hacia abajo.",
+      "Tostar hasta que la base esté dorada, girar y tostar el otro lado hasta que el queso en lonchas esté fundido.",
+      "Cortar cada sándwich en diagonal y servir de inmediato."
     ],
     "description": "Sándwich tostado de jamón cocido y queso fundido",
     "methods": [
@@ -68,7 +70,43 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Unta el pan con mantequilla, monta el sándwich y hornea sobre papel de horno durante 10-12 minutos, o hasta que esté dorado y el queso fundido."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Untar {{Mantequilla}} por una cara de cada rebanada de {{Pan de molde}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Jamón cocido}} sobre la cara sin mantequilla de 2 rebanadas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Queso en lonchas}} encima del jamón cocido y tapar con las otras 2 rebanadas, con la mantequilla hacia afuera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio y colocar los sándwiches con la cara con mantequilla hacia abajo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar hasta que la base esté dorada, girar y tostar el otro lado hasta que el queso en lonchas esté fundido.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar cada sándwich en diagonal y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 8,
+    "sodium_mg": 780
   },
   {
     "id": "cenas_rapidas_002",
@@ -119,10 +157,13 @@
       }
     ],
     "steps": [
-      "Tostar las rebanadas de pan",
-      "Frotar con tomate maduro partido por la mitad",
-      "Añadir un chorrito de aceite y sal",
-      "Colocar el jamón encima"
+      "Cortar pan de hogaza en rebanadas de unos 2 cm de grosor.",
+      "Cortar tomate maduro por la mitad en sentido transversal.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Tostar las rebanadas de pan en la plancha hasta que estén doradas por ambas caras.",
+      "Frotar el tomate partido sobre cada rebanada tostada hasta impregnar bien la superficie.",
+      "Añadir aceite de oliva sobre cada rebanada.",
+      "Colocar jamón serrano sobre las tostas y servir de inmediato."
     ],
     "description": "Pan tostado con tomate rallado, aceite y jamón serrano",
     "methods": [
@@ -138,7 +179,48 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C, preferiblemente con función grill. Tuesta las rebanadas de pan durante 5-8 minutos hasta que estén bien doradas. Una vez tostadas, unta el tomate maduro, coloca el jamón serrano y rocía con aceite de oliva."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de hogaza}} en rebanadas de unos 2 cm de grosor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} por la mitad en sentido transversal.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar las rebanadas de pan en la plancha hasta que estén doradas por ambas caras.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Frotar el tomate partido sobre cada rebanada tostada hasta impregnar bien la superficie.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} sobre cada rebanada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar {{Jamón serrano}} sobre las tostas y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 820
   },
   {
     "id": "cenas_rapidas_003",
@@ -206,10 +288,18 @@
       }
     ],
     "steps": [
-      "Cocer la quinoa 15 min, escurrir y enfriar",
-      "Cortar el pepino y los tomates cherry, y desgranar la granada",
-      "Mezclar con la quinoa, el feta en dados y la cebolla morada",
-      "Aliñar con aceite de oliva, limón y sal"
+      "Llevar a ebullición 280 ml de agua en un cazo a fuego fuerte y añadir quinoa.",
+      "Cocer la quinoa a fuego suave, tapada, hasta que absorba toda el agua y esté tierna.",
+      "Cortar tomate cherry por la mitad.",
+      "Cortar pepino en dados pequeños.",
+      "Laminar cebolla morada en medias lunas finas.",
+      "Extraer los granos de granada y reservar.",
+      "Cortar queso feta en dados de 1 cm.",
+      "Escurrir la quinoa cocida y extenderla en un bol amplio para que se enfríe.",
+      "Exprimir limón y mezclar el zumo con aceite de oliva en un bol pequeño hasta integrar.",
+      "Añadir al bol con la quinoa los tomates cherry, el pepino, la cebolla morada, los granos de granada y el queso feta.",
+      "Verter el aliño sobre la ensalada y mezclar con suavidad hasta que todo quede bien impregnado.",
+      "Servir la ensalada en platos hondos, repartiendo bien todos los ingredientes."
     ],
     "description": "Ensalada fría de quinoa con feta, granada, cherry y pepino",
     "methods": [
@@ -237,7 +327,78 @@
         "difficulty": "facil",
         "prepSummary": "Combina la quinoa con el doble de agua en un recipiente apto para microondas, tapa y cocina a máxima potencia durante 10-12 minutos, o hasta que el agua se absorba. Mezcla con el resto de ingredientes."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición 280 ml de agua en un cazo a fuego fuerte y añadir {{Quinoa}}.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la quinoa a fuego suave, tapada, hasta que absorba toda el agua y esté tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Tomate cherry}} por la mitad.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Pepino}} en dados pequeños.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Laminar {{Cebolla morada}} en medias lunas finas.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Extraer los granos de {{Granada}} y reservar.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Queso feta}} en dados de 1 cm.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Escurrir la quinoa cocida y extenderla en un bol amplio para que se enfríe.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Exprimir {{Limón}} y mezclar el zumo con {{Aceite de oliva|chorrito}} en un bol pequeño hasta integrar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir al bol con la quinoa los tomates cherry, el pepino, la cebolla morada, los granos de granada y el queso feta.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el aliño sobre la ensalada y mezclar con suavidad hasta que todo quede bien impregnado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la ensalada en platos hondos, repartiendo bien todos los ingredientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 8,
+    "saturated_fat_g": 6,
+    "sodium_mg": 420
   },
   {
     "id": "cenas_rapidas_004",
@@ -285,10 +446,13 @@
       }
     ],
     "steps": [
-      "Cortar el pan en rebanadas y tostar ligeramente",
-      "Frotar con tomate partido por la mitad",
-      "Aliñar con aceite y una pizca de sal",
-      "Acompañar con fuet en rodajas"
+      "Cortar pan de payés en rebanadas de unos 2 cm de grosor.",
+      "Cortar tomate maduro por la mitad para frotar directamente sobre el pan.",
+      "Laminar fuet en rodajas finas.",
+      "Tostar las rebanadas de pan en plancha a fuego fuerte hasta que estén doradas por ambas caras.",
+      "Frotar cada rebanada tostada con las mitades de tomate maduro hasta que la miga quede bien impregnada.",
+      "Añadir aceite de oliva por encima de cada rebanada.",
+      "Disponer las rodajas de fuet sobre las rebanadas y servir de inmediato."
     ],
     "description": "Pan catalán con tomate rallado, aceite y fuet",
     "methods": [
@@ -304,7 +468,48 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Tuesta las rebanadas de pan durante 4-6 minutos hasta que estén doradas. Ralla el tomate, aliña con aceite y monta sobre el pan tostado con el fuet."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de payés}} en rebanadas de unos 2 cm de grosor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} por la mitad para frotar directamente sobre el pan.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Fuet}} en rodajas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Tostar las rebanadas de pan en {{@Plancha}} a fuego fuerte hasta que estén doradas por ambas caras.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Frotar cada rebanada tostada con las mitades de tomate maduro hasta que la miga quede bien impregnada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} por encima de cada rebanada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer las rodajas de fuet sobre las rebanadas y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 6,
+    "sodium_mg": 620
   },
   {
     "id": "cenas_rapidas_005",
@@ -357,10 +562,14 @@
       }
     ],
     "steps": [
-      "Tostar las rebanadas de pan",
-      "Aplastar el aguacate con limón y sal",
-      "Untar sobre el pan",
-      "Decorar con tomates cherry cortados por la mitad"
+      "Cortar pan de hogaza en 2 rebanadas de grosor medio.",
+      "Cortar tomate cherry por la mitad y reservar.",
+      "Exprimir limón y reservar el zumo.",
+      "Tostar las rebanadas de pan en plancha a fuego fuerte hasta que estén doradas por ambas caras.",
+      "Abrir aguacate, retirar el hueso y volcar la pulpa en un bol.",
+      "Añadir el zumo de limón reservado sobre la pulpa de aguacate y aplastar con un tenedor hasta obtener una pasta rústica.",
+      "Untar la pasta de aguacate sobre las rebanadas tostadas de manera generosa.",
+      "Disponer los tomates cherry cortados sobre el aguacate y regar con aceite de oliva."
     ],
     "description": "Tostada de pan con aguacate machacado y tomate cherry",
     "methods": [
@@ -376,7 +585,53 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C, preferiblemente con función grill. Tuesta el pan directamente sobre la rejilla durante 5-7 minutos, vigilando que no se queme, para un tostado uniforme. Monta la tostada con el resto de ingredientes."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de hogaza}} en 2 rebanadas de grosor medio.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate cherry}} por la mitad y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Tostar las rebanadas de pan en {{@Plancha}} a fuego fuerte hasta que estén doradas por ambas caras.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Abrir {{Aguacate}}, retirar el hueso y volcar la pulpa en un bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el zumo de limón reservado sobre la pulpa de aguacate y aplastar con un tenedor hasta obtener una pasta rústica.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Untar la pasta de aguacate sobre las rebanadas tostadas de manera generosa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los tomates cherry cortados sobre el aguacate y regar con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 6,
+    "sugar_g": 3,
+    "saturated_fat_g": 3,
+    "sodium_mg": 210
   },
   {
     "id": "cenas_rapidas_006",
@@ -428,10 +683,13 @@
       }
     ],
     "steps": [
-      "Cocer patatas 20 min y hacer puré con leche y mantequilla",
-      "Cocinar las salchichas a la plancha o sartén",
-      "Dorar por todos los lados 8 min",
-      "Servir sobre el puré"
+      "Pelar patata y cortar en trozos de tamaño similar.",
+      "Cubrir la patata con agua fría en un cazo, llevar a ebullición a fuego fuerte y cocer a fuego medio hasta que esté tierna, unos 18 min.",
+      "Calentar plancha a fuego medio con aceite de oliva.",
+      "Colocar salchichas frescas en la plancha caliente y dorar por todos los lados hasta que estén doradas y cocidas por dentro, unos 8 min.",
+      "Escurrir la patata cocida y devolver al cazo a fuego suave para evaporar el exceso de humedad, 1 min.",
+      "Añadir mantequilla y leche a la patata escurrida y aplastar con un tenedor o pasapurés hasta obtener un puré liso.",
+      "Servir el puré en el plato y colocar las salchichas encima."
     ],
     "description": "Salchichas frescas a la plancha con puré de patata casero",
     "methods": [
@@ -453,7 +711,48 @@
         "difficulty": "facil",
         "prepSummary": "Prepara un puré de patatas perfecto cociendo las patatas troceadas al vapor en el Varoma (20-25 min) y luego triturándolas en el vaso con la leche y mantequilla hasta lograr una textura cremosa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos de tamaño similar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir la patata con agua fría en un cazo, llevar a ebullición a fuego fuerte y cocer a fuego medio hasta que esté tierna, unos 18 min.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego medio con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar {{Salchichas frescas}} en la plancha caliente y dorar por todos los lados hasta que estén doradas y cocidas por dentro, unos 8 min.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir la patata cocida y devolver al cazo a fuego suave para evaporar el exceso de humedad, 1 min.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Mantequilla}} y {{Leche}} a la patata escurrida y aplastar con un tenedor o pasapurés hasta obtener un puré liso.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré en el plato y colocar las salchichas encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 11,
+    "sodium_mg": 580
   },
   {
     "id": "cenas_rapidas_007",
@@ -508,12 +807,62 @@
       }
     ],
     "steps": [
-      "Aplastar aguacate con tenedor",
-      "Mezclar con tomate y cebolla picados, limón y cilantro",
-      "Salpimentar el guacamole",
-      "Servir con los nachos para mojar"
+      "Cortar tomate en dados pequeños y reservar.",
+      "Picar cebolla muy fina y reservar.",
+      "Picar cilantro fino y reservar.",
+      "Partir limón por la mitad y exprimir el zumo en un bol.",
+      "Partir aguacate por la mitad, retirar el hueso y extraer la pulpa con una cuchara al bol con el zumo de limón.",
+      "Aplastar la pulpa de aguacate con un tenedor hasta obtener una textura grumosa al gusto.",
+      "Añadir el tomate, la cebolla y el cilantro al bol y mezclar hasta integrar.",
+      "Disponer nachos de maíz en un plato amplio y servir el guacamole en un bol aparte para mojar."
     ],
-    "description": "Nachos de maíz con guacamole casero de aguacate"
+    "description": "Nachos de maíz con guacamole casero de aguacate",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tomate}} en dados pequeños y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} muy fina y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cilantro}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Partir {{Limón}} por la mitad y exprimir el zumo en un bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Partir {{Aguacate}} por la mitad, retirar el hueso y extraer la pulpa con una cuchara al bol con el zumo de limón.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Aplastar la pulpa de aguacate con un tenedor hasta obtener una textura grumosa al gusto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate, la cebolla y el cilantro al bol y mezclar hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer {{Nachos de maíz}} en un plato amplio y servir el guacamole en un bol aparte para mojar.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 7,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "cenas_rapidas_008",
@@ -566,10 +915,15 @@
       }
     ],
     "steps": [
-      "Tostar rebanadas de chapata",
-      "Frotar con ajo crudo",
-      "Cubrir con tomate en dados pequeños",
-      "Aliñar con aceite, albahaca y sal en escamas"
+      "Cortar pan chapata en rebanadas de unos 2 cm de grosor.",
+      "Cortar tomate maduro en dados pequeños y reservar en un bol.",
+      "Pelar ajo y reservar el diente entero para frotar.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Tostar las rebanadas de pan en la plancha hasta que estén doradas por ambas caras.",
+      "Frotar el ajo por la superficie de cada rebanada tostada mientras aún está caliente.",
+      "Repartir el tomate en dados sobre las rebanadas.",
+      "Aliñar con aceite de oliva por encima de cada bruschetta.",
+      "Distribuir albahaca fresca sobre el tomate y servir de inmediato."
     ],
     "description": "Tostadas de pan con tomate fresco, ajo y albahaca",
     "methods": [
@@ -585,7 +939,58 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca las rebanadas de pan en una bandeja y tuéstalas durante 7-10 minutos, o hasta que estén doradas y crujientes. Vigila para que no se quemen."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan chapata}} en rebanadas de unos 2 cm de grosor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} en dados pequeños y reservar en un bol.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y reservar el diente entero para frotar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar las rebanadas de pan en la {{@Plancha}} hasta que estén doradas por ambas caras.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Frotar el ajo por la superficie de cada rebanada tostada mientras aún está caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el tomate en dados sobre las rebanadas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} por encima de cada bruschetta.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Distribuir {{Albahaca|gusto}} fresca sobre el tomate y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 2,
+    "sodium_mg": 320
   },
   {
     "id": "cenas_rapidas_009",
@@ -630,13 +1035,50 @@
       }
     ],
     "steps": [
-      "Extender las lonchas de jamón",
-      "Colocar queso y medio pepinillo en cada una",
-      "Enrollar bien apretado",
-      "Servir fríos como picoteo o cena ligera"
+      "Laminar pepinillos en rodajas finas a lo largo y reservar.",
+      "Extender jamón cocido en lonchas sobre una superficie plana.",
+      "Colocar queso en porciones en el extremo de cada loncha de jamón cocido.",
+      "Distribuir las rodajas de pepinillos sobre el queso en porciones.",
+      "Enrollar cada loncha de jamón cocido apretando para que el relleno quede compacto.",
+      "Servir los rollitos fríos dispuestos en un plato."
     ],
     "description": "Lonchas de jamón cocido enrolladas con queso y pepinillo",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Pepinillos}} en rodajas finas a lo largo y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Jamón cocido}} en lonchas sobre una superficie plana.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Queso en porciones}} en el extremo de cada loncha de jamón cocido.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Distribuir las rodajas de pepinillos sobre el queso en porciones.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Enrollar cada loncha de jamón cocido apretando para que el relleno quede compacto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los rollitos fríos dispuestos en un plato.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 8,
+    "sodium_mg": 920
   },
   {
     "id": "cenas_rapidas_010",
@@ -692,13 +1134,45 @@
       }
     ],
     "steps": [
-      "Cortar el queso en cuñas o tacos",
-      "Disponer chorizo y jamón en lonchas",
-      "Colocar aceitunas en un bol",
-      "Acompañar con pan cortado"
+      "Cortar queso curado en cuñas o tacos de tamaño bocado.",
+      "Laminar chorizo en rodajas finas y doblarlas ligeramente.",
+      "Cortar pan de barra en rebanadas de unos 2 cm de grosor.",
+      "Disponer el queso, el chorizo y jamón serrano en lonchas sobre una tabla amplia, agrupando cada producto.",
+      "Colocar aceitunas en un bol pequeño y situarlo en un extremo de la tabla junto con las rebanadas de pan."
     ],
     "description": "Tabla para compartir con queso curado, chorizo y jamón",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Queso curado}} en cuñas o tacos de tamaño bocado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Chorizo}} en rodajas finas y doblarlas ligeramente.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pan de barra}} en rebanadas de unos 2 cm de grosor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer el queso, el chorizo y {{Jamón serrano}} en lonchas sobre una tabla amplia, agrupando cada producto.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Colocar {{Aceitunas|gusto}} en un bol pequeño y situarlo en un extremo de la tabla junto con las rebanadas de pan.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 14,
+    "sodium_mg": 980
   },
   {
     "id": "cenas_rapidas_012",
@@ -762,10 +1236,16 @@
       }
     ],
     "steps": [
-      "Triturar tomate, pepino, pimiento, ajo y pan remojado",
-      "Añadir aceite y vinagre mezclando bien",
-      "Colar y enfriar en nevera",
-      "Servir con dados de pan tostado"
+      "Cortar tomate maduro en trozos grandes y colocar en el vaso de la batidora.",
+      "Cortar pepino en trozos y añadir al vaso.",
+      "Cortar pimiento verde en trozos y añadir al vaso.",
+      "Añadir ajo al vaso.",
+      "Trocear pan y sumergirlo en agua fría durante 1 min; escurrir y añadir al vaso.",
+      "Triturar todos los ingredientes del vaso a máxima potencia hasta que la mezcla esté completamente lisa.",
+      "Añadir aceite de oliva y vinagre al vaso; triturar 30 segundos más hasta integrar.",
+      "Colar la mezcla por un colador fino sobre un bol, presionando con una cuchara para extraer todo el líquido.",
+      "Cortar el pan sobrante en dados pequeños y tostar en sartén a fuego medio hasta que estén dorados; reservar.",
+      "Servir el gazpacho frío en boles y repartir los dados de pan tostado por encima."
     ],
     "description": "Gazpacho frío servido con picatostes crujientes",
     "methods": [
@@ -775,7 +1255,63 @@
         "difficulty": "facil",
         "prepSummary": "Introduce los tomates, pepino, pimiento, ajo, aceite y vinagre en el vaso de la Thermomix. Tritura a velocidad progresiva 5-10 durante 1-2 minutos hasta lograr una textura fina y homogénea. Sirve muy frío con los picatostes."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tomate maduro}} en trozos grandes y colocar en el vaso de la batidora.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pepino}} en trozos y añadir al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento verde}} en trozos y añadir al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Ajo}} al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Trocear {{Pan}} y sumergirlo en agua fría durante 1 min; escurrir y añadir al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar todos los ingredientes del vaso a máxima potencia hasta que la mezcla esté completamente lisa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva}} y {{Vinagre|gusto}} al vaso; triturar 30 segundos más hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colar la mezcla por un colador fino sobre un bol, presionando con una cuchara para extraer todo el líquido.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar el pan sobrante en dados pequeños y tostar en {{@Sartén}} a fuego medio hasta que estén dorados; reservar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el gazpacho frío en boles y repartir los dados de pan tostado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 8,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "cenas_rapidas_013",
@@ -834,10 +1370,19 @@
       }
     ],
     "steps": [
-      "Tostar las rebanadas de pan de hogaza hasta que estén crujientes",
-      "Preparar un guacamole casero machacando el aguacate con zumo de lima, cilantro picado y sal",
-      "Escalfar los huevos 3 min en agua caliente con un chorro de vinagre",
-      "Untar el guacamole en las tostas y coronar con el huevo poché y pimienta"
+      "Cortar pan de hogaza en 2 rebanadas de grosor medio.",
+      "Picar cilantro fino y reservar.",
+      "Exprimir lima y reservar el zumo.",
+      "Abrir aguacate, retirar el hueso y extraer la pulpa en un bol.",
+      "Machacar la pulpa de aguacate con un tenedor hasta obtener una textura cremosa con algunos grumos.",
+      "Añadir el zumo de lima y el cilantro picado al aguacate machacado y mezclar hasta integrar.",
+      "Llevar agua a ebullición en un cazo a fuego fuerte; añadir vinagre y bajar a fuego suave hasta mantener un hervor leve.",
+      "Tostar las rebanadas de pan de hogaza en la tostadora hasta que estén doradas y crujientes.",
+      "Cascar huevo de uno en uno en un cuenco pequeño e introducirlos suavemente en el agua con vinagre.",
+      "Cocer los huevos 3 min hasta que la clara esté cuajada y la yema líquida.",
+      "Retirar los huevos poché con una espumadera y escurrir sobre papel de cocina.",
+      "Untar el guacamole de forma generosa sobre las tostas.",
+      "Colocar 1 huevo poché sobre cada tosta y servir de inmediato."
     ],
     "description": "Tostas de pan crujiente con guacamole casero (aguacate, lima y cilantro) y huevo poché de yema jugosa",
     "methods": [
@@ -847,7 +1392,78 @@
         "difficulty": "facil",
         "prepSummary": "Tuesta el pan en la airfryer a 190°C durante 4-5 minutos hasta que quede dorado y crujiente. Mientras, escalfa los huevos en un cazo con agua y un chorro de vinagre 3 minutos. Monta las tostas con el aguacate machacado y el huevo poché por encima."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de hogaza}} en 2 rebanadas de grosor medio.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cilantro|gusto}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Lima}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Abrir {{Aguacate}}, retirar el hueso y extraer la pulpa en un bol.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Machacar la pulpa de aguacate con un tenedor hasta obtener una textura cremosa con algunos grumos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el zumo de lima y el cilantro picado al aguacate machacado y mezclar hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar agua a ebullición en un cazo a fuego fuerte; añadir {{Vinagre}} y bajar a fuego suave hasta mantener un hervor leve.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar las rebanadas de pan de hogaza en la tostadora hasta que estén doradas y crujientes.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cascar {{Huevo}} de uno en uno en un cuenco pequeño e introducirlos suavemente en el agua con vinagre.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer los huevos 3 min hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los huevos poché con una espumadera y escurrir sobre papel de cocina.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Untar el guacamole de forma generosa sobre las tostas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar 1 huevo poché sobre cada tosta y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 7,
+    "sugar_g": 2,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "cenas_rapidas_016",
@@ -907,13 +1523,69 @@
       }
     ],
     "steps": [
-      "Tostar las rebanadas de pan de hogaza",
-      "Untar el queso crema y colocar láminas de aguacate",
-      "Repartir el salmón ahumado por encima",
-      "Terminar con eneldo, pimienta y unas gotas de limón"
+      "Cortar pan de hogaza en 4 rebanadas de grosor medio.",
+      "Pelar y deshuesar aguacate, y laminarlo en tiras finas.",
+      "Exprimir limón y reservar el zumo en un cuenco pequeño.",
+      "Tostar las rebanadas de pan en sartén a fuego medio hasta que estén doradas por ambos lados.",
+      "Untar queso crema sobre cada rebanada tostada, cubriendo toda la superficie.",
+      "Disponer las láminas de aguacate sobre el queso crema, repartidas entre las 4 rebanadas.",
+      "Repartir salmón ahumado sobre el aguacate, cubriendo cada tosta de forma uniforme.",
+      "Rociar unas gotas del zumo de limón reservado sobre cada tosta.",
+      "Espolvorear eneldo sobre cada tosta y servir de inmediato."
     ],
     "description": "Tostas de pan crujiente con queso crema, aguacate, salmón ahumado y eneldo",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de hogaza}} en 4 rebanadas de grosor medio.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y deshuesar {{Aguacate}}, y laminarlo en tiras finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo en un cuenco pequeño.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Tostar las rebanadas de pan en {{@Sartén}} a fuego medio hasta que estén doradas por ambos lados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Untar {{Queso crema}} sobre cada rebanada tostada, cubriendo toda la superficie.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer las láminas de aguacate sobre el queso crema, repartidas entre las 4 rebanadas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir {{Salmón ahumado}} sobre el aguacate, cubriendo cada tosta de forma uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Rociar unas gotas del zumo de limón reservado sobre cada tosta.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Espolvorear {{Eneldo|pizca}} sobre cada tosta y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 2,
+    "saturated_fat_g": 6,
+    "sodium_mg": 820
   },
   {
     "id": "cenas_rapidas_017",
@@ -967,13 +1639,69 @@
       }
     ],
     "steps": [
-      "Tostar las rebanadas de pan de hogaza y frotar con un poco de tomate",
-      "Repartir el tomate en rodajas o triturado sobre el pan",
-      "Colocar la burrata rota por encima y salpimentar",
-      "Terminar con albahaca fresca y un buen hilo de aceite de oliva"
+      "Cortar pan de hogaza en rebanadas de unos 2 cm de grosor.",
+      "Cortar tomate maduro en rodajas finas y reservar.",
+      "Calentar una sartén o plancha a fuego fuerte hasta que esté bien caliente.",
+      "Tostar las rebanadas de pan en la sartén caliente hasta que estén doradas por ambas caras.",
+      "Frotar cada rebanada tostada con un trozo de tomate maduro por la superficie hasta impregnarla.",
+      "Repartir las rodajas de tomate maduro restantes sobre las rebanadas de pan.",
+      "Romper burrata con las manos y distribuirla sobre el tomate de cada tosta.",
+      "Repartir albahaca fresca entera o rasgada por encima de la burrata.",
+      "Acabar con aceite de oliva virgen extra sobre cada tosta y servir de inmediato."
     ],
     "description": "Tostas de pan crujiente con burrata cremosa, tomate maduro y albahaca fresca",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan de hogaza}} en rebanadas de unos 2 cm de grosor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} en rodajas finas y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar una sartén o plancha a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar las rebanadas de pan en la sartén caliente hasta que estén doradas por ambas caras.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Frotar cada rebanada tostada con un trozo de tomate maduro por la superficie hasta impregnarla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir las rodajas de tomate maduro restantes sobre las rebanadas de pan.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Romper {{Burrata}} con las manos y distribuirla sobre el tomate de cada tosta.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Repartir {{Albahaca fresca}} entera o rasgada por encima de la burrata.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Acabar con {{Aceite de oliva virgen extra|chorrito}} sobre cada tosta y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 9,
+    "sodium_mg": 380
   },
   {
     "id": "cenas_rapidas_014",
@@ -1033,10 +1761,14 @@
       }
     ],
     "steps": [
-      "Escurrir el atún y mezclar con mayonesa",
-      "Repartir lechuga y tomate en las tortillas",
-      "Añadir atún y maíz",
-      "Enrollar bien apretado"
+      "Escurrir atún en conserva presionando bien la lata para eliminar el líquido.",
+      "Cortar tomate en dados pequeños y trocear lechuga en tiras finas.",
+      "Mezclar el atún escurrido con mayonesa en un bol hasta integrar bien.",
+      "Extender la mezcla de atún en el centro de tortilla de trigo, dejando 3 cm libres en los bordes.",
+      "Repartir la lechuga y el tomate cortado sobre la mezcla de atún.",
+      "Añadir maíz dulce distribuido de forma uniforme sobre cada tortilla.",
+      "Enrollar cada tortilla con firmeza plegando primero los laterales y luego enroscando hacia adelante hasta cerrar el wrap.",
+      "Cortar cada wrap por la mitad en diagonal y servir de inmediato."
     ],
     "description": "Wrap de tortilla de trigo con atún, lechuga y maíz",
     "methods": [
@@ -1046,7 +1778,53 @@
         "difficulty": "facil",
         "prepSummary": "Para darle un toque crujiente y caliente, rellena las tortillas con los ingredientes y dóblalas. Precalienta la airfryer a 180°C y cocina los wraps durante 5-7 minutos, volteándolos a mitad, hasta que estén dorados y crujientes."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Escurrir {{Atún en conserva}} presionando bien la lata para eliminar el líquido.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate}} en dados pequeños y trocear {{Lechuga}} en tiras finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el atún escurrido con {{Mayonesa|gusto}} en un bol hasta integrar bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender la mezcla de atún en el centro de {{Tortilla de trigo}}, dejando 3 cm libres en los bordes.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la lechuga y el tomate cortado sobre la mezcla de atún.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Maíz dulce}} distribuido de forma uniforme sobre cada tortilla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Enrollar cada tortilla con firmeza plegando primero los laterales y luego enroscando hacia adelante hasta cerrar el wrap.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar cada wrap por la mitad en diagonal y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 3,
+    "sodium_mg": 520
   },
   {
     "id": "cenas_rapidas_015",
@@ -1101,10 +1879,12 @@
       }
     ],
     "steps": [
-      "Triturar el melón pelado con el yogur",
-      "Añadir menta y un chorrito de aceite",
-      "Enfriar en nevera al menos 30 min",
-      "Servir con virutas de jamón por encima"
+      "Pelar melón y cortar en trozos grandes, retirando las pepitas.",
+      "Cortar jamón serrano en virutas finas con un cuchillo y reservar.",
+      "Añadir los trozos de melón, yogur natural, menta y aceite de oliva a un vaso batidor.",
+      "Triturar todos los ingredientes hasta obtener una crema lisa y homogénea.",
+      "Refrigerar la sopa en la nevera hasta que esté bien fría, al menos 30 min.",
+      "Servir la sopa en cuencos fríos y repartir las virutas de jamón serrano por encima."
     ],
     "description": "Sopa fría de melón con yogur, menta y jamón serrano",
     "methods": [
@@ -1114,6 +1894,42 @@
         "difficulty": "facil",
         "prepSummary": "Introduce el melón troceado, el yogur, la menta y el aceite de oliva en el vaso. Tritura a velocidad progresiva 5-10 hasta obtener una crema fina y homogénea. Sirve muy frío, decorado con el jamón serrano."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Melón}} y cortar en trozos grandes, retirando las pepitas.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón serrano}} en virutas finas con un cuchillo y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir los trozos de melón, {{Yogur natural}}, {{Menta|pizca}} y {{Aceite de oliva|chorrito}} a un vaso batidor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar todos los ingredientes hasta obtener una crema lisa y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar la sopa en la nevera hasta que esté bien fría, al menos 30 min.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la sopa en cuencos fríos y repartir las virutas de jamón serrano por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 18,
+    "saturated_fat_g": 2,
+    "sodium_mg": 420
   }
 ]

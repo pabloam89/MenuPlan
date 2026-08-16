@@ -73,13 +73,79 @@ export function qualitativeUnitLabel(unit) {
   return QUALITATIVE_UNIT_LABELS[unit] ?? unit;
 }
 
+// Already-singular words that happen to end in -s. Stripping the s would
+// turn "cuscús" into "cuscu" and break catalog keys.
+const INVARIANT_S_WORDS = new Set(["cuscus", "hummus", "anis"]);
+
+// Consonant-ending singulars form the plural with -es (calamar→calamares,
+// pan→panes, col→coles, yogur→yogures, laurel→laureles, perejil→perejiles,
+// azúcar→azúcares). Vowel-ending singulars only add -s (tomate→tomates) —
+// those must NOT match this list, or "tomates" would collapse to "tomat".
+const CONSONANT_PLUS_ES =
+  /(?:ones|anes|enes|ines|unes|ares|eres|ires|ores|ures|ales|eles|iles|oles|ules|ades|edes|ides|udes)$/;
+
+/** Singular stem of one Spanish word: tomates→tomate, calamares→calamar, nueces→nuez. */
+export function singularizeWord(word) {
+  const w = String(word ?? "");
+  if (w.length <= 2 || INVARIANT_S_WORDS.has(w)) return w;
+  // nuez→nueces, pez→peces, arroz→arroces
+  if (w.endsWith("ces") && w.length > 4) return `${w.slice(0, -3)}z`;
+  if (CONSONANT_PLUS_ES.test(w) && w.length > 4) return w.slice(0, -2);
+  if (/[aeiou]s$/.test(w) && w.length > 3) return w.slice(0, -1);
+  return w;
+}
+
+// Freshness / cut / size words that do not change the product. "queso fresco"
+// is a cheese type, not a qualifier — that pair is kept in ingredientStem.
+const STEM_NOISE = new Set([
+  "fresco", "fresca",
+  "baby",
+  "maduro", "madura",
+  "natural",
+  "entero", "entera",
+  "pelado", "pelada",
+  "troceado", "troceada",
+  "crudo", "cruda",
+  "grande", "pequeno", "pequena",
+  "variado", "variada",
+  "desalado", "desalada",
+  "cocido", "cocida",
+  "triguero",
+]);
+
+const STEM_NOISE_PHRASES = [
+  "virgen extra",
+  "del dia anterior",
+  "en lomo",
+  "en rodaja",
+  "en filete",
+];
+
+/** Accent-free, singularized name — "Judías verdes" == "Judía verde", "Espinacas frescas" == "Espinacas". */
+export function ingredientStem(name) {
+  const raw = normalizeName(name)
+    .replace(/[º°]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!raw) return "";
+
+  const words = raw.split(" ").filter(Boolean).map(singularizeWord);
+  const kept = words.filter((w, i) => {
+    if (!STEM_NOISE.has(w)) return true;
+    if ((w === "fresco" || w === "fresca") && words[i - 1] === "queso") return true;
+    return false;
+  });
+
+  let stem = kept.join(" ");
+  for (const phrase of STEM_NOISE_PHRASES) {
+    stem = stem.replaceAll(phrase, " ");
+  }
+  return stem.replace(/\s+/g, " ").trim();
+}
+
 /** Stable shopping-list key: same product + unit merges into one row. */
 export function normalizeIngredientKey(name, unit = "ud") {
-  const n = normalizeName(name);
-  // Strip trailing plural 's' so "huevo"/"huevos", "tomate"/"tomates" merge
-  // into one row. Only strip when > 3 chars to preserve "sal", "pan", etc.
-  const stem = n.length > 3 && n.endsWith("s") ? n.slice(0, -1) : n;
-  return `${stem}|${unit}`;
+  return `${ingredientStem(name)}|${unit}`;
 }
 
 const INGREDIENT_CATEGORY_HINTS = [
@@ -111,7 +177,7 @@ const SHOPPING_AISLE_HINTS = [
   // "pan rallado"/"panko" are breadcrumbs — all belong in Panadería. Runs before
   // every other group so those specific breads never get mis-shelved.
   [
-    /pan de hamburguesa|pan de perrito|pan de hot ?dog|pan de molde|pan de pita|pan de leche|pan rallado|panko|panecillo|bollo de pan|chapata|baguette/,
+    /pan de hamburguesa|pan de perrito|pan de hot ?dog|pan de molde|pan de pita|pan de leche|pan rallado|panko|panecillo|bollo de pan|chapata|ciabatta|baguette|hogaza|focaccia|brioche|croissant|naan|mollete|telera|bagel|biscote|candeal|payes|pan rustico|pan gallego|pan arabe|pan de viena|pan de cereal|pan de masa madre|colines|\bpicos\b/,
     "Panadería",
   ],
   [
@@ -146,7 +212,10 @@ const SHOPPING_AISLE_HINTS = [
     /pasta|espagueti|macarron|fideo|arroz|cuscus|quinoa|noodle|lasan|fusilli|penne|tallarin|tirabuzon|lacito|canelon|raviol|tortellini/,
     "Pasta y arroz",
   ],
-  [/leche|nata|queso|yogur|mantequilla|requeson|mozzarella|parmesano|cuajada|quesito/, "Lácteos"],
+  [
+    /leche|nata|queso|yogur|mantequilla|requeson|mozzarella|parmesano|cuajada|quesito|roquefort|camembert|\bbrie\b|gorgonzola|cabrales|manchego|idiazabal|mahon|tetilla|feta|ricotta|mascarpone|burrata|gruyere|emmental|cheddar|gouda|\bedam\b|provolone|halloumi|pecorino|comte|havarti|scamorza|stilton|taleggio|fontina|raclette|roncal|zamorano|valdeon|arzua|grana padano/,
+    "Lácteos",
+  ],
   [/huevo/, "Huevos"],
   [/pan |harina|avena|cereales|tostada|boller|pan rallado|panko/, "Panadería"],
   [

@@ -60,10 +60,18 @@
       }
     ],
     "steps": [
-      "Cortar patatas y cebolla en gajos gruesos",
-      "Colocar en bandeja con aceite, ajo y romero",
-      "Disponer el pollo encima, rociar con limón",
-      "Hornear a 200°C durante 45 min"
+      "Pelar patata y cortar en gajos gruesos de unos 3 cm.",
+      "Pelar cebolla y cortar en gajos gruesos.",
+      "Pelar ajo y laminar.",
+      "Cortar limón por la mitad y exprimir el zumo. Reservar.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Disponer los gajos de patata y de cebolla en una bandeja de horno.",
+      "Añadir el ajo laminado y romero sobre las patatas y la cebolla.",
+      "Verter aceite de oliva sobre la bandeja y mezclar bien para que todo quede impregnado.",
+      "Colocar contramuslos de pollo sobre las verduras de la bandeja.",
+      "Rociar el pollo con el zumo de limón reservado.",
+      "Hornear la bandeja a 200 °C durante 45 min, hasta que el pollo esté dorado y las patatas tiernas.",
+      "Retirar la bandeja del horno y servir el pollo junto con las patatas y la cebolla."
     ],
     "description": "Contramuslos de pollo asados al horno sobre cama de patatas",
     "methods": [
@@ -79,7 +87,73 @@
         "difficulty": "facil",
         "prepSummary": "Cortar las patatas en cubos pequeños y marinar junto al pollo. Cocinar en la airfryer a 190°C durante 25-30 minutos, agitando la cesta o volteando los ingredientes a mitad para un acabado crujiente y bien cocido."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en gajos gruesos de unos 3 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y cortar en gajos gruesos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y laminar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} por la mitad y exprimir el zumo. Reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disponer los gajos de patata y de cebolla en una bandeja de horno.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el ajo laminado y {{Romero|pizca}} sobre las patatas y la cebolla.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Aceite de oliva|chorrito}} sobre la bandeja y mezclar bien para que todo quede impregnado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Contramuslos de pollo}} sobre las verduras de la bandeja.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Rociar el pollo con el zumo de limón reservado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la bandeja a 200 °C durante 45 min, hasta que el pollo esté dorado y las patatas tiernas.",
+        "minutes": 45,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir el pollo junto con las patatas y la cebolla.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_002",
@@ -130,10 +204,14 @@
       }
     ],
     "steps": [
-      "Aplanar ligeramente las pechugas",
-      "Sazonar con ajo en polvo y orégano",
-      "Cocinar a la plancha con aceite 5 min por cada lado",
-      "Servir con un chorrito de limón"
+      "Aplanar pechuga de pollo con la palma de la mano o un mazo hasta conseguir un grosor uniforme de unos 2 cm.",
+      "Cortar limón por la mitad y reservar para el emplatado.",
+      "Espolvorear ajo en polvo y orégano por ambas caras de las pechugas, presionando ligeramente para que se adhieran.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Añadir aceite de oliva sobre la plancha y extender con movimiento suave.",
+      "Colocar las pechugas sazonadas sobre la plancha y cocinar a fuego medio-fuerte sin moverlas durante 5 min, hasta que se doren por la base.",
+      "Dar la vuelta a las pechugas y cocinar 4 min más por el otro lado, hasta que estén doradas y jugosas en el interior.",
+      "Retirar las pechugas de la plancha y exprimir el limón reservado por encima antes de servir."
     ],
     "description": "Pechugas de pollo a la plancha con ajo y orégano",
     "methods": [
@@ -149,7 +227,53 @@
         "difficulty": "facil",
         "prepSummary": "Tras marinar las pechugas, hornéalas a 200-220°C durante unos 20 minutos. Para un acabado más 'a la plancha', puedes usar la función grill los últimos 5 minutos y conseguir un exterior dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Aplanar {{Pechuga de pollo}} con la palma de la mano o un mazo hasta conseguir un grosor uniforme de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} por la mitad y reservar para el emplatado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Espolvorear {{Ajo en polvo}} y {{Orégano}} por ambas caras de las pechugas, presionando ligeramente para que se adhieran.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} sobre la plancha y extender con movimiento suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar las pechugas sazonadas sobre la plancha y cocinar a fuego medio-fuerte sin moverlas durante 5 min, hasta que se doren por la base.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dar la vuelta a las pechugas y cocinar 4 min más por el otro lado, hasta que estén doradas y jugosas en el interior.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar las pechugas de la plancha y exprimir el limón reservado por encima antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 95
   },
   {
     "id": "carnes_003",
@@ -218,10 +342,18 @@
       }
     ],
     "steps": [
-      "Mezclar carne con pan rallado, huevo y ajo picado",
-      "Formar albóndigas y enharinar",
-      "Freír en aceite y reservar",
-      "Hacer salsa con cebolla y tomate, añadir albóndigas y cocer 20 min"
+      "Picar ajo muy fino y reservar.",
+      "Picar cebolla en trozos pequeños y reservar.",
+      "Mezclar en un bol carne picada de cerdo, pan rallado, huevo y la mitad del ajo picado hasta obtener una masa homogénea.",
+      "Formar albóndigas del tamaño de una nuez con la masa anterior.",
+      "Pasar cada albóndiga por harina hasta cubrirla ligeramente y sacudir el exceso.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír las albóndigas enharinadas hasta que se doren por todos los lados; retirar y reservar.",
+      "Sofreír la cebolla picada en la misma sartén a fuego medio hasta que esté tierna y transparente.",
+      "Añadir el resto del ajo picado y sofreír 1 min más hasta que desprenda aroma.",
+      "Añadir tomate triturado, remover y llevar a ebullición a fuego medio.",
+      "Incorporar las albóndigas reservadas a la salsa, tapar y cocer a fuego suave hasta que estén bien cocidas y la salsa espese.",
+      "Servir las albóndigas con la salsa de tomate por encima."
     ],
     "description": "Albóndigas caseras de cerdo en salsa de tomate",
     "methods": [
@@ -243,7 +375,73 @@
         "difficulty": "normal",
         "prepSummary": "Dora las albóndigas en la olla abierta, retira. Haz el sofrito y la salsa en la misma olla, reincorpora las albóndigas y cocina a presión durante 10-12 minutos para un resultado tierno y rápido."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos pequeños y reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol {{Carne picada de cerdo}}, {{Pan rallado}}, {{Huevo}} y la mitad del ajo picado hasta obtener una masa homogénea.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar albóndigas del tamaño de una nuez con la masa anterior.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada albóndiga por {{Harina}} hasta cubrirla ligeramente y sacudir el exceso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las albóndigas enharinadas hasta que se doren por todos los lados; retirar y reservar.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la misma {{@Sartén}} a fuego medio hasta que esté tierna y transparente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el resto del ajo picado y sofreír 1 min más hasta que desprenda aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, remover y llevar a ebullición a fuego medio.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las albóndigas reservadas a la salsa, tapar y cocer a fuego suave hasta que estén bien cocidas y la salsa espese.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir las albóndigas con la salsa de tomate por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 7,
+    "saturated_fat_g": 9,
+    "sodium_mg": 420
   },
   {
     "id": "carnes_004",
@@ -297,10 +495,14 @@
       }
     ],
     "steps": [
-      "Salpimentar los filetes",
-      "Pasar por harina, huevo batido y pan rallado",
-      "Freír en abundante aceite caliente",
-      "Escurrir sobre papel absorbente"
+      "Salpimentar lomo de cerdo en filetes por ambas caras y reservar.",
+      "Cascar huevo en un plato hondo y batir hasta obtener una mezcla homogénea.",
+      "Extender harina en un plato llano y pan rallado en otro plato llano.",
+      "Pasar cada filete por la harina, sacudir el exceso, sumergir en el huevo batido y cubrir bien con el pan rallado.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los filetes empanados hasta que estén dorados por ambas caras, aproximadamente 2 min por cada lado.",
+      "Retirar los filetes de la sartén y escurrir sobre papel absorbente para eliminar el exceso de aceite.",
+      "Servir los filetes empanados inmediatamente."
     ],
     "description": "Filetes de lomo de cerdo empanados y fritos",
     "methods": [
@@ -316,7 +518,53 @@
         "difficulty": "facil",
         "prepSummary": "Hornea los filetes para una versión más ligera. Precalienta el horno a 200°C con calor arriba y abajo. Coloca los filetes sobre una rejilla en una bandeja y hornea durante 20-25 minutos, volteándolos a mitad para que queden dorados por ambos lados."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Salpimentar {{Lomo de cerdo en filetes}} por ambas caras y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un plato hondo y batir hasta obtener una mezcla homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Harina}} en un plato llano y {{Pan rallado}} en otro plato llano.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada filete por la harina, sacudir el exceso, sumergir en el huevo batido y cubrir bien con el pan rallado.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los filetes empanados hasta que estén dorados por ambas caras, aproximadamente 2 min por cada lado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los filetes de la sartén y escurrir sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los filetes empanados inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 6,
+    "sodium_mg": 380
   },
   {
     "id": "carnes_005",
@@ -382,10 +630,20 @@
       }
     ],
     "steps": [
-      "Sellar la carne en aceite caliente y reservar",
-      "Pochar cebolla y zanahoria, añadir tomate",
-      "Incorporar la carne, vino y laurel, cubrir con agua",
-      "Cocer a fuego lento 1 h, añadir patatas y cocer 20 min más"
+      "Pelar patata y cortar en trozos de unos 3 cm.",
+      "Pelar zanahoria y cortar en rodajas de 1 cm.",
+      "Pelar cebolla y picar fino.",
+      "Cortar carne de ternera para guisar en dados de unos 4 cm.",
+      "Calentar aceite de oliva en una olla a fuego fuerte hasta que humee.",
+      "Dorar la carne de ternera en tandas hasta que esté sellada por todos los lados; reservar.",
+      "Bajar a fuego medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
+      "Añadir la zanahoria y sofreír 2 min hasta que empiece a ablandarse.",
+      "Añadir tomate triturado y remover hasta que se integre con el sofrito, unos 2 min.",
+      "Incorporar la carne reservada, vino tinto y laurel; cubrir con agua hasta sobrepasar los ingredientes.",
+      "Llevar a ebullición a fuego fuerte; cuando rompa a hervir, bajar a fuego suave y tapar.",
+      "Cocer tapado a fuego suave durante 40 min hasta que la carne empiece a estar tierna.",
+      "Añadir la patata cortada y cocer tapado a fuego suave durante 20 min hasta que esté tierna.",
+      "Retirar el laurel y servir el estofado bien caliente en platos hondos."
     ],
     "description": "Ternera guisada a fuego lento con patata, zanahoria y vino tinto",
     "methods": [
@@ -407,7 +665,83 @@
         "difficulty": "facil",
         "prepSummary": "Dora la carne y sofríe las verduras en la olla. Incorpora los líquidos y el laurel, cierra la olla y cocina a presión (nivel 2) durante 25-30 minutos. Deja despresurizar naturalmente para una carne más tierna y jugosa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos de unos 3 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y picar fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Carne de ternera para guisar}} en dados de unos 4 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego fuerte hasta que humee.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar la carne de ternera en tandas hasta que esté sellada por todos los lados; reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y sofreír 2 min hasta que empiece a ablandarse.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover hasta que se integre con el sofrito, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la carne reservada, {{Vino tinto}} y {{Laurel}}; cubrir con agua hasta sobrepasar los ingredientes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte; cuando rompa a hervir, bajar a fuego suave y tapar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer tapado a fuego suave durante 40 min hasta que la carne empiece a estar tierna.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir la patata cortada y cocer tapado a fuego suave durante 20 min hasta que esté tierna.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel y servir el estofado bien caliente en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 8,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_006",
@@ -462,10 +796,14 @@
       }
     ],
     "steps": [
-      "Dorar el pollo salpimentado en aceite",
-      "Añadir ajos laminados y guindilla",
-      "Verter vino blanco y laurel",
-      "Tapar y cocer 20 min a fuego medio"
+      "Salpimentar pollo troceado por todos los lados.",
+      "Laminar ajo en láminas finas.",
+      "Calentar aceite de oliva en una sartén amplia a fuego fuerte hasta que esté bien caliente.",
+      "Dorar el pollo salpimentado en la sartén a fuego fuerte hasta que esté dorado por todas las caras, unos 6 min.",
+      "Añadir el ajo laminado, guindilla y laurel a la sartén y sofreír a fuego medio hasta que el ajo esté ligeramente dorado.",
+      "Verter vino blanco y remover para despegar los jugos del fondo hasta que el alcohol se evapore, unos 2 min.",
+      "Tapar la sartén y cocer a fuego medio hasta que el pollo esté tierno y la salsa haya reducido, unos 14 min.",
+      "Retirar el laurel y la guindilla, y servir el pollo con la salsa de ajo por encima."
     ],
     "description": "Pollo troceado frito con abundante ajo y vino blanco",
     "methods": [
@@ -487,7 +825,53 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo y luego el pollo en el vaso a temperatura Varoma con giro inverso. Añade el vino y el laurel, y cocina 15-20 minutos a 100°C, velocidad cuchara, giro inverso, hasta que el pollo esté tierno."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Salpimentar {{Pollo troceado}} por todos los lados.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una {{@Sartén}} amplia a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el pollo salpimentado en la {{@Sartén}} a fuego fuerte hasta que esté dorado por todas las caras, unos 6 min.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado, {{Guindilla}} y {{Laurel}} a la {{@Sartén}} y sofreír a fuego medio hasta que el ajo esté ligeramente dorado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino blanco}} y remover para despegar los jugos del fondo hasta que el alcohol se evapore, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la {{@Sartén}} y cocer a fuego medio hasta que el pollo esté tierno y la salsa haya reducido, unos 14 min.",
+        "minutes": 14,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel y la guindilla, y servir el pollo con la salsa de ajo por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 6,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_007",
@@ -543,10 +927,12 @@
       }
     ],
     "steps": [
-      "Macerar la carne con pimentón, ajo, orégano y vinagre 30 min",
-      "Calentar aceite en sartén a fuego fuerte",
-      "Freír los filetes 2 min por lado",
-      "Servir con el jugo de la sartén"
+      "Picar ajo muy fino y reservar.",
+      "Mezclar en un bol el ajo picado, pimentón, orégano, vinagre y aceite de oliva hasta obtener una pasta homogénea.",
+      "Cubrir cinta de lomo con la pasta del adobo por ambas caras hasta que quede bien impregnada.",
+      "Calentar plancha a fuego fuerte hasta que esté muy caliente.",
+      "Colocar los filetes de cinta de lomo en plancha y dorar 2 min por cada cara hasta que estén bien marcados.",
+      "Retirar los filetes de la plancha y servir con el jugo que hayan soltado."
     ],
     "description": "Filetes de cinta de lomo adobados con pimentón y ajo",
     "methods": [
@@ -562,7 +948,43 @@
         "difficulty": "facil",
         "prepSummary": "Tras marinar, hornea la cinta de lomo a 190-200°C (con ventilador si es posible) durante 20-25 minutos. Voltéala una vez para asegurar una cocción pareja y un exterior ligeramente dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol el ajo picado, {{Pimentón}}, {{Orégano}}, {{Vinagre}} y {{Aceite de oliva}} hasta obtener una pasta homogénea.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir {{Cinta de lomo}} con la pasta del adobo por ambas caras hasta que quede bien impregnada.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté muy caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los filetes de cinta de lomo en {{@Plancha}} y dorar 2 min por cada cara hasta que estén bien marcados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los filetes de la plancha y servir con el jugo que hayan soltado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 6,
+    "sodium_mg": 180
   },
   {
     "id": "carnes_008",
@@ -629,10 +1051,19 @@
       }
     ],
     "steps": [
-      "Sellar la ternera en dados en aceite caliente",
-      "Pochar cebolla y zanahoria, añadir tomate",
-      "Incorporar vino y agua, cocer 50 min",
-      "Añadir patatas y guisantes, cocer 20 min más"
+      "Cortar carne de ternera para guisar en dados de unos 3 cm.",
+      "Pelar y picar cebolla en brunoise fina.",
+      "Pelar zanahoria y cortar en rodajas de 1 cm.",
+      "Pelar patata y cortar en trozos medianos.",
+      "Calentar aceite de oliva en una olla a fuego fuerte hasta que humee ligeramente.",
+      "Dorar los dados de carne de ternera en la olla por todos los lados hasta que estén sellados y dorados; retirar y reservar.",
+      "Reducir el fuego a medio y sofreír la cebolla picada y la zanahoria en la misma olla hasta que la cebolla esté transparente.",
+      "Añadir tomate triturado y remover; sofreír hasta que el tomate pierda el agua y se concentre.",
+      "Incorporar vino blanco y remover para desglasar el fondo de la olla hasta que el alcohol se evapore.",
+      "Volver a introducir la carne de ternera reservada, cubrir con agua (aprox. 400 ml) y llevar a ebullición a fuego fuerte.",
+      "Tapar la olla, bajar a fuego suave y cocer hasta que la carne esté tierna.",
+      "Incorporar la patata troceada y guisantes; remover y cocer a fuego medio hasta que la patata esté tierna.",
+      "Retirar del fuego, rectificar de sal si fuera necesario y servir el guiso bien caliente."
     ],
     "description": "Ternera guisada con patatas, guisantes y zanahoria",
     "methods": [
@@ -654,7 +1085,78 @@
         "difficulty": "normal",
         "prepSummary": "Sella la carne y sofríe las verduras en la olla. Añade el resto de ingredientes (excepto guisantes) y cocina a presión durante 35-45 minutos. Despresuriza, añade los guisantes y cocina unos minutos más. El secreto es el tiempo reducido y la carne excepcionalmente tierna."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Carne de ternera para guisar}} en dados de unos 3 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos medianos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los dados de carne de ternera en la olla por todos los lados hasta que estén sellados y dorados; retirar y reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir el fuego a medio y sofreír la cebolla picada y la zanahoria en la misma olla hasta que la cebolla esté transparente.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover; sofreír hasta que el tomate pierda el agua y se concentre.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Vino blanco}} y remover para desglasar el fondo de la olla hasta que el alcohol se evapore.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Volver a introducir la carne de ternera reservada, cubrir con agua (aprox. 400 ml) y llevar a ebullición a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla, bajar a fuego suave y cocer hasta que la carne esté tierna.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Incorporar la patata troceada y {{Guisantes}}; remover y cocer a fuego medio hasta que la patata esté tierna.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego, rectificar de sal si fuera necesario y servir el guiso bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 6,
+    "sugar_g": 7,
+    "saturated_fat_g": 7,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_009",
@@ -723,10 +1225,18 @@
       }
     ],
     "steps": [
-      "Mezclar la carne con cebolla rallada, huevo y pan rallado",
-      "Formar dos hamburguesas y salpimentar",
-      "Cocinar a la plancha 4 min por lado",
-      "Montar en pan con tomate y lechuga"
+      "Rallar cebolla con un rallador fino y reservar.",
+      "Cortar tomate en rodajas finas y reservar.",
+      "Separar las hojas de lechuga y reservar.",
+      "Mezclar en un bol carne picada de ternera, la cebolla rallada, huevo y pan rallado hasta obtener una masa homogénea.",
+      "Dividir la masa en 2 porciones iguales y dar forma redonda y plana a cada una.",
+      "Salpimentar cada hamburguesa por ambas caras.",
+      "Calentar plancha a fuego fuerte con aceite de oliva hasta que humee ligeramente.",
+      "Colocar las hamburguesas en la plancha y dorar 4 min por el primer lado sin moverlas.",
+      "Dar la vuelta a las hamburguesas y dorar 4 min por el segundo lado hasta que estén cocinadas en el centro.",
+      "Retirar las hamburguesas y tostar pan de hamburguesa partido por la mitad en la plancha hasta que se dore ligeramente.",
+      "Colocar la base de cada pan, disponer las hojas de lechuga y la hamburguesa encima.",
+      "Añadir las rodajas de tomate sobre la hamburguesa y tapar con la parte superior del pan."
     ],
     "description": "Hamburguesas de ternera caseras con pan, tomate y lechuga",
     "methods": [
@@ -742,7 +1252,73 @@
         "difficulty": "facil",
         "prepSummary": "Prepara las hamburguesas y hornéalas en una bandeja con papel de horno a 200°C durante 15-20 minutos, volteándolas una vez. Es una opción práctica para cocinar varias a la vez, manteniendo la carne tierna y jugosa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Rallar {{Cebolla}} con un rallador fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate}} en rodajas finas y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Separar las hojas de {{Lechuga}} y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol {{Carne picada de ternera}}, la cebolla rallada, {{Huevo}} y {{Pan rallado}} hasta obtener una masa homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dividir la masa en 2 porciones iguales y dar forma redonda y plana a cada una.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar cada hamburguesa por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}} hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar las hamburguesas en la plancha y dorar 4 min por el primer lado sin moverlas.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dar la vuelta a las hamburguesas y dorar 4 min por el segundo lado hasta que estén cocinadas en el centro.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar las hamburguesas y tostar {{Pan de hamburguesa}} partido por la mitad en la plancha hasta que se dore ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar la base de cada pan, disponer las hojas de lechuga y la hamburguesa encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Añadir las rodajas de tomate sobre la hamburguesa y tapar con la parte superior del pan.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 9,
+    "sodium_mg": 420
   },
   {
     "id": "carnes_010",
@@ -803,10 +1379,18 @@
       }
     ],
     "steps": [
-      "Dorar el pollo salpimentado en aceite",
-      "Retirar y sofreír cebolla, ajo y pimientos",
-      "Añadir tomate y devolver el pollo",
-      "Tapar y cocer 25 min a fuego medio"
+      "Salpimentar pollo troceado por todos los lados y reservar.",
+      "Cortar pimiento rojo y pimiento verde en tiras de 1 cm de ancho.",
+      "Cortar cebolla en juliana fina.",
+      "Picar ajo fino.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que brille.",
+      "Dorar el pollo troceado en la sartén caliente, 3 min por cada lado, hasta que esté dorado. Retirar y reservar.",
+      "Reducir el fuego a medio y sofreír la cebolla y el ajo en la misma sartén hasta que estén blandos, unos 3 min.",
+      "Añadir las tiras de pimiento rojo y pimiento verde y saltear hasta que estén ligeramente tiernos, unos 4 min.",
+      "Añadir tomate triturado y remover para integrar con las verduras. Cocer 2 min a fuego medio.",
+      "Incorporar el pollo reservado a la sartén, remover y tapar.",
+      "Cocer tapado a fuego suave durante 20 min, hasta que el pollo esté tierno y la salsa haya espesado.",
+      "Servir el pollo con los pimientos y la salsa por encima."
     ],
     "description": "Pollo guisado con pimientos rojos y verdes en salsa de tomate",
     "methods": [
@@ -828,7 +1412,73 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta, dora el pollo y añade los pimientos y el tomate. Cierra la olla y cocina a presión durante 10-12 minutos desde que sube la válvula, luego despresuriza y sirve."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Salpimentar {{Pollo troceado}} por todos los lados y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en tiras de 1 cm de ancho.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Cebolla}} en juliana fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que brille.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el pollo troceado en la sartén caliente, 3 min por cada lado, hasta que esté dorado. Retirar y reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir el fuego a medio y sofreír la cebolla y el ajo en la misma sartén hasta que estén blandos, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las tiras de pimiento rojo y pimiento verde y saltear hasta que estén ligeramente tiernos, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover para integrar con las verduras. Cocer 2 min a fuego medio.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el pollo reservado a la sartén, remover y tapar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer tapado a fuego suave durante 20 min, hasta que el pollo esté tierno y la salsa haya espesado.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el pollo con los pimientos y la salsa por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_011",
@@ -889,10 +1539,20 @@
       }
     ],
     "steps": [
-      "Marinar costillas con ajo, miel, limón, pimentón y romero",
-      "Colocar en bandeja de horno con aceite",
-      "Hornear a 180°C tapadas con papel de aluminio 45 min",
-      "Destapar y gratinar 15 min hasta dorar"
+      "Pelar ajo y picar muy fino.",
+      "Exprimir limón y reservar el zumo.",
+      "Mezclar en un bol el ajo picado, el zumo de limón, miel, pimentón, romero y aceite de oliva.",
+      "Remover hasta que la marinada sea homogénea.",
+      "Cubrir costillas de cerdo con la marinada, frotando bien por todos los lados.",
+      "Tapar el bol con film y dejar reposar en la nevera hasta que la carne absorba los aromas.",
+      "Precalentar el horno a 180 °C con calor arriba y abajo.",
+      "Colocar las costillas marinadas en una bandeja de horno y verter el resto de la marinada por encima.",
+      "Cubrir la bandeja herméticamente con papel de aluminio.",
+      "Hornear a 180 °C hasta que la carne esté tierna.",
+      "Retirar el papel de aluminio y subir el horno a 220 °C.",
+      "Hornear hasta que las costillas se doren y caramelicen.",
+      "Retirar la bandeja del horno y dejar reposar las costillas.",
+      "Servir las costillas con los jugos de la bandeja por encima."
     ],
     "description": "Costillas de cerdo al horno con miel, limón y pimentón",
     "methods": [
@@ -908,7 +1568,83 @@
         "difficulty": "facil",
         "prepSummary": "Marinar las costillas con la mezcla de especias y miel. Cocinar en la airfryer a 190°C durante 35 minutos, volteando y pincelando con la marinada a mitad para un acabado dorado y jugoso."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Ajo}} y picar muy fino.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol el ajo picado, el zumo de limón, {{Miel}}, {{Pimentón}}, {{Romero|pizca}} y {{Aceite de oliva|chorrito}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Remover hasta que la marinada sea homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir {{Costillas de cerdo}} con la marinada, frotando bien por todos los lados.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Tapar el bol con film y dejar reposar en la nevera hasta que la carne absorba los aromas.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar las costillas marinadas en una bandeja de horno y verter el resto de la marinada por encima.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir la bandeja herméticamente con papel de aluminio.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 180 °C hasta que la carne esté tierna.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y subir el horno a 220 °C.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear hasta que las costillas se doren y caramelicen.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y dejar reposar las costillas.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir las costillas con los jugos de la bandeja por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 6,
+    "saturated_fat_g": 14,
+    "sodium_mg": 180
   },
   {
     "id": "carnes_012",
@@ -973,10 +1709,22 @@
       }
     ],
     "steps": [
-      "Rellenar cada filete con jamón y queso y cerrar",
-      "Pasar por harina, huevo y pan rallado",
-      "Freír en aceite caliente hasta dorar",
-      "Escurrir sobre papel absorbente"
+      "Aplanar lomo de cerdo en filetes sobre la tabla con la mano hasta obtener un grosor uniforme.",
+      "Colocar jamón cocido sobre la mitad de cada filete.",
+      "Cubrir el jamón cocido con queso en lonchas.",
+      "Doblar cada filete por la mitad para encerrar el relleno.",
+      "Presionar los bordes de cada san jacobo con los dedos hasta que queden bien sellados.",
+      "Extender harina en un plato llano.",
+      "Batir huevo en un bol hasta que esté homogéneo.",
+      "Extender pan rallado en otro plato llano.",
+      "Pasar cada san jacobo por la harina y sacudir el exceso.",
+      "Pasar cada san jacobo por el huevo batido, cubriendo toda la superficie.",
+      "Pasar cada san jacobo por el pan rallado, cubriendo bien toda la superficie.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté bien caliente.",
+      "Freír los san jacobos hasta que estén dorados por un lado.",
+      "Girar los san jacobos con cuidado y dorar el otro lado hasta que el rebozado esté crujiente y uniforme.",
+      "Retirar los san jacobos de la sartén y escurrir sobre papel absorbente.",
+      "Servir inmediatamente para que el queso permanezca fundido en el interior."
     ],
     "description": "Filetes de lomo rellenos de jamón y queso, empanados y fritos",
     "methods": [
@@ -992,7 +1740,93 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Coloca los San Jacobos empanados en una bandeja con papel de horno, rociándolos con un poco de aceite. Hornea durante 20-25 minutos, volteándolos a mitad, hasta que estén dorados y bien cocidos."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Aplanar {{Lomo de cerdo en filetes}} sobre la tabla con la mano hasta obtener un grosor uniforme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Jamón cocido}} sobre la mitad de cada filete.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir el jamón cocido con {{Queso en lonchas}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Doblar cada filete por la mitad para encerrar el relleno.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Presionar los bordes de cada san jacobo con los dedos hasta que queden bien sellados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Harina}} en un plato llano.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Pan rallado}} en otro plato llano.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada san jacobo por la harina y sacudir el exceso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada san jacobo por el huevo batido, cubriendo toda la superficie.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada san jacobo por el pan rallado, cubriendo bien toda la superficie.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego medio hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los san jacobos hasta que estén dorados por un lado.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Girar los san jacobos con cuidado y dorar el otro lado hasta que el rebozado esté crujiente y uniforme.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los san jacobos de la sartén y escurrir sobre papel absorbente.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir inmediatamente para que el queso permanezca fundido en el interior.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 10,
+    "sodium_mg": 820
   },
   {
     "id": "carnes_013",
@@ -1048,10 +1882,15 @@
       }
     ],
     "steps": [
-      "Salpimentar los muslos y colocar en bandeja",
-      "Rodear con cebolla en gajos y ajos aplastados",
-      "Regar con aceite y vino, espolvorear tomillo",
-      "Hornear a 190°C durante 40 min"
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Cortar cebolla en gajos de tamaño mediano.",
+      "Aplastar ajo con la hoja del cuchillo, sin pelar.",
+      "Salpimentar muslos de pollo por ambas caras y disponerlos en una bandeja de horno.",
+      "Colocar los gajos de cebolla y el ajo aplastado alrededor de los muslos en la bandeja.",
+      "Regar los muslos con aceite de oliva y vino blanco.",
+      "Espolvorear tomillo de manera uniforme sobre los muslos y las verduras.",
+      "Hornear a 200 °C durante 35 min hasta que la piel esté dorada y los jugos salgan claros.",
+      "Retirar la bandeja del horno y servir los muslos con la cebolla y el jugo de cocción."
     ],
     "description": "Muslos de pollo asados al horno con cebolla y tomillo",
     "methods": [
@@ -1073,7 +1912,58 @@
         "difficulty": "normal",
         "prepSummary": "Dorar los muslos en la olla express con aceite. Añadir la cebolla, ajo, vino blanco y tomillo. Cerrar la olla y cocinar a presión durante 12-15 minutos. Dejar despresurizar, obteniendo un pollo muy tierno con una salsa concentrada."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Cebolla}} en gajos de tamaño mediano.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Aplastar {{Ajo}} con la hoja del cuchillo, sin pelar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Muslos de pollo}} por ambas caras y disponerlos en una bandeja de horno.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar los gajos de cebolla y el ajo aplastado alrededor de los muslos en la bandeja.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Regar los muslos con {{Aceite de oliva|chorrito}} y {{Vino blanco}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Espolvorear {{Tomillo|pizca}} de manera uniforme sobre los muslos y las verduras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 200 °C durante 35 min hasta que la piel esté dorada y los jugos salgan claros.",
+        "minutes": 35,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir los muslos con la cebolla y el jugo de cocción.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 3,
+    "saturated_fat_g": 7,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_014",
@@ -1137,10 +2027,19 @@
       }
     ],
     "steps": [
-      "Mezclar carne con cebolla rallada, huevo, pan rallado y perejil",
-      "Formar óvalos aplastados",
-      "Cocinar a la plancha con aceite 4 min por lado",
-      "Servir con guarnición"
+      "Pelar cebolla y rallar con un rallador fino. Reservar.",
+      "Pelar ajo y picar muy fino.",
+      "Picar perejil fino.",
+      "Poner carne picada de ternera en un bol grande.",
+      "Añadir la cebolla rallada, el ajo picado, el perejil picado, huevo y pan rallado.",
+      "Salpimentar la mezcla del bol al gusto.",
+      "Mezclar todos los ingredientes del bol con las manos hasta obtener una masa homogénea.",
+      "Dividir la masa en 4 porciones iguales.",
+      "Dar a cada porción forma ovalada y aplanada de unos 2 cm de grosor.",
+      "Calentar plancha a fuego fuerte con aceite de oliva hasta que empiece a humear.",
+      "Colocar los filetes rusos sobre la plancha caliente y dorar 4 min sin moverlos, hasta que se doren por la base.",
+      "Dar la vuelta a los filetes y dorar otros 4 min, hasta que estén cocidos por dentro.",
+      "Retirar los filetes de la plancha y servir de inmediato."
     ],
     "description": "Filetes rusos de ternera con cebolla y perejil a la plancha",
     "methods": [
@@ -1156,7 +2055,78 @@
         "difficulty": "facil",
         "prepSummary": "Prepara la mezcla y forma los filetes. Colócalos en una bandeja de horno con papel de hornear y un chorrito de aceite. Hornea a 200°C durante 25-30 minutos, hasta que estén dorados por fuera y bien cocidos por dentro."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y rallar con un rallador fino. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y picar muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Poner {{Carne picada de ternera}} en un bol grande.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la cebolla rallada, el ajo picado, el perejil picado, {{Huevo}} y {{Pan rallado}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar la mezcla del bol al gusto.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar todos los ingredientes del bol con las manos hasta obtener una masa homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dividir la masa en 4 porciones iguales.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Dar a cada porción forma ovalada y aplanada de unos 2 cm de grosor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva}} hasta que empiece a humear.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los filetes rusos sobre la plancha caliente y dorar 4 min sin moverlos, hasta que se doren por la base.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dar la vuelta a los filetes y dorar otros 4 min, hasta que estén cocidos por dentro.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los filetes de la plancha y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 9,
+    "sodium_mg": 310
   },
   {
     "id": "carnes_015",
@@ -1223,10 +2193,20 @@
       }
     ],
     "steps": [
-      "Sellar la carne en aceite bien caliente",
-      "Pochar cebolla y ajo, añadir tomate",
-      "Devolver la carne, añadir vino y laurel",
-      "Cocer 50 min, añadir zanahoria y cocer 20 min más"
+      "Cortar carne de ternera para guisar en trozos de unos 4 cm y salpimentar.",
+      "Pelar y picar cebolla en brunoise fina.",
+      "Pelar y picar ajo fino.",
+      "Pelar zanahoria y cortar en rodajas de 1 cm.",
+      "Calentar aceite de oliva en una olla a fuego fuerte hasta que humee ligeramente.",
+      "Dorar la carne en tandas en la olla hasta que esté sellada por todos los lados; retirar y reservar.",
+      "Bajar a fuego medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
+      "Añadir el ajo picado y sofreír hasta que desprenda aroma, sin que se dore.",
+      "Añadir tomate triturado y remover; cocer hasta que el tomate pierda el exceso de agua.",
+      "Incorporar vino tinto y llevar a ebullición hasta que el alcohol se evapore.",
+      "Devolver la carne reservada a la olla y añadir laurel; cubrir con agua hasta la mitad del guiso.",
+      "Tapar y cocer a fuego suave hasta que la carne esté tierna.",
+      "Añadir la zanahoria cortada y cocer tapado a fuego suave hasta que esté tierna.",
+      "Retirar el laurel y servir el guiso bien caliente."
     ],
     "description": "Ternera guisada a fuego lento con abundante zanahoria",
     "methods": [
@@ -1248,7 +2228,83 @@
         "difficulty": "normal",
         "prepSummary": "Dora la ternera y sofríe las verduras en la olla. Añade el vino, tomate y laurel. Cierra la olla y cocina a presión media-alta durante unos 35-40 minutos, dejando que se despresurice sola para una ternera muy tierna."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Carne de ternera para guisar}} en trozos de unos 4 cm y salpimentar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 1 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar la carne en tandas en la olla hasta que esté sellada por todos los lados; retirar y reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír hasta que desprenda aroma, sin que se dore.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover; cocer hasta que el tomate pierda el exceso de agua.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Vino tinto}} y llevar a ebullición hasta que el alcohol se evapore.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Devolver la carne reservada a la olla y añadir {{Laurel}}; cubrir con agua hasta la mitad del guiso.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego suave hasta que la carne esté tierna.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir la zanahoria cortada y cocer tapado a fuego suave hasta que esté tierna.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel y servir el guiso bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 7,
+    "saturated_fat_g": 7,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_016",
@@ -1317,10 +2373,19 @@
       }
     ],
     "steps": [
-      "Dorar el pollo en aceite y reservar",
-      "Sofreír cebolla, hacer majada de almendras, ajo, azafrán y yema",
-      "Devolver el pollo con vino y caldo",
-      "Cocer 25 min, añadir la majada y espesar"
+      "Pelar y picar cebolla en brunoise fina.",
+      "Pelar y picar ajo fino.",
+      "Separar la yema de huevo cocido y reservar la clara por separado.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Salpimentar pollo troceado y dorar en la sartén por todos los lados hasta que esté dorado; retirar y reservar.",
+      "Bajar a fuego medio y sofreír la cebolla picada en el mismo aceite hasta que esté transparente y blanda.",
+      "Añadir el ajo picado y sofreír 1 min más hasta que empiece a dorarse.",
+      "Tostar almendras en la sartén a fuego suave, removiendo, hasta que estén doradas; retirar.",
+      "Majar en un mortero las almendras tostadas, la yema de huevo cocido y azafrán hasta obtener una pasta homogénea.",
+      "Devolver el pollo reservado a la sartén y añadir vino blanco; llevar a ebullición a fuego fuerte 1 min para evaporar el alcohol.",
+      "Añadir 150 ml de agua, tapar y cocer a fuego suave hasta que el pollo esté tierno.",
+      "Incorporar la majada al guiso, remover bien y cocer a fuego suave 3 min hasta que la salsa espese.",
+      "Laminar la clara de huevo cocido y dispersar por encima; servir en la misma sartén o en plato hondo."
     ],
     "description": "Pollo guisado en salsa de almendras, azafrán y huevo cocido",
     "methods": [
@@ -1342,7 +2407,78 @@
         "difficulty": "normal",
         "prepSummary": "Dora el pollo y sofríe la cebolla y el ajo en la olla abierta. Añade el vino, azafrán y líquido, cierra y cocina a presión durante 15-20 min. Libera la presión, prepara la picada de almendras y huevo cocido aparte y mézclala con la salsa para espesarla."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Separar la yema de {{Huevo cocido}} y reservar la clara por separado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar {{Pollo troceado}} y dorar en la sartén por todos los lados hasta que esté dorado; retirar y reservar.",
+        "minutes": 7,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír la cebolla picada en el mismo aceite hasta que esté transparente y blanda.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min más hasta que empiece a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar {{Almendras}} en la sartén a fuego suave, removiendo, hasta que estén doradas; retirar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Majar en un mortero las almendras tostadas, la yema de huevo cocido y {{Azafrán|pizca}} hasta obtener una pasta homogénea.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Devolver el pollo reservado a la sartén y añadir {{Vino blanco}}; llevar a ebullición a fuego fuerte 1 min para evaporar el alcohol.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir 150 ml de agua, tapar y cocer a fuego suave hasta que el pollo esté tierno.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Incorporar la majada al guiso, remover bien y cocer a fuego suave 3 min hasta que la salsa espese.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Laminar la clara de huevo cocido y dispersar por encima; servir en la misma sartén o en plato hondo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 7,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_017",
@@ -1397,10 +2533,15 @@
       }
     ],
     "steps": [
-      "Cortar el magro en taquitos y dorar en aceite",
-      "Añadir cebolla, ajo y pimiento, sofreír",
-      "Incorporar tomate triturado",
-      "Cocer a fuego lento 15 min"
+      "Cortar cebolla en brunoise fina y pimiento verde en trozos pequeños.",
+      "Picar ajo muy fino.",
+      "Cortar magro de cerdo en taquitos de unos 2 cm.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Dorar el magro en la sartén a fuego fuerte hasta que esté sellado por todos los lados; reservar en un plato.",
+      "Bajar a fuego medio y sofreír la cebolla, el ajo y el pimiento verde en la misma sartén hasta que estén tiernos.",
+      "Añadir tomate triturado y remover para integrar con las verduras.",
+      "Incorporar el magro reservado, bajar a fuego suave, tapar y cocer hasta que la salsa espese y la carne esté tierna.",
+      "Servir el magro con tomate bien caliente, repartido entre 2 platos."
     ],
     "description": "Taquitos de magro de cerdo guisados en salsa de tomate",
     "methods": [
@@ -1422,7 +2563,58 @@
         "difficulty": "facil",
         "prepSummary": "Dora el magro en la olla express. Retira y sofríe las verduras. Vuelve a añadir el magro con el tomate triturado, cierra la olla y cocina 10-12 minutos desde que sube la válvula. Despresuriza y sirve."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en brunoise fina y {{Pimiento verde}} en trozos pequeños.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Magro de cerdo}} en taquitos de unos 2 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el magro en la {{@Sartén}} a fuego fuerte hasta que esté sellado por todos los lados; reservar en un plato.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír la cebolla, el ajo y el pimiento verde en la misma {{@Sartén}} hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover para integrar con las verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el magro reservado, bajar a fuego suave, tapar y cocer hasta que la salsa espese y la carne esté tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el magro con tomate bien caliente, repartido entre 2 platos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 6,
+    "sodium_mg": 210
   },
   {
     "id": "carnes_018",
@@ -1467,10 +2659,15 @@
       }
     ],
     "steps": [
-      "Atemperar la carne 30 min fuera de la nevera",
-      "Salpimentar generosamente",
-      "Cocinar a la plancha muy caliente 3 min por lado",
-      "Dejar reposar 3 min tapada antes de cortar"
+      "Retirar secreto ibérico de la nevera y dejarlo reposar a temperatura ambiente hasta que esté atemperado.",
+      "Pelar y picar ajo muy fino.",
+      "Mezclar el ajo picado con romero y aceite de oliva en un bol pequeño hasta obtener una mezcla homogénea.",
+      "Pincelar el secreto ibérico por ambas caras con la mezcla de ajo, romero y aceite de oliva.",
+      "Calentar plancha a fuego fuerte hasta que esté muy caliente y empiece a humear ligeramente.",
+      "Colocar el secreto ibérico sobre la plancha y cocinar a fuego fuerte durante 3 min sin moverlo, hasta que se dore por la cara inferior.",
+      "Dar la vuelta al secreto ibérico y cocinar 3 min más por el otro lado, hasta que se dore y esté jugoso en el interior.",
+      "Retirar el secreto ibérico de la plancha, tapar con papel de aluminio y dejar reposar hasta que los jugos se redistribuyan.",
+      "Cortar el secreto ibérico en lonchas al bies y servir inmediatamente."
     ],
     "description": "Secreto ibérico a la plancha, jugoso y rosado por dentro",
     "methods": [
@@ -1486,7 +2683,58 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200-220°C. Marina el secreto y colócalo en una bandeja. Hornea durante 20-25 minutos, girándolo a mitad de cocción para un resultado tierno y ligeramente dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Retirar {{Secreto ibérico}} de la nevera y dejarlo reposar a temperatura ambiente hasta que esté atemperado.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} muy fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el ajo picado con {{Romero|pizca}} y {{Aceite de oliva|chorrito}} en un bol pequeño hasta obtener una mezcla homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pincelar el secreto ibérico por ambas caras con la mezcla de ajo, romero y aceite de oliva.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté muy caliente y empiece a humear ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar el secreto ibérico sobre la plancha y cocinar a fuego fuerte durante 3 min sin moverlo, hasta que se dore por la cara inferior.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta al secreto ibérico y cocinar 3 min más por el otro lado, hasta que se dore y esté jugoso en el interior.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el secreto ibérico de la plancha, tapar con papel de aluminio y dejar reposar hasta que los jugos se redistribuyan.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar el secreto ibérico en lonchas al bies y servir inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 11,
+    "sodium_mg": 180
   },
   {
     "id": "carnes_019",
@@ -1543,10 +2791,18 @@
       }
     ],
     "steps": [
-      "Marinar alitas con ajo, pimentón, miel y limón",
-      "Colocar en bandeja con aceite",
-      "Hornear a 200°C durante 35 min dando la vuelta a mitad",
-      "Servir con el jugo de la bandeja"
+      "Pelar ajo y picarlo fino.",
+      "Cortar limón por la mitad y exprimirlo para obtener el zumo.",
+      "Verter en un bol aceite de oliva, miel, pimentón, el ajo picado y el zumo de limón.",
+      "Mezclar hasta obtener una marinada homogénea.",
+      "Añadir alitas de pollo al bol y remover hasta que queden bien cubiertas con la marinada.",
+      "Tapar el bol y dejar reposar en frío durante 15 min hasta que la marinada penetre en la carne.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Disponer las alitas en una bandeja en una sola capa y verter el resto de la marinada por encima.",
+      "Hornear a 200 °C durante 18 min hasta que las alitas empiecen a dorarse.",
+      "Retirar la bandeja del horno y dar la vuelta a las alitas.",
+      "Hornear otros 15 min a 200 °C hasta que estén doradas y crujientes.",
+      "Retirar la bandeja del horno y servir las alitas con el jugo de la cocción por encima."
     ],
     "description": "Alitas de pollo al horno con miel, limón y pimentón",
     "methods": [
@@ -1562,7 +2818,73 @@
         "difficulty": "facil",
         "prepSummary": "Tras marinar, cocinar las alitas en la airfryer a 190-200°C durante 20-25 minutos, agitándolas o dándoles la vuelta varias veces para una cocción y dorado homogéneos."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Ajo}} y picarlo fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} por la mitad y exprimirlo para obtener el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter en un bol {{Aceite de oliva}}, {{Miel}}, {{Pimentón}}, el ajo picado y el zumo de limón.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar hasta obtener una marinada homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Alitas de pollo}} al bol y remover hasta que queden bien cubiertas con la marinada.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el bol y dejar reposar en frío durante 15 min hasta que la marinada penetre en la carne.",
+        "minutes": 15,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disponer las alitas en una bandeja en una sola capa y verter el resto de la marinada por encima.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 200 °C durante 18 min hasta que las alitas empiecen a dorarse.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y dar la vuelta a las alitas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear otros 15 min a 200 °C hasta que estén doradas y crujientes.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir las alitas con el jugo de la cocción por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 5,
+    "saturated_fat_g": 7,
+    "sodium_mg": 120
   },
   {
     "id": "carnes_020",
@@ -1619,10 +2941,17 @@
       }
     ],
     "steps": [
-      "Sellar el solomillo entero en aceite y reservar",
-      "Sofreír cebolla y champiñones",
-      "Añadir Pedro Ximénez y reducir a la mitad",
-      "Devolver el solomillo, añadir nata y cocer 10 min"
+      "Cortar solomillo de cerdo en medallones de unos 3 cm de grosor.",
+      "Cortar cebolla en juliana fina.",
+      "Laminar champiñones en láminas de medio centímetro.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Dorar los medallones de solomillo 2 min por cada cara hasta que estén sellados y dorados; retirar y reservar.",
+      "Bajar a fuego medio y sofreír la cebolla en la misma sartén hasta que esté transparente y blanda.",
+      "Añadir los champiñones laminados y saltear hasta que pierdan el agua y se doren ligeramente.",
+      "Verter pedro ximénez y remover; dejar reducir a fuego medio hasta que la salsa espese y quede a la mitad.",
+      "Añadir nata y remover hasta que se integre con la salsa.",
+      "Incorporar los medallones reservados a la sartén y cocer a fuego suave hasta que estén bien calientes y la salsa los nape.",
+      "Servir los medallones con la salsa de champiñones y Pedro Ximénez por encima."
     ],
     "description": "Solomillo de cerdo en salsa de Pedro Ximénez con champiñones",
     "methods": [
@@ -1650,7 +2979,68 @@
         "difficulty": "normal",
         "prepSummary": "Sella el solomillo en la olla abierta, retira y sofríe la cebolla y champiñones. Vuelve a añadir el solomillo, el Pedro Ximénez, cierra la olla y cocina a presión 5-7 minutos. Abre, añade la nata y reduce la salsa a fuego vivo."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Solomillo de cerdo}} en medallones de unos 3 cm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Cebolla}} en juliana fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Champiñones}} en láminas de medio centímetro.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los medallones de solomillo 2 min por cada cara hasta que estén sellados y dorados; retirar y reservar.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír la cebolla en la misma sartén hasta que esté transparente y blanda.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los champiñones laminados y saltear hasta que pierdan el agua y se doren ligeramente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Pedro Ximénez}} y remover; dejar reducir a fuego medio hasta que la salsa espese y quede a la mitad.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nata}} y remover hasta que se integre con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar los medallones reservados a la sartén y cocer a fuego suave hasta que estén bien calientes y la salsa los nape.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir los medallones con la salsa de champiñones y Pedro Ximénez por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 9,
+    "saturated_fat_g": 6,
+    "sodium_mg": 95
   },
   {
     "id": "carnes_021",
@@ -1717,10 +3107,20 @@
       }
     ],
     "steps": [
-      "Sellar la carne en dados y reservar",
-      "Pochar cebolla, añadir tomate y vino",
-      "Devolver la carne con agua, cocer 50 min",
-      "Añadir verduras y cocer 15 min más"
+      "Cortar carne de ternera para guisar en dados de unos 3 cm.",
+      "Pelar y picar cebolla en brunoise fina.",
+      "Pelar zanahoria y cortar en rodajas de medio centímetro.",
+      "Cortar judías verdes en trozos de 3 cm, retirar los extremos.",
+      "Calentar aceite de oliva en una olla a fuego fuerte hasta que humee ligeramente.",
+      "Dorar los dados de carne de ternera en la olla por todos los lados hasta que estén bien sellados; retirar y reservar.",
+      "Bajar el fuego a medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
+      "Añadir tomate triturado y sofreír hasta que reduzca y oscurezca ligeramente, removiendo con frecuencia.",
+      "Añadir vino blanco y remover hasta que evapore el alcohol, unos 2 min.",
+      "Devolver la carne sellada a la olla y cubrir con 400 ml de agua; llevar a ebullición a fuego fuerte.",
+      "Tapar la olla, bajar a fuego suave y cocer hasta que la carne esté tierna.",
+      "Añadir las rodajas de zanahoria, las judías verdes en trozos y guisantes; remover para integrar.",
+      "Tapar de nuevo y cocer a fuego suave hasta que las verduras estén tiernas.",
+      "Servir la carne guisada con las verduras bien distribuidas en cada plato, regando con el jugo del guiso."
     ],
     "description": "Ternera guisada con zanahoria, judías verdes y guisantes",
     "methods": [
@@ -1742,7 +3142,83 @@
         "difficulty": "normal",
         "prepSummary": "Sella la carne y sofríe las verduras en la olla. Añade el resto de ingredientes, cierra la olla y cocina a presión durante 25-30 minutos. Deja despresurizar de forma natural para una carne muy tierna."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Carne de ternera para guisar}} en dados de unos 3 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de medio centímetro.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Judías verdes}} en trozos de 3 cm, retirar los extremos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los dados de carne de ternera en la olla por todos los lados hasta que estén bien sellados; retirar y reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego a medio y sofreír la cebolla picada en la misma olla hasta que esté transparente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír hasta que reduzca y oscurezca ligeramente, removiendo con frecuencia.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vino blanco}} y remover hasta que evapore el alcohol, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Devolver la carne sellada a la olla y cubrir con 400 ml de agua; llevar a ebullición a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla, bajar a fuego suave y cocer hasta que la carne esté tierna.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir las rodajas de zanahoria, las judías verdes en trozos y {{Guisantes}}; remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar de nuevo y cocer a fuego suave hasta que las verduras estén tiernas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir la carne guisada con las verduras bien distribuidas en cada plato, regando con el jugo del guiso.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 6,
+    "saturated_fat_g": 7,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_022",
@@ -1802,10 +3278,21 @@
       }
     ],
     "steps": [
-      "Dorar los filetes de lomo y reservar",
-      "Sofreír cebolla y ajo, añadir tomate",
-      "Verter vino y laurel, cocer 5 min",
-      "Devolver los filetes y cocer 10 min a fuego lento"
+      "Cortar cebolla en juliana fina.",
+      "Picar ajo muy fino.",
+      "Salpimentar lomo de cerdo en filetes por ambas caras.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Dorar el lomo de cerdo en filetes en la sartén, 2 min por cada cara, hasta que estén sellados y dorados.",
+      "Retirar los filetes dorados de la sartén y reservar.",
+      "Bajar el fuego a medio. Sofreír la cebolla en la misma sartén hasta que esté blanda y transparente.",
+      "Añadir el ajo picado y sofreír hasta que desprenda aroma sin llegar a dorarse.",
+      "Añadir tomate triturado y remover para integrar con la cebolla y el ajo.",
+      "Cocer a fuego medio hasta que el tomate pierda el exceso de líquido.",
+      "Verter vino blanco y añadir laurel. Remover y llevar a ebullición a fuego fuerte.",
+      "Bajar el fuego a suave y cocer la salsa hasta que el alcohol evapore y reduzca ligeramente.",
+      "Devolver los filetes reservados a la sartén y cubrir bien con la salsa.",
+      "Tapar y cocer a fuego suave hasta que la carne esté tierna y jugosa.",
+      "Retirar el laurel. Servir los filetes de lomo con la salsa por encima."
     ],
     "description": "Filetes de lomo de cerdo en salsa de tomate y vino blanco",
     "methods": [
@@ -1827,7 +3314,88 @@
         "difficulty": "facil",
         "prepSummary": "Sella el lomo y sofríe la cebolla y el ajo en la olla. Añade el resto de ingredientes, cierra la olla y cocina a presión durante 8-10 minutos. Despresuriza y si es necesario, reduce la salsa sin tapa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en juliana fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Lomo de cerdo en filetes}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el lomo de cerdo en filetes en la sartén, 2 min por cada cara, hasta que estén sellados y dorados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los filetes dorados de la sartén y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Bajar el fuego a medio. Sofreír la cebolla en la misma sartén hasta que esté blanda y transparente.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír hasta que desprenda aroma sin llegar a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover para integrar con la cebolla y el ajo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que el tomate pierda el exceso de líquido.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Verter {{Vino blanco}} y añadir {{Laurel}}. Remover y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego a suave y cocer la salsa hasta que el alcohol evapore y reduzca ligeramente.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Devolver los filetes reservados a la sartén y cubrir bien con la salsa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego suave hasta que la carne esté tierna y jugosa.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel. Servir los filetes de lomo con la salsa por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 6,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_023",
@@ -1885,10 +3453,15 @@
       }
     ],
     "steps": [
-      "Enharinar ligeramente los escalopines",
-      "Dorar en aceite y mantequilla 2 min por lado",
-      "Retirar y hacer salsa con zumo de limón en la sartén",
-      "Verter la salsa sobre la carne y espolvorear perejil"
+      "Exprimir limón y reservar el zumo.",
+      "Picar perejil finamente y reservar.",
+      "Extender harina en un plato y enharinar escalopines de ternera por ambas caras, sacudiendo el exceso.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que empiece a humear.",
+      "Añadir mantequilla y esperar hasta que se derrita y empiece a burbujear.",
+      "Dorar los escalopines enharinadosa fuego fuerte, 2 min por cada lado, hasta que estén dorados.",
+      "Retirar los escalopines de la sartén y reservar en un plato templado.",
+      "Verter el zumo de limón en la misma sartén a fuego medio y remover hasta que reduzca ligeramente, 1 min.",
+      "Verter la salsa de limón sobre los escalopines reservados, espolvorear el perejil picado y servir."
     ],
     "description": "Escalopines finos de ternera en salsa de limón y mantequilla",
     "methods": [
@@ -1904,7 +3477,58 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Enharina los escalopines y colócalos en una bandeja de horno ligeramente engrasada. Hornea durante 15-20 minutos, volteándolos una vez, hasta que estén dorados y cocidos. Prepara la salsa de limón y mantequilla en una sartén y viértela sobre los escalopines justo antes de servir."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil|pizca}} finamente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender {{Harina}} en un plato y enharinar {{Escalopines de ternera}} por ambas caras, sacudiendo el exceso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que empiece a humear.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Mantequilla}} y esperar hasta que se derrita y empiece a burbujear.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los escalopines enharinadosa fuego fuerte, 2 min por cada lado, hasta que estén dorados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los escalopines de la sartén y reservar en un plato templado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el zumo de limón en la misma sartén a fuego medio y remover hasta que reduzca ligeramente, 1 min.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la salsa de limón sobre los escalopines reservados, espolvorear el perejil picado y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 7,
+    "sodium_mg": 180
   },
   {
     "id": "carnes_024",
@@ -1955,10 +3579,13 @@
       }
     ],
     "steps": [
-      "Cortar la pechuga en filetes finos",
-      "Sazonar con ajo en polvo y orégano",
-      "Cocinar a la plancha con aceite 3 min por lado",
-      "Servir con limón"
+      "Cortar pechuga de pavo en filetes de unos 8 mm de grosor.",
+      "Exprimir limón y reservar el zumo en un bol pequeño.",
+      "Pincelar los filetes de pavo por ambas caras con aceite de oliva.",
+      "Espolvorear ajo en polvo y orégano por ambas caras de los filetes.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Colocar los filetes en la plancha y dorar 3 min por cada cara hasta que estén dorados y sin rosa interior.",
+      "Retirar los filetes y regar con el zumo de limón reservado antes de servir."
     ],
     "description": "Filetes de pechuga de pavo a la plancha con hierbas",
     "methods": [
@@ -1974,7 +3601,48 @@
         "difficulty": "facil",
         "prepSummary": "Precalentar el horno a 200°C. Colocar el pavo marinado en una bandeja y hornear durante 20-25 minutos, hasta que esté cocido y ligeramente dorado. Se puede usar la función grill al final para un mejor acabado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pavo}} en filetes de unos 8 mm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo en un bol pequeño.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pincelar los filetes de pavo por ambas caras con {{Aceite de oliva}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Espolvorear {{Ajo en polvo|pizca}} y {{Orégano|pizca}} por ambas caras de los filetes.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los filetes en la plancha y dorar 3 min por cada cara hasta que estén dorados y sin rosa interior.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los filetes y regar con el zumo de limón reservado antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 2,
+    "sodium_mg": 95
   },
   {
     "id": "carnes_025",
@@ -2037,10 +3705,17 @@
       }
     ],
     "steps": [
-      "Dorar el pollo en dados en aceite",
-      "Sofreír cebolla y ajo, añadir curry",
-      "Incorporar tomate y cocer 10 min",
-      "Añadir nata y el pollo, cocer 10 min más"
+      "Cortar pechuga de pollo en dados de unos 3 cm.",
+      "Picar cebolla en trozos finos y picar ajo.",
+      "Calentar aceite de oliva en una sartén grande a fuego fuerte hasta que esté caliente.",
+      "Dorar los dados de pechuga de pollo en la sartén a fuego fuerte hasta que estén dorados por todos los lados.",
+      "Retirar el pollo dorado a un plato y reservar.",
+      "Sofreír la cebolla picada y el ajo picado en la misma sartén a fuego medio hasta que estén tiernos.",
+      "Añadir curry en polvo sobre la cebolla y el ajo y remover durante 1 min hasta que el curry libere su aroma.",
+      "Incorporar tomate triturado y remover para integrar; cocer a fuego medio hasta que la salsa espese.",
+      "Añadir nata y los dados de pollo reservados; remover para integrar bien.",
+      "Cocer a fuego suave, tapado, hasta que el pollo esté tierno y la salsa cremosa.",
+      "Servir el pollo al curry directamente desde la sartén."
     ],
     "description": "Pollo en salsa de curry suave con tomate y nata",
     "methods": [
@@ -2062,7 +3737,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo, dora el pollo en la olla. Añade el tomate triturado y el curry, cierra la olla y cocina a presión durante 8-10 minutos. Despresuriza, incorpora la nata y cocina unos minutos más sin tapa para espesar la salsa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en dados de unos 3 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos finos y picar {{Ajo}}.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén grande a fuego fuerte hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los dados de pechuga de pollo en la {{@Sartén}} a fuego fuerte hasta que estén dorados por todos los lados.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el pollo dorado a un plato y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado en la misma {{@Sartén}} a fuego medio hasta que estén tiernos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Curry en polvo|pizca}} sobre la cebolla y el ajo y remover durante 1 min hasta que el curry libere su aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y remover para integrar; cocer a fuego medio hasta que la salsa espese.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Nata}} y los dados de pollo reservados; remover para integrar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave, tapado, hasta que el pollo esté tierno y la salsa cremosa.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el pollo al curry directamente desde la sartén.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 8,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_026",
@@ -2130,10 +3866,17 @@
       }
     ],
     "steps": [
-      "Mezclar carne de pollo con huevo, pan rallado y ajo",
-      "Formar albóndigas pequeñas",
-      "Hacer salsa con cebolla, zanahoria y tomate",
-      "Incorporar las albóndigas y cocer 20 min"
+      "Pelar y picar cebolla muy fina. Reservar.",
+      "Pelar y rallar zanahoria. Reservar.",
+      "Pelar y picar ajo muy fino. Reservar.",
+      "Mezclar en un bol carne picada de pollo, huevo, pan rallado y el ajo picado hasta obtener una masa homogénea.",
+      "Formar albóndigas del tamaño de una nuez con la masa anterior. Reservar en un plato.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada en el aceite caliente hasta que esté transparente, unos 3 min a fuego medio.",
+      "Añadir la zanahoria rallada y sofreír junto a la cebolla 2 min más a fuego medio, removiendo.",
+      "Añadir tomate triturado, remover y llevar a ebullición a fuego fuerte.",
+      "Incorporar las albóndigas a la salsa, tapar y cocer a fuego suave hasta que estén cocidas por dentro, unos 20 min.",
+      "Retirar la tapa, comprobar el punto de la salsa y servir las albóndigas con la salsa por encima."
     ],
     "description": "Albóndigas de pollo en salsa de tomate con zanahoria",
     "methods": [
@@ -2161,7 +3904,68 @@
         "difficulty": "normal",
         "prepSummary": "Dora las albóndigas en la olla express con un poco de aceite. Retira, sofríe la cebolla, zanahoria y ajo. Añade el tomate, reincorpora las albóndigas y un poco de agua si es necesario. Cierra la olla y cocina 10-12 minutos desde que sube la válvula."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} muy fina. Reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y rallar {{Zanahoria}}. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} muy fino. Reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol {{Carne picada de pollo}}, {{Huevo}}, {{Pan rallado}} y el ajo picado hasta obtener una masa homogénea.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar albóndigas del tamaño de una nuez con la masa anterior. Reservar en un plato.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en el aceite caliente hasta que esté transparente, unos 3 min a fuego medio.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria rallada y sofreír junto a la cebolla 2 min más a fuego medio, removiendo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, remover y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las albóndigas a la salsa, tapar y cocer a fuego suave hasta que estén cocidas por dentro, unos 20 min.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la tapa, comprobar el punto de la salsa y servir las albóndigas con la salsa por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 4,
+    "sodium_mg": 290
   },
   {
     "id": "carnes_027",
@@ -2206,10 +4010,15 @@
       }
     ],
     "steps": [
-      "Salpimentar las chuletas con ajo y romero",
-      "Calentar la plancha a fuego fuerte",
-      "Cocinar 4 min por cada lado",
-      "Dejar reposar 2 min antes de servir"
+      "Picar ajo muy fino y reservar.",
+      "Salpimentar chuletas de cerdo por ambas caras.",
+      "Frotar las chuletas con el ajo picado y romero por ambas caras.",
+      "Calentar plancha a fuego fuerte hasta que humee ligeramente.",
+      "Pincelar plancha con aceite de oliva y colocar las chuletas.",
+      "Dorar las chuletas 4 min por el primer lado sin moverlas, hasta que se forme costra dorada.",
+      "Girar las chuletas y cocinar 4 min más por el segundo lado hasta que estén doradas.",
+      "Retirar las chuletas de plancha y dejar reposar 2 min antes de servir.",
+      "Servir las chuletas en el plato con los jugos del reposo por encima."
     ],
     "description": "Chuletas de cerdo a la plancha con ajo y romero",
     "methods": [
@@ -2225,7 +4034,58 @@
         "difficulty": "facil",
         "prepSummary": "Marinar las chuletas. Precalentar el horno a 200-220°C con función grill si es posible. Colocar en una bandeja con rejilla y cocinar unos 20-25 minutos, volteándolas a mitad para que se doren por ambos lados."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Chuletas de cerdo}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Frotar las chuletas con el ajo picado y {{Romero|pizca}} por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pincelar {{@Plancha}} con {{Aceite de oliva|chorrito}} y colocar las chuletas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar las chuletas 4 min por el primer lado sin moverlas, hasta que se forme costra dorada.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Girar las chuletas y cocinar 4 min más por el segundo lado hasta que estén doradas.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las chuletas de {{@Plancha}} y dejar reposar 2 min antes de servir.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir las chuletas en el plato con los jugos del reposo por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 11,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_028",
@@ -2285,10 +4145,22 @@
       }
     ],
     "steps": [
-      "Dorar el pollo en filetes y reservar",
-      "Saltear champiñones con cebolla y ajo",
-      "Añadir vino blanco y dejar reducir",
-      "Devolver el pollo y cocer 5 min con perejil"
+      "Cortar pechuga de pollo en filetes de unos 2 cm de grosor.",
+      "Salpimentar los filetes de pechuga de pollo al gusto por ambas caras.",
+      "Limpiar champiñones con un paño húmedo y laminar.",
+      "Picar cebolla en daditos finos.",
+      "Picar ajo fino.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Dorar los filetes de pechuga de pollo en la sartén, 2 min por cada lado, hasta que estén dorados.",
+      "Retirar los filetes de pechuga de pollo de la sartén y reservar en un plato.",
+      "Bajar el fuego a medio y sofreír la cebolla picada y el ajo picado en la misma sartén hasta que estén transparentes.",
+      "Subir el fuego a fuerte, añadir los champiñones laminados y saltear, removiendo, hasta que suelten el agua y se doren.",
+      "Añadir vino blanco y remover para desglasar el fondo de la sartén.",
+      "Reducir a fuego medio hasta que el alcohol se evapore.",
+      "Picar perejil fino.",
+      "Devolver los filetes de pechuga de pollo reservados a la sartén y tapar.",
+      "Cocer a fuego suave hasta que el pollo esté bien cocido en el centro.",
+      "Retirar del fuego, espolvorear el perejil picado por encima y servir de inmediato."
     ],
     "description": "Pechugas de pollo con champiñones salteados al vino blanco",
     "methods": [
@@ -2316,7 +4188,94 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo en la olla. Incorpora el pollo y los champiñones, añade el vino y cocina a presión durante 8-10 minutos. Deja despresurizar y sirve."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en filetes de unos 2 cm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar los filetes de pechuga de pollo al gusto por ambas caras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Champiñones}} con un paño húmedo y laminar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} en daditos finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los filetes de pechuga de pollo en la sartén, 2 min por cada lado, hasta que estén dorados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los filetes de pechuga de pollo de la sartén y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego a medio y sofreír la cebolla picada y el ajo picado en la misma sartén hasta que estén transparentes.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Subir el fuego a fuerte, añadir los champiñones laminados y saltear, removiendo, hasta que suelten el agua y se doren.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vino blanco}} y remover para desglasar el fondo de la sartén.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir a fuego medio hasta que el alcohol se evapore.",
+        "minutes": 2,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Perejil}} fino.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 11
+      },
+      {
+        "text": "Devolver los filetes de pechuga de pollo reservados a la sartén y tapar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que el pollo esté bien cocido en el centro.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego, espolvorear el perejil picado por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "carnes_029",
@@ -2382,10 +4341,19 @@
       }
     ],
     "steps": [
-      "Sellar el redondo entero en aceite bien caliente",
-      "Dorar cebolla, zanahoria y ajo alrededor",
-      "Añadir vino, tomate, laurel y agua, tapar",
-      "Cocer a fuego lento 1 h 15 min, cortar en rodajas"
+      "Pelar y cortar zanahoria en rodajas gruesas y cebolla en cuartos.",
+      "Pelar y laminar ajo.",
+      "Calentar aceite de oliva en una olla a fuego fuerte hasta que humee ligeramente.",
+      "Añadir redondo de ternera entero y dorar por todos sus lados hasta que tenga costra uniforme, unos 8 min en total.",
+      "Retirar el redondo y reservar en un plato.",
+      "Sofreír la zanahoria, la cebolla y el ajo en el mismo aceite a fuego medio hasta que estén ligeramente dorados.",
+      "Añadir tomate triturado y remover hasta que se integre con las verduras, unos 2 min.",
+      "Verter vino tinto y llevar a ebullición hasta que el alcohol se evapore, unos 2 min.",
+      "Colocar el redondo reservado sobre las verduras y añadir laurel y 150 ml de agua hasta cubrir a media altura.",
+      "Tapar la olla y cocer a fuego suave hasta que el redondo esté tierno al pinchar con una brocheta.",
+      "Retirar el redondo de la olla y reposar 5 min antes de cortar.",
+      "Triturar la salsa de las verduras en un vaso batidor hasta obtener una crema lisa y volver a calentar a fuego suave si es necesario.",
+      "Cortar el redondo en rodajas de 1 cm y servir con la salsa por encima."
     ],
     "description": "Redondo de ternera guisado entero con verduras y vino tinto",
     "methods": [
@@ -2407,7 +4375,78 @@
         "difficulty": "normal",
         "prepSummary": "Sella la ternera en la olla express. Sofreír las verduras. Añade el vino, tomate y laurel. Cierra y cocina a presión durante 35-40 minutos. Deja despresurizar naturalmente para una carne más jugosa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y cortar {{Zanahoria}} en rodajas gruesas y {{Cebolla}} en cuartos.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y laminar {{Ajo}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Redondo de ternera}} entero y dorar por todos sus lados hasta que tenga costra uniforme, unos 8 min en total.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el redondo y reservar en un plato.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la zanahoria, la cebolla y el ajo en el mismo aceite a fuego medio hasta que estén ligeramente dorados.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y remover hasta que se integre con las verduras, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino tinto}} y llevar a ebullición hasta que el alcohol se evapore, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar el redondo reservado sobre las verduras y añadir {{Laurel}} y 150 ml de agua hasta cubrir a media altura.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla y cocer a fuego suave hasta que el redondo esté tierno al pinchar con una brocheta.",
+        "minutes": 60,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el redondo de la olla y reposar 5 min antes de cortar.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Triturar la salsa de las verduras en un vaso batidor hasta obtener una crema lisa y volver a calentar a fuego suave si es necesario.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar el redondo en rodajas de 1 cm y servir con la salsa por encima.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 7,
+    "sodium_mg": 210
   },
   {
     "id": "carnes_030",
@@ -2468,10 +4507,18 @@
       }
     ],
     "steps": [
-      "Cortar pollo y verduras en dados de 3 cm",
-      "Ensartar alternando pollo y verduras",
-      "Aliñar con aceite, orégano y limón",
-      "Cocinar a la plancha 10 min girando"
+      "Cortar pechuga de pollo en dados de 3 cm, procurando que sean de tamaño uniforme.",
+      "Cortar pimiento rojo en cuadrados de 3 cm.",
+      "Cortar pimiento verde en cuadrados de 3 cm.",
+      "Cortar cebolla en trozos de 3 cm, separando las capas para que encajen bien en el pincho.",
+      "Exprimir limón y reservar el zumo en un bol pequeño.",
+      "Ensartar en cada brocheta alternando: dado de pollo, pimiento rojo, cebolla y pimiento verde.",
+      "Repetir la secuencia hasta completar cada brocheta.",
+      "Pincelar las brochetas con aceite de oliva.",
+      "Espolvorear orégano sobre las brochetas y regar con el zumo de limón reservado.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Colocar las brochetas sobre la plancha caliente y asarlas durante 10 min, girándolas cada 2-3 min.",
+      "Retirar las brochetas de la plancha cuando el pollo esté dorado y cocido por completo, y servir inmediatamente."
     ],
     "description": "Brochetas de pollo con pimientos y cebolla a la plancha",
     "methods": [
@@ -2487,7 +4534,73 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Coloca las brochetas en una bandeja con papel de horno y ásalas durante 25-30 minutos, dándoles la vuelta una vez para una cocción uniforme y un buen dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en dados de 3 cm, procurando que sean de tamaño uniforme.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en cuadrados de 3 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento verde}} en cuadrados de 3 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Cebolla}} en trozos de 3 cm, separando las capas para que encajen bien en el pincho.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo en un bol pequeño.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Ensartar en cada brocheta alternando: dado de pollo, pimiento rojo, cebolla y pimiento verde.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Repetir la secuencia hasta completar cada brocheta.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pincelar las brochetas con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Espolvorear {{Orégano|pizca}} sobre las brochetas y regar con el zumo de limón reservado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar las brochetas sobre la plancha caliente y asarlas durante 10 min, girándolas cada 2-3 min.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las brochetas de la plancha cuando el pollo esté dorado y cocido por completo, y servir inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 3,
+    "sodium_mg": 95
   },
   {
     "id": "carnes_031",
@@ -2554,10 +4667,17 @@
       }
     ],
     "steps": [
-      "Enharinar y dorar los filetes en aceite",
-      "Sofreír cebolla y tomate",
-      "Añadir vino, laurel y las setas",
-      "Devolver la carne y cocer 40 min a fuego lento"
+      "Cortar cebolla en brunoise fina.",
+      "Limpiar setas y cortar en láminas gruesas.",
+      "Enharinar filetes finos de ternera con harina, sacudiendo el exceso.",
+      "Calentar aceite de oliva en una sartén grande a fuego fuerte hasta que humee ligeramente.",
+      "Dorar los filetes 1 min por cada lado hasta que estén sellados; retirar y reservar.",
+      "Bajar a fuego medio y sofreír la cebolla en la misma sartén, removiendo, hasta que esté transparente.",
+      "Añadir tomate triturado y sofreír, removiendo, hasta que reduzca y pierda el agua, unos 5 min.",
+      "Incorporar las setas laminadas y saltear a fuego medio hasta que suelten el agua y empiecen a dorarse.",
+      "Verter vino rancio y añadir laurel; remover y llevar a ebullición hasta que se evapore el alcohol.",
+      "Devolver los filetes reservados a la sartén, tapar y cocer a fuego suave hasta que la carne esté tierna.",
+      "Retirar el laurel, comprobar el punto de sal y servir los filetes cubiertos con la salsa y las setas."
     ],
     "description": "Filetes finos de ternera guisados con setas al estilo catalán",
     "methods": [
@@ -2579,7 +4699,68 @@
         "difficulty": "normal",
         "prepSummary": "Dora la ternera y sofríe la cebolla y setas en la olla. Añade el vino, tomate, harina y laurel. Cierra la olla y cocina a presión durante 20-25 minutos. Despresuriza y si es necesario, reduce la salsa a fuego vivo."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en brunoise fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Setas}} y cortar en láminas gruesas.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Enharinar {{Filetes finos de ternera}} con {{Harina}}, sacudiendo el exceso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una sartén grande a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los filetes 1 min por cada lado hasta que estén sellados; retirar y reservar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír la cebolla en la misma sartén, removiendo, hasta que esté transparente.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y sofreír, removiendo, hasta que reduzca y pierda el agua, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las setas laminadas y saltear a fuego medio hasta que suelten el agua y empiecen a dorarse.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Vino rancio}} y añadir {{Laurel|gusto}}; remover y llevar a ebullición hasta que se evapore el alcohol.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Devolver los filetes reservados a la sartén, tapar y cocer a fuego suave hasta que la carne esté tierna.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel, comprobar el punto de sal y servir los filetes cubiertos con la salsa y las setas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 6,
+    "sodium_mg": 310
   },
   {
     "id": "carnes_032",
@@ -2638,10 +4819,56 @@
       }
     ],
     "steps": [
-      "Aplanar las pechugas finamente",
-      "Pasar por harina, huevo batido y pan rallado",
-      "Freír en aceite caliente 3 min por lado",
-      "Escurrir y servir con limón"
+      "Aplanar las pechugas con film hasta dejarlas finas y uniformes",
+      "Batir el huevo en un bol y disponer harina y pan rallado en dos platos aparte",
+      "Cortar el limón en gajos y reservar para servir",
+      "Salpimentar las pechugas por ambos lados",
+      "Pasar cada pechuga por harina, luego por huevo y por último por pan rallado, presionando bien",
+      "Calentar abundante aceite en sartén a fuego medio-alto",
+      "Cocinar los escalopes 3 min por lado en aceite caliente hasta dorar",
+      "Escurrir sobre papel y servir con los gajos de limón"
+    ],
+    "stepsRich": [
+      {
+        "text": "Aplanar las {{Pechuga de pollo}} con film hasta dejarlas finas y uniformes.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol y disponer {{Harina}} y {{Pan rallado}} en dos platos aparte.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Limón}} en gajos y reservar para servir.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar las pechugas por ambos lados.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Pasar cada pechuga por harina, luego por huevo batido y por último por pan rallado, presionando para que se adhiera.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{@Sartén}} con {{Aceite de oliva|abundante}} a fuego medio-alto hasta que el aceite esté caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocinar los escalopes 3 min por lado en el aceite caliente hasta que estén dorados y hechos por dentro.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir sobre papel absorbente y servir con los gajos de limón.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ],
     "description": "Pechuga de pollo aplastada, empanada y frita",
     "methods": [
@@ -2657,7 +4884,11 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Coloca los escalopes empanados en una bandeja con papel de horno, rocía con un poco de aceite y hornea 20-25 minutos, volteando una vez, hasta que estén cocidos y ligeramente dorados."
       }
-    ]
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 4,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_033",
@@ -2724,10 +4955,18 @@
       }
     ],
     "steps": [
-      "Sellar la carne en dados en aceite",
-      "Sofreír cebolla, zanahoria y apio picados",
-      "Añadir tomate, vino y laurel",
-      "Cocer tapado a fuego lento 1 h 15 min"
+      "Cortar carne de ternera para guisar en dados de unos 3 cm.",
+      "Pelar y picar cebolla en brunoise fina.",
+      "Pelar y cortar zanahoria en dados pequeños.",
+      "Cortar apio en trozos pequeños.",
+      "Calentar aceite de oliva en una olla a fuego fuerte hasta que humee ligeramente.",
+      "Dorar los dados de carne de ternera en la olla por todos los lados hasta que estén bien sellados; retirar y reservar.",
+      "Bajar el fuego a medio y sofreír la cebolla picada en la misma olla hasta que esté translúcida.",
+      "Añadir la zanahoria y el apio cortados; sofreír hasta que estén ligeramente tiernos.",
+      "Añadir vino tinto y remover hasta que el alcohol se evapore casi por completo.",
+      "Añadir tomate triturado y laurel; remover para integrar todos los ingredientes.",
+      "Incorporar la carne reservada, tapar la olla y cocer a fuego suave hasta que la carne esté muy tierna.",
+      "Retirar la hoja de laurel y servir el ragú bien caliente."
     ],
     "description": "Ragú espeso de ternera con sofrito de verduras y vino tinto",
     "methods": [
@@ -2749,7 +4988,73 @@
         "difficulty": "normal",
         "prepSummary": "Sella la carne y sofríe las verduras en la olla. Incorpora el resto de ingredientes, cierra la olla y cocina a presión (segundo anillo) durante 35 minutos desde que sube la válvula, para un ragú con carne muy tierna en tiempo récord."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Carne de ternera para guisar}} en dados de unos 3 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Cebolla}} en brunoise fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y cortar {{Zanahoria}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Apio}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una olla a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los dados de carne de ternera en la olla por todos los lados hasta que estén bien sellados; retirar y reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego a medio y sofreír la cebolla picada en la misma olla hasta que esté translúcida.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y el apio cortados; sofreír hasta que estén ligeramente tiernos.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vino tinto}} y remover hasta que el alcohol se evapore casi por completo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Laurel}}; remover para integrar todos los ingredientes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la carne reservada, tapar la olla y cocer a fuego suave hasta que la carne esté muy tierna.",
+        "minutes": 75,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la hoja de laurel y servir el ragú bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 9,
+    "sodium_mg": 180
   },
   {
     "id": "carnes_034",
@@ -2807,10 +5112,17 @@
       }
     ],
     "steps": [
-      "Dorar el pollo salpimentado en aceite",
-      "Añadir cebolla en juliana y ajo",
-      "Verter la cerveza y añadir laurel",
-      "Tapar y cocer a fuego lento 30 min"
+      "Pelar y cortar cebolla en juliana fina.",
+      "Pelar y picar ajo fino.",
+      "Salpimentar pollo troceado por todos los lados.",
+      "Calentar aceite de oliva en una cazuela amplia a fuego fuerte hasta que humee ligeramente.",
+      "Dorar el pollo troceado en la cazuela hasta que tenga color dorado por todos los lados; retirar y reservar.",
+      "Bajar a fuego medio y sofreír la cebolla en juliana en la misma cazuela hasta que esté transparente.",
+      "Añadir el ajo picado y sofreír 1 min más hasta que desprenda aroma.",
+      "Incorporar el pollo reservado a la cazuela y verter cerveza removiendo para integrar los jugos del fondo.",
+      "Añadir laurel y llevar a ebullición a fuego fuerte.",
+      "Tapar la cazuela, bajar a fuego suave y cocer hasta que el pollo esté tierno y la salsa haya reducido ligeramente.",
+      "Retirar el laurel y servir el pollo con la salsa de cerveza por encima."
     ],
     "description": "Pollo troceado guisado en salsa de cerveza con cebolla",
     "methods": [
@@ -2832,7 +5144,68 @@
         "difficulty": "facil",
         "prepSummary": "Dora el pollo y sofríe la cebolla y el ajo en la olla. Vierte la cerveza y el laurel, cierra la olla y cocina a presión durante 15-20 minutos. Si la salsa está muy líquida, redúcela unos minutos sin tapa."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y cortar {{Cebolla}} en juliana fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Salpimentar {{Pollo troceado}} por todos los lados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela amplia a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar el pollo troceado en la cazuela hasta que tenga color dorado por todos los lados; retirar y reservar.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego medio y sofreír la cebolla en juliana en la misma cazuela hasta que esté transparente.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min más hasta que desprenda aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el pollo reservado a la cazuela y verter {{Cerveza}} removiendo para integrar los jugos del fondo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Laurel|pizca}} y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la cazuela, bajar a fuego suave y cocer hasta que el pollo esté tierno y la salsa haya reducido ligeramente.",
+        "minutes": 28,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel y servir el pollo con la salsa de cerveza por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 3,
+    "saturated_fat_g": 6,
+    "sodium_mg": 320
   },
   {
     "id": "carnes_035",
@@ -2891,10 +5264,19 @@
       }
     ],
     "steps": [
-      "Enrollar cada filete con jamón serrano dentro",
-      "Sujetar con palillos",
-      "Pasar por harina, huevo y pan rallado",
-      "Freír en aceite caliente hasta dorar"
+      "Aplanar lomo de cerdo en filetes sobre la tabla con la palma de la mano hasta que queden uniformes.",
+      "Colocar jamón serrano sobre cada filete en una sola capa, sin que sobresalga por los bordes.",
+      "Enrollar cada filete sobre sí mismo apretando bien para que el jamón quede dentro y no se abra al freír.",
+      "Sujetar cada rollo con 1 o 2 palillos para que mantenga la forma durante el rebozado y la fritura.",
+      "Disponer 3 platos: uno con harina, uno con huevo batido y uno con pan rallado.",
+      "Batir el huevo en su plato hasta que esté homogéneo.",
+      "Pasar cada flamenquín por la harina y sacudir el exceso.",
+      "Pasar cada flamenquín enharinado por el huevo batido, cubriéndolo bien.",
+      "Pasar cada flamenquín por el pan rallado, presionando para que se adhiera por todos los lados.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que alcance 180 °C.",
+      "Freír los flamenquines en el aceite caliente, girándolos, hasta que estén dorados y crujientes por todos los lados.",
+      "Retirar los flamenquines y escurrir sobre papel absorbente hasta que suelten el exceso de aceite.",
+      "Retirar los palillos y servir los flamenquines en caliente."
     ],
     "description": "Rollitos de lomo rellenos de jamón serrano, empanados y fritos",
     "methods": [
@@ -2910,7 +5292,78 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca los flamenquines en una bandeja con papel de horno, rocíalos con un poco de aceite y hornea durante 25-30 minutos, volteándolos a mitad de cocción, hasta que estén dorados."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Aplanar {{Lomo de cerdo en filetes}} sobre la tabla con la palma de la mano hasta que queden uniformes.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar {{Jamón serrano}} sobre cada filete en una sola capa, sin que sobresalga por los bordes.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Enrollar cada filete sobre sí mismo apretando bien para que el jamón quede dentro y no se abra al freír.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Sujetar cada rollo con 1 o 2 palillos para que mantenga la forma durante el rebozado y la fritura.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer 3 platos: uno con {{Harina}}, uno con {{Huevo}} batido y uno con {{Pan rallado}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir el huevo en su plato hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada flamenquín por la harina y sacudir el exceso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada flamenquín enharinado por el huevo batido, cubriéndolo bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada flamenquín por el pan rallado, presionando para que se adhiera por todos los lados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego fuerte hasta que alcance 180 °C.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los flamenquines en el aceite caliente, girándolos, hasta que estén dorados y crujientes por todos los lados.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los flamenquines y escurrir sobre papel absorbente hasta que suelten el exceso de aceite.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Retirar los palillos y servir los flamenquines en caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 9,
+    "sodium_mg": 780
   },
   {
     "id": "carnes_036",
@@ -2964,10 +5417,16 @@
       }
     ],
     "steps": [
-      "Cortar la pechuga en trozos del tamaño de un bocado",
-      "Salpimentar y pasar por harina, huevo batido y pan rallado",
-      "Freír en aceite caliente hasta que estén dorados",
-      "Escurrir sobre papel absorbente y servir"
+      "Cortar pechuga de pollo en trozos de unos 3-4 cm, del tamaño de un bocado.",
+      "Batir huevo en un bol hasta homogeneizar.",
+      "Disponer harina en un plato y pan rallado en otro plato separado.",
+      "Pasar cada trozo de pechuga primero por la harina, sacudiendo el exceso.",
+      "Bañar cada trozo enharinado en el huevo batido, escurriendo el sobrante.",
+      "Rebozar cada trozo en el pan rallado, presionando para que quede bien adherido.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los nuggets en tandas hasta que estén dorados por todos los lados, unos 4-5 min.",
+      "Escurrir los nuggets sobre papel absorbente para eliminar el exceso de aceite.",
+      "Servir inmediatamente."
     ],
     "description": "Trozos de pechuga de pollo empanados y fritos, crujientes y jugosos",
     "methods": [
@@ -2983,6 +5442,62 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Coloca los nuggets empanados en una bandeja con papel de horno, rocía con un poco de aceite y hornea 18-22 minutos, volteándolos una vez, hasta que estén dorados."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en trozos de unos 3-4 cm, del tamaño de un bocado.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta homogeneizar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer {{Harina}} en un plato y {{Pan rallado}} en otro plato separado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada trozo de pechuga primero por la harina, sacudiendo el exceso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Bañar cada trozo enharinado en el huevo batido, escurriendo el sobrante.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Rebozar cada trozo en el pan rallado, presionando para que quede bien adherido.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los nuggets en tandas hasta que estén dorados por todos los lados, unos 4-5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los nuggets sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Servir inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 4,
+    "sodium_mg": 380
   }
 ]

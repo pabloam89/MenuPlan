@@ -110,6 +110,7 @@ import {
   deleteUserRecipe,
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
+import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
 import { buildGarnishComboRecipe } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
@@ -586,18 +587,25 @@ function migrate(state) {
   if (!d.schoolMenus || typeof d.schoolMenus !== "object") {
     d.schoolMenus = { shared: {}, byMember: {} };
   } else {
-    const byMemberRaw =
-      d.schoolMenus.byMember && typeof d.schoolMenus.byMember === "object"
-        ? d.schoolMenus.byMember
-        : {};
-    const byMember = {};
-    for (const [memberId, courses] of Object.entries(byMemberRaw)) {
-      byMember[memberId] = normalizeCoursesMap(courses);
-    }
-    d.schoolMenus = {
-      shared: normalizeCoursesMap(d.schoolMenus.shared),
-      byMember,
+    // Multi-week aware: normalize every stored week, mirroring week[0] onto the
+    // top-level shared/byMember for backward compatibility (legacy saves only
+    // had the top-level maps → treated as a single week).
+    const normWeek = (w) => {
+      const byMemberRaw = w && typeof w.byMember === "object" ? w.byMember : {};
+      const byMember = {};
+      for (const [memberId, courses] of Object.entries(byMemberRaw)) {
+        byMember[memberId] = normalizeCoursesMap(courses);
+      }
+      return { shared: normalizeCoursesMap(w && w.shared), byMember };
     };
+    const rawWeeks = Array.isArray(d.schoolMenus.weeks) && d.schoolMenus.weeks.length
+      ? d.schoolMenus.weeks
+      : [{ shared: d.schoolMenus.shared, byMember: d.schoolMenus.byMember }];
+    const weeks = rawWeeks.map((w, i) => {
+      const nw = normWeek(w);
+      return { label: (w && w.label) || `Semana ${i + 1}`, shared: nw.shared, byMember: nw.byMember };
+    });
+    d.schoolMenus = { shared: weeks[0].shared, byMember: weeks[0].byMember, weeks };
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
@@ -1412,7 +1420,18 @@ export default function App() {
         const weekSchedule = sameForAllWeeks || offset === weekOffsets[0]
           ? working.schedule
           : (working.menuWeekOverrides?.[offset] ?? working.schedule);
-        const weekData = { ...working, groups, schedule: weekSchedule, menuWeek: { offset, startDayIdx } };
+        // Each generated week pulls its own school week (positional mapping:
+        // 1st menú week → 1st selected school week, …, cycling when there are
+        // fewer school weeks than menú weeks). Passed as a plain single-week
+        // { shared, byMember } so every getSchoolDish(data.schoolMenus, …) call
+        // downstream reads the right week without any signature change.
+        const weekData = {
+          ...working,
+          groups,
+          schedule: weekSchedule,
+          menuWeek: { offset, startDayIdx },
+          schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
+        };
         const crossWeek = varietyPref === "relaxed" || weekCount <= 1
           ? null
           : { weekIndex: w, weekCount, varietyPref };
@@ -3507,6 +3526,7 @@ export default function App() {
               <RecipePlannerScreen
                 userRecipes={data.userRecipes}
                 user={user}
+                kitchenTools={data.kitchenTools ?? []}
                 setData={setData}
                 editRecipe={editingRecipe}
                 onClose={() => { setEditingRecipe(null); back(() => setScreen(recipePlannerOriginRef.current ?? "dashboard")); }}

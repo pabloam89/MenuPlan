@@ -51,11 +51,92 @@
       }
     ],
     "steps": [
-      "Cocer el calabacín troceado al vapor 10 min",
-      "Hidratar el cuscús con caldo casero sin sal (o agua) caliente 5 min, añadir el pollo cocido desmenuzado",
-      "Triturar todo con aceite de oliva hasta textura suave"
+      "Cortar calabacín en trozos pequeños.",
+      "Cortar pechuga de pollo en trozos pequeños.",
+      "Llevar caldo casero sin sal a ebullición en un cazo a fuego fuerte.",
+      "Añadir el calabacín y la pechuga de pollo al caldo cuando rompa a hervir.",
+      "Cocer a fuego medio hasta que el calabacín y la pechuga de pollo estén tiernos.",
+      "Retirar el calabacín y la pechuga de pollo cocidos con una espumadera y reservar en un bol.",
+      "Apartar 60 ml del caldo de cocción caliente y reservar en un bol pequeño.",
+      "Añadir cuscús al bol con el caldo de cocción reservado y tapar.",
+      "Esperar hasta que el cuscús absorba todo el caldo y esté hidratado.",
+      "Añadir el calabacín cocido, la pechuga de pollo cocida y el cuscús hidratado al vaso de la batidora.",
+      "Añadir aceite de oliva al vaso de la batidora.",
+      "Triturar todo hasta obtener una textura suave y homogénea, añadiendo caldo restante si fuera necesario.",
+      "Comprobar la temperatura del puré antes de servir y servir templado."
     ],
-    "description": "Puré suave de calabacín con pollo y cuscús, sin sal"
+    "description": "Puré suave de calabacín con pollo y cuscús, sin sal",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Calabacín}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pechuga de pollo}} en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar {{Caldo casero sin sal}} a ebullición en un cazo a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el calabacín y la pechuga de pollo al caldo cuando rompa a hervir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que el calabacín y la pechuga de pollo estén tiernos.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el calabacín y la pechuga de pollo cocidos con una espumadera y reservar en un bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Apartar 60 ml del caldo de cocción caliente y reservar en un bol pequeño.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Cuscús}} al bol con el caldo de cocción reservado y tapar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Esperar hasta que el cuscús absorba todo el caldo y esté hidratado.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Añadir el calabacín cocido, la pechuga de pollo cocida y el cuscús hidratado al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar todo hasta obtener una textura suave y homogénea, añadiendo caldo restante si fuera necesario.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la temperatura del puré antes de servir y servir templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 35
   },
   {
     "id": "bebes_002",
@@ -104,11 +185,62 @@
       }
     ],
     "steps": [
-      "Pelar y trocear zanahoria y patata, cocer 12 min",
-      "Añadir la merluza limpia y cocer 5 min más",
-      "Triturar retirando espinas, añadir aceite de oliva"
+      "Pelar zanahoria y patata y cortar en trozos pequeños.",
+      "Llevar a ebullición agua en un cazo a fuego fuerte.",
+      "Cocer los trozos de zanahoria y patata en el cazo a fuego medio hasta que estén tiernos.",
+      "Limpiar merluza retirando espinas y piel, y cortar en trozos.",
+      "Añadir los trozos de merluza al cazo y cocer hasta que esté hecha.",
+      "Escurrir las verduras y la merluza, revisando que no quede ninguna espina.",
+      "Triturar la zanahoria, la patata y la merluza escurridas hasta obtener un puré fino y homogéneo.",
+      "Añadir aceite de oliva al puré y mezclar hasta integrar. Servir templado."
     ],
-    "description": "Puré de zanahoria y patata con merluza, sin sal"
+    "description": "Puré de zanahoria y patata con merluza, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y {{Patata}} y cortar en trozos pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer los trozos de zanahoria y patata en el cazo a fuego medio hasta que estén tiernos.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Limpiar {{Merluza}} retirando espinas y piel, y cortar en trozos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir los trozos de merluza al cazo y cocer hasta que esté hecha.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las verduras y la merluza, revisando que no quede ninguna espina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar la zanahoria, la patata y la merluza escurridas hasta obtener un puré fino y homogéneo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} al puré y mezclar hasta integrar. Servir templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "bebes_003",
@@ -155,11 +287,74 @@
       }
     ],
     "steps": [
-      "Pelar y trocear calabaza y boniato",
-      "Cocer junto con el pavo 15 min",
-      "Triturar todo con aceite hasta textura suave"
+      "Pelar calabaza y boniato.",
+      "Cortar la calabaza y el boniato en trozos pequeños de tamaño similar.",
+      "Cortar pechuga de pavo en trozos pequeños.",
+      "Llevar a ebullición agua en un cazo a fuego fuerte.",
+      "Añadir la calabaza, el boniato y el pavo al cazo cuando rompa a hervir.",
+      "Cocer a fuego medio hasta que la calabaza y el boniato estén tiernos y el pavo cocido, unos 12 min.",
+      "Escurrir el contenido del cazo con un colador, reservando un poco del agua de cocción en un bol.",
+      "Triturar la calabaza, el boniato y el pavo junto con aceite de oliva hasta obtener una textura suave.",
+      "Añadir agua de cocción reservada poco a poco si la textura es demasiado espesa, y triturar hasta homogeneizar.",
+      "Servir el puré templado, comprobando la temperatura antes de ofrecer al bebé."
     ],
-    "description": "Puré dulce de calabaza y boniato con pavo cocido, sin sal"
+    "description": "Puré dulce de calabaza y boniato con pavo cocido, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Calabaza}} y {{Boniato}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la calabaza y el boniato en trozos pequeños de tamaño similar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pechuga de pavo}} en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la calabaza, el boniato y el pavo al cazo cuando rompa a hervir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que la calabaza y el boniato estén tiernos y el pavo cocido, unos 12 min.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el contenido del cazo con un colador, reservando un poco del agua de cocción en un bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar la calabaza, el boniato y el pavo junto con {{Aceite de oliva|chorrito}} hasta obtener una textura suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir agua de cocción reservada poco a poco si la textura es demasiado espesa, y triturar hasta homogeneizar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando la temperatura antes de ofrecer al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 45
   },
   {
     "id": "bebes_004",
@@ -205,11 +400,62 @@
       }
     ],
     "steps": [
-      "Trocear patata, judías verdes y ternera",
-      "Cocer todo junto 18 min",
-      "Triturar con un poco de caldo de cocción y aceite"
+      "Pelar patata y cortar en trozos pequeños de tamaño similar.",
+      "Cortar judías verdes en trozos de unos 2 cm, retirando los extremos.",
+      "Cortar ternera magra en dados pequeños.",
+      "Llevar a ebullición agua en un cazo a fuego fuerte. Añadir la patata, las judías verdes y la ternera.",
+      "Cocer a fuego medio hasta que la patata y la ternera estén tiernas, unos 18 min. Reservar 3-4 cucharadas del caldo de cocción.",
+      "Escurrir las verduras y la ternera cocidas y trasladar al vaso de la batidora.",
+      "Añadir aceite de oliva y 2-3 cucharadas del caldo reservado. Triturar hasta obtener un puré liso y sin grumos.",
+      "Comprobar la textura y añadir más caldo si fuera necesario hasta lograr la consistencia deseada. Servir templado."
     ],
-    "description": "Puré de judías verdes y patata con ternera, sin sal"
+    "description": "Puré de judías verdes y patata con ternera, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos pequeños de tamaño similar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Judías verdes}} en trozos de unos 2 cm, retirando los extremos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Ternera magra}} en dados pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo a fuego fuerte. Añadir la patata, las judías verdes y la ternera.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que la patata y la ternera estén tiernas, unos 18 min. Reservar 3-4 cucharadas del caldo de cocción.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las verduras y la ternera cocidas y trasladar al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y 2-3 cucharadas del caldo reservado. Triturar hasta obtener un puré liso y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la textura y añadir más caldo si fuera necesario hasta lograr la consistencia deseada. Servir templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   },
   {
     "id": "bebes_005",
@@ -255,11 +501,56 @@
       }
     ],
     "steps": [
-      "Cocer arroz 10 min, añadir guisantes y pollo troceado",
-      "Cocer 8 min más",
-      "Triturar todo con aceite hasta textura suave"
+      "Cortar pechuga de pollo en trozos pequeños.",
+      "Llevar a ebullición un cazo con agua a fuego fuerte.",
+      "Añadir arroz al agua hirviendo y cocer a fuego medio durante 10 min.",
+      "Añadir guisantes y la pechuga de pollo troceada al cazo y cocer 8 min más hasta que el pollo esté tierno.",
+      "Escurrir el conjunto reservando un poco del agua de cocción.",
+      "Triturar el arroz, los guisantes y el pollo con aceite de oliva hasta obtener una textura suave y homogénea.",
+      "Servir el puré templado en el plato o bol del bebé."
     ],
-    "description": "Puré de guisantes y arroz con pollo cocido, sin sal"
+    "description": "Puré de guisantes y arroz con pollo cocido, sin sal",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición un cazo con agua a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} al agua hirviendo y cocer a fuego medio durante 10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} y la pechuga de pollo troceada al cazo y cocer 8 min más hasta que el pollo esté tierno.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el conjunto reservando un poco del agua de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar el arroz, los guisantes y el pollo con {{Aceite de oliva}} hasta obtener una textura suave y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado en el plato o bol del bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   },
   {
     "id": "bebes_006",
@@ -308,11 +599,74 @@
       }
     ],
     "steps": [
-      "Cocer arroz 10 min",
-      "Añadir brócoli en ramilletes y merluza, cocer 8 min",
-      "Triturar retirando espinas, añadir aceite"
+      "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+      "Añadir arroz al agua hirviendo y cocer a fuego medio.",
+      "Separar brócoli en ramilletes pequeños.",
+      "Cortar merluza en trozos.",
+      "Incorporar el brócoli y la merluza al cazo y cocer a fuego medio hasta que el brócoli esté tierno.",
+      "Escurrir el contenido del cazo, reservando un poco del agua de cocción en un bol pequeño.",
+      "Revisar la merluza con los dedos y retirar con cuidado todas las espinas.",
+      "Añadir aceite de oliva al vaso de la trituradora junto con el brócoli, la merluza y el arroz.",
+      "Triturar hasta obtener un puré homogéneo, añadiendo agua de cocción reservada poco a poco hasta alcanzar la textura deseada.",
+      "Servir el puré templado, comprobando la temperatura antes de ofrecer al bebé."
     ],
-    "description": "Puré de brócoli y arroz con merluza, sin sal"
+    "description": "Puré de brócoli y arroz con merluza, sin sal",
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} al agua hirviendo y cocer a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Separar {{Brócoli}} en ramilletes pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Merluza}} en trozos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Incorporar el brócoli y la merluza al cazo y cocer a fuego medio hasta que el brócoli esté tierno.",
+        "minutes": 7,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el contenido del cazo, reservando un poco del agua de cocción en un bol pequeño.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Revisar la merluza con los dedos y retirar con cuidado todas las espinas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} al vaso de la trituradora junto con el brócoli, la merluza y el arroz.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar hasta obtener un puré homogéneo, añadiendo agua de cocción reservada poco a poco hasta alcanzar la textura deseada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando la temperatura antes de ofrecer al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 40
   },
   {
     "id": "bebes_007",
@@ -358,11 +712,62 @@
       }
     ],
     "steps": [
-      "Cocer arroz con zanahoria rallada y pollo troceado 12 min",
-      "Triturar hasta textura de papilla",
-      "Añadir unas gotas de aceite"
+      "Rallar zanahoria con un rallador fino y reservar.",
+      "Cortar pechuga de pollo en trozos pequeños de aproximadamente 1 cm.",
+      "Llevar a ebullición 250 ml de agua en un cazo a fuego fuerte.",
+      "Añadir arroz, la zanahoria rallada y el pollo troceado al agua hirviendo.",
+      "Cocer a fuego suave durante 12 min, hasta que el arroz esté tierno y el pollo bien cocido.",
+      "Retirar del fuego y volcar el contenido del cazo en el vaso de la batidora, conservando el caldo de cocción.",
+      "Añadir aceite de oliva y triturar hasta obtener una textura de papilla fina y homogénea.",
+      "Servir la papilla templada, comprobando la temperatura antes de ofrecérsela al bebé."
     ],
-    "description": "Papilla suave de arroz cocido con pollo y zanahoria"
+    "description": "Papilla suave de arroz cocido con pollo y zanahoria",
+    "stepsRich": [
+      {
+        "text": "Rallar {{Zanahoria}} con un rallador fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pechuga de pollo}} en trozos pequeños de aproximadamente 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición 250 ml de agua en un cazo a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}}, la zanahoria rallada y el pollo troceado al agua hirviendo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave durante 12 min, hasta que el arroz esté tierno y el pollo bien cocido.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y volcar el contenido del cazo en el vaso de la batidora, conservando el caldo de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y triturar hasta obtener una textura de papilla fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la papilla templada, comprobando la temperatura antes de ofrecérsela al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 35
   },
   {
     "id": "bebes_008",
@@ -408,11 +813,62 @@
       }
     ],
     "steps": [
-      "Trocear verduras y cocer con las lentejas 18 min",
-      "Triturar hasta textura fina",
-      "Añadir aceite de oliva"
+      "Pelar zanahoria y cortar en trozos pequeños.",
+      "Cortar calabacín en trozos pequeños.",
+      "Poner lentejas rojas, la zanahoria y el calabacín en un cazo con agua suficiente para cubrirlos.",
+      "Llevar a ebullición a fuego fuerte y, cuando rompa a hervir, bajar a fuego suave.",
+      "Cocer a fuego suave hasta que las lentejas y las verduras estén muy tiernas.",
+      "Escurrir reservando un poco del agua de cocción. Triturar todo con una batidora hasta obtener una textura completamente fina.",
+      "Añadir aceite de oliva al puré y remover hasta integrarlo. Ajustar la textura con el agua de cocción reservada si es necesario.",
+      "Servir el puré templado, comprobando la temperatura antes de dárselo al bebé."
     ],
-    "description": "Puré de lentejas rojas con zanahoria y calabacín, sin sal"
+    "description": "Puré de lentejas rojas con zanahoria y calabacín, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Poner {{Lentejas rojas}}, la zanahoria y el calabacín en un cazo con agua suficiente para cubrirlos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte y, cuando rompa a hervir, bajar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que las lentejas y las verduras estén muy tiernas.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir reservando un poco del agua de cocción. Triturar todo con una batidora hasta obtener una textura completamente fina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} al puré y remover hasta integrarlo. Ajustar la textura con el agua de cocción reservada si es necesario.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando la temperatura antes de dárselo al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 15
   },
   {
     "id": "bebes_009",
@@ -459,11 +915,74 @@
       }
     ],
     "steps": [
-      "Pelar y trocear boniato y calabacín",
-      "Cocer con el pavo 15 min",
-      "Triturar con aceite hasta textura suave"
+      "Pelar boniato y cortar en trozos de unos 2 cm.",
+      "Cortar calabacín en trozos de tamaño similar al boniato.",
+      "Cortar pechuga de pavo en trozos pequeños de unos 2 cm.",
+      "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+      "Añadir el boniato, el calabacín y el pavo al cazo cuando rompa a hervir.",
+      "Cocer a fuego medio hasta que el boniato y el pavo estén tiernos, unos 12 min.",
+      "Escurrir el boniato, el calabacín y el pavo, reservando un poco del caldo de cocción.",
+      "Triturar los ingredientes escurridos junto con aceite de oliva hasta obtener una textura suave.",
+      "Añadir caldo de cocción reservado poco a poco si la textura está demasiado espesa y triturar de nuevo.",
+      "Servir el puré templado, comprobando que no haya grumos ni temperatura excesiva."
     ],
-    "description": "Puré de boniato y calabacín con pavo cocido, sin sal"
+    "description": "Puré de boniato y calabacín con pavo cocido, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Boniato}} y cortar en trozos de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en trozos de tamaño similar al boniato.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pechuga de pavo}} en trozos pequeños de unos 2 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el boniato, el calabacín y el pavo al cazo cuando rompa a hervir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que el boniato y el pavo estén tiernos, unos 12 min.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el boniato, el calabacín y el pavo, reservando un poco del caldo de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar los ingredientes escurridos junto con {{Aceite de oliva|chorrito}} hasta obtener una textura suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir caldo de cocción reservado poco a poco si la textura está demasiado espesa y triturar de nuevo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando que no haya grumos ni temperatura excesiva.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 45
   },
   {
     "id": "bebes_010",
@@ -512,11 +1031,91 @@
       }
     ],
     "steps": [
-      "Cocer arroz con puerro limpio y troceado 12 min",
-      "Añadir salmón sin piel ni espinas, cocer 5 min más",
-      "Triturar todo con aceite hasta textura suave"
+      "Limpiar puerro: retirar la parte verde oscura y las raíces.",
+      "Cortar el puerro limpio en rodajas finas.",
+      "Retirar la piel y las espinas de salmón fresco.",
+      "Cortar el salmón limpio en trozos pequeños.",
+      "Llevar agua a ebullición en un cazo pequeño a fuego fuerte.",
+      "Añadir arroz y las rodajas de puerro al cazo cuando el agua rompa a hervir.",
+      "Cocer a fuego medio durante 10 min, hasta que el arroz esté casi tierno.",
+      "Añadir los trozos de salmón al cazo y cocer 5 min más, hasta que el salmón esté opaco.",
+      "Retirar el cazo del fuego y escurrir el exceso de líquido, reservando un poco en un bol aparte.",
+      "Triturar el contenido del cazo junto con aceite de oliva hasta obtener una textura suave.",
+      "Añadir el líquido reservado poco a poco si el puré queda demasiado espeso, y triturar de nuevo.",
+      "Comprobar que no quedan grumos ni espinas antes de servir.",
+      "Servir el puré templado."
     ],
-    "description": "Puré de puerro y arroz con salmón, rico en omega-3, sin sal"
+    "description": "Puré de puerro y arroz con salmón, rico en omega-3, sin sal",
+    "stepsRich": [
+      {
+        "text": "Limpiar {{Puerro}}: retirar la parte verde oscura y las raíces.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar el puerro limpio en rodajas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar la piel y las espinas de {{Salmón fresco}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar el salmón limpio en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar agua a ebullición en un cazo pequeño a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} y las rodajas de puerro al cazo cuando el agua rompa a hervir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio durante 10 min, hasta que el arroz esté casi tierno.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir los trozos de salmón al cazo y cocer 5 min más, hasta que el salmón esté opaco.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y escurrir el exceso de líquido, reservando un poco en un bol aparte.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar el contenido del cazo junto con {{Aceite de oliva|chorrito}} hasta obtener una textura suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el líquido reservado poco a poco si el puré queda demasiado espeso, y triturar de nuevo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que no quedan grumos ni espinas antes de servir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 45
   },
   {
     "id": "bebes_012",
@@ -562,11 +1161,68 @@
       }
     ],
     "steps": [
-      "Cocer calabaza y zanahoria troceadas 12 min",
-      "Añadir garbanzos y calentar 3 min",
-      "Triturar todo con aceite hasta textura fina"
+      "Cortar calabaza en trozos de unos 2 cm.",
+      "Cortar zanahoria en trozos de unos 2 cm.",
+      "Llevar a ebullición agua en un cazo a fuego fuerte.",
+      "Añadir la calabaza y la zanahoria al cazo y cocer 12 min a fuego medio, hasta que estén tiernas.",
+      "Añadir garbanzos cocidos al cazo y cocer 3 min más a fuego medio.",
+      "Escurrir el contenido del cazo reservando un poco del agua de cocción en un vaso.",
+      "Triturar la calabaza, la zanahoria y los garbanzos junto con aceite de oliva hasta obtener una textura fina.",
+      "Añadir agua de cocción reservada poco a poco si el puré está demasiado espeso, hasta que esté homogéneo.",
+      "Servir el puré templado, comprobando que la textura sea suave y sin grumos."
     ],
-    "description": "Puré de garbanzos con calabaza y zanahoria, sin sal"
+    "description": "Puré de garbanzos con calabaza y zanahoria, sin sal",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Calabaza}} en trozos de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Zanahoria}} en trozos de unos 2 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la calabaza y la zanahoria al cazo y cocer 12 min a fuego medio, hasta que estén tiernas.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Garbanzos cocidos}} al cazo y cocer 3 min más a fuego medio.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el contenido del cazo reservando un poco del agua de cocción en un vaso.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar la calabaza, la zanahoria y los garbanzos junto con {{Aceite de oliva|chorrito}} hasta obtener una textura fina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir agua de cocción reservada poco a poco si el puré está demasiado espeso, hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando que la textura sea suave y sin grumos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "bebes_013",
@@ -615,11 +1271,76 @@
       }
     ],
     "steps": [
-      "Cocer boniato troceado 10 min, chafar con tenedor",
-      "Batir huevo y cuajar en sartén con aceite y tomate rallado",
-      "Mezclar el revuelto con el puré de boniato y triturar o chafar bien hasta lograr una textura adecuada y segura para la edad del bebé"
+      "Pelar boniato y cortar en trozos pequeños.",
+      "Llevar a ebullición agua en un cazo y cocer el boniato durante 10 min, hasta que esté tierno.",
+      "Rallar tomate natural sobre un bol pequeño y reservar.",
+      "Batir huevo en un bol hasta obtener una mezcla homogénea y reservar.",
+      "Escurrir el boniato cocido y chafar con un tenedor hasta obtener un puré liso.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Añadir el tomate rallado a la sartén y sofreír 1 min, hasta que pierda el agua.",
+      "Bajar a fuego suave, añadir el huevo batido y remover sin parar hasta que cuaje en cremoso.",
+      "Retirar la sartén del fuego y añadir el puré de boniato al revuelto.",
+      "Mezclar bien y chafar o triturar hasta obtener una textura homogénea y segura para la edad del bebé."
     ],
-    "description": "Revuelto de huevo bien cuajado con puré de boniato y tomate, sin sal"
+    "description": "Revuelto de huevo bien cuajado con puré de boniato y tomate, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Boniato}} y cortar en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo y cocer el boniato durante 10 min, hasta que esté tierno.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Rallar {{Tomate natural}} sobre un bol pequeño y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta obtener una mezcla homogénea y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Escurrir el boniato cocido y chafar con un tenedor hasta obtener un puré liso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate rallado a la sartén y sofreír 1 min, hasta que pierda el agua.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego suave, añadir el huevo batido y remover sin parar hasta que cuaje en cremoso.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y añadir el puré de boniato al revuelto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar bien y chafar o triturar hasta obtener una textura homogénea y segura para la edad del bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 2,
+    "sodium_mg": 75
   },
   {
     "id": "bebes_014",
@@ -672,11 +1393,62 @@
       }
     ],
     "steps": [
-      "Cocer avena con ternera picada en caldo casero sin sal (o agua) 10 min",
-      "Añadir espinacas los últimos 2 min",
-      "Triturar todo con aceite hasta textura suave"
+      "Cortar ternera magra en trozos pequeños con un cuchillo afilado.",
+      "Llevar caldo casero sin sal a ebullición en un cazo a fuego medio.",
+      "Añadir copos de avena y la ternera picada al caldo cuando rompa a hervir.",
+      "Cocer a fuego suave durante 7 min, removiendo de vez en cuando, hasta que la avena esté tierna.",
+      "Añadir espinacas frescas al cazo y cocer 2 min más hasta que estén tiernas.",
+      "Retirar el cazo del fuego y añadir aceite de oliva.",
+      "Triturar todo con una batidora de mano hasta obtener una textura suave y homogénea, apta para bebé.",
+      "Servir la papilla templada, comprobando la temperatura antes de dársela al bebé."
     ],
-    "description": "Papilla de avena con ternera y espinacas, rica en hierro, sin sal"
+    "description": "Papilla de avena con ternera y espinacas, rica en hierro, sin sal",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Ternera magra}} en trozos pequeños con un cuchillo afilado.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar {{Caldo casero sin sal}} a ebullición en un cazo a fuego medio.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Copos de avena}} y la ternera picada al caldo cuando rompa a hervir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave durante 7 min, removiendo de vez en cuando, hasta que la avena esté tierna.",
+        "minutes": 7,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Espinacas frescas}} al cazo y cocer 2 min más hasta que estén tiernas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y añadir {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar todo con una batidora de mano hasta obtener una textura suave y homogénea, apta para bebé.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la papilla templada, comprobando la temperatura antes de dársela al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 40
   },
   {
     "id": "bebes_015",
@@ -726,11 +1498,68 @@
       }
     ],
     "steps": [
-      "Cocer calabacín troceado 10 min, añadir sémola y cocer 3 min",
-      "Cocer huevo aparte hasta que esté bien cuajado, picar",
-      "Triturar la crema, mezclar con el huevo picado y aceite"
+      "Cortar calabacín en trozos pequeños y reservar.",
+      "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+      "Introducir huevo en un cazo con agua fría y llevar a ebullición; cocer 10 min a fuego medio hasta que esté bien cuajado.",
+      "Cocer el calabacín en el cazo con agua hirviendo a fuego medio durante 10 min hasta que esté tierno.",
+      "Añadir sémola de trigo al cazo con el calabacín y cocer 3 min a fuego medio, removiendo, hasta que esté hidratada.",
+      "Retirar el huevo del cazo, enfriarlo bajo el chorro de agua fría, pelar y picar fino; reservar.",
+      "Triturar el calabacín con la sémola y el agua de cocción necesaria hasta obtener una crema lisa y sin grumos.",
+      "Añadir el huevo picado y aceite de oliva a la crema; mezclar hasta integrar.",
+      "Servir la crema templada, comprobando que la temperatura sea adecuada para el bebé."
     ],
-    "description": "Crema de calabacín con sémola y huevo cocido, sin sal"
+    "description": "Crema de calabacín con sémola y huevo cocido, sin sal",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Calabacín}} en trozos pequeños y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Introducir {{Huevo}} en un cazo con agua fría y llevar a ebullición; cocer 10 min a fuego medio hasta que esté bien cuajado.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cocer el calabacín en el cazo con agua hirviendo a fuego medio durante 10 min hasta que esté tierno.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sémola de trigo}} al cazo con el calabacín y cocer 3 min a fuego medio, removiendo, hasta que esté hidratada.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el huevo del cazo, enfriarlo bajo el chorro de agua fría, pelar y picar fino; reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar el calabacín con la sémola y el agua de cocción necesaria hasta obtener una crema lisa y sin grumos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el huevo picado y {{Aceite de oliva|chorrito}} a la crema; mezclar hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema templada, comprobando que la temperatura sea adecuada para el bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 2,
+    "sodium_mg": 55
   },
   {
     "id": "bebes_016",
@@ -776,11 +1605,79 @@
       }
     ],
     "steps": [
-      "Cocer patata troceada 8 min",
-      "Añadir coliflor en ramilletes y pollo, cocer 10 min más",
-      "Triturar todo con aceite hasta textura suave"
+      "Pelar patata y cortar en trozos de unos 2 cm.",
+      "Cortar coliflor en ramilletes pequeños.",
+      "Cortar pechuga de pollo en trozos pequeños.",
+      "Llevar a ebullición agua en un cazo a fuego fuerte y añadir la patata troceada.",
+      "Cocer la patata a fuego medio durante 8 min.",
+      "Añadir los ramilletes de coliflor y la pechuga troceada al cazo.",
+      "Cocer a fuego medio durante 10 min, hasta que todo esté tierno.",
+      "Escurrir el agua del cazo reservando un poco del caldo de cocción.",
+      "Triturar la patata, la coliflor y la pechuga con aceite de oliva y un chorrito del caldo reservado.",
+      "Comprobar la textura; si fuera necesario, añadir más caldo y triturar de nuevo hasta obtener una textura suave y homogénea.",
+      "Servir el puré templado."
     ],
-    "description": "Puré de coliflor y patata con pollo cocido, sin sal"
+    "description": "Puré de coliflor y patata con pollo cocido, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Coliflor}} en ramilletes pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pechuga de pollo}} en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo a fuego fuerte y añadir la patata troceada.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la patata a fuego medio durante 8 min.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir los ramilletes de coliflor y la pechuga troceada al cazo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego medio durante 10 min, hasta que todo esté tierno.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el agua del cazo reservando un poco del caldo de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar la patata, la coliflor y la pechuga con {{Aceite de oliva|chorrito}} y un chorrito del caldo reservado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la textura; si fuera necesario, añadir más caldo y triturar de nuevo hasta obtener una textura suave y homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 45
   },
   {
     "id": "bebes_018",
@@ -826,11 +1723,68 @@
       }
     ],
     "steps": [
-      "Cocer patata troceada con pavo picado 15 min",
-      "Añadir remolacha cocida troceada y calentar 3 min",
-      "Triturar todo con aceite hasta textura suave"
+      "Pelar patata y cortar en trozos pequeños de aproximadamente 1 cm.",
+      "Cortar pechuga de pavo en trozos pequeños.",
+      "Cortar remolacha cocida en trozos pequeños.",
+      "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+      "Añadir la patata troceada y el pavo troceado al agua hirviendo; cocer a fuego medio durante 15 min, hasta que la patata esté tierna.",
+      "Añadir la remolacha troceada al cazo y calentar a fuego medio durante 3 min.",
+      "Escurrir el contenido del cazo y volcar en un vaso triturador.",
+      "Añadir aceite de oliva y triturar hasta obtener una textura suave y homogénea.",
+      "Servir el puré templado, comprobando la temperatura antes de ofrecérselo al bebé."
     ],
-    "description": "Puré de remolacha y patata con pavo, sin sal"
+    "description": "Puré de remolacha y patata con pavo, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en trozos pequeños de aproximadamente 1 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pechuga de pavo}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Remolacha cocida}} en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo pequeño a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la patata troceada y el pavo troceado al agua hirviendo; cocer a fuego medio durante 15 min, hasta que la patata esté tierna.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir la remolacha troceada al cazo y calentar a fuego medio durante 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir el contenido del cazo y volcar en un vaso triturador.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y triturar hasta obtener una textura suave y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando la temperatura antes de ofrecérselo al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "bebes_019",
@@ -879,11 +1833,68 @@
       }
     ],
     "steps": [
-      "Cocer boniato troceado 10 min",
-      "Añadir salmón sin piel ni espinas y espinacas, cocer 5 min",
-      "Triturar todo con aceite hasta textura suave"
+      "Pelar boniato y cortar en dados de unos 2 cm.",
+      "Retirar la piel y las espinas de salmón fresco y cortar en trozos pequeños.",
+      "Llevar un cazo con agua a ebullición a fuego fuerte.",
+      "Añadir los dados de boniato al cazo cuando rompa a hervir y cocer a fuego medio hasta que estén tiernos.",
+      "Añadir espinacas frescas y los trozos de salmón al cazo y cocer a fuego medio hasta que el salmón esté opaco y las espinacas mustias.",
+      "Escurrir el contenido del cazo reservando un poco del agua de cocción en un vaso.",
+      "Triturar el boniato, las espinacas y el salmón con aceite de oliva hasta obtener una textura suave.",
+      "Añadir agua de cocción reservada poco a poco si el puré resulta demasiado espeso y triturar de nuevo hasta que esté homogéneo.",
+      "Comprobar que el puré no tenga grumos ni espinas antes de servir templado."
     ],
-    "description": "Puré de espinacas y boniato con salmón, rico en omega-3, sin sal"
+    "description": "Puré de espinacas y boniato con salmón, rico en omega-3, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Boniato}} y cortar en dados de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar la piel y las espinas de {{Salmón fresco}} y cortar en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar un cazo con agua a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de boniato al cazo cuando rompa a hervir y cocer a fuego medio hasta que estén tiernos.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Espinacas frescas}} y los trozos de salmón al cazo y cocer a fuego medio hasta que el salmón esté opaco y las espinacas mustias.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir el contenido del cazo reservando un poco del agua de cocción en un vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar el boniato, las espinacas y el salmón con {{Aceite de oliva|chorrito}} hasta obtener una textura suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir agua de cocción reservada poco a poco si el puré resulta demasiado espeso y triturar de nuevo hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que el puré no tenga grumos ni espinas antes de servir templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "bebes_021",
@@ -929,11 +1940,56 @@
       }
     ],
     "steps": [
-      "Cocer pollo troceado 10 min",
-      "Añadir garbanzos y espinacas, calentar 5 min",
-      "Triturar todo con aceite hasta textura suave"
+      "Cortar pechuga de pollo en trozos pequeños.",
+      "Llevar a ebullición agua en un cazo a fuego fuerte y añadir los trozos de pechuga de pollo.",
+      "Cocer la pechuga de pollo a fuego medio durante 10 min, hasta que esté bien cocida y sin color rosado en el interior.",
+      "Añadir garbanzos cocidos y espinacas frescas al cazo y calentar a fuego medio durante 5 min, hasta que las espinacas estén tiernas.",
+      "Escurrir el contenido del cazo y trasladar a un vaso de batidora.",
+      "Añadir aceite de oliva y triturar todo con la batidora hasta obtener una textura suave y homogénea, sin grumos.",
+      "Servir el puré templado, comprobando la temperatura antes de ofrecer al bebé."
     ],
-    "description": "Puré de garbanzos con pollo y espinacas, rico en hierro, sin sal"
+    "description": "Puré de garbanzos con pollo y espinacas, rico en hierro, sin sal",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pechuga de pollo}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua en un cazo a fuego fuerte y añadir los trozos de pechuga de pollo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la pechuga de pollo a fuego medio durante 10 min, hasta que esté bien cocida y sin color rosado en el interior.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Garbanzos cocidos}} y {{Espinacas frescas}} al cazo y calentar a fuego medio durante 5 min, hasta que las espinacas estén tiernas.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir el contenido del cazo y trasladar a un vaso de batidora.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y triturar todo con la batidora hasta obtener una textura suave y homogénea, sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando la temperatura antes de ofrecer al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "bebes_022",
@@ -979,10 +2035,55 @@
       }
     ],
     "steps": [
-      "Cocer lentejas con ternera picada y zanahoria troceada 18 min",
-      "Triturar hasta textura fina",
-      "Añadir aceite de oliva y servir"
+      "Pelar zanahoria y cortar en trozos pequeños.",
+      "Cortar ternera magra en trozos pequeños.",
+      "Poner lentejas rojas, la zanahoria troceada y la ternera en un cazo. Cubrir con agua fría.",
+      "Llevar a ebullición a fuego fuerte, luego bajar a fuego suave y cocer hasta que las lentejas y la zanahoria estén tiernas.",
+      "Escurrir el contenido del cazo reservando un poco del caldo de cocción.",
+      "Triturar las lentejas, la zanahoria y la ternera añadiendo caldo reservado hasta obtener una textura fina y homogénea.",
+      "Añadir aceite de oliva al puré y mezclar bien antes de servir."
     ],
-    "description": "Puré de lentejas rojas con ternera y zanahoria, rico en hierro, sin sal"
+    "description": "Puré de lentejas rojas con ternera y zanahoria, rico en hierro, sin sal",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Ternera magra}} en trozos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Poner {{Lentejas rojas}}, la zanahoria troceada y la ternera en un cazo. Cubrir con agua fría.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte, luego bajar a fuego suave y cocer hasta que las lentejas y la zanahoria estén tiernas.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el contenido del cazo reservando un poco del caldo de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar las lentejas, la zanahoria y la ternera añadiendo caldo reservado hasta obtener una textura fina y homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} al puré y mezclar bien antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   }
 ]

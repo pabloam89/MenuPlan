@@ -5,7 +5,9 @@
     "shortName": "arroz blanco",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 20,
     "difficulty": "facil",
@@ -19,9 +21,21 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz", "amount": 180, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" },
-      { "name": "Sal", "amount": 3, "unit": "g" }
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Llevar agua con sal a ebullición",
@@ -29,7 +43,33 @@
       "Escurrir si es necesario",
       "Aliñar con un chorrito de aceite y servir"
     ],
-    "description": "Arroz blanco cocido con un chorrito de aceite de oliva"
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición abundante agua con una pizca de sal.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el arroz y cocer 18 min a fuego medio-bajo, hasta que esté tierno.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir si ha quedado algo de agua.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con un chorrito de aceite de oliva y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "description": "Arroz blanco cocido con un chorrito de aceite de oliva",
+    "fiber_g": 1,
+    "sugar_g": 0,
+    "saturated_fat_g": 0,
+    "sodium_mg": 580
   },
   {
     "id": "guarniciones_002",
@@ -37,7 +77,9 @@
     "shortName": "patatas cocidas",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 20,
     "difficulty": "facil",
@@ -51,17 +93,73 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Patata", "amount": 300, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Perejil fresco", "amount": 5, "unit": "g" }
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Pelar y cortar las patatas en dados medianos",
-      "Cocer en agua con sal 15 min hasta tiernas",
-      "Escurrir bien",
-      "Aliñar con aceite y perejil picado"
+      "Pelar patata y cortar en dados de unos 3 cm.",
+      "Picar perejil fresco fino y reservar.",
+      "Llevar a ebullición una olla con agua abundante y sal a fuego fuerte.",
+      "Cocer los dados de patata en el agua hirviendo a fuego medio hasta que estén tiernos, unos 15 min.",
+      "Escurrir las patatas cocidas con un colador y devolver a la olla fuera del fuego.",
+      "Añadir aceite de oliva y el perejil picado sobre las patatas escurridas y mezclar con suavidad.",
+      "Servir de inmediato como guarnición."
     ],
-    "description": "Patatas cocidas en dados aliñadas con aceite y perejil"
+    "description": "Patatas cocidas en dados aliñadas con aceite y perejil",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de unos 3 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil fresco}} fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y sal a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer los dados de patata en el agua hirviendo a fuego medio hasta que estén tiernos, unos 15 min.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las patatas cocidas con un colador y devolver a la olla fuera del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y el perejil picado sobre las patatas escurridas y mezclar con suavidad.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato como guarnición.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 280
   },
   {
     "id": "guarniciones_003",
@@ -69,7 +167,9 @@
     "shortName": "puré de patatas",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 20,
     "difficulty": "facil",
@@ -80,22 +180,73 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Patata", "amount": 300, "unit": "g" },
-      { "name": "Leche", "amount": 60, "unit": "ml" },
-      { "name": "Mantequilla", "amount": 15, "unit": "g" },
-      { "name": "Nuez moscada", "amount": 1, "unit": "g" }
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 1,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Cocer las patatas peladas en agua con sal 18 min",
-      "Escurrir y aplastar con tenedor o pasapurés",
-      "Añadir leche caliente y mantequilla",
-      "Remover hasta textura lisa, salpimentar con nuez moscada"
+      "Pelar y trocear las patatas en dados",
+      "Cocer las patatas en agua con sal 18 min",
+      "Calentar la leche con la mantequilla en un cazo",
+      "Escurrir, triturar y mezclar con la leche caliente hasta textura lisa",
+      "Salpimentar, aromatizar con nuez moscada y servir"
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y trocear las {{Patata}} en dados regulares.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua salada y cocer las patatas 18 min, hasta que se deshagan al pincharlas.",
+        "minutes": 18,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar la {{Leche}} con la {{Mantequilla}} en un cazo sin que llegue a hervir.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Escurrir las patatas, triturar con pasapurés y mezclar con la leche caliente hasta obtener un puré liso.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar y aromatizar con {{Nuez moscada|pizca}}, remover y servir caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ],
     "description": "Puré de patatas cremoso con mantequilla y nuez moscada",
-    "productAliases": []
+    "productAliases": [],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 4,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_004",
@@ -103,7 +254,9 @@
     "shortName": "patatas salteadas",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 20,
     "difficulty": "facil",
@@ -117,18 +270,97 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Patata", "amount": 300, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 25, "unit": "ml" },
-      { "name": "Perejil", "amount": 4, "unit": "g" }
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 4,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Cocer las patatas enteras 12 min, pelar y cortar en dados",
-      "Calentar aceite con ajo laminado a fuego medio",
-      "Añadir las patatas y saltear 5 min hasta dorar",
-      "Salpimentar y servir con perejil"
+      "Lavar patata y colocarlas en un cazo cubiertas de agua fría con sal.",
+      "Llevar el cazo a ebullición a fuego fuerte y cocer las patatas 12 min hasta que estén tiernas.",
+      "Escurrir las patatas y dejarlas templar hasta que se puedan manipular sin quemarse.",
+      "Pelar las patatas templadas y cortarlas en dados de unos 2 cm.",
+      "Laminar ajo en láminas finas.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que el aceite esté caliente.",
+      "Añadir el ajo laminado y sofreír a fuego medio hasta que empiece a dorarse.",
+      "Incorporar los dados de patata y saltear a fuego medio-fuerte 5 min, removiendo, hasta que se doren por todos los lados.",
+      "Picar perejil fino.",
+      "Retirar la sartén del fuego, añadir sal y el perejil picado, y mezclar para repartir."
     ],
-    "description": "Patatas precocidas salteadas con ajo dorado y perejil"
+    "description": "Patatas precocidas salteadas con ajo dorado y perejil",
+    "stepsRich": [
+      {
+        "text": "Lavar {{Patata}} y colocarlas en un cazo cubiertas de agua fría con sal.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar el cazo a ebullición a fuego fuerte y cocer las patatas 12 min hasta que estén tiernas.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las patatas y dejarlas templar hasta que se puedan manipular sin quemarse.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar las patatas templadas y cortarlas en dados de unos 2 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que el aceite esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y sofreír a fuego medio hasta que empiece a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar los dados de patata y saltear a fuego medio-fuerte 5 min, removiendo, hasta que se doren por todos los lados.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Picar {{Perejil}} fino.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 7
+      },
+      {
+        "text": "Retirar la sartén del fuego, añadir {{Sal|gusto}} y el perejil picado, y mezclar para repartir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_005",
@@ -136,7 +368,9 @@
     "shortName": "pasta al aceite",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 15,
     "difficulty": "facil",
@@ -147,21 +381,101 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Espaguetis", "amount": 150, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Perejil", "amount": 4, "unit": "g" }
+      {
+        "name": "Espaguetis",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 4,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Cocer la pasta al dente en agua con sal",
-      "Dorar ajo laminado en aceite a fuego suave",
-      "Escurrir la pasta reservando un poco de agua de cocción",
-      "Mezclar con el aceite de ajo y perejil"
+      "Laminar ajo en láminas finas y reservar.",
+      "Picar perejil fino y reservar.",
+      "Llevar a ebullición una olla con abundante agua y sal a fuego fuerte.",
+      "Añadir espaguetis cuando el agua rompa a hervir y cocer según el tiempo del paquete hasta que estén al dente.",
+      "Calentar sartén a fuego suave y añadir aceite de oliva.",
+      "Sofreír el ajo laminado a fuego suave hasta que se dore ligeramente sin quemarse.",
+      "Retirar un cazo del agua de cocción antes de escurrir la pasta y reservarlo.",
+      "Escurrir los espaguetis y añadirlos directamente a la sartén con el aceite de ajo.",
+      "Remover a fuego suave añadiendo el agua de cocción reservada poco a poco hasta que la pasta quede ligada y brillante.",
+      "Añadir el perejil picado, remover y servir de inmediato."
     ],
-    "description": "Pasta al dente aliñada con aceite de ajo y perejil"
+    "description": "Pasta al dente aliñada con aceite de ajo y perejil",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con abundante agua y sal a fuego fuerte.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Espaguetis}} cuando el agua rompa a hervir y cocer según el tiempo del paquete hasta que estén al dente.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego suave y añadir {{Aceite de oliva}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado a fuego suave hasta que se dore ligeramente sin quemarse.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar un cazo del agua de cocción antes de escurrir la pasta y reservarlo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los espaguetis y añadirlos directamente a la sartén con el aceite de ajo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a fuego suave añadiendo el agua de cocción reservada poco a poco hasta que la pasta quede ligada y brillante.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el perejil picado, remover y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_006",
@@ -169,7 +483,9 @@
     "shortName": "cuscús al limón",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 10,
     "difficulty": "facil",
@@ -180,21 +496,91 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten"],
+    "allergens": [
+      "gluten"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Cuscús", "amount": 150, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Menta fresca", "amount": 3, "unit": "g" }
+      {
+        "name": "Cuscús",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Hervir 150 ml de agua con sal y un chorrito de aceite",
-      "Añadir el cuscús, tapar y retirar del fuego 5 min",
-      "Esponjar con un tenedor",
-      "Aliñar con zumo de limón, aceite y menta picada"
+      "Llevar a ebullición 150 ml de agua con sal y aceite de oliva en un cazo a fuego fuerte.",
+      "Exprimir limón y reservar el zumo.",
+      "Picar menta fresca fina y reservar.",
+      "Añadir cuscús al agua hirviendo, remover, tapar el cazo y retirar del fuego.",
+      "Dejar reposar el cuscús tapado hasta que haya absorbido toda el agua.",
+      "Esponjar el cuscús con un tenedor hasta que los granos queden sueltos.",
+      "Añadir el zumo de limón reservado, el resto del aceite de oliva y la menta picada; mezclar bien.",
+      "Servir el cuscús al momento como guarnición."
     ],
-    "description": "Cuscús esponjado aliñado con limón, aceite y menta fresca"
+    "description": "Cuscús esponjado aliñado con limón, aceite y menta fresca",
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición 150 ml de agua con {{Sal|gusto}} y {{Aceite de oliva|chorrito}} en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Picar {{Menta fresca}} fina y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Añadir {{Cuscús}} al agua hirviendo, remover, tapar el cazo y retirar del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar reposar el cuscús tapado hasta que haya absorbido toda el agua.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Esponjar el cuscús con un tenedor hasta que los granos queden sueltos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el zumo de limón reservado, el resto del aceite de oliva y la menta picada; mezclar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el cuscús al momento como guarnición.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_007",
@@ -202,7 +588,9 @@
     "shortName": "quinoa",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 20,
     "difficulty": "facil",
@@ -216,18 +604,98 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Quinoa", "amount": 120, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Perejil", "amount": 5, "unit": "g" }
+      {
+        "name": "Quinoa",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Lavar la quinoa bajo el grifo",
-      "Cocer en 240 ml de agua con sal 15 min a fuego suave",
-      "Retirar del fuego, tapar y reposar 5 min",
-      "Aliñar con limón, aceite y perejil picado"
+      "Colocar quinoa en un colador fino y lavar bajo el grifo con agua fría hasta que el agua salga clara.",
+      "Llevar 240 ml de agua a ebullición en un cazo a fuego fuerte.",
+      "Añadir la quinoa lavada al agua hirviendo, reducir a fuego suave y tapar el cazo.",
+      "Cocer la quinoa tapada a fuego suave durante 15 min, hasta que haya absorbido toda el agua.",
+      "Rallar la piel de limón y exprimir su zumo en un bol pequeño. Reservar.",
+      "Picar perejil muy fino. Reservar.",
+      "Retirar el cazo del fuego, mantener tapado y reposar 5 min hasta que la quinoa esponje.",
+      "Verter aceite de oliva sobre la quinoa y añadir el zumo y la ralladura de limón reservados.",
+      "Añadir el perejil picado y remover con un tenedor hasta que todo quede integrado y la quinoa suelta.",
+      "Servir la quinoa templada como guarnición."
     ],
-    "description": "Quinoa cocida aliñada con limón fresco y perejil"
+    "description": "Quinoa cocida aliñada con limón fresco y perejil",
+    "stepsRich": [
+      {
+        "text": "Colocar {{Quinoa}} en un colador fino y lavar bajo el grifo con agua fría hasta que el agua salga clara.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar 240 ml de agua a ebullición en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la quinoa lavada al agua hirviendo, reducir a fuego suave y tapar el cazo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la quinoa tapada a fuego suave durante 15 min, hasta que haya absorbido toda el agua.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Rallar la piel de {{Limón}} y exprimir su zumo en un bol pequeño. Reservar.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Picar {{Perejil}} muy fino. Reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Retirar el cazo del fuego, mantener tapado y reposar 5 min hasta que la quinoa esponje.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter {{Aceite de oliva|chorrito}} sobre la quinoa y añadir el zumo y la ralladura de limón reservados.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el perejil picado y remover con un tenedor hasta que todo quede integrado y la quinoa suelta.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la quinoa templada como guarnición.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_008",
@@ -235,7 +703,9 @@
     "shortName": "arroz integral",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 30,
     "difficulty": "facil",
@@ -249,17 +719,61 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Arroz integral", "amount": 180, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 10, "unit": "ml" },
-      { "name": "Sal", "amount": 3, "unit": "g" }
+      {
+        "name": "Arroz integral",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Lavar el arroz bajo el grifo hasta que el agua salga clara",
-      "Cocer en el doble de agua con sal 25-30 min a fuego bajo",
-      "Comprobar que ha absorbido toda el agua",
-      "Esponjar con tenedor y aliñar con aceite"
+      "Colocar arroz integral en un colador fino y lavar bajo el grifo, removiendo con la mano, hasta que el agua salga clara.",
+      "Llevar 360 ml de agua a ebullición en un cazo a fuego fuerte. Añadir sal y el arroz lavado.",
+      "Reducir el fuego a suave, tapar el cazo y cocer el arroz hasta que haya absorbido toda el agua, unos 25 min.",
+      "Retirar el cazo del fuego y dejar reposar tapado 2 min para que el arroz termine de esponjarse.",
+      "Esponjar el arroz con un tenedor y añadir aceite de oliva por encima antes de servir."
     ],
-    "description": "Arroz integral cocido al punto, aliñado con aceite de oliva"
+    "description": "Arroz integral cocido al punto, aliñado con aceite de oliva",
+    "stepsRich": [
+      {
+        "text": "Colocar {{Arroz integral}} en un colador fino y lavar bajo el grifo, removiendo con la mano, hasta que el agua salga clara.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar 360 ml de agua a ebullición en un cazo a fuego fuerte. Añadir {{Sal|gusto}} y el arroz lavado.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir el fuego a suave, tapar el cazo y cocer el arroz hasta que haya absorbido toda el agua, unos 25 min.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y dejar reposar tapado 2 min para que el arroz termine de esponjarse.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Esponjar el arroz con un tenedor y añadir {{Aceite de oliva|chorrito}} por encima antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 0,
+    "sodium_mg": 290
   },
   {
     "id": "guarniciones_009",
@@ -267,7 +781,9 @@
     "shortName": "judías verdes",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 15,
     "difficulty": "facil",
@@ -281,17 +797,85 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Judías verdes", "amount": 300, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Judías verdes",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Limpiar las judías quitando los extremos",
-      "Cocer en agua con sal 8 min hasta tiernas pero firmes",
-      "Escurrir y saltear con ajo laminado en aceite 2 min",
-      "Salpimentar y servir"
+      "Limpiar judías verdes quitando los extremos con las manos o con un cuchillo.",
+      "Laminar ajo en láminas finas.",
+      "Colocar las judías verdes en la cesta del vapor sobre una olla con agua hirviendo.",
+      "Tapar y cocer al vapor hasta que estén tiernas pero firmes, unos 8 min.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Añadir el ajo laminado y sofreír a fuego suave hasta que esté dorado, unos 2 min.",
+      "Retirar las judías verdes del vapor y escurrirlas bien.",
+      "Saltear las judías verdes escurridas en la sartén con el ajo dorado durante 1 min a fuego medio.",
+      "Servir las judías verdes en el plato con el aceite y el ajo."
     ],
-    "description": "Judías verdes cocidas y salteadas con ajo"
+    "description": "Judías verdes cocidas y salteadas con ajo",
+    "stepsRich": [
+      {
+        "text": "Limpiar {{Judías verdes}} quitando los extremos con las manos o con un cuchillo.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar las judías verdes en la cesta del vapor sobre una olla con agua hirviendo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer al vapor hasta que estén tiernas pero firmes, unos 8 min.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y sofreír a fuego suave hasta que esté dorado, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las judías verdes del vapor y escurrirlas bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear las judías verdes escurridas en la sartén con el ajo dorado durante 1 min a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las judías verdes en el plato con el aceite y el ajo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 10
   },
   {
     "id": "guarniciones_010",
@@ -299,7 +883,9 @@
     "shortName": "brócoli salteado",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 15,
     "difficulty": "facil",
@@ -313,17 +899,85 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Brócoli", "amount": 300, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Brócoli",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Separar el brócoli en ramilletes",
-      "Cocer al vapor o hervido 5 min al dente",
-      "Saltear con ajo laminado en aceite a fuego fuerte 3 min",
-      "Salpimentar y servir"
+      "Separar brócoli en ramilletes de tamaño similar.",
+      "Laminar ajo en láminas finas.",
+      "Llevar a ebullición una olla con agua con sal a fuego fuerte.",
+      "Cocer los ramilletes de brócoli hasta que estén al dente, unos 4 min.",
+      "Escurrir el brócoli y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Saltear el ajo laminado hasta que se dore ligeramente, unos 30 s a fuego medio.",
+      "Añadir el brócoli escurrido y saltear a fuego fuerte hasta que coja color, unos 2 min.",
+      "Salpimentar al gusto y servir de inmediato."
     ],
-    "description": "Ramilletes de brócoli al dente salteados con ajo"
+    "description": "Ramilletes de brócoli al dente salteados con ajo",
+    "stepsRich": [
+      {
+        "text": "Separar {{Brócoli}} en ramilletes de tamaño similar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua con sal a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer los ramilletes de brócoli hasta que estén al dente, unos 4 min.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir el brócoli y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear el ajo laminado hasta que se dore ligeramente, unos 30 s a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el brócoli escurrido y saltear a fuego fuerte hasta que coja color, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar al gusto y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_011",
@@ -331,7 +985,9 @@
     "shortName": "zanahoria glaseada",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 20,
     "difficulty": "facil",
@@ -342,21 +998,90 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "ingredients": [
-      { "name": "Zanahoria", "amount": 300, "unit": "g" },
-      { "name": "Mantequilla", "amount": 10, "unit": "g" },
-      { "name": "Miel", "amount": 10, "unit": "g" },
-      { "name": "Perejil", "amount": 3, "unit": "g" }
+      {
+        "name": "Zanahoria",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Pelar y cortar la zanahoria en rodajas o bastones",
-      "Cocer en agua con sal 8 min hasta tiernas",
-      "Escurrir y glasear con mantequilla y miel en sartén 3 min",
-      "Servir con perejil picado"
+      "Pelar zanahoria y cortar en rodajas de unos 5 mm de grosor.",
+      "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+      "Cocer las rodajas de zanahoria en el agua hirviendo hasta que estén tiernas, unos 8 min.",
+      "Picar perejil fino y reservar.",
+      "Escurrir las zanahorias cocidas con un colador y reservar.",
+      "Calentar sartén a fuego medio y fundir mantequilla.",
+      "Añadir las zanahorias escurridas y miel a la sartén y remover hasta que se glaseen, unos 3 min.",
+      "Servir las zanahorias glaseadas con el perejil picado por encima."
     ],
-    "description": "Zanahoria cocida glaseada con mantequilla y miel"
+    "description": "Zanahoria cocida glaseada con mantequilla y miel",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de unos 5 mm de grosor.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer las rodajas de zanahoria en el agua hirviendo hasta que estén tiernas, unos 8 min.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Escurrir las zanahorias cocidas con un colador y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio y fundir {{Mantequilla}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las zanahorias escurridas y {{Miel|chorrito}} a la sartén y remover hasta que se glaseen, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las zanahorias glaseadas con el perejil picado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 12,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_012",
@@ -364,7 +1089,9 @@
     "shortName": "espinacas salteadas",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 10,
     "difficulty": "facil",
@@ -378,17 +1105,73 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Espinacas frescas", "amount": 300, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Espinacas frescas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Lavar y escurrir las espinacas",
-      "Dorar el ajo laminado en aceite a fuego medio",
-      "Añadir las espinacas y saltear hasta que reduzcan",
-      "Salpimentar y escurrir el exceso de agua"
+      "Laminar ajo en láminas finas.",
+      "Lavar espinacas frescas bajo agua fría y escurrir bien en un colador.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír el ajo laminado hasta que esté dorado y comience a desprender aroma.",
+      "Añadir las espinacas escurridas y saltear a fuego fuerte, removiendo, hasta que reduzcan.",
+      "Escurrir el exceso de agua presionando ligeramente las espinacas con una espátula.",
+      "Servir las espinacas salteadas de inmediato como guarnición."
     ],
-    "description": "Espinacas frescas salteadas con ajo en aceite de oliva"
+    "description": "Espinacas frescas salteadas con ajo en aceite de oliva",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Espinacas frescas}} bajo agua fría y escurrir bien en un colador.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado hasta que esté dorado y comience a desprender aroma.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las espinacas escurridas y saltear a fuego fuerte, removiendo, hasta que reduzcan.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir el exceso de agua presionando ligeramente las espinacas con una espátula.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las espinacas salteadas de inmediato como guarnición.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 120
   },
   {
     "id": "guarniciones_013",
@@ -396,7 +1179,9 @@
     "shortName": "calabacín a la plancha",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 10,
     "difficulty": "facil",
@@ -410,17 +1195,61 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Calabacín", "amount": 300, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Sal en escamas", "amount": 2, "unit": "g" }
+      {
+        "name": "Calabacín",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal en escamas",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Cortar el calabacín en rodajas de medio centímetro",
-      "Calentar la plancha a fuego fuerte",
-      "Cocinar 2-3 min por cada lado hasta marcar",
-      "Aliñar con aceite y sal en escamas"
+      "Cortar calabacín en rodajas de 0,5 cm de grosor.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Pincelar la plancha con aceite de oliva antes de colocar las rodajas.",
+      "Colocar las rodajas de calabacín en la plancha y dorar 2 min por cada lado hasta que aparezcan marcas.",
+      "Retirar las rodajas y servir con sal en escamas por encima."
     ],
-    "description": "Rodajas de calabacín asadas a la plancha con aceite"
+    "description": "Rodajas de calabacín asadas a la plancha con aceite",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Calabacín}} en rodajas de 0,5 cm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pincelar la plancha con {{Aceite de oliva|chorrito}} antes de colocar las rodajas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar las rodajas de calabacín en la plancha y dorar 2 min por cada lado hasta que aparezcan marcas.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las rodajas y servir con {{Sal en escamas|pizca}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_014",
@@ -428,7 +1257,9 @@
     "shortName": "ensalada verde",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 5,
     "difficulty": "facil",
@@ -444,18 +1275,66 @@
     ],
     "season": "all",
     "ingredients": [
-      { "name": "Lechuga", "amount": 150, "unit": "g" },
-      { "name": "Pepino", "amount": 80, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Vinagre", "amount": 8, "unit": "ml" }
+      {
+        "name": "Lechuga",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 8,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Lavar y trocear la lechuga",
-      "Cortar el pepino en rodajas",
-      "Mezclar en un bol",
-      "Aliñar con aceite, vinagre y sal"
+      "Lavar lechuga bajo el grifo con agua fría y escurrir bien.",
+      "Cortar la lechuga en trozos de bocado y distribuir en un bol grande.",
+      "Lavar pepino y cortar en rodajas finas.",
+      "Añadir las rodajas de pepino al bol con la lechuga y mezclar.",
+      "Aliñar con aceite de oliva y vinagre, remover para que la hoja quede bien cubierta."
     ],
-    "description": "Ensalada de lechuga y pepino con vinagreta de aceite"
+    "description": "Ensalada de lechuga y pepino con vinagreta de aceite",
+    "stepsRich": [
+      {
+        "text": "Lavar {{Lechuga}} bajo el grifo con agua fría y escurrir bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la lechuga en trozos de bocado y distribuir en un bol grande.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Pepino}} y cortar en rodajas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir las rodajas de pepino al bol con la lechuga y mezclar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y {{Vinagre}}, remover para que la hoja quede bien cubierta.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 5
   },
   {
     "id": "guarniciones_015",
@@ -463,7 +1342,9 @@
     "shortName": "ensalada de tomate",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 5,
     "difficulty": "facil",
@@ -477,18 +1358,71 @@
     "allergens": [],
     "season": "verano",
     "ingredients": [
-      { "name": "Tomate maduro", "amount": 250, "unit": "g" },
-      { "name": "Cebolla", "amount": 40, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Orégano", "amount": 2, "unit": "g" }
+      {
+        "name": "Tomate maduro",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Cortar el tomate en rodajas gruesas",
-      "Añadir cebolla en aros finos",
-      "Aliñar con aceite, orégano y sal",
-      "Reposar 5 min antes de servir"
+      "Lavar tomate maduro y cortar en rodajas gruesas de aproximadamente 1 cm.",
+      "Pelar cebolla y laminar en aros finos.",
+      "Disponer las rodajas de tomate en una fuente y colocar los aros de cebolla por encima.",
+      "Aliñar con aceite de oliva y espolvorear orégano.",
+      "Dejar reposar 5 min para que los sabores se integren antes de servir.",
+      "Servir la ensalada a temperatura ambiente."
     ],
-    "description": "Ensalada de tomate maduro con cebolla y orégano"
+    "description": "Ensalada de tomate maduro con cebolla y orégano",
+    "stepsRich": [
+      {
+        "text": "Lavar {{Tomate maduro}} y cortar en rodajas gruesas de aproximadamente 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y laminar en aros finos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer las rodajas de tomate en una fuente y colocar los aros de cebolla por encima.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y espolvorear {{Orégano|pizca}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar reposar 5 min para que los sabores se integren antes de servir.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la ensalada a temperatura ambiente.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 40
   },
   {
     "id": "guarniciones_016",
@@ -496,7 +1430,9 @@
     "shortName": "pimientos del piquillo",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 5,
     "difficulty": "facil",
@@ -510,17 +1446,67 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Pimientos del piquillo", "amount": 200, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Pimientos del piquillo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Escurrir los pimientos del piquillo",
-      "Dorar ajo laminado en aceite a fuego suave",
-      "Añadir los pimientos y calentar 3 min",
-      "Salpimentar y servir"
+      "Laminar ajo en láminas finas.",
+      "Escurrir pimientos del piquillo y reservar.",
+      "Calentar aceite de oliva en sartén a fuego suave.",
+      "Añadir el ajo laminado y sofreír a fuego suave hasta que se dore ligeramente.",
+      "Añadir los pimientos del piquillo escurridos y saltear a fuego medio durante 3 min.",
+      "Servir los pimientos del piquillo salteados con el ajo."
     ],
-    "description": "Pimientos del piquillo en conserva salteados con ajo"
+    "description": "Pimientos del piquillo en conserva salteados con ajo",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir {{Pimientos del piquillo}} y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y sofreír a fuego suave hasta que se dore ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los pimientos del piquillo escurridos y saltear a fuego medio durante 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los pimientos del piquillo salteados con el ajo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_018",
@@ -528,7 +1514,9 @@
     "shortName": "verduras salteadas",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 15,
     "difficulty": "facil",
@@ -542,19 +1530,94 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Calabacín", "amount": 100, "unit": "g" },
-      { "name": "Pimiento rojo", "amount": 80, "unit": "g" },
-      { "name": "Zanahoria", "amount": 80, "unit": "g" },
-      { "name": "Ajo", "amount": 6, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" }
+      {
+        "name": "Calabacín",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Cortar todas las verduras en tiras finas",
-      "Calentar aceite con ajo en sartén a fuego fuerte",
-      "Saltear las verduras 5-7 min removiendo",
-      "Salpimentar y servir"
+      "Pelar zanahoria y cortar en tiras finas de 3 mm.",
+      "Cortar pimiento rojo en tiras finas, retirando semillas y parte blanca interior.",
+      "Cortar calabacín en tiras finas de 3 mm sin pelar.",
+      "Laminar ajo fino.",
+      "Calentar sartén a fuego fuerte con aceite de oliva hasta que el aceite esté bien caliente.",
+      "Añadir el ajo laminado y saltear hasta que empiece a dorarse, sin dejar de remover.",
+      "Añadir la zanahoria y saltear a fuego fuerte, removiendo sin parar, hasta que empiece a estar tierna.",
+      "Añadir el pimiento rojo y el calabacín y saltear a fuego fuerte, removiendo constantemente.",
+      "Retirar la sartén del fuego cuando las verduras estén tiernas pero con algo de mordida y servir de inmediato."
     ],
-    "description": "Mix de verduras variadas salteadas a fuego fuerte"
+    "description": "Mix de verduras variadas salteadas a fuego fuerte",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en tiras finas de 3 mm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en tiras finas, retirando semillas y parte blanca interior.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en tiras finas de 3 mm sin pelar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego fuerte con {{Aceite de oliva|chorrito}} hasta que el aceite esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y saltear hasta que empiece a dorarse, sin dejar de remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria y saltear a fuego fuerte, removiendo sin parar, hasta que empiece a estar tierna.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pimiento rojo y el calabacín y saltear a fuego fuerte, removiendo constantemente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego cuando las verduras estén tiernas pero con algo de mordida y servir de inmediato.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   },
   {
     "id": "guarniciones_019",
@@ -562,7 +1625,9 @@
     "shortName": "espárragos a la plancha",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 10,
     "difficulty": "facil",
@@ -576,17 +1641,67 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Espárragos trigueros", "amount": 250, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Sal en escamas", "amount": 2, "unit": "g" }
+      {
+        "name": "Espárragos trigueros",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal en escamas",
+        "amount": 2,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Lavar los espárragos y cortar la parte leñosa",
-      "Calentar la plancha a fuego fuerte",
-      "Pintar con aceite y cocinar 4 min girando",
-      "Servir con sal en escamas"
+      "Cortar la parte leñosa de espárragos trigueros por donde quiebren de forma natural al doblarlos.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Pintar los espárragos con aceite de oliva por todos los lados.",
+      "Colocar los espárragos en plancha y asar 2 min sin moverlos, hasta que aparezcan marcas doradas.",
+      "Girar los espárragos y asar 2 min más hasta que estén tiernos y dorados por el otro lado.",
+      "Retirar los espárragos de plancha y servir de inmediato con sal en escamas por encima."
     ],
-    "description": "Espárragos trigueros a la plancha con sal en escamas"
+    "description": "Espárragos trigueros a la plancha con sal en escamas",
+    "stepsRich": [
+      {
+        "text": "Cortar la parte leñosa de {{Espárragos trigueros}} por donde quiebren de forma natural al doblarlos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pintar los espárragos con {{Aceite de oliva}} por todos los lados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar los espárragos en {{@Plancha}} y asar 2 min sin moverlos, hasta que aparezcan marcas doradas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Girar los espárragos y asar 2 min más hasta que estén tiernos y dorados por el otro lado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los espárragos de {{@Plancha}} y servir de inmediato con {{Sal en escamas|pizca}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_020",
@@ -594,7 +1709,9 @@
     "shortName": "menestra de verduras",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 20,
     "difficulty": "facil",
@@ -608,19 +1725,101 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Judías verdes", "amount": 100, "unit": "g" },
-      { "name": "Guisantes", "amount": 80, "unit": "g" },
-      { "name": "Zanahoria", "amount": 100, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 15, "unit": "ml" },
-      { "name": "Ajo", "amount": 6, "unit": "g" }
+      {
+        "name": "Judías verdes",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Cocer judías y zanahoria en agua con sal 8 min",
-      "Añadir guisantes en los últimos 3 min",
-      "Escurrir bien",
-      "Saltear con ajo en aceite y salpimentar"
+      "Pelar zanahoria y cortar en rodajas de medio centímetro.",
+      "Picar ajo fino.",
+      "Llevar a ebullición una olla con agua y sal a fuego fuerte.",
+      "Añadir judías verdes y la zanahoria en rodajas; cocer a fuego medio durante 5 min.",
+      "Añadir guisantes y cocer 3 min más hasta que estén tiernos.",
+      "Escurrir las verduras en un colador y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír el ajo picado a fuego suave hasta que se dore ligeramente, sin que se queme.",
+      "Añadir las verduras escurridas y saltear a fuego medio durante 1 min removiendo para que se impregnen.",
+      "Salpimentar al gusto y servir de inmediato."
     ],
-    "description": "Menestra sencilla de judías, guisantes y zanahoria salteada"
+    "description": "Menestra sencilla de judías, guisantes y zanahoria salteada",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de medio centímetro.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua y sal a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Judías verdes}} y la zanahoria en rodajas; cocer a fuego medio durante 5 min.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} y cocer 3 min más hasta que estén tiernos.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las verduras en un colador y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado a fuego suave hasta que se dore ligeramente, sin que se queme.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las verduras escurridas y saltear a fuego medio durante 1 min removiendo para que se impregnen.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar al gusto y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 4,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "guarniciones_021",
@@ -628,7 +1827,9 @@
     "shortName": "champiñones salteados",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "type": "guarnicion",
     "time": 10,
     "difficulty": "facil",
@@ -642,18 +1843,90 @@
     "allergens": [],
     "season": "all",
     "ingredients": [
-      { "name": "Champiñones", "amount": 250, "unit": "g" },
-      { "name": "Ajo", "amount": 8, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 20, "unit": "ml" },
-      { "name": "Perejil", "amount": 4, "unit": "g" }
+      {
+        "name": "Champiñones",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 4,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Limpiar y laminar los champiñones",
-      "Calentar aceite con ajo laminado a fuego fuerte",
-      "Añadir los champiñones y saltear 5 min sin remover al principio",
-      "Terminar con perejil picado y salpimentar"
+      "Limpiar champiñones con un paño húmedo o papel de cocina para retirar la tierra.",
+      "Laminar los champiñones en láminas de unos 3 mm.",
+      "Laminar ajo en láminas finas.",
+      "Picar perejil fino y reservar.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que empiece a humear.",
+      "Añadir el ajo laminado y sofreír hasta que esté dorado y aromático, sin que se queme.",
+      "Incorporar los champiñones laminados en una sola capa y dejar sin remover 2 min hasta que se doren por debajo.",
+      "Saltear los champiñones removiendo 2 min más hasta que estén tiernos y sin agua en la sartén.",
+      "Retirar del fuego, añadir el perejil picado, salpimentar sal y remover para integrar."
     ],
-    "description": "Champiñones laminados salteados con ajo y perejil"
+    "description": "Champiñones laminados salteados con ajo y perejil",
+    "stepsRich": [
+      {
+        "text": "Limpiar {{Champiñones}} con un paño húmedo o papel de cocina para retirar la tierra.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar los champiñones en láminas de unos 3 mm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que empiece a humear.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y sofreír hasta que esté dorado y aromático, sin que se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar los champiñones laminados en una sola capa y dejar sin remover 2 min hasta que se doren por debajo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear los champiñones removiendo 2 min más hasta que estén tiernos y sin agua en la sartén.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego, añadir el perejil picado, salpimentar {{Sal|gusto}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 120
   },
   {
     "id": "guarniciones_022",
@@ -661,7 +1934,9 @@
     "shortName": "patatas fritas",
     "category": "guarniciones",
     "mainProtein": "none",
-    "mealRole": ["guarnicion"],
+    "mealRole": [
+      "guarnicion"
+    ],
     "preferMeal": "cena",
     "type": "guarnicion",
     "time": 15,
@@ -675,18 +1950,64 @@
     "tupperFriendly": false,
     "allergens": [],
     "season": "all",
-    "healthFlags": ["frito"],
+    "healthFlags": [
+      "frito"
+    ],
     "ingredients": [
-      { "name": "Patata", "amount": 350, "unit": "g" },
-      { "name": "Aceite de oliva", "amount": 30, "unit": "ml" },
-      { "name": "Sal", "amount": 3, "unit": "g" }
+      {
+        "name": "Patata",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Pelar y cortar las patatas en bastones",
-      "Freír en aceite caliente hasta que estén doradas por fuera",
-      "Escurrir sobre papel absorbente",
-      "Salar al gusto y servir recién hechas"
+      "Pelar patata y cortar en bastones de unos 1 cm de grosor.",
+      "Calentar aceite de oliva en una sartén grande a fuego fuerte hasta que esté bien caliente.",
+      "Freír los bastones de patata en el aceite caliente hasta que estén dorados y crujientes por fuera.",
+      "Escurrir las patatas fritas sobre papel absorbente para eliminar el exceso de aceite.",
+      "Añadir sal sobre las patatas recién escurridas y servir de inmediato."
     ],
-    "description": "Patatas cortadas en bastón y fritas, crujientes por fuera"
+    "description": "Patatas cortadas en bastón y fritas, crujientes por fuera",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en bastones de unos 1 cm de grosor.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una sartén grande a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los bastones de patata en el aceite caliente hasta que estén dorados y crujientes por fuera.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las patatas fritas sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} sobre las patatas recién escurridas y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 1,
+    "saturated_fat_g": 2,
+    "sodium_mg": 290
   }
 ]

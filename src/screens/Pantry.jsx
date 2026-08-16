@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Apple,
   Bean,
@@ -200,48 +200,115 @@ function RotatingCardImage({ images, interval = 2000, alt = "" }) {
   );
 }
 
-// Big illustrated mode card — doubles as the segmented selector between "a mano"
-// and "subir foto o ticket". Active card gets the teal frame + a solid teal label
-// band; the inactive one stays quiet.
-function PantryModeCard({ label, active, onClick, children }) {
+// Mode card for "Añadir a mano" / "Subir foto o ticket".
+//
+// Default (no items added yet):  Alergias-card style — illustration on top,
+//   labelled coloured strip at the bottom, side-by-side with sibling card.
+// Compact (items already added):  full-bleed illustration, label overlaid on
+//   the right side (saves vertical space once the user knows the affordance).
+function PantryModeCard({ label, active, compact, onClick, children }) {
+  const shadow = active
+    ? "0 8px 22px -14px rgba(15,118,110,.55)"
+    : "0 3px 10px -8px rgba(20,47,29,.35)";
+
+  if (compact) {
+    // ── Overlay mode (addedCount > 0) ─────────────────────────────────────
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-pressed={active}
+        style={{
+          position: "relative",
+          flex: 1,
+          minWidth: 0,
+          height: 52,
+          border: `2px solid ${active ? EMPTY_ACCENT : "transparent"}`,
+          borderRadius: 14,
+          overflow: "hidden",
+          background: "#eef4ef",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          padding: 0,
+          boxShadow: shadow,
+          transition: "border-color .18s, box-shadow .18s",
+        }}
+      >
+        <div style={{ position: "absolute", inset: 0 }}>{children}</div>
+        <div style={{ position: "absolute", inset: 0, background: active ? "linear-gradient(to left, rgba(15,118,110,.88) 0%, rgba(15,118,110,.48) 42%, rgba(15,118,110,0) 70%)" : "linear-gradient(to left, rgba(10,20,14,.72) 0%, rgba(10,20,14,.32) 42%, rgba(10,20,14,0) 70%)" }} />
+        <span style={{ position: "absolute", top: "50%", right: 12, left: "38%", transform: "translateY(-50%)", color: "#fff", fontSize: 12.5, fontWeight: 800, textAlign: "right", lineHeight: 1.2, textShadow: "0 1px 6px rgba(0,0,0,.5)" }}>
+          {label}
+        </span>
+        {active && (
+          <span style={{ position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: 999, background: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", color: EMPTY_ACCENT }}>
+            <Check size={11} strokeWidth={3.2} />
+          </span>
+        )}
+      </button>
+    );
+  }
+
+  // ── Alergias-card mode (default, no items yet) ─────────────────────────
   return (
     <button
       type="button"
       onClick={onClick}
       aria-pressed={active}
       style={{
+        position: "relative",
         flex: 1,
         minWidth: 0,
         display: "flex",
         flexDirection: "column",
-        border: `3px solid ${active ? EMPTY_ACCENT : "#dce8e0"}`,
-        borderRadius: 18,
+        alignItems: "stretch",
+        padding: 0,
         overflow: "hidden",
+        borderRadius: 15,
+        border: `2px solid ${active ? EMPTY_ACCENT : "#dce8e0"}`,
         background: "#fff",
         cursor: "pointer",
         fontFamily: "inherit",
-        padding: 0,
-        boxShadow: active ? "0 12px 32px -18px rgba(15,118,110,.5)" : "0 6px 18px -14px rgba(20,47,29,.4)",
-        opacity: active ? 1 : 0.85,
-        transition: "border-color .18s, box-shadow .18s, opacity .18s",
+        transition: "all .16s ease",
+        boxShadow: shadow,
       }}
     >
-      <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "#eef4ef" }}>
+      {active && (
+        <span style={{ position: "absolute", top: 8, right: 8, zIndex: 2, width: 20, height: 20, borderRadius: "50%", background: EMPTY_ACCENT, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(20,47,29,.3)" }}>
+          <Check size={12} color="#fff" strokeWidth={3} />
+        </span>
+      )}
+      <div style={{ position: "relative", width: "100%", aspectRatio: "3 / 2", background: "#eef4ef", flexShrink: 0 }}>
         {children}
       </div>
-      <div
-        style={{
-          padding: "10px 8px",
-          fontSize: 13,
-          fontWeight: 800,
-          textAlign: "center",
-          background: active ? EMPTY_ACCENT : "#fff",
-          color: active ? "#fff" : "#5a7066",
-        }}
-      >
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "7px 8px", background: active ? EMPTY_ACCENT : "#fff", color: active ? "#fff" : "#3d6652", fontSize: 12.5, fontWeight: 800, lineHeight: 1.2, textAlign: "center" }}>
         {label}
       </div>
     </button>
+  );
+}
+
+function PantryModePicker({ tab, setTab, canUploadReceipt, addedCount = 0 }) {
+  const compact = addedCount > 0;
+  return (
+    <div style={{ display: "flex", gap: 10, alignItems: "stretch", marginBottom: compact ? 10 : 12 }}>
+      <PantryModeCard label="Añadir a mano" active={tab === "text"} compact={compact} onClick={() => setTab("text")}>
+        <img
+          src="/avatares/cards/subir_a_mano.jpg"
+          alt="Añadir a mano"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      </PantryModeCard>
+      <PantryModeCard label="Subir foto o ticket" active={tab === "upload"} compact={compact} onClick={() => setTab("upload")}>
+        <RotatingCardImage
+          images={
+            canUploadReceipt
+              ? ["/avatares/cards/subir%20foto.png", "/avatares/cards/escanear.jpg"]
+              : ["/avatares/cards/subir%20foto.png"]
+          }
+          alt="Subir foto o ticket"
+        />
+      </PantryModeCard>
+    </div>
   );
 }
 
@@ -252,6 +319,8 @@ function PantryModeCard({ label, active, onClick, children }) {
 // and ticket illustrations.
 function PantryEmptyEntry({ revealed, canUploadReceipt, onReveal, onSaved, onUploadReceipt }) {
   const [tab, setTab] = useState("text");
+  const [addedCount, setAddedCount] = useState(0);
+  const handleSavedInner = (...args) => { setAddedCount((n) => n + 1); onSaved?.(...args); };
 
   if (!revealed) {
     return (
@@ -292,30 +361,12 @@ function PantryEmptyEntry({ revealed, canUploadReceipt, onReveal, onSaved, onUpl
 
   return (
     <div style={{ animation: "pantryChoiceIn .28s cubic-bezier(.34,1.08,.5,1) both" }} data-coach="pantry-add">
-      <div style={{ display: "flex", gap: 12, alignItems: "stretch", marginBottom: 14 }}>
-        <PantryModeCard label="Añadir a mano" active={tab === "text"} onClick={() => setTab("text")}>
-          <img
-            src="/avatares/cards/subir_a_mano.jpg"
-            alt="Añadir a mano"
-            style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-          />
-        </PantryModeCard>
-        <PantryModeCard label="Subir foto o ticket" active={tab === "upload"} onClick={() => setTab("upload")}>
-          <RotatingCardImage
-            images={
-              canUploadReceipt
-                ? ["/avatares/cards/subir%20foto.png", "/avatares/cards/escanear.jpg"]
-                : ["/avatares/cards/subir%20foto.png"]
-            }
-            alt="Subir foto o ticket"
-          />
-        </PantryModeCard>
-      </div>
+      <PantryModePicker tab={tab} setTab={setTab} canUploadReceipt={canUploadReceipt} addedCount={addedCount} />
       <PantryInput
         hideTabs
         tab={tab}
         onTabChange={setTab}
-        onSaved={onSaved}
+        onSaved={handleSavedInner}
         onUploadReceipt={onUploadReceipt}
       />
       <style>{`@keyframes pantryChoiceIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
@@ -355,8 +406,8 @@ const fieldStyle = {
 // icon | name (wraps) | spacer | valor (toggled) | precio | trash
 const ROW_GRID = {
   display: "grid",
-  gridTemplateColumns: "30px minmax(0,1fr) 62px 48px 24px",
-  gap: 6,
+  gridTemplateColumns: "40px minmax(0,1fr) 72px 56px 28px",
+  gap: 8,
   alignItems: "center",
 };
 
@@ -920,6 +971,9 @@ export function PantryScreen({
   // the picked mode. Local state, so leaving without adding anything resets it
   // back to the illustration on the next visit.
   const [emptyRevealed, setEmptyRevealed] = useState(false);
+  const [addTab, setAddTab] = useState("text");
+  const [sidebarAddedCount, setSidebarAddedCount] = useState(0);
+  const rowRefs = useRef({});
   // Category + purchase-date + ticket filters, tucked behind a "Filtros"
   // toggle like Añadir ingredientes above — same collapsed-by-default pattern.
   const [showFilters, setShowFilters] = useState(false);
@@ -1037,7 +1091,13 @@ export function PantryScreen({
   };
 
   const handleSaved = async () => {
-    setItems(user ? await loadPantry(user.id) : loadLocalPantry());
+    const next = user ? await loadPantry(user.id) : loadLocalPantry();
+    setItems(next);
+    const focus = [...next].sort((a, b) => String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? "")))[0];
+    if (!focus?.id) return;
+    requestAnimationFrame(() => {
+      rowRefs.current[focus.id]?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
   };
 
   const startEdit = (item) => {
@@ -1280,13 +1340,20 @@ export function PantryScreen({
 
         {(loading || items.length > 0) && (
           <>
-            <div style={{ marginBottom: 14 }}>
+            <div style={{
+              marginBottom: 14,
+              border: "1.5px solid #d7e6dc",
+              borderRadius: 18,
+              overflow: "hidden",
+              background: "#fff",
+              boxShadow: "0 10px 28px -18px rgba(20,47,29,.35)",
+            }}>
               {loading ? (
-                <p style={{ margin: 0, padding: 14, fontSize: 13, color: MUTED }}>Cargando…</p>
+                <p style={{ margin: 0, padding: 16, fontSize: 13, color: MUTED }}>Cargando…</p>
               ) : (
                 <>
                   {visibleItems.length === 0 ? (
-                    <p style={{ margin: 0, padding: 16, fontSize: 12.5, color: MUTED, textAlign: "center" }}>
+                    <p style={{ margin: 0, padding: 18, fontSize: 13, color: MUTED, textAlign: "center" }}>
                       Sin ingredientes con estos filtros.
                     </p>
                   ) : (
@@ -1300,12 +1367,11 @@ export function PantryScreen({
                     return (
                       <div
                         key={item.id}
+                        ref={(el) => { rowRefs.current[item.id] = el; }}
                         style={{
                           ...ROW_GRID,
-                          padding: "10px",
-                          // Same thin divider as the Recetas category list and
-                          // the Compra aisle rows, for a consistent flat look.
-                          borderBottom: i === visibleItems.length - 1 ? "none" : "1px solid rgba(45,110,70,.2)",
+                          padding: "14px 12px",
+                          borderBottom: i === visibleItems.length - 1 ? "none" : "1px solid rgba(45,110,70,.16)",
                         }}
                       >
                         {editing ? (
@@ -1365,15 +1431,15 @@ export function PantryScreen({
                           </span>
                         ) : (
                           <>
-                            <AisleIcon aisle={aisle} name={item.ingredientName} size={28} />
+                            <AisleIcon aisle={aisle} name={item.ingredientName} size={36} />
                             <span style={{ minWidth: 0 }}>
                               <span
                                 style={{
                                   display: "block",
-                                  fontSize: 12,
-                                  fontWeight: 700,
+                                  fontSize: 14,
+                                  fontWeight: 800,
                                   color: INK,
-                                  lineHeight: 1.25,
+                                  lineHeight: 1.3,
                                   whiteSpace: "normal",
                                   overflowWrap: "anywhere",
                                 }}
@@ -1394,7 +1460,7 @@ export function PantryScreen({
                                 border: "none",
                                 background: "none",
                                 color: valueText === "—" ? MUTED : INK,
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: 800,
                                 fontFamily: "inherit",
                                 cursor: "pointer",
@@ -1407,7 +1473,7 @@ export function PantryScreen({
                             <span
                               style={{
                                 justifySelf: "center",
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: 800,
                                 color: priceLabel === "—" ? MUTED : INK,
                                 textAlign: "center",
@@ -1460,8 +1526,12 @@ export function PantryScreen({
           <>
             <div style={{ height: 3, borderRadius: 99, background: "#d8e8dc", margin: "16px 0 14px" }} />
             <div data-coach="pantry-add">
+              <PantryModePicker tab={addTab} setTab={setAddTab} canUploadReceipt={canUploadReceipt} addedCount={sidebarAddedCount} />
               <PantryInput
-                onSaved={handleSaved}
+                hideTabs
+                tab={addTab}
+                onTabChange={setAddTab}
+                onSaved={(...args) => { setSidebarAddedCount((n) => n + 1); handleSaved(...args); }}
                 onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
               />
             </div>

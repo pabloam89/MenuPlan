@@ -442,7 +442,6 @@ export function CatalogBrowserSheet({
             placeholder={gatePick ? "Buscar plato o guarnición…" : "Buscar plato…"}
             style={{
               flex: 1, border: "none", background: "transparent", outline: "none",
-              // Match the catalog category / Filtros text size (was 16 = oversized).
               fontSize: 13.5, color: "#1a3a24", fontFamily: "inherit", minWidth: 0,
             }}
           />
@@ -523,21 +522,7 @@ export function CatalogBrowserSheet({
     </div>
   );
 
-  const categoryBackRow = isBrowseCatalog && cats.size > 0 ? (
-    <div style={{ padding: `0 ${px}px 8px`, flexShrink: 0 }}>
-      <button
-        type="button"
-        onClick={() => setCats(new Set())}
-        style={{
-          display: "inline-flex", alignItems: "center", gap: 5,
-          border: "none", background: "transparent", cursor: "pointer",
-          fontFamily: "inherit", fontSize: 12.5, fontWeight: 800, color: GREEN, padding: "2px 0",
-        }}
-      >
-        <ChevronLeft size={15} /> Todas las categorías
-      </button>
-    </div>
-  ) : null;
+  const categoryBackRow = null; // now integrated into the search row
 
   const categoryGrid = (
     <div style={{ padding: `2px ${px}px 4px` }}>
@@ -1448,9 +1433,8 @@ function RecipeCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 8 }}>
-        {/* thumbnail — colored ring per category. Its own open-recipe button so
-            the favorite button below is a SIBLING, never nested inside another
-            <button> (invalid HTML → React hydration warning + flaky taps). */}
+        {/* thumbnail — colored ring per category. Heart (top-right) and discard
+            (bottom-right) sit on the photo as siblings, never nested buttons. */}
         <div style={{ position: "relative", flexShrink: 0 }}>
           <button
             type="button"
@@ -1476,8 +1460,6 @@ function RecipeCard({
               )}
             </div>
           </button>
-          {/* Favorite badge — floats over the photo corner, sibling of the
-              thumbnail button above. */}
           {reference && onSetFavoriteScope && (
             <button
               type="button"
@@ -1496,6 +1478,7 @@ function RecipeCard({
                 boxShadow: "0 1px 4px rgba(0,0,0,.2)",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all .15s ease",
+                zIndex: 1,
               }}
             >
               <Heart
@@ -1504,6 +1487,27 @@ function RecipeCard({
                 strokeWidth={2.4}
                 fill={favorite ? "#fff" : "none"}
               />
+            </button>
+          )}
+          {reference && onDiscard && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onDiscard(); }}
+              aria-label={discarded ? `Recuperar ${recipe.name}` : `Descartar ${recipe.name}`}
+              title={discarded ? "Recuperar (vuelve al catálogo)" : "Descartar (No me gusta)"}
+              style={{
+                position: "absolute", bottom: -6, right: -6,
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0, cursor: "pointer",
+                border: "2px solid #fff",
+                background: discarded ? "#c0392b" : "#fff",
+                color: discarded ? "#fff" : "#c9adb0",
+                boxShadow: "0 1px 4px rgba(0,0,0,.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all .15s ease",
+                zIndex: 1,
+              }}
+            >
+              {discarded ? <RotateCcw size={11} /> : <Ban size={11} />}
             </button>
           )}
         </div>
@@ -1566,7 +1570,8 @@ function RecipeCard({
           )}
         </button>
 
-        {/* Reference mode: owner + votes column (+ optional garnish combo) */}
+        {/* Reference mode: owner + votes column (+ optional garnish combo).
+            Discard lives on the thumbnail, not here. */}
         {reference ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {onCombine && (
@@ -1591,24 +1596,6 @@ function RecipeCard({
                 >
                   <Plus size={9} strokeWidth={3} />
                 </span>
-              </button>
-            )}
-            {onDiscard && (
-              <button
-                type="button"
-                onClick={(e) => { e.stopPropagation(); onDiscard(); }}
-                aria-label={discarded ? `Recuperar ${recipe.name}` : `Descartar ${recipe.name}`}
-                title={discarded ? "Recuperar (vuelve al catálogo)" : "Descartar (No me gusta)"}
-                style={{
-                  width: 34, height: 34, borderRadius: 10, flexShrink: 0, cursor: "pointer",
-                  border: discarded ? "none" : "1.5px solid #f5d0d6",
-                  background: discarded ? "#fde8eb" : "#fff",
-                  color: discarded ? "#c0392b" : "#c9adb0",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  transition: "all .15s ease",
-                }}
-              >
-                {discarded ? <RotateCcw size={15} /> : <Ban size={15} />}
               </button>
             )}
             <RecipeProvenance recipe={recipe} />
@@ -1655,19 +1642,6 @@ function RecipeCard({
           </>
         )}
       </div>
-      {/* Owner-only: inline visibility control (Mis recetas). Delete/edit now
-          live OUTSIDE the card (see actions column below). */}
-      {reference && recipe.source === "user" && onChangeVisibility && (
-        <div
-          style={{ padding: "0 8px 9px 66px", display: "flex", alignItems: "center", gap: 8 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <VisibilityMiniPill
-            visibility={recipe.visibility ?? "private"}
-            onChange={(v) => onChangeVisibility(recipe.id, v)}
-          />
-        </div>
-      )}
     </div>
   );
 

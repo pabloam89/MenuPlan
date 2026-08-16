@@ -46,13 +46,74 @@
       }
     ],
     "steps": [
-      "Pelar y cortar patatas y cebolla en láminas finas",
-      "Confitar en aceite a fuego lento 20 min",
-      "Escurrir, mezclar con huevo batido y salpimentar",
-      "Cuajar en sartén 3 min por cada lado"
+      "Pelar y laminar las patatas en rodajas de 3 mm y cortar la cebolla en juliana",
+      "Calentar el aceite en sartén a fuego medio e incorporar patatas y cebolla",
+      "Confitar a fuego suave 20 min removiendo de vez en cuando hasta que estén tiernas",
+      "Escurrir en colador y reservar el aceite",
+      "Batir los huevos en un bol grande con sal y pimienta",
+      "Incorporar las patatas y la cebolla al huevo y remover",
+      "Dejar reposar la mezcla 2 min para que el huevo penetre bien",
+      "Cuajar en sartén con un poco del aceite reservado 3 min por el primer lado",
+      "Dar la vuelta con un plato y cuajar 2 min más; reposar 1 min y servir"
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y laminar las {{Patata}} en rodajas de 3 mm y cortar {{Cebolla}} en juliana fina.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} amplia a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las patatas y la cebolla, salpimentar y confitar a fuego suave 20 min, removiendo de vez en cuando, hasta que estén tiernas.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las patatas y la cebolla en un colador y reservar el aceite para más adelante.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol grande con sal y pimienta hasta que la mezcla esté homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las patatas y la cebolla al huevo batido y remover hasta que todo quede bien integrado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar reposar la mezcla 2 min para que el huevo penetre bien en las patatas.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar 2 cucharadas del aceite reservado en la sartén a fuego fuerte, volcar la mezcla y cuajar 3 min hasta que el fondo esté dorado.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con un plato plano, dar la vuelta de un golpe y devolver la tortilla a la sartén; cuajar 2 min más hasta que esté cuajada y cremosa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego, dejar reposar 1 min y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ],
     "description": "Tortilla de patata con cebolla, jugosa por dentro",
-    "methods": []
+    "methods": [],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 5,
+    "sodium_mg": 310
   },
   {
     "id": "huevos_002",
@@ -89,13 +150,39 @@
       }
     ],
     "steps": [
-      "Batir los huevos con sal",
-      "Calentar aceite en sartén antiadherente",
-      "Verter el huevo y cuajar 1 min por cada lado",
-      "Doblar por la mitad y servir"
+      "Cascar y batir los huevos con sal hasta integrar yema y clara",
+      "Calentar el aceite en sartén antiadherente a fuego medio-alto",
+      "Verter el huevo, mover el centro con espátula en cuanto los bordes cuajen",
+      "Doblar cuando el interior esté aún cremoso y deslizar al plato"
+    ],
+    "stepsRich": [
+      {
+        "text": "Cascar {{Huevo}} en un bol y batir con sal hasta que yema y clara estén completamente integradas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} antiadherente a fuego medio-alto con {{Aceite de oliva|chorrito}} hasta que el aceite esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el huevo batido de golpe; en cuanto los bordes cuajen, mover el centro con una espátula para que el huevo líquido llegue abajo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Doblar la tortilla por la mitad cuando el interior esté aún cremoso y deslizarla al plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ],
     "description": "Tortilla francesa sencilla, cuajada por fuera y jugosa",
-    "methods": []
+    "methods": [],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320
   },
   {
     "id": "huevos_003",
@@ -146,10 +233,13 @@
       }
     ],
     "steps": [
-      "Cortar patatas en bastones y freír hasta dorar",
-      "Freír los huevos en aceite con la yema líquida",
-      "Colocar las patatas en plato, los huevos encima",
-      "Romper las yemas y añadir el jamón en virutas"
+      "Pelar patata y cortar en bastones de unos 1 cm de grosor.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír los bastones de patata en el aceite caliente hasta que estén dorados y tiernos por dentro, removiendo de vez en cuando.",
+      "Escurrir las patatas fritas sobre papel absorbente y reservar.",
+      "Freír huevo en el mismo aceite caliente a fuego medio hasta que la clara esté cuajada y la yema líquida.",
+      "Distribuir las patatas en 2 platos y colocar los huevos fritos encima.",
+      "Disponer jamón serrano en virutas sobre los huevos y romper las yemas con un tenedor al momento de servir."
     ],
     "description": "Huevos fritos con yema líquida sobre patatas fritas y jamón",
     "methods": [
@@ -165,7 +255,48 @@
         "difficulty": "facil",
         "prepSummary": "Corta las patatas en dados, mézclalas con aceite de oliva y sal, y extiéndelas en una bandeja de horno. Hornea a 200°C durante 25-30 minutos, hasta que estén tiernas y doradas. Retira, haz huecos y casca los huevos, horneando 5-8 minutos más hasta que la clara cuaje y la yema esté al gusto. Rompe los huevos sobre las patatas y reparte el jamón por encima."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en bastones de unos 1 cm de grosor.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los bastones de patata en el aceite caliente hasta que estén dorados y tiernos por dentro, removiendo de vez en cuando.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las patatas fritas sobre papel absorbente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Freír {{Huevo}} en el mismo aceite caliente a fuego medio hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Distribuir las patatas en 2 platos y colocar los huevos fritos encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Disponer {{Jamón serrano}} en virutas sobre los huevos y romper las yemas con un tenedor al momento de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 6,
+    "sodium_mg": 620
   },
   {
     "id": "huevos_004",
@@ -218,13 +349,75 @@
       }
     ],
     "steps": [
-      "Saltear champiñones laminados con ajo a fuego fuerte",
-      "Bajar el fuego y añadir los huevos batidos",
-      "Remover suavemente hasta que cuajen cremosos",
-      "Servir con perejil picado"
+      "Limpiar champiñones con un paño húmedo y laminar.",
+      "Picar ajo fino.",
+      "Picar perejil fino y reservar.",
+      "Batir huevo en un bol hasta que estén homogéneos y reservar.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Saltear el ajo picado hasta que empiece a dorarse, sin dejar que se queme.",
+      "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
+      "Bajar el fuego a fuego suave y añadir los huevos batidos sobre los champiñones.",
+      "Remover suavemente con una espátula hasta que los huevos cuajen cremosos, sin pasarse de cocción.",
+      "Servir de inmediato con el perejil picado por encima."
     ],
     "description": "Revuelto cremoso de huevos con champiñones y ajo",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Limpiar {{Champiñones}} con un paño húmedo y laminar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que estén homogéneos y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear el ajo picado hasta que empiece a dorarse, sin dejar que se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los champiñones laminados y saltear a fuego fuerte hasta que pierdan el agua y se doren.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego a fuego suave y añadir los huevos batidos sobre los champiñones.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover suavemente con una espátula hasta que los huevos cuajen cremosos, sin pasarse de cocción.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato con el perejil picado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 5,
+    "sodium_mg": 180
   },
   {
     "id": "huevos_005",
@@ -276,13 +469,63 @@
       }
     ],
     "steps": [
-      "Saltear ajetes troceados en aceite 3 min",
-      "Añadir las gambas y saltear 2 min",
-      "Verter los huevos batidos",
-      "Remover a fuego suave hasta cuajar cremoso"
+      "Cortar ajetes tiernos en trozos de unos 2 cm.",
+      "Batir huevo en un bol hasta homogeneizar la clara y la yema.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír los ajetes troceados a fuego medio hasta que estén tiernos y ligeramente dorados, unos 3 min.",
+      "Añadir gambas y saltear a fuego fuerte hasta que estén rosadas, unos 2 min.",
+      "Bajar el fuego a suave y verter los huevos batidos sobre el conjunto.",
+      "Remover con movimientos lentos y continuos a fuego suave hasta que el huevo cuaje cremoso sin secarse.",
+      "Retirar la sartén del fuego y servir de inmediato en plato caliente."
     ],
     "description": "Revuelto cremoso de ajetes tiernos con gambas",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Ajetes tiernos}} en trozos de unos 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta homogeneizar la clara y la yema.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír los ajetes troceados a fuego medio hasta que estén tiernos y ligeramente dorados, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Gambas}} y saltear a fuego fuerte hasta que estén rosadas, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar el fuego a suave y verter los huevos batidos sobre el conjunto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con movimientos lentos y continuos a fuego suave hasta que el huevo cuaje cremoso sin secarse.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y servir de inmediato en plato caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "huevos_006",
@@ -330,13 +573,82 @@
       }
     ],
     "steps": [
-      "Cortar calabacín y cebolla en medias lunas finas",
-      "Pochar en aceite a fuego lento 10 min",
-      "Escurrir, mezclar con huevo batido y salpimentar",
-      "Cuajar en sartén 3 min por cada lado"
+      "Pelar cebolla y cortar en medias lunas finas.",
+      "Lavar calabacín y cortar en medias lunas finas.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Añadir el calabacín y la cebolla; sofreír a fuego suave hasta que estén tiernos y translúcidos.",
+      "Batir huevo en un bol hasta que estén homogéneos.",
+      "Escurrir el calabacín y la cebolla pochados y reservar el aceite sobrante.",
+      "Añadir el calabacín y la cebolla escurridos al huevo batido, salpimentar y mezclar bien.",
+      "Calentar en la sartén un poco del aceite reservado a fuego medio y verter la mezcla.",
+      "Cuajar a fuego medio-suave hasta que los bordes estén firmes y el centro ligeramente cremoso.",
+      "Dar la vuelta con un plato y cuajar por el otro lado hasta que esté dorada.",
+      "Retirar la tortilla de la sartén y servir."
     ],
     "description": "Tortilla de calabacín y cebolla pochada",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y cortar en medias lunas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Calabacín}} y cortar en medias lunas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el calabacín y la cebolla; sofreír a fuego suave hasta que estén tiernos y translúcidos.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que estén homogéneos.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 3
+      },
+      {
+        "text": "Escurrir el calabacín y la cebolla pochados y reservar el aceite sobrante.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el calabacín y la cebolla escurridos al huevo batido, salpimentar y mezclar bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar en la {{@Sartén}} un poco del aceite reservado a fuego medio y verter la mezcla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cuajar a fuego medio-suave hasta que los bordes estén firmes y el centro ligeramente cremoso.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta con un plato y cuajar por el otro lado hasta que esté dorada.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la tortilla de la sartén y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 180
   },
   {
     "id": "huevos_007",
@@ -374,13 +686,55 @@
       }
     ],
     "steps": [
-      "Calentar abundante aceite en sartén pequeña",
-      "Cascar cada huevo cuando el aceite esté muy caliente",
-      "Bañar la clara con aceite para que haga puntillas",
-      "Retirar con la yema aún líquida"
+      "Verter aceite de oliva en una sartén pequeña y calentar a fuego fuerte hasta que humee ligeramente.",
+      "Cascar huevo de uno en uno sobre un cuenco pequeño para comprobar que están en buen estado.",
+      "Deslizar 1 huevo con cuidado al centro de la sartén con el aceite muy caliente.",
+      "Inclinar la sartén y bañar la clara continuamente con el aceite caliente hasta que los bordes burbujeen y formen puntillas doradas.",
+      "Retirar el huevo cuando la clara esté cuajada y crujiente en los bordes pero la yema permanezca líquida. Reservar.",
+      "Repetir el proceso con los 3 huevos restantes, de uno en uno, bañando siempre con el aceite caliente.",
+      "Servir los huevos de inmediato en plato caliente."
     ],
     "description": "Huevos fritos en abundante aceite con bordes crujientes",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Verter {{Aceite de oliva}} en una sartén pequeña y calentar a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cascar {{Huevo}} de uno en uno sobre un cuenco pequeño para comprobar que están en buen estado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Deslizar 1 huevo con cuidado al centro de la sartén con el aceite muy caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Inclinar la sartén y bañar la clara continuamente con el aceite caliente hasta que los bordes burbujeen y formen puntillas doradas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el huevo cuando la clara esté cuajada y crujiente en los bordes pero la yema permanezca líquida. Reservar.",
+        "kind": "activo"
+      },
+      {
+        "text": "Repetir el proceso con los 3 huevos restantes, de uno en uno, bañando siempre con el aceite caliente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los huevos de inmediato en plato caliente.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 6,
+    "sodium_mg": 140
   },
   {
     "id": "huevos_008",
@@ -428,13 +782,62 @@
       }
     ],
     "steps": [
-      "Cortar espárragos desechando la parte leñosa",
-      "Saltear con ajo laminado en aceite 5 min",
-      "Añadir huevos batidos",
-      "Remover a fuego suave hasta cuajar cremoso"
+      "Laminar ajo.",
+      "Cortar espárragos trigueros en trozos de unos 3 cm, desechando la parte leñosa del extremo.",
+      "Cascar huevo en un bol y batir hasta que la yema y la clara queden integradas.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír el ajo laminado en la sartén a fuego medio hasta que esté dorado.",
+      "Añadir los espárragos a la sartén y saltear a fuego medio hasta que estén tiernos.",
+      "Añadir los huevos batidos sobre los espárragos y remover a fuego suave hasta que el huevo cuaje cremoso y jugoso.",
+      "Retirar la sartén del fuego y servir de inmediato."
     ],
     "description": "Revuelto cremoso de huevos con espárragos trigueros",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Espárragos trigueros}} en trozos de unos 3 cm, desechando la parte leñosa del extremo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un bol y batir hasta que la yema y la clara queden integradas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado en la sartén a fuego medio hasta que esté dorado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los espárragos a la sartén y saltear a fuego medio hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los huevos batidos sobre los espárragos y remover a fuego suave hasta que el huevo cuaje cremoso y jugoso.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y servir de inmediato.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 2,
+    "saturated_fat_g": 4,
+    "sodium_mg": 140
   },
   {
     "id": "huevos_009",
@@ -495,10 +898,15 @@
       }
     ],
     "steps": [
-      "Repartir tomate en dos cazuelitas de barro",
-      "Añadir guisantes, jamón y chorizo en rodajas",
-      "Cascar dos huevos en cada cazuelita",
-      "Hornear a 200°C 10 min hasta que la clara cuaje"
+      "Cortar chorizo en rodajas finas y reservar.",
+      "Cortar jamón serrano en trozos pequeños y reservar.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Verter aceite de oliva en el fondo de 2 cazuelitas de barro y repartirlo bien.",
+      "Repartir tomate triturado a partes iguales entre las 2 cazuelitas.",
+      "Distribuir guisantes, el jamón serrano y el chorizo en rodajas sobre el tomate de cada cazuelita.",
+      "Cascar huevo con cuidado, 2 en cada cazuelita, sin romper la yema.",
+      "Hornear las cazuelitas a 200 °C durante 10 min, hasta que la clara cuaje y la yema quede ligeramente líquida.",
+      "Retirar del horno con cuidado y servir las cazuelitas directamente en la mesa."
     ],
     "description": "Huevos horneados en cazuelita con tomate, jamón y guisantes",
     "methods": [
@@ -514,7 +922,58 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta la airfryer a 170°C. En una cazuelita apta para airfryer, distribuye el tomate, guisantes, jamón y chorizo, y casca el huevo. Cocina durante 12-15 minutos hasta que la clara esté firme y la yema a tu gusto."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Chorizo}} en rodajas finas y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón serrano}} en trozos pequeños y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Verter {{Aceite de oliva|chorrito}} en el fondo de 2 cazuelitas de barro y repartirlo bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Tomate triturado}} a partes iguales entre las 2 cazuelitas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Distribuir {{Guisantes}}, el jamón serrano y el chorizo en rodajas sobre el tomate de cada cazuelita.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cascar {{Huevo}} con cuidado, 2 en cada cazuelita, sin romper la yema.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear las cazuelitas a 200 °C durante 10 min, hasta que la clara cuaje y la yema quede ligeramente líquida.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno con cuidado y servir las cazuelitas directamente en la mesa.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 7,
+    "sodium_mg": 620
   },
   {
     "id": "huevos_010",
@@ -571,10 +1030,14 @@
       }
     ],
     "steps": [
-      "Cocer los huevos 10 min, enfriar y pelar",
-      "Cortar por la mitad y sacar las yemas",
-      "Mezclar yemas con atún, mayonesa y pimiento picado",
-      "Rellenar las claras y napar con tomate"
+      "Llevar a ebullición agua en un cazo a fuego fuerte. Añadir huevo con cuidado y cocer durante 10 min a fuego medio.",
+      "Escurrir los huevos y sumergirlos en agua fría hasta que estén completamente fríos.",
+      "Pelar los huevos y cortar cada uno por la mitad a lo largo.",
+      "Extraer las yemas con una cucharilla y reservarlas en un bol. Reservar las claras en una fuente.",
+      "Cortar pimiento morrón en trozos muy pequeños.",
+      "Añadir al bol con las yemas atún en conserva, mayonesa y el pimiento morrón picado. Mezclar hasta obtener una pasta homogénea.",
+      "Rellenar cada clara con la mezcla usando una cucharilla, formando un montículo generoso.",
+      "Napar cada huevo relleno con tomate triturado y servir."
     ],
     "description": "Huevos cocidos rellenos de atún y mayonesa con tomate",
     "methods": [
@@ -590,7 +1053,53 @@
         "difficulty": "facil",
         "prepSummary": "Cocina los huevos en la olla express con un poco de agua durante 5-7 minutos a presión alta. Enfría rápidamente para facilitar el pelado y luego procede con el relleno manual."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Llevar a ebullición agua en un cazo a fuego fuerte. Añadir {{Huevo}} con cuidado y cocer durante 10 min a fuego medio.",
+        "minutes": 12,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir los huevos y sumergirlos en agua fría hasta que estén completamente fríos.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar los huevos y cortar cada uno por la mitad a lo largo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Extraer las yemas con una cucharilla y reservarlas en un bol. Reservar las claras en una fuente.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento morrón}} en trozos muy pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir al bol con las yemas {{Atún en conserva}}, {{Mayonesa}} y el pimiento morrón picado. Mezclar hasta obtener una pasta homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Rellenar cada clara con la mezcla usando una cucharilla, formando un montículo generoso.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Napar cada huevo relleno con {{Tomate triturado}} y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 3,
+    "saturated_fat_g": 5,
+    "sodium_mg": 420
   },
   {
     "id": "huevos_011",
@@ -647,13 +1156,69 @@
       }
     ],
     "steps": [
-      "Saltear las gambas con ajo laminado 2 min",
-      "Añadir los huevos batidos",
-      "Remover suavemente a fuego medio-bajo",
-      "Retirar cuando estén cremosos y servir con perejil"
+      "Laminar ajo.",
+      "Batir huevo en un bol hasta que estén homogéneos.",
+      "Picar perejil finamente y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír el ajo laminado hasta que empiece a dorarse, sin que se queme.",
+      "Añadir gambas peladas y saltear a fuego fuerte hasta que estén rosadas, unos 2 min.",
+      "Bajar a fuego suave y añadir el huevo batido sobre las gambas.",
+      "Remover suavemente con una espátula hasta que el huevo esté cremoso y cuajado a punto.",
+      "Retirar del fuego y servir de inmediato con el perejil picado por encima."
     ],
     "description": "Revuelto cremoso de huevos con gambas al ajillo",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta que estén homogéneos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} finamente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado hasta que empiece a dorarse, sin que se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Gambas peladas}} y saltear a fuego fuerte hasta que estén rosadas, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Bajar a fuego suave y añadir el huevo batido sobre las gambas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover suavemente con una espátula hasta que el huevo esté cremoso y cuajado a punto.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y servir de inmediato con el perejil picado por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320
   },
   {
     "id": "huevos_012",
@@ -701,13 +1266,87 @@
       }
     ],
     "steps": [
-      "Saltear las espinacas con ajo hasta que reduzcan",
-      "Escurrir bien y picar grueso",
-      "Mezclar con los huevos batidos y salpimentar",
-      "Cuajar en sartén con aceite 3 min por lado"
+      "Pelar y picar ajo fino.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír el ajo picado hasta que esté dorado.",
+      "Añadir espinacas frescas y saltear a fuego medio hasta que reduzcan por completo.",
+      "Retirar las espinacas de la sartén y escurrir bien el líquido sobrante.",
+      "Cortar las espinacas escurridas en trozos gruesos.",
+      "Batir huevo en un bol hasta homogeneizar.",
+      "Mezclar las espinacas picadas con los huevos batidos y salpimentar al gusto.",
+      "Calentar aceite de oliva en la sartén limpia a fuego medio.",
+      "Verter la mezcla de huevo y espinacas en la sartén y cocer hasta que los bordes estén cuajados, unos 3 min.",
+      "Dar la vuelta a la tortilla con un plato y cuajar el otro lado hasta que esté hecha, unos 3 min.",
+      "Retirar y servir en plato."
     ],
     "description": "Tortilla jugosa de espinacas salteadas con ajo",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Ajo}} fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado hasta que esté dorado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Espinacas frescas}} y saltear a fuego medio hasta que reduzcan por completo.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las espinacas de la sartén y escurrir bien el líquido sobrante.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar las espinacas escurridas en trozos gruesos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hasta homogeneizar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar las espinacas picadas con los huevos batidos y salpimentar al gusto.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en la sartén limpia a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la mezcla de huevo y espinacas en la sartén y cocer hasta que los bordes estén cuajados, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a la tortilla con un plato y cuajar el otro lado hasta que esté hecha, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar y servir en plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 1,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "huevos_013",
@@ -779,10 +1418,17 @@
       }
     ],
     "steps": [
-      "Sofreír cebolla y pimiento, añadir tomate y cocer 10 min",
-      "Repartir en cazuelitas con guisantes, jamón y chorizo",
-      "Cascar dos huevos en cada cazuelita",
-      "Hornear a 200°C 10 min"
+      "Cortar cebolla en brunoise fina y pimiento rojo en tiras de 1 cm.",
+      "Cortar chorizo en rodajas de 5 mm y jamón serrano en taquitos pequeños.",
+      "Calentar aceite de oliva en una cazuela de barro o sartén apta para horno a fuego medio.",
+      "Sofreír la cebolla picada y el pimiento rojo en tiras hasta que estén tiernos, unos 5 min a fuego medio.",
+      "Añadir el chorizo en rodajas y el jamón en taquitos; sofreír 2 min hasta que suelten su grasa.",
+      "Añadir tomate triturado y guisantes; remover y cocer a fuego medio-suave 8 min hasta que la salsa espese.",
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Repartir la base de sofrito en 2 cazuelitas individuales aptas para horno, dejando hueco en el centro.",
+      "Cascar huevo con cuidado, 2 por cazuelita, sobre la base de sofrito sin romper la yema.",
+      "Hornear las cazuelitas a 200 °C durante 8-10 min hasta que la clara esté cuajada y la yema aún jugosa.",
+      "Retirar del horno con cuidado y servir las cazuelitas directamente en la mesa."
     ],
     "description": "Huevos al horno sobre sofrito con pimiento, jamón y chorizo",
     "methods": [
@@ -804,7 +1450,69 @@
         "difficulty": "normal",
         "prepSummary": "Prepara el sofrito en un bol apto para microondas. Distribúyelo en tazas o ramequines individuales con el resto de ingredientes. Casca los huevos, pincha ligeramente las yemas y cocina a media potencia (500W) en intervalos de 1 minuto hasta que las claras cuajen, vigilando para no sobrecocer las yemas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Cebolla}} en brunoise fina y {{Pimiento rojo}} en tiras de 1 cm.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Chorizo}} en rodajas de 5 mm y {{Jamón serrano}} en taquitos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una cazuela de barro o sartén apta para horno a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el pimiento rojo en tiras hasta que estén tiernos, unos 5 min a fuego medio.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el chorizo en rodajas y el jamón en taquitos; sofreír 2 min hasta que suelten su grasa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Guisantes}}; remover y cocer a fuego medio-suave 8 min hasta que la salsa espese.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 5
+      },
+      {
+        "text": "Repartir la base de sofrito en 2 cazuelitas individuales aptas para horno, dejando hueco en el centro.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Cascar {{Huevo}} con cuidado, 2 por cazuelita, sobre la base de sofrito sin romper la yema.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear las cazuelitas a 200 °C durante 8-10 min hasta que la clara esté cuajada y la yema aún jugosa.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno con cuidado y servir las cazuelitas directamente en la mesa.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 7,
+    "sodium_mg": 680
   },
   {
     "id": "huevos_014",
@@ -868,10 +1576,16 @@
       }
     ],
     "steps": [
-      "Cocer los huevos 10 min y enfriar en agua",
-      "Pelar y cortar en cuartos",
-      "Montar la ensalada con lechuga, tomate, pepino y aceitunas",
-      "Aliñar con aceite y vinagre"
+      "Llevar una olla con agua abundante a ebullición a fuego fuerte.",
+      "Introducir huevo con cuidado y cocer a fuego medio durante 10 min.",
+      "Cortar lechuga en trozos y distribuir en una fuente o bol grande.",
+      "Cortar tomate en gajos y añadir sobre la lechuga.",
+      "Cortar pepino en rodajas y añadir a la fuente.",
+      "Añadir aceitunas a la fuente con el resto de la ensalada.",
+      "Escurrir los huevos y sumergir en agua fría durante 2 min hasta que estén templados.",
+      "Pelar los huevos y cortar cada uno en 4 cuartos.",
+      "Aliñar la ensalada con aceite de oliva y vinagre, y remover con suavidad.",
+      "Disponer los cuartos de huevo sobre la ensalada y servir de inmediato."
     ],
     "description": "Huevos cocidos en cuartos sobre ensalada mixta aliñada",
     "methods": [
@@ -881,7 +1595,67 @@
         "difficulty": "facil",
         "prepSummary": "Calienta agua en la base de la vaporera hasta que hierva. Coloca los huevos en la cesta y cocina al vapor durante 12-15 minutos para huevos duros fáciles de pelar."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Llevar una olla con agua abundante a ebullición a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Introducir {{Huevo}} con cuidado y cocer a fuego medio durante 10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Lechuga}} en trozos y distribuir en una fuente o bol grande.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Tomate}} en gajos y añadir sobre la lechuga.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Pepino}} en rodajas y añadir a la fuente.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Añadir {{Aceitunas}} a la fuente con el resto de la ensalada.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Escurrir los huevos y sumergir en agua fría durante 2 min hasta que estén templados.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar los huevos y cortar cada uno en 4 cuartos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar la ensalada con {{Aceite de oliva|chorrito}} y {{Vinagre|chorrito}}, y remover con suavidad.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los cuartos de huevo sobre la ensalada y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "huevos_015",
@@ -934,12 +1708,80 @@
       }
     ],
     "steps": [
-      "Saltear las setas troceadas con ajo a fuego fuerte",
-      "Salpimentar y bajar el fuego",
-      "Añadir los huevos batidos y remover suavemente",
-      "Retirar cuando estén cremosos y añadir perejil"
+      "Picar ajo muy fino.",
+      "Cortar setas variadas en trozos irregulares de bocado.",
+      "Cascar huevo en un bol y batirlos hasta integrar la clara y la yema.",
+      "Picar perejil fino y reservar.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Añadir el ajo picado y saltear hasta que empiece a dorarse, sin que se queme.",
+      "Añadir las setas troceadas y saltear a fuego fuerte hasta que suelten el agua y se doren.",
+      "Salpimentar las setas al gusto y bajar el fuego a suave.",
+      "Verter los huevos batidos sobre las setas y remover suavemente con espátula hasta que cuajen de forma cremosa.",
+      "Retirar la sartén del fuego cuando los huevos aún estén ligeramente líquidos; el calor residual los termina.",
+      "Servir de inmediato con el perejil picado esparcido por encima."
     ],
     "description": "Revuelto cremoso de setas de temporada con ajo y perejil",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Setas variadas}} en trozos irregulares de bocado.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un bol y batirlos hasta integrar la clara y la yema.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y saltear hasta que empiece a dorarse, sin que se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las setas troceadas y saltear a fuego fuerte hasta que suelten el agua y se doren.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar las setas al gusto y bajar el fuego a suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter los huevos batidos sobre las setas y remover suavemente con espátula hasta que cuajen de forma cremosa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego cuando los huevos aún estén ligeramente líquidos; el calor residual los termina.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato con el perejil picado esparcido por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 1,
+    "saturated_fat_g": 4,
+    "sodium_mg": 210
   }
 ]

@@ -592,7 +592,13 @@ export function selectBestWeek(weeks) {
 async function aiParseWeeks(file, type) {
   const { parseMenu, menuToWeeksFormat } = await import("./menuParser.js");
   const menu = await parseMenu(file, type);
+  // menuToWeeksFormat now includes catalogIds for every entry.
   return menuToWeeksFormat(menu);
+}
+
+async function enrichFallbackWeeks(weeks) {
+  const { enrichWeeksWithCatalogIds } = await import("./menuParser.js");
+  return enrichWeeksWithCatalogIds(weeks);
 }
 
 // PDF: the vision model handles multi-week detection and dish placement far
@@ -609,10 +615,11 @@ async function importPdfMenu(file, { onProgress } = {}) {
   }
 
   const result = await extractTextFromPdf(file, { onProgress });
-  const weeks =
+  const rawWeeks =
     result.weeks && result.weeks.length > 0
       ? result.weeks
       : [{ weekLabel: "", entries: parseSchoolMenuText(result.rawText) }];
+  const weeks = await enrichFallbackWeeks(rawWeeks);
   return { rawText: result.rawText, weeks };
 }
 
@@ -636,7 +643,7 @@ export async function importSchoolMenuFile(file, { onProgress } = {}) {
       weeks = await aiParseWeeks(file, "csv");
     } catch {
       rawText = await extractTextFromCsv(file);
-      weeks = [{ weekLabel: "", entries: parseSchoolMenuCsv(rawText) }];
+      weeks = await enrichFallbackWeeks([{ weekLabel: "", entries: parseSchoolMenuCsv(rawText) }]);
     }
   } else if (isImage) {
     // Vision model first (more accurate on photos than tesseract); OCR fallback.
@@ -646,7 +653,7 @@ export async function importSchoolMenuFile(file, { onProgress } = {}) {
       if (weeks.length === 0) throw new Error("empty");
     } catch {
       rawText = await extractTextFromImage(file, { onProgress });
-      weeks = [{ weekLabel: "", entries: parseSchoolMenuText(rawText) }];
+      weeks = await enrichFallbackWeeks([{ weekLabel: "", entries: parseSchoolMenuText(rawText) }]);
     }
   } else {
     throw new Error("Formato no soportado. Usa PDF, JPG/PNG o CSV.");

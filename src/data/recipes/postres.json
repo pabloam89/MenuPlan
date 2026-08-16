@@ -4,7 +4,9 @@
     "name": "Macedonia de fruta fresca",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 10,
     "difficulty": "facil",
@@ -20,26 +22,104 @@
     "effort": "inmediato",
     "dessertKind": "fruta",
     "ingredients": [
-      { "name": "Manzana", "amount": 1, "unit": "ud" },
-      { "name": "Plátano", "amount": 1, "unit": "ud" },
-      { "name": "Naranja", "amount": 2, "unit": "ud" },
-      { "name": "Fresas", "amount": 150, "unit": "g" },
-      { "name": "Zumo de limón", "amount": 15, "unit": "ml" }
+      {
+        "name": "Manzana",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Naranja",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Fresas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      }
     ],
     "steps": [
-      "Pela y trocea la manzana, el plátano y una naranja",
-      "Limpia y parte las fresas",
-      "Exprime la otra naranja y el limón sobre la fruta",
-      "Mezcla con cuidado y enfría antes de servir"
+      "Pelar manzana y cortar en dados de 1 cm.",
+      "Pelar plátano y cortar en rodajas de 1 cm.",
+      "Pelar 1 naranja, separar en gajos y cortar cada gajo en 2 o 3 trozos.",
+      "Limpiar fresas, retirar el rabillo y cortar en cuartos.",
+      "Exprimir la naranja restante y mezclar su zumo con zumo de limón en un bol pequeño.",
+      "Reunir la manzana, el plátano, la naranja troceada y las fresas en un bol grande.",
+      "Verter la mezcla de zumos sobre la fruta y remover con suavidad hasta que toda la fruta quede impregnada.",
+      "Tapar el bol y refrigerar hasta que esté bien fría, al menos 15 min.",
+      "Servir la macedonia repartida en 4 cuencos fríos."
     ],
-    "description": "Macedonia fresca de manzana, plátano, naranja y fresas con un toque de cítrico"
+    "description": "Macedonia fresca de manzana, plátano, naranja y fresas con un toque de cítrico",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Manzana}} y cortar en dados de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Plátano}} y cortar en rodajas de 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar 1 {{Naranja}}, separar en gajos y cortar cada gajo en 2 o 3 trozos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Fresas}}, retirar el rabillo y cortar en cuartos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir la naranja restante y mezclar su zumo con {{Zumo de limón}} en un bol pequeño.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Reunir la manzana, el plátano, la naranja troceada y las fresas en un bol grande.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la mezcla de zumos sobre la fruta y remover con suavidad hasta que toda la fruta quede impregnada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el bol y refrigerar hasta que esté bien fría, al menos 15 min.",
+        "minutes": 15,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la macedonia repartida en 4 cuencos fríos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 28,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5
   },
   {
     "id": "postres_002",
     "name": "Yogur con miel y nueces",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 4,
     "difficulty": "facil",
@@ -50,29 +130,72 @@
     "baseServings": 2,
     "kidFriendly": false,
     "tupperFriendly": false,
-    "allergens": ["lactosa", "frutos_secos"],
+    "allergens": [
+      "lactosa",
+      "frutos_secos"
+    ],
     "season": "all",
     "effort": "inmediato",
     "dessertKind": "yogur",
     "ingredients": [
-      { "name": "Yogur natural", "amount": 250, "unit": "g" },
-      { "name": "Miel", "amount": 20, "unit": "ml" },
-      { "name": "Nueces", "amount": 40, "unit": "g" }
+      {
+        "name": "Yogur natural",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Nueces",
+        "amount": 40,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Reparte el yogur en dos cuencos",
-      "Trocea ligeramente las nueces",
-      "Reparte las nueces sobre el yogur",
-      "Termina con un hilo de miel"
+      "Cortar nueces en trozos gruesos con un cuchillo.",
+      "Repartir yogur natural en 2 cuencos individuales a partes iguales.",
+      "Distribuir las nueces troceadas sobre el yogur de cada cuenco.",
+      "Verter miel en hilo fino sobre cada cuenco y servir de inmediato."
     ],
-    "description": "Yogur natural con nueces troceadas y miel, un postre sencillo y saciante"
+    "description": "Yogur natural con nueces troceadas y miel, un postre sencillo y saciante",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Nueces}} en trozos gruesos con un cuchillo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Yogur natural}} en 2 cuencos individuales a partes iguales.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Distribuir las nueces troceadas sobre el yogur de cada cuenco.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Verter {{Miel|chorrito}} en hilo fino sobre cada cuenco y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 22,
+    "saturated_fat_g": 3,
+    "sodium_mg": 55
   },
   {
     "id": "postres_003",
     "name": "Fruta de temporada",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 3,
     "difficulty": "facil",
@@ -88,22 +211,58 @@
     "effort": "inmediato",
     "dessertKind": "fruta",
     "ingredients": [
-      { "name": "Manzana", "amount": 1, "unit": "ud" },
-      { "name": "Naranja", "amount": 1, "unit": "ud" }
+      {
+        "name": "Manzana",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Naranja",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
-      "Lava la fruta de temporada",
-      "Pela o trocea según la pieza",
-      "Sirve"
+      "Lavar manzana bajo el grifo con agua fría hasta que esté limpia.",
+      "Lavar naranja bajo el grifo con agua fría hasta que esté limpia.",
+      "Pelar la naranja y separar los gajos; cortar la manzana en láminas o trozos al gusto.",
+      "Servir la fruta en un plato o bol."
     ],
-    "description": "Pieza de fruta de temporada como postre ligero. El planner elige naranja, fresa, melocotón o uva según el mes."
+    "description": "Pieza de fruta de temporada como postre ligero. El planner elige naranja, fresa, melocotón o uva según el mes.",
+    "stepsRich": [
+      {
+        "text": "Lavar {{Manzana}} bajo el grifo con agua fría hasta que esté limpia.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Naranja}} bajo el grifo con agua fría hasta que esté limpia.",
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Pelar la naranja y separar los gajos; cortar la manzana en láminas o trozos al gusto.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Servir la fruta en un plato o bol.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 20,
+    "saturated_fat_g": 0,
+    "sodium_mg": 2
   },
   {
     "id": "postres_004",
     "name": "Natillas caseras",
     "category": "postres",
     "mainProtein": "huevo",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 25,
     "difficulty": "normal",
@@ -114,30 +273,122 @@
     "baseServings": 4,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa", "huevo"],
+    "allergens": [
+      "lactosa",
+      "huevo"
+    ],
     "season": "all",
     "effort": "cazo",
     "ingredients": [
-      { "name": "Leche", "amount": 500, "unit": "ml" },
-      { "name": "Huevo", "amount": 3, "unit": "ud" },
-      { "name": "Azúcar", "amount": 90, "unit": "g" },
-      { "name": "Maicena", "amount": 20, "unit": "g" }
+      {
+        "name": "Leche",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Maicena",
+        "amount": 20,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Bate las yemas con el azúcar y la maicena",
-      "Añade la leche caliente poco a poco sin dejar de remover",
-      "Cocina a fuego suave hasta que espese, sin que hierva",
-      "Reparte en cuencos y enfría"
+      "Separar huevo: extraer las yemas en un bol amplio y reservar las claras para otro uso.",
+      "Añadir azúcar y maicena a las yemas.",
+      "Mezclar con unas varillas hasta obtener una pasta homogénea y sin grumos.",
+      "Calentar leche en un cazo a fuego medio hasta que esté a punto de hervir; retirar antes de que rompa a ebullición.",
+      "Verter la leche caliente sobre la mezcla de yemas en hilo fino, removiendo sin parar con las varillas para templar las yemas.",
+      "Volcar la mezcla de nuevo al cazo a fuego suave.",
+      "Remover sin parar con las varillas hasta que la crema espese y nape la cuchara; no dejar que hierva.",
+      "Retirar el cazo del fuego y remover durante 1 min fuera del calor para detener la cocción y alisar la crema.",
+      "Repartir las natillas en 4 cuencos individuales y dejar enfriar a temperatura ambiente.",
+      "Tapar los cuencos y refrigerar hasta que las natillas estén completamente frías y cuajadas.",
+      "Servir los cuencos fríos directamente de la nevera."
     ],
     "description": "Natillas caseras de huevo y leche",
-    "productAliases": ["Natillas", "Natillas de vainilla"]
+    "productAliases": [
+      "Natillas",
+      "Natillas de vainilla"
+    ],
+    "stepsRich": [
+      {
+        "text": "Separar {{Huevo}}: extraer las yemas en un bol amplio y reservar las claras para otro uso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Azúcar}} y {{Maicena}} a las yemas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar con unas varillas hasta obtener una pasta homogénea y sin grumos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Leche}} en un cazo a fuego medio hasta que esté a punto de hervir; retirar antes de que rompa a ebullición.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la leche caliente sobre la mezcla de yemas en hilo fino, removiendo sin parar con las varillas para templar las yemas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Volcar la mezcla de nuevo al cazo a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar con las varillas hasta que la crema espese y nape la cuchara; no dejar que hierva.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y remover durante 1 min fuera del calor para detener la cocción y alisar la crema.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir las natillas en 4 cuencos individuales y dejar enfriar a temperatura ambiente.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Tapar los cuencos y refrigerar hasta que las natillas estén completamente frías y cuajadas.",
+        "minutes": 120,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir los cuencos fríos directamente de la nevera.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 28,
+    "saturated_fat_g": 3,
+    "sodium_mg": 75
   },
   {
     "id": "postres_005",
     "name": "Flan de huevo",
     "category": "postres",
     "mainProtein": "huevo",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 50,
     "difficulty": "normal",
@@ -148,22 +399,48 @@
     "baseServings": 4,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa", "huevo"],
+    "allergens": [
+      "lactosa",
+      "huevo"
+    ],
     "season": "all",
     "effort": "horno",
     "ingredients": [
-      { "name": "Leche", "amount": 500, "unit": "ml" },
-      { "name": "Huevo", "amount": 4, "unit": "ud" },
-      { "name": "Azúcar", "amount": 120, "unit": "g" }
+      {
+        "name": "Leche",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 120,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Prepara un caramelo con parte del azúcar y forra los moldes",
-      "Bate los huevos con el resto del azúcar y la leche",
-      "Reparte en los moldes y cuece al baño maría en el horno",
-      "Enfría bien antes de desmoldar"
+      "Separar 60 g de azúcar y reservar el resto para la crema.",
+      "Verter los 60 g de azúcar en un cazo a fuego medio sin remover hasta que se funda y tome color ámbar dorado.",
+      "Repartir el caramelo caliente entre 4 flaneras individuales, girándolas para cubrir el fondo. Reservar.",
+      "Calentar leche en un cazo a fuego medio hasta que esté caliente pero sin llegar a hervir. Retirar del fuego.",
+      "Cascar huevo en un bol grande y añadir los 60 g de azúcar reservados. Mezclar con varillas hasta que el azúcar se integre.",
+      "Verter la leche caliente sobre la mezcla de huevos en hilo fino, removiendo sin parar para no cuajar los huevos.",
+      "Colar la mezcla con un colador fino y repartirla entre las 4 flaneras con el caramelo.",
+      "Precalentar el horno a 170 °C con calor arriba y abajo.",
+      "Colocar las flaneras en una bandeja honda. Verter agua caliente en la bandeja hasta alcanzar la mitad de la altura de los moldes.",
+      "Hornear al baño maría a 170 °C durante 35 min, hasta que el flan esté cuajado pero con un ligero temblor en el centro.",
+      "Retirar las flaneras del baño maría y dejar enfriar a temperatura ambiente hasta que estén templadas.",
+      "Refrigerar las flaneras en la nevera durante un mínimo de 2 h hasta que estén bien frías y firmes.",
+      "Pasar un cuchillo fino por el borde de cada flanera, colocar un plato encima y desmoldar con un giro rápido. Servir."
     ],
     "description": "Flan de huevo casero al baño maría",
-    "productAliases": ["Flan"],
+    "productAliases": [
+      "Flan"
+    ],
     "methods": [
       {
         "appliance": "horno",
@@ -171,7 +448,78 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta el horno a 180°C. Haz un caramelo, forra los moldes, bate huevos con leche y azúcar, y cuece al baño maría unos 40 minutos."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Separar 60 g de {{Azúcar}} y reservar el resto para la crema.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter los 60 g de azúcar en un cazo a fuego medio sin remover hasta que se funda y tome color ámbar dorado.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el caramelo caliente entre 4 flaneras individuales, girándolas para cubrir el fondo. Reservar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Leche}} en un cazo a fuego medio hasta que esté caliente pero sin llegar a hervir. Retirar del fuego.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un bol grande y añadir los 60 g de azúcar reservados. Mezclar con varillas hasta que el azúcar se integre.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter la leche caliente sobre la mezcla de huevos en hilo fino, removiendo sin parar para no cuajar los huevos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colar la mezcla con un colador fino y repartirla entre las 4 flaneras con el caramelo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 170 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar las flaneras en una bandeja honda. Verter agua caliente en la bandeja hasta alcanzar la mitad de la altura de los moldes.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear al baño maría a 170 °C durante 35 min, hasta que el flan esté cuajado pero con un ligero temblor en el centro.",
+        "minutes": 35,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar las flaneras del baño maría y dejar enfriar a temperatura ambiente hasta que estén templadas.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Refrigerar las flaneras en la nevera durante un mínimo de 2 h hasta que estén bien frías y firmes.",
+        "minutes": 120,
+        "kind": "espera"
+      },
+      {
+        "text": "Pasar un cuchillo fino por el borde de cada flanera, colocar un plato encima y desmoldar con un giro rápido. Servir.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 28,
+    "saturated_fat_g": 3,
+    "sodium_mg": 95
   },
   {
     "id": "postres_006",
@@ -179,7 +527,9 @@
     "category": "postres",
     "mainProtein": "none",
     "mainBase": "arroz",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 45,
     "difficulty": "normal",
@@ -190,30 +540,100 @@
     "baseServings": 4,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "effort": "cazo",
     "ingredients": [
-      { "name": "Arroz", "amount": 150, "unit": "g" },
-      { "name": "Leche", "amount": 800, "unit": "ml" },
-      { "name": "Azúcar", "amount": 100, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Arroz",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 800,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
-      "Cuece el arroz con la leche y la piel de limón a fuego suave",
-      "Remueve a menudo durante unos 35-40 minutos",
-      "Añade el azúcar al final y mezcla",
-      "Reparte en cuencos y enfría"
+      "Pelar limón con un pelador o cuchillo, extrayendo solo la parte amarilla sin la parte blanca.",
+      "Verter leche en un cazo amplio y añadir la piel de limón. Llevar a ebullición a fuego medio.",
+      "Añadir arroz a la leche cuando rompa a hervir. Bajar el fuego a suave y remover.",
+      "Cocer el arroz a fuego suave durante 30 min, removiendo cada 2-3 min hasta que esté cremoso y tierno.",
+      "Retirar la piel de limón del cazo y desecharla.",
+      "Añadir azúcar al arroz y remover hasta que se disuelva por completo, unos 2 min a fuego suave.",
+      "Repartir el arroz con leche en 4 cuencos individuales.",
+      "Dejar enfriar los cuencos a temperatura ambiente y refrigerar hasta que estén fríos antes de servir."
     ],
     "description": "Arroz con leche tradicional aromatizado con limón",
-    "productAliases": []
+    "productAliases": [],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Limón}} con un pelador o cuchillo, extrayendo solo la parte amarilla sin la parte blanca.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Leche}} en un cazo amplio y añadir la piel de limón. Llevar a ebullición a fuego medio.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Arroz}} a la leche cuando rompa a hervir. Bajar el fuego a suave y remover.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer el arroz a fuego suave durante 30 min, removiendo cada 2-3 min hasta que esté cremoso y tierno.",
+        "minutes": 30,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la piel de limón del cazo y desecharla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Azúcar}} al arroz y remover hasta que se disuelva por completo, unos 2 min a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el arroz con leche en 4 cuencos individuales.",
+        "minutes": 2,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Dejar enfriar los cuencos a temperatura ambiente y refrigerar hasta que estén fríos antes de servir.",
+        "minutes": 60,
+        "kind": "espera"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 32,
+    "saturated_fat_g": 4,
+    "sodium_mg": 80
   },
   {
     "id": "postres_007",
     "name": "Manzana asada",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 40,
     "difficulty": "facil",
@@ -228,14 +648,33 @@
     "season": "invierno",
     "effort": "horno",
     "ingredients": [
-      { "name": "Manzana", "amount": 4, "unit": "ud" },
-      { "name": "Azúcar", "amount": 40, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Manzana",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
-      "Descorazona las manzanas y colócalas en una fuente",
-      "Reparte azúcar y unas gotas de limón sobre cada una",
-      "Hornea a 180°C unos 35 minutos hasta que estén tiernas"
+      "Lavar manzana bajo el grifo y secar bien con un paño.",
+      "Descorazonar cada manzana con un descorazonador o cuchillo, sin llegar al fondo, para crear un hueco central.",
+      "Exprimir limón y reservar el zumo en un bol pequeño.",
+      "Precalentar el horno a 180 °C con calor arriba y abajo.",
+      "Colocar las manzanas en pie sobre una fuente de horno, dejando espacio entre ellas.",
+      "Repartir azúcar en partes iguales dentro del hueco de cada manzana.",
+      "Verter unas gotas del zumo de limón sobre cada manzana para aromatizar y evitar la oxidación.",
+      "Hornear la fuente en el centro del horno a 180 °C durante 35 min, hasta que las manzanas estén tiernas al pincharlas con una brocheta.",
+      "Retirar la fuente del horno y dejar reposar las manzanas 5 min antes de servir.",
+      "Servir cada manzana en un plato individual, regando con el jugo caramelizado que haya quedado en la fuente."
     ],
     "description": "Manzanas asadas al horno con azúcar y limón",
     "methods": [
@@ -245,14 +684,72 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 180°C. Descorazona las manzanas, colócalas en una fuente con un poco de azúcar y unas gotas de limón, y hornea unos 35-40 minutos hasta que estén tiernas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar {{Manzana}} bajo el grifo y secar bien con un paño.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Descorazonar cada manzana con un descorazonador o cuchillo, sin llegar al fondo, para crear un hueco central.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo en un bol pequeño.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar las manzanas en pie sobre una fuente de horno, dejando espacio entre ellas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Azúcar}} en partes iguales dentro del hueco de cada manzana.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter unas gotas del zumo de limón sobre cada manzana para aromatizar y evitar la oxidación.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear la fuente en el centro del horno a 180 °C durante 35 min, hasta que las manzanas estén tiernas al pincharlas con una brocheta.",
+        "minutes": 35,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la fuente del horno y dejar reposar las manzanas 5 min antes de servir.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir cada manzana en un plato individual, regando con el jugo caramelizado que haya quedado en la fuente.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 32,
+    "saturated_fat_g": 0,
+    "sodium_mg": 4
   },
   {
     "id": "postres_008",
     "name": "Yogur natural",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 2,
     "difficulty": "facil",
@@ -263,25 +760,37 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "effort": "inmediato",
     "dessertKind": "yogur",
     "ingredients": [
-      { "name": "Yogur natural", "amount": 250, "unit": "g" }
+      {
+        "name": "Yogur natural",
+        "amount": 250,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Reparte el yogur en dos cuencos",
       "Sirve frío"
     ],
-    "description": "Yogur natural sin nada más, el postre de siempre"
+    "description": "Yogur natural sin nada más, el postre de siempre",
+    "fiber_g": 0,
+    "sugar_g": 6,
+    "saturated_fat_g": 2,
+    "sodium_mg": 50
   },
   {
     "id": "postres_009",
     "name": "Yogur con fruta",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 5,
     "difficulty": "facil",
@@ -292,28 +801,71 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "effort": "inmediato",
     "dessertKind": "yogur",
     "ingredients": [
-      { "name": "Yogur natural", "amount": 250, "unit": "g" },
-      { "name": "Plátano", "amount": 1, "unit": "ud" },
-      { "name": "Fresas", "amount": 100, "unit": "g" }
+      {
+        "name": "Yogur natural",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Fresas",
+        "amount": 100,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Trocea el plátano y las fresas",
-      "Reparte el yogur en dos cuencos",
-      "Añade la fruta troceada por encima"
+      "Pelar plátano y cortar en rodajas de 1 cm.",
+      "Lavar fresas, retirar el pedúnculo y cortar en cuartos.",
+      "Repartir yogur natural en 2 cuencos individuales a partes iguales.",
+      "Distribuir las rodajas de plátano y las fresas en cuartos sobre el yogur de cada cuenco."
     ],
-    "description": "Yogur natural con plátano y fresas troceadas"
+    "description": "Yogur natural con plátano y fresas troceadas",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Plátano}} y cortar en rodajas de 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Fresas}}, retirar el pedúnculo y cortar en cuartos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Yogur natural}} en 2 cuencos individuales a partes iguales.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Distribuir las rodajas de plátano y las fresas en cuartos sobre el yogur de cada cuenco.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 18,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "postres_013",
     "name": "Yogur de frutas",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 1,
     "difficulty": "facil",
@@ -324,26 +876,41 @@
     "baseServings": 2,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "effort": "inmediato",
     "dessertKind": "yogur",
     "ingredients": [
-      { "name": "Yogur de sabores", "amount": 250, "unit": "g" }
+      {
+        "name": "Yogur de sabores",
+        "amount": 250,
+        "unit": "g"
+      }
     ],
     "steps": [
       "Abre los yogures",
       "Sirve fríos"
     ],
     "description": "Yogur de sabores de nevera, el postre más rápido",
-    "productAliases": ["Yogur de fresa", "Yogur de frutas"]
+    "productAliases": [
+      "Yogur de fresa",
+      "Yogur de frutas"
+    ],
+    "fiber_g": 0,
+    "sugar_g": 13,
+    "saturated_fat_g": 1,
+    "sodium_mg": 55
   },
   {
     "id": "postres_014",
     "name": "Compota de manzana",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 25,
     "difficulty": "facil",
@@ -358,25 +925,86 @@
     "season": "invierno",
     "effort": "cazo",
     "ingredients": [
-      { "name": "Manzana", "amount": 4, "unit": "ud" },
-      { "name": "Azúcar", "amount": 40, "unit": "g" },
-      { "name": "Canela", "amount": 2, "unit": "g" },
-      { "name": "Limón", "amount": 1, "unit": "ud" }
+      {
+        "name": "Manzana",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Canela",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
     ],
     "steps": [
-      "Pela y trocea las manzanas",
-      "Ponlas en un cazo con un chorrito de agua, el azúcar, la canela y un poco de limón",
-      "Cuece a fuego suave 20 minutos hasta que estén tiernas",
-      "Sirve tibia o fría"
+      "Pelar manzana y cortar en trozos de tamaño similar.",
+      "Exprimir limón y reservar el zumo.",
+      "Poner los trozos de manzana en un cazo con azúcar, canela y el zumo de limón.",
+      "Añadir 2 cucharadas de agua y remover para mezclar todos los ingredientes.",
+      "Tapar el cazo y cocer a fuego suave hasta que la manzana esté tierna, unos 20 min.",
+      "Retirar del fuego y triturar o dejar en trozos según la textura deseada.",
+      "Servir la compota tibia o dejar enfriar antes de llevar a la mesa."
     ],
-    "description": "Compota de manzana casera con canela, de cazo"
+    "description": "Compota de manzana casera con canela, de cazo",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Manzana}} y cortar en trozos de tamaño similar.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Poner los trozos de manzana en un cazo con {{Azúcar}}, {{Canela|pizca}} y el zumo de limón.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir 2 cucharadas de agua y remover para mezclar todos los ingredientes.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el cazo y cocer a fuego suave hasta que la manzana esté tierna, unos 20 min.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del fuego y triturar o dejar en trozos según la textura deseada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la compota tibia o dejar enfriar antes de llevar a la mesa.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 28,
+    "saturated_fat_g": 0,
+    "sodium_mg": 4
   },
   {
     "id": "postres_015",
     "name": "Crema de chocolate",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 20,
     "difficulty": "facil",
@@ -387,29 +1015,105 @@
     "baseServings": 4,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["lactosa"],
+    "allergens": [
+      "lactosa"
+    ],
     "season": "all",
     "effort": "cazo",
     "ingredients": [
-      { "name": "Leche", "amount": 400, "unit": "ml" },
-      { "name": "Chocolate negro", "amount": 120, "unit": "g" },
-      { "name": "Azúcar", "amount": 40, "unit": "g" },
-      { "name": "Maicena", "amount": 20, "unit": "g" }
+      {
+        "name": "Leche",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Chocolate negro",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Maicena",
+        "amount": 20,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Calienta la leche con el azúcar",
-      "Añade el chocolate troceado y remueve hasta que se funda",
-      "Disuelve la maicena en un poco de leche fría y cuaja a fuego suave",
-      "Reparte en cuencos y enfría"
+      "Reservar 50 ml de leche fría en un vaso pequeño para disolver la maicena más adelante.",
+      "Trocear chocolate negro en piezas pequeñas para que se funda con facilidad.",
+      "Disolver maicena en los 50 ml de leche fría reservados, removiendo hasta que no queden grumos.",
+      "Verter el resto de leche y azúcar en un cazo y calentar a fuego medio hasta que empiece a humear, sin llegar a hervir.",
+      "Añadir el chocolate troceado al cazo y remover sin parar a fuego suave hasta que se funda por completo.",
+      "Incorporar la mezcla de maicena disuelta al cazo en hilo fino, sin dejar de remover.",
+      "Cocer a fuego suave sin parar de remover hasta que la crema espese y nape la cuchara, unos 4 min.",
+      "Repartir la crema en 4 cuencos individuales y dejar enfriar a temperatura ambiente durante 10 min.",
+      "Servir a temperatura ambiente o refrigerar hasta el momento de servir."
     ],
-    "description": "Crema de chocolate de cazo, para enfriar en la nevera"
+    "description": "Crema de chocolate de cazo, para enfriar en la nevera",
+    "stepsRich": [
+      {
+        "text": "Reservar 50 ml de {{Leche}} fría en un vaso pequeño para disolver la maicena más adelante.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Trocear {{Chocolate negro}} en piezas pequeñas para que se funda con facilidad.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Disolver {{Maicena}} en los 50 ml de leche fría reservados, removiendo hasta que no queden grumos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter el resto de {{Leche}} y {{Azúcar}} en un cazo y calentar a fuego medio hasta que empiece a humear, sin llegar a hervir.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el chocolate troceado al cazo y remover sin parar a fuego suave hasta que se funda por completo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la mezcla de maicena disuelta al cazo en hilo fino, sin dejar de remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave sin parar de remover hasta que la crema espese y nape la cuchara, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la crema en 4 cuencos individuales y dejar enfriar a temperatura ambiente durante 10 min.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir a temperatura ambiente o refrigerar hasta el momento de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 22,
+    "saturated_fat_g": 7,
+    "sodium_mg": 55
   },
   {
     "id": "postres_016",
     "name": "Tarta de limón",
     "category": "postres",
     "mainProtein": "huevo",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 70,
     "difficulty": "elaborada",
@@ -420,21 +1124,59 @@
     "baseServings": 8,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "effort": "horno",
     "ingredients": [
-      { "name": "Galletas María", "amount": 200, "unit": "g" },
-      { "name": "Mantequilla", "amount": 80, "unit": "g" },
-      { "name": "Leche condensada", "amount": 400, "unit": "g" },
-      { "name": "Limón", "amount": 3, "unit": "ud" },
-      { "name": "Huevo", "amount": 3, "unit": "ud" }
+      {
+        "name": "Galletas María",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche condensada",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      }
     ],
     "steps": [
-      "Tritura las galletas con la mantequilla y forra un molde",
-      "Mezcla la leche condensada con el zumo y la ralladura de limón y las yemas",
-      "Vierte sobre la base y hornea a 160°C unos 25 minutos",
-      "Enfría bien en la nevera antes de desmoldar"
+      "Fundir mantequilla en un cazo a fuego suave hasta que esté completamente líquida.",
+      "Retirar el cazo del fuego y reservar la mantequilla fundida.",
+      "Triturar galletas maría en una bolsa con un rodillo hasta obtener un polvo fino y uniforme.",
+      "Mezclar las galletas trituradas con la mantequilla fundida en un bol hasta que la mezcla tenga textura de arena húmeda.",
+      "Verter la mezcla en un molde desmontable de 22 cm y presionar con el dorso de una cuchara para formar una base compacta.",
+      "Refrigerar el molde en la nevera hasta que la base esté firme.",
+      "Precalentar el horno a 160 °C con calor arriba y abajo.",
+      "Rallar la piel de limón con un rallador fino, evitando la parte blanca, hasta obtener la ralladura de los 3 limones.",
+      "Exprimir los limones rallados y colar el zumo para retirar pepitas y pulpa. Reservar.",
+      "Separar las yemas de huevo y colocarlas en un bol amplio. Reservar las claras para otro uso.",
+      "Añadir leche condensada al bol con las yemas y batir con varillas hasta obtener una mezcla homogénea.",
+      "Incorporar el zumo de limón colado a la mezcla de leche condensada y yemas. Remover hasta integrar.",
+      "Añadir la ralladura de limón a la mezcla anterior y remover hasta que quede distribuida de forma uniforme.",
+      "Verter el relleno sobre la base de galleta fría con cuidado para no desplazarla.",
+      "Hornear a 160 °C durante 25 min, hasta que el relleno esté cuajado en los bordes con un ligero temblor en el centro.",
+      "Retirar del horno y dejar enfriar a temperatura ambiente hasta que el molde no queme al tacto.",
+      "Refrigerar la tarta en la nevera hasta que esté completamente firme y fría.",
+      "Desmoldar con cuidado retirando el aro del molde. Cortar en porciones y servir."
     ],
     "description": "Tarta de limón casera con base de galleta",
     "methods": [
@@ -444,14 +1186,112 @@
         "difficulty": "elaborada",
         "prepSummary": "Precalienta el horno a 160°C. Haz la base de galleta, mezcla el relleno de limón y hornea 25 minutos. Deja enfriar en la nevera."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego suave hasta que esté completamente líquida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y reservar la mantequilla fundida.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar {{Galletas María}} en una bolsa con un rodillo hasta obtener un polvo fino y uniforme.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar las galletas trituradas con la mantequilla fundida en un bol hasta que la mezcla tenga textura de arena húmeda.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter la mezcla en un molde desmontable de 22 cm y presionar con el dorso de una cuchara para formar una base compacta.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Refrigerar el molde en la nevera hasta que la base esté firme.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 160 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Rallar la piel de {{Limón}} con un rallador fino, evitando la parte blanca, hasta obtener la ralladura de los 3 limones.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir los limones rallados y colar el zumo para retirar pepitas y pulpa. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Separar las yemas de {{Huevo}} y colocarlas en un bol amplio. Reservar las claras para otro uso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Leche condensada}} al bol con las yemas y batir con varillas hasta obtener una mezcla homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el zumo de limón colado a la mezcla de leche condensada y yemas. Remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la ralladura de limón a la mezcla anterior y remover hasta que quede distribuida de forma uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el relleno sobre la base de galleta fría con cuidado para no desplazarla.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 160 °C durante 25 min, hasta que el relleno esté cuajado en los bordes con un ligero temblor en el centro.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y dejar enfriar a temperatura ambiente hasta que el molde no queme al tacto.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Refrigerar la tarta en la nevera hasta que esté completamente firme y fría.",
+        "minutes": 120,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar con cuidado retirando el aro del molde. Cortar en porciones y servir.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 34,
+    "saturated_fat_g": 8,
+    "sodium_mg": 160
   },
   {
     "id": "postres_017",
     "name": "Tarta de queso",
     "category": "postres",
     "mainProtein": "none",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 80,
     "difficulty": "elaborada",
@@ -462,22 +1302,60 @@
     "baseServings": 8,
     "kidFriendly": true,
     "tupperFriendly": false,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "effort": "horno",
     "ingredients": [
-      { "name": "Galletas María", "amount": 180, "unit": "g" },
-      { "name": "Mantequilla", "amount": 80, "unit": "g" },
-      { "name": "Queso crema", "amount": 400, "unit": "g" },
-      { "name": "Nata para montar", "amount": 200, "unit": "ml" },
-      { "name": "Azúcar", "amount": 120, "unit": "g" },
-      { "name": "Huevo", "amount": 3, "unit": "ud" }
+      {
+        "name": "Galletas María",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso crema",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para montar",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      }
     ],
     "steps": [
-      "Tritura las galletas con la mantequilla y forra un molde desmontable",
-      "Bate el queso crema con el azúcar, añade huevos y nata",
-      "Vierte sobre la base y hornea a 170°C unos 50 minutos al baño maría",
-      "Enfría en la nevera al menos 4 horas"
+      "Precalentar el horno a 170 °C con calor arriba y abajo.",
+      "Triturar galletas maría en un bol hasta obtener un polvo fino.",
+      "Fundir mantequilla en un cazo a fuego suave hasta que esté líquida.",
+      "Mezclar la mantequilla fundida con las galletas trituradas hasta que la mezcla quede húmeda y uniforme.",
+      "Extender la mezcla de galletas en la base de un molde desmontable de 22 cm y presionar bien para formar una capa compacta. Reservar.",
+      "Batir queso crema con azúcar en un bol a velocidad media hasta que la mezcla esté suave y sin grumos.",
+      "Añadir huevo uno a uno al bol, batiendo después de cada uno hasta que se integre por completo.",
+      "Incorporar nata para montar a la mezcla y remover a velocidad suave hasta obtener una crema homogénea.",
+      "Verter la crema de queso sobre la base de galletas en el molde, alisando la superficie con una espátula.",
+      "Colocar el molde dentro de una bandeja honda. Llenar la bandeja con agua caliente hasta alcanzar 2 cm de altura para el baño maría.",
+      "Hornear a 170 °C durante 50 min al baño maría hasta que los bordes estén cuajados y el centro tiemble ligeramente al mover el molde.",
+      "Retirar la tarta del horno y del baño maría. Dejar enfriar a temperatura ambiente durante 30 min.",
+      "Refrigerar la tarta en la nevera un mínimo de 4 horas hasta que esté completamente firme.",
+      "Desmoldar con cuidado y servir en porciones."
     ],
     "description": "Tarta de queso al horno, para hacer de antemano",
     "methods": [
@@ -487,14 +1365,92 @@
         "difficulty": "elaborada",
         "prepSummary": "Precalienta el horno a 170°C. Prepara la base de galleta, bate el relleno y hornea al baño maría unos 50 minutos. Enfría en la nevera."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 170 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Triturar {{Galletas María}} en un bol hasta obtener un polvo fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego suave hasta que esté líquida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar la mantequilla fundida con las galletas trituradas hasta que la mezcla quede húmeda y uniforme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Extender la mezcla de galletas en la base de un molde desmontable de 22 cm y presionar bien para formar una capa compacta. Reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Queso crema}} con {{Azúcar}} en un bol a velocidad media hasta que la mezcla esté suave y sin grumos.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Huevo}} uno a uno al bol, batiendo después de cada uno hasta que se integre por completo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Nata para montar}} a la mezcla y remover a velocidad suave hasta obtener una crema homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la crema de queso sobre la base de galletas en el molde, alisando la superficie con una espátula.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar el molde dentro de una bandeja honda. Llenar la bandeja con agua caliente hasta alcanzar 2 cm de altura para el baño maría.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 170 °C durante 50 min al baño maría hasta que los bordes estén cuajados y el centro tiemble ligeramente al mover el molde.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la tarta del horno y del baño maría. Dejar enfriar a temperatura ambiente durante 30 min.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Refrigerar la tarta en la nevera un mínimo de 4 horas hasta que esté completamente firme.",
+        "minutes": 240,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar con cuidado y servir en porciones.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 22,
+    "saturated_fat_g": 14,
+    "sodium_mg": 280
   },
   {
     "id": "postres_018",
     "name": "Bizcocho de yogur",
     "category": "postres",
     "mainProtein": "huevo",
-    "mealRole": ["postre"],
+    "mealRole": [
+      "postre"
+    ],
     "type": "completo",
     "time": 55,
     "difficulty": "normal",
@@ -505,22 +1461,58 @@
     "baseServings": 8,
     "kidFriendly": true,
     "tupperFriendly": true,
-    "allergens": ["gluten", "huevo", "lactosa"],
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
     "season": "all",
     "effort": "horno",
     "ingredients": [
-      { "name": "Yogur natural", "amount": 125, "unit": "g" },
-      { "name": "Harina", "amount": 250, "unit": "g" },
-      { "name": "Azúcar", "amount": 180, "unit": "g" },
-      { "name": "Huevo", "amount": 3, "unit": "ud" },
-      { "name": "Aceite de girasol", "amount": 80, "unit": "ml" },
-      { "name": "Levadura química", "amount": 16, "unit": "g" }
+      {
+        "name": "Yogur natural",
+        "amount": 125,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 16,
+        "unit": "g"
+      }
     ],
     "steps": [
-      "Usa el vaso de yogur como medida: 1 yogur, 2 de azúcar, 3 de harina",
-      "Mezcla yogur, huevos, azúcar y aceite; añade harina y levadura",
-      "Vierte en un molde enharinado y hornea a 180°C unos 40 minutos",
-      "Deja templar antes de desmoldar"
+      "Precalentar el horno a 180 °C con calor arriba y abajo.",
+      "Enharinar un molde redondo de unos 22 cm y reservar.",
+      "Cascar huevo en un bol grande y batir hasta que estén espumosos.",
+      "Añadir azúcar y mezclar hasta que la mezcla blanquee ligeramente.",
+      "Incorporar yogur natural y mezclar hasta obtener una masa homogénea.",
+      "Añadir aceite de girasol en hilo fino y mezclar hasta integrarlo por completo.",
+      "Tamizar harina junto con levadura química sobre el bol.",
+      "Mezclar con movimientos envolventes hasta que no queden grumos, sin trabajar la masa en exceso.",
+      "Verter la masa en el molde reservado y alisar la superficie.",
+      "Hornear a 180 °C durante 40 min, hasta que al pinchar el centro con un palillo salga limpio.",
+      "Retirar el molde del horno y dejar templar 10 min antes de desmoldar.",
+      "Desmoldar el bizcocho sobre una rejilla y servir en porciones."
     ],
     "description": "Bizcocho de yogur de toda la vida, el de las medidas del vasito",
     "methods": [
@@ -530,6 +1522,72 @@
         "difficulty": "normal",
         "prepSummary": "Precalienta el horno a 180°C. Mezcla con las medidas del vaso de yogur, vierte en el molde y hornea unos 40 minutos."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Enharinar un molde redondo de unos 22 cm y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un bol grande y batir hasta que estén espumosos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Azúcar}} y mezclar hasta que la mezcla blanquee ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Yogur natural}} y mezclar hasta obtener una masa homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de girasol}} en hilo fino y mezclar hasta integrarlo por completo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tamizar {{Harina}} junto con {{Levadura química}} sobre el bol.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar con movimientos envolventes hasta que no queden grumos, sin trabajar la masa en exceso.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la masa en el molde reservado y alisar la superficie.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 180 °C durante 40 min, hasta que al pinchar el centro con un palillo salga limpio.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el molde del horno y dejar templar 10 min antes de desmoldar.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar el bizcocho sobre una rejilla y servir en porciones.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 22,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   }
 ]

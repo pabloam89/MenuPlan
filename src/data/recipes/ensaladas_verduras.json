@@ -65,13 +65,63 @@
       }
     ],
     "steps": [
-      "Lavar y trocear la lechuga",
-      "Cortar el tomate en gajos, el pepino en rodajas y la cebolla en aros",
-      "Añadir las aceitunas y el queso fresco en dados",
-      "Aliñar con aceite, vinagre y sal"
+      "Lavar lechuga bajo agua fría y escurrir bien.",
+      "Cortar la lechuga en trozos de bocado y distribuir en una ensaladera.",
+      "Cortar tomate en gajos y añadir a la ensaladera.",
+      "Cortar pepino en rodajas y añadir a la ensaladera.",
+      "Laminar cebolla en aros finos y añadir a la ensaladera.",
+      "Cortar queso fresco en dados de 1 cm y añadir a la ensaladera.",
+      "Añadir aceitunas a la ensaladera.",
+      "Aliñar con aceite de oliva y vinagre, remover con suavidad y servir de inmediato."
     ],
     "description": "Ensalada mixta de lechuga, tomate, pepino, cebolla, aceitunas y queso fresco",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Lavar {{Lechuga}} bajo agua fría y escurrir bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la lechuga en trozos de bocado y distribuir en una ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate}} en gajos y añadir a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pepino}} en rodajas y añadir a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Cebolla}} en aros finos y añadir a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Queso fresco}} en dados de 1 cm y añadir a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Aceitunas}} a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y {{Vinagre}}, remover con suavidad y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 320
   },
   {
     "id": "ensaladas_verduras_002",
@@ -131,10 +181,17 @@
       }
     ],
     "steps": [
-      "Cortar todas las verduras en dados pequeños",
-      "Sofreír cebolla y ajo, añadir pimientos",
-      "Incorporar calabacín y cocer 10 min",
-      "Añadir tomate pelado y cocer 15 min más a fuego lento"
+      "Pelar cebolla y ajo, y cortar la cebolla en dados pequeños y picar el ajo fino.",
+      "Cortar pimiento rojo y pimiento verde en dados pequeños.",
+      "Cortar calabacín en dados pequeños.",
+      "Escaldar tomate maduro en agua hirviendo 30 segundos, pelar y cortar en dados pequeños.",
+      "Calentar aceite de oliva en una cazuela a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla y el ajo picados a fuego medio hasta que la cebolla esté translúcida, unos 5 min.",
+      "Añadir el pimiento rojo y el pimiento verde en dados y sofreír a fuego medio hasta que estén tiernos, unos 5 min.",
+      "Incorporar el calabacín en dados, remover y cocer a fuego medio hasta que empiece a ablandarse, unos 5 min.",
+      "Añadir el tomate en dados, remover para integrar y tapar la cazuela.",
+      "Cocer a fuego suave tapado hasta que todas las verduras estén tiernas y el conjunto pierda exceso de agua, unos 12 min.",
+      "Retirar la tapa, remover y servir el pisto caliente o templado."
     ],
     "description": "Fritada de verduras al estilo manchego con calabacín y pimientos",
     "methods": [
@@ -162,7 +219,68 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla y el ajo en la olla con aceite. Añade los pimientos, calabacín y tomate, cierra la olla y cocina 5-7 minutos desde que sube la válvula. Despresuriza y remueve hasta espesar ligeramente."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla}} y {{Ajo}}, y cortar la cebolla en dados pequeños y picar el ajo fino.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} y {{Pimiento verde}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Escaldar {{Tomate maduro}} en agua hirviendo 30 segundos, pelar y cortar en dados pequeños.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en una cazuela a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo picados a fuego medio hasta que la cebolla esté translúcida, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pimiento rojo y el pimiento verde en dados y sofreír a fuego medio hasta que estén tiernos, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el calabacín en dados, remover y cocer a fuego medio hasta que empiece a ablandarse, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate en dados, remover para integrar y tapar la cazuela.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave tapado hasta que todas las verduras estén tiernas y el conjunto pierda exceso de agua, unos 12 min.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la tapa, remover y servir el pisto caliente o templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 9,
+    "saturated_fat_g": 2,
+    "sodium_mg": 18
   },
   {
     "id": "ensaladas_verduras_003",
@@ -232,10 +350,30 @@
       }
     ],
     "steps": [
-      "Cocer las verduras por separado al dente",
-      "Sofreír cebolla y jamón, añadir harina",
-      "Incorporar un poco de caldo de cocción y las verduras",
-      "Cocer todo junto 5 min para que ligue"
+      "Pelar zanahoria y cortar en rodajas de 0,5 cm.",
+      "Pelar cebolla y picar en brunoise fina.",
+      "Limpiar alcachofas retirando las hojas duras externas y cortar en cuartos.",
+      "Despuntar judías verdes y cortar en trozos de 3 cm.",
+      "Llevar a ebullición una olla con agua salada a fuego fuerte.",
+      "Cocer la zanahoria en el agua hirviendo 8 min hasta que esté tierna pero firme.",
+      "Retirar la zanahoria con una espumadera y reservar.",
+      "Cocer las judías verdes en la misma agua 5 min hasta que estén al dente.",
+      "Retirar las judías verdes y reservar.",
+      "Cocer las alcachofas en la misma agua 6 min hasta que estén tiernas.",
+      "Retirar las alcachofas, reservar, y guardar 150 ml del agua de cocción.",
+      "Añadir guisantes a la misma agua caliente y cocer 3 min hasta que estén tiernos.",
+      "Retirar los guisantes y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada a fuego medio 5 min hasta que esté transparente y comience a dorarse.",
+      "Añadir jamón serrano y saltear 1 min hasta que suelte su grasa.",
+      "Añadir harina sobre la cebolla y el jamón.",
+      "Remover sin parar 1 min hasta que la harina se integre y pierda el sabor a crudo.",
+      "Verter los 150 ml del agua de cocción reservada poco a poco, removiendo sin parar.",
+      "Remover hasta que la salsa ligue y no tenga grumos.",
+      "Incorporar la zanahoria, las judías verdes, las alcachofas y los guisantes reservados.",
+      "Mezclar con cuidado para no romper las verduras.",
+      "Cocer todo junto a fuego suave 5 min hasta que la salsa envuelva bien las verduras.",
+      "Servir la menestra caliente en platos hondos distribuyendo bien las verduras y el jamón."
     ],
     "description": "Menestra de verduras de temporada rehogadas con jamón",
     "methods": [
@@ -263,7 +401,133 @@
         "difficulty": "normal",
         "prepSummary": "Sofríe la cebolla y el jamón en la olla. Añade las verduras más duras con un poco de caldo y cocina a presión 5-7 minutos. Libera la presión, añade los guisantes y la harina disuelta en caldo para espesar, cocinando unos minutos más sin presión."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 0,5 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y picar en brunoise fina.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Alcachofas}} retirando las hojas duras externas y cortar en cuartos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Despuntar {{Judías verdes}} y cortar en trozos de 3 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua salada a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer la zanahoria en el agua hirviendo 8 min hasta que esté tierna pero firme.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la zanahoria con una espumadera y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer las judías verdes en la misma agua 5 min hasta que estén al dente.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar las judías verdes y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer las alcachofas en la misma agua 6 min hasta que estén tiernas.",
+        "minutes": 6,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar las alcachofas, reservar, y guardar 150 ml del agua de cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} a la misma agua caliente y cocer 3 min hasta que estén tiernos.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los guisantes y reservar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada a fuego medio 5 min hasta que esté transparente y comience a dorarse.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Jamón serrano}} y saltear 1 min hasta que suelte su grasa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Harina}} sobre la cebolla y el jamón.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar 1 min hasta que la harina se integre y pierda el sabor a crudo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter los 150 ml del agua de cocción reservada poco a poco, removiendo sin parar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover hasta que la salsa ligue y no tenga grumos.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la zanahoria, las judías verdes, las alcachofas y los guisantes reservados.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar con cuidado para no romper las verduras.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer todo junto a fuego suave 5 min hasta que la salsa envuelva bien las verduras.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir la menestra caliente en platos hondos distribuyendo bien las verduras y el jamón.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 7,
+    "sugar_g": 5,
+    "saturated_fat_g": 2,
+    "sodium_mg": 420
   },
   {
     "id": "ensaladas_verduras_004",
@@ -320,10 +584,17 @@
       }
     ],
     "steps": [
-      "Cortar calabacines por la mitad y vaciar la pulpa",
-      "Sofreír cebolla, ajo y carne con la pulpa picada",
-      "Rellenar las barquitas y cubrir con tomate",
-      "Hornear a 190°C durante 25 min"
+      "Cortar calabacín por la mitad a lo largo y vaciar la pulpa con una cuchara, dejando una pared de 1 cm; reservar la pulpa.",
+      "Picar cebolla y ajo muy finos; picar también la pulpa reservada del calabacín.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada y el ajo picado hasta que estén blandos y translúcidos, unos 4 min.",
+      "Añadir la pulpa picada del calabacín y saltear a fuego medio hasta que evapore el agua, unos 3 min.",
+      "Incorporar carne picada de cerdo y sofreír a fuego fuerte, removiendo, hasta que pierda el color rosado.",
+      "Añadir tomate triturado, remover y cocer a fuego medio hasta que la salsa reduzca y ligue, unos 5 min.",
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Disponer las barquitas de calabacín en una bandeja de horno y rellenarlas generosamente con el sofrito de carne.",
+      "Hornear a 190 °C durante 25 min hasta que el calabacín esté tierno y los bordes ligeramente dorados.",
+      "Retirar la bandeja del horno y servir los calabacines rellenos en caliente."
     ],
     "description": "Calabacines rellenos de carne picada gratinados con tomate",
     "methods": [
@@ -351,7 +622,68 @@
         "difficulty": "normal",
         "prepSummary": "Cocina el relleno de carne picada con cebolla, ajo y tomate en una sartén. Ahueca los calabacines y cuécelos al vapor durante 20-25 minutos hasta que estén tiernos. Rellena los calabacines con la carne y sirve un plato ligero y saludable."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Calabacín}} por la mitad a lo largo y vaciar la pulpa con una cuchara, dejando una pared de 1 cm; reservar la pulpa.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} muy finos; picar también la pulpa reservada del calabacín.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y el ajo picado hasta que estén blandos y translúcidos, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la pulpa picada del calabacín y saltear a fuego medio hasta que evapore el agua, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Carne picada de cerdo}} y sofreír a fuego fuerte, removiendo, hasta que pierda el color rosado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, remover y cocer a fuego medio hasta que la salsa reduzca y ligue, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disponer las barquitas de calabacín en una bandeja de horno y rellenarlas generosamente con el sofrito de carne.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 190 °C durante 25 min hasta que el calabacín esté tierno y los bordes ligeramente dorados.",
+        "minutes": 25,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir los calabacines rellenos en caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 7,
+    "sodium_mg": 320
   },
   {
     "id": "ensaladas_verduras_005",
@@ -403,10 +735,13 @@
       }
     ],
     "steps": [
-      "Tostar los piñones en sartén sin aceite",
-      "Sofreír ajo laminado, añadir espinacas",
-      "Saltear hasta que reduzcan",
-      "Añadir pasas y piñones, salpimentar"
+      "Laminar ajo en láminas finas.",
+      "Calentar sartén a fuego medio sin aceite y tostar piñones hasta que estén dorados; retirar y reservar.",
+      "Añadir aceite de oliva a la misma sartén y calentar a fuego medio.",
+      "Sofreír el ajo laminado hasta que esté dorado sin que se queme.",
+      "Añadir espinacas frescas a la sartén y saltear a fuego fuerte hasta que reduzcan por completo.",
+      "Añadir pasas y los piñones tostados; remover para mezclar bien.",
+      "Salpimentar con sal y servir de inmediato."
     ],
     "description": "Espinacas salteadas con pasas y piñones al estilo catalán",
     "methods": [
@@ -422,7 +757,48 @@
         "difficulty": "facil",
         "prepSummary": "Cocina las espinacas al vapor hasta que estén tiernas (unos 5-7 minutos). Mientras, saltea el ajo picado, los piñones y las pasas en una sartén con aceite de oliva hasta dorar. Mezcla las espinacas cocidas con el sofrito."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio sin aceite y tostar {{Piñones}} hasta que estén dorados; retirar y reservar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} a la misma sartén y calentar a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado hasta que esté dorado sin que se queme.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Espinacas frescas}} a la sartén y saltear a fuego fuerte hasta que reduzcan por completo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pasas}} y los piñones tostados; remover para mezclar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Salpimentar con {{Sal|gusto}} y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 8,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "ensaladas_verduras_006",
@@ -479,10 +855,19 @@
       }
     ],
     "steps": [
-      "Vaciar los pimientos por la parte del tallo",
-      "Sofreír cebolla, ajo y carne, salpimentar",
-      "Rellenar los pimientos y colocar en bandeja con tomate",
-      "Hornear a 180°C durante 35 min"
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Picar cebolla en trozos finos.",
+      "Picar ajo fino.",
+      "Cortar la parte superior de pimientos rojos a modo de tapa y retirar las semillas y nervios del interior.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
+      "Añadir el ajo picado y sofreír 1 min hasta que desprenda aroma.",
+      "Añadir carne picada de ternera y saltear a fuego fuerte hasta que pierda el color rosado.",
+      "Añadir tomate triturado, mezclar y cocer a fuego medio 5 min hasta que la salsa reduzca ligeramente.",
+      "Retirar la sartén del fuego y dejar templar el relleno 2 min.",
+      "Rellenar cada pimiento con la mezcla de carne hasta el borde y tapar con su parte superior.",
+      "Disponer los pimientos rellenos en una bandeja de horno y hornear a 200 °C durante 30 min hasta que la piel se arrugue.",
+      "Retirar la bandeja del horno y servir los pimientos en plato."
     ],
     "description": "Pimientos rojos rellenos de carne picada al horno con tomate",
     "methods": [
@@ -504,7 +889,78 @@
         "difficulty": "normal",
         "prepSummary": "Preparar el relleno en el vaso de la Thermomix (picar cebolla/ajo, sofreír, añadir carne y tomate, cocinar). Rellenar los pimientos y cocinarlos al vapor en el Varoma durante 25-35 minutos, velocidad Varoma, hasta que estén tiernos. El truco es asegurarse de que los pimientos no se deshagan durante la cocción al vapor."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Picar {{Cebolla}} en trozos finos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la parte superior de {{Pimientos rojos}} a modo de tapa y retirar las semillas y nervios del interior.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada hasta que esté transparente, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min hasta que desprenda aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Carne picada de ternera}} y saltear a fuego fuerte hasta que pierda el color rosado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, mezclar y cocer a fuego medio 5 min hasta que la salsa reduzca ligeramente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y dejar templar el relleno 2 min.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Rellenar cada pimiento con la mezcla de carne hasta el borde y tapar con su parte superior.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer los pimientos rellenos en una bandeja de horno y hornear a 200 °C durante 30 min hasta que la piel se arrugue.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir los pimientos en plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 9,
+    "saturated_fat_g": 8,
+    "sodium_mg": 320
   },
   {
     "id": "ensaladas_verduras_007",
@@ -568,10 +1024,23 @@
       }
     ],
     "steps": [
-      "Cortar berenjenas por la mitad y vaciar la pulpa",
-      "Hornear las cáscaras 10 min a 190°C",
-      "Sofreír cebolla, ajo, carne y pulpa con tomate",
-      "Rellenar, añadir queso y gratinar 15 min"
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Lavar berenjena y cortar cada una por la mitad a lo largo.",
+      "Vaciar la pulpa de cada mitad con una cuchara, dejando 1 cm de pared. Reservar la pulpa y las cáscaras por separado.",
+      "Picar la pulpa reservada en trozos pequeños. Reservar.",
+      "Picar cebolla fina y picar ajo fino. Reservar.",
+      "Pintar las cáscaras por dentro con aceite de oliva y colocarlas en una bandeja de horno con la cavidad hacia arriba.",
+      "Hornear las cáscaras a 190 °C durante 10 min, hasta que estén ligeramente tiernas.",
+      "Calentar el aceite de oliva restante en sartén a fuego medio.",
+      "Sofreír la cebolla picada a fuego medio durante 3 min, hasta que esté blanda y translúcida.",
+      "Añadir el ajo picado y sofreír 1 min más a fuego medio, hasta que desprenda aroma.",
+      "Añadir carne picada de cerdo y saltear a fuego fuerte, removiendo, hasta que esté dorada y sin partes rosadas, unos 4 min.",
+      "Añadir la pulpa de berenjena picada y mezclar. Sofreír 3 min a fuego medio hasta que esté tierna.",
+      "Añadir tomate triturado, mezclar y cocer a fuego suave 5 min, hasta que el relleno reduzca y quede jugoso pero no líquido.",
+      "Retirar la sartén del fuego. Rellenar cada cáscara de berenjena con el sofrito, distribuyendo el relleno a partes iguales.",
+      "Repartir queso rallado sobre el relleno de cada berenjena.",
+      "Hornear a 190 °C durante 12 min y, los últimos 3 min, activar el gratinador hasta que el queso esté dorado y burbujeante.",
+      "Retirar del horno y servir las berenjenas rellenas inmediatamente."
     ],
     "description": "Berenjenas rellenas de carne picada gratinadas con queso",
     "methods": [
@@ -593,7 +1062,98 @@
         "difficulty": "normal",
         "prepSummary": "Prepara el sofrito de carne y verduras en la Thermomix (velocidad cuchara, 120°C, 15 min). Cocina las berenjenas cortadas por la mitad al vapor en el Varoma (25-30 min, Varoma, vel 1). Luego, rellena y gratina en el horno o airfryer. El truco es usar el Varoma para una cocción un"
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Lavar {{Berenjena}} y cortar cada una por la mitad a lo largo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Vaciar la pulpa de cada mitad con una cuchara, dejando 1 cm de pared. Reservar la pulpa y las cáscaras por separado.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar la pulpa reservada en trozos pequeños. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla}} fina y picar {{Ajo}} fino. Reservar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pintar las cáscaras por dentro con {{Aceite de oliva|chorrito}} y colocarlas en una bandeja de horno con la cavidad hacia arriba.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear las cáscaras a 190 °C durante 10 min, hasta que estén ligeramente tiernas.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar el aceite de oliva restante en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada a fuego medio durante 3 min, hasta que esté blanda y translúcida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír 1 min más a fuego medio, hasta que desprenda aroma.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Carne picada de cerdo}} y saltear a fuego fuerte, removiendo, hasta que esté dorada y sin partes rosadas, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la pulpa de berenjena picada y mezclar. Sofreír 3 min a fuego medio hasta que esté tierna.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}}, mezclar y cocer a fuego suave 5 min, hasta que el relleno reduzca y quede jugoso pero no líquido.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego. Rellenar cada cáscara de berenjena con el sofrito, distribuyendo el relleno a partes iguales.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir {{Queso rallado}} sobre el relleno de cada berenjena.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 190 °C durante 12 min y, los últimos 3 min, activar el gratinador hasta que el queso esté dorado y burbujeante.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y servir las berenjenas rellenas inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 6,
+    "saturated_fat_g": 9,
+    "sodium_mg": 420
   },
   {
     "id": "ensaladas_verduras_008",
@@ -643,10 +1203,21 @@
       }
     ],
     "steps": [
-      "Cortar verduras en láminas de medio cm",
-      "Calentar la plancha a fuego fuerte",
-      "Cocinar cada verdura 3 min por lado",
-      "Aliñar con aceite y sal en escamas"
+      "Laminar calabacín en rodajas de 0,5 cm.",
+      "Laminar berenjena en rodajas de 0,5 cm.",
+      "Cortar pimiento rojo en tiras anchas.",
+      "Retirar la parte leñosa de espárragos trigueros.",
+      "Calentar plancha a fuego fuerte hasta que esté bien caliente.",
+      "Pincelar plancha con aceite de oliva y colocar las láminas de calabacín.",
+      "Dorar las láminas de calabacín 3 min por cada lado hasta que aparezcan marcas.",
+      "Retirar el calabacín y colocar las láminas de berenjena en la plancha.",
+      "Dorar las láminas de berenjena 3 min por cada lado hasta que estén tiernas.",
+      "Retirar la berenjena y colocar las tiras de pimiento rojo en la plancha.",
+      "Dorar las tiras de pimiento rojo 3 min por cada lado hasta que estén blandas y con los bordes tostados.",
+      "Retirar el pimiento rojo y colocar los espárragos trigueros en la plancha.",
+      "Dorar los espárragos trigueros 3 min por cada lado hasta que estén tiernos y con marcas.",
+      "Disponer todas las verduras en una fuente y aliñar con aceite de oliva.",
+      "Servir de inmediato."
     ],
     "description": "Verduras de temporada asadas a la plancha con aceite",
     "methods": [
@@ -662,7 +1233,87 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Corta las verduras, úntalas con aceite de oliva y sazona. Extiéndelas en una bandeja de horno y ásalas durante 20-25 minutos, dándoles la vuelta a mitad, hasta que estén tiernas y ligeramente caramelizadas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Calabacín}} en rodajas de 0,5 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Berenjena}} en rodajas de 0,5 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en tiras anchas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar la parte leñosa de {{Espárragos trigueros}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pincelar {{@Plancha}} con {{Aceite de oliva|chorrito}} y colocar las láminas de calabacín.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar las láminas de calabacín 3 min por cada lado hasta que aparezcan marcas.",
+        "minutes": 6,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el calabacín y colocar las láminas de berenjena en la plancha.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar las láminas de berenjena 3 min por cada lado hasta que estén tiernas.",
+        "minutes": 6,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la berenjena y colocar las tiras de pimiento rojo en la plancha.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar las tiras de pimiento rojo 3 min por cada lado hasta que estén blandas y con los bordes tostados.",
+        "minutes": 6,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el pimiento rojo y colocar los espárragos trigueros en la plancha.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar los espárragos trigueros 3 min por cada lado hasta que estén tiernos y con marcas.",
+        "minutes": 6,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disponer todas las verduras en una fuente y aliñar con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir de inmediato.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 7,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   },
   {
     "id": "ensaladas_verduras_009",
@@ -713,10 +1364,16 @@
       }
     ],
     "steps": [
-      "Asar las verduras enteras al horno a 200°C 40 min",
-      "Dejar templar y pelar la piel",
-      "Cortar en tiras y disponer en fuente",
-      "Aliñar generosamente con aceite y sal"
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Lavar berenjena, pimiento rojo, cebolla y tomate bajo el grifo y secar con papel de cocina.",
+      "Disponer la berenjena, el pimiento rojo, la cebolla y el tomate enteros en una bandeja de horno.",
+      "Hornear las verduras a 200 °C hasta que la piel esté completamente chamuscada y la pulpa tierna, unos 40 min.",
+      "Retirar la bandeja del horno y tapar con papel de aluminio hasta que las verduras templen, unos 15 min.",
+      "Pelar la piel de la berenjena, el pimiento rojo, la cebolla y el tomate templados, retirando también las semillas del pimiento.",
+      "Cortar la pulpa de todas las verduras en tiras de 1 cm de ancho.",
+      "Disponer las tiras de verdura en una fuente, alternando los colores.",
+      "Aliñar con aceite de oliva repartido de forma uniforme sobre las verduras.",
+      "Servir la escalivada templada o a temperatura ambiente."
     ],
     "description": "Verduras asadas al horno, peladas y aliñadas al estilo catalán",
     "methods": [
@@ -732,7 +1389,63 @@
         "difficulty": "facil",
         "prepSummary": "Corta las verduras en trozos grandes, úntalas con aceite y cocínalas en la airfryer a 190°C durante 30-35 minutos, volteando a mitad de cocción, hasta que estén tiernas y doradas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Berenjena}}, {{Pimiento rojo}}, {{Cebolla}} y {{Tomate}} bajo el grifo y secar con papel de cocina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer la berenjena, el pimiento rojo, la cebolla y el tomate enteros en una bandeja de horno.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear las verduras a 200 °C hasta que la piel esté completamente chamuscada y la pulpa tierna, unos 40 min.",
+        "minutes": 40,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y tapar con papel de aluminio hasta que las verduras templen, unos 15 min.",
+        "minutes": 15,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar la piel de la berenjena, el pimiento rojo, la cebolla y el tomate templados, retirando también las semillas del pimiento.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la pulpa de todas las verduras en tiras de 1 cm de ancho.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer las tiras de verdura en una fuente, alternando los colores.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} repartido de forma uniforme sobre las verduras.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir la escalivada templada o a temperatura ambiente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 9,
+    "saturated_fat_g": 2,
+    "sodium_mg": 18
   },
   {
     "id": "ensaladas_verduras_010",
@@ -780,10 +1493,16 @@
       }
     ],
     "steps": [
-      "Cocer las judías en agua con sal 10 min",
-      "Escurrir bien",
-      "Saltear con ajo laminado y jamón en taquitos",
-      "Servir con un chorrito de aceite"
+      "Laminar ajo en láminas finas.",
+      "Cortar jamón serrano en taquitos pequeños.",
+      "Llevar a ebullición una olla con agua abundante y sal a fuego fuerte.",
+      "Añadir judías verdes cuando el agua rompa a hervir y cocer 10 min a fuego medio hasta que estén tiernas.",
+      "Escurrir las judías verdes y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Añadir el ajo laminado y sofreír a fuego medio hasta que empiece a dorarse.",
+      "Añadir el jamón en taquitos y saltear 1 min a fuego medio hasta que se dore ligeramente.",
+      "Añadir las judías verdes escurridas y saltear 2 min a fuego medio removiendo para que se impregnen del sofrito.",
+      "Servir las judías rehogadas en el plato."
     ],
     "description": "Judías verdes cocidas y rehogadas con ajo y jamón",
     "methods": [
@@ -805,7 +1524,63 @@
         "difficulty": "facil",
         "prepSummary": "Cocina las judías verdes en la olla express con un poco de agua durante 3-5 minutos desde que sube la válvula. Escurre bien. En la misma olla abierta o en una sartén, sofríe el ajo y el jamón con el aceite hasta dorar, luego añade las judías y saltea brevemente."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón serrano}} en taquitos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y sal a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Judías verdes}} cuando el agua rompa a hervir y cocer 10 min a fuego medio hasta que estén tiernas.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las judías verdes y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y sofreír a fuego medio hasta que empiece a dorarse.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el jamón en taquitos y saltear 1 min a fuego medio hasta que se dore ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las judías verdes escurridas y saltear 2 min a fuego medio removiendo para que se impregnen del sofrito.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las judías rehogadas en el plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 4,
+    "saturated_fat_g": 2,
+    "sodium_mg": 380
   },
   {
     "id": "ensaladas_verduras_011",
@@ -855,10 +1630,16 @@
       }
     ],
     "steps": [
-      "Cocer el brócoli en ramilletes 5 min al dente",
-      "Colocar en fuente de horno",
-      "Cubrir con bechamel y queso rallado",
-      "Gratinar a 220°C 10 min hasta dorar"
+      "Separar brócoli en ramilletes de tamaño similar.",
+      "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+      "Cocer los ramilletes de brócoli en el agua hirviendo durante 5 min, hasta que estén al dente.",
+      "Precalentar el horno a 220 °C con función gratinador.",
+      "Escurrir bien el brócoli y extenderlo en una fuente de horno apta para gratinar.",
+      "Repartir aceite de oliva sobre el brócoli escurrido.",
+      "Cubrir el brócoli con bechamel, distribuyéndola de forma uniforme.",
+      "Espolvorear queso rallado sobre la bechamel para cubrir toda la superficie.",
+      "Hornear a 220 °C con gratinador durante 10 min, hasta que el queso esté dorado y burbujeante.",
+      "Retirar la fuente del horno y servir el brócoli gratinado de inmediato."
     ],
     "description": "Brócoli al vapor gratinado con bechamel y queso",
     "methods": [
@@ -874,7 +1655,64 @@
         "difficulty": "facil",
         "prepSummary": "Cuece el brócoli al vapor. En un recipiente pequeño apto para airfryer, mezcla el brócoli con la bechamel, cubre con el queso rallado y cocina a 180°C durante 10-15 minutos, hasta que el queso esté fundido y dorado."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Separar {{Brócoli}} en ramilletes de tamaño similar.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer los ramilletes de brócoli en el agua hirviendo durante 5 min, hasta que estén al dente.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Precalentar el horno a 220 °C con función gratinador.",
+        "minutes": 5,
+        "kind": "paralelo",
+        "during": 2
+      },
+      {
+        "text": "Escurrir bien el brócoli y extenderlo en una fuente de horno apta para gratinar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Aceite de oliva|chorrito}} sobre el brócoli escurrido.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir el brócoli con {{Bechamel}}, distribuyéndola de forma uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Espolvorear {{Queso rallado}} sobre la bechamel para cubrir toda la superficie.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 220 °C con gratinador durante 10 min, hasta que el queso esté dorado y burbujeante.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la fuente del horno y servir el brócoli gratinado de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 3,
+    "saturated_fat_g": 6,
+    "sodium_mg": 320
   },
   {
     "id": "ensaladas_verduras_012",
@@ -922,10 +1760,19 @@
       }
     ],
     "steps": [
-      "Separar la coliflor en ramilletes y cocer 8 min",
-      "Escurrir y enfriar",
-      "Pasar por harina y huevo batido",
-      "Freír en aceite caliente hasta dorar"
+      "Separar coliflor en ramilletes del mismo tamaño para que se cuezan de manera uniforme.",
+      "Llevar a ebullición una olla con agua abundante y sal.",
+      "Añadir los ramilletes de coliflor y cocer 8 min a fuego medio hasta que estén tiernos pero firmes.",
+      "Escurrir los ramilletes de coliflor en un colador y extender sobre un paño limpio hasta que se enfríen.",
+      "Batir huevo en un bol hondo hasta que esté homogéneo.",
+      "Poner harina en un plato llano.",
+      "Pasar cada ramillete de coliflor primero por la harina y sacudir el exceso.",
+      "Sumergir cada ramillete enharinado en el huevo batido hasta que quede bien cubierto.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que el aceite esté bien caliente.",
+      "Freír los ramilletes rebozados a fuego medio-fuerte hasta que se doren por todos los lados.",
+      "Dar la vuelta a los ramilletes con cuidado durante la fritura para que se doren de manera uniforme.",
+      "Retirar los ramilletes y escurrir sobre papel absorbente para eliminar el exceso de aceite.",
+      "Servir de inmediato."
     ],
     "description": "Ramilletes de coliflor cocidos, rebozados y fritos",
     "methods": [
@@ -941,7 +1788,77 @@
         "difficulty": "facil",
         "prepSummary": "Hierve o cuece la coliflor hasta que esté tierna. Reboza los trozos, colócalos en una bandeja de horno con papel y rocía con aceite. Hornea a 200°C durante 25-30 minutos, volteando a mitad, hasta que estén bien dorados."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Separar {{Coliflor}} en ramilletes del mismo tamaño para que se cuezan de manera uniforme.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y {{Sal|gusto}}.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los ramilletes de coliflor y cocer 8 min a fuego medio hasta que estén tiernos pero firmes.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir los ramilletes de coliflor en un colador y extender sobre un paño limpio hasta que se enfríen.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir {{Huevo}} en un bol hondo hasta que esté homogéneo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Poner {{Harina}} en un plato llano.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pasar cada ramillete de coliflor primero por la harina y sacudir el exceso.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Sumergir cada ramillete enharinado en el huevo batido hasta que quede bien cubierto.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego fuerte hasta que el aceite esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los ramilletes rebozados a fuego medio-fuerte hasta que se doren por todos los lados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a los ramilletes con cuidado durante la fritura para que se doren de manera uniforme.",
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar los ramilletes y escurrir sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 3,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "ensaladas_verduras_013",
@@ -1003,10 +1920,16 @@
       }
     ],
     "steps": [
-      "Cocer las patatas enteras con piel 25 min",
-      "Pelar y cortar en rodajas gruesas",
-      "Añadir tomate, pimiento, cebolla y aceitunas",
-      "Aliñar con aceite y vinagre templada"
+      "Lavar patata y colocarlas enteras con piel en una olla cubiertas de agua fría con sal.",
+      "Llevar a ebullición a fuego fuerte y cocer las patatas a fuego medio hasta que estén tiernas, unos 20 min.",
+      "Cortar tomate en gajos medianos y reservar.",
+      "Cortar pimiento verde en tiras finas y reservar.",
+      "Cortar cebolla en aros finos y reservar.",
+      "Escurrir las patatas cocidas y dejar templar 3 min hasta que se puedan manipular.",
+      "Pelar las patatas templadas y cortar en rodajas gruesas de unos 1 cm.",
+      "Disponer las rodajas de patata en una fuente y añadir el tomate, el pimiento verde y la cebolla por encima.",
+      "Añadir aceitunas repartidas por la ensalada.",
+      "Aliñar con aceite de oliva y vinagre, remover con suavidad y servir templada."
     ],
     "description": "Ensalada templada de patata con verduras y aceitunas",
     "methods": [
@@ -1040,7 +1963,66 @@
         "difficulty": "facil",
         "prepSummary": "Corta las patatas en dados, añade un vaso de agua a la olla y cuécelas al vapor o sumergidas durante 5-7 minutos desde que sube la válvula, para una cocción ultrarrápida."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar {{Patata}} y colocarlas enteras con piel en una olla cubiertas de agua fría con sal.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición a fuego fuerte y cocer las patatas a fuego medio hasta que estén tiernas, unos 20 min.",
+        "minutes": 22,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Tomate}} en gajos medianos y reservar.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Pimiento verde}} en tiras finas y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cortar {{Cebolla}} en aros finos y reservar.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Escurrir las patatas cocidas y dejar templar 3 min hasta que se puedan manipular.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar las patatas templadas y cortar en rodajas gruesas de unos 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer las rodajas de patata en una fuente y añadir el tomate, el pimiento verde y la cebolla por encima.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceitunas}} repartidas por la ensalada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y {{Vinagre}}, remover con suavidad y servir templada.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 2,
+    "sodium_mg": 280
   },
   {
     "id": "ensaladas_verduras_015",
@@ -1117,11 +2099,20 @@
       }
     ],
     "steps": [
-      "Cocer patata, zanahoria y guisantes; enfriar bien",
-      "Cortar en dados pequeños y regulares",
-      "Mezclar con atún, pimiento morrón, pepinillos y aceitunas picadas",
-      "Ligar con la mayonesa y decorar con huevo en rodajas y aceitunas",
-      "Refrigerar 1 h antes de servir"
+      "Pelar patata y zanahoria, y cortar ambas en dados de 1 cm.",
+      "Llevar a ebullición una olla con agua abundante y sal.",
+      "Añadir los dados de patata y zanahoria a la olla y cocer a fuego medio durante 9 min.",
+      "Añadir guisantes a la olla en los últimos 3 min de cocción, hasta que estén tiernos.",
+      "Escurrir la patata, la zanahoria y los guisantes, extender en una bandeja y dejar enfriar.",
+      "Picar pimiento morrón y pepinillos en dados pequeños.",
+      "Laminar aceitunas en rodajas finas y reservar unas pocas para decorar.",
+      "Cortar huevo cocido en rodajas; reservar unas rodajas para decorar y picar el resto en dados.",
+      "Escurrir atún en conserva y desmenuzar con un tenedor.",
+      "Mezclar en un bol grande la patata, la zanahoria y los guisantes con el atún desmenuzado.",
+      "Añadir el pimiento morrón, los pepinillos, las aceitunas picadas y el huevo en dados al bol.",
+      "Añadir mayonesa y remover con suavidad hasta que todos los ingredientes queden bien ligados.",
+      "Cubrir el bol con film y refrigerar al menos 60 min hasta que la ensaladilla esté bien fría.",
+      "Servir decorando la superficie con las rodajas de huevo cocido reservadas y las aceitunas laminadas."
     ],
     "description": "Ensaladilla rusa cremosa con atún, huevo, pimiento morrón y pepinillos",
     "methods": [
@@ -1143,7 +2134,83 @@
         "difficulty": "facil",
         "prepSummary": "Cocina las patatas, zanahorias, guisantes y el huevo en la olla express con un poco de agua durante 6-8 minutos desde que sube la válvula. Despresuriza, enfría, trocea y mezcla con el resto."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y {{Zanahoria}}, y cortar ambas en dados de 1 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición una olla con agua abundante y {{Sal|gusto}}.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los dados de patata y zanahoria a la olla y cocer a fuego medio durante 9 min.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Guisantes}} a la olla en los últimos 3 min de cocción, hasta que estén tiernos.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir la patata, la zanahoria y los guisantes, extender en una bandeja y dejar enfriar.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Picar {{Pimiento morrón}} y {{Pepinillos}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Aceitunas}} en rodajas finas y reservar unas pocas para decorar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Huevo cocido}} en rodajas; reservar unas rodajas para decorar y picar el resto en dados.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir {{Atún en conserva}} y desmenuzar con un tenedor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol grande la patata, la zanahoria y los guisantes con el atún desmenuzado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el pimiento morrón, los pepinillos, las aceitunas picadas y el huevo en dados al bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Mayonesa}} y remover con suavidad hasta que todos los ingredientes queden bien ligados.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir el bol con film y refrigerar al menos 60 min hasta que la ensaladilla esté bien fría.",
+        "minutes": 60,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir decorando la superficie con las rodajas de huevo cocido reservadas y las aceitunas laminadas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 5,
+    "saturated_fat_g": 4,
+    "sodium_mg": 520
   },
   {
     "id": "ensaladas_verduras_016",
@@ -1201,10 +2268,18 @@
       }
     ],
     "steps": [
-      "Limpiar alcachofas dejando el corazón y frotar con limón",
-      "Cortar en cuartos y cocer 10 min al vapor",
-      "Saltear con ajo y jamón en taquitos",
-      "Servir con perejil"
+      "Exprimir limón en un bol grande con agua fría para evitar que las alcachofas se oxiden.",
+      "Limpiar alcachofas retirando las hojas exteriores duras, pelando el tallo y dejando solo el corazón.",
+      "Cortar cada corazón de alcachofa en cuartos e introducirlos en el bol con agua y limón hasta usarlos.",
+      "Laminar ajo en láminas finas.",
+      "Cortar jamón serrano en taquitos pequeños.",
+      "Picar perejil fino y reservar.",
+      "Escurrir los cuartos de alcachofa y colocarlos en la cesta del vaporizador; cocer al vapor hasta que estén tiernos, unos 10 min.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír el ajo laminado en la sartén a fuego medio hasta que empiece a dorarse, unos 2 min.",
+      "Añadir los taquitos de jamón serrano y saltear a fuego medio hasta que estén ligeramente crujientes, 1 min.",
+      "Incorporar los cuartos de alcachofa cocidos y saltear a fuego fuerte hasta que se doren ligeramente por los bordes, unos 3 min.",
+      "Servir las alcachofas salteadas con el perejil picado esparcido por encima."
     ],
     "description": "Corazones de alcachofa salteados con ajo y jamón",
     "methods": [
@@ -1220,7 +2295,73 @@
         "difficulty": "facil",
         "prepSummary": "Limpia y trocea las alcachofas, mézclalas con aceite de oliva, ajo picado, sal y pimienta. Extiéndelas en una bandeja de horno y asa a 200°C durante 25-30 minutos, hasta que estén tiernas y doradas. Incorpora el jamón serrano los últimos 5 minutos para que se dore y termina con l"
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Exprimir {{Limón}} en un bol grande con agua fría para evitar que las alcachofas se oxiden.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Limpiar {{Alcachofas}} retirando las hojas exteriores duras, pelando el tallo y dejando solo el corazón.",
+        "minutes": 6,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar cada corazón de alcachofa en cuartos e introducirlos en el bol con agua y limón hasta usarlos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Jamón serrano}} en taquitos pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir los cuartos de alcachofa y colocarlos en la cesta del vaporizador; cocer al vapor hasta que estén tiernos, unos 10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado en la sartén a fuego medio hasta que empiece a dorarse, unos 2 min.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los taquitos de jamón serrano y saltear a fuego medio hasta que estén ligeramente crujientes, 1 min.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar los cuartos de alcachofa cocidos y saltear a fuego fuerte hasta que se doren ligeramente por los bordes, unos 3 min.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las alcachofas salteadas con el perejil picado esparcido por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 7,
+    "sugar_g": 2,
+    "saturated_fat_g": 2,
+    "sodium_mg": 420
   },
   {
     "id": "ensaladas_verduras_017",
@@ -1276,10 +2417,28 @@
       }
     ],
     "steps": [
-      "Freír patata, berenjena y pimiento por separado",
-      "Hacer salsa de tomate con ajo",
-      "Montar en capas: patata, berenjena, pimiento",
-      "Cubrir con la salsa y hornear 10 min a 180°C"
+      "Pelar patata y cortar en rodajas de 5 mm de grosor.",
+      "Cortar berenjena en rodajas de 5 mm de grosor sin pelar.",
+      "Cortar pimiento rojo en tiras anchas, retirando semillas y nervios.",
+      "Cortar tomate maduro en dados pequeños.",
+      "Picar ajo muy fino.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que esté bien caliente.",
+      "Freír las rodajas de patata en tandas hasta que estén doradas y tiernas.",
+      "Escurrir las rodajas de patata fritas sobre papel absorbente y reservar.",
+      "Freír las rodajas de berenjena en la misma sartén hasta que estén doradas.",
+      "Escurrir las rodajas de berenjena fritas sobre papel absorbente y reservar.",
+      "Freír las tiras de pimiento rojo en la misma sartén hasta que estén tiernas y con algo de color.",
+      "Escurrir las tiras de pimiento rojo fritas sobre papel absorbente y reservar.",
+      "Retirar el aceite sobrante de la sartén dejando solo un fondo fino.",
+      "Sofreír el ajo picado a fuego suave hasta que esté dorado.",
+      "Añadir el tomate en dados y cocer a fuego medio, removiendo de vez en cuando, hasta que la salsa espese.",
+      "Precalentar el horno a 180 °C con calor arriba y abajo.",
+      "Disponer las rodajas de patata fritas formando una capa uniforme en el fondo de una bandeja de horno.",
+      "Colocar encima las rodajas de berenjena fritas formando una segunda capa uniforme.",
+      "Añadir las tiras de pimiento rojo frito formando la tercera capa de verduras.",
+      "Cubrir todas las capas con la salsa de tomate, repartiéndola de forma homogénea.",
+      "Hornear a 180 °C durante 10 min hasta que la salsa burbujee ligeramente y el conjunto esté bien caliente.",
+      "Retirar del horno y servir el tumbet en la bandeja o en platos individuales."
     ],
     "description": "Capas de verduras fritas con salsa de tomate al estilo balear",
     "methods": [
@@ -1295,7 +2454,124 @@
         "difficulty": "normal",
         "prepSummary": "Prepara las verduras cortadas y cocínalas en la airfryer a 190°C en varias tandas (unos 10-15 min por tanda) hasta que estén tiernas y con un toque dorado. Haz la salsa de tomate aparte y luego monta el tumbet en capas para servir."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Patata}} y cortar en rodajas de 5 mm de grosor.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Berenjena}} en rodajas de 5 mm de grosor sin pelar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en tiras anchas, retirando semillas y nervios.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate maduro}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|abundante}} en {{@Sartén}} a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las rodajas de patata en tandas hasta que estén doradas y tiernas.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las rodajas de patata fritas sobre papel absorbente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Freír las rodajas de berenjena en la misma sartén hasta que estén doradas.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las rodajas de berenjena fritas sobre papel absorbente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Freír las tiras de pimiento rojo en la misma sartén hasta que estén tiernas y con algo de color.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las tiras de pimiento rojo fritas sobre papel absorbente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar el aceite sobrante de la sartén dejando solo un fondo fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Sofreír el ajo picado a fuego suave hasta que esté dorado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate en dados y cocer a fuego medio, removiendo de vez en cuando, hasta que la salsa espese.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "paralelo",
+        "during": 14
+      },
+      {
+        "text": "Disponer las rodajas de patata fritas formando una capa uniforme en el fondo de una bandeja de horno.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar encima las rodajas de berenjena fritas formando una segunda capa uniforme.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir las tiras de pimiento rojo frito formando la tercera capa de verduras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cubrir todas las capas con la salsa de tomate, repartiéndola de forma homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 180 °C durante 10 min hasta que la salsa burbujee ligeramente y el conjunto esté bien caliente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y servir el tumbet en la bandeja o en platos individuales.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 8,
+    "saturated_fat_g": 3,
+    "sodium_mg": 180
   },
   {
     "id": "ensaladas_verduras_018",
@@ -1340,10 +2616,38 @@
       }
     ],
     "steps": [
-      "Lavar espárragos y cortar la parte leñosa",
-      "Calentar la plancha a fuego fuerte",
-      "Cocinar con aceite 4 min girando",
-      "Servir con ajo picado y sal en escamas"
+      "Lavar los espárragos, cortar la parte leñosa del tallo y picar finamente el ajo",
+      "Calentar la sartén a fuego fuerte hasta que empiece a humear",
+      "Pintar los espárragos con el aceite y cocinarlos 4 min, girándolos, hasta que estén tiernos y marcados",
+      "Repartir el ajo picado y la sal en escamas por encima y servir"
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar los {{Espárragos trigueros}}, cortar la parte leñosa del tallo y picar finamente {{Ajo}}.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte hasta que empiece a humear.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Pintar los espárragos con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 1
+      },
+      {
+        "text": "Cocinar los espárragos 4 min, girándolos, hasta que estén tiernos y marcados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el ajo picado, {{Sal en escamas|gusto}} por encima y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
     ],
     "description": "Espárragos trigueros a la plancha con aceite y ajo",
     "methods": [
@@ -1359,7 +2663,11 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. En una bandeja, extiende los espárragos mezclados con aceite de oliva, ajo picado y sal. Asa durante 15-20 minutos, volteándolos a mitad, hasta que estén tiernos y con puntas ligeramente crujientes."
       }
-    ]
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "ensaladas_verduras_020",
@@ -1409,10 +2717,20 @@
       }
     ],
     "steps": [
-      "Lavar y trocear las acelgas separando pencas y hojas",
-      "Cocer pencas y patata 10 min, añadir hojas 3 min más",
-      "Escurrir bien",
-      "Rehogar con ajo y pimentón en aceite"
+      "Lavar acelgas bajo el grifo con agua fría.",
+      "Cortar las pencas de las acelgas en trozos de 3 cm y las hojas en tiras anchas. Reservar por separado.",
+      "Pelar patata y cortar en dados de 2 cm.",
+      "Laminar ajo fino y reservar.",
+      "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+      "Añadir las pencas de acelga y la patata cuando rompa a hervir. Cocer a fuego medio durante 7 min.",
+      "Añadir las hojas de acelga a la olla y cocer 3 min más hasta que estén tiernas.",
+      "Escurrir las verduras en un colador y reservar.",
+      "Calentar aceite de oliva en sartén a fuego medio.",
+      "Sofreír el ajo laminado a fuego medio hasta que se dore ligeramente.",
+      "Retirar la sartén del fuego y añadir pimentón. Remover rápido para que no se queme.",
+      "Añadir las verduras escurridas a la sartén y mezclar bien con el sofrito.",
+      "Saltear a fuego medio durante 2 min hasta que todo esté bien integrado.",
+      "Servir las acelgas rehogadas en plato inmediatamente."
     ],
     "description": "Acelgas cocidas rehogadas con ajo, patata y pimentón",
     "methods": [
@@ -1428,7 +2746,83 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe el ajo y pimentón en la olla con aceite. Añade las patatas y acelgas con un poco de agua, cierra la olla y cocina a presión durante 3-5 minutos. Libera la presión y mezcla bien."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Lavar {{Acelgas}} bajo el grifo con agua fría.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar las pencas de las acelgas en trozos de 3 cm y las hojas en tiras anchas. Reservar por separado.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en dados de 2 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua con sal en una olla a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las pencas de acelga y la patata cuando rompa a hervir. Cocer a fuego medio durante 7 min.",
+        "minutes": 7,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir las hojas de acelga a la olla y cocer 3 min más hasta que estén tiernas.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las verduras en un colador y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo laminado a fuego medio hasta que se dore ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego y añadir {{Pimentón|pizca}}. Remover rápido para que no se queme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las verduras escurridas a la sartén y mezclar bien con el sofrito.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Saltear a fuego medio durante 2 min hasta que todo esté bien integrado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las acelgas rehogadas en plato inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "ensaladas_verduras_021",
@@ -1496,13 +2890,57 @@
       }
     ],
     "steps": [
-      "Cortar el tomate en gajos y el pepino en medias lunas",
-      "Añadir el pimiento verde y la cebolla morada en tiras finas",
-      "Coronar con el queso feta en dados y las aceitunas",
-      "Aliñar con aceite de oliva, orégano y una pizca de sal"
+      "Cortar tomate en gajos medianos y disponer en una ensaladera amplia.",
+      "Cortar pepino en medias lunas de 1 cm y añadir a la ensaladera.",
+      "Cortar pimiento verde en tiras finas y añadir a la ensaladera.",
+      "Laminar cebolla morada en medias lunas finas y añadir a la ensaladera.",
+      "Cortar queso feta en dados de 2 cm y repartir por encima de las verduras.",
+      "Repartir aceitunas sobre la ensalada.",
+      "Aliñar con aceite de oliva y espolvorear orégano. Servir de inmediato."
     ],
     "description": "Ensalada griega con tomate, pepino, feta, aceitunas y orégano",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tomate}} en gajos medianos y disponer en una ensaladera amplia.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pepino}} en medias lunas de 1 cm y añadir a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento verde}} en tiras finas y añadir a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Cebolla morada}} en medias lunas finas y añadir a la ensaladera.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Queso feta}} en dados de 2 cm y repartir por encima de las verduras.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Aceitunas}} sobre la ensalada.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y espolvorear {{Orégano|pizca}}. Servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 7,
+    "saturated_fat_g": 7,
+    "sodium_mg": 520
   },
   {
     "id": "ensaladas_verduras_022",
@@ -1552,10 +2990,15 @@
       }
     ],
     "steps": [
-      "Cortar la lombarda en tiras finas",
-      "Pochar cebolla y añadir lombarda con vinagre",
-      "Incorporar manzana en dados",
-      "Cocer tapado 25 min a fuego lento"
+      "Retirar las hojas exteriores de lombarda y laminar en tiras finas de unos 3 mm.",
+      "Pelar cebolla y picar en dados pequeños.",
+      "Pelar manzana, retirar el corazón y cortar en dados de 1 cm.",
+      "Calentar aceite de oliva en sartén a fuego medio hasta que esté caliente.",
+      "Sofreír la cebolla picada en la sartén a fuego medio hasta que esté transparente, unos 4 min.",
+      "Añadir la lombarda laminada y vinagre a la sartén y remover hasta que la lombarda se integre con la cebolla.",
+      "Tapar la sartén y cocer a fuego suave hasta que la lombarda esté tierna, unos 15 min.",
+      "Incorporar los dados de manzana, remover y cocer destapado a fuego suave 3 min más hasta que la manzana esté tierna pero no deshecha.",
+      "Servir la lombarda rehogada caliente o templada directamente en el plato."
     ],
     "description": "Lombarda estofada con manzana y vinagre",
     "methods": [
@@ -1571,7 +3014,58 @@
         "difficulty": "facil",
         "prepSummary": "Sofríe la cebolla con aceite en la olla abierta. Incorpora la lombarda, manzana y vinagre, cierra la olla y cocina a presión durante 8-10 minutos. Despresuriza y sirve."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Retirar las hojas exteriores de {{Lombarda}} y laminar en tiras finas de unos 3 mm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Cebolla}} y picar en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Manzana}}, retirar el corazón y cortar en dados de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en la sartén a fuego medio hasta que esté transparente, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la lombarda laminada y {{Vinagre}} a la sartén y remover hasta que la lombarda se integre con la cebolla.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la sartén y cocer a fuego suave hasta que la lombarda esté tierna, unos 15 min.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Incorporar los dados de manzana, remover y cocer destapado a fuego suave 3 min más hasta que la manzana esté tierna pero no deshecha.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la lombarda rehogada caliente o templada directamente en el plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 11,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   },
   {
     "id": "ensaladas_verduras_023",
@@ -1619,10 +3113,19 @@
       }
     ],
     "steps": [
-      "Limpiar las coles y cortar por la mitad",
-      "Cocer 8 min al vapor o hervidas",
-      "Saltear con ajo y panceta en taquitos",
-      "Dorar a fuego fuerte hasta que caramelicen"
+      "Retirar las hojas exteriores dañadas de coles de bruselas y cortar la base de cada una.",
+      "Cortar cada col de Bruselas por la mitad a lo largo.",
+      "Cortar panceta en taquitos de aproximadamente 1 cm.",
+      "Laminar ajo en láminas finas.",
+      "Llevar a ebullición agua con sal en un cazo a fuego fuerte.",
+      "Cocer las coles de Bruselas en el agua hirviendo hasta que estén ligeramente tiernas pero firmes.",
+      "Escurrir las coles de Bruselas y reservar.",
+      "Calentar aceite de oliva en sartén a fuego fuerte hasta que humee ligeramente.",
+      "Añadir los taquitos de panceta y saltear a fuego fuerte hasta que estén dorados y crujientes.",
+      "Añadir el ajo laminado y saltear a fuego fuerte hasta que empiece a dorarse.",
+      "Incorporar las coles de Bruselas con la cara plana hacia abajo y dorar a fuego fuerte sin remover, hasta que caramelicen.",
+      "Remover la sartén y saltear el conjunto a fuego fuerte hasta que esté bien dorado.",
+      "Servir las coles de Bruselas salteadas de inmediato en plato caliente."
     ],
     "description": "Coles de Bruselas salteadas con panceta crujiente",
     "methods": [
@@ -1638,7 +3141,78 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C. Extiende las coles de Bruselas, la panceta y el ajo con el aceite en una bandeja de horno. Hornea durante 25-30 minutos, removiendo a mitad, hasta que estén tiernas y bien doradas."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Retirar las hojas exteriores dañadas de {{Coles de Bruselas}} y cortar la base de cada una.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar cada col de Bruselas por la mitad a lo largo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Panceta}} en taquitos de aproximadamente 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Ajo}} en láminas finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición agua con {{Sal|gusto}} en un cazo a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer las coles de Bruselas en el agua hirviendo hasta que estén ligeramente tiernas pero firmes.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Escurrir las coles de Bruselas y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego fuerte hasta que humee ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los taquitos de panceta y saltear a fuego fuerte hasta que estén dorados y crujientes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo laminado y saltear a fuego fuerte hasta que empiece a dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las coles de Bruselas con la cara plana hacia abajo y dorar a fuego fuerte sin remover, hasta que caramelicen.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Remover la sartén y saltear el conjunto a fuego fuerte hasta que esté bien dorado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las coles de Bruselas salteadas de inmediato en plato caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 3,
+    "saturated_fat_g": 3,
+    "sodium_mg": 280
   },
   {
     "id": "ensaladas_verduras_024",
@@ -1709,10 +3283,21 @@
       }
     ],
     "steps": [
-      "Hacer la pechuga a la plancha y cortar en tiras",
-      "Tostar dados de pan con ajo y aceite",
-      "Mezclar mayonesa con limón y parmesano para la salsa",
-      "Montar la lechuga con pollo, picatostes y salsa"
+      "Cortar pan en dados de 1 cm.",
+      "Pelar y picar ajo muy fino.",
+      "Rallar queso parmesano.",
+      "Exprimir limón y reservar el zumo.",
+      "Lavar lechuga romana y trocear en hojas grandes.",
+      "Calentar plancha a fuego fuerte con aceite de oliva.",
+      "Cocinar pechuga de pollo hasta que esté dorada, 4 min por cada lado.",
+      "Retirar la pechuga de pollo de la plancha y dejar reposar.",
+      "Calentar sartén a fuego medio con el resto del aceite de oliva.",
+      "Añadir el ajo picado y los dados de pan hasta que estén dorados y crujientes.",
+      "Mezclar mayonesa con el zumo de limón y el queso parmesano rallado en un bol hasta obtener una salsa homogénea.",
+      "Cortar la pechuga de pollo reposada en tiras de 1 cm.",
+      "Disponer la lechuga romana en los platos.",
+      "Añadir las tiras de pollo y los picatostes sobre la lechuga.",
+      "Repartir la salsa por encima y servir de inmediato."
     ],
     "description": "Ensalada de lechuga romana con pollo, picatostes y salsa César",
     "methods": [
@@ -1728,7 +3313,88 @@
         "difficulty": "facil",
         "prepSummary": "Hornea el pollo a 200°C durante 20-25 minutos hasta que esté dorado y cocido. Al mismo tiempo, tuesta los dados de pan con aceite y ajo a 180°C durante 10-15 minutos hasta obtener unos picatostes crujientes."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Pan}} en dados de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Queso parmesano}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} y reservar el zumo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Lechuga romana}} y trocear en hojas grandes.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Plancha}} a fuego fuerte con {{Aceite de oliva|chorrito}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocinar {{Pechuga de pollo}} hasta que esté dorada, 4 min por cada lado.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la pechuga de pollo de la plancha y dejar reposar.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio con el resto del aceite de oliva.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y los dados de pan hasta que estén dorados y crujientes.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar {{Mayonesa}} con el zumo de limón y el queso parmesano rallado en un bol hasta obtener una salsa homogénea.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar la pechuga de pollo reposada en tiras de 1 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer la lechuga romana en los platos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Añadir las tiras de pollo y los picatostes sobre la lechuga.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Repartir la salsa por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 2,
+    "saturated_fat_g": 5,
+    "sodium_mg": 420
   },
   {
     "id": "ensaladas_verduras_025",
@@ -1778,10 +3444,15 @@
       }
     ],
     "steps": [
-      "Trocear todas las verduras en tamaños similares",
-      "Cocer al vapor 10 min hasta tiernas pero firmes",
-      "Aliñar con aceite y sal",
-      "Servir como acompañamiento o plato ligero"
+      "Pelar zanahoria y cortar en rodajas de 1 cm.",
+      "Cortar brócoli en ramilletes de tamaño similar.",
+      "Retirar los extremos de judías verdes y cortar en trozos de 4 cm.",
+      "Cortar calabacín en rodajas de 1 cm sin pelar.",
+      "Llevar a ebullición 1 l de agua en una olla con cesto de vapor a fuego fuerte.",
+      "Disponer la zanahoria y las judías verdes en el cesto, tapar y cocer al vapor 5 min.",
+      "Añadir el brócoli y el calabacín al cesto y cocer al vapor 5 min más, hasta que todas las verduras estén tiernas pero firmes.",
+      "Retirar el cesto y escurrir las verduras sobre una fuente de servir.",
+      "Aliñar con aceite de oliva y servir de inmediato."
     ],
     "description": "Mix de verduras cocidas al vapor, ligeras y nutritivas",
     "methods": [
@@ -1809,7 +3480,58 @@
         "difficulty": "facil",
         "prepSummary": "Corta las verduras y colócalas en un recipiente apto para microondas con un par de cucharadas de agua. Tapa y cocina a máxima potencia durante 7-8 minutos, removiendo a mitad de cocción, hasta que estén tiernas. Aliña con el aceite de oliva."
       }
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Zanahoria}} y cortar en rodajas de 1 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Brócoli}} en ramilletes de tamaño similar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Retirar los extremos de {{Judías verdes}} y cortar en trozos de 4 cm.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Calabacín}} en rodajas de 1 cm sin pelar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llevar a ebullición 1 l de agua en una olla con cesto de vapor a fuego fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer la zanahoria y las judías verdes en el cesto, tapar y cocer al vapor 5 min.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir el brócoli y el calabacín al cesto y cocer al vapor 5 min más, hasta que todas las verduras estén tiernas pero firmes.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el cesto y escurrir las verduras sobre una fuente de servir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 30
   },
   {
     "id": "ensaladas_verduras_026",
@@ -1885,13 +3607,57 @@
       }
     ],
     "steps": [
-      "Disponer las espinacas baby en un bol amplio",
-      "Repartir el queso de cabra en trozos, las nueces y los arándanos",
-      "Añadir la cebolla morada en tiras finas",
-      "Emulsionar aceite, miel, mostaza y vinagre y aliñar al momento"
+      "Pelar cebolla morada y laminar en tiras finas.",
+      "Cortar queso de cabra en trozos irregulares y reservar.",
+      "Disponer espinacas baby en una fuente o bol amplio.",
+      "Repartir el queso de cabra, nueces y arándanos sobre las espinacas.",
+      "Añadir la cebolla morada laminada sobre el resto de ingredientes.",
+      "Mezclar aceite de oliva, miel, mostaza y vinagre en un bol pequeño hasta emulsionar.",
+      "Aliñar la ensalada con la vinagreta al momento y servir."
     ],
     "description": "Ensalada de espinacas baby con queso de cabra, nueces, arándanos y vinagreta de miel y mostaza",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Cebolla morada}} y laminar en tiras finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Queso de cabra}} en trozos irregulares y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer {{Espinacas baby}} en una fuente o bol amplio.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir el queso de cabra, {{Nueces}} y {{Arándanos}} sobre las espinacas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la cebolla morada laminada sobre el resto de ingredientes.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar {{Aceite de oliva}}, {{Miel}}, {{Mostaza}} y {{Vinagre}} en un bol pequeño hasta emulsionar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar la ensalada con la vinagreta al momento y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 9,
+    "saturated_fat_g": 6,
+    "sodium_mg": 220
   },
   {
     "id": "ensaladas_verduras_027",
@@ -1945,13 +3711,50 @@
       }
     ],
     "steps": [
-      "Cortar el tomate y la mozzarella en rodajas del mismo grosor",
-      "Alternar rodajas de tomate y mozzarella en el plato",
-      "Repartir las hojas de albahaca fresca",
-      "Aliñar con aceite de oliva, crema de balsámico y una pizca de sal"
+      "Laminar tomate en rodajas de unos 5 mm de grosor.",
+      "Laminar mozzarella fresca en rodajas del mismo grosor que el tomate.",
+      "Alternar rodajas de tomate y mozzarella en el plato, solapándolas ligeramente.",
+      "Repartir albahaca fresca sobre las rodajas.",
+      "Aliñar con aceite de oliva virgen extra y crema de vinagre balsámico en hilo fino por encima.",
+      "Servir de inmediato."
     ],
     "description": "Ensalada caprese con tomate, mozzarella fresca, albahaca y balsámico",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Laminar {{Tomate}} en rodajas de unos 5 mm de grosor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Mozzarella fresca}} en rodajas del mismo grosor que el tomate.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Alternar rodajas de tomate y mozzarella en el plato, solapándolas ligeramente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Repartir {{Albahaca fresca}} sobre las rodajas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva virgen extra|chorrito}} y {{Crema de vinagre balsámico|chorrito}} en hilo fino por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir de inmediato.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 9,
+    "sodium_mg": 380
   },
   {
     "id": "ensaladas_verduras_028",
@@ -2014,13 +3817,57 @@
       }
     ],
     "steps": [
-      "Escurrir y enjuagar los garbanzos",
-      "Cortar el pimiento, los tomates cherry y la cebolla morada en dados",
-      "Mezclar todo con el maíz",
-      "Aliñar con aceite de oliva, vinagre y sal"
+      "Escurrir garbanzos cocidos en un colador y enjuagar bajo el grifo con agua fría hasta que el agua salga limpia.",
+      "Cortar pimiento rojo en dados pequeños.",
+      "Cortar tomate cherry por la mitad.",
+      "Picar cebolla morada en dados finos.",
+      "Mezclar en un bol los garbanzos escurridos, el pimiento en dados, los tomates cherry y la cebolla morada picada.",
+      "Añadir maíz dulce al bol y remover hasta que todos los ingredientes queden integrados.",
+      "Aliñar con aceite de oliva y vinagre, remover bien y servir."
     ],
     "description": "Ensalada fresca de garbanzos con pimiento, maíz, cherry y cebolla morada",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Escurrir {{Garbanzos cocidos}} en un colador y enjuagar bajo el grifo con agua fría hasta que el agua salga limpia.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}} en dados pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate cherry}} por la mitad.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla morada}} en dados finos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol los garbanzos escurridos, el pimiento en dados, los tomates cherry y la cebolla morada picada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Maíz dulce}} al bol y remover hasta que todos los ingredientes queden integrados.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y {{Vinagre}}, remover bien y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 8,
+    "sugar_g": 6,
+    "saturated_fat_g": 2,
+    "sodium_mg": 320
   },
   {
     "id": "ensaladas_verduras_029",
@@ -2088,13 +3935,69 @@
       }
     ],
     "steps": [
-      "Escurrir y enjuagar las lentejas",
-      "Cortar el tomate, el pepino y la cebolla morada en dados",
-      "Mezclar con las lentejas, el comino y el perejil",
-      "Aliñar con aceite de oliva, vinagre y sal"
+      "Escurrir lentejas cocidas y reservar en un bol grande.",
+      "Cortar tomate en dados pequeños.",
+      "Cortar pepino en dados pequeños.",
+      "Picar cebolla morada muy fina.",
+      "Picar perejil fino.",
+      "Añadir el tomate, el pepino y la cebolla morada al bol con las lentejas cocidas.",
+      "Añadir comino y el perejil picado; mezclar bien.",
+      "Aliñar con aceite de oliva y vinagre; remover hasta que todo quede bien integrado.",
+      "Servir la ensalada en platos o en el mismo bol."
     ],
     "description": "Ensalada de lentejas con tomate, pepino, cebolla morada y un toque de comino",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Escurrir {{Lentejas cocidas}} y reservar en un bol grande.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Tomate}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pepino}} en dados pequeños.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Cebolla morada}} muy fina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil}} fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el tomate, el pepino y la cebolla morada al bol con las lentejas cocidas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Comino|pizca}} y el perejil picado; mezclar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva|chorrito}} y {{Vinagre}}; remover hasta que todo quede bien integrado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la ensalada en platos o en el mismo bol.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 9,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "ensaladas_verduras_030",
@@ -2145,12 +4048,50 @@
       }
     ],
     "steps": [
-      "Cortar el tomate en gajos y el aguacate en láminas",
-      "Añadir la cebolla morada en tiras muy finas",
-      "Aliñar con aceite de oliva virgen extra y una pizca de sal",
-      "Terminar con orégano por encima"
+      "Cortar tomate en gajos medianos y reservar en una fuente.",
+      "Cortar aguacate por la mitad, retirar el hueso, pelar y laminar.",
+      "Laminar cebolla morada en tiras muy finas.",
+      "Disponer los gajos de tomate, las láminas de aguacate y la cebolla morada en la fuente.",
+      "Aliñar con aceite de oliva virgen extra repartido por toda la ensalada.",
+      "Terminar con orégano por encima y servir de inmediato."
     ],
     "description": "Ensalada de tomate maduro con aguacate y cebolla morada",
-    "methods": []
+    "methods": [],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tomate}} en gajos medianos y reservar en una fuente.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso, pelar y laminar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Laminar {{Cebolla morada}} en tiras muy finas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer los gajos de tomate, las láminas de aguacate y la cebolla morada en la fuente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Aliñar con {{Aceite de oliva virgen extra}} repartido por toda la ensalada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Terminar con {{Orégano|pizca}} por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 6,
+    "sugar_g": 5,
+    "saturated_fat_g": 3,
+    "sodium_mg": 10
   }
 ]

@@ -1,0 +1,212 @@
+Esquema (seed 2151241667):
+[{slug}] cute stylized 3D cartoon render in the style of Pixar and Disney, {sujeto}, {tonos}, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+--- ESPECIAS Y SALES ---
+
+[sal-en-escamas] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of flaky sea salt crystals, pearly white tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[sal-ahumada] cute stylized 3D cartoon render in the style of Pixar and Disney, a small mound of smoked salt crystals, warm grey-brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[flor-de-sal] cute stylized 3D cartoon render in the style of Pixar and Disney, delicate flower-like salt flakes in a tiny dish, icy white tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pimienta-blanca] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of white peppercorns, cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pimienta-sichuan] cute stylized 3D cartoon render in the style of Pixar and Disney, a handful of rust-red Sichuan peppercorns, rust and coral tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pimenton-ahumado] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of smoked paprika powder, deep brick-red tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pimenton-picante] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of hot paprika powder, vivid red tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pimenton-vera] cute stylized 3D cartoon render in the style of Pixar and Disney, a small tin of Pimentón de la Vera, rusty red tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[nora] cute stylized 3D cartoon render in the style of Pixar and Disney, two dried Ñora peppers, deep burgundy tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[anis-estrellado] cute stylized 3D cartoon render in the style of Pixar and Disney, a few star anise pods, warm brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cardamomo] cute stylized 3D cartoon render in the style of Pixar and Disney, green cardamom pods with a few open seeds, pale green and cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[clavo] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of whole cloves, dark brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[nuez-moscada] cute stylized 3D cartoon render in the style of Pixar and Disney, a whole nutmeg and a tiny grater, warm brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[sumac] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of deep red sumac powder, burgundy tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[zaatar] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of zaatar herb mix with sesame, green and gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[ras-el-hanout] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of ras el hanout spice blend, warm amber and rust tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[garam-masala] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of garam masala powder, warm brown-gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cinco-especias] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of Chinese five-spice powder, cinnamon-brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[hierbas-provenzales] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bundle of dried herbes de Provence, dusty green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[eneldo] cute stylized 3D cartoon render in the style of Pixar and Disney, a fresh sprig of dill, bright green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[estragon] cute stylized 3D cartoon render in the style of Pixar and Disney, a fresh sprig of tarragon, leafy green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cilantro-fresco] cute stylized 3D cartoon render in the style of Pixar and Disney, a bunch of fresh cilantro, vivid green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cilantro-grano] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of coriander seeds, warm beige tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[mostaza-grano] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of yellow mustard seeds, golden tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[azafran-hebra] cute stylized 3D cartoon render in the style of Pixar and Disney, a pinch of saffron threads, deep orange-red tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+--- SALSAS, ACEITES Y VINAGRES ---
+
+[wasabi] cute stylized 3D cartoon render in the style of Pixar and Disney, a small mound of bright green wasabi paste, lime-green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[tahini] cute stylized 3D cartoon render in the style of Pixar and Disney, a small jar of tahini with a swirl of sesame paste, beige tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[miso] cute stylized 3D cartoon render in the style of Pixar and Disney, a small tub of miso paste, earthy brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[gochujang] cute stylized 3D cartoon render in the style of Pixar and Disney, a small jar of gochujang chili paste, deep red tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[harissa] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of harissa paste, fiery red tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[worcestershire] cute stylized 3D cartoon render in the style of Pixar and Disney, a dark glass bottle of Worcestershire sauce, dark amber tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[vinagre-jerez] cute stylized 3D cartoon render in the style of Pixar and Disney, a bottle of sherry vinegar with a small filled glass, mahogany tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[vinagre-balsamico] cute stylized 3D cartoon render in the style of Pixar and Disney, a bottle of balsamic vinegar with a drop of dark glaze, deep brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[vinagre-manzana] cute stylized 3D cartoon render in the style of Pixar and Disney, a bottle of apple cider vinegar next to a small apple, amber and green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[vinagre-arroz] cute stylized 3D cartoon render in the style of Pixar and Disney, a bottle of rice vinegar, pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[salsa-ostra] cute stylized 3D cartoon render in the style of Pixar and Disney, a bottle of oyster sauce, dark glossy brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[salsa-pescado] cute stylized 3D cartoon render in the style of Pixar and Disney, a slim bottle of fish sauce, amber tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[aceite-sesamo] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bottle of sesame oil with sesame seeds, golden-brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[aceite-coco] cute stylized 3D cartoon render in the style of Pixar and Disney, a jar of coconut oil with a coconut piece, creamy white tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[aceite-girasol] cute stylized 3D cartoon render in the style of Pixar and Disney, a bottle of sunflower oil with a sunflower head, bright yellow tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[aove-picual] cute stylized 3D cartoon render in the style of Pixar and Disney, a green glass bottle of Picual extra virgin olive oil, deep green-gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[aove-arbequina] cute stylized 3D cartoon render in the style of Pixar and Disney, a bottle of Arbequina extra virgin olive oil, golden-green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pedro-ximenez] cute stylized 3D cartoon render in the style of Pixar and Disney, a dark bottle of Pedro Ximénez sherry with a small filled glass, dark amber tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+--- QUESOS ---
+
+[queso-manchego] cute stylized 3D cartoon render in the style of Pixar and Disney, a wedge of Manchego cheese with the zigzag rind, pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[idiazabal] cute stylized 3D cartoon render in the style of Pixar and Disney, a wedge of smoked Idiazábal cheese, warm ochre tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cabrales] cute stylized 3D cartoon render in the style of Pixar and Disney, a chunk of Cabrales blue cheese, ivory and blue-vein tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[mahon] cute stylized 3D cartoon render in the style of Pixar and Disney, a square wedge of Mahón cheese, orange-rind tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[tetilla] cute stylized 3D cartoon render in the style of Pixar and Disney, a small cone-shaped Tetilla cheese, creamy ivory tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[torta-casar] cute stylized 3D cartoon render in the style of Pixar and Disney, a round Torta del Casar cheese, cut open and creamy, straw-yellow tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[feta] cute stylized 3D cartoon render in the style of Pixar and Disney, cubes of feta cheese in a small bowl, bright white tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[ricotta] cute stylized 3D cartoon render in the style of Pixar and Disney, a tub of ricotta with a creamy swirl, snow-white tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[mascarpone] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pot of mascarpone, ivory cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[gruyere] cute stylized 3D cartoon render in the style of Pixar and Disney, a wedge of Gruyère cheese with holes, golden tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[emmental] cute stylized 3D cartoon render in the style of Pixar and Disney, a wedge of Emmental with big holes, pale yellow tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cheddar] cute stylized 3D cartoon render in the style of Pixar and Disney, a block of cheddar cheese, orange-gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[gouda] cute stylized 3D cartoon render in the style of Pixar and Disney, a wedge of Gouda with a wax rind, warm yellow tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[roquefort] cute stylized 3D cartoon render in the style of Pixar and Disney, a wedge of Roquefort with blue veins, ivory and blue tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[gorgonzola] cute stylized 3D cartoon render in the style of Pixar and Disney, a wedge of Gorgonzola, cream and blue-green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[burrata] cute stylized 3D cartoon render in the style of Pixar and Disney, a torn burrata with creamy center, milky white tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[provolone] cute stylized 3D cartoon render in the style of Pixar and Disney, a hanging pear of provolone, pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+--- PANES ---
+
+[hogaza] cute stylized 3D cartoon render in the style of Pixar and Disney, a rustic round loaf of country bread, golden crust tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[barra-de-pan] cute stylized 3D cartoon render in the style of Pixar and Disney, a Spanish barra de pan, golden brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[chapata] cute stylized 3D cartoon render in the style of Pixar and Disney, a ciabatta loaf, flour-dusted beige tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[baguette] cute stylized 3D cartoon render in the style of Pixar and Disney, a baguette, golden crust tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-pueblo] cute stylized 3D cartoon render in the style of Pixar and Disney, a round pan de pueblo, deep gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-cristal] cute stylized 3D cartoon render in the style of Pixar and Disney, a thin crispy pan de cristal, pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-centeno] cute stylized 3D cartoon render in the style of Pixar and Disney, a dark rye loaf, cocoa-brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-semillas] cute stylized 3D cartoon render in the style of Pixar and Disney, a seeded loaf with visible seeds on top, brown and gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-hamburguesa] cute stylized 3D cartoon render in the style of Pixar and Disney, a burger bun, golden sesame tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-perrito] cute stylized 3D cartoon render in the style of Pixar and Disney, a hot dog bun, pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-pita] cute stylized 3D cartoon render in the style of Pixar and Disney, a folded pita bread, warm beige tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[naan] cute stylized 3D cartoon render in the style of Pixar and Disney, a blistered naan bread, warm tan tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[tortilla-trigo] cute stylized 3D cartoon render in the style of Pixar and Disney, a stack of wheat tortillas, pale tan tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[tortilla-maiz] cute stylized 3D cartoon render in the style of Pixar and Disney, a stack of yellow corn tortillas, corn-yellow tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pan-bao] cute stylized 3D cartoon render in the style of Pixar and Disney, a fluffy steamed bao bun, snow-white tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[focaccia] cute stylized 3D cartoon render in the style of Pixar and Disney, a square of focaccia with rosemary, golden olive-oil tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[brioche] cute stylized 3D cartoon render in the style of Pixar and Disney, a shiny brioche bun, deep golden tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[croissant] cute stylized 3D cartoon render in the style of Pixar and Disney, a flaky croissant, amber-gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[picos] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of Spanish picos breadsticks, pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[colines] cute stylized 3D cartoon render in the style of Pixar and Disney, a handful of thin colines breadsticks, light beige tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+--- DESPENSA EXTRA ---
+
+[pinon] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of pine nuts, ivory-cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[avellana] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of hazelnuts, warm brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pistacho] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of pistachios, green and beige tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[datil] cute stylized 3D cartoon render in the style of Pixar and Disney, a few dates, deep amber tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[orejon] cute stylized 3D cartoon render in the style of Pixar and Disney, a few dried apricot halves, orange tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[pasa-sultana] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of golden raisins, honey-gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[membrillo-pasta] cute stylized 3D cartoon render in the style of Pixar and Disney, a block of quince paste, ruby-amber tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[chocolate-70] cute stylized 3D cartoon render in the style of Pixar and Disney, a bar of 70 percent dark chocolate, deep cocoa tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[cacao-puro] cute stylized 3D cartoon render in the style of Pixar and Disney, a small bowl of unsweetened cocoa powder, dark brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[levadura-fresca] cute stylized 3D cartoon render in the style of Pixar and Disney, a cube of fresh yeast, beige-cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[masa-madre] cute stylized 3D cartoon render in the style of Pixar and Disney, a jar of bubbly sourdough starter, cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[hojaldre] cute stylized 3D cartoon render in the style of Pixar and Disney, a folded sheet of puff pastry, pale gold tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[masa-quebrada] cute stylized 3D cartoon render in the style of Pixar and Disney, a disc of shortcrust pastry, pale beige tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[oblea-empanadilla] cute stylized 3D cartoon render in the style of Pixar and Disney, a stack of round empanadilla wrappers, pale wheat tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[alga-nori] cute stylized 3D cartoon render in the style of Pixar and Disney, a sheet of nori seaweed, deep green-black tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[alga-wakame] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of wakame seaweed, dark green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[leche-almendras] cute stylized 3D cartoon render in the style of Pixar and Disney, a carton of almond milk with almonds beside it, cream tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[edamame] cute stylized 3D cartoon render in the style of Pixar and Disney, a small pile of edamame pods, bright green tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[tempeh] cute stylized 3D cartoon render in the style of Pixar and Disney, a block of tempeh, warm tan tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[seitan] cute stylized 3D cartoon render in the style of Pixar and Disney, a piece of seitan, light brown tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667

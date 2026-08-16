@@ -20,7 +20,7 @@ describe("ingredientImageSrc", () => {
   });
 
   it("resolves descriptive names to their base ingredient", () => {
-    expect(ingredientImageSrc("Pechuga de pollo")).toBe("/ingredients/pollo.png");
+    expect(ingredientImageSrc("Pechuga de pollo")).toBe("/ingredients/pechuga-de-pollo.png");
     expect(ingredientImageSrc("Dientes de ajo")).toBe("/ingredients/ajo.png");
     expect(ingredientImageSrc("Aceite de oliva virgen extra")).toBe("/ingredients/aceite-oliva.png");
   });
@@ -29,11 +29,20 @@ describe("ingredientImageSrc", () => {
     expect(ingredientImageSrc("Atún en lata")).toBe("/ingredients/atun-lata.png");
     expect(ingredientImageSrc("Atún fresco")).toBe("/ingredients/atun.png");
     expect(ingredientImageSrc("Queso de cabra")).toBe("/ingredients/queso-cabra.png");
+    expect(ingredientImageSrc("Rulo de cabra")).toBe("/ingredients/rulo-de-cabra.png");
     expect(ingredientImageSrc("Queso rallado")).toBe("/ingredients/queso.png");
+    expect(ingredientImageSrc("Roquefort")).toBe("/ingredients/roquefort.png");
+    expect(ingredientImageSrc("Cabrales")).toBe("/ingredients/cabrales.png");
+    expect(ingredientImageSrc("Camembert")).toBe("/ingredients/queso-fresco.png");
+    expect(ingredientImageSrc("Baguette")).toBe("/ingredients/baguette.png");
+    expect(ingredientImageSrc("Pan rústico")).toBe("/ingredients/pan.png");
+    expect(ingredientImageSrc("Pan de payés")).toBe("/ingredients/pan-de-payes.png");
     expect(ingredientImageSrc("Tomate cherry")).toBe("/ingredients/tomate-cherry.png");
     expect(ingredientImageSrc("Tomate frito")).toBe("/ingredients/tomate-frito.png");
     expect(ingredientImageSrc("Cebolla morada")).toBe("/ingredients/cebolla-morada.png");
     expect(ingredientImageSrc("Arroz integral")).toBe("/ingredients/arroz-integral.png");
+    expect(ingredientImageSrc("Acelga")).toBe("/ingredients/acelga.png");
+    expect(ingredientImageSrc("Espinacas")).toBe("/ingredients/espinacas.png");
   });
 
   it("matches plural forms of multi-word ingredients", () => {
@@ -56,7 +65,8 @@ describe("ingredientImageSrc", () => {
   });
 
   it("falls back to a visual family for cuts we have no art for", () => {
-    expect(ingredientImageSrc("Entrecot de ternera")).toBe("/ingredients/fam_carne_roja.png");
+    expect(ingredientImageSrc("Entrecot")).toBe("/ingredients/entrecot.png");
+    expect(ingredientImageSrc("Jarrete de ternera")).toBe("/ingredients/fam_carne_roja.png");
     expect(ingredientImageSrc("Rodaballo")).toBe("/ingredients/fam_pescado_blanco.png");
   });
 
