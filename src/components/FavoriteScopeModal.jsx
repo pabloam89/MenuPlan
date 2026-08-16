@@ -18,7 +18,7 @@ function scopeIllustration(key, label) {
   if (key === "all") return "/avatares/cards/comemos_por_separado.png";
   const n = String(label || key).toLowerCase();
   if (/niñ|nino|infantil|hijo/.test(n)) return "/avatares/cards/mismo_menu_ninos.png";
-  if (/adult/.test(n)) return "/avatares/cards/familia/familia_0.png";
+  if (/adult/.test(n)) return "/avatares/cards/familia/familia_0.jpg";
   return "/avatares/cards/otro_grupo_familiar.png";
 }
 

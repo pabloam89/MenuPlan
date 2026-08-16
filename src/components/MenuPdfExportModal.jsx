@@ -13,7 +13,7 @@ import { slotKey } from "../lib/planner.js";
 import { householdHasSchoolMenu, SCHOOL_DAYS } from "../lib/schoolMenu.js";
 import { GroupAvatarStack, groupAvatarFaces, SegmentedControl, ToggleSwitch } from "./ui.jsx";
 
-const POSTRE_ILLUSTRATION = "/avatares/cards/yogur_fruta.png";
+const POSTRE_ILLUSTRATION = "/avatares/cards/yogur_fruta.jpg";
 
 const MEAL_META = {
   Desayuno: { Icon: Coffee, tone: "#c98a3a", bg: "#fbf3e8" },

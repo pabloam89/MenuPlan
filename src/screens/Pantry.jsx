@@ -302,8 +302,8 @@ function PantryModePicker({ tab, setTab, canUploadReceipt, addedCount = 0 }) {
         <RotatingCardImage
           images={
             canUploadReceipt
-              ? ["/avatares/cards/subir%20foto.png", "/avatares/cards/escanear.jpg"]
-              : ["/avatares/cards/subir%20foto.png"]
+              ? ["/avatares/cards/subir_foto.jpg", "/avatares/cards/escanear.jpg"]
+              : ["/avatares/cards/subir_foto.jpg"]
           }
           alt="Subir foto o ticket"
         />
