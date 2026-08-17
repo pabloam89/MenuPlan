@@ -7,6 +7,7 @@ import {
   OnboardingMenuModel,
   OnboardingMealStyle,
   OnboardingMealExtras,
+  OnboardingPantry,
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
@@ -610,9 +611,10 @@ function migrate(state) {
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
   if (typeof d.useHomeStock !== "boolean") d.useHomeStock = true;
-  // pantryMode is the richer 3-way successor to the useHomeStock boolean; seed
+  // pantryMode is the richer 4-way successor to the useHomeStock boolean; seed
   // it from the legacy flag for existing saves (false → "off", true → "prefer").
-  if (!["only", "prefer", "off"].includes(d.pantryMode)) {
+  // "strict" (solo con lo de casa, sin comprar) is the newest, strongest tier.
+  if (!["strict", "only", "prefer", "off"].includes(d.pantryMode)) {
     d.pantryMode = d.useHomeStock === false ? "off" : "prefer";
   }
   // ── Modo básico / avanzado ──
@@ -1026,6 +1028,15 @@ export default function App() {
     activeMenuIdRef.current = data.activeMenuId;
   }, [data.activeMenuId]);
 
+  // Kept live so fire-and-forget cloud writes (saveAndActivateMenu) can read
+  // the CURRENT favorite state after they resolve — not the stale snapshot
+  // that was captured at call time (which always had isFavorite: false for a
+  // freshly generated menú). See race-condition fix in saveAndActivateMenu calls.
+  const menusRef = useRef(data.menus);
+  useEffect(() => {
+    menusRef.current = data.menus;
+  }, [data.menus]);
+
   useEffect(() => {
     if (!user?.id) {
       cloudReadyRef.current = false;
@@ -1378,14 +1389,13 @@ export default function App() {
       }
 
       const pantryStock = user ? await loadPantry(user.id) : loadLocalPantry();
-      // Planning bias is controlled by pantryMode ("only"/"prefer"/"off");
+      // Planning bias is controlled by pantryMode ("strict"/"only"/"prefer"/"off");
       // shopping always sees the stock so «Ya en casa» stays accurate.
       // Fall back to the legacy useHomeStock boolean for older saves.
-      const pantryMode = ["only", "prefer", "off"].includes(working.pantryMode)
+      const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode)
         ? working.pantryMode
         : working.useHomeStock === false ? "off" : "prefer";
       const pantryIngredients = pantryMode === "off" ? [] : pantryStock;
-      const pantryStrict = pantryMode === "only";
       // Decisión B (multisemana): "nearest" → la despensa solo sesga la semana
       // más cercana; "all" → todas las semanas ven la despensa completa
       // (histórico); "spread" → cada semana ve la despensa menos lo que ya
@@ -1447,7 +1457,7 @@ export default function App() {
         const { plan, recipes } = await generateMenuWithAI(weekData, {
           signal: ctrl.signal,
           pantryIngredients: weekPantry,
-          pantryStrict,
+          pantryMode,
           crossWeek,
           plannerModel: planner.model,
         });
@@ -1580,7 +1590,21 @@ export default function App() {
       // normalized tables, fire-and-forget. Never awaited — the localStorage/
       // user_state blob (just written above) stays the real source of truth;
       // a failed or slow cloud write must never block or risk the local one.
-      if (user) saveAndActivateMenu(user.id, newMenu, allRecipes);
+      //
+      // Race-condition fix: saveAndActivateMenu captures `newMenu` with
+      // isFavorite: false (menus start unfavourited). If the user taps ♥
+      // before the queue resolves, toggleMenuFavoriteRemote hits 0 rows (the
+      // DB row doesn't exist yet) and silently no-ops. When saveMenu then
+      // upserts with is_favorite: false the DB ends up wrong. After the save
+      // resolves we re-sync the live isFavorite state from menusRef.
+      if (user) {
+        const _menuId = newMenu.id;
+        saveAndActivateMenu(user.id, newMenu, allRecipes).then(() => {
+          if (menusRef.current?.[_menuId]?.isFavorite) {
+            toggleMenuFavoriteRemote(user.id, _menuId, true).catch(() => {});
+          }
+        });
+      }
       setShopping((prev) => {
         const flags = Object.fromEntries(
           prev.items.map((i) => [
@@ -2046,10 +2070,15 @@ export default function App() {
       // here, so resolve the cloned menú's recipe snapshots from the already-
       // registered catalog/aiRecipes/own-recipes registry instead.
       if (user) {
-        const recipes = Array.from(collectMenuRecipeIds({ [newMenu.id]: newMenu }))
+        const _menuId = newMenu.id;
+        const recipes = Array.from(collectMenuRecipeIds({ [_menuId]: newMenu }))
           .map((id) => RECIPES_BY_ID[id])
           .filter(Boolean);
-        saveAndActivateMenu(user.id, newMenu, recipes);
+        saveAndActivateMenu(user.id, newMenu, recipes).then(() => {
+          if (menusRef.current?.[_menuId]?.isFavorite) {
+            toggleMenuFavoriteRemote(user.id, _menuId, true).catch(() => {});
+          }
+        });
       }
       showToast("Menú repetido con los mismos platos");
       fwd(() => setScreen("menu"));
@@ -2887,7 +2916,7 @@ export default function App() {
   // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
   // real choice: no kids to diverge from adults, nothing to upload if nobody
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
-  const ONB_STEP_COUNT = 10;
+  const ONB_STEP_COUNT = 11;
   const skipMenuModel = !canSplitMenus(data.members);
   // School cafeteria only applies to kids (Niños), not pure babies.
   const skipSchoolMenu = !hasChildMember(data.members);
@@ -3039,7 +3068,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCooking
+    <OnboardingPantry
       data={data}
       setData={setData}
       onNext={nextOf(8)}
@@ -3047,11 +3076,19 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCookTime
+    <OnboardingCooking
       data={data}
       setData={setData}
       onNext={nextOf(9)}
       onBack={backOf(9)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingCookTime
+      data={data}
+      setData={setData}
+      onNext={nextOf(10)}
+      onBack={backOf(10)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
