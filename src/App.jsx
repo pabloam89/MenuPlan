@@ -1076,9 +1076,20 @@ export default function App() {
       if (cancelled) return;
 
       // Recipes: union by id (remote wins on conflict); votes: same.
-      const byId = new Map(localRecipes.map((r) => [r.id ?? r.name, r]));
-      for (const r of remoteRecipes) byId.set(r.id, r);
-      const mergedRecipes = Array.from(byId.values());
+      // IMPORTANT: this merge must run against the LIVE state at apply time
+      // (see the setData below), not just the pre-await `localRecipes`
+      // snapshot. Hydration does slow network work (much slower in prod), and
+      // a recipe the user creates WHILE it's in flight lives in state but is in
+      // neither the stale snapshot nor the cloud yet — folding it in only via
+      // the snapshot silently wiped it ("creo mi receta, genero el menú y
+      // desaparece"). The snapshot-based value here is kept solely for the
+      // registerRecipes/backfill side effects below.
+      const mergeRemoteRecipes = (current = []) => {
+        const m = new Map(current.map((r) => [r.id ?? r.name, r]));
+        for (const r of remoteRecipes) m.set(r.id, r);
+        return Array.from(m.values());
+      };
+      const mergedRecipes = mergeRemoteRecipes(localRecipes);
       // Remote is authoritative for the vote itself, but a locally-set group
       // scope survives if it hasn't round-tripped to the server yet.
       const mergedVotes = mergeVotes(localVotes, remoteVotes);
@@ -1122,7 +1133,9 @@ export default function App() {
 
       setData((d) => ({
         ...(useRemote ? { ...INITIAL_DATA, ...remoteData } : d),
-        userRecipes: mergedRecipes,
+        // Merge against the current live recipes, not the stale snapshot, so a
+        // recipe created mid-hydration survives (see mergeRemoteRecipes above).
+        userRecipes: mergeRemoteRecipes(d.userRecipes ?? []),
         recipeVotes: mergedVotes,
         discards: mergedDiscards,
         priceObs: mergedPriceObs,
@@ -2207,17 +2220,23 @@ export default function App() {
     setScreen("onboarding");
   }, []);
 
-  // "Continuar donde lo dejé": if they already generated a menu, skip the
-  // wizard and generate with the saved profile (pantry, extras, family). If
-  // they abandoned mid-wizard, reopen that step. If they only finished the
-  // first-run family screen, pick up the rest of the assistant.
+  // "Continuar donde lo dejé": if they already generated a menu, land on the
+  // last wizard step (CookTime, step 10) in quick mode so the user can review
+  // or tweak settings — the existing menu is NOT regenerated automatically;
+  // regeneration only happens if they explicitly press "Generar menú" from
+  // there. If they abandoned mid-wizard, reopen that step. If they only
+  // finished the first-run family screen, pick up the rest of the assistant.
   const resumeOnboardingOrGenerate = useCallback(() => {
     setOnbResumeOpen(false);
     const hasMenu =
       Object.keys(menuPlan ?? {}).length > 0 ||
       Object.keys(data.menus ?? {}).length > 0;
     if (hasMenu) {
-      fwd(goToMenu);
+      setQuickMenu(true);
+      setFirstRunOnboarding(false);
+      dirRef.current = "forward";
+      setOnbStep(10); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
+      setScreen("onboarding");
       return;
     }
     if (onbStep > 0) {
@@ -2228,7 +2247,7 @@ export default function App() {
       return;
     }
     startQuickMenu();
-  }, [menuPlan, data.menus, onbStep, goToMenu, startQuickMenu]);
+  }, [menuPlan, data.menus, onbStep, startQuickMenu]);
 
   // "Otro grupo" → park the current household and start an empty roster, so
   // whoever gets added next belongs to that group alone. Before rosters existed
