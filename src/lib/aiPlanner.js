@@ -445,7 +445,10 @@ export function buildGroupContext(data, group) {
 }
 
 // Exported for tests only — not used elsewhere outside this module.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryStrict = false) {
+// pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
+// lo de casa, fuerte) | "prefer"/"off" (preferencia blanda). "off" nunca llega
+// aquí con nombres porque App vacía la lista antes.
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer") {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
@@ -471,9 +474,12 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   }
 
   if (pantryNames.length > 0) {
-    const pantryInstruction = pantryStrict
-      ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): Construye el menú usando SOBRE TODO ingredientes de esta lista. Para cada hueco, elige preferentemente recetas cuyos ingredientes principales estén ya en casa; solo recurre a recetas con ingredientes fuera de esta lista cuando no haya ninguna opción razonable que encaje con las demás reglas (complementación escolar, variedad, alergias, tipo de plato). Esta preferencia es FUERTE, pero nunca rompas esas reglas ni fuerces combinaciones que no tengan sentido culinario.`
-      : `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`;
+    const pantryInstruction =
+      pantryMode === "strict"
+        ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD MÁXIMA): El usuario quiere cocinar SOLO con lo que ya tiene en casa, sin comprar. Para CADA hueco, elige exclusivamente recetas cuyos ingredientes principales estén en esta lista. Solo si es imposible cubrir un hueco con lo disponible, recurre a una receta con ingredientes de fuera, y reduce esos casos al mínimo absoluto. Nunca rompas las demás reglas (complementación escolar, alergias) ni fuerces combinaciones sin sentido culinario.`
+        : pantryMode === "only"
+        ? `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): Construye el menú usando SOBRE TODO ingredientes de esta lista. Para cada hueco, elige preferentemente recetas cuyos ingredientes principales estén ya en casa; solo recurre a recetas con ingredientes fuera de esta lista cuando no haya ninguna opción razonable que encaje con las demás reglas (complementación escolar, variedad, alergias, tipo de plato). Esta preferencia es FUERTE, pero nunca rompas esas reglas ni fuerces combinaciones que no tengan sentido culinario.`
+        : `\n\nINSTRUCCIÓN ADICIONAL: Cuando haya dos recetas equivalentes para un hueco, prioriza la que use más ingredientes de esta lista. Esta preferencia es SECUNDARIA a todas las demás reglas (complementación escolar, variedad, alergias). No fuerces recetas que no encajen solo por usar ingredientes disponibles.`;
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
         pantryInstruction,
@@ -706,7 +712,7 @@ export function poolForWeek(pool, crossWeek, slotCount) {
 // ── Generation ──────────────────────────────────────────────────
 
 // Exported for tests only — not used elsewhere outside this module.
-export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryStrict = false) {
+export async function generateGroupMenu(data, group, signal, pantryIngredients = [], crossWeek = null, plannerModel = DEFAULT_MODEL, pantryMode = "prefer") {
   const ctx = buildGroupContext(data, group);
   // Pantry is family-wide (not per-group), so it's merged into filterOpts
   // here rather than inside buildGroupContext.
@@ -765,7 +771,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     ctx.schoolMenuByDay,
     data.fixedDishes,
     pantryIngredients.map((p) => p.ingredientName),
-    pantryStrict,
+    pantryMode,
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
@@ -1271,7 +1277,7 @@ function planExtraMealsForGroup(group, data, weekIndex = 0) {
   return out;
 }
 
-export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryStrict = false, crossWeek = null, plannerModel = DEFAULT_MODEL } = {}) {
+export async function generateMenuWithAI(data, { signal, pantryIngredients = [], pantryMode = "prefer", crossWeek = null, plannerModel = DEFAULT_MODEL } = {}) {
   if (!data?.groups?.length) {
     throw new AIPlannerError("No hay grupos definidos en el onboarding.");
   }
@@ -1285,7 +1291,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
 
   const results = await Promise.all(
     activeGroups.map((group) =>
-      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryStrict),
+      generateGroupMenu(data, group, signal, pantryIngredients, crossWeek, plannerModel, pantryMode),
     ),
   );
 

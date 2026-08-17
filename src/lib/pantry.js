@@ -23,6 +23,13 @@ function mapRow(row) {
     qty: Number(row.qty) || 0,
     unit: row.unit ?? "ud",
     source: row.source,
+    // Freezer + cooked-dish axes (see 0014_pantry_freezer_cooked.sql). Absent on
+    // a pre-0014 DB → safe defaults (a plain, non-frozen ingredient).
+    frozen: Boolean(row.frozen),
+    itemType: row.item_type ?? "ingredient",
+    portions: row.portions != null ? Number(row.portions) : null,
+    recipeRef: row.recipe_ref ?? null,
+    cookedAt: row.cooked_at ?? null,
     // Proxy for "fecha de compra" (see 0009_user_pantry_updated_at.sql):
     // bumped by a DB trigger on every qty change, so it's naturally "last
     // time this stock was touched" — new tickets, top-ups, manual edits.
@@ -30,37 +37,43 @@ function mapRow(row) {
   };
 }
 
-// Postgres "undefined_column" — a DB that hasn't run 0009_user_pantry_updated_at
-// yet is missing `updated_at`; we degrade gracefully instead of hard-failing.
+// Postgres "undefined_column" — a DB that hasn't run a given migration yet is
+// missing one of its columns; we degrade gracefully instead of hard-failing.
 const UNDEFINED_COLUMN = "42703";
 
-function isMissingUpdatedAt(error) {
-  return error?.code === UNDEFINED_COLUMN && /updated_at/.test(error?.message ?? "");
+function isMissingColumn(error) {
+  return error?.code === UNDEFINED_COLUMN;
 }
+
+// Columns added after the original table. Selected together, dropped as a group
+// on a pre-migration DB (see loadPantry's graceful fallbacks).
+const BASE_COLS = "id, ingredient_name, ingredient_normalized, qty, unit, source, created_at";
+const FREEZER_COLS = "frozen, item_type, portions, recipe_ref, cooked_at";
+const RETURN_COLS = `${BASE_COLS}, ${FREEZER_COLS}`;
 
 /** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
 export async function loadPantry(userId) {
   if (!supabase || !userId) return [];
-  const base = "id, ingredient_name, ingredient_normalized, qty, unit, source, created_at";
-  const { data, error } = await supabase
-    .from("user_pantry")
-    .select(`${base}, updated_at`)
-    .eq("user_id", userId)
-    .order("created_at", { ascending: true });
-  if (!error) return (data ?? []).map(mapRow);
-
-  // Older schema (pre-0009): retry without updated_at so the pantry still loads
-  // (created_at becomes the "last touched" proxy via mapRow). Quietly, since
-  // this is an expected shape difference, not a real failure.
-  if (isMissingUpdatedAt(error)) {
-    const retry = await supabase
+  const run = (cols) =>
+    supabase
       .from("user_pantry")
-      .select(base)
+      .select(cols)
       .eq("user_id", userId)
       .order("created_at", { ascending: true });
+
+  // Newest schema first, then fall back column-group by column-group so the
+  // pantry still loads on a DB that hasn't run 0014 (freezer) or 0009 (updated_at).
+  let { data, error } = await run(`${BASE_COLS}, updated_at, ${FREEZER_COLS}`);
+  if (!error) return (data ?? []).map(mapRow);
+
+  if (isMissingColumn(error)) {
+    let retry = await run(`${BASE_COLS}, updated_at`);
     if (!retry.error) return (retry.data ?? []).map(mapRow);
-    console.error("[pantry] load failed", retry.error);
-    return [];
+    if (isMissingColumn(retry.error)) {
+      retry = await run(BASE_COLS);
+      if (!retry.error) return (retry.data ?? []).map(mapRow);
+    }
+    error = retry.error;
   }
 
   console.error("[pantry] load failed", error);
@@ -78,40 +91,74 @@ export async function loadPantry(userId) {
  */
 export async function addPantryItems(userId, items) {
   if (!supabase || !userId || items.length === 0) return [];
-  const normalizedKeys = items.map((it) => it.normalized);
-  const { data: existing, error: fetchError } = await supabase
-    .from("user_pantry")
-    .select("id, ingredient_normalized, qty, unit")
-    .eq("user_id", userId)
-    .in("ingredient_normalized", normalizedKeys);
-  if (fetchError) console.error("[pantry] add lookup failed", fetchError);
-  const existingByKey = new Map((existing ?? []).map((r) => [r.ingredient_normalized, r]));
+
+  const ingredients = items.filter((it) => (it.itemType ?? "ingredient") !== "cooked_dish");
+  const cooked = items.filter((it) => (it.itemType ?? "ingredient") === "cooked_dish");
 
   const toInsert = [];
   const toUpdate = [];
-  for (const it of items) {
-    const qty = Number(it.qty) > 0 ? Number(it.qty) : 1;
-    const unit = it.unit ?? "ud";
-    const found = existingByKey.get(it.normalized);
-    if (found) {
-      // Add on top of what's there, converting the incoming unit to the stored
-      // row's unit when they differ (e.g. 5 ud + 500 g of the same piece
-      // ingredient). Only a truly incompatible pair (g↔ml, no density) can't be
-      // merged — then we leave the row as-is rather than mixing bad amounts.
-      const addQty =
-        found.unit === unit ? qty : convertStockAmount(qty, unit, found.unit, it.name);
-      const nextQty = addQty != null ? (Number(found.qty) || 0) + addQty : Number(found.qty) || 0;
-      toUpdate.push({ id: found.id, qty: nextQty });
-    } else {
-      toInsert.push({
-        user_id: userId,
-        ingredient_name: it.name,
-        ingredient_normalized: it.normalized,
-        qty,
-        unit,
-        source: it.source ?? "manual",
-      });
+
+  // Ingredients: top-up an existing row of the SAME normalized name AND the
+  // same frozen state (fresh chicken and frozen chicken are two rows). Cooked
+  // dishes are never touched by this lookup (they're never merged).
+  if (ingredients.length) {
+    const normalizedKeys = ingredients.map((it) => it.normalized);
+    const { data: existing, error: fetchError } = await supabase
+      .from("user_pantry")
+      .select("id, ingredient_normalized, qty, unit, frozen")
+      .eq("user_id", userId)
+      .eq("item_type", "ingredient")
+      .in("ingredient_normalized", normalizedKeys);
+    if (fetchError) console.error("[pantry] add lookup failed", fetchError);
+    const keyOf = (normalized, frozen) => `${normalized}|${frozen ? 1 : 0}`;
+    const existingByKey = new Map((existing ?? []).map((r) => [keyOf(r.ingredient_normalized, r.frozen), r]));
+
+    for (const it of ingredients) {
+      const qty = Number(it.qty) > 0 ? Number(it.qty) : 1;
+      const unit = it.unit ?? "ud";
+      const frozen = Boolean(it.frozen);
+      const found = existingByKey.get(keyOf(it.normalized, frozen));
+      if (found) {
+        // Add on top of what's there, converting the incoming unit to the stored
+        // row's unit when they differ (e.g. 5 ud + 500 g of the same piece
+        // ingredient). Only a truly incompatible pair (g↔ml, no density) can't be
+        // merged — then we leave the row as-is rather than mixing bad amounts.
+        const addQty =
+          found.unit === unit ? qty : convertStockAmount(qty, unit, found.unit, it.name);
+        const nextQty = addQty != null ? (Number(found.qty) || 0) + addQty : Number(found.qty) || 0;
+        toUpdate.push({ id: found.id, qty: nextQty });
+      } else {
+        toInsert.push({
+          user_id: userId,
+          ingredient_name: it.name,
+          ingredient_normalized: it.normalized,
+          qty,
+          unit,
+          frozen,
+          item_type: "ingredient",
+          source: it.source ?? "manual",
+        });
+      }
     }
+  }
+
+  // Cooked dishes: every batch is its own row (a second tupper of lentils is
+  // not the same stock as the first — different cooked_at, own portions).
+  for (const it of cooked) {
+    const portions = Number(it.portions ?? it.qty) > 0 ? Number(it.portions ?? it.qty) : 1;
+    toInsert.push({
+      user_id: userId,
+      ingredient_name: it.name,
+      ingredient_normalized: it.normalized,
+      qty: portions,
+      unit: "racion",
+      frozen: Boolean(it.frozen),
+      item_type: "cooked_dish",
+      portions,
+      recipe_ref: it.recipeRef ?? null,
+      cooked_at: it.cookedAt ?? new Date().toISOString(),
+      source: it.source ?? "manual",
+    });
   }
 
   const rows = [];
@@ -119,7 +166,7 @@ export async function addPantryItems(userId, items) {
     const { data, error } = await supabase
       .from("user_pantry")
       .insert(toInsert)
-      .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at");
+      .select(RETURN_COLS);
     if (error) console.error("[pantry] insert failed", error);
     else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
   }
@@ -135,7 +182,7 @@ export async function addPantryItems(userId, items) {
         .update({ qty: u.qty })
         .eq("user_id", userId)
         .eq("id", u.id)
-        .select("id, ingredient_name, ingredient_normalized, qty, unit, source, created_at"),
+        .select(RETURN_COLS),
     ),
   );
   for (const { data, error } of updated) {
@@ -216,15 +263,41 @@ export function loadLocalPantry() {
   return readLocalPantry();
 }
 
-/** Same top-up-by-normalized-name semantics as addPantryItems, just synchronous. */
+/** Same top-up-by-(name,frozen) semantics as addPantryItems, just synchronous.
+ *  Cooked dishes are always appended as a fresh row (never merged). */
 export function addLocalPantryItems(items) {
-  const current = readLocalPantry();
-  const byKey = new Map(current.map((it) => [it.ingredientNormalized, it]));
+  const next = readLocalPantry();
+  const keyOf = (normalized, frozen) => `${normalized}|${frozen ? 1 : 0}`;
+  const ingredientByKey = new Map(
+    next
+      .filter((it) => (it.itemType ?? "ingredient") !== "cooked_dish")
+      .map((it) => [keyOf(it.ingredientNormalized, it.frozen), it]),
+  );
   const now = new Date().toISOString();
   for (const it of items) {
+    const isCooked = (it.itemType ?? "ingredient") === "cooked_dish";
+    if (isCooked) {
+      const portions = Number(it.portions ?? it.qty) > 0 ? Number(it.portions ?? it.qty) : 1;
+      next.push({
+        id: `local_${uid()}`,
+        ingredientName: it.name,
+        ingredientNormalized: it.normalized,
+        qty: portions,
+        unit: "racion",
+        source: it.source ?? "manual",
+        frozen: Boolean(it.frozen),
+        itemType: "cooked_dish",
+        portions,
+        recipeRef: it.recipeRef ?? null,
+        cookedAt: it.cookedAt ?? now,
+        updatedAt: now,
+      });
+      continue;
+    }
     const qty = Number(it.qty) > 0 ? Number(it.qty) : 1;
     const unit = it.unit ?? "ud";
-    const existing = byKey.get(it.normalized);
+    const frozen = Boolean(it.frozen);
+    const existing = ingredientByKey.get(keyOf(it.normalized, frozen));
     if (existing) {
       const addQty =
         existing.unit === unit ? qty : convertStockAmount(qty, unit, existing.unit, it.name);
@@ -233,18 +306,21 @@ export function addLocalPantryItems(items) {
         existing.updatedAt = now;
       }
     } else {
-      byKey.set(it.normalized, {
+      const row = {
         id: `local_${uid()}`,
         ingredientName: it.name,
         ingredientNormalized: it.normalized,
         qty,
         unit,
         source: it.source ?? "manual",
+        frozen,
+        itemType: "ingredient",
         updatedAt: now,
-      });
+      };
+      ingredientByKey.set(keyOf(it.normalized, frozen), row);
+      next.push(row);
     }
   }
-  const next = Array.from(byKey.values());
   writeLocalPantry(next);
   return next;
 }
@@ -293,6 +369,11 @@ export async function mergeLocalPantryIntoCloud(userId) {
       qty: it.qty,
       unit: it.unit,
       source: it.source,
+      frozen: it.frozen,
+      itemType: it.itemType,
+      portions: it.portions,
+      recipeRef: it.recipeRef,
+      cookedAt: it.cookedAt,
     })),
   );
   writeLocalPantry([]);

@@ -262,6 +262,10 @@ function liquidUnits(qty) {
  */
 export function formatStockQty(qty, unit) {
   const n = Number(qty) || 0;
+  if (unit === "racion") {
+    const text = Number.isInteger(n) ? String(n) : n.toFixed(1).replace(".", ",");
+    return `${text} ${n === 1 ? "ración" : "raciones"}`;
+  }
   if (unit === "ud") return `${Number.isInteger(n) ? n : n.toFixed(1)} ud`;
   if (unit === "g" || unit === "ml") {
     const bigLabel = unit === "g" ? "kg" : "L";
@@ -281,6 +285,7 @@ export function toCanonicalStockQty(qty, entryUnit) {
   if (entryUnit === "kg") return { qty: n * 1000, unit: "g" };
   if (entryUnit === "l") return { qty: n * 1000, unit: "ml" };
   if (entryUnit === "g" || entryUnit === "ml") return { qty: n, unit: entryUnit };
+  if (entryUnit === "racion") return { qty: n, unit: "racion" };
   return { qty: n, unit: "ud" };
 }
 

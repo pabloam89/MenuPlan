@@ -826,6 +826,7 @@ export function IngredientPicker({
   onToggle,
   onAddCustom,
   compact = false,
+  hideSearch = false,
   onPlus: _onPlus,
   plusDisabled: _plusDisabled = false,
   onUpload,
@@ -861,6 +862,24 @@ export function IngredientPicker({
   if (compact) {
     return (
       <div style={{ marginBottom: 14 }}>
+        {/* Con búsqueda externa (hideSearch) solo hace falta el "Volver a
+            categorías" cuando hay un aisle abierto; el input vive fuera. */}
+        {hideSearch && aisle && (
+          <button
+            type="button"
+            onClick={() => setAisle(null)}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 10,
+              height: 34, padding: "0 12px 0 8px", borderRadius: 11,
+              border: "1.5px solid #d7e6dc", background: "#fff", color: GREEN,
+              cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+            }}
+          >
+            <ChevronLeft size={14} strokeWidth={2.6} />
+            Categorías
+          </button>
+        )}
+        {!hideSearch && (
         <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
         <div
           style={{
@@ -934,6 +953,7 @@ export function IngredientPicker({
           </button>
         )}
         </div>
+        )}
 
         {/* Search results (4-col thumb grid) */}
         {q && results.length > 0 && (

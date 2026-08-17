@@ -27,3 +27,18 @@ export function shouldAdoptRemoteProfile({ localMemberCount, remoteMemberCount }
   const localHasProfile = (localMemberCount ?? 0) > 0;
   return remoteHasProfile && !localHasProfile;
 }
+
+// Unions user-created recipes by id, with the remote copy winning on conflict.
+//
+// Callers MUST pass the CURRENT live recipes as `current`, not a snapshot taken
+// before the (slow, network-bound) cloud load. The cloud-sync hydration in
+// App.jsx captures state before its awaits; if a user creates a recipe while
+// that hydration is still in flight, the recipe lives only in live state — it's
+// in neither the pre-await snapshot nor the cloud yet. Merging from the stale
+// snapshot silently dropped it ("creo mi receta, genero el menú y desaparece").
+// Merging from the live state at apply time keeps it.
+export function mergeUserRecipesById(current = [], remote = []) {
+  const byId = new Map(current.map((r) => [r.id ?? r.name, r]));
+  for (const r of remote) byId.set(r.id ?? r.name, r);
+  return Array.from(byId.values());
+}

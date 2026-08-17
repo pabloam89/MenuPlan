@@ -2009,5 +2009,127 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 290
+  },
+  {
+    "id": "guarniciones_023",
+    "name": "Pisto",
+    "shortName": "pisto",
+    "category": "guarniciones",
+    "mainProtein": "none",
+    "mealRole": [
+      "guarnicion"
+    ],
+    "type": "guarnicion",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 110,
+    "protein_g": 2,
+    "carbs_g": 10,
+    "fat_g": 7,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar cebolla y ajo en dados pequeños.",
+      "Cortar pimiento rojo, pimiento verde y calabacín en dados pequeños.",
+      "Pelar tomate maduro y cortar en dados pequeños.",
+      "Calentar aceite de oliva en una sartén a fuego medio.",
+      "Sofreír la cebolla y el ajo hasta que la cebolla esté translúcida, unos 4 min.",
+      "Añadir los pimientos y sofreír hasta que estén tiernos, unos 5 min.",
+      "Incorporar el calabacín, remover y cocer 4 min.",
+      "Añadir el tomate, tapar y cocer a fuego suave hasta que las verduras estén tiernas, unos 10 min.",
+      "Remover, salpimentar al gusto y servir como guarnición."
+    ],
+    "description": "Pisto de verduras en ración de acompañamiento",
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva}} en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo hasta que la cebolla esté translúcida, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los pimientos y sofreír hasta que estén tiernos, unos 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el calabacín, remover y cocer 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate, tapar y cocer a fuego suave hasta que las verduras estén tiernas, unos 10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Remover, salpimentar {{Sal|gusto}} y servir como guarnición.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 80
   }
 ]

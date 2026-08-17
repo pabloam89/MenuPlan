@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Apple,
   Bean,
+  Boxes,
   CalendarDays,
   Check,
   ChevronDown,
@@ -15,6 +16,8 @@ import {
   Milk,
   Package,
   Plus,
+  Snowflake,
+  Soup,
   Sprout,
   Store,
   Tag,
@@ -47,9 +50,55 @@ import {
   pantryPieceCountLabel,
   toCanonicalStockQty,
 } from "../lib/kitchenUnits.js";
-import { guessShoppingAisle } from "../lib/ingredientCategories.js";
+import { guessShoppingAisle, isPerishableAisle } from "../lib/ingredientCategories.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { DATE_BUCKET_OPTIONS, estimateListCost, formatEuro, matchesDateBucket } from "../lib/priceHistory.js";
+
+// Las 3 ubicaciones que el usuario ve como filtros. La única que el usuario
+// elige al guardar es "congelador" (frozen); nevera vs despensa se deriva del
+// aisle: frescos perecederos → nevera, el resto → despensa. Los platos
+// cocinados no congelados viven en la nevera.
+function itemLocation(item) {
+  if (item?.frozen) return "congelador";
+  if ((item?.itemType ?? "ingredient") === "cooked_dish") return "nevera";
+  return isPerishableAisle(guessShoppingAisle(item?.ingredientName)) ? "nevera" : "despensa";
+}
+
+const LOCATION_META = {
+  nevera: { label: "Nevera", img: "/avatares/cards/nevera.png", tint: "#e6f1f7", ink: "#2f6d8a" },
+  despensa: { label: "Despensa", img: "/avatares/cards/despensa.png", tint: "#f4efe3", ink: "#9a7b34" },
+  congelador: { label: "Congelador", img: "/avatares/cards/congelador.png", tint: "#e8f0f6", ink: "#3f7fb0" },
+};
+const LOCATION_ORDER = ["nevera", "despensa", "congelador"];
+
+function isCookedDish(item) {
+  return (item?.itemType ?? "ingredient") === "cooked_dish";
+}
+
+// Etiqueta cualitativa de frescura (chip bajo el nombre en la tabla). No es una
+// fecha exacta: cubos gruesos con umbrales por ubicación (nevera = ventana de
+// días → urgencia; congelador = meses). Los secos de despensa no la muestran,
+// ahí la frescura no aporta. Ancla en cooked_at (plato) o updated_at (proxy).
+function freshnessTag(item) {
+  const loc = itemLocation(item);
+  if (loc === "despensa") return null;
+  const iso = isCookedDish(item) ? item?.cookedAt : item?.updatedAt;
+  if (!iso) return null;
+  const days = (Date.now() - new Date(iso).getTime()) / 86400000;
+  if (!Number.isFinite(days) || days < 0) return null;
+  if (loc === "congelador") {
+    if (days <= 2) return { label: "Reciente", color: "#2f7d4f", bg: "#e8f3ec" };
+    if (days <= 30) return { label: "Este mes", color: "#2f6d8a", bg: "#e8f0f6" };
+    if (days <= 90) return { label: "Hace tiempo", color: "#9a7b34", bg: "#f6efe0" };
+    return { label: "Muy antiguo", color: "#c0392b", bg: "#fdecea" };
+  }
+  // nevera
+  if (days <= 1) return { label: "Hoy", color: "#2f7d4f", bg: "#e8f3ec" };
+  if (days <= 3) return { label: "Reciente", color: "#2f6d8a", bg: "#e8f0f6" };
+  if (days <= 7) return { label: "Esta semana", color: "#9a7b34", bg: "#f6efe0" };
+  return { label: "Cómelo ya", color: "#c0392b", bg: "#fdecea" };
+}
 
 // Editing shows the canonical g/ml as the friendlier kg/L when it's ≥1000,
 // mirroring PantryInput's own entry fields.
@@ -280,7 +329,7 @@ function PantryModeCard({ label, active, compact, onClick, children }) {
       <div style={{ position: "relative", width: "100%", aspectRatio: "3 / 2", background: "#eef4ef", flexShrink: 0 }}>
         {children}
       </div>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "7px 8px", background: active ? EMPTY_ACCENT : "#fff", color: active ? "#fff" : "#3d6652", fontSize: 12.5, fontWeight: 800, lineHeight: 1.2, textAlign: "center" }}>
+      <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "11px 8px", background: active ? EMPTY_ACCENT : "#fff", color: active ? "#fff" : "#3d6652", fontSize: 12.5, fontWeight: 800, lineHeight: 1.2, textAlign: "center" }}>
         {label}
       </div>
     </button>
@@ -312,64 +361,143 @@ function PantryModePicker({ tab, setTab, canUploadReceipt, addedCount = 0 }) {
   );
 }
 
-// Empty pantry entry point: the Midjourney empty illustration + an "Añadir
-// ingredientes" button. On tap the illustration gives way (mini fade/slide) to
-// two big illustrated cards that select the input mode — "a mano" active by
-// default — with the "subir foto o ticket" card rotating between the pantry-photo
-// and ticket illustrations.
-function PantryEmptyEntry({ revealed, canUploadReceipt, onReveal, onSaved, onUploadReceipt }) {
-  const [tab, setTab] = useState("text");
-  const [addedCount, setAddedCount] = useState(0);
-  const handleSavedInner = (...args) => { setAddedCount((n) => n + 1); onSaved?.(...args); };
-
-  if (!revealed) {
-    return (
-      <div style={{ padding: "32px 0 8px" }}>
-        <EmptyIllustration
-          img="/avatares/cards/empty_despensa.jpg"
-          title="Tu nevera y tu despensa están vacías"
-          subtitle="Añade lo que tienes en casa para tus recetas y tu lista de la compra."
-          maxWidth={300}
-          imgAspect="16 / 12"
-        >
+// Doble segmented control de "En casa": Añadir (dar de alta cosas) vs
+// Inventario (ver lo que tienes, filtrado por ubicación). Iconos con color.
+function PantryMainTabs({ value, onChange }) {
+  const tabs = [
+    { id: "add", label: "Añadir", Icon: Plus, color: "#2d5a3d" },
+    { id: "inventory", label: "Inventario", Icon: Boxes, color: "#2f6d8a" },
+  ];
+  return (
+    <div
+      style={{
+        display: "flex",
+        gap: 3,
+        padding: 3,
+        borderRadius: 14,
+        background: "#eef4ef",
+        border: "1px solid #dce8e0",
+        marginBottom: 16,
+      }}
+    >
+      {tabs.map(({ id, label, Icon, color }) => {
+        const on = value === id;
+        return (
           <button
+            key={id}
             type="button"
-            onClick={onReveal}
+            onClick={() => onChange(id)}
+            aria-pressed={on}
             style={{
-              marginTop: 14,
+              flex: 1,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               gap: 7,
-              padding: "11px 20px",
-              borderRadius: 13,
+              padding: "9px 8px",
+              borderRadius: 11,
               border: "none",
-              background: GREEN,
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 800,
               cursor: "pointer",
               fontFamily: "inherit",
+              fontSize: 13.5,
+              fontWeight: 800,
+              background: on ? "#fff" : "transparent",
+              color: on ? INK : "#5a7066",
+              boxShadow: on ? "0 2px 8px -3px rgba(20,47,29,.22)" : "none",
+              transition: "all .16s ease",
             }}
           >
-            <Plus size={15} strokeWidth={2.8} /> Añadir ingredientes
+            <Icon size={16} strokeWidth={2.4} color={color} />
+            {label}
           </button>
-        </EmptyIllustration>
-      </div>
-    );
-  }
+        );
+      })}
+    </div>
+  );
+}
 
+// 3 cards ilustradas (nevera / despensa / congelador) que filtran la tabla de
+// inventario. Tocar una la activa; volver a tocarla la desactiva (ver todo).
+function PantryLocationCards({ selected, counts, onPick }) {
   return (
-    <div style={{ animation: "pantryChoiceIn .28s cubic-bezier(.34,1.08,.5,1) both" }} data-coach="pantry-add">
-      <PantryModePicker tab={tab} setTab={setTab} canUploadReceipt={canUploadReceipt} addedCount={addedCount} />
-      <PantryInput
-        hideTabs
-        tab={tab}
-        onTabChange={setTab}
-        onSaved={handleSavedInner}
-        onUploadReceipt={onUploadReceipt}
-      />
-      <style>{`@keyframes pantryChoiceIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }`}</style>
+    <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+      {LOCATION_ORDER.map((key) => {
+        const meta = LOCATION_META[key];
+        const on = selected.has(key);
+        const count = counts[key] ?? 0;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => onPick(key)}
+            aria-pressed={on}
+            style={{
+              position: "relative",
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              padding: 0,
+              overflow: "hidden",
+              borderRadius: 16,
+              border: `2px solid ${on ? meta.ink : "#e3ede7"}`,
+              background: "#fff",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: on
+                ? `0 10px 24px -14px ${meta.ink}aa`
+                : "0 3px 10px -8px rgba(20,47,29,.35)",
+              transition: "all .16s ease",
+            }}
+          >
+            <div style={{ position: "relative", width: "100%", aspectRatio: "2 / 3", background: meta.tint }}>
+              <img
+                src={meta.img}
+                alt={meta.label}
+                loading="lazy"
+                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+              />
+              {count > 0 && (
+                <span
+                  style={{
+                    position: "absolute",
+                    top: 6,
+                    right: 6,
+                    minWidth: 20,
+                    height: 20,
+                    padding: "0 5px",
+                    borderRadius: 999,
+                    background: on ? meta.ink : "rgba(20,47,29,.72)",
+                    color: "#fff",
+                    fontSize: 11,
+                    fontWeight: 900,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {count}
+                </span>
+              )}
+            </div>
+            <div
+              style={{
+                width: "100%",
+                padding: "7px 6px",
+                background: on ? meta.ink : "#fff",
+                color: on ? "#fff" : "#3d6652",
+                fontSize: 12.5,
+                fontWeight: 800,
+                textAlign: "center",
+                lineHeight: 1.2,
+              }}
+            >
+              {meta.label}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -455,6 +583,93 @@ function AisleIcon({ aisle, name, size = 26 }) {
       ) : (
         <Icon size={size * 0.5} strokeWidth={2.2} />
       )}
+    </span>
+  );
+}
+
+// Thumbnail for a cooked-dish row: the catalog photo when we have a recipeRef,
+// otherwise a soup-pot icon. Same 36px slot as AisleIcon so the grid lines up.
+function CookedDishIcon({ recipeRef, size = 36 }) {
+  const [failed, setFailed] = useState(false);
+  const img = recipeRef ? dishImageForRecipe({ id: recipeRef, baseRecipeId: recipeRef }) : null;
+  const showImg = Boolean(img) && !failed;
+  return (
+    <span
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 8,
+        background: showImg ? "#f2f7f4" : "#e6efe9",
+        color: GREEN,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        justifySelf: "center",
+        overflow: "hidden",
+      }}
+    >
+      {showImg ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+        />
+      ) : (
+        <Soup size={size * 0.52} strokeWidth={2.2} />
+      )}
+    </span>
+  );
+}
+
+// Mini "flag" con el icono de dónde está el item (nevera / despensa /
+// congelador). Se solapa en la esquina del thumbnail para aligerar la fila
+// (antes era un chip de texto bajo el nombre).
+const LOCATION_BADGE = {
+  nevera: { Icon: Refrigerator, color: "#2f6d8a" },
+  despensa: { Icon: Package, color: "#9a7b34" },
+  congelador: { Icon: Snowflake, color: "#3f7fb0" },
+};
+
+function LocationBadge({ location, size = 16 }) {
+  const meta = LOCATION_BADGE[location];
+  if (!meta) return null;
+  const Icon = meta.Icon;
+  return (
+    <span
+      style={{
+        position: "absolute",
+        right: -4,
+        bottom: -4,
+        width: size,
+        height: size,
+        borderRadius: 999,
+        background: meta.color,
+        color: "#fff",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "1.5px solid #fff",
+        boxShadow: "0 1px 3px rgba(20,47,29,.25)",
+      }}
+    >
+      <Icon size={size * 0.58} strokeWidth={2.6} />
+    </span>
+  );
+}
+
+// Thumbnail + badge de ubicación juntos, en un slot relativo para que el badge
+// se solape sin romper el grid de la fila.
+function RowThumb({ item, cooked, aisle }) {
+  return (
+    <span style={{ position: "relative", display: "inline-flex", justifySelf: "center" }}>
+      {cooked ? (
+        <CookedDishIcon recipeRef={item.recipeRef} size={36} />
+      ) : (
+        <AisleIcon aisle={aisle} name={item.ingredientName} size={36} />
+      )}
+      <LocationBadge location={itemLocation(item)} />
     </span>
   );
 }
@@ -970,9 +1185,11 @@ export function PantryScreen({
   // choice cards (a mano / subir foto o ticket) and then opens PantryInput in
   // the picked mode. Local state, so leaving without adding anything resets it
   // back to the illustration on the next visit.
-  const [emptyRevealed, setEmptyRevealed] = useState(false);
   const [addTab, setAddTab] = useState("text");
-  const [sidebarAddedCount, setSidebarAddedCount] = useState(0);
+  // Doble segmented control: Añadir (default) · Inventario.
+  const [mainTab, setMainTab] = useState("add");
+  // Filtro de ubicación de la pestaña Inventario (card nevera/despensa/congelador).
+  const [locationFilters, setLocationFilters] = useState(() => new Set());
   const rowRefs = useRef({});
   // Category + purchase-date + ticket filters, tucked behind a "Filtros"
   // toggle like Añadir ingredientes above — same collapsed-by-default pattern.
@@ -993,7 +1210,7 @@ export function PantryScreen({
   // mostly dead filters for a pantry that only has a handful of items.
   const availableAisles = useMemo(() => {
     const seen = new Set();
-    for (const it of items) seen.add(guessShoppingAisle(it.ingredientName));
+    for (const it of items) if (!isCookedDish(it)) seen.add(guessShoppingAisle(it.ingredientName));
     return Object.keys(AISLE_UI).filter((a) => seen.has(a));
   }, [items]);
 
@@ -1023,7 +1240,10 @@ export function PantryScreen({
   const visibleItems = useMemo(
     () =>
       items.filter((it) => {
-        if (effectiveAisleFilters.size > 0 && !effectiveAisleFilters.has(guessShoppingAisle(it.ingredientName))) {
+        if (
+          effectiveAisleFilters.size > 0 &&
+          (isCookedDish(it) || !effectiveAisleFilters.has(guessShoppingAisle(it.ingredientName)))
+        ) {
           return false;
         }
         if (dateActive && !matchesDateFilter(it.updatedAt, dateFilter, { from: customFrom, to: customTo })) {
@@ -1063,6 +1283,22 @@ export function PantryScreen({
 
   const activeFilterCount =
     effectiveAisleFilters.size + (dateActive ? 1 : 0) + effectiveStoreFilters.size + effectiveTicketFilters.size;
+
+  // Recuento por ubicación (tras aplicar los demás filtros) para las 3 cards.
+  const locationCounts = useMemo(() => {
+    const c = { nevera: 0, despensa: 0, congelador: 0 };
+    for (const it of visibleItems) c[itemLocation(it)] += 1;
+    return c;
+  }, [visibleItems]);
+
+  // Filtro final de la tabla: los demás filtros + la card de ubicación activa.
+  const inventoryItems = useMemo(
+    () =>
+      locationFilters.size > 0
+        ? visibleItems.filter((it) => locationFilters.has(itemLocation(it)))
+        : visibleItems,
+    [visibleItems, locationFilters],
+  );
 
   useEffect(() => {
     if (!user) {
@@ -1132,7 +1368,7 @@ export function PantryScreen({
       action: onOpenAnalytics, tint: "#e7effe", ink: "#2563eb",
     },
     canEditPantryPrefs && {
-      key: "prefs", label: "Ajustes de despensa", Icon: Settings, coach: "pantry-settings",
+      key: "prefs", label: "Ajustes de En casa", Icon: Settings, coach: "pantry-settings",
       action: () => setShowPantryPrefs(true), tint: "#e6f2ea", ink: "#2d5a3d",
     },
   ].filter(Boolean);
@@ -1176,11 +1412,67 @@ export function PantryScreen({
     </div>
   );
 
-  const pantryIsEmpty = !embedded && !loading && items.length === 0;
+  // Con el doble segmented control, Añadir e Inventario son pestañas. En
+  // embedded (onboarding «¿Qué repetimos?») no hay pestañas: se apila todo.
+  const showAdd = embedded || mainTab === "add";
+  const showInventory = embedded || mainTab === "inventory";
+  const inventoryHasItems = !loading && items.length > 0;
 
   const content = (
     <>
-        {embedded && (onToggleHomeStock || (!loading && items.length > 0)) && (
+        {!embedded && <PantryMainTabs value={mainTab} onChange={setMainTab} />}
+
+        {showInventory && !embedded && inventoryHasItems && (
+          <PantryLocationCards
+            selected={locationFilters}
+            counts={locationCounts}
+            onPick={(key) =>
+              setLocationFilters((prev) => {
+                const next = new Set(prev);
+                if (next.has(key)) next.delete(key);
+                else next.add(key);
+                return next;
+              })
+            }
+          />
+        )}
+
+        {showInventory && !embedded && !loading && items.length === 0 && (
+          <div style={{ padding: "20px 0 8px" }}>
+            <EmptyIllustration
+              img="/avatares/cards/empty_despensa.jpg"
+              title="Tu nevera y tu despensa están vacías"
+              subtitle="Añade lo que tienes en casa: ingredientes de la nevera, la despensa o el congelador, y platos que ya has cocinado."
+              maxWidth={300}
+              imgAspect="16 / 12"
+            >
+              <button
+                type="button"
+                onClick={() => setMainTab("add")}
+                style={{
+                  marginTop: 14,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 7,
+                  padding: "11px 24px",
+                  borderRadius: 13,
+                  border: "none",
+                  background: GREEN,
+                  color: "#fff",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                <Plus size={15} strokeWidth={2.8} /> Añadir
+              </button>
+            </EmptyIllustration>
+          </div>
+        )}
+
+        {showInventory && embedded && (onToggleHomeStock || (!loading && items.length > 0)) && (
           // Breathing room + a soft rule below the "En casa / Favoritas"
           // tab cards (rendered by the onboarding parent right above this)
           // before the toggle+segmented row — without it the row felt glued
@@ -1188,7 +1480,7 @@ export function PantryScreen({
           <div style={{ height: 1, background: "#e5ebe7", margin: "6px 0 18px" }} />
         )}
 
-        {(onToggleHomeStock || (!loading && items.length > 0)) && (
+        {showInventory && (onToggleHomeStock || (!loading && items.length > 0)) && (
           <div
             style={{
               display: "flex",
@@ -1338,31 +1630,29 @@ export function PantryScreen({
           />
         )}
 
-        {(loading || items.length > 0) && (
+        {showInventory && (loading || items.length > 0) && (
           <>
-            <div style={{
-              marginBottom: 14,
-              border: "1.5px solid #d7e6dc",
-              borderRadius: 18,
-              overflow: "hidden",
-              background: "#fff",
-              boxShadow: "0 10px 28px -18px rgba(20,47,29,.35)",
-            }}>
+            <div style={{ marginBottom: 14 }}>
               {loading ? (
                 <p style={{ margin: 0, padding: 16, fontSize: 13, color: MUTED }}>Cargando…</p>
               ) : (
                 <>
-                  {visibleItems.length === 0 ? (
+                  {inventoryItems.length === 0 ? (
                     <p style={{ margin: 0, padding: 18, fontSize: 13, color: MUTED, textAlign: "center" }}>
-                      Sin ingredientes con estos filtros.
+                      {locationFilters.size > 0
+                        ? `No tienes nada en ${[...locationFilters].map((k) => LOCATION_META[k].label.toLowerCase()).join(" ni ")}.`
+                        : "Sin ingredientes con estos filtros."}
                     </p>
                   ) : (
-                  visibleItems.map((item, i) => {
+                  inventoryItems.map((item, i) => {
                     const editing = editingId === item.id;
+                    const cooked = isCookedDish(item);
                     const aisle = guessShoppingAisle(item.ingredientName);
                     const { peso, cantidad } = splitStockDisplay(item.ingredientName, item.qty, item.unit);
-                    const priceLabel = stockPriceLabel(item, priceObs);
-                    const valueText = stockView === "peso" ? peso : cantidad;
+                    const priceLabel = cooked ? "—" : stockPriceLabel(item, priceObs);
+                    const valueText = cooked
+                      ? formatStockQty(item.qty, "racion")
+                      : stockView === "peso" ? peso : cantidad;
                     const lastUpdated = formatShortDay(item.updatedAt);
                     return (
                       <div
@@ -1371,7 +1661,7 @@ export function PantryScreen({
                         style={{
                           ...ROW_GRID,
                           padding: "14px 12px",
-                          borderBottom: i === visibleItems.length - 1 ? "none" : "1px solid rgba(45,110,70,.16)",
+                          borderBottom: i === inventoryItems.length - 1 ? "none" : "1px solid rgba(45,110,70,.16)",
                         }}
                       >
                         {editing ? (
@@ -1387,18 +1677,24 @@ export function PantryScreen({
                                 aria-label={`Cantidad de ${item.ingredientName}`}
                                 style={{ ...fieldStyle, width: 54, flexShrink: 0, padding: "6px 4px", fontSize: 13, textAlign: "center" }}
                               />
-                              <select
-                                value={editUnit}
-                                onChange={(e) => setEditUnit(e.target.value)}
-                                aria-label={`Unidad de ${item.ingredientName}`}
-                                style={{ ...fieldStyle, width: 62, flexShrink: 0, padding: "6px 4px", fontSize: 13 }}
-                              >
-                                <option value="ud">ud</option>
-                                <option value="g">g</option>
-                                <option value="kg">kg</option>
-                                <option value="ml">ml</option>
-                                <option value="l">L</option>
-                              </select>
+                              {cooked ? (
+                                <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: INK }}>
+                                  raciones
+                                </span>
+                              ) : (
+                                <select
+                                  value={editUnit}
+                                  onChange={(e) => setEditUnit(e.target.value)}
+                                  aria-label={`Unidad de ${item.ingredientName}`}
+                                  style={{ ...fieldStyle, width: 62, flexShrink: 0, padding: "6px 4px", fontSize: 13 }}
+                                >
+                                  <option value="ud">ud</option>
+                                  <option value="g">g</option>
+                                  <option value="kg">kg</option>
+                                  <option value="ml">ml</option>
+                                  <option value="l">L</option>
+                                </select>
+                              )}
                               <button
                                 type="button"
                                 onClick={() => saveEdit(item.id)}
@@ -1431,7 +1727,7 @@ export function PantryScreen({
                           </span>
                         ) : (
                           <>
-                            <AisleIcon aisle={aisle} name={item.ingredientName} size={36} />
+                            <RowThumb item={item} cooked={cooked} aisle={aisle} />
                             <span style={{ minWidth: 0 }}>
                               <span
                                 style={{
@@ -1446,6 +1742,26 @@ export function PantryScreen({
                               >
                                 {item.ingredientName}
                               </span>
+                              {(() => {
+                                const fresh = freshnessTag(item);
+                                return fresh ? (
+                                  <span
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      marginTop: 3,
+                                      padding: "1px 7px",
+                                      borderRadius: 999,
+                                      background: fresh.bg,
+                                      color: fresh.color,
+                                      fontSize: 10,
+                                      fontWeight: 800,
+                                    }}
+                                  >
+                                    {fresh.label}
+                                  </span>
+                                ) : null;
+                              })()}
                             </span>
                             <button
                               type="button"
@@ -1514,24 +1830,18 @@ export function PantryScreen({
           </>
         )}
 
-        {pantryIsEmpty ? (
-          <PantryEmptyEntry
-            revealed={emptyRevealed}
-            canUploadReceipt={canUploadReceipt}
-            onReveal={() => setEmptyRevealed(true)}
-            onSaved={handleSaved}
-            onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
-          />
-        ) : (
+        {showAdd && (
           <>
-            <div style={{ height: 3, borderRadius: 99, background: "#d8e8dc", margin: "16px 0 14px" }} />
+            {embedded && (
+              <div style={{ height: 3, borderRadius: 99, background: "#d8e8dc", margin: "16px 0 14px" }} />
+            )}
             <div data-coach="pantry-add">
-              <PantryModePicker tab={addTab} setTab={setAddTab} canUploadReceipt={canUploadReceipt} addedCount={sidebarAddedCount} />
+              <PantryModePicker tab={addTab} setTab={setAddTab} canUploadReceipt={canUploadReceipt} />
               <PantryInput
                 hideTabs
                 tab={addTab}
                 onTabChange={setAddTab}
-                onSaved={(...args) => { setSidebarAddedCount((n) => n + 1); handleSaved(...args); }}
+                onSaved={handleSaved}
                 onUploadReceipt={canUploadReceipt ? () => setShowReceiptFlow(true) : null}
               />
             </div>

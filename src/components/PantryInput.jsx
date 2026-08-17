@@ -1,12 +1,16 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Camera, ChevronDown, Loader2, Pencil, Plus, Receipt, Trash2 } from "lucide-react";
+import { CalendarDays, Camera, ChevronDown, ChevronLeft, Clock, Layers, Loader2, Package, Plus, Receipt, Refrigerator, Salad, Search, Snowflake, Soup, Trash2, Utensils, UtensilsCrossed, X } from "lucide-react";
 import { useAuth } from "../lib/useAuth.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { addPantryItems, addLocalPantryItems } from "../lib/pantry.js";
 import { extractPantryPhoto } from "../lib/receiptParser.js";
 import { toCanonicalStockQty } from "../lib/kitchenUnits.js";
+import { guessShoppingAisle, isPerishableAisle, normalizeName } from "../lib/ingredientCategories.js";
 import { IngredientPicker } from "../screens/RecipePlanner.jsx";
+import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
+import { aisleImageSrc, categoryImageSrc } from "../lib/ingredientImages.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -26,9 +30,480 @@ const editInputBase = {
   background: FIELD_BG,
 };
 
+// Barra de búsqueda compartida (arriba del todo): filtra el modo activo
+// (ingrediente o plato). Debajo van las 2 ilustraciones y luego el grid.
+function PantrySearchBar({ query, onQueryChange, mode }) {
+  const active = query.trim().length > 0;
+  return (
+    <div
+      style={{
+        display: "flex", alignItems: "center", gap: 7, height: 42,
+        padding: "0 10px", borderRadius: 12, marginBottom: 12,
+        background: active ? "#fff" : "#f0f5f2",
+        border: `1.5px solid ${active ? GREEN : "transparent"}`,
+        transition: "background .15s, border-color .15s",
+      }}
+    >
+      <Search size={16} color={active ? GREEN : "#9ab0a1"} style={{ flexShrink: 0 }} />
+      <input
+        value={query}
+        onChange={(e) => onQueryChange(e.target.value)}
+        placeholder={mode === "cooked_dish" ? "Busca un plato que hayas cocinado…" : "Busca un ingrediente…"}
+        style={{
+          flex: 1, minWidth: 0, border: "none", outline: "none",
+          background: "transparent", fontFamily: "inherit",
+          fontSize: 13, fontWeight: 700, color: INK,
+        }}
+      />
+      {active && (
+        <button
+          type="button"
+          onClick={() => onQueryChange("")}
+          aria-label="Limpiar"
+          style={{ border: "none", background: "transparent", cursor: "pointer", color: "#c0cfc8", display: "flex", padding: 2, flexShrink: 0 }}
+        >
+          <X size={15} />
+        </button>
+      )}
+    </div>
+  );
+}
+
+// Dos ilustraciones que hacen de selector: ingrediente (fruta) vs plato
+// cocinado (plato). Al tocar una, aparece su grid debajo.
+function AddModeIllustrations({ active, onPick }) {
+  const opts = [
+    { id: "ingredient", label: "Ingrediente", img: aisleImageSrc("Frutas") },
+    { id: "cooked_dish", label: "Plato cocinado", img: categoryImageSrc("platos_unicos") },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+      {opts.map(({ id, label, img }) => {
+        const on = active === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onPick(id)}
+            aria-pressed={on}
+            style={{
+              flex: 1, minWidth: 0, padding: 0, border: "none", background: "transparent",
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            <div
+              style={{
+                position: "relative", width: "100%", aspectRatio: "1 / 1", overflow: "hidden",
+                borderRadius: 18, background: "#eef4ef",
+                border: `2px solid ${on ? GREEN : "transparent"}`,
+                boxShadow: on ? "0 12px 26px -14px rgba(45,90,61,.6)" : "0 4px 14px -10px rgba(20,47,29,.4)",
+                transition: "all .16s ease",
+              }}
+            >
+              {img && (
+                <img src={img} alt={label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+              )}
+            </div>
+            <div style={{ marginTop: 8, textAlign: "center", fontSize: 13, fontWeight: 800, color: on ? GREEN : "#3d6652", lineHeight: 1.2 }}>
+              {label}
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Opciones cualitativas de "¿cuándo lo cocinaste?" → estimación de cooked_at.
+// Sin fecha exacta a propósito: un dropdown coarse basta para calcular
+// frescura/caducidad y evita fricción (ver discusión de En casa).
+const COOKED_DATE_OPTS = [
+  { key: "today", label: "Hoy", days: 0, Icon: CalendarDays },
+  { key: "yesterday", label: "Ayer", days: 1, Icon: CalendarDays },
+  { key: "few", label: "Hace unos días", days: 3, Icon: Clock },
+  { key: "week", label: "Hace una semana", days: 7, Icon: Clock },
+];
+
+function cookedAtFromKey(key) {
+  const opt = COOKED_DATE_OPTS.find((o) => o.key === key) ?? COOKED_DATE_OPTS[0];
+  return new Date(Date.now() - opt.days * 86400000).toISOString();
+}
+
+const qLabelStyle = { fontSize: 11.5, fontWeight: 800, color: "#5a7066", marginBottom: 5 };
+
+// Dropdown de fecha cualitativa reutilizando el picker portalizado (CualDropdown)
+// para que herede los estilos de MenuPlan (bordes redondeados, divisores verdes).
+function CookedDatePicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const current = COOKED_DATE_OPTS.find((o) => o.key === value) ?? COOKED_DATE_OPTS[0];
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="¿Cuándo lo cocinaste?"
+        style={{
+          ...modeToggleStyle, marginBottom: 0, width: "100%", height: 34,
+          justifyContent: "space-between", padding: "6px 10px", cursor: "pointer",
+        }}
+      >
+        <span style={{ display: "inline-flex", gap: 6, alignItems: "center", fontSize: 11.5, fontWeight: 600, color: INK, minWidth: 0 }}>
+          <CalendarDays size={13} color={GREEN} style={{ flexShrink: 0 }} />
+          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{current.label}</span>
+        </span>
+        <ChevronDown size={14} color="#7a9082" style={{ flexShrink: 0 }} />
+      </button>
+      {open && (
+        <CualDropdown
+          anchorRef={btnRef}
+          candidates={COOKED_DATE_OPTS.map((o) => ({ normalized: o.key, label: o.label, Icon: o.Icon, selected: o.key === value }))}
+          onSelect={(c) => { onChange(c.normalized); setOpen(false); }}
+          onClose={() => setOpen(false)}
+          optionStyle={{ fontSize: 11.5, fontWeight: 600, color: INK }}
+        />
+      )}
+    </>
+  );
+}
+
+// Rol del plato en el menú. Se INFIERE del catálogo (mealRole/type) y queda
+// editable, porque "principal vs guarnición" solo tiene sentido preguntarlo a
+// veces. Alimentará al planner (consumir el tupper como slot resuelto).
+const DISH_ROLE_OPTS = [
+  { key: "principal", label: "Principal", Icon: Utensils },
+  { key: "unico", label: "Plato único", Icon: UtensilsCrossed },
+  { key: "guarnicion", label: "Guarnición", Icon: Salad },
+  { key: "principal_guarnicion", label: "Plato + guarnición", Icon: Layers },
+];
+
+function inferDishRole(recipe) {
+  const roles = Array.isArray(recipe?.mealRole) ? recipe.mealRole : [];
+  const type = recipe?.type;
+  if (type === "guarnicion" || (roles.includes("guarnicion") && !roles.includes("primero") && !roles.includes("segundo"))) {
+    return "guarnicion";
+  }
+  if (type === "completo" || roles.includes("plato_unico")) return "unico";
+  return "principal";
+}
+
+// Chip editable que hace de subtítulo del plato (sustituye a "Plato cocinado").
+function DishRolePicker({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const current = DISH_ROLE_OPTS.find((o) => o.key === value) ?? DISH_ROLE_OPTS[0];
+  const Icon = current.Icon;
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label="Tipo de plato"
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 5, marginTop: 3,
+          padding: "2px 8px", borderRadius: 999, border: "1px solid #dce8e0",
+          background: "#eef4ef", cursor: "pointer", fontFamily: "inherit",
+          color: "#3d6652", fontSize: 11, fontWeight: 800,
+        }}
+      >
+        <Icon size={12} strokeWidth={2.2} color={GREEN} />
+        {current.label}
+        <ChevronDown size={12} color="#7a9082" />
+      </button>
+      {open && (
+        <CualDropdown
+          anchorRef={btnRef}
+          candidates={DISH_ROLE_OPTS.map((o) => ({ normalized: o.key, label: o.label, Icon: o.Icon, selected: o.key === value }))}
+          onSelect={(c) => { onChange(c.normalized); setOpen(false); }}
+          onClose={() => setOpen(false)}
+          optionStyle={{ fontSize: 12, fontWeight: 700, color: INK }}
+        />
+      )}
+    </>
+  );
+}
+
+// Categorías de platos para el grid (réplica del grid de ingredientes). El id
+// coincide con la category del catálogo y con /categories/{id}.png.
+const DISH_CATEGORIES = [
+  { id: "legumbres", label: "Legumbres" },
+  { id: "carnes", label: "Carne" },
+  { id: "pescados", label: "Pescado" },
+  { id: "pasta_arroces", label: "Pasta y arroz" },
+  { id: "sopas_cremas", label: "Sopas y cremas" },
+  { id: "huevos", label: "Huevos" },
+  { id: "ensaladas_verduras", label: "Verduras" },
+  { id: "platos_unicos", label: "Platos únicos" },
+  { id: "cenas_rapidas", label: "Cenas rápidas" },
+  { id: "bebes", label: "Bebés" },
+];
+
+// Tile cuadrada ilustrada de categoría de plato — mismo lenguaje visual que
+// CategoryCard del picker de ingredientes.
+function DishCategoryCard({ id, label, onSelect }) {
+  const img = categoryImageSrc(id);
+  const [failed, setFailed] = useState(false);
+  const showImg = Boolean(img) && !failed;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(id)}
+      style={{
+        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
+        borderRadius: 14, overflow: "hidden", cursor: "pointer",
+        fontFamily: "inherit", background: "#eef4ef",
+      }}
+    >
+      {showImg ? (
+        <img
+          src={img}
+          alt=""
+          onError={() => setFailed(true)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <span style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Soup size={30} color={GREEN} strokeWidth={1.8} />
+        </span>
+      )}
+      <span
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1, padding: "5px 6px 7px",
+          background: "linear-gradient(to top, rgba(20,47,29,.82) 0%, rgba(20,47,29,.4) 55%, transparent 100%)",
+          fontSize: 10.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.2,
+          textShadow: "0 1px 3px rgba(0,0,0,.4)",
+        }}
+      >
+        {label}
+      </span>
+    </button>
+  );
+}
+
+// Card de plato (foto + nombre) para el grid de una categoría / resultados.
+function DishThumbCard({ recipe, onSelect }) {
+  const [failed, setFailed] = useState(false);
+  const img = dishImageForRecipe(recipe);
+  const showImg = Boolean(img) && !failed;
+  return (
+    <button
+      type="button"
+      onClick={() => onSelect(recipe)}
+      style={{
+        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
+        borderRadius: 12, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
+        background: "#eef4ef",
+      }}
+    >
+      {showImg ? (
+        <img src={img} alt="" onError={() => setFailed(true)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+      ) : (
+        <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
+          <Soup size={22} color={GREEN} />
+        </span>
+      )}
+      <span
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, padding: "16px 6px 6px",
+          background: "linear-gradient(to top, rgba(20,47,29,.86) 0%, rgba(20,47,29,.42) 55%, transparent 100%)",
+          fontSize: 10.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.2,
+          textShadow: "0 1px 3px rgba(0,0,0,.45)",
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+        }}
+      >
+        {recipe.name}
+      </span>
+    </button>
+  );
+}
+
+function CookedDishBackChip({ label, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 10,
+        height: 34, padding: "0 12px 0 8px", borderRadius: 11,
+        border: "1.5px solid #d7e6dc", background: "#fff", color: GREEN,
+        cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+      }}
+    >
+      <ChevronLeft size={14} strokeWidth={2.6} />
+      {label}
+    </button>
+  );
+}
+
+// Alta de plato ya cocinado: grid de categorías (réplica) → platos de la
+// categoría → confirmar (raciones + nevera/congelador). El buscador es el
+// compartido de arriba (prop `query`); recipeRef enlaza con DishDetail luego.
+function CookedDishPicker({ query = "", onSave, saving }) {
+  const [dishCat, setDishCat] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [portions, setPortions] = useState(2);
+  const [dishFrozen, setDishFrozen] = useState(true);
+  const [dishDate, setDishDate] = useState("today");
+  const [dishRole, setDishRole] = useState("principal");
+  useEffect(() => { if (selected) setDishRole(inferDishRole(selected)); }, [selected]);
+
+  const allRecipes = useMemo(() => Object.values(recipeCatalogById), []);
+  const q = normalizeName((query ?? "").trim());
+  const searching = q.length >= 2;
+
+  const results = useMemo(
+    () => (searching ? allRecipes.filter((r) => normalizeName(r.name).includes(q)).slice(0, 30) : []),
+    [searching, q, allRecipes],
+  );
+  const catDishes = useMemo(
+    () => (dishCat ? allRecipes.filter((r) => r.category === dishCat) : []),
+    [dishCat, allRecipes],
+  );
+
+  if (selected) {
+    const photo = dishImageForRecipe(selected);
+    return (
+      <div style={{ border: "1.5px solid #cfe0d6", borderRadius: 14, background: FIELD_BG, padding: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          {photo ? (
+            <img src={photo} alt="" style={{ width: 48, height: 48, borderRadius: 10, objectFit: "cover", flexShrink: 0 }} />
+          ) : (
+            <div style={{ width: 48, height: 48, borderRadius: 10, background: "#eef4ef", display: "grid", placeItems: "center", flexShrink: 0 }}>
+              <Soup size={22} color={GREEN} />
+            </div>
+          )}
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.2 }}>{selected.name}</div>
+            <DishRolePicker value={dishRole} onChange={setDishRole} />
+          </div>
+          <button
+            type="button"
+            onClick={() => setSelected(null)}
+            style={{ border: "none", background: "transparent", cursor: "pointer", padding: 4, color: "#7a9082" }}
+            aria-label="Cambiar plato"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 12 }}>
+          <div style={{ flexShrink: 0 }}>
+            <div style={qLabelStyle}>Raciones</div>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={portions}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, "").slice(0, 2);
+                setPortions(digits === "" ? "" : Math.min(30, Number(digits)));
+              }}
+              onBlur={() => { if (!(Number(portions) > 0)) setPortions(1); }}
+              aria-label="Raciones"
+              style={{ ...editInputBase, background: FIELD_BG, width: 50, height: 34, padding: "0 6px", textAlign: "center", fontSize: 14, fontWeight: 800 }}
+            />
+          </div>
+          <div style={{ flexShrink: 0 }}>
+            <div style={qLabelStyle}>¿Dónde?</div>
+            <div style={{ ...modeToggleStyle, marginBottom: 0 }}>
+              <button
+                type="button"
+                onClick={() => setDishFrozen(false)}
+                aria-label="Guardar en la nevera"
+                aria-pressed={!dishFrozen}
+                style={{ ...modeToggleBtnStyle, padding: "7px 11px", ...(!dishFrozen ? modeToggleBtnOnStyle : null) }}
+              >
+                <Refrigerator size={15} strokeWidth={2.2} />
+              </button>
+              <button
+                type="button"
+                onClick={() => setDishFrozen(true)}
+                aria-label="Guardar en el congelador"
+                aria-pressed={dishFrozen}
+                style={{ ...modeToggleBtnStyle, padding: "7px 11px", ...(dishFrozen ? { background: "#3f7fb0", color: "#fff" } : null) }}
+              >
+                <Snowflake size={15} strokeWidth={2.2} />
+              </button>
+            </div>
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={qLabelStyle}>¿Cuándo?</div>
+            <CookedDatePicker value={dishDate} onChange={setDishDate} />
+          </div>
+        </div>
+
+        <button
+          type="button"
+          disabled={saving}
+          onClick={() => {
+            const p = Number(portions) > 0 ? Number(portions) : 1;
+            onSave?.({ recipe: selected, portions: p, frozen: dishFrozen, cookedAt: cookedAtFromKey(dishDate), dishRole });
+            setSelected(null);
+            setPortions(2);
+            setDishFrozen(true);
+            setDishDate("today");
+          }}
+          style={{
+            width: "100%", padding: "11px 12px", borderRadius: 12, border: "none",
+            background: GREEN, color: "#fff", fontSize: 13.5, fontWeight: 800,
+            fontFamily: "inherit", cursor: saving ? "default" : "pointer", opacity: saving ? 0.6 : 1,
+            display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
+          }}
+        >
+          {saving ? <Loader2 size={16} className="mp-spin" /> : <Plus size={16} />}
+          Guardar plato cocinado
+        </button>
+      </div>
+    );
+  }
+
+  // Buscando: resultados en toda la biblioteca.
+  if (searching) {
+    return results.length > 0 ? (
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
+        {results.map((r) => (
+          <DishThumbCard key={r.id} recipe={r} onSelect={setSelected} />
+        ))}
+      </div>
+    ) : (
+      <p style={{ textAlign: "center", color: "#9ab0a1", fontSize: 12.5, margin: "20px 0 8px" }}>
+        No encontramos ese plato
+      </p>
+    );
+  }
+
+  // Categoría abierta: platos de esa categoría.
+  if (dishCat) {
+    return (
+      <div>
+        <CookedDishBackChip label="Categorías" onClick={() => setDishCat(null)} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
+          {catDishes.map((r) => (
+            <DishThumbCard key={r.id} recipe={r} onSelect={setSelected} />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // Grid de categorías (réplica del grid de ingredientes).
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
+      {DISH_CATEGORIES.map((c) => (
+        <DishCategoryCard key={c.id} id={c.id} label={c.label} onSelect={setDishCat} />
+      ))}
+    </div>
+  );
+}
+
 // Custom "¿Cuál?" menu — native <select> can't do rounded corners / green
 // dividers on the option list, so we portal a MenuPlan-styled picker.
-function CualDropdown({ candidates, onSelect, onClose, anchorRef }) {
+function CualDropdown({ candidates, onSelect, onClose, anchorRef, optionStyle = null }) {
   const menuRef = useRef(null);
   const [pos, setPos] = useState(null);
 
@@ -103,14 +578,17 @@ function CualDropdown({ candidates, onSelect, onClose, anchorRef }) {
           <button
             type="button"
             role="option"
+            aria-selected={c.selected ? true : undefined}
             onClick={() => onSelect(c)}
             style={{
               width: "100%",
-              display: "block",
+              display: "flex",
+              alignItems: "center",
+              gap: 9,
               padding: "10px 12px",
               border: "none",
               borderRadius: 10,
-              background: "transparent",
+              background: c.selected ? "#eaf3ec" : "transparent",
               color: INK,
               fontSize: 13,
               fontWeight: 600,
@@ -118,15 +596,17 @@ function CualDropdown({ candidates, onSelect, onClose, anchorRef }) {
               textAlign: "left",
               cursor: "pointer",
               lineHeight: 1.3,
+              ...(optionStyle ?? {}),
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#eaf3ec";
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.background = "transparent";
+              e.currentTarget.style.background = c.selected ? "#eaf3ec" : "transparent";
             }}
           >
-            {c.label}
+            {c.Icon && <c.Icon size={15} color={GREEN} strokeWidth={2.2} style={{ flexShrink: 0 }} />}
+            <span style={{ minWidth: 0 }}>{c.label}</span>
           </button>
         </div>
       ))}
@@ -186,11 +666,38 @@ function CualPicker({ candidates, onSelect, ariaLabel }) {
   );
 }
 
+// Botón-columna de ubicación por fila: alterna congelador; cuando no está
+// congelado muestra a dónde irá (nevera para frescos, despensa para el resto).
+function RowLocationButton({ name, frozen, onToggle }) {
+  const nevera = isPerishableAisle(guessShoppingAisle(name));
+  const dest = frozen ? "Congelador" : nevera ? "Nevera" : "Despensa";
+  const Icon = frozen ? Snowflake : nevera ? Refrigerator : Package;
+  const color = frozen ? "#3f7fb0" : nevera ? "#2f6d8a" : "#9a7b34";
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label={`Ubicación: ${dest}. Tocar para ${frozen ? "quitar de" : "enviar al"} congelador`}
+      title={frozen ? "En el congelador — tocar para nevera/despensa" : `Irá a ${dest} — tocar para congelar`}
+      style={{
+        width: 34, height: 34, borderRadius: 9, flexShrink: 0,
+        border: `1.5px solid ${frozen ? "#bcd7ea" : "#dbe7df"}`,
+        background: frozen ? "#eaf2f8" : "#fff",
+        color, cursor: "pointer", display: "inline-flex",
+        alignItems: "center", justifyContent: "center", padding: 0,
+      }}
+    >
+      <Icon size={16} strokeWidth={2.2} />
+    </button>
+  );
+}
+
 function PantryEditList({
   chips,
   onUpdateQty,
   onUpdateUnit,
   onUpdateName,
+  onUpdateFrozen,
   onResolve,
   onRemove,
   onConfirmRow,
@@ -288,6 +795,11 @@ function PantryEditList({
                       </option>
                     ))}
                   </select>
+                  <RowLocationButton
+                    name={chip.raw}
+                    frozen={Boolean(chip.frozen)}
+                    onToggle={() => onUpdateFrozen(idx)}
+                  />
                 </>
               )}
               <button
@@ -409,6 +921,9 @@ export function PantryInput({
   const [tabState, setTabState] = useState(initialTab); // "text" | "upload"
   const tab = tabProp ?? tabState;
   const setTab = onTabChange ?? setTabState;
+  // Under "A mano": qué se está dando de alta. null = aún no elegido (se ven las
+  // dos ilustraciones); al tocar una sale su grid. "ingredient" | "cooked_dish".
+  const [addCategory, setAddCategory] = useState(null);
   const [chips, setChips] = useState([]);
   const [saving, setSaving] = useState(false);
   const [photoLoading, setPhotoLoading] = useState(false);
@@ -484,6 +999,11 @@ export function PantryInput({
   const updateChipUnit = (idx, unit) =>
     setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, entryUnit: unit } : c)));
 
+  // Ubicación por fila: solo alterna congelador (nevera/despensa se deriva del
+  // ingrediente). Sustituye al viejo segmented global "¿Dónde lo guardas?".
+  const updateChipFrozen = (idx) =>
+    setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, frozen: !c.frozen } : c)));
+
   // Live rename (esp. after OCR). Re-match after a short pause so typing
   // "pasta" can open ¿Cuál? without fighting every keystroke.
   const nameDebounceRef = useRef(null);
@@ -504,6 +1024,7 @@ export function PantryInput({
             entryQty: c.entryQty,
             entryUnit: c.entryUnit,
             source: c.source,
+            frozen: c.frozen,
           };
         }),
       );
@@ -522,6 +1043,7 @@ export function PantryInput({
               entryQty: c.entryQty,
               entryUnit: c.entryUnit,
               source: c.source,
+              frozen: c.frozen,
             }
           : c,
       ),
@@ -542,7 +1064,7 @@ export function PantryInput({
       setPickQuery("");
       return;
     }
-    setChips((prev) => [...prev, { ...parsed, entryQty: 1, entryUnit: "ud", source: "manual" }]);
+    setChips((prev) => [...prev, { ...parsed, entryQty: 1, entryUnit: "ud", source: "manual", frozen: false }]);
     setFocusQtyIndex(chips.length);
     setPickQuery("");
   };
@@ -571,7 +1093,7 @@ export function PantryInput({
     if (!chip || chip.ambiguous || saving) return;
     setSaving(true);
     const { qty, unit } = toCanonicalStockQty(chip.entryQty, chip.entryUnit);
-    const items = [{ name: chip.raw, normalized: chip.normalized, qty, unit, source: chip.source ?? "manual" }];
+    const items = [{ name: chip.raw, normalized: chip.normalized, qty, unit, source: chip.source ?? "manual", frozen: Boolean(chip.frozen) }];
     const saved = user ? await addPantryItems(user.id, items) : addLocalPantryItems(items);
     setSaving(false);
     setChips((prev) => prev.filter((_, i) => i !== idx));
@@ -587,6 +1109,27 @@ export function PantryInput({
       const [parsed] = normalizePantryInput(trimmed);
       appendChipAndFocusQty(parsed);
     }
+  };
+
+  // Cooked dish → its own row (raciones + nevera/congelador). recipeRef keeps a
+  // link back to the catalog recipe so DishDetail can reopen it later.
+  const handleSaveCookedDish = async ({ recipe, portions, frozen: dishFrozen, cookedAt, dishRole }) => {
+    if (!recipe || saving) return;
+    setSaving(true);
+    const items = [{
+      name: recipe.name,
+      normalized: recipe.id,
+      itemType: "cooked_dish",
+      portions,
+      recipeRef: recipe.id,
+      frozen: dishFrozen,
+      cookedAt,
+      dishRole,
+      source: "manual",
+    }];
+    const saved = user ? await addPantryItems(user.id, items) : addLocalPantryItems(items);
+    setSaving(false);
+    onSaved?.(saved);
   };
 
   return (
@@ -630,21 +1173,47 @@ export function PantryInput({
       </div>
       )}
 
-      {/* A mano: ingredient picker grid */}
-      {tab === "text" && (
-        <IngredientPicker
-          query={pickQuery}
-          onQueryChange={setPickQuery}
-          aisle={pickAisle}
-          onAisleChange={setPickAisle}
-          addedNames={addedNames}
-          onToggle={toggleIngredient}
-          onAddCustom={addCustomIngredient}
-          compact
-          onPlus={handlePlus}
-          plusDisabled={!pickQuery.trim()}
-        />
-      )}
+      {/* A mano: search bar → 2 ilustraciones (ingrediente / plato) → grid */}
+      {tab === "text" && (() => {
+        const searching = pickQuery.trim().length > 0;
+        const effMode = addCategory ?? "ingredient";
+        return (
+          <>
+            <PantrySearchBar
+              query={pickQuery}
+              onQueryChange={(v) => { setPickQuery(v); if (v) setPickAisle(null); }}
+              mode={effMode}
+            />
+
+            {!searching && (
+              <AddModeIllustrations
+                active={addCategory}
+                onPick={(m) => { setAddCategory((cur) => (cur === m ? null : m)); setPickAisle(null); }}
+              />
+            )}
+
+            {effMode === "ingredient" && (searching || addCategory === "ingredient") && (
+              <IngredientPicker
+                query={pickQuery}
+                onQueryChange={setPickQuery}
+                aisle={pickAisle}
+                onAisleChange={setPickAisle}
+                addedNames={addedNames}
+                onToggle={toggleIngredient}
+                onAddCustom={addCustomIngredient}
+                compact
+                hideSearch
+                onPlus={handlePlus}
+                plusDisabled={!pickQuery.trim()}
+              />
+            )}
+
+            {effMode === "cooked_dish" && (searching || addCategory === "cooked_dish") && (
+              <CookedDishPicker query={pickQuery} onSave={handleSaveCookedDish} saving={saving} />
+            )}
+          </>
+        );
+      })()}
 
       {/* Subir: foto + ticket cards */}
       {tab === "upload" && (
@@ -685,12 +1254,13 @@ export function PantryInput({
         .mp-spin { animation: mpSpin 0.8s linear infinite; }
       `}</style>
 
-      {chips.length > 0 && (
+      {tab === "text" && addCategory !== "cooked_dish" && chips.length > 0 && (
         <PantryEditList
           chips={chips}
           onUpdateQty={updateChipQty}
           onUpdateUnit={updateChipUnit}
           onUpdateName={updateChipName}
+          onUpdateFrozen={updateChipFrozen}
           onResolve={resolveAmbiguous}
           onRemove={removeChip}
           onConfirmRow={handleSaveRow}

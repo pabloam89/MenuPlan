@@ -145,9 +145,10 @@ const MEAL_STRUCTURE_CARDS = [
 ];
 
 const DESPENSA_OPTS = [
-  { id: "only", label: "Solo la despensa", subtitle: "Lo que hay en casa", img: "/avatares/cards/despensa_solo.jpg" },
-  { id: "prefer", label: "Usar la despensa", subtitle: "Combina con recetas", img: "/avatares/cards/despensa_usar.jpg" },
-  { id: "off", label: "Sin despensa", subtitle: "Recetas desde cero", img: "/avatares/cards/despensa_sin.jpg" },
+  { id: "strict", label: "Solo con lo de casa", subtitle: "Sin comprar: menú solo con nevera, despensa y congelador.", img: "/avatares/cards/casa_solo.jpg" },
+  { id: "only", label: "Partir de lo que tengo", subtitle: "El menú se monta con lo de casa y se completa en la compra.", img: "/avatares/cards/casa_partir.jpg" },
+  { id: "prefer", label: "Tenerlo en cuenta", subtitle: "Priorizo recetas que aprovechan lo que ya tienes.", img: "/avatares/cards/casa_encuenta.jpg" },
+  { id: "off", label: "Menú libre", subtitle: "Planifico sin mirar el stock. En compra sigo marcando lo que tienes.", img: "/avatares/cards/casa_libre.jpg" },
 ];
 const DESAYUNO_OPTS = [
   { id: "variado", label: "Variado", subtitle: "Cada día algo distinto", img: "/avatares/cards/desayuno_variado.jpg" },
@@ -2443,6 +2444,8 @@ function RestrictionTabCard({
   active,
   onClick,
   imgRatio = "1 / 1",
+  imgHeight,
+  textOverlay = false,
   accent = CARD_ACCENT,
 }) {
   const illustrated = Boolean(img || (images && images.length));
@@ -2487,7 +2490,7 @@ function RestrictionTabCard({
             <Check size={12} color="#fff" strokeWidth={3} />
           </span>
         )}
-        <div style={{ position: "relative", width: "100%", aspectRatio: imgRatio, background: "#f4f7f5" }}>
+        <div style={{ position: "relative", width: "100%", ...(imgHeight ? { height: imgHeight } : { aspectRatio: imgRatio }), background: "#f4f7f5", overflow: "hidden" }}>
           {images && images.length > 1 ? (
             <RotatingCardImage images={images} alt={title} />
           ) : (
@@ -2498,28 +2501,41 @@ function RestrictionTabCard({
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: imgRatio === "1 / 1" ? "contain" : "cover",
+                objectFit: imgHeight ? "cover" : imgRatio === "1 / 1" ? "contain" : "cover",
                 objectPosition: "center 28%",
                 display: "block",
               }}
             />
           )}
+          {textOverlay && (
+            <div style={{
+              position: "absolute", inset: 0,
+              background: "linear-gradient(to top, rgba(0,0,0,.62) 0%, rgba(0,0,0,.18) 55%, transparent 100%)",
+              display: "flex", flexDirection: "column", justifyContent: "flex-end",
+              padding: "0 8px 8px",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>{title}</div>
+            </div>
+          )}
         </div>
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            padding: "8px 6px 9px",
-            background: active ? accent : "#fff",
-            textAlign: "center",
-            color: active ? "#fff" : "#142f1d",
-          }}
-        >
-          <div style={{ fontSize: 12, fontWeight: 800 }}>{title}</div>
-          <div style={{ fontSize: 10, fontWeight: 600, marginTop: 1, opacity: 0.9 }}>{subtitle}</div>
-        </div>
+        {!textOverlay && (
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              padding: "8px 6px 9px",
+              background: active ? accent : "#fff",
+              textAlign: "center",
+              color: active ? "#fff" : "#142f1d",
+            }}
+          >
+            <div style={{ fontSize: 12, fontWeight: 800 }}>{title}</div>
+            <div style={{ fontSize: 10, fontWeight: 600, marginTop: 1, opacity: 0.9 }}>{subtitle}</div>
+          </div>
+        )}
       </button>
     );
   }
@@ -2654,7 +2670,7 @@ export function OnboardingRepeat({
         <RestrictionTabCard
           Icon={Refrigerator}
           title="En casa"
-          subtitle="nevera y despensa"
+          subtitle="nevera, despensa y congelador"
           accent={CARD_ACCENT_TEAL}
           active={mainTab === "casa"}
           onClick={() => setMainTab("casa")}
@@ -4183,7 +4199,8 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
                 img={t.img}
                 title={t.title}
                 subtitle={t.subtitle}
-                imgRatio="2 / 1"
+                imgHeight={160}
+                textOverlay
                 active={(data.mealStructure ?? "primero_segundo") === t.id}
                 onClick={() => setData((d) => ({ ...d, mealStructure: t.id }))}
               />
@@ -8169,7 +8186,8 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 img={t.img}
                 title={t.title}
                 subtitle={t.subtitle}
-                imgRatio="2 / 1"
+                imgHeight={160}
+                textOverlay
                 active={structureId === t.id}
                 onClick={() =>
             setData((d) => ({
@@ -8391,26 +8409,6 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
         </>,
       ),
     );
-    otrosSections.push(
-      extrasSection("despensa",
-        <>
-          <SectionTitle Icon={Refrigerator} color="#2d5a3d">Despensa</SectionTitle>
-          <div style={{ display: "flex", gap: 8 }}>
-            {DESPENSA_OPTS.map((t) => (
-              <RestrictionTabCard
-                key={t.id}
-                img={t.img}
-                title={t.label}
-                subtitle={t.subtitle}
-                imgRatio="2 / 1"
-                active={(data.pantryMode ?? "prefer") === t.id}
-                onClick={() => setData((d) => ({ ...d, pantryMode: t.id, useHomeStock: t.id !== "off" }))}
-              />
-            ))}
-          </div>
-        </>,
-      ),
-    );
   }
 
   const visibleSections = showExtrasTabs && extrasTab === "otros" ? otrosSections : comidaSections;
@@ -8442,7 +8440,6 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
             img="/avatares/cards/comidas.jpg"
             title="Comidas"
             subtitle="desayuno, comida y cena"
-            imgRatio="4 / 3"
             accent={CARD_ACCENT_TEAL}
             active={extrasTab === "comidas"}
             onClick={() => setExtrasTab("comidas")}
@@ -8450,8 +8447,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
           <RestrictionTabCard
             img="/avatares/cards/otros.jpg"
             title="Otros"
-            subtitle="postre, despensa y guarnición"
-            imgRatio="4 / 3"
+            subtitle="postre y guarnición"
             accent={CARD_ACCENT_TEAL}
             active={extrasTab === "otros"}
             onClick={() => setExtrasTab("otros")}
@@ -8469,6 +8465,41 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
           {s.children}
         </div>
       ))}
+    </OnboardingShell>
+  );
+}
+
+
+// ── ¿Cómo aprovechamos lo de casa? ────────────────────────────────────────────
+// Pantalla dedicada (post «¿Cómo completamos el menú?») para elegir cuánto pesa
+// lo que ya hay en casa (despensa + nevera + congelador) al planificar. Las 4
+// opciones van de más a menos: solo con lo de casa → partir de ello → tenerlo en
+// cuenta → menú libre. Se mapean a data.pantryMode ("strict"/"only"/"prefer"/"off").
+export function OnboardingPantry({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+  const current = data.pantryMode ?? "prefer";
+  return (
+    <OnboardingShell
+      title="¿Aprovechamos lo que ya tienes en casa?"
+      subtitle="Elige una opción · nevera, despensa y congelador."
+      nextLabel={nextLabel}
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+    >
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        {DESPENSA_OPTS.map((t) => (
+          <RestrictionTabCard
+            key={t.id}
+            img={t.img}
+            title={t.label}
+            subtitle={t.subtitle}
+            accent={CARD_ACCENT_TEAL}
+            active={current === t.id}
+            onClick={() => setData((d) => ({ ...d, pantryMode: t.id, useHomeStock: t.id !== "off" }))}
+          />
+        ))}
+      </div>
     </OnboardingShell>
   );
 }

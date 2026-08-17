@@ -1,0 +1,50 @@
+Esquema — wizard «Ajustes de En casa» (12 opciones).
+Misma fórmula que las cards de nivel de cocina que gustan: personaje de cuerpo entero,
+cocina minimalista con electrodomésticos desenfocados, un gesto claro, un prop.
+Cola fija: full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+Archivo: Avatares/cards/pantry_prefs/{slug}.png
+
+--- P1 · ¿Cuándo cuenta lo de casa? ---
+
+[snapshot]  (foto fija: solo al generar el menú, luego no cambia sola)
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, holding up a single printed polaroid photo of the inside of a full fridge, the real fridge closed behind her, presenting the fixed snapshot with a calm satisfied expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[onShop]  (se actualiza al comprar: subir ticket o marcar la compra)
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, holding a long paper shopping receipt in one hand and a grocery bag in the other, checking off her stock after shopping, cheerful organized expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[live]  (siempre al día: también al marcar platos cocinados)
+3D illustrated cartoon character, a man home cook with short brown hair wearing an apron, cooking at the stove with a spatula while glancing at a phone propped on the counter showing a small live sync refresh icon, energetic in-the-moment expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+--- P2 · ¿Qué semana usa tu stock? ---
+
+[nearest]
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, holding a small wall calendar with only the first week circled in green, confident friendly smile, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[all]
+3D illustrated cartoon character, a man home cook with short brown hair wearing an apron, holding three identical lunch boxes stacked in his arms, proud relaxed expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[spread]
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, carrying one grocery bag away from an open fridge toward a second slightly emptier fridge beside her, thoughtful helpful expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+--- P3 · ¿Qué pasa con lo que sobra? ---
+
+[weekly]  (empezar de cero: recontar todo cada semana nueva)
+3D illustrated cartoon character, a man home cook with short brown hair wearing an apron, flipping a wall calendar to a brand new blank week with one hand while re-counting a freshly restocked open fridge with a clipboard in the other hand, a small circular refresh arrow floating nearby, clean-slate fresh-start expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[persist]  (arrastrar: lo que sobra sigue disponible la semana siguiente)
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, carrying a stack of leftover tupperware containers and sliding them forward along the counter, a big curved forward arrow leading from this week toward next week behind her, warm reassuring no-waste smile, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+--- P4 · ¿Cuándo baja el stock? ---
+
+[endOfDay]
+3D illustrated cartoon character, a man home cook with short brown hair wearing an apron, gently closing the fridge door at night with a soft yawn, cozy sleepy expression, warm evening moonlight through a window, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[onGenerate]
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, tapping once on a phone while a single tomato floats out of an open fridge, upbeat energetic expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[onCook]
+3D illustrated cartoon character, a man home cook with short brown hair wearing an apron and a chef hat, giving a thumbs up beside one finished plated dish on the counter, a small green checkmark floating next to him, proud satisfied expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7
+
+[none]
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, writing by hand on a small notepad with a pencil while glancing at an open fridge, focused in-control expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7

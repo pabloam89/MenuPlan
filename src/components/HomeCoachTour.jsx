@@ -112,9 +112,6 @@ export const RECIPES_COACH_STEPS = [
 ];
 
 // Tu menú screen: views, who-it's-for filter, a dish, + nav (shopping…).
-// "Tu perfil" has no step of its own: it moved inside the ☰ sidebar, which is
-// closed on arrival, so a spotlight would have nothing to point at. The
-// menu-options step below names it among everything that burger holds.
 export const MENU_COACH_STEPS = [
   {
     selector: '[data-coach="menu-viewmode"]',
@@ -168,7 +165,7 @@ export const MENU_COACH_STEPS = [
     selector: '[data-coach="menu-options"]',
     Icon: MenuIcon,
     title: "Opciones de tu menú",
-    desc: "Aquí dentro tienes el análisis nutricional, tus menús guardados, tu perfil, compartir, descargar en PDF y regenerar el menú entero.",
+    desc: "Aquí dentro tienes el análisis nutricional, tus menús guardados, compartir, descargar en PDF y regenerar el menú entero.",
     place: "below",
   },
 ];

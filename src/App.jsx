@@ -102,7 +102,7 @@ import {
   mergeDiscards,
 } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
-import { shouldAdoptRemoteProfile } from "./lib/profileMerge.js";
+import { shouldAdoptRemoteProfile, mergeUserRecipesById } from "./lib/profileMerge.js";
 import {
   loadUserRecipes,
   upsertUserRecipe,
@@ -1084,12 +1084,7 @@ export default function App() {
       // the snapshot silently wiped it ("creo mi receta, genero el menú y
       // desaparece"). The snapshot-based value here is kept solely for the
       // registerRecipes/backfill side effects below.
-      const mergeRemoteRecipes = (current = []) => {
-        const m = new Map(current.map((r) => [r.id ?? r.name, r]));
-        for (const r of remoteRecipes) m.set(r.id, r);
-        return Array.from(m.values());
-      };
-      const mergedRecipes = mergeRemoteRecipes(localRecipes);
+      const mergedRecipes = mergeUserRecipesById(localRecipes, remoteRecipes);
       // Remote is authoritative for the vote itself, but a locally-set group
       // scope survives if it hasn't round-tripped to the server yet.
       const mergedVotes = mergeVotes(localVotes, remoteVotes);
@@ -1134,8 +1129,8 @@ export default function App() {
       setData((d) => ({
         ...(useRemote ? { ...INITIAL_DATA, ...remoteData } : d),
         // Merge against the current live recipes, not the stale snapshot, so a
-        // recipe created mid-hydration survives (see mergeRemoteRecipes above).
-        userRecipes: mergeRemoteRecipes(d.userRecipes ?? []),
+        // recipe created mid-hydration survives (see mergeUserRecipesById).
+        userRecipes: mergeUserRecipesById(d.userRecipes ?? [], remoteRecipes),
         recipeVotes: mergedVotes,
         discards: mergedDiscards,
         priceObs: mergedPriceObs,

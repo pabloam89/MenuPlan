@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
-import { ChevronRight, Loader2, Receipt, Refrigerator, TrendingUp } from "lucide-react";
+import { Check, ChevronRight, Loader2, Receipt, Refrigerator, Snowflake, TrendingUp } from "lucide-react";
 import { WizardSheet } from "../components/ui.jsx";
 import { extractReceiptDetail } from "../lib/receiptParser.js";
 import { ingredientDictionary, matchReceiptLine, stripQtyNoise, toDisplayCase } from "../lib/priceHistory.js";
-import { normalizeName } from "../lib/ingredientCategories.js";
+import { guessShoppingAisle, isPerishableAisle, normalizeName } from "../lib/ingredientCategories.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { addPantryItems, addLocalPantryItems } from "../lib/pantry.js";
 import { useAuth } from "../lib/useAuth.js";
@@ -34,6 +34,9 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
   const [busy, setBusy] = useState(false);
   const [showDemo, setShowDemo] = useState(false);
   const [wizard, setWizard] = useState(null);
+  // Micro-paso tras confirmar el ticket (solo "Reponer despensa"): marcar qué
+  // va al congelador antes de escribir en En casa.
+  const [freezeStep, setFreezeStep] = useState(null);
   const fileRef = useRef(null);
 
   // Same enrichment the shopping screen applies: match each food line to a
@@ -136,9 +139,7 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
 
   const confirm = async ({ store, date, lines, tachIds = [], pantryEntries = [] }) => {
     const included = lines.filter((l) => l.include);
-    let pantryIds = [];
-    let pantried = 0;
-    let covered = [];
+    const ctx = { store, date, included, tachIds };
 
     // Restock only when the user chose "Reponer mi despensa".
     if (intent === "pantry" && pantryEntries.length) {
@@ -156,19 +157,40 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
         })
         .filter(Boolean);
       if (items.length) {
-        if (user) {
-          const results = await addPantryItems(user.id, items);
-          pantried = results.length;
-          // Only brand-new rows get linked to the receipt (so deleting the
-          // ticket later undoes just those — not top-ups on pre-existing stock).
-          pantryIds = results.filter((r) => r.isNew).map((r) => r.id);
-        } else {
-          addLocalPantryItems(items);
-          pantried = items.length;
-        }
-        covered = coveredRecipes(items);
-        onPantryChanged?.();
+        // Antes de escribir: preguntar qué va al congelador (requiere
+        // descongelar → el planner lo trata distinto). Se precargan los frescos
+        // perecederos como sugerencia, que es lo que normalmente se congela.
+        setWizard(null);
+        setFreezeStep({ ...ctx, items });
+        return;
       }
+    }
+
+    // Sin reposición (solo gasto): escribir directamente.
+    await finalize({ ...ctx, items: [], frozenIds: new Set() });
+  };
+
+  // Escribe pantry (con la marca de congelador elegida), tacha la compra y
+  // guarda el gasto. Compartido por el flujo con y sin paso de congelador.
+  const finalize = async ({ store, date, included, tachIds, items, frozenIds }) => {
+    let pantryIds = [];
+    let pantried = 0;
+    let covered = [];
+
+    const writeItems = items.map((it, i) => ({ ...it, frozen: frozenIds.has(i) }));
+    if (writeItems.length) {
+      if (user) {
+        const results = await addPantryItems(user.id, writeItems);
+        pantried = results.length;
+        // Only brand-new rows get linked to the receipt (so deleting the
+        // ticket later undoes just those — not top-ups on pre-existing stock).
+        pantryIds = results.filter((r) => r.isNew).map((r) => r.id);
+      } else {
+        addLocalPantryItems(writeItems);
+        pantried = writeItems.length;
+      }
+      covered = coveredRecipes(writeItems);
+      onPantryChanged?.();
     }
 
     // A ticket proves those items were bought, so tach them off the pending
@@ -187,6 +209,7 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
       appendReceiptSpend(setData, { store, date, lines: included, pantryIds }, data?.priceAliases ?? {});
     }
 
+    setFreezeStep(null);
     setWizard(null);
     const coverageSuffix = covered.length
       ? ` · cubre ${covered.length === 1 ? covered[0] : `${covered.length} platos de tu menú`}`
@@ -267,7 +290,7 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
         />
       )}
 
-      {wizard && (
+      {wizard && !freezeStep && (
         <ReceiptWizard
           detail={wizard.detail}
           initialLines={wizard.lines}
@@ -280,7 +303,107 @@ export function PantryReceiptFlow({ data, setData, shopping = null, setShopping 
           onConfirm={confirm}
         />
       )}
+
+      {freezeStep && (
+        <FreezeStep
+          items={freezeStep.items}
+          onConfirm={(frozenIds) => finalize({ ...freezeStep, frozenIds })}
+          onClose={() => {
+            setFreezeStep(null);
+            onClose?.();
+          }}
+        />
+      )}
     </>
+  );
+}
+
+// Micro-paso tras confirmar el ticket: marcar qué productos van al congelador.
+// Los frescos perecederos (carne, pescado, verdura…) vienen presugeridos, que
+// es lo que la gente suele congelar; despensa (pasta, conservas…) no.
+function FreezeStep({ items, onConfirm, onClose }) {
+  const [frozenIds, setFrozenIds] = useState(() => new Set());
+  const toggle = (i) =>
+    setFrozenIds((prev) => {
+      const next = new Set(prev);
+      next.has(i) ? next.delete(i) : next.add(i);
+      return next;
+    });
+  const freezableCount = items.filter((it) => isPerishableAisle(guessShoppingAisle(it.name))).length;
+
+  return (
+    <WizardSheet
+      icon={Snowflake}
+      iconColor="#3f7fb0"
+      title="¿Algo va al congelador?"
+      subtitle="Marca lo que metes al congelador. El resto irá a tu nevera o despensa."
+      onClose={onClose}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: "46dvh", overflowY: "auto", marginBottom: 12 }}>
+        {items.map((it, i) => {
+          const on = frozenIds.has(i);
+          const freezable = isPerishableAisle(guessShoppingAisle(it.name));
+          return (
+            <button
+              key={`${it.normalized}-${i}`}
+              type="button"
+              onClick={() => toggle(i)}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                width: "100%",
+                padding: "10px 12px",
+                borderRadius: 12,
+                border: `1.5px solid ${on ? "#3f7fb0" : "#e0eae3"}`,
+                background: on ? "#eaf2f8" : "#fff",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                textAlign: "left",
+              }}
+            >
+              <Snowflake size={16} strokeWidth={2.4} color={on ? "#3f7fb0" : "#c2cfc7"} style={{ flexShrink: 0 }} />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 13.5, fontWeight: 700, color: "#142f1d", overflowWrap: "anywhere" }}>
+                  {it.name}
+                </span>
+                {freezable && !on && (
+                  <span style={{ display: "block", fontSize: 10.5, fontWeight: 700, color: "#9ab0a1", marginTop: 1 }}>
+                    Se congela bien
+                  </span>
+                )}
+              </span>
+              <span
+                style={{
+                  width: 22, height: 22, flexShrink: 0, borderRadius: 6,
+                  border: `1.5px solid ${on ? "#3f7fb0" : "#cdd8d0"}`,
+                  background: on ? "#3f7fb0" : "#fff",
+                  color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                {on && <Check size={14} strokeWidth={3} />}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onConfirm(frozenIds)}
+        style={{
+          width: "100%", height: 48, borderRadius: 14, border: "none",
+          background: GREEN, color: "#fff", fontSize: 14.5, fontWeight: 800,
+          cursor: "pointer", fontFamily: "inherit",
+        }}
+      >
+        {frozenIds.size > 0
+          ? `Guardar · ${frozenIds.size} al congelador`
+          : freezableCount > 0
+            ? "Guardar todo en nevera / despensa"
+            : "Guardar"}
+      </button>
+    </WizardSheet>
   );
 }
 

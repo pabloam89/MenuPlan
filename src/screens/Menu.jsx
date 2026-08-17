@@ -11,7 +11,6 @@ import {
   CalendarOff,
   Check,
   ChefHat,
-  CircleUserRound,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -727,64 +726,6 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
         </div>
       </div>
     </div>
-  );
-}
-
-function ProfileButton({ onClick }) {
-  return (
-    <>
-      <style>{`
-        .profile-pill-btn {
-          position: relative;
-          overflow: hidden;
-          transition: transform .13s ease, box-shadow .13s ease;
-        }
-        .profile-pill-btn:active {
-          transform: scale(.92);
-          box-shadow: 0 1px 4px rgba(45,90,61,.18);
-        }
-        .profile-pill-btn::after {
-          content: "";
-          position: absolute;
-          inset: 0;
-          border-radius: 12px;
-          background: rgba(255,255,255,.25);
-          transform: scale(0);
-          opacity: 0;
-          pointer-events: none;
-        }
-        .profile-pill-btn:active::after {
-          animation: profileRipple .35s ease-out;
-        }
-        @keyframes profileRipple {
-          0%   { transform: scale(0); opacity: 1; }
-          100% { transform: scale(2.5); opacity: 0; }
-        }
-      `}</style>
-      <button
-        type="button"
-        data-coach="menu-profile"
-        onClick={onClick}
-        className="profile-pill-btn"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-          padding: "7px 14px 7px 10px",
-          borderRadius: 12,
-          border: "1px solid #2d5a3d",
-          background: "#2d5a3d",
-          cursor: "pointer",
-          fontFamily: "inherit",
-          flexShrink: 0,
-        }}
-      >
-        <SlidersHorizontal size={15} color="#fff" />
-        <div style={{ fontSize: 13, fontWeight: 900, color: "#fff", letterSpacing: "-.2px", lineHeight: 1 }}>
-          Tu perfil
-        </div>
-      </button>
-    </>
   );
 }
 
@@ -3036,8 +2977,7 @@ function MenuDeck({ deckView, days, weekDates, data, menuPlan, visibleGroups, me
 
 /**
  * Deck view selector — a pill showing the active view that unfolds an animated
- * menu (Día / Semana / Lista + week switcher + Vista clásica). "Tu perfil" lives
- * outside, to the right of this pill in the header row.
+ * menu (Día / Semana / Lista + week switcher + Vista clásica).
  */
 /** Circular icon for the view picker. Each view has its own accent colour;
  *  active state fills the disc, inactive shows the tinted ring + icon. */
@@ -4253,7 +4193,6 @@ export const MenuScreen = memo(function MenuScreen({
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
                     hasMenu && { key: "share", label: "Compartir", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
-                    { key: "profile", label: "Tu perfil", Icon: CircleUserRound, coach: "menu-profile", action: () => setProfileOpen(true), tint: "#e6f2ea", ink: "#2d5a3d" },
                     !isGenerating && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
                     .filter(Boolean)

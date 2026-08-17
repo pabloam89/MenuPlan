@@ -1783,5 +1783,343 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 210
+  },
+  {
+    "id": "huevos_016",
+    "name": "Pisto con huevos",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 35,
+    "difficulty": "facil",
+    "kcal": 310,
+    "protein_g": 16,
+    "carbs_g": 14,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 35,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar cebolla y ajo en dados pequeños.",
+      "Cortar pimiento rojo, pimiento verde y calabacín en dados pequeños.",
+      "Pelar tomate maduro y cortar en dados pequeños.",
+      "Calentar 20 ml de aceite de oliva en una cazuela a fuego medio.",
+      "Sofreír la cebolla y el ajo hasta que la cebolla esté translúcida, unos 4 min.",
+      "Añadir los pimientos y sofreír 5 min hasta que estén tiernos.",
+      "Incorporar el calabacín, remover y cocer 4 min.",
+      "Añadir el tomate, tapar y cocer a fuego suave hasta que las verduras estén tiernas, unos 12 min.",
+      "Calentar el resto del aceite en una sartén a fuego medio.",
+      "Freír los huevos hasta que la clara esté cuajada y la yema líquida.",
+      "Servir el pisto en plato con el huevo frito encima."
+    ],
+    "description": "Pisto de verduras con huevos fritos encima, para acompañar con guarnición",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el pisto en sartén. Fríe los huevos en sartén aparte o casca los huevos sobre el pisto caliente y termina 3-4 min en airfryer a 180 °C hasta cuajar la clara."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el pisto en cazuela. Reparte en dos cazuelitas, casca un huevo (o dos) encima de cada una y hornea a 180 °C durante 8-10 min hasta que la clara cuaje y la yema quede líquida."
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar la mayor parte del {{Aceite de oliva}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo hasta que la cebolla esté translúcida, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los pimientos y sofreír 5 min hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el calabacín, remover y cocer 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate, tapar y cocer a fuego suave hasta que las verduras estén tiernas, unos 12 min.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar el resto del aceite en {{@Sartén}} a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír {{Huevo}} hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pisto en plato con el huevo frito encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 6,
+    "saturated_fat_g": 4,
+    "sodium_mg": 140
+  },
+  {
+    "id": "huevos_017",
+    "name": "Pisto con huevo y patatas fritas",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "kcal": 520,
+    "protein_g": 20,
+    "carbs_g": 38,
+    "fat_g": 32,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "season": "verano",
+    "healthFlags": [
+      "frito"
+    ],
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar cebolla y ajo en dados pequeños.",
+      "Cortar pimiento rojo, pimiento verde y calabacín en dados pequeños.",
+      "Pelar tomate maduro y cortar en dados pequeños.",
+      "Pelar patata y cortar en bastones de unos 1 cm de grosor.",
+      "Calentar 25 ml de aceite de oliva en una cazuela a fuego medio.",
+      "Sofreír la cebolla y el ajo hasta que la cebolla esté translúcida, unos 4 min.",
+      "Añadir los pimientos y sofreír 5 min hasta que estén tiernos.",
+      "Incorporar el calabacín, remover y cocer 4 min.",
+      "Añadir el tomate, tapar y cocer a fuego suave hasta que las verduras estén tiernas, unos 12 min.",
+      "Mientras tanto, calentar el resto del aceite en una sartén a fuego fuerte.",
+      "Freír los bastones de patata hasta que estén dorados y crujientes, unos 10 min.",
+      "Escurrir las patatas fritas sobre papel absorbente y reservar.",
+      "Freír los huevos en el mismo aceite a fuego medio hasta que la clara esté cuajada y la yema líquida.",
+      "Servir el pisto en plato con las patatas fritas al lado y el huevo frito encima."
+    ],
+    "description": "Pisto manchego con huevos fritos y patatas fritas",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el pisto en sartén como de costumbre. Corta las patatas en bastones, rocía con aceite y cocina en la airfryer a 190 °C durante 18-20 min, agitando a mitad. Fríe los huevos en sartén y emplata el pisto con las patatas y el huevo encima."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el pisto en cazuela. Extiende las patatas en bastones con aceite en una bandeja y hornea a 200 °C durante 30-35 min. Fríe los huevos en sartén y sirve junto al pisto y las patatas."
+      }
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 4,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en bastones de unos 1 cm de grosor.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar la mitad del {{Aceite de oliva}} en una cazuela a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla y el ajo hasta que la cebolla esté translúcida, unos 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los pimientos y sofreír 5 min hasta que estén tiernos.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el calabacín, remover y cocer 4 min.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el tomate, tapar y cocer a fuego suave hasta que las verduras estén tiernas, unos 12 min.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar el resto del aceite en {{@Sartén}} a fuego fuerte.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 8
+      },
+      {
+        "text": "Freír los bastones de patata hasta que estén dorados y crujientes, unos 10 min.",
+        "minutes": 10,
+        "kind": "paralelo",
+        "during": 8
+      },
+      {
+        "text": "Escurrir las patatas fritas sobre papel absorbente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Freír {{Huevo}} en el mismo aceite a fuego medio hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pisto en plato con las patatas fritas al lado y el huevo frito encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 7,
+    "saturated_fat_g": 5,
+    "sodium_mg": 180
   }
 ]
