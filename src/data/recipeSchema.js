@@ -127,6 +127,18 @@ export const RecipeSchema = z
     // detail renders the stepper, otherwise it falls back to `steps`. Kept in
     // sync with `steps` (stepsRich[i].text === steps[i]).
     stepsRich: z.array(StepRichSchema).min(1).optional(),
+    // ¿Aguanta el plato una congelación y un recalentado sin arruinarse? Es
+    // distinto de tupperFriendly (que solo pide que viaje bien en frío o de un
+    // día para otro en nevera): un rebozado va perfecto en tupper y se queda
+    // blando al descongelar. Solo las recetas con freezable true entran en el
+    // flujo de congelador (banner en la ficha, uso desde el planner) y solo
+    // ellas reciben thawSteps en el enriquecimiento.
+    freezable: z.boolean().optional(),
+    // Pasos para resucitar una ración ya cocinada que salió del congelador —
+    // mismo formato que stepsRich, así que RecipeSteps los pinta igual. Sustituyen
+    // a los pasos de cocinado cuando el slot viene marcado fromFreezer; si además
+    // hay raciones frescas que cocinar, se muestran los dos bloques.
+    thawSteps: z.array(StepRichSchema).min(1).optional(),
     description: z.string().min(1),
     methods: z.array(MethodSchema).optional(),
     // Names this dish is commonly sold as a ready-made product under (e.g.
@@ -166,6 +178,16 @@ export const RecipeSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: `"${id}": baseDishId no puede apuntar a sí mismo`,
+      });
+    }
+
+    // Unos thawSteps en un plato que no se congela no se pintarían nunca: si
+    // están ahí es que el enriquecimiento (o una edición a mano) se equivocó de
+    // receta, y prefiero enterarme al validar que dejarlo como dato muerto.
+    if (recipe.thawSteps && !recipe.freezable) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": thawSteps requiere freezable true`,
       });
     }
   });

@@ -2,6 +2,7 @@ import { RECIPES_BY_ID } from "../data/recipes.js";
 import { categoryForIngredient, normalizeIngredientKey, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
 import { ingredientWords, wordsOverlapEither, isWordSubsetOf } from "../utils/normalizePantryInput.js";
+import { cookedEatersFor, slotUsesFreezer } from "./freezer.js";
 
 // Whole-word match (not raw substring — see normalizePantryInput.js's
 // "Repollo" note) between a shopping-list ingredient name and the user's
@@ -61,6 +62,15 @@ function scaleIngredient(ing, eaters, recipeServings) {
     qty: Math.round(ing.qty * factor * 100) / 100,
     scaledPrice: (ing.pricePerUnit ?? 0) * ing.qty * factor,
   };
+}
+
+// applyGarnishToRecipe (lib/aiPlanner.js) funde los ingredientes de la
+// guarnición en los del plato, marcándolos con este prefijo de id. Es lo único
+// que distingue las dos mitades de un plato emparejado una vez fusionado, y lo
+// necesitamos para los slots del congelador: del plato principal ya hay
+// raciones hechas, pero la guarnición se cocina fresca igual.
+function isGarnishIngredient(ing) {
+  return String(ing?.id ?? "").startsWith("garnish-");
 }
 
 // Supermarket pack snapping. Each entry: [regex, inUnit, outUnit, packSize].
@@ -169,8 +179,20 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
           // be flagged in the shopping list instead of blending in as a plain
           // renamed line the user might not notice and buy the wrong product.
           const adaptedNames = new Set((recipe.adaptations ?? []).map((a) => a.to));
+          // Slots cubiertos (total o parcialmente) desde el congelador: del plato
+          // principal solo se compra lo que falte por cocinar — 0 si las raciones
+          // congeladas cubren a todos los comensales. La guarnición no se congela
+          // nunca (el tupper guarda el plato, no el acompañamiento), así que se
+          // sigue comprando para la mesa entera.
+          const usesFreezer = slotUsesFreezer(slot, rid);
+          const mainEaters = usesFreezer ? cookedEatersFor(slot, rid) : slot.eaters;
           for (const ing of recipe.ingredients) {
-            const scaled = scaleIngredient(ing, slot.eaters, recipe.servings);
+            const forGarnish = isGarnishIngredient(ing);
+            const ingEaters = forGarnish ? slot.eaters : mainEaters;
+            // Nada que comprar de esta mitad del plato: ya está cocinada y
+            // esperando en el congelador.
+            if (ingEaters <= 0) continue;
+            const scaled = scaleIngredient(ing, ingEaters, recipe.servings);
             const key = normalizeIngredientKey(ing.name, ing.unit);
             const category = categoryForIngredient(ing.name, ing.category);
             if (!aggregate[key]) {

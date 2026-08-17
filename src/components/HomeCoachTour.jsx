@@ -2,7 +2,6 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import { createPortal } from "react-dom";
 import {
   CalendarDays,
-  Leaf,
   Sparkles,
   BookOpen,
   UserRound,
@@ -33,13 +32,8 @@ import {
 
 // Home: the two action tiles + the meaningful nav tabs.
 export const HOME_COACH_STEPS = [
-  {
-    selector: '[data-coach="home-mode"]',
-    Icon: Leaf,
-    title: "Modo sencillo",
-    desc: "Estás en modo sencillo: solo lo esencial y decidimos el resto por ti. Toca aquí cuando quieras pasar a avanzado y controlarlo todo.",
-    place: "below",
-  },
+  // El paso "Modo sencillo" desapareció con la píldora de la cabecera: sencillo
+  // vs avanzado se pregunta ahora en la primera pantalla del asistente.
   {
     selector: "#coach-generate-menu",
     Icon: CalendarDays,

@@ -138,7 +138,30 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 3,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema de calabacín del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema descongelada en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la crema ha espesado al descongelar, hasta recuperar la textura original.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema bien caliente en boles en cuanto empiece a humear, sin dejar que rompa a hervir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_002",
@@ -255,7 +278,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": false
   },
   {
     "id": "sopas_cremas_003",
@@ -423,7 +447,30 @@
     "fiber_g": 4,
     "sugar_g": 7,
     "saturated_fat_g": 1,
-    "sodium_mg": 35
+    "sodium_mg": 35,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema del congelador a la nevera la noche anterior para descongelarla lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema descongelada en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar hasta que la crema esté homogénea y caliente; añadir un chorrito de agua si ha espesado.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en cuencos y acabar con una pizca de nuez moscada si se desea.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_004",
@@ -566,7 +613,8 @@
     "fiber_g": 3,
     "sugar_g": 7,
     "saturated_fat_g": 1,
-    "sodium_mg": 85
+    "sodium_mg": 85,
+    "freezable": false
   },
   {
     "id": "sopas_cremas_005",
@@ -701,7 +749,8 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 3,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "sopas_cremas_006",
@@ -852,7 +901,35 @@
     "fiber_g": 5,
     "sugar_g": 8,
     "saturated_fat_g": 1,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema descongelada en un cazo y calentar a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con frecuencia hasta que la crema esté caliente y homogénea, sin dejar que hierva.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la crema ha espesado demasiado y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la crema en boles calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_007",
@@ -1025,7 +1102,40 @@
     "fiber_g": 2,
     "sugar_g": 1,
     "saturated_fat_g": 3,
-    "sodium_mg": 780
+    "sodium_mg": 780,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la sopa castellana del congelador a la nevera la noche anterior para que descongele lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la sopa descongelada en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua o caldo si la sopa ha espesado demasiado y remover hasta integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cascar un huevo fresco por ración sobre la sopa caliente en la cazuela apta para horno.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 200 °C hasta que la clara cuaje pero la yema quede ligeramente líquida.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno con cuidado y servir directamente en la cazuela.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_008",
@@ -1166,7 +1276,8 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 4,
-    "sodium_mg": 95
+    "sodium_mg": 95,
+    "freezable": false
   },
   {
     "id": "sopas_cremas_009",
@@ -1300,7 +1411,30 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 40
+    "sodium_mg": 40,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar la crema descongelada en un cazo y calentar a fuego suave hasta que esté caliente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con frecuencia durante el calentamiento para que no queden zonas frías ni se pegue al fondo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles en cuanto esté humeante y con textura homogénea.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_010",
@@ -1448,7 +1582,40 @@
     "fiber_g": 3,
     "sugar_g": 8,
     "saturated_fat_g": 6,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Descongelar la sopa en la nevera durante al menos 8 horas o toda la noche.",
+        "minutes": 480,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar la sopa en un cazo a fuego medio, removiendo a mitad, hasta que esté bien caliente.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar pan en rebanadas y tostar en el horno a 180 °C hasta que estén doradas y crujientes.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Rallar queso gruyère finamente sobre las rebanadas de pan ya colocadas sobre la sopa en cazuelas aptas para horno.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Gratinar en el horno a 200 °C hasta que el queso esté fundido y dorado.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir las cazuelas inmediatamente, con cuidado de no quemarse.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_011",
@@ -1610,7 +1777,35 @@
     "fiber_g": 4,
     "sugar_g": 6,
     "saturated_fat_g": 1,
-    "sodium_mg": 40
+    "sodium_mg": 40,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar hasta que la crema esté caliente y homogénea, sin dejar que hierva a borbotones.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Ajustar la textura añadiendo un chorrito de agua si la crema ha espesado al descongelar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_012",
@@ -1775,7 +1970,35 @@
     "fiber_g": 3,
     "sugar_g": 4,
     "saturated_fat_g": 4,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema descongelada en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar hasta que la crema esté homogénea y caliente; evitar que llegue a hervir.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de nata si la crema ha espesado demasiado al descongelar y mezclar bien.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la crema en boles calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_013",
@@ -1918,7 +2141,8 @@
     "fiber_g": 3,
     "sugar_g": 3,
     "saturated_fat_g": 6,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": false
   },
   {
     "id": "sopas_cremas_014",
@@ -2063,7 +2287,30 @@
     "fiber_g": 4,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 45
+    "sodium_mg": 45,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema descongelada en un cazo y calentar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con frecuencia hasta que la crema esté caliente y homogénea, sin dejar que hierva.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_015",
@@ -2205,7 +2452,8 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 2,
-    "sodium_mg": 120
+    "sodium_mg": 120,
+    "freezable": false
   },
   {
     "id": "sopas_cremas_016",
@@ -2350,7 +2598,30 @@
     "fiber_g": 3,
     "sugar_g": 8,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la sopa del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la sopa descongelada en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar hasta que la sopa esté bien caliente y homogénea, sin dejar que hierva a borbotones.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la sopa caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_017",
@@ -2489,7 +2760,30 @@
     "fiber_g": 5,
     "sugar_g": 4,
     "saturated_fat_g": 1,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema del congelador a la nevera la noche anterior y dejar descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover hasta que la crema esté completamente homogénea y sin zonas frías, sin dejar hervir.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_018",
@@ -2620,7 +2914,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 2,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": false
   },
   {
     "id": "sopas_cremas_019",
@@ -2761,7 +3056,35 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 380
+    "sodium_mg": 380,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la sopa del congelador a la nevera la noche anterior para descongelar despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la sopa descongelada en un cazo y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a mitad del calentamiento para igualar la temperatura y evitar zonas frías.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que la sopa humea de forma uniforme sin llegar a hervir a borbotones.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir bien caliente en boles hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "sopas_cremas_020",
@@ -2905,6 +3228,34 @@
     "fiber_g": 9,
     "sugar_g": 6,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la crema de lentejas del congelador a la nevera la noche anterior para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema descongelada en un cazo y calentar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con frecuencia hasta que la crema esté caliente y homogénea, sin dejar que hierva.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la crema ha espesado demasiado al descongelar y remover para integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la crema caliente en boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

@@ -66,9 +66,27 @@ function itemLocation(item) {
 }
 
 const LOCATION_META = {
-  nevera: { label: "Nevera", img: "/avatares/cards/nevera.png", tint: "#e6f1f7", ink: "#2f6d8a" },
-  despensa: { label: "Despensa", img: "/avatares/cards/despensa.png", tint: "#f4efe3", ink: "#9a7b34" },
-  congelador: { label: "Congelador", img: "/avatares/cards/congelador.png", tint: "#e8f0f6", ink: "#3f7fb0" },
+  nevera: {
+    label: "Nevera",
+    img: "/avatares/cards/nevera.png",
+    tint: "#ddf4e8",
+    ink: "#1f7a52",
+    Icon: Refrigerator,
+  },
+  despensa: {
+    label: "Despensa",
+    img: "/avatares/cards/despensa.png",
+    tint: "#faefd0",
+    ink: "#a06818",
+    Icon: Package,
+  },
+  congelador: {
+    label: "Congelador",
+    img: "/avatares/cards/congelador.png",
+    tint: "#dce9f8",
+    ink: "#2563ab",
+    Icon: Snowflake,
+  },
 };
 const LOCATION_ORDER = ["nevera", "despensa", "congelador"];
 
@@ -451,12 +469,28 @@ function PantryLocationCards({ selected, counts, onPick }) {
               transition: "all .16s ease",
             }}
           >
-            <div style={{ position: "relative", width: "100%", aspectRatio: "2 / 3", background: meta.tint }}>
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                aspectRatio: "2 / 3",
+                background: meta.tint,
+                padding: "10px 8px 0",
+                boxSizing: "border-box",
+                overflow: "hidden",
+              }}
+            >
               <img
                 src={meta.img}
                 alt={meta.label}
                 loading="lazy"
-                style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "contain",
+                  objectPosition: "center bottom",
+                  display: "block",
+                }}
               />
               {count > 0 && (
                 <span
@@ -468,7 +502,7 @@ function PantryLocationCards({ selected, counts, onPick }) {
                     height: 20,
                     padding: "0 5px",
                     borderRadius: 999,
-                    background: on ? meta.ink : "rgba(20,47,29,.72)",
+                    background: meta.ink,
                     color: "#fff",
                     fontSize: 11,
                     fontWeight: 900,
@@ -485,8 +519,8 @@ function PantryLocationCards({ selected, counts, onPick }) {
               style={{
                 width: "100%",
                 padding: "7px 6px",
-                background: on ? meta.ink : "#fff",
-                color: on ? "#fff" : "#3d6652",
+                background: on ? meta.ink : meta.tint,
+                color: on ? "#fff" : meta.ink,
                 fontSize: 12.5,
                 fontWeight: 800,
                 textAlign: "center",
@@ -626,14 +660,8 @@ function CookedDishIcon({ recipeRef, size = 36 }) {
 // Mini "flag" con el icono de dónde está el item (nevera / despensa /
 // congelador). Se solapa en la esquina del thumbnail para aligerar la fila
 // (antes era un chip de texto bajo el nombre).
-const LOCATION_BADGE = {
-  nevera: { Icon: Refrigerator, color: "#2f6d8a" },
-  despensa: { Icon: Package, color: "#9a7b34" },
-  congelador: { Icon: Snowflake, color: "#3f7fb0" },
-};
-
 function LocationBadge({ location, size = 16 }) {
-  const meta = LOCATION_BADGE[location];
+  const meta = LOCATION_META[location];
   if (!meta) return null;
   const Icon = meta.Icon;
   return (
@@ -645,7 +673,7 @@ function LocationBadge({ location, size = 16 }) {
         width: size,
         height: size,
         borderRadius: 999,
-        background: meta.color,
+        background: meta.ink,
         color: "#fff",
         display: "inline-flex",
         alignItems: "center",
@@ -1169,17 +1197,22 @@ export function PantryScreen({
   // "Subir ticket" overlay (receipt capture + intent chooser), launched in place.
   const [showReceiptFlow, setShowReceiptFlow] = useState(false);
   const [showIconCoach, setShowIconCoach] = useState(false);
-  // Cuestionario de despensa (solo modo avanzado): 4 decisiones sobre cómo la
-  // despensa interactúa con el menú. Se abre solo la primera vez, y el icono de
-  // ajustes del header lo reabre cuando se quiera.
-  const expertMode = Boolean(data?.expertMode);
-  const canEditPantryPrefs = Boolean(setData) && expertMode && !embedded;
+  // Ajustes de despensa: una única decisión — cuándo se da por gastado lo de
+  // casa que usa el menú. Se pregunta en cualquier modo (sencillo incluido),
+  // porque tiene consecuencias visibles y ya no es jerga. El icono de ajustes
+  // del header lo reabre cuando se quiera.
+  const canEditPantryPrefs = Boolean(setData) && !embedded;
   const [showPantryPrefs, setShowPantryPrefs] = useState(false);
   // Header options drawer (burger → sliding sidebar), mirroring the Menu screen.
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  // Solo se abre solo cuando la pregunta ya significa algo: con la despensa
+  // vacía, "cuándo damos por gastado lo de casa" es abstracto y se cuela como
+  // un interrogatorio de bienvenida. Esperamos a que haya algo dentro.
   useEffect(() => {
-    if (canEditPantryPrefs && !data?.pantryPrefsSeen) setShowPantryPrefs(true);
-  }, [canEditPantryPrefs, data?.pantryPrefsSeen]);
+    if (!canEditPantryPrefs || data?.pantryPrefsSeen) return;
+    if (loading || items.length === 0) return;
+    setShowPantryPrefs(true);
+  }, [canEditPantryPrefs, data?.pantryPrefsSeen, loading, items.length]);
   // (showAddInput removed — PantryInput is always visible with its own tab control)
   // Empty-state entry: a centered prompt that, on tap, reveals two illustrated
   // choice cards (a mano / subir foto o ticket) and then opens PantryInput in

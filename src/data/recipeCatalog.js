@@ -95,6 +95,10 @@ function rowToRecipe(row) {
     ingredients: row.ingredients,
     steps: row.steps,
     ...(row.steps_rich ? { stepsRich: row.steps_rich } : {}),
+    // Congelador: freezable puede ser false a propósito (un juicio ya tomado),
+    // así que se distingue de "la columna no existe" en una BD sin migrar.
+    ...(row.freezable != null ? { freezable: row.freezable } : {}),
+    ...(row.thaw_steps ? { thawSteps: row.thaw_steps } : {}),
     description: row.description,
     ...(row.methods ? { methods: row.methods } : {}),
     ...(row.product_aliases?.length ? { productAliases: row.product_aliases } : {}),

@@ -15,6 +15,10 @@
  *   2. `byAppliance` → pasos adaptados a cada electrodoméstico de recipe.methods.
  *   3. `nutrients`   → estimación por ración de fibra, azúcares, grasas
  *                      saturadas (g) y sodio (mg), siguiendo el esquema.
+ *   4. `thawSteps`   → si el plato aguanta congelarse (`freezable`), el paso a
+ *                      paso para resucitar una ración que sale del congelador.
+ *                      La ficha los pinta EN LUGAR de los de cocinado cuando el
+ *                      hueco viene de un tupper (ver src/lib/freezer.js).
  *
  * Es idempotente/reanudable: por defecto salta lo ya generado. Escribe los
  * cambios en disco por fichero para que el diff de git sea revisable.
@@ -26,7 +30,8 @@
  *   --base            solo reescribe los pasos base (recipe.steps)
  *   --appliances      solo genera los pasos por electrodoméstico
  *   --nutrients       solo estima los nutrientes secundarios
- *                     (sin ninguna de las tres, hace las tres)
+ *   --thaw            solo decide freezable y genera los pasos de descongelado
+ *                     (sin ninguna de las cuatro, hace las cuatro)
  *   --category=carnes limita a una categoría (nombre del fichero sin .json)
  *   --ids=a,b,c       limita a ids concretos (repesca tras el lint de estilo)
  *   --limit=N         procesa como mucho N recetas (piloto)
@@ -76,10 +81,12 @@ const val = (name) => {
 const onlyBase = has("--base");
 const onlyAppliances = has("--appliances");
 const onlyNutrients = has("--nutrients");
-const doAll = !onlyBase && !onlyAppliances && !onlyNutrients;
+const onlyThaw = has("--thaw");
+const doAll = !onlyBase && !onlyAppliances && !onlyNutrients && !onlyThaw;
 const DO_BASE = doAll || onlyBase;
 const DO_APPLIANCES = doAll || onlyAppliances;
 const DO_NUTRIENTS = doAll || onlyNutrients;
+const DO_THAW = doAll || onlyThaw;
 const CATEGORY = val("category");
 // Lista de ids concretos, para repescar las recetas que falló el lint de estilo
 // sin volver a pagar por las 274.
@@ -181,6 +188,10 @@ const SYSTEM = [
   "  fuego 'suave/medio/fuerte'.",
   "· Cita los ingredientes por su nombre EXACTO de la lista `ingredientes`; no",
   "  inventes ni menciones nada fuera de esa lista.",
+  "· El VERBO va siempre primero, también cuando el paso es condicional: 'Añadir",
+  "  agua si la salsa ha espesado.' es CORRECTO; 'Si la salsa ha espesado, añadir",
+  "  agua.' es INCORRECTO (no arranca con el verbo). Nunca empieces un paso por",
+  "  'Si', 'Cuando', 'Una vez' ni por un sujeto.",
   "",
   "MARCADORES DE CANTIDAD (la app los sustituye al pintar el paso):",
   "· La PRIMERA vez que aparece un ingrediente, escríbelo como {{Nombre}} usando",
@@ -302,6 +313,43 @@ const SYSTEM = [
   "Para `nutrients`: estima por RACIÓN, coherente con kcal y macros dados,",
   "los gramos de fibra, de azúcares y de grasas saturadas, y los mg de sodio.",
   "Números enteros y realistas.",
+  "",
+  "Para `freezable` y `thawSteps` (congelación):",
+  "· `freezable` es un booleano: ¿aguanta ESTE plato congelarse ya cocinado y",
+  "  volver a la mesa en condiciones? Sé honesto y exigente, porque de esto",
+  "  depende que la app le proponga a una familia comerse algo mediocre:",
+  "    · SÍ: guisos, potajes y legumbres, carnes en salsa, sofritos, cremas y",
+  "      sopas, boloñesas y ragús, albóndigas, empanadas, croquetas (crudas o",
+  "      fritas), tartas y bizcochos, purés densos, arroces caldosos NO,",
+  "      canelones y lasañas.",
+  "    · NO: ensaladas y crudos, gazpacho/salmorejo (se corta la emulsión), platos",
+  "      con patata cocida en trozos (se vuelve harinosa), huevo cocido o frito,",
+  "      mayonesas y salsas con huevo o nata sin ligar, fritos rebozados que se",
+  "      comen crujientes (se quedan blandos), pasta corta ya cocida y aliñada,",
+  "      arroz blanco suelto, plancha rápida (pescado o carne a la plancha), y",
+  "      cualquier plato cuya gracia sea la textura recién hecha.",
+  "· Si `freezable` es false, devuelve `thawSteps` como array VACÍO.",
+  "· Si es true, `thawSteps` son los pasos para poner en la mesa una ración que",
+  "  YA ESTÁ COCINADA y sale del congelador. MISMO formato y MISMAS reglas que",
+  "  `steps` (infinitivo, 140 caracteres, una acción por paso, minutes y kind).",
+  "· Reglas propias de esta parte, importantes:",
+  "    · NO se cocina nada desde cero: no vuelvas a listar el sofrito ni la",
+  "      cocción original. Se descongela, se calienta y se remata.",
+  "    · NO uses marcadores {{Ingrediente}} de la receta: el plato ya lleva todo",
+  "      dentro. Solo puedes mencionar en texto normal un remate mínimo si de",
+  "      verdad mejora el plato (un chorrito de aceite, perejil fresco, queso).",
+  "    · El paso de descongelar en la nevera es kind:'espera' con sus minutes en",
+  "      minutos reales (una noche ≈ 720 min): es tiempo que el cocinero no está",
+  "      en la cocina, y la app lo usa para avisar el día antes.",
+  "    · La secuencia es LINEAL, no un menú de alternativas: elige la mejor forma",
+  "      de recalentar ESE plato (cazo, sartén, horno, microondas) y escríbela",
+  "      como pasos seguidos. Si quieres ofrecer un atajo (microondas a media",
+  "      potencia cuando no hay tiempo), va como UN paso kind:'opcional', nunca",
+  "      duplicando toda la secuencia.",
+  "    · Di qué hay que vigilar para que no se arruine: remover a mitad para que",
+  "      no queden zonas frías, tapar para que no se seque, no hervir a borbotones",
+  "      una crema, recuperar la textura si ha soltado agua.",
+  "    · Entre 3 y 6 pasos. Termina con un 'emplatado'.",
 ].join("\n");
 
 async function callModel(payload) {
@@ -357,7 +405,7 @@ async function callModelWithRetry(payload, label) {
 // electrodoméstico ya enriquecidos eso desbordaba max_tokens, la respuesta se
 // cortaba a media llave y fallaba entera por "respuesta no-JSON". Pedir solo lo
 // que se va a aplicar también abarata la repesca de una sola parte.
-function enrichPayload(recipe, appliances, { wantBase, wantNutrients } = {}) {
+function enrichPayload(recipe, appliances, { wantBase, wantNutrients, wantThaw } = {}) {
   const formato = {};
   if (wantBase) {
     formato.steps = [
@@ -373,6 +421,13 @@ function enrichPayload(recipe, appliances, { wantBase, wantNutrients } = {}) {
   }
   if (wantNutrients) {
     formato.nutrients = { fiber_g: 0, sugar_g: 0, saturated_fat_g: 0, sodium_mg: 0 };
+  }
+  if (wantThaw) {
+    formato.freezable = true;
+    formato.thawSteps = [
+      { text: "string", minutes: 0, kind: "espera" },
+      { text: "string", minutes: 0, kind: "activo" },
+    ];
   }
 
   return {
@@ -427,12 +482,16 @@ for (const file of files) {
     const needBase = DO_BASE && (FORCE || (!baseLedger[recipe.id] && !hasRich));
     const needNutrients =
       DO_NUTRIENTS && (FORCE || recipe.fiber_g == null || recipe.sodium_mg == null);
+    // `freezable` sin definir = nunca se ha evaluado. Una vez decidido (aunque
+    // sea false) no se vuelve a preguntar: es un juicio estable del plato, y
+    // los "no congelables" son la mayoría del catálogo.
+    const needThaw = DO_THAW && (FORCE || recipe.freezable == null);
     const missingAppliances = appliances.filter(
       (a) => FORCE || !applianceSteps[recipe.id]?.[a],
     );
 
-    if (!needBase && !needNutrients && missingAppliances.length === 0) continue;
-    tasks.push({ path, recipe, appliances, needBase, needNutrients, missingAppliances });
+    if (!needBase && !needNutrients && !needThaw && missingAppliances.length === 0) continue;
+    tasks.push({ path, recipe, appliances, needBase, needNutrients, needThaw, missingAppliances });
   }
   if (tasks.length >= LIMIT) break;
 }
@@ -441,7 +500,8 @@ if (DRY_RUN) {
   for (const t of tasks) {
     console.log(
       `· ${t.recipe.id} — ${t.recipe.name} … [dry-run] base:${t.needBase} `
-      + `nutrientes:${t.needNutrients} electro:[${t.missingAppliances.join(",")}]`,
+      + `nutrientes:${t.needNutrients} congelado:${t.needThaw} `
+      + `electro:[${t.missingAppliances.join(",")}]`,
     );
   }
   console.log(`\n✅ Dry-run — ${tasks.length} receta(s) pendientes (modelo ${MODEL}).`);
@@ -505,6 +565,24 @@ function applyResult(task, out) {
     }
   }
 
+  if (task.needThaw && typeof out.freezable === "boolean") {
+    recipe.freezable = out.freezable;
+    if (out.freezable) {
+      // Sin normalizeMarkers a propósito: el plato ya está cocinado, así que
+      // aquí no hay ingredientes que escalar ni marcadores que resolver, y
+      // dejarlos pasar pintaría cantidades de una receta que nadie va a cocinar.
+      const rich = normalizeRichSteps(out.thawSteps)
+        .map((s) => ({ ...s, text: stripStepMarkers(s.text) }));
+      if (rich.length >= 2) recipe.thawSteps = rich;
+      else recipe.freezable = false;
+    } else {
+      // El schema rechaza thawSteps sin freezable: si una pasada anterior los
+      // dejó y ahora el juicio cambia, hay que retirarlos.
+      delete recipe.thawSteps;
+    }
+    dirtyPaths.add(task.path);
+  }
+
   if (task.missingAppliances.length > 0 && out.byAppliance && typeof out.byAppliance === "object") {
     const names = (recipe.ingredients ?? []).map((i) => i.name);
     for (const a of task.missingAppliances) {
@@ -535,6 +613,7 @@ async function worker() {
       const payload = enrichPayload(task.recipe, task.missingAppliances, {
         wantBase: task.needBase,
         wantNutrients: task.needNutrients,
+        wantThaw: task.needThaw,
       });
       const out = await callModelWithRetry(payload, label);
       applyResult(task, out);

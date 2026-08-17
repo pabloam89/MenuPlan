@@ -121,7 +121,8 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 4,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_002",
@@ -280,7 +281,35 @@
     "fiber_g": 4,
     "sugar_g": 9,
     "saturated_fat_g": 2,
-    "sodium_mg": 18
+    "sodium_mg": 18,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el pisto del congelador a la nevera la noche anterior para que descongele despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar el pisto descongelado en un cazo a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego suave, removiendo de vez en cuando, hasta que esté bien caliente por dentro, unos 8 min.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Subir el fuego a medio y cocer sin tapar 2 min, removiendo, si el pisto ha soltado agua, hasta que ligue.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pisto caliente o templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_003",
@@ -527,7 +556,35 @@
     "fiber_g": 7,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la menestra del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la menestra descongelada en un cazo a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego suave 8 min, removiendo con cuidado para no romper las verduras y evitar que se pegue el fondo.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado al recalentar, y remover para integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la menestra caliente en platos hondos distribuyendo bien las verduras y la salsa.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_004",
@@ -683,7 +740,40 @@
     "fiber_g": 4,
     "sugar_g": 6,
     "saturated_fat_g": 7,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los calabacines rellenos del congelador a la nevera y dejar descongelar durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir la bandeja con papel de aluminio para que los calabacines no se sequen durante el recalentado.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear los calabacines tapados a 180 °C durante 15 min hasta que estén bien calientes en el centro.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que los bordes se doren ligeramente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir los calabacines rellenos en caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_005",
@@ -798,7 +888,8 @@
     "fiber_g": 4,
     "sugar_g": 8,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_006",
@@ -960,7 +1051,35 @@
     "fiber_g": 4,
     "sugar_g": 9,
     "saturated_fat_g": 8,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los pimientos rellenos del congelador a la nevera la noche anterior para que descongelen lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los pimientos en una bandeja, tapar con papel de aluminio para que no se sequen y hornear a 180 °C.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que la piel recupere color y el relleno esté bien caliente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los pimientos en plato comprobando que el centro está caliente antes de emplatar.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_007",
@@ -1153,7 +1272,40 @@
     "fiber_g": 5,
     "sugar_g": 6,
     "saturated_fat_g": 9,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las berenjenas rellenas del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar las berenjenas en una bandeja y tapar con papel de aluminio para que no se sequen durante el calentamiento.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear tapadas a 180 °C durante 15 min hasta que el relleno esté bien caliente en el centro.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y activar el gratinador 3 min hasta que el queso esté dorado y burbujeante.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del horno y servir las berenjenas inmediatamente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_008",
@@ -1313,7 +1465,8 @@
     "fiber_g": 5,
     "sugar_g": 7,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_009",
@@ -1445,7 +1598,8 @@
     "fiber_g": 5,
     "sugar_g": 9,
     "saturated_fat_g": 2,
-    "sodium_mg": 18
+    "sodium_mg": 18,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_010",
@@ -1580,7 +1734,8 @@
     "fiber_g": 4,
     "sugar_g": 4,
     "saturated_fat_g": 2,
-    "sodium_mg": 380
+    "sodium_mg": 380,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_011",
@@ -1712,7 +1867,40 @@
     "fiber_g": 4,
     "sugar_g": 3,
     "saturated_fat_g": 6,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el brócoli gratinado del congelador a la nevera la noche anterior para descongelarlo.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con función gratinador.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir la fuente con papel de aluminio para que el interior se caliente sin que el queso se queme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear tapado con el aluminio a 200 °C durante 10 min, hasta que el conjunto esté bien caliente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y gratinar 3 min más, hasta que el queso esté dorado y burbujeante.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la fuente del horno y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_012",
@@ -1858,7 +2046,8 @@
     "fiber_g": 4,
     "sugar_g": 3,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_013",
@@ -2022,7 +2211,8 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_015",
@@ -2210,7 +2400,8 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 4,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_016",
@@ -2361,7 +2552,8 @@
     "fiber_g": 7,
     "sugar_g": 2,
     "saturated_fat_g": 2,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_017",
@@ -2571,7 +2763,40 @@
     "fiber_g": 5,
     "sugar_g": 8,
     "saturated_fat_g": 3,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el tumbet del congelador a la nevera la noche anterior para descongelarlo despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 170 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir la bandeja con papel de aluminio para que el tumbet no se seque durante el calentamiento.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar el tumbet tapado en el horno a 170 °C hasta que la salsa burbujee y el centro esté bien caliente.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 3 min más hasta que la superficie tome color.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el tumbet en la misma bandeja o en platos individuales, bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_018",
@@ -2667,7 +2892,8 @@
     "fiber_g": 3,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_020",
@@ -2822,7 +3048,30 @@
     "fiber_g": 4,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las acelgas rehogadas del congelador a la nevera la noche anterior para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar una sartén a fuego medio y volcar las acelgas rehogadas descongeladas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a mitad del calentamiento para que no queden zonas frías y tapar si la verdura ha soltado agua.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las acelgas bien calientes en plato en cuanto estén uniformemente calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_021",
@@ -2940,7 +3189,8 @@
     "fiber_g": 3,
     "sugar_g": 7,
     "saturated_fat_g": 7,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_022",
@@ -3065,7 +3315,30 @@
     "fiber_g": 5,
     "sugar_g": 11,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la lombarda rehogada del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar la lombarda en una sartén a fuego suave, tapada, removiendo a mitad para que no queden zonas frías.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la lombarda ha soltado poca agua y tiende a pegarse al fondo.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la lombarda rehogada caliente directamente en el plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_023",
@@ -3212,7 +3485,8 @@
     "fiber_g": 5,
     "sugar_g": 3,
     "saturated_fat_g": 3,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_024",
@@ -3394,7 +3668,8 @@
     "fiber_g": 3,
     "sugar_g": 2,
     "saturated_fat_g": 5,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_025",
@@ -3531,7 +3806,8 @@
     "fiber_g": 5,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_026",
@@ -3657,7 +3933,8 @@
     "fiber_g": 3,
     "sugar_g": 9,
     "saturated_fat_g": 6,
-    "sodium_mg": 220
+    "sodium_mg": 220,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_027",
@@ -3754,7 +4031,8 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 9,
-    "sodium_mg": 380
+    "sodium_mg": 380,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_028",
@@ -3867,7 +4145,8 @@
     "fiber_g": 8,
     "sugar_g": 6,
     "saturated_fat_g": 2,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_029",
@@ -3997,7 +4276,8 @@
     "fiber_g": 9,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "ensaladas_verduras_030",
@@ -4092,6 +4372,7 @@
     "fiber_g": 6,
     "sugar_g": 5,
     "saturated_fat_g": 3,
-    "sodium_mg": 10
+    "sodium_mg": 10,
+    "freezable": false
   }
 ]

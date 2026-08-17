@@ -2,6 +2,7 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Soup, Utensils, Play, Eraser, X } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
+  OnboardingMode,
   OnboardingMembers,
   OnboardingRestrictions,
   OnboardingMenuModel,
@@ -36,8 +37,9 @@ import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
+import { clearFreezerFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getDayMeals } from "./lib/planner.js";
+import { getDayMeals, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
@@ -126,10 +128,18 @@ import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
-import { ModeSelectSheet } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud } from "./lib/pantry.js";
-import { applyConsumption, consumeFromPantry, restoreToPantry } from "./lib/cookPantry.js";
+import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
+import {
+  normalizeDeltaBucketMap,
+  makeDeltaBucket,
+  bucketDeltas,
+  collectMenuPantryDeltas,
+  reconcileMenusRemoval,
+  stripCookedDishesForMenu,
+  stripCookedDishesForMenuList,
+} from "./lib/pantryDeltas.js";
 import demoState from "./dev/demoState.json";
 
 const DEV_DEMO_MENU =
@@ -243,13 +253,15 @@ const INITIAL_DATA = {
   expertMode: false,
   // Si ya se ha mostrado el selector básico/avanzado (para no repetirlo).
   modePrompted: false,
-  // Decisiones "finas" de despensa (solo modo avanzado). En básico se fuerzan
-  // los defaults de más abajo. Ver el cuestionario de 4 preguntas en «En casa».
-  //   apply:     "snapshot" (se calcula al generar y no cambia) | "onShop" | "live"
-  //   multiWeek: "nearest"  (la despensa va a la semana más cercana) | "all" | "spread"
-  //   lifecycle: "weekly"   (se resetea cada semana) | "persist"
-  //   consume:   "onGenerate" (descuenta el menú de golpe) | "onCook" | "endOfDay" | "none"
-  pantryPrefs: { apply: "snapshot", multiWeek: "nearest", lifecycle: "weekly", consume: "onGenerate" },
+  // Preferencia de despensa: la ÚNICA que el usuario elige (cuándo se da por
+  // gastado lo de casa que usa el menú). Ver el mini-cuestionario en «En casa».
+  //   consume: "onGenerate" (descuenta el menú de golpe al generar)
+  //          | "onCook"     (descuenta al marcar el plato como cocinado)
+  //          | "endOfDay"   (barrido diferido: da por comido lo de cada día ya
+  //                          pasado la próxima vez que abres la app)
+  // multiWeek/lifecycle ya NO se preguntan: en multisemana la despensa va a la
+  // semana más cercana y el ciclo interno se resetea solo (defaults internos).
+  pantryPrefs: { consume: "onGenerate" },
   // Si el usuario ya respondió el cuestionario de despensa (modo avanzado).
   pantryPrefsSet: false,
   // Si ya se ha mostrado el cuestionario de despensa al menos una vez (para no
@@ -258,6 +270,14 @@ const INITIAL_DATA = {
   // Deltas reversibles de la bajada "al generar el menú" (decisión D), por
   // semana — ver migración arriba para la explicación completa.
   pantryGenDeltas: {},
+  // Deltas del barrido "al final del día" (consume === "endOfDay"), por fecha
+  // (clave = ISO del día ya consumido). Solo contabilidad interna.
+  pantryDayDeltas: {},
+  // Fecha (ISO local) desde la que aplica "al final del día". Se pone al
+  // activarlo y se borra al desactivarlo: el barrido NUNCA mira hacia atrás de
+  // aquí, que es lo que evita volver a descontar un menú que ya se descontó al
+  // generarse (o al cocinarlo) antes del cambio de preferencia.
+  pantryEndOfDaySince: null,
   // Recipes created by the user via the recipe planner. Same shape as the
   // bundled catalog (see src/data/recipes/*.json) plus source:"user".
   userRecipes: [],
@@ -364,16 +384,6 @@ function healAdhocGroupLabels(groups) {
   );
 }
 
-// Ajustes que el modo básico da por sentados (progressive disclosure). Se
-// aplican SOLO al generar el menú, sin tocar lo que el usuario tenga guardado,
-// para que al pasar a avanzado recupere sus elecciones intactas.
-const BASIC_PANTRY_PREFS = {
-  apply: "snapshot",      // se calcula al generar y no cambia solo
-  multiWeek: "nearest",   // en multisemana, la despensa va a la más cercana
-  lifecycle: "weekly",    // el ciclo de vida se resetea cada semana
-  consume: "onGenerate",  // se descuenta el menú de golpe al generar
-};
-
 // Devuelve una copia de `data` con los ajustes del modo básico forzados.
 // En modo avanzado (expertMode) devuelve `data` tal cual.
 function resolveModeData(data) {
@@ -414,8 +424,9 @@ function resolveModeData(data) {
     mealStructureByGroup: {},
     // Tiempo de cocina igual para comida y cena.
     cookTime: { mode: "shared", weekday: syncBlock(ct.weekday), weekend: syncBlock(ct.weekend) },
-    // Decisiones finas de despensa: los defaults sencillos.
-    pantryPrefs: { ...BASIC_PANTRY_PREFS },
+    // pantryPrefs NO se fuerza: "cuándo damos por gastado lo de casa" se
+    // pregunta también en sencillo, así que forzarlo aquí sería preguntar y
+    // luego ignorar la respuesta.
   };
 }
 
@@ -631,20 +642,26 @@ function migrate(state) {
     d.modePrompted = Boolean(looksEstablished);
   }
   if (!d.pantryPrefs || typeof d.pantryPrefs !== "object") d.pantryPrefs = {};
+  // Una sola preferencia real. Los valores antiguos "none" (y cualquier campo
+  // apply/multiWeek/lifecycle heredado) se colapsan al default seguro.
   d.pantryPrefs = {
-    apply: ["snapshot", "onShop", "live"].includes(d.pantryPrefs.apply) ? d.pantryPrefs.apply : "snapshot",
-    multiWeek: ["nearest", "all", "spread"].includes(d.pantryPrefs.multiWeek) ? d.pantryPrefs.multiWeek : "nearest",
-    lifecycle: ["weekly", "persist"].includes(d.pantryPrefs.lifecycle) ? d.pantryPrefs.lifecycle : "weekly",
-    consume: ["endOfDay", "onGenerate", "onCook", "none"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onGenerate",
+    consume: ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onGenerate",
   };
   if (typeof d.pantryPrefsSet !== "boolean") d.pantryPrefsSet = false;
   if (typeof d.pantryPrefsSeen !== "boolean") d.pantryPrefsSeen = false;
-  // Deltas reversibles de la última bajada "al generar el menú" (decisión D),
-  // por semana (clave = startISO). Permiten deshacer al regenerar la misma
-  // semana sin descontar dos veces, y se limpian por Q3 (lifecycle) tras cada
-  // generación. Nunca se muestran en UI, es solo contabilidad interna.
-  if (!d.pantryGenDeltas || typeof d.pantryGenDeltas !== "object" || Array.isArray(d.pantryGenDeltas)) {
-    d.pantryGenDeltas = {};
+  // Deltas reversibles de la última bajada "al generar el menú", por semana
+  // (clave = startISO). Permiten deshacer al regenerar la misma semana sin
+  // descontar dos veces. Nunca se muestran en UI, es solo contabilidad interna.
+  // Cada bucket lleva su { menuId, at, deltas } para poder reconciliar el gasto
+  // al borrar/reemplazar el menú (ver lib/pantryDeltas.js). normalizeDeltaBucketMap
+  // convierte los buckets legacy (array pelado, sin menú) a la nueva forma.
+  d.pantryGenDeltas = normalizeDeltaBucketMap(d.pantryGenDeltas);
+  // Deltas del barrido "al final del día" (consume === "endOfDay"), por fecha
+  // (clave = ISO yyyy-mm-dd del día ya consumido). Evita restar dos veces el
+  // mismo día y permite prunear días viejos. Solo contabilidad interna.
+  d.pantryDayDeltas = normalizeDeltaBucketMap(d.pantryDayDeltas);
+  if (typeof d.pantryEndOfDaySince !== "string" || !d.pantryEndOfDaySince) {
+    d.pantryEndOfDaySince = null;
   }
   if (!["primero_segundo", "1_plato"].includes(d.mealStructure)) d.mealStructure = "primero_segundo";
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
@@ -796,6 +813,102 @@ function RotatingGroupPreview() {
       <GroupAvatarStack faces={faces} size={64} />
     </div>
   );
+}
+
+// ── Barrido "al final del día" (consume === "endOfDay") ─────────────────────
+// Sin backend que corra a medianoche, el consumo diario se resuelve de forma
+// perezosa la próxima vez que abres la app: para cada día del menú activo que
+// YA pasó y no se haya contabilizado, se da por comido lo que ese día planificó
+// y se resta de la despensa real. Reutiliza la MISMA lógica que "al generar"
+// (buildShoppingList → pantryItems) pero recortada a un solo día.
+
+// Ventana única del barrido: solo se barren (y solo se guardan) los días de los
+// últimos N días. Las dos cosas DEBEN usar el mismo límite: si prunearamos la
+// marca de un día que todavía es "barrible", el siguiente arranque lo volvería a
+// descontar una y otra vez.
+const PANTRY_DAY_WINDOW_DAYS = 45;
+
+// yyyy-mm-dd en hora local (no UTC) para casar con el día natural del usuario.
+function isoLocalDate(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+// "yyyy-mm-dd" → medianoche LOCAL. new Date(iso) lo interpretaría como UTC, que
+// según el huso desplaza el día y descuadra la comparación con la ventana.
+function parseLocalISODate(iso) {
+  const [y, m, d] = String(iso).split("-").map(Number);
+  if (!y || !m || !d) return new Date(NaN);
+  return new Date(y, m - 1, d);
+}
+
+// Medianoche local del día más antiguo que sigue dentro de la ventana.
+function pantryDayWindowStart() {
+  const cutoff = new Date();
+  cutoff.setHours(0, 0, 0, 0);
+  cutoff.setDate(cutoff.getDate() - PANTRY_DAY_WINDOW_DAYS);
+  return cutoff;
+}
+
+// Las marcas de días barridos no se guardan para siempre: fuera de la ventana
+// se descartan (los días de fuera tampoco se vuelven a barrer). Es interno.
+function prunePantryDayDeltas(map) {
+  const cutoff = pantryDayWindowStart();
+  const out = {};
+  for (const [k, v] of Object.entries(map ?? {})) {
+    const dt = parseLocalISODate(k);
+    if (Number.isNaN(dt.getTime()) || dt >= cutoff) out[k] = v;
+  }
+  return out;
+}
+
+// Devuelve, para el menú activo, la lista de días ya pasados y aún sin barrer,
+// cada uno con su plan recortado a ese solo día. No toca estado ni BD.
+// `since` (ISO local) es la fecha desde la que aplica el modo: nunca se barre
+// nada anterior, para no re-descontar lo que ya se descontó de otra forma.
+function pendingEndOfDaySweep(data, since) {
+  const menu = data?.menus?.[data?.activeMenuId];
+  if (!menu?.weeks || !since) return [];
+  const already = data?.pantryDayDeltas ?? {};
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const windowStart = pantryDayWindowStart();
+  const pending = [];
+  for (const wk of Object.values(menu.weeks)) {
+    if (!wk?.plan || !wk.startISO) continue;
+    // parseLocalISODate y no new Date(iso): este último interpreta la fecha como
+    // UTC y en husos negativos desplazaría toda la semana un día.
+    const start = parseLocalISODate(wk.startISO);
+    if (Number.isNaN(start.getTime())) continue;
+    const firstDayIdx = (start.getDay() + 6) % 7; // Lun=0
+    const end = wk.endISO ? parseLocalISODate(wk.endISO) : null;
+    const span = end && !Number.isNaN(end.getTime())
+      ? Math.round((end - start) / 86400000) + 1
+      : 7;
+    for (let pos = 0; pos < span; pos++) {
+      const dayDate = new Date(start);
+      dayDate.setDate(start.getDate() + pos);
+      dayDate.setHours(0, 0, 0, 0);
+      if (dayDate >= today) continue; // solo días ya cerrados
+      if (dayDate < windowStart) continue; // fuera de ventana: ni se barre ni se marca
+      const dayISO = isoLocalDate(dayDate);
+      if (dayISO < since) continue; // antes de activar el modo: no es nuestro
+      if (already[dayISO]) continue; // ya barrido
+      const dayName = DAYS[(firstDayIdx + pos) % 7];
+      const dayPlan = {};
+      for (const [gid, slots] of Object.entries(wk.plan)) {
+        const kept = {};
+        for (const [sk, val] of Object.entries(slots ?? {})) {
+          if (sk.startsWith(`${dayName}-`)) kept[sk] = val;
+        }
+        if (Object.keys(kept).length) dayPlan[gid] = kept;
+      }
+      pending.push({ dayISO, dayPlan });
+    }
+  }
+  return pending;
 }
 
 export default function App() {
@@ -1310,6 +1423,109 @@ export default function App() {
     return () => window.clearTimeout(t);
   }, [user?.id, data, menuPlan, shopping, aiRecipes, onbStep]);
 
+  // Reconcilia el modo de consumo saliente cuando el usuario lo cambia con un
+  // menú ya activo. Ejemplo: modo "onGenerate" → "endOfDay". El stock se
+  // descontó al generar; sin esta reconciliación el barrido diario lo volvería
+  // a descontar. Restauramos exactamente lo que el modo saliente aplicó y lo
+  // borramos de los buckets para que el nuevo modo arranque con stock limpio.
+  const prevConsumeRef = useRef(pantryConsumeMode(data));
+  useEffect(() => {
+    const prev = prevConsumeRef.current;
+    const next = pantryConsumeMode(data);
+    prevConsumeRef.current = next;
+    if (prev === next) return; // sin cambio real en el modo efectivo
+    const menuId = data.activeMenuId;
+    if (!menuId) return; // sin menú activo, no hay nada que reconciliar
+    const recon = collectMenuPantryDeltas(data, menuId);
+    if (!recon.deltas.length) return; // el modo saliente no dejó nada aplicado
+    setData((d) => ({
+      ...d,
+      pantryGenDeltas: recon.genOut,
+      pantryDayDeltas: recon.dayOut,
+      cookedDeltas: recon.cookedOut,
+    }));
+    restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data.pantryPrefs?.consume]);
+
+  // Barrido "al final del día" (consume === "endOfDay"): al montar / cambiar de
+  // menú, resta de la despensa lo que el menú activo planificó para cada día ya
+  // pasado y aún no contabilizado. Perezoso (no hay backend a medianoche) y en
+  // serie recargando stock entre días para que la resta encadene sin duplicar.
+  // Solo cuenta a partir de pantryEndOfDaySince (la fecha en que se activó el
+  // modo): así estrenarlo con un menú en marcha no vuelve a descontarlo.
+  const endOfDaySweepRef = useRef(false);
+  useEffect(() => {
+    if (user?.id && !cloudReadyRef.current) return; // esperar hidratación cloud
+    const isEndOfDay = pantryConsumeMode(data) === "endOfDay";
+    // Al desactivar el modo se olvida la fecha, así que si se vuelve a activar
+    // más adelante empieza a contar de nuevo desde ese momento.
+    if (!isEndOfDay) {
+      if (data.pantryEndOfDaySince) {
+        setData((d) => (d.pantryEndOfDaySince ? { ...d, pantryEndOfDaySince: null } : d));
+      }
+      return;
+    }
+    // Primera vez que se activa: se marca desde HOY y no se toca nada hacia
+    // atrás (ese menú ya se descontó al generarse o al cocinarlo).
+    if (!data.pantryEndOfDaySince) {
+      const todayISO = isoLocalDate(new Date());
+      setData((d) => (d.pantryEndOfDaySince ? d : { ...d, pantryEndOfDaySince: todayISO }));
+      return;
+    }
+    if (endOfDaySweepRef.current) return;
+    const pending = pendingEndOfDaySweep(data, data.pantryEndOfDaySince);
+    if (!pending.length) return;
+
+    const groups = data.groups?.length > 0
+      ? data.groups
+      : groupsFromModel(data.members, data.menuModel);
+    const dayMeals = getDayMeals(data);
+
+    endOfDaySweepRef.current = true;
+    (async () => {
+      try {
+        const newDeltas = {};
+        for (const { dayISO, dayPlan } of pending) {
+          const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
+          const sh = buildShoppingList(dayPlan, groups, dayMeals, freshStock);
+          const used = (sh.pantryItems ?? []).map((it) => ({
+            name: it.name, qty: it.qty, unit: it.unit,
+          }));
+          if (!used.length) {
+            // marca el día como barrido aunque no gaste nada
+            newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, []);
+            continue;
+          }
+          const { deltas } = await consumeFromPantry(used, freshStock, { user });
+          newDeltas[dayISO] = makeDeltaBucket(data.activeMenuId, deltas);
+        }
+        if (Object.keys(newDeltas).length) {
+          setData((d) => ({
+            ...d,
+            pantryDayDeltas: prunePantryDayDeltas({ ...(d.pantryDayDeltas ?? {}), ...newDeltas }),
+          }));
+        }
+      } catch (err) {
+        console.error("endOfDay sweep failed", err);
+      } finally {
+        endOfDaySweepRef.current = false;
+      }
+    })();
+    // `data.menus` entra en deps porque el archivo de menús puede hidratarse
+    // (cloud) DESPUÉS de que activeMenuId ya esté puesto; sin él el barrido se
+    // quedaría dormido hasta el siguiente arranque. Recalcular es barato: si no
+    // hay días pendientes salimos arriba sin tocar nada.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    user?.id,
+    data.activeMenuId,
+    data.menus,
+    data.pantryPrefs?.consume,
+    data.pantryDayDeltas,
+    data.pantryEndOfDaySince,
+  ]);
+
   const ensureGroupsIfMissing = () => {
     if (data.groups.length === 0 && data.members.length > 0) {
       setData((d) => ({ ...d, groups: groupsFromModel(d.members, d.menuModel) }));
@@ -1390,10 +1606,10 @@ export default function App() {
       const staleGenDeltas = working.pantryGenDeltas ?? {};
       const weeksBeingRegenerated = new Set(weekMeta.map((m) => m.startISO));
       const restoreKeys = Object.keys(staleGenDeltas).filter(
-        (k) => weeksBeingRegenerated.has(k) && staleGenDeltas[k]?.length
+        (k) => weeksBeingRegenerated.has(k) && bucketDeltas(staleGenDeltas[k]).length
       );
       for (const key of restoreKeys) {
-        await restoreToPantry(staleGenDeltas[key], { user });
+        await restoreToPantry(bucketDeltas(staleGenDeltas[key]), { user });
       }
 
       const pantryStock = user ? await loadPantry(user.id) : loadLocalPantry();
@@ -1411,12 +1627,11 @@ export default function App() {
       const pantryMultiWeek = ["nearest", "all", "spread"].includes(working.pantryPrefs?.multiWeek)
         ? working.pantryPrefs.multiWeek
         : "nearest";
-      // Decisión D (consumo): cuándo se baja el stock real. "onGenerate" se
-      // resuelve aquí mismo (bloque tras la generación); "onCook" lo gestiona
-      // DishDetail/"Marcar cocinado"; "endOfDay"/"none" no bajan stock aquí.
-      const consumeMode = ["endOfDay", "onGenerate", "onCook", "none"].includes(working.pantryPrefs?.consume)
-        ? working.pantryPrefs.consume
-        : "onGenerate";
+      // Consumo: cuándo se baja el stock real. "onGenerate" se resuelve aquí
+      // mismo (bloque tras la generación); "onCook" lo gestiona DishDetail/
+      // "Marcar cocinado"; "endOfDay" lo hace el barrido diario. `working` ya
+      // viene por resolveModeData, así que el modo básico queda respetado.
+      const consumeMode = pantryConsumeMode(working);
       const varietyPref = ["strict", "moderate", "relaxed"].includes(working.menuVarietyPref)
         ? working.menuVarietyPref
         : "strict";
@@ -1504,6 +1719,9 @@ export default function App() {
       // semana cubrió con despensa. En serie evita que dos semanas resten a
       // la vez del mismo stock ya cargado en memoria (double-count). Guarda
       // los deltas por semana para poder deshacer si se regenera otra vez.
+      // Id del menú nuevo, creado ya aquí para poder etiquetar sus deltas de
+      // consumo (F1) antes de construir el objeto menú más abajo.
+      const newMenuId = createMenuId();
       const genDeltasPatch = {};
       if (consumeMode === "onGenerate") {
         for (const res of weekResults) {
@@ -1511,7 +1729,7 @@ export default function App() {
           if (!used.length) continue;
           const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
           const { deltas } = await consumeFromPantry(used, freshStock, { user });
-          if (deltas.length) genDeltasPatch[res.startISO] = deltas;
+          if (deltas.length) genDeltasPatch[res.startISO] = makeDeltaBucket(newMenuId, deltas);
         }
       }
       // Decisión C (ciclo de vida): en "weekly" no arrastramos indefinidamente
@@ -1564,7 +1782,7 @@ export default function App() {
       if (isFirstMenu) upsertUserProfile(user, { first_menu_at: new Date().toISOString(), app_version: APP_VERSION });
 
       const newMenu = {
-        id: createMenuId(),
+        id: newMenuId,
         createdAt: Date.now(),
         isFavorite: false,
         isActive: true,
@@ -1587,13 +1805,37 @@ export default function App() {
         return pruneAiRecipes(Array.from(byId.values()), keepRecipeIds);
       });
 
-      setData((d) => ({
-        ...d,
-        menus: foldedMenus,
-        activeMenuId: newMenu.id,
-        menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
-        pantryGenDeltas: nextGenDeltas,
-      }));
+      // F2: al reemplazar el menú de un invitado (keepHistory=false) los menús
+      // anteriores desaparecen del archivo con su consumo ya aplicado. Recogemos
+      // los deltas huérfanos de esos menús salientes para devolverlos a la
+      // despensa y limpiar sus buckets. (Los usuarios logados conservan histórico,
+      // así que ahí no se reconcilia nada: droppedMenuIds queda vacío.)
+      const droppedMenuIds = keepHistory
+        ? []
+        : Object.keys(data.menus ?? {}).filter((id) => id !== newMenu.id && !foldedMenus[id]);
+      const recon = reconcileMenusRemoval(
+        { pantryGenDeltas: nextGenDeltas, pantryDayDeltas: data.pantryDayDeltas, cookedDeltas: data.cookedDeltas },
+        droppedMenuIds,
+      );
+
+      setData((d) => {
+        const base = {
+          ...d,
+          menus: foldedMenus,
+          activeMenuId: newMenu.id,
+          menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: groups.length }].slice(-60),
+          pantryGenDeltas: droppedMenuIds.length ? recon.genOut : nextGenDeltas,
+        };
+        if (droppedMenuIds.length) {
+          base.pantryDayDeltas = recon.dayOut;
+          base.cookedDeltas = recon.cookedOut;
+          base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
+        }
+        return base;
+      });
+      if (droppedMenuIds.length && recon.deltas.length) {
+        restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
+      }
       // Fase 2 (multi-week-menus plan): best-effort dual write to the
       // normalized tables, fire-and-forget. Never awaited — the localStorage/
       // user_state blob (just written above) stays the real source of truth;
@@ -1798,7 +2040,7 @@ export default function App() {
     if ((data.members?.length ?? 0) === 0) {
       showToast("Añade al menos un miembro de la familia para generar el menú");
       setScreen("onboarding");
-      setOnbStep(0);
+      setOnbStep(1); // Familia: el aviso es sobre miembros, no sobre el modo
       return;
     }
     ensureGroupsIfMissing();
@@ -1947,10 +2189,26 @@ export default function App() {
   // plan/shopping so nothing stale lingers around.
   const deleteActiveMenu = useCallback(() => {
     const menuIdToDelete = data.activeMenuId;
+    if (!menuIdToDelete) return;
+    // F2: borrar el menú deja huérfano su consumo (lo que descontó al generar,
+    // en el barrido diario o al marcar cocinado). Recogemos esos deltas para
+    // devolverlos a la despensa y quitamos sus buckets + flags de cocinado.
+    const recon = collectMenuPantryDeltas(data, menuIdToDelete);
     setData((d) => {
       if (!d.activeMenuId) return d;
-      return { ...d, menus: removeMenu(d.menus, d.activeMenuId), activeMenuId: null };
+      return {
+        ...d,
+        menus: removeMenu(d.menus, d.activeMenuId),
+        activeMenuId: null,
+        pantryGenDeltas: recon.genOut,
+        pantryDayDeltas: recon.dayOut,
+        cookedDeltas: recon.cookedOut,
+        cookedDishes: stripCookedDishesForMenu(d.cookedDishes, menuIdToDelete),
+      };
     });
+    if (recon.deltas.length) {
+      restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
+    }
     if (user && menuIdToDelete) {
       // Optimistic: the local delete above always applies immediately. If the
       // cloud call fails, the row would otherwise silently reappear on the
@@ -1962,7 +2220,8 @@ export default function App() {
     }
     setMenuPlan({});
     setShopping({ items: [] });
-  }, [data.activeMenuId, user, showToast]);
+    if (recon.deltas.length) showToast(`Menú borrado · devuelto a En casa (${recon.deltas.length})`);
+  }, [data, user, showToast]);
 
   // Header ♥ on "Tu menú": favorites the active menú so it survives the prune
   // and shows up in the Favoritos tab. Turning it ON snapshots the live
@@ -1992,16 +2251,32 @@ export default function App() {
   // never touches menuPlan/shopping — those mirror the active menú's current
   // week and have nothing to do with a history entry.
   const deleteHistoryMenu = useCallback((menuId) => {
+    if (!menuId) return;
+    // F2: normalmente un menú del histórico ya no tiene deltas vivos (el ciclo
+    // "weekly"/ventana de 45 días los poda), así que recon.deltas queda vacío y
+    // no se devuelve nada. Pero si es reciente y aún los conserva, se reconcilia.
+    const recon = collectMenuPantryDeltas(data, menuId);
     setData((d) => {
       if (!d.menus?.[menuId] || menuId === d.activeMenuId) return d;
-      return { ...d, menus: removeMenu(d.menus, menuId) };
+      return {
+        ...d,
+        menus: removeMenu(d.menus, menuId),
+        pantryGenDeltas: recon.genOut,
+        pantryDayDeltas: recon.dayOut,
+        cookedDeltas: recon.cookedOut,
+        cookedDishes: stripCookedDishesForMenu(d.cookedDishes, menuId),
+      };
     });
+    if (recon.deltas.length) {
+      restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
+    }
     if (user) {
       deleteMenuRemote(user.id, menuId).then((res) => {
         if (!res.ok) showToast("No se pudo borrar el menú en la nube. Puede reaparecer al recargar.");
       });
     }
-  }, [user, showToast]);
+    if (recon.deltas.length) showToast(`Menú borrado · devuelto a En casa (${recon.deltas.length})`);
+  }, [data, user, showToast]);
 
   // "Repetir esta configuración" from the histórico: reuses a past menú's
   // logistics (schedule) always, and either clones its dishes verbatim or
@@ -2058,10 +2333,21 @@ export default function App() {
       const firstKey = Object.keys(weeks)[0];
       setMenuPlan(weeks[firstKey].plan);
       setShopping(weeks[firstKey].shopping);
-      const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory: Boolean(user) });
+      const keepHistory = Boolean(user);
+      const foldedMenus = foldInNewMenu(data.menus, newMenu, { keepHistory });
       const keepRecipeIds = collectMenuRecipeIds(foldedMenus);
       setAiRecipes((cur) => pruneAiRecipes(cur, keepRecipeIds));
-      setData((d) => ({
+      // F2: mismo caso que en regenerateMenu — el invitado que repite pierde su
+      // menú anterior del archivo; devolvemos su consumo huérfano a la despensa.
+      const droppedMenuIds = keepHistory
+        ? []
+        : Object.keys(data.menus ?? {}).filter((id) => id !== newMenu.id && !foldedMenus[id]);
+      const recon = reconcileMenusRemoval(
+        { pantryGenDeltas: data.pantryGenDeltas, pantryDayDeltas: data.pantryDayDeltas, cookedDeltas: data.cookedDeltas },
+        droppedMenuIds,
+      );
+      setData((d) => {
+        const base = {
         ...d,
         schedule: oldSchedule,
         menus: foldedMenus,
@@ -2073,7 +2359,18 @@ export default function App() {
         // the streak (computeStreak) and the Dashboard's "menús generados"
         // counter silently undercounted a week the user did have a menú for.
         menuHistory: [...(d.menuHistory ?? []), { at: Date.now(), groups: (d.groups ?? []).length }].slice(-60),
-      }));
+        };
+        if (droppedMenuIds.length) {
+          base.pantryGenDeltas = recon.genOut;
+          base.pantryDayDeltas = recon.dayOut;
+          base.cookedDeltas = recon.cookedOut;
+          base.cookedDishes = stripCookedDishesForMenuList(d.cookedDishes, droppedMenuIds);
+        }
+        return base;
+      });
+      if (droppedMenuIds.length && recon.deltas.length) {
+        restoreToPantry(recon.deltas, { user }).then(() => setPantryEpoch((n) => n + 1));
+      }
       // Fase 2 dual write (see regenerateMenu) — no fresh generation happened
       // here, so resolve the cloned menú's recipe snapshots from the already-
       // registered catalog/aiRecipes/own-recipes registry instead.
@@ -2178,11 +2475,11 @@ export default function App() {
   // regenerateMenu) just to save an allergy edit. This tracks which screen to
   // return to so the restrictions step can behave as a self-contained
   // mini-editor instead. NOTE: keep the index in sync with OnboardingRestrictions'
-  // position in `onbScreens` below (currently 3).
+  // position in `onbScreens` below (currently 4).
   const [editPreferencesOrigin, setEditPreferencesOrigin] = useState(null);
   const openEditPreferences = useCallback((origin) => {
     setEditPreferencesOrigin(origin);
-    _doGoToOnboardingStep(3);
+    _doGoToOnboardingStep(4);
   }, [_doGoToOnboardingStep]);
 
   // "¿Para quién es el menú?" — when the profile already has members, offer to
@@ -2211,7 +2508,7 @@ export default function App() {
     setQuickMenu(true);
     setFirstRunOnboarding(false);
     dirRef.current = "forward";
-    setOnbStep(1); // step 0 (familia) is hidden in quick mode; effect hops if 1 is too
+    setOnbStep(0); // arranca en el modo; Familia (1) está oculta en quick mode
     setScreen("onboarding");
   }, []);
 
@@ -2230,7 +2527,7 @@ export default function App() {
       setQuickMenu(true);
       setFirstRunOnboarding(false);
       dirRef.current = "forward";
-      setOnbStep(10); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
+      setOnbStep(11); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
       setScreen("onboarding");
       return;
     }
@@ -2740,6 +3037,34 @@ export default function App() {
     trackEvent(user, "dish_regarnished", "menu", { day, meal });
   }, [data, menuPlan, showToast, user, applyShoppingFor]);
 
+  /**
+   * Marca (o desmarca) un hueco como cubierto por un plato ya cocinado del
+   * congelador. `patch` es null para volver a cocinarlo desde cero.
+   *
+   * Reconstruye la compra a continuación porque es justo lo que cambia: las
+   * raciones que salen del congelador ya están cocinadas y pagadas, así que sus
+   * ingredientes desaparecen de la lista (buildShoppingList lo resuelve leyendo
+   * fromFreezer/freshPortions del slot — ver lib/freezer.js).
+   */
+  const handleSlotFreezerChange = useCallback(async (sel, patch) => {
+    const { groupId, day, meal } = sel;
+    const key = `${day}-${meal}`;
+    const groups =
+      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
+    setMenuPlan((plan) => {
+      const prevSlot = plan[groupId]?.[key];
+      if (!prevSlot) return plan;
+      const nextSlot = patch
+        ? { ...prevSlot, ...patch }
+        : clearFreezerFromSlot(prevSlot);
+      const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
+      applyShoppingFor(next, groups, pantryIngredients);
+      return next;
+    });
+    trackEvent(user, patch ? "slot_from_freezer" : "slot_freezer_cleared", "menu", { day, meal });
+  }, [data, user, applyShoppingFor]);
+
   // Elegir manualmente: open the catalog picker for a slot. A reason (from the
   // "Regenerar → Elegir a mano" flow) discards the outgoing dish first.
   const handleManualPickSlot = useCallback((sel, { reason = null } = {}) => {
@@ -2930,25 +3255,31 @@ export default function App() {
   // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
   // real choice: no kids to diverge from adults, nothing to upload if nobody
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
-  const ONB_STEP_COUNT = 11;
+  // Orden de `onbScreens`: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
+  // 5 Semana · 6 Horario · 7 Estilo · 8 Extras · 9 En casa · 10 Cocina ·
+  // 11 Tiempos. Los índices de abajo (y AFINAR_WIZARD_STEPS en Onboarding.jsx)
+  // dependen de ese orden.
+  const ONB_STEP_COUNT = 12;
   const skipMenuModel = !canSplitMenus(data.members);
   // School cafeteria only applies to kids (Niños), not pure babies.
   const skipSchoolMenu = !hasChildMember(data.members);
-  // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (6, se asume
-  // equilibrado) y "¿Cómo completamos el menú?" (7, la estructura de plato se
+  // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (7, se asume
+  // equilibrado) y "¿Cómo completamos el menú?" (8, la estructura de plato se
   // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
   const isStepHidden = useCallback(
     (i) =>
-      (i === 1 && skipMenuModel) ||
-      (i === 2 && skipSchoolMenu) ||
-      (basicMode && (i === 6 || i === 7)) ||
-      // "Mi familia habitual" only ever skips Familia (0) — it's the one
-      // thing already known. Everything else (modelo de menú, semana,
+      (i === 2 && skipMenuModel) ||
+      (i === 3 && skipSchoolMenu) ||
+      (basicMode && (i === 7 || i === 8)) ||
+      // "Mi familia habitual" only ever skips Familia (1) — it's the one
+      // thing already known. El modo (0) sí se pregunta siempre: es lo que
+      // decide qué pantallas vienen detrás y es justo lo que a la gente se le
+      // olvida que puede cambiar. Everything else (modelo de menú, semana,
       // horario, estilo, restricciones, cocina) can change
       // from una generación a otra, so it's asked in full every time, same
       // as a brand-new family or "Otro grupo".
-      (quickMenu && i === 0),
+      (quickMenu && i === 1),
     [skipMenuModel, skipSchoolMenu, quickMenu, basicMode]
   );
   const stepNeighbor = useCallback(
@@ -3005,14 +3336,25 @@ export default function App() {
     i === firstVisibleStep ? undefined : () => back(() => setOnbStep(stepNeighbor(i, -1)));
 
   const onbScreens = [
+    <OnboardingMode
+      data={data}
+      setData={setData}
+      onNext={nextOf(0)}
+      onBack={backOf(0)}
+      // El visitante recién llegado aún no tiene familia: ofrecerle "Generar"
+      // aquí no llevaría a ninguna parte (igual que en Familia).
+      onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
+      onReset={firstRunOnboarding ? undefined : handleAbandonOnboarding}
+    />,
     <OnboardingMembers
       data={data}
       setData={setData}
       onNext={
         firstRunOnboarding
           ? () => { setFirstRunOnboarding(false); goToDashboard(); }
-          : nextOf(0)
+          : nextOf(1)
       }
+      onBack={backOf(1)}
       onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
       nextLabel={firstRunOnboarding ? "Continuar" : undefined}
       onReset={firstRunOnboarding ? undefined : handleAbandonOnboarding}
@@ -3020,27 +3362,27 @@ export default function App() {
     <OnboardingMenuModel
       data={data}
       setData={setData}
-      onNext={nextOf(1)}
-      onBack={backOf(1)}
+      onNext={nextOf(2)}
+      onBack={backOf(2)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
     <OnboardingSchoolMenu
       data={data}
       setData={setData}
-      onNext={nextOf(2)}
-      onBack={backOf(2)}
+      onNext={nextOf(3)}
+      onBack={backOf(3)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
     <OnboardingRestrictions
       data={data}
       setData={setData}
-      onNext={editPreferencesOrigin ? undefined : nextOf(3)}
+      onNext={editPreferencesOrigin ? undefined : nextOf(4)}
       onBack={
         editPreferencesOrigin
           ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
-          : backOf(3)
+          : backOf(4)
       }
       onFinish={
         editPreferencesOrigin
@@ -3053,20 +3395,12 @@ export default function App() {
     <OnboardingWeek
       data={data}
       setData={setData}
-      onNext={nextOf(4)}
-      onBack={backOf(4)}
-      onFinish={() => fwd(goToMenu)}
-      onReset={handleAbandonOnboarding}
-    />,
-    <OnboardingSchedule
-      data={data}
-      setData={setData}
       onNext={nextOf(5)}
       onBack={backOf(5)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMealStyle
+    <OnboardingSchedule
       data={data}
       setData={setData}
       onNext={nextOf(6)}
@@ -3074,7 +3408,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMealExtras
+    <OnboardingMealStyle
       data={data}
       setData={setData}
       onNext={nextOf(7)}
@@ -3082,7 +3416,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingPantry
+    <OnboardingMealExtras
       data={data}
       setData={setData}
       onNext={nextOf(8)}
@@ -3090,7 +3424,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCooking
+    <OnboardingPantry
       data={data}
       setData={setData}
       onNext={nextOf(9)}
@@ -3098,11 +3432,19 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCookTime
+    <OnboardingCooking
       data={data}
       setData={setData}
       onNext={nextOf(10)}
       onBack={backOf(10)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingCookTime
+      data={data}
+      setData={setData}
+      onNext={nextOf(11)}
+      onBack={backOf(11)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
@@ -3390,7 +3732,7 @@ export default function App() {
                 setMenuPlan={setMenuPlan}
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("settings"))}
-                onEditMembers={() => goToOnboardingStep(0)}
+                onEditMembers={() => goToOnboardingStep(1)}
                 onEditPreferences={() => openEditPreferences("account")}
                 onSignIn={signInWithGoogle}
                 onSignOut={signOut}
@@ -3441,11 +3783,6 @@ export default function App() {
                 user={user}
                 data={data}
                 menuPlan={menuPlan}
-                expertMode={Boolean(data.expertMode)}
-                onToggleMode={() => {
-                  setData((d) => ({ ...d, expertMode: !d.expertMode, modePrompted: true }));
-                  showToast(data.expertMode ? "Modo sencillo activado" : "Modo avanzado activado");
-                }}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
@@ -3463,18 +3800,8 @@ export default function App() {
           <HomeCoachTour onClose={markHomeCoachSeen} />
         )}
 
-        {/* Selector básico/avanzado: una sola vez, tras el spotlight de Inicio.
-            Cerrar sin elegir = modo básico. */}
-        {screen === "dashboard" && homeCoachSeen && !data.modePrompted && (
-          <ModeSelectSheet
-            onChoose={(expert) =>
-              setData((d) => ({ ...d, expertMode: Boolean(expert), modePrompted: true }))
-            }
-            onDismiss={() =>
-              setData((d) => ({ ...d, expertMode: false, modePrompted: true }))
-            }
-          />
-        )}
+        {/* El selector básico/avanzado ya no vive aquí: es la primera pantalla
+            del asistente (OnboardingMode), donde nadie se lo salta. */}
 
         {screen === "recipes" && (
           <div
@@ -3630,6 +3957,15 @@ export default function App() {
           setData={setData}
           onToast={showToast}
           onPantryChanged={() => setPantryEpoch((n) => n + 1)}
+          onSlotFreezerChange={
+            selectedSlot.browse || !selectedSlot.group || selectedSlot.day == null || selectedSlot.meal == null
+              ? null
+              : (patch) =>
+                  handleSlotFreezerChange(
+                    { groupId: selectedSlot.group.id, day: selectedSlot.day, meal: selectedSlot.meal },
+                    patch,
+                  )
+          }
         />
       )}
 
@@ -3941,7 +4277,7 @@ export default function App() {
                   </span>
                   <span style={{ minWidth: 0 }}>
                     <span style={{ display: "block", fontSize: 14.5, fontWeight: 800, color: "#142f1d" }}>{title}</span>
-                    <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#7a8a7f", marginTop: 2, lineHeight: 1.3 }}>{subtitle}</span>
+                    <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#42594c", marginTop: 2, lineHeight: 1.3 }}>{subtitle}</span>
                   </span>
                 </button>
               ))}

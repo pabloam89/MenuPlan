@@ -10,20 +10,17 @@ export const SEASONAL_FRUIT_RECIPE_ID = "postres_003";
 export const POSTRE_TIPOS = [
   {
     id: "inmediato",
-    title: "Al momento",
-    subtitle: "Sin cocinar",
+    title: "Sin cocinar",
     img: "/avatares/cards/postre_inmediato.jpg",
   },
   {
     id: "cazo",
-    title: "De cazo",
-    subtitle: "Arroz con leche, natillas",
+    title: "Cremas",
     img: "/avatares/cards/postre_intermedio.jpg",
   },
   {
     id: "horno",
-    title: "De horno",
-    subtitle: "Flan, tarta, bizcocho",
+    title: "Horneados",
     img: "/avatares/cards/postre_elaborado.jpg",
   },
 ];

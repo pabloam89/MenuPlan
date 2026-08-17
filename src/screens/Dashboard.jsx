@@ -13,8 +13,6 @@ import {
   CookingPot,
   Refrigerator,
   Settings,
-  Leaf,
-  SlidersHorizontal,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -330,8 +328,6 @@ export function DashboardScreen({
   onOpenRecipePlanner,
   onOpenStreak,
   onOpenAccount,
-  expertMode = false,
-  onToggleMode,
 }) {
   const g = googleInfo(user);
   // Real dishes, not just key count: a plan always carries `_warnings`, so an
@@ -429,29 +425,9 @@ export function DashboardScreen({
             }}
           />
 
-          {/* Interruptor de modo (básico ⇄ avanzado). El spotlight lo señala
-              para que quien se quede en básico sepa que puede subir de nivel. */}
-          {onToggleMode && (
-            <button
-              type="button"
-              data-coach="home-mode"
-              onClick={onToggleMode}
-              aria-label={expertMode ? "Modo avanzado (toca para modo sencillo)" : "Modo sencillo (toca para modo avanzado)"}
-              title={expertMode ? "Modo avanzado" : "Modo sencillo"}
-              style={{
-                position: "absolute", top: 14, left: 14, zIndex: 1,
-                display: "inline-flex", alignItems: "center", gap: 6,
-                height: 34, padding: "0 12px", borderRadius: 999,
-                border: "none", background: "rgba(255,255,255,.22)",
-                backdropFilter: "blur(6px)",
-                cursor: "pointer", color: "#fff",
-                fontFamily: "inherit", fontSize: 12, fontWeight: 800,
-              }}
-            >
-              {expertMode ? <SlidersHorizontal size={14} color="#fff" strokeWidth={2.4} /> : <Leaf size={14} color="#fff" strokeWidth={2.4} />}
-              {expertMode ? "Avanzado" : "Sencillo"}
-            </button>
-          )}
+          {/* El interruptor sencillo/avanzado se movió a la primera pantalla del
+              asistente: aquí pasaba desapercibido y la gente no sabía que
+              existía. */}
 
           {/* "Perfil" lost its bottom-nav tab (see BottomNav in ui.jsx) —
               it's reached from here now, the "Inicio" it always stays under. */}

@@ -174,7 +174,8 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 4,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "platos_unicos_002",
@@ -323,7 +324,35 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 8,
-    "sodium_mg": 480
+    "sodium_mg": 480,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Pasar la pizza del congelador a la nevera la noche anterior y dejar descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar la pizza descongelada sobre papel de hornear en la rejilla central del horno.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear hasta que el queso burbujee y los bordes estén crujientes, unos 8-10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la pizza del horno, cortar en porciones y servir de inmediato.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_003",
@@ -501,7 +530,35 @@
     "fiber_g": 1,
     "sugar_g": 5,
     "saturated_fat_g": 10,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Sacar las croquetas del congelador y descongelar en la nevera durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar aceite en sartén profunda a fuego fuerte hasta alcanzar 180 °C.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las croquetas por tandas hasta que estén doradas, sin amontonarlas en la sartén.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las croquetas sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir de inmediato, cuando aún estén crujientes por fuera y calientes por dentro.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_004",
@@ -727,7 +784,40 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 4,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la empanada del congelador a la nevera y dejar descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 170 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar las porciones de empanada sobre una bandeja y cubrir con papel de aluminio para que no se sequen.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear tapada con el papel de aluminio a 170 °C hasta que esté bien caliente en el centro.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 3 min más hasta que la corteza recupere su punto crujiente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del horno, dejar reposar 2 min y servir.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_005",
@@ -892,7 +982,30 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 4,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las empanadillas del congelador a la nevera y dejar descongelar durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar abundante aceite en una sartén a fuego fuerte hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las empanadillas descongeladas hasta que estén doradas y crujientes por ambos lados, unos 2 min por lado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir sobre papel absorbente para eliminar el exceso de aceite antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_006",
@@ -1042,7 +1155,8 @@
     "fiber_g": 1,
     "sugar_g": 5,
     "saturated_fat_g": 10,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": false
   },
   {
     "id": "platos_unicos_007",
@@ -1219,7 +1333,40 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 12,
-    "sodium_mg": 380
+    "sodium_mg": 380,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la porción de quiche del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 160 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar la porción de quiche en la bandeja del horno y cubrir con papel de aluminio para que no se seque.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear tapada con el papel de aluminio durante 15 min hasta que el centro esté caliente.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que la superficie recupere el dorado.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del horno, dejar reposar 2 min y servir en porciones.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_008",
@@ -1394,7 +1541,8 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 9,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "platos_unicos_009",
@@ -1536,7 +1684,8 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 4,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "platos_unicos_010",
@@ -1724,7 +1873,35 @@
     "fiber_g": 1,
     "sugar_g": 5,
     "saturated_fat_g": 9,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las croquetas del congelador a la nevera la noche anterior para que descongelen lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar aceite abundante en una sartén a fuego fuerte hasta que alcance unos 180 °C.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír las croquetas descongeladas en tandas sin amontonar, girándolas, hasta que estén doradas por todos los lados.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar las croquetas y escurrir sobre papel absorbente para eliminar el exceso de aceite.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las croquetas de inmediato, en caliente, para conservar el rebozado crujiente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_011",
@@ -1873,7 +2050,8 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 8,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": false
   },
   {
     "id": "platos_unicos_012",
@@ -2040,7 +2218,40 @@
     "fiber_g": 5,
     "sugar_g": 8,
     "saturated_fat_g": 2,
-    "sodium_mg": 210
+    "sodium_mg": 210,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los pimientos rellenos del congelador a la nevera la noche anterior para que descongelen lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los pimientos descongelados en una bandeja, tapar con papel de aluminio para que no se sequen.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear los pimientos tapados a 180 °C durante 20 min hasta que estén bien calientes en el centro.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que la piel recupere un ligero tostado.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del horno y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_013",
@@ -2203,7 +2414,40 @@
     "fiber_g": 3,
     "sugar_g": 4,
     "saturated_fat_g": 8,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el calzone del congelador a la nevera la noche anterior para descongelarlo despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar el calzone en una bandeja y cubrir con papel de aluminio para que no se reseque.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear el calzone tapado a 180 °C durante 10 min, hasta que el relleno esté caliente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que la masa vuelva a estar crujiente.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno, dejar reposar 2 min y servir cortado al gusto.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "platos_unicos_014",
@@ -2336,7 +2580,8 @@
     "fiber_g": 5,
     "sugar_g": 3,
     "saturated_fat_g": 4,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "platos_unicos_015",
@@ -2482,7 +2727,8 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 4,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "platos_unicos_016",
@@ -2647,7 +2893,8 @@
     "fiber_g": 3,
     "sugar_g": 4,
     "saturated_fat_g": 5,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "platos_unicos_017",
@@ -2824,7 +3071,8 @@
     "fiber_g": 3,
     "sugar_g": 4,
     "saturated_fat_g": 6,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "platos_unicos_018",
@@ -3000,7 +3248,8 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 3,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "platos_unicos_019",
@@ -3144,7 +3393,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 9,
-    "sodium_mg": 680
+    "sodium_mg": 680,
+    "freezable": false
   },
   {
     "id": "platos_unicos_020",
@@ -3314,6 +3564,7 @@
     "fiber_g": 4,
     "sugar_g": 6,
     "saturated_fat_g": 7,
-    "sodium_mg": 480
+    "sodium_mg": 480,
+    "freezable": false
   }
 ]

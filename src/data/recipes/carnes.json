@@ -153,7 +153,40 @@
     "fiber_g": 4,
     "sugar_g": 5,
     "saturated_fat_g": 5,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la ración del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer el pollo y las patatas en una bandeja, tapar con papel de aluminio para que no se sequen.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 180 °C durante 15 min hasta que el pollo y las patatas estén bien calientes en el centro.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que la piel del pollo recupere el dorado.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pollo junto con las patatas y la cebolla directamente desde la bandeja.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_002",
@@ -273,7 +306,8 @@
     "fiber_g": 0,
     "sugar_g": 1,
     "saturated_fat_g": 3,
-    "sodium_mg": 95
+    "sodium_mg": 95,
+    "freezable": false
   },
   {
     "id": "carnes_003",
@@ -441,7 +475,35 @@
     "fiber_g": 3,
     "sugar_g": 7,
     "saturated_fat_g": 9,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir las albóndigas con la salsa a un recipiente hermético y descongelar en la nevera durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter las albóndigas y la salsa en un cazo a fuego suave, tapado, hasta que estén calientes por dentro.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a mitad del calentamiento para evitar zonas frías y comprobar que la salsa no se pega al fondo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado, y remover hasta recuperar la textura original.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las albóndigas con la salsa de tomate bien caliente por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_004",
@@ -564,7 +626,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 6,
-    "sodium_mg": 380
+    "sodium_mg": 380,
+    "freezable": false
   },
   {
     "id": "carnes_005",
@@ -741,7 +804,35 @@
     "fiber_g": 4,
     "sugar_g": 6,
     "saturated_fat_g": 8,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el estofado del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el estofado descongelado en una olla y calentar a fuego suave hasta que empiece a humear.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado a mitad del calentamiento para igualar la temperatura sin romper la patata.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la olla y cocer a fuego suave hasta que el estofado esté bien caliente en el centro.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el estofado en platos hondos, asegurándose de repartir la carne y la verdura por igual.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_006",
@@ -871,7 +962,35 @@
     "fiber_g": 0,
     "sugar_g": 1,
     "saturated_fat_g": 6,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el pollo al ajillo del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el pollo descongelado en una sartén amplia y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado a mitad del calentamiento para que no queden zonas frías y la salsa no se pegue al fondo.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado y continuar calentando hasta que esté bien caliente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pollo con la salsa de ajo por encima, bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_007",
@@ -984,7 +1103,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 6,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "carnes_008",
@@ -1156,7 +1276,30 @@
     "fiber_g": 6,
     "sugar_g": 7,
     "saturated_fat_g": 7,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el guiso del congelador a la nevera la noche anterior para que descongele lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el guiso descongelado en una olla y calentar a fuego suave, tapado, removiendo de vez en cuando.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que no queden zonas frías en el interior; añadir un chorrito de agua si el caldo ha espesado demasiado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el guiso bien caliente en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_009",
@@ -1318,7 +1461,35 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 9,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Retirar las hamburguesas cocinadas del congelador y descongelar en la nevera durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar una sartén a fuego medio sin aceite hasta que esté caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar las hamburguesas descongeladas en la sartén y calentar 3 min por cada lado hasta que estén calientes en el centro.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar el pan de hamburguesa partido por la mitad en la misma sartén hasta que se dore ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Montar cada hamburguesa sobre la base del pan con las hojas de lechuga, la hamburguesa caliente y las rodajas de tomate.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_010",
@@ -1478,7 +1649,35 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 5,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el recipiente con el pollo con pimientos del congelador a la nevera la noche anterior.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el pollo con pimientos en un cazo a fuego suave, tapado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar hasta que empiece a humear, removiendo a mitad para evitar zonas frías.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado durante el recalentado, y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pollo con los pimientos y la salsa por encima, bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_011",
@@ -1644,7 +1843,40 @@
     "fiber_g": 1,
     "sugar_g": 6,
     "saturated_fat_g": 14,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las costillas del congelador a la nevera la noche anterior y dejar descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 160 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar las costillas en una bandeja, cubrir con papel de aluminio y hornear a 160 °C hasta que estén bien calientes.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio, subir el horno a 220 °C y hornear hasta que la superficie se caramelice de nuevo.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y dejar reposar las costillas 3 min antes de emplatar.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir las costillas con los jugos recogidos en la bandeja por encima.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_012",
@@ -1826,7 +2058,30 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 10,
-    "sodium_mg": 820
+    "sodium_mg": 820,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Pasar los san jacobos del congelador a la nevera la noche anterior para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los san jacobos sobre la rejilla o bandeja y hornear hasta que el rebozado recupere el crujiente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir de inmediato para que el queso interior quede fundido.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_013",
@@ -1963,7 +2218,35 @@
     "fiber_g": 1,
     "sugar_g": 3,
     "saturated_fat_g": 7,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los muslos con la cebolla y el jugo del congelador a la nevera la noche anterior para descongelar despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los muslos con la cebolla y el jugo en una bandeja, tapar con aluminio y hornear 15 min hasta que estén calientes.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que la piel recupere el dorado.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los muslos con la cebolla y el jugo de cocción.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_014",
@@ -2126,7 +2409,30 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 9,
-    "sodium_mg": 310
+    "sodium_mg": 310,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los filetes rusos del congelador a la nevera la noche anterior para que descongelen lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar plancha a fuego medio con un chorrito de aceite de oliva hasta que esté bien caliente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar los filetes rusos descongelados sobre la plancha y calentar 3 min por cada lado hasta que estén calientes por dentro.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar de la plancha y servir de inmediato para que no pierdan jugosidad.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_015",
@@ -2304,7 +2610,35 @@
     "fiber_g": 3,
     "sugar_g": 7,
     "saturated_fat_g": 7,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el guiso del congelador a la nevera la noche anterior para que descongele despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el guiso descongelado en una olla y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado cada 2 min hasta que el guiso esté caliente y uniforme, sin que llegue a hervir.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la textura: añadir un chorrito de agua si la salsa ha espesado en exceso y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el guiso bien caliente en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_016",
@@ -2478,7 +2812,35 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 7,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el pollo en pepitoria del congelador a la nevera la noche anterior para descongelar despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el guiso descongelado en un cazo y calentar a fuego suave, tapado, hasta que empiece a humear.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado a mitad del calentamiento para igualar la temperatura y evitar que el fondo se pegue.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir en plato hondo asegurándose de que el pollo y la salsa de almendras estén bien calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_017",
@@ -2614,7 +2976,35 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 6,
-    "sodium_mg": 210
+    "sodium_mg": 210,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el magro con tomate del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el magro con tomate en un cazo a fuego suave y tapar para que no se seque.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a mitad del calentamiento para igualar la temperatura y evitar zonas frías.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que la salsa ha recuperado su textura; añadir un chorrito de agua si ha espesado demasiado y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir bien caliente, repartido entre los platos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_018",
@@ -2734,7 +3124,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 11,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "carnes_019",
@@ -2884,7 +3275,40 @@
     "fiber_g": 1,
     "sugar_g": 5,
     "saturated_fat_g": 7,
-    "sodium_mg": 120
+    "sodium_mg": 120,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las alitas del congelador a la nevera la noche anterior y dejar descongelar despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disponer las alitas en una bandeja en una sola capa y tapar con papel de aluminio para que no se sequen.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear tapadas a 200 °C durante 10 min hasta que estén bien calientes en el interior.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que la piel recupere el crujiente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir las alitas de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_020",
@@ -3040,7 +3464,35 @@
     "fiber_g": 1,
     "sugar_g": 9,
     "saturated_fat_g": 6,
-    "sodium_mg": 95
+    "sodium_mg": 95,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir los medallones con la salsa a un recipiente hermético y descongelar en la nevera durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el contenido del recipiente en una sartén y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado cuando la salsa esté líquida para que los medallones se calienten de forma uniforme sin zonas frías.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado, y remover hasta que vuelva a napar los medallones.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los medallones con la salsa bien caliente por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_021",
@@ -3218,7 +3670,35 @@
     "fiber_g": 5,
     "sugar_g": 6,
     "saturated_fat_g": 7,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el guiso del congelador a la nevera la noche anterior para descongelarlo lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar el guiso descongelado en una olla y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado cada 2 min hasta que esté caliente por igual, sin dejar que hierva a borbotones.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el jugo ha espesado demasiado durante el recalentado y remover.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la carne guisada con las verduras bien distribuidas en cada plato, regando con el jugo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_022",
@@ -3395,7 +3875,40 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 6,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el recipiente con el lomo y la salsa del congelador a la nevera para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el contenido descongelado en una sartén o cazo amplio y calentar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover la salsa con cuidado hasta que quede homogénea y sin zonas frías.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y cocer a fuego suave hasta que los filetes estén calientes por completo, sin hervir a borbotones.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el laurel si aún estuviera presente y comprobar el punto de la salsa antes de servir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los filetes en el plato con la salsa por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_023",
@@ -3528,7 +4041,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 7,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "carnes_024",
@@ -3642,7 +4156,8 @@
     "fiber_g": 0,
     "sugar_g": 1,
     "saturated_fat_g": 2,
-    "sodium_mg": 95
+    "sodium_mg": 95,
+    "freezable": false
   },
   {
     "id": "carnes_025",
@@ -3798,7 +4313,35 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 8,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el pollo al curry del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el pollo al curry descongelado en un cazo a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego suave, removiendo con frecuencia, hasta que esté bien caliente y la salsa recupere su cremosidad.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado al recalentar, y remover para integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir el pollo al curry bien caliente en el plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_026",
@@ -3965,7 +4508,35 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 4,
-    "sodium_mg": 290
+    "sodium_mg": 290,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las albóndigas con su salsa a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar las albóndigas con la salsa en un cazo a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar hasta que la salsa empiece a burbujear suavemente, removiendo con cuidado para no romper las albóndigas.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado al recalentar, y remover.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir las albóndigas en plato hondo con la salsa por encima, comprobando que estén calientes en el centro.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_027",
@@ -4085,7 +4656,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 11,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "carnes_028",
@@ -4275,7 +4847,30 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 4,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el recipiente con el pollo con champiñones de la nevera al congelador la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el pollo con champiñones en un cazo y calentar a fuego suave, tapado, removiendo a mitad para igualar la temperatura.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado y remover hasta que recupere la textura original.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato, espolvoreando perejil fresco picado por encima al gusto.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_029",
@@ -4446,7 +5041,35 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 7,
-    "sodium_mg": 210
+    "sodium_mg": 210,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Descongelar el redondo con su salsa en la nevera durante toda la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la salsa con las verduras en un cazo y calentar a fuego suave, removiendo para que no queden zonas frías.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las rodajas de redondo al cazo cuando la salsa esté caliente; tapar y calentar 5 min a fuego suave sin que hierva.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Comprobar que el centro de las rodajas está caliente al tacto; remover con cuidado para no romperlas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las rodajas en el plato con la salsa por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_030",
@@ -4600,7 +5223,8 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 3,
-    "sodium_mg": 95
+    "sodium_mg": 95,
+    "freezable": false
   },
   {
     "id": "carnes_031",
@@ -4760,7 +5384,35 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 6,
-    "sodium_mg": 310
+    "sodium_mg": 310,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el fricandó del congelador a la nevera la noche anterior y dejar descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar el fricandó descongelado en un cazo y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado hasta que la salsa esté uniforme y sin zonas frías, sin dejar que hierva.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua o caldo si la salsa ha espesado demasiado y remover hasta integrar.",
+        "minutes": 2,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir los filetes cubiertos con la salsa y las setas bien calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_032",
@@ -4888,7 +5540,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 4,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "carnes_033",
@@ -5054,7 +5707,35 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 9,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el ragú del congelador a la nevera la noche anterior para que descongele lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el ragú descongelado en un cazo y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover cada 2 min hasta que esté caliente por completo y sin zonas frías.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado al recalentar y remover para integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir el ragú bien caliente en el plato o sobre la guarnición elegida.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_034",
@@ -5205,7 +5886,35 @@
     "fiber_g": 1,
     "sugar_g": 3,
     "saturated_fat_g": 6,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el recipiente con el pollo a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el pollo y la salsa en una cazuela. Tapar y calentar a fuego suave hasta que esté bien caliente.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado a mitad del calentamiento para igualar la temperatura y evitar zonas frías.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado al recalentar, y remover para integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir el pollo con la salsa por encima, bien caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_035",
@@ -5363,7 +6072,35 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 9,
-    "sodium_mg": 780
+    "sodium_mg": 780,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los flamenquines del congelador a la nevera la noche anterior para descongelarlos.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el horno a 200 °C durante 5 min.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los flamenquines descongelados sobre la rejilla del horno en la bandeja central.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear los flamenquines 10 min hasta que la costra esté crujiente y el interior esté caliente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los flamenquines del horno y servir de inmediato en caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "carnes_036",
@@ -5498,6 +6235,34 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 4,
-    "sodium_mg": 380
+    "sodium_mg": 380,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir los nuggets del congelador a la nevera la noche anterior para descongelar de forma segura.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer los nuggets descongelados en una bandeja sobre papel de horno, sin amontonarlos.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear los nuggets 10 min, dándoles la vuelta a mitad de cocción para que el rebozado quede crujiente por todos lados.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir inmediatamente en cuanto salgan del horno para conservar el crujiente del rebozado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

@@ -141,7 +141,35 @@
     "fiber_g": 3,
     "sugar_g": 2,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la merluza en salsa verde del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar la merluza en salsa verde en una cazuela a fuego suave, tapada, hasta que esté caliente por dentro.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover la cazuela en círculos a mitad del calentamiento para que la salsa ligue y no queden zonas frías.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado al descongelar, y remover suavemente hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Espolvorear perejil fresco picado por encima y servir en la misma cazuela.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_002",
@@ -288,7 +316,8 @@
     "fiber_g": 3,
     "sugar_g": 4,
     "saturated_fat_g": 5,
-    "sodium_mg": 220
+    "sodium_mg": 220,
+    "freezable": false
   },
   {
     "id": "pescados_003",
@@ -420,7 +449,35 @@
     "fiber_g": 3,
     "sugar_g": 7,
     "saturated_fat_g": 2,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el bacalao con tomate del congelador a la nevera la noche anterior para descongelar despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el bacalao con tomate en una sartén y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado a mitad del calentamiento para igualar la temperatura y evitar zonas frías.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que la salsa esté bien caliente y el bacalao tierno; añadir un chorrito de agua si la salsa ha espesado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el bacalao con la salsa de tomate por encima, evitando romper los trozos de pescado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_004",
@@ -547,7 +604,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 6,
-    "sodium_mg": 380
+    "sodium_mg": 380,
+    "freezable": false
   },
   {
     "id": "pescados_005",
@@ -686,7 +744,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 2,
-    "sodium_mg": 120
+    "sodium_mg": 120,
+    "freezable": false
   },
   {
     "id": "pescados_006",
@@ -792,7 +851,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 4,
-    "sodium_mg": 210
+    "sodium_mg": 210,
+    "freezable": false
   },
   {
     "id": "pescados_007",
@@ -922,7 +982,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 3,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "pescados_008",
@@ -1073,7 +1134,8 @@
     "fiber_g": 3,
     "sugar_g": 4,
     "saturated_fat_g": 3,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "pescados_009",
@@ -1178,7 +1240,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 6,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "pescados_010",
@@ -1288,7 +1351,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 4,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": false
   },
   {
     "id": "pescados_011",
@@ -1407,7 +1471,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 3,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "pescados_012",
@@ -1505,7 +1570,8 @@
         "difficulty": "facil",
         "prepSummary": "En un recipiente pequeño apto para airfryer (tipo ramekin o cazuelita), mezcla las gambas, ajo laminado, guindilla y aceite. Cocina en la airfryer precalentada a 190°C durante 8-10 minutos, agitando a mitad, hasta que las gambas estén hechas y el ajo fragante. Añade perejil al se"
       }
-    ]
+    ],
+    "freezable": false
   },
   {
     "id": "pescados_013",
@@ -1668,7 +1734,8 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 120
+    "sodium_mg": 120,
+    "freezable": false
   },
   {
     "id": "pescados_014",
@@ -1792,7 +1859,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 4,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": false
   },
   {
     "id": "pescados_015",
@@ -1935,7 +2003,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 5,
-    "sodium_mg": 780
+    "sodium_mg": 780,
+    "freezable": false
   },
   {
     "id": "pescados_016",
@@ -2086,7 +2155,8 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 3,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "pescados_017",
@@ -2222,7 +2292,35 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 3,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los palitos de merluza del congelador a la nevera la noche anterior para descongelarlos poco a poco.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el horno a 200 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Disponer los palitos descongelados en una bandeja con rejilla, sin apilarlos, para que el calor circule por todos los lados.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear los palitos a 200 °C durante 10 min hasta que el rebozado vuelva a estar crujiente y el interior esté caliente.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y servir los palitos de merluza inmediatamente para que no pierdan el crujiente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_018",
@@ -2408,7 +2506,8 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 5,
-    "sodium_mg": 95
+    "sodium_mg": 95,
+    "freezable": false
   },
   {
     "id": "pescados_019",
@@ -2540,7 +2639,35 @@
     "fiber_g": 2,
     "sugar_g": 7,
     "saturated_fat_g": 3,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el atún encebollado del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el atún encebollado descongelado en un cazo a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego suave, tapado, hasta que la salsa esté caliente, removiendo con cuidado para no deshacer el atún.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Comprobar que el centro del atún está caliente; añadir un chorrito de agua si la salsa ha espesado demasiado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el atún con la cebolla y la salsa por encima, recién caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "pescados_020",
@@ -2675,7 +2802,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 3,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "pescados_021",
@@ -2851,7 +2979,8 @@
     "fiber_g": 3,
     "sugar_g": 4,
     "saturated_fat_g": 3,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": false
   },
   {
     "id": "pescados_022",
@@ -2990,7 +3119,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "pescados_023",
@@ -3112,7 +3242,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 4,
-    "sodium_mg": 85
+    "sodium_mg": 85,
+    "freezable": false
   },
   {
     "id": "pescados_024",
@@ -3263,7 +3394,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "pescados_025",
@@ -3420,6 +3552,34 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 3,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar los calamares encebollados del congelador a la nevera la noche anterior para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar los calamares descongelados en un cazo y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a mitad del calentamiento para igualar la temperatura y evitar zonas frías.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir en plato hondo en cuanto los calamares estén calientes y la cebolla jugosa.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

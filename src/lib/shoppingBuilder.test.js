@@ -200,6 +200,155 @@ describe("buildShoppingList aggregation across recipes (Fase 5 audit)", () => {
   });
 });
 
+describe("buildShoppingList slots del congelador", () => {
+  // Plato principal + guarnición ya fusionada, tal como la deja
+  // applyGarnishToRecipe: los ingredientes de la guarnición van con id
+  // "garnish-…" dentro de la misma receta.
+  function registerDishWithGarnish() {
+    registerRecipes([
+      {
+        id: "test_freezer_dish",
+        name: "Albóndigas con puré",
+        servings: 2,
+        ingredients: [
+          { id: "carne", name: "Carne picada", category: "Carnes", qty: 200, unit: "g" },
+          { id: "garnish-patata", name: "Patata guarnición", category: "Verduras y frutas", qty: 300, unit: "g" },
+        ],
+      },
+    ]);
+  }
+
+  function freezerPlan(slotPatch, eaters = 4) {
+    return {
+      g1: {
+        "Lun-Comida": {
+          recipeId: "test_freezer_dish",
+          firstRecipeId: null,
+          eaters,
+          mode: "casa",
+          warnings: [],
+          ...slotPatch,
+        },
+      },
+    };
+  }
+
+  const lineFor = (sh, name) =>
+    [...sh.byCategory.flatMap((c) => c.items), ...sh.pantryItems].find((it) => it.name === name);
+
+  it("un slot cubierto del todo no pide el plato, pero sí la guarnición", () => {
+    registerDishWithGarnish();
+    const sh = buildShoppingList(
+      freezerPlan({ fromFreezer: true, frozenPortions: 4, freshPortions: 0 }),
+      GROUPS,
+      ["Comida"],
+    );
+    // La carne ya está cocinada en el congelador: nada que comprar.
+    expect(lineFor(sh, "Carne picada")).toBeUndefined();
+    // El puré se hace fresco para los 4 comensales (300 g × 4/2 = 600 g).
+    expect(lineFor(sh, "Patata guarnición")?.qty).toBe(600);
+  });
+
+  it("un slot parcial compra solo las raciones que faltan por cocinar", () => {
+    registerDishWithGarnish();
+    const sh = buildShoppingList(
+      freezerPlan({ fromFreezer: true, frozenPortions: 2, freshPortions: 2 }),
+      GROUPS,
+      ["Comida"],
+    );
+    // 2 de 4 raciones salen del congelador → carne para 2 (200 g × 2/2).
+    expect(lineFor(sh, "Carne picada")?.qty).toBe(200);
+    // La guarnición sigue siendo para los 4.
+    expect(lineFor(sh, "Patata guarnición")?.qty).toBe(600);
+  });
+
+  it("sin fromFreezer se compra todo, como siempre", () => {
+    registerDishWithGarnish();
+    const sh = buildShoppingList(freezerPlan({}), GROUPS, ["Comida"]);
+    expect(lineFor(sh, "Carne picada")?.qty).toBe(400);
+    expect(lineFor(sh, "Patata guarnición")?.qty).toBe(600);
+  });
+
+  it("fromFreezer con 0 raciones no descuenta nada (flag inconsistente)", () => {
+    registerDishWithGarnish();
+    const sh = buildShoppingList(
+      freezerPlan({ fromFreezer: true, frozenPortions: 0, freshPortions: 4 }),
+      GROUPS,
+      ["Comida"],
+    );
+    expect(lineFor(sh, "Carne picada")?.qty).toBe(400);
+  });
+
+  it("congelar el segundo no toca los ingredientes del primero", () => {
+    registerRecipes([
+      {
+        id: "test_freezer_primero",
+        name: "Sopa de picadillo",
+        servings: 2,
+        ingredients: [{ id: "fideos", name: "Fideos finos", category: "Despensa", qty: 80, unit: "g" }],
+      },
+      {
+        id: "test_freezer_segundo",
+        name: "Estofado",
+        servings: 2,
+        ingredients: [{ id: "morcillo", name: "Morcillo de ternera", category: "Carnes", qty: 200, unit: "g" }],
+      },
+    ]);
+    const base = {
+      firstRecipeId: "test_freezer_primero",
+      recipeId: "test_freezer_segundo",
+      eaters: 4,
+      mode: "casa",
+      warnings: [],
+    };
+    const normal = buildShoppingList({ g1: { "Lun-Comida": base } }, GROUPS, ["Comida"]);
+    const sh = buildShoppingList(
+      {
+        g1: {
+          "Lun-Comida": {
+            ...base,
+            fromFreezer: true,
+            frozenRecipeId: "test_freezer_segundo",
+            frozenPortions: 4,
+            freshPortions: 0,
+          },
+        },
+      },
+      GROUPS,
+      ["Comida"],
+    );
+    // El estofado sale del congelador…
+    expect(lineFor(normal, "Morcillo de ternera")).toBeDefined();
+    expect(lineFor(sh, "Morcillo de ternera")).toBeUndefined();
+    // …y la sopa se compra exactamente igual que sin congelador.
+    expect(lineFor(sh, "Fideos finos")?.qty).toBe(lineFor(normal, "Fideos finos")?.qty);
+  });
+
+  it("el precio del slot congelado baja al no incluir el plato", () => {
+    registerRecipes([
+      {
+        id: "test_freezer_price",
+        name: "Guiso congelable",
+        servings: 2,
+        ingredients: [
+          { id: "carne", name: "Morcillo", category: "Carnes", qty: 200, unit: "g", pricePerUnit: 0.02 },
+        ],
+      },
+    ]);
+    const base = {
+      recipeId: "test_freezer_price", firstRecipeId: null, eaters: 4, mode: "casa", warnings: [],
+    };
+    const normal = buildShoppingList({ g1: { "Lun-Comida": base } }, GROUPS, ["Comida"]);
+    const frozen = buildShoppingList(
+      { g1: { "Lun-Comida": { ...base, fromFreezer: true, frozenPortions: 4, freshPortions: 0 } } },
+      GROUPS,
+      ["Comida"],
+    );
+    expect(normal.total).toBeGreaterThan(0);
+    expect(frozen.total).toBe(0);
+  });
+});
+
 describe("findMatchingPantryItem", () => {
   it("uses the same fuzzy subset rules as shopping pantry discount", () => {
     const stock = [

@@ -94,7 +94,8 @@
     "fiber_g": 4,
     "sugar_g": 28,
     "saturated_fat_g": 2,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": false
   },
   {
     "id": "desayunos_002",
@@ -173,7 +174,8 @@
     "fiber_g": 3,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "desayunos_003",
@@ -242,7 +244,8 @@
     "fiber_g": 2,
     "sugar_g": 18,
     "saturated_fat_g": 6,
-    "sodium_mg": 210
+    "sodium_mg": 210,
+    "freezable": false
   },
   {
     "id": "desayunos_004",
@@ -330,7 +333,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 3,
-    "sodium_mg": 820
+    "sodium_mg": 820,
+    "freezable": false
   },
   {
     "id": "desayunos_005",
@@ -418,7 +422,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 4,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": false
   },
   {
     "id": "desayunos_006",
@@ -509,7 +514,8 @@
     "fiber_g": 7,
     "sugar_g": 1,
     "saturated_fat_g": 3,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "desayunos_007",
@@ -572,7 +578,8 @@
     "fiber_g": 2,
     "sugar_g": 14,
     "saturated_fat_g": 2,
-    "sodium_mg": 120
+    "sodium_mg": 120,
+    "freezable": false
   },
   {
     "id": "desayunos_008",
@@ -652,6 +659,7 @@
     "fiber_g": 4,
     "sugar_g": 18,
     "saturated_fat_g": 2,
-    "sodium_mg": 85
+    "sodium_mg": 85,
+    "freezable": false
   }
 ]

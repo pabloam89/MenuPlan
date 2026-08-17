@@ -9,13 +9,36 @@
  */
 
 import { GoogleGenAI } from "@google/genai";
-import { writeFileSync, mkdirSync, existsSync, readFileSync } from "fs";
+import { writeFileSync, mkdirSync, existsSync, readFileSync, openSync, closeSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(__dirname, "test-photos");
 mkdirSync(OUT_DIR, { recursive: true });
+
+// ─── Bloqueo de instancia única (lockfile) ───────────────────────────────────
+// Impide que se lancen dos instancias en paralelo y se dupliquen costes API.
+const LOCK_FILE = join(OUT_DIR, "_gen.lock");
+if (existsSync(LOCK_FILE)) {
+  const lockAge = Date.now() - Number(readFileSync(LOCK_FILE, "utf-8").trim() || 0);
+  if (lockAge < 30 * 60 * 1000) { // lockfile de menos de 30 min → otra instancia activa
+    console.error(
+      `\n🔒 YA HAY UNA INSTANCIA EN EJECUCIÓN (lockfile de hace ${Math.round(lockAge / 60000)} min).\n` +
+      `   Si estás seguro de que no hay ninguna corriendo, borra:\n` +
+      `   ${LOCK_FILE}\n` +
+      `   y vuelve a ejecutar el script.`
+    );
+    process.exit(1);
+  }
+}
+// Escribe el lockfile con el timestamp actual
+writeFileSync(LOCK_FILE, String(Date.now()));
+// Elimina el lockfile al salir (normal o por señal)
+const releaseLock = () => { try { unlinkSync(LOCK_FILE); } catch {} };
+process.on("exit", releaseLock);
+process.on("SIGINT", () => { releaseLock(); process.exit(130); });
+process.on("SIGTERM", () => { releaseLock(); process.exit(143); });
 
 const API_KEY = process.env.GEMINI_AI_STUDIO_KEY;
 if (!API_KEY) {
@@ -136,6 +159,23 @@ async function main() {
 
   console.log(`Catálogo: ${catalog.length} platos → carpeta: ${OUT_DIR}\n`);
 
+  // Warm-up pause: let any previous session's RPM window expire before starting.
+  // Emits progress every 5s so the shell stays alive during the wait.
+  const firstPending = catalog.findIndex(({ combo_id }) => {
+    const jpg = join(OUT_DIR, `${combo_id}.jpg`);
+    const png = join(OUT_DIR, `${combo_id}.png`);
+    return !existsSync(jpg) && !existsSync(png);
+  });
+  if (firstPending > 0) {
+    const WARMUP_S = 65;
+    process.stdout.write(`  ⏳ Warm-up RPM: `);
+    for (let w = 0; w < WARMUP_S; w += 5) {
+      process.stdout.write(`${w}s `);
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+    console.log("✓\n");
+  }
+
   for (let i = 0; i < catalog.length; i++) {
     const entry = catalog[i];
     const { combo_id, name, family } = entry;
@@ -178,8 +218,8 @@ async function main() {
       errors.push({ combo_id, name, reason: err.message });
     }
 
-    // Pausa entre peticiones (5s para respetar el rate limit de Gemini)
-    if (i < catalog.length - 1) await new Promise((r) => setTimeout(r, 5000));
+    // Pausa entre peticiones (10s → 6 req/min, bien bajo el límite de 10 RPM de Gemini)
+    if (i < catalog.length - 1) await new Promise((r) => setTimeout(r, 10000));
   }
 
   console.log(`\n──────────────────────────────`);

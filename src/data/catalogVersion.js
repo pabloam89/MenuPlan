@@ -12,4 +12,4 @@
 // (scripts/generate-supabase-seed.mjs) so Supabase's catalog_meta.version
 // matches. Forgetting to push just means the app keeps using the (correct)
 // bundled JSON — safe by design.
-export const BUNDLED_CATALOG_VERSION = 11;
+export const BUNDLED_CATALOG_VERSION = 12;

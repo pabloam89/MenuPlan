@@ -7,6 +7,20 @@ import {
 import { findMatchingPantryItem } from "./shoppingBuilder.js";
 import { convertStockAmount } from "./kitchenUnits.js";
 
+/** Cuándo se da por gastado lo de casa que usa el menú. */
+export const PANTRY_CONSUME_MODES = ["onGenerate", "onCook", "endOfDay"];
+
+/**
+ * Modo de consumo EFECTIVO. Se pregunta en cualquier modo (sencillo incluido),
+ * así que aquí no hay más que validar y caer al default seguro. Existe como
+ * función única para que generación, "marcar cocinado" y el barrido diario lean
+ * exactamente lo mismo: si se desincronizan, se descuenta dos veces.
+ */
+export function pantryConsumeMode(data) {
+  const mode = data?.pantryPrefs?.consume;
+  return PANTRY_CONSUME_MODES.includes(mode) ? mode : "onGenerate";
+}
+
 /**
  * Pure "descuenta de la despensa" math — no I/O. Given a list of ingredients
  * to consume and a pantry stock snapshot, returns the resulting stock (as a

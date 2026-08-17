@@ -69,7 +69,8 @@
     "fiber_g": 1,
     "sugar_g": 0,
     "saturated_fat_g": 0,
-    "sodium_mg": 580
+    "sodium_mg": 580,
+    "freezable": false
   },
   {
     "id": "guarniciones_002",
@@ -159,7 +160,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "guarniciones_003",
@@ -246,7 +248,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 4,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_004",
@@ -360,7 +363,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_005",
@@ -475,7 +479,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_006",
@@ -580,7 +585,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_007",
@@ -695,7 +701,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_008",
@@ -773,7 +780,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 0,
-    "sodium_mg": 290
+    "sodium_mg": 290,
+    "freezable": false
   },
   {
     "id": "guarniciones_009",
@@ -875,7 +883,8 @@
     "fiber_g": 4,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 10
+    "sodium_mg": 10,
+    "freezable": false
   },
   {
     "id": "guarniciones_010",
@@ -977,7 +986,8 @@
     "fiber_g": 3,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_011",
@@ -1081,7 +1091,8 @@
     "fiber_g": 4,
     "sugar_g": 12,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_012",
@@ -1171,7 +1182,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 120
+    "sodium_mg": 120,
+    "freezable": false
   },
   {
     "id": "guarniciones_013",
@@ -1249,7 +1261,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_014",
@@ -1334,7 +1347,8 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 5
+    "sodium_mg": 5,
+    "freezable": false
   },
   {
     "id": "guarniciones_015",
@@ -1422,7 +1436,8 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 40
+    "sodium_mg": 40,
+    "freezable": false
   },
   {
     "id": "guarniciones_016",
@@ -1506,7 +1521,8 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_018",
@@ -1617,7 +1633,8 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": false
   },
   {
     "id": "guarniciones_019",
@@ -1701,7 +1718,8 @@
     "fiber_g": 2,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_020",
@@ -1819,7 +1837,8 @@
     "fiber_g": 5,
     "sugar_g": 4,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "guarniciones_021",
@@ -1926,7 +1945,8 @@
     "fiber_g": 2,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 120
+    "sodium_mg": 120,
+    "freezable": false
   },
   {
     "id": "guarniciones_022",
@@ -2008,7 +2028,8 @@
     "fiber_g": 2,
     "sugar_g": 1,
     "saturated_fat_g": 2,
-    "sodium_mg": 290
+    "sodium_mg": 290,
+    "freezable": false
   },
   {
     "id": "guarniciones_023",
@@ -2130,6 +2151,29 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 80
+    "sodium_mg": 80,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el pisto del congelador a la nevera la noche anterior para descongelarlo lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el pisto descongelado en un cazo y calentar a fuego suave, removiendo para que no se pegue.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el cazo si el pisto ha soltado agua y subir a fuego medio hasta que evapore el exceso de líquido.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pisto caliente como guarnición.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

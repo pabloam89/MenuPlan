@@ -136,7 +136,35 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 35
+    "sodium_mg": 35,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la porción de puré del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré descongelado en un cazo pequeño a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar el puré a fuego suave, removiendo sin parar, hasta que esté bien caliente y sin zonas frías.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua o caldo sin sal si el puré ha espesado al recalentar y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la temperatura del puré en la muñeca para asegurar que está templado, nunca caliente, antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_002",
@@ -240,7 +268,30 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir el puré a la nevera la noche anterior para que se descongele lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el puré en un cazo a fuego suave, removiendo con frecuencia hasta que esté templado.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Revisar la textura y añadir unas gotas de agua si el puré ha espesado demasiado al recalentar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que no haya zonas frías removiendo bien antes de servir, y servir templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_003",
@@ -354,7 +405,30 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 1,
-    "sodium_mg": 45
+    "sodium_mg": 45,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la porción de puré del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré descongelado en un cazo pequeño y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir unas gotas de agua si el puré ha espesado al descongelar, y remover hasta obtener textura homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y comprobar la temperatura del puré en la muñeca antes de servir al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_004",
@@ -455,7 +529,30 @@
     "fiber_g": 3,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para que descongele despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré en un cazo pequeño y calentar a fuego suave, removiendo sin parar para que no se pegue.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el puré ha espesado al congelar, hasta recuperar la textura original.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que el puré está templado y sin grumos antes de servir; nunca servirlo caliente para un bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_005",
@@ -550,7 +647,30 @@
     "fiber_g": 4,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para que descongele despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré en un cazo pequeño y calentar a fuego suave, removiendo sin parar hasta que esté templado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir unas gotas de agua si el puré ha espesado al descongelar, y remover hasta recuperar la textura.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado en el bol del bebé, comprobando siempre la temperatura antes de ofrecer.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_006",
@@ -666,7 +786,35 @@
     "fiber_g": 2,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 40
+    "sodium_mg": 40,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Sacar el puré del congelador y trasladar al frigorífico la noche anterior para que descongele despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré en un cazo pequeño y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el puré ha espesado durante la congelación y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego cuando el puré esté caliente y homogéneo, sin que llegue a hervir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la temperatura del puré en la muñeca antes de servir al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_007",
@@ -767,7 +915,40 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 35
+    "sodium_mg": 35,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la porción de papilla del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la papilla descongelada en un cazo pequeño a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar removiendo sin parar hasta que la papilla esté homogénea y bien caliente, sin que llegue a hervir.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la papilla ha espesado demasiado al recalentar y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y dejar templar hasta que la temperatura sea segura para el bebé antes de servir.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la papilla templada comprobando la temperatura en la muñeca antes de ofrecérsela al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_008",
@@ -868,7 +1049,35 @@
     "fiber_g": 5,
     "sugar_g": 4,
     "saturated_fat_g": 1,
-    "sodium_mg": 15
+    "sodium_mg": 15,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para que descongele despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré en un cazo pequeño y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el puré ha espesado durante la congelación, hasta recuperar la textura original.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y dejar templar hasta que esté a temperatura adecuada para el bebé.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Comprobar la temperatura del puré con la muñeca antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_009",
@@ -982,7 +1191,35 @@
     "fiber_g": 3,
     "sugar_g": 6,
     "saturated_fat_g": 1,
-    "sodium_mg": 45
+    "sodium_mg": 45,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré descongelado en un cazo pequeño y calentar a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar hasta que el puré esté caliente y homogéneo, añadir unas gotas de agua si ha espesado.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y dejar templar hasta que la temperatura sea segura para el bebé.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Comprobar la temperatura en la muñeca y servir asegurándose de que no queden grumos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_010",
@@ -1115,7 +1352,35 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 1,
-    "sodium_mg": 45
+    "sodium_mg": 45,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para que descongele lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el puré en un cazo pequeño a fuego suave, removiendo con frecuencia para evitar zonas frías.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir unas gotas de agua si el puré ha espesado al descongelarse, y remover hasta integrarlo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que no quedan grumos y que la temperatura es templada antes de servir al bebé.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado en el plato del bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_012",
@@ -1222,7 +1487,30 @@
     "fiber_g": 5,
     "sugar_g": 4,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para que descongele poco a poco.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar el puré en un cazo pequeño y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el puré ha espesado, hasta que recupere una textura homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y comprobar la temperatura antes de servir: debe estar templado, nunca caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_013",
@@ -1340,7 +1628,30 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 75
+    "sodium_mg": 75,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la ración del congelador a la nevera la noche anterior y dejar descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el revuelto en un cazo pequeño y calentar a fuego suave, removiendo sin parar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego en cuanto esté caliente y homogéneo; no dejar que hierva para que no quede grumoso.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir templado, comprobando la temperatura con el dorso de la muñeca antes de ofrecer al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_014",
@@ -1448,7 +1759,30 @@
     "fiber_g": 2,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 40
+    "sodium_mg": 40,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la porción de papilla del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la papilla descongelada en un cazo pequeño y calentar a fuego suave, removiendo sin parar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de caldo o agua si la papilla ha espesado demasiado durante el recalentado, y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y comprobar la temperatura dejando caer unas gotas en la muñeca antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_015",
@@ -1559,7 +1893,30 @@
     "fiber_g": 1,
     "sugar_g": 2,
     "saturated_fat_g": 2,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la porción congelada a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter la crema en un cazo pequeño y calentar a fuego suave, removiendo, hasta que esté templada.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de aceite de oliva si la crema ha quedado algo espesa tras descongelar y remover.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir comprobando que la temperatura sea segura para el bebé antes de ofrecer.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_016",
@@ -1677,7 +2034,35 @@
     "fiber_g": 3,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 45
+    "sodium_mg": 45,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el puré en un cazo a fuego suave, removiendo con frecuencia para evitar zonas frías.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el puré ha espesado al congelar, y remover hasta lograr textura homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que el centro está templado antes de servir; nunca debe estar caliente para un bebé.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré en el plato del bebé a temperatura corporal.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_018",
@@ -1784,7 +2169,30 @@
     "fiber_g": 3,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para descongelarlo lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar el puré descongelado en un cazo pequeño y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover bien hasta que el puré esté homogéneo y sin zonas frías; añadir unas gotas de agua si ha espesado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el puré templado, comprobando la temperatura con la muñeca antes de ofrecérselo al bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_019",
@@ -1894,7 +2302,35 @@
     "fiber_g": 2,
     "sugar_g": 5,
     "saturated_fat_g": 1,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el puré descongelado en un cazo pequeño y calentar a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar hasta que el puré esté caliente y homogéneo, sin que llegue a hervir.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir unas gotas de agua caliente si el puré ha espesado al recongelar y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que no haya grumos ni espinas y que la temperatura sea tibia antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_021",
@@ -1989,7 +2425,30 @@
     "fiber_g": 4,
     "sugar_g": 1,
     "saturated_fat_g": 1,
-    "sodium_mg": 55
+    "sodium_mg": 55,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el puré del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el puré en un cazo a fuego suave, removiendo sin parar hasta que esté bien caliente y sin zonas frías.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el puré ha espesado demasiado al recalentar y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la temperatura del puré antes de servir: debe estar templado, nunca caliente, para el bebé.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "bebes_022",
@@ -2084,6 +2543,29 @@
     "fiber_g": 4,
     "sugar_g": 3,
     "saturated_fat_g": 1,
-    "sodium_mg": 30
+    "sodium_mg": 30,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la ración de puré a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el puré en un cazo a fuego suave, removiendo sin parar hasta que esté bien caliente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua o caldo si el puré ha espesado demasiado durante el recalentado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la temperatura del puré antes de servir: debe estar templado, nunca caliente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

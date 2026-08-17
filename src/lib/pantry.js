@@ -210,6 +210,65 @@ export async function setPantryItemQty(userId, id, qty, unit) {
   return true;
 }
 
+/**
+ * Suma o resta raciones a un plato cocinado, borrando la fila cuando se agota.
+ * Un `cooked_dish` guarda las raciones DOS veces (`portions` es la fuente y
+ * `qty` su espejo, para que la despensa pueda contar filas sin saber de tipos),
+ * así que las dos columnas tienen que moverse juntas — setPantryItemQty solo
+ * toca `qty` y dejaría el plato con las raciones descuadradas.
+ *
+ * @param {number} delta negativo para consumir (descongelar), positivo para devolver
+ * @returns {Promise<number|null>} raciones que quedan (0 si se borró), null si falló
+ */
+export async function adjustCookedDishPortions(userId, id, delta) {
+  if (!supabase || !userId || !id) return null;
+  const { data: row, error: readError } = await supabase
+    .from("user_pantry")
+    .select("portions, qty")
+    .eq("user_id", userId)
+    .eq("id", id)
+    .maybeSingle();
+  if (readError || !row) {
+    if (readError) console.error("[pantry] cooked portions read failed", readError);
+    return null;
+  }
+  const current = Number(row.portions ?? row.qty) || 0;
+  const next = Math.max(0, current + Number(delta || 0));
+  if (next <= 0) {
+    const ok = await removePantryItem(userId, id);
+    return ok ? 0 : null;
+  }
+  const { error } = await supabase
+    .from("user_pantry")
+    .update({ portions: next, qty: next })
+    .eq("user_id", userId)
+    .eq("id", id);
+  if (error) {
+    console.error("[pantry] cooked portions update failed", error);
+    return null;
+  }
+  return next;
+}
+
+/** Espejo local de adjustCookedDishPortions para usuarios sin cuenta. */
+export function adjustLocalCookedDishPortions(id, delta) {
+  const current = readLocalPantry();
+  const row = current.find((it) => it.id === id);
+  if (!row) return null;
+  const now = new Date().toISOString();
+  const next = Math.max(0, (Number(row.portions ?? row.qty) || 0) + Number(delta || 0));
+  if (next <= 0) {
+    writeLocalPantry(current.filter((it) => it.id !== id));
+    return 0;
+  }
+  writeLocalPantry(
+    current.map((it) =>
+      it.id === id ? { ...it, portions: next, qty: next, updatedAt: now } : it,
+    ),
+  );
+  return next;
+}
+
 export async function removePantryItem(userId, id) {
   if (!supabase || !userId) return false;
   const { error } = await supabase

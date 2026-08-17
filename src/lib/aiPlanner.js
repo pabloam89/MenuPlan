@@ -22,6 +22,7 @@ import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
 import { buildAdaptationMap } from "./substitutions.js";
+import { assignFreezerToPlan, indexFrozenDishes, itemPortions } from "./freezer.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
 
 // ── Helpers ─────────────────────────────────────────────────────
@@ -448,7 +449,7 @@ export function buildGroupContext(data, group) {
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
 // lo de casa, fuerte) | "prefer"/"off" (preferencia blanda). "off" nunca llega
 // aquí con nombres porque App vacía la lista antes.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer") {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = []) {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
@@ -483,6 +484,20 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
     parts.push(
       `\nINGREDIENTES QUE EL USUARIO YA TIENE EN CASA:\n${pantryNames.map((n) => `- ${n}`).join("\n")}` +
         pantryInstruction,
+    );
+  }
+
+  // Congelador: platos YA cocinados y congelados de recetas que están en este
+  // catálogo. Colocarlos ahorra cocinar y comprar, así que se empujan fuerte,
+  // pero es el modelo quien decide en qué hueco pegan (variedad, tipo de plato,
+  // complementación escolar). El reparto exacto de raciones lo hace después una
+  // pasada determinista (assignFreezerToPlan) — aquí solo se sesga la elección.
+  if (frozenDishes.length > 0) {
+    parts.push(
+      `\nPLATOS YA COCINADOS EN EL CONGELADOR (raciones listas para comer):\n${frozenDishes
+        .map((d) => `- ${d.name} (${d.portions} ${d.portions === 1 ? "ración" : "raciones"}) → recipeId "${d.recipeId}"`)
+        .join("\n")}` +
+        `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca estos platos en algún hueco de la semana donde encajen. Ya están hechos: no hay que cocinarlos ni comprarlos, solo descongelar. Usa EXACTAMENTE el recipeId indicado. No repitas el mismo plato congelado en más huecos de los que dan sus raciones, y no lo fuerces en un hueco donde rompa el tipo de plato, la variedad, la complementación escolar o las alergias.`,
     );
   }
 
@@ -764,14 +779,34 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   );
   const warnings = freqWarnings.map((msg) => `${group.label}: ${msg}`);
 
+  // Los platos cocinados viven en la misma tabla que los ingredientes, así que
+  // hay que separarlos: "Lentejas estofadas" no es un ingrediente que sumar a la
+  // lista de la despensa, es un plato entero listo para colocar en un hueco.
+  // Solo se ofrecen los que sobrevivieron al filtro del grupo (alergias, tiempo,
+  // temporada): sugerir un plato congelado que este grupo no puede comer sería
+  // peor que no sugerir nada.
+  const frozenPoolIds = new Set(filteredPool.map((r) => r.id));
+  const frozenDishes = [];
+  for (const [recipeRef, items] of indexFrozenDishes(pantryIngredients)) {
+    if (!frozenPoolIds.has(recipeRef)) continue;
+    frozenDishes.push({
+      recipeId: recipeRef,
+      name: recipeCatalogById[recipeRef]?.name ?? items[0].ingredientName,
+      portions: items.reduce((s, it) => s + itemPortions(it), 0),
+    });
+  }
+
   const userMessage = buildUserMessage(
     filteredPool,
     ctx.slots,
     ctx.config,
     ctx.schoolMenuByDay,
     data.fixedDishes,
-    pantryIngredients.map((p) => p.ingredientName),
+    pantryIngredients
+      .filter((p) => (p.itemType ?? "ingredient") !== "cooked_dish")
+      .map((p) => p.ingredientName),
     pantryMode,
+    frozenDishes,
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
@@ -1486,6 +1521,18 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
       };
       placedSlots++;
     }
+  }
+
+  // Congelador: si hay raciones ya cocinadas de alguno de los platos elegidos,
+  // se reparten entre los huecos que las puedan usar. Va aquí, al final y de
+  // forma determinista, para que el modelo no tenga que hacer aritmética de
+  // stock (ver assignFreezerToPlan). En "off" el usuario ha pedido ignorar lo
+  // que hay en casa, así que tampoco se toca el congelador.
+  if (pantryMode !== "off") {
+    assignFreezerToPlan(plan, pantryIngredients, {
+      days: DAYS,
+      mealLabels: ["Comida", "Cena"],
+    });
   }
 
   if (placedSlots === 0) {

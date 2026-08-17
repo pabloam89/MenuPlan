@@ -32,6 +32,14 @@ async function collectPngs(dir) {
   return files;
 }
 
+function hasTransparency(img) {
+  const { data } = img.bitmap;
+  for (let i = 3; i < data.length; i += 4) {
+    if (data[i] < 250) return true;
+  }
+  return false;
+}
+
 async function main() {
   const files = await collectPngs(DIR);
   for (const full of files) {
@@ -39,6 +47,13 @@ async function main() {
     if (before <= RAW_THRESHOLD_BYTES) continue;
 
     const img = await Jimp.read(full);
+    // Las cards de ubicación de "En casa" son recortes con transparencia
+    // (scripts/cutout-pantry-cards.mjs) y pasarlas a JPEG les devolvería un
+    // fondo opaco, que es justo lo que se les quitó.
+    if (hasTransparency(img)) {
+      console.log(`${path.relative(DIR, full)} — transparente, se deja en PNG`);
+      continue;
+    }
     if (img.width > WIDTH) {
       const ratio = WIDTH / img.width;
       img.resize({ w: WIDTH, h: Math.round(img.height * ratio), mode: ResizeStrategy.BICUBIC });

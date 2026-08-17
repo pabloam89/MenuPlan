@@ -113,7 +113,8 @@
     "fiber_g": 3,
     "sugar_g": 2,
     "saturated_fat_g": 5,
-    "sodium_mg": 310
+    "sodium_mg": 310,
+    "freezable": false
   },
   {
     "id": "huevos_002",
@@ -182,7 +183,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 5,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "huevos_003",
@@ -296,7 +298,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 6,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": false
   },
   {
     "id": "huevos_004",
@@ -417,7 +420,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 5,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "huevos_005",
@@ -525,7 +529,8 @@
     "fiber_g": 1,
     "sugar_g": 1,
     "saturated_fat_g": 4,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "huevos_006",
@@ -648,7 +653,8 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 4,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "huevos_007",
@@ -734,7 +740,8 @@
     "fiber_g": 0,
     "sugar_g": 0,
     "saturated_fat_g": 6,
-    "sodium_mg": 140
+    "sodium_mg": 140,
+    "freezable": false
   },
   {
     "id": "huevos_008",
@@ -837,7 +844,8 @@
     "fiber_g": 2,
     "sugar_g": 2,
     "saturated_fat_g": 4,
-    "sodium_mg": 140
+    "sodium_mg": 140,
+    "freezable": false
   },
   {
     "id": "huevos_009",
@@ -973,7 +981,8 @@
     "fiber_g": 2,
     "sugar_g": 3,
     "saturated_fat_g": 7,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": false
   },
   {
     "id": "huevos_010",
@@ -1099,7 +1108,8 @@
     "fiber_g": 1,
     "sugar_g": 3,
     "saturated_fat_g": 5,
-    "sodium_mg": 420
+    "sodium_mg": 420,
+    "freezable": false
   },
   {
     "id": "huevos_011",
@@ -1218,7 +1228,8 @@
     "fiber_g": 0,
     "sugar_g": 1,
     "saturated_fat_g": 5,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": false
   },
   {
     "id": "huevos_012",
@@ -1346,7 +1357,8 @@
     "fiber_g": 3,
     "sugar_g": 1,
     "saturated_fat_g": 4,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "huevos_013",
@@ -1512,7 +1524,8 @@
     "fiber_g": 4,
     "sugar_g": 6,
     "saturated_fat_g": 7,
-    "sodium_mg": 680
+    "sodium_mg": 680,
+    "freezable": false
   },
   {
     "id": "huevos_014",
@@ -1655,7 +1668,8 @@
     "fiber_g": 2,
     "sugar_g": 4,
     "saturated_fat_g": 4,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": false
   },
   {
     "id": "huevos_015",
@@ -1782,7 +1796,8 @@
     "fiber_g": 2,
     "sugar_g": 1,
     "saturated_fat_g": 4,
-    "sodium_mg": 210
+    "sodium_mg": 210,
+    "freezable": false
   },
   {
     "id": "huevos_016",
@@ -1937,7 +1952,35 @@
     "fiber_g": 4,
     "sugar_g": 6,
     "saturated_fat_g": 4,
-    "sodium_mg": 140
+    "sodium_mg": 140,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el pisto del congelador a la nevera la noche anterior y dejar descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el pisto en una sartén a fuego suave, removiendo con frecuencia, hasta que esté bien caliente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar sartén a fuego medio con un chorrito de aceite de oliva.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír los huevos hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pisto caliente en plato con el huevo frito encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "huevos_017",
@@ -2120,6 +2163,39 @@
     "fiber_g": 5,
     "sugar_g": 7,
     "saturated_fat_g": 5,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el pisto del congelador a la nevera la noche anterior para que descongele lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el pisto en un cazo a fuego suave, removiendo con frecuencia hasta que esté bien caliente.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Pelar y cortar patata fresca en bastones; freír en aceite abundante y caliente hasta que estén doradas.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las patatas fritas sobre papel absorbente y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Freír los huevos frescos en la misma sartén a fuego medio hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el pisto caliente con las patatas fritas al lado y el huevo frito encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

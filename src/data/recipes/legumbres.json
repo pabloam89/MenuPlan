@@ -162,7 +162,35 @@
     "fiber_g": 12,
     "sugar_g": 7,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la ración del congelador a la nevera la noche anterior y dejar descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter las lentejas descongeladas en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el caldo ha espesado en exceso, hasta que recupere la textura original.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que están calientes por dentro antes de retirar del fuego. No llevar a ebullición fuerte.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en el plato y repartir bien las verduras para que cada ración quede equilibrada.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_002",
@@ -335,7 +363,35 @@
     "fiber_g": 12,
     "sugar_g": 6,
     "saturated_fat_g": 5,
-    "sodium_mg": 480
+    "sodium_mg": 480,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las lentejas con chorizo del congelador a la nevera la noche anterior para que descongelen despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar las lentejas descongeladas en un cazo y calentar a fuego suave, removiendo de vez en cuando.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el caldo ha espesado demasiado, y remover para integrar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que no queden zonas frías en el centro antes de retirar del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las lentejas bien calientes en cuenco hondo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_003",
@@ -496,7 +552,35 @@
     "fiber_g": 9,
     "sugar_g": 4,
     "saturated_fat_g": 2,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el recipiente con los garbanzos con espinacas del congelador a la nevera la noche anterior.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter los garbanzos con espinacas en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado durante la congelación y remover para integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Continuar calentando hasta que los garbanzos humeen y la salsa esté bien caliente en el centro, sin hervir fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en platos hondos, bien calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_004",
@@ -683,7 +767,40 @@
     "fiber_g": 11,
     "sugar_g": 5,
     "saturated_fat_g": 11,
-    "sodium_mg": 680
+    "sodium_mg": 680,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir el cocido del congelador a la nevera la noche anterior para una descongelación segura y uniforme.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Separar el caldo de los garbanzos, verduras y carnes en recipientes distintos antes de calentar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar el caldo en un cazo a fuego medio hasta que rompa a hervir; remover para que no queden zonas frías.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar los garbanzos, verduras y carnes en otro cazo a fuego suave, tapado, hasta que estén bien calientes.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir un par de cucharadas del caldo caliente sobre los garbanzos y carnes si han quedado secos al recalentar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir primero el caldo en tazón hondo y a continuación los garbanzos con verduras y carnes en plato hondo.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_005",
@@ -858,7 +975,35 @@
     "fiber_g": 9,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 480
+    "sodium_mg": 480,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el potaje del congelador a la nevera la noche anterior para que descongele despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el potaje descongelado en una olla y calentar a fuego suave, removiendo con suavidad.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a mitad del calentamiento para igualar la temperatura y evitar que el fondo se pegue.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el potaje ha espesado demasiado y remover hasta integrar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el potaje bien caliente repartido en 2 platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_006",
@@ -1030,7 +1175,40 @@
     "fiber_g": 14,
     "sugar_g": 3,
     "saturated_fat_g": 14,
-    "sodium_mg": 820
+    "sodium_mg": 820,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la fabada del congelador a la nevera la noche anterior y dejar descongelar completamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar la fabada en un cazo y calentar a fuego suave, tapado, removiendo con cuidado cada 2 min.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua caliente si el caldo ha espesado demasiado y remover con suavidad.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar que las fabes y el compango están calientes en el centro antes de retirar del fuego.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Reposar tapado fuera del fuego para que el calor se distribuya uniformemente.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir en cazuela de barro o plato hondo, repartiendo fabes y compango a partes iguales.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_007",
@@ -1233,7 +1411,35 @@
     "fiber_g": 14,
     "sugar_g": 6,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las alubias estofadas del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter las alubias descongeladas en un cazo y calentar a fuego suave, tapado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado cada 2 min hasta que el caldo esté homogéneo y no queden zonas frías.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el caldo ha espesado demasiado y remover para integrarlo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las alubias bien calientes en platos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_008",
@@ -1394,7 +1600,35 @@
     "fiber_g": 9,
     "sugar_g": 5,
     "saturated_fat_g": 6,
-    "sodium_mg": 520
+    "sodium_mg": 520,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la porción de garbanzos con chorizo del congelador a la nevera la noche anterior para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter los garbanzos descongelados en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el guiso ha espesado demasiado y remover hasta integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que el interior esté bien caliente y el guiso recupere su textura original.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los garbanzos bien calientes, repartidos en 2 platos o cazuelas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_009",
@@ -1542,7 +1776,35 @@
     "fiber_g": 12,
     "sugar_g": 6,
     "saturated_fat_g": 1,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las lentejas con arroz del congelador a la nevera la noche anterior para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar las lentejas en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la mezcla ha espesado demasiado al enfriar, remover y continuar calentando.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover a mitad del calentamiento para igualar la temperatura y evitar que el fondo se pegue.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en boles en cuanto las lentejas estén bien calientes, sin llegar a hervir a borbotones.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_010",
@@ -1677,7 +1939,30 @@
     "fiber_g": 6,
     "sugar_g": 2,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el hummus del congelador a la nevera la noche anterior para descongelar despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar el hummus descongelado en un bol y remover bien hasta que recupere una textura homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de aceite de oliva y remover si la crema ha quedado algo espesa o ha soltado agua.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender el hummus en un plato hondo, espolvorear pimentón y terminar con un chorrito de aceite de oliva.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_011",
@@ -1868,7 +2153,35 @@
     "fiber_g": 14,
     "sugar_g": 3,
     "saturated_fat_g": 8,
-    "sodium_mg": 620
+    "sodium_mg": 620,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el recipiente con los judiones del congelador a la nevera la noche anterior para descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar los judiones descongelados en una olla y calentar a fuego suave, tapados.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuidado cada 2-3 min hasta que estén bien calientes; añadir un chorrito de agua si la salsa ha espesado demasiado.",
+        "minutes": 10,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y dejar reposar 5 min para que los sabores se asienten antes de servir.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir en plato hondo bien caliente, repartiendo los trozos de oreja, chorizo y morcilla.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_012",
@@ -1992,7 +2305,8 @@
     "fiber_g": 9,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   },
   {
     "id": "legumbres_013",
@@ -2151,7 +2465,35 @@
     "fiber_g": 9,
     "sugar_g": 7,
     "saturated_fat_g": 2,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Transferir la ración del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar los garbanzos con calabaza en un cazo y calentar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con cuchara de madera hasta que no queden zonas frías y el caldo humee de forma uniforme.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el guiso ha espesado demasiado durante la congelación y remover para integrar.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir en plato hondo con el caldo de cocción.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_014",
@@ -2317,7 +2659,35 @@
     "fiber_g": 11,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 280
+    "sodium_mg": 280,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el guiso del congelador a la nevera la noche anterior y dejar descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el guiso descongelado en una olla y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el guiso ha espesado demasiado y remover hasta integrarlo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar hasta que el guiso esté bien caliente en el centro, sin dejar que hierva a borbotones.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el guiso bien caliente en cuencos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_015",
@@ -2446,7 +2816,8 @@
     "fiber_g": 8,
     "sugar_g": 6,
     "saturated_fat_g": 2,
-    "sodium_mg": 310
+    "sodium_mg": 310,
+    "freezable": false
   },
   {
     "id": "legumbres_016",
@@ -2622,7 +2993,35 @@
     "fiber_g": 14,
     "sugar_g": 6,
     "saturated_fat_g": 2,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el potaje del congelador a la nevera la noche anterior para que descongele lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el potaje descongelado en un cazo y calentar a fuego suave, removiendo con frecuencia.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el caldo ha espesado demasiado y remover hasta integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Mantener a fuego suave hasta que el potaje esté bien caliente, sin llevar a ebullición fuerte.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el potaje bien caliente en cuencos hondos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_017",
@@ -2795,7 +3194,35 @@
     "fiber_g": 11,
     "sugar_g": 6,
     "saturated_fat_g": 3,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar las lentejas con pollo del congelador a la nevera la noche anterior para que descongelen poco a poco.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar las lentejas con pollo en un cazo y calentar a fuego suave, removiendo de vez en cuando.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si el caldo ha espesado demasiado durante la congelación y remover para integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Continuar calentando hasta que el guiso esté bien caliente en el centro, sin llegar a hervir a borbotones.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las lentejas con pollo en platos hondos calientes.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_018",
@@ -2937,7 +3364,35 @@
     "fiber_g": 9,
     "sugar_g": 7,
     "saturated_fat_g": 2,
-    "sodium_mg": 320
+    "sodium_mg": 320,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la ración del congelador a la nevera la noche anterior para descongelar despacio.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Volcar los garbanzos descongelados en un cazo y calentar a fuego suave.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con frecuencia hasta que el conjunto esté bien caliente y la salsa ligue de nuevo.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la salsa ha espesado demasiado al recalentar, y remover.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir los garbanzos bien calientes directamente del cazo.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_019",
@@ -3113,7 +3568,30 @@
     "fiber_g": 9,
     "sugar_g": 3,
     "saturated_fat_g": 2,
-    "sodium_mg": 480
+    "sodium_mg": 480,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el recipiente con el guiso del congelador a la nevera la noche anterior para descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el guiso descongelado en una cazuela y calentar a fuego suave, removiendo con cuidado para no romper las almejas.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua o caldo si la salsa ha espesado demasiado, y remover hasta recuperar la textura original.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en platos hondos en cuanto el guiso esté bien caliente, sin llegar a hervir para no endurecer las almejas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "legumbres_020",
@@ -3257,6 +3735,7 @@
     "fiber_g": 9,
     "sugar_g": 5,
     "saturated_fat_g": 2,
-    "sodium_mg": 180
+    "sodium_mg": 180,
+    "freezable": false
   }
 ]

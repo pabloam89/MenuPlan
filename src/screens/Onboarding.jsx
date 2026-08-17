@@ -150,10 +150,14 @@ const DESPENSA_OPTS = [
   { id: "prefer", label: "Tenerlo en cuenta", subtitle: "Priorizo recetas que aprovechan lo que ya tienes.", img: "/avatares/cards/casa_encuenta.jpg" },
   { id: "off", label: "Menú libre", subtitle: "Planifico sin mirar el stock. En compra sigo marcando lo que tienes.", img: "/avatares/cards/casa_libre.jpg" },
 ];
+const MODO_OPTS = [
+  { id: "basic", label: "Sencillo", subtitle: "Comidas y cenas. El resto lo decidimos por ti.", img: "/avatares/cards/modo_sencillo.jpg" },
+  { id: "expert", label: "Avanzado", subtitle: "Tú controlas desayunos, meriendas, despensa y cocina.", img: "/avatares/cards/modo_avanzado.jpg" },
+];
 const DESAYUNO_OPTS = [
-  { id: "variado", label: "Variado", subtitle: "Cada día algo distinto", img: "/avatares/cards/desayuno_variado.jpg" },
-  { id: "findes", label: "Igual entre semana", subtitle: "Diferente el finde", img: "/avatares/cards/desayuno_lunes_viernes.jpg" },
-  { id: "igual", label: "Siempre igual", subtitle: "La misma rutina", img: "/avatares/cards/desayuno_igual.jpg" },
+  { id: "variado", label: "Variado", img: "/avatares/cards/desayuno_variado.jpg" },
+  { id: "findes", label: "Igual entre semana", img: "/avatares/cards/desayuno_lunes_viernes.jpg" },
+  { id: "igual", label: "Siempre igual", img: "/avatares/cards/desayuno_igual.jpg" },
 ];
 const MERIENDA_OPTS = [
   { id: "off", label: "Sin merienda", Icon: X },
@@ -3235,15 +3239,17 @@ export function IndividualMenuSheet({ member, reason, onConfirm, onCancel }) {
 
 // Each entry maps to its onboarding step index so the bubble can list only the
 // screens the user will actually see (e.g. "Menú del cole" is hidden when there
-// are no kids/babies in the house).
+// are no kids/babies in the house). MANTENER EN SINCRONÍA con el orden de
+// `onbScreens` en App.jsx: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
+// 5 Semana · 6 Horario · 7 Estilo · 8 Extras · 9 En casa · 10 Cocina · 11 Tiempos.
 const AFINAR_WIZARD_STEPS = [
-  { step: 2, Icon: School, label: "Menú del cole", desc: "Sube el PDF o foto del comedor" },
-  { step: 3, Icon: CalendarDays, label: "Semana", desc: "Elige qué semana planificar" },
-  { step: 4, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
-  { step: 5, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
-  { step: 6, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
-  { step: 8, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
-  { step: 9, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
+  { step: 3, Icon: School, label: "Menú del cole", desc: "Sube el PDF o foto del comedor" },
+  { step: 4, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
+  { step: 5, Icon: CalendarDays, label: "Semana", desc: "Elige qué semana planificar" },
+  { step: 6, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
+  { step: 7, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
+  { step: 10, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
+  { step: 11, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
 ];
 
 export function AfinarWizardBubble({ onClose, visibleSteps }) {
@@ -8163,8 +8169,8 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                 key={t.id}
                 img={t.img}
                 title={t.label}
-                subtitle={t.subtitle}
-                imgRatio="2 / 1"
+                imgHeight={160}
+                textOverlay
                 active={(em.desayuno ?? "variado") === t.id}
                 onClick={() => setExtraMeal("desayuno", t.id)}
               />
@@ -8387,8 +8393,8 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
                     key={t.id}
                     img={t.img}
                     title={t.title}
-                    subtitle={t.subtitle}
-                    imgRatio="2 / 1"
+                    imgHeight={160}
+                    textOverlay
                     active={postreTipo === t.id}
                     onClick={() => setExtraMeal("postreTipo", t.id)}
                   />
@@ -8465,6 +8471,46 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
           {s.children}
         </div>
       ))}
+    </OnboardingShell>
+  );
+}
+
+
+// ── ¿Cómo quieres usar la app? (sencillo vs avanzado) ────────────────────────
+// Primera pantalla del asistente: el modo decide QUÉ preguntas vienen después
+// (estilo de comida, extras, nivel de cocina, variedad…), así que tiene que ir
+// antes que todas. Antes vivía en una hoja que saltaba sola en Inicio y en una
+// píldora de la cabecera, y a la gente se le pasaba; aquí no.
+export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+  const current = data.expertMode ? "expert" : "basic";
+  return (
+    <OnboardingShell
+      title="¿Cómo quieres usar la app?"
+      subtitle="Elige una opción · puedes cambiarla siempre que quieras."
+      nextLabel={nextLabel}
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+    >
+      {/* Una sola columna y a lo ancho: es la única pregunta de la pantalla, así
+          que las dos opciones pueden respirar en vez de competir en media caja. */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+        {MODO_OPTS.map((t) => (
+          <RestrictionTabCard
+            key={t.id}
+            img={t.img}
+            title={t.label}
+            subtitle={t.subtitle}
+            imgRatio="3 / 2"
+            accent={CARD_ACCENT_TEAL}
+            active={current === t.id}
+            onClick={() =>
+              setData((d) => ({ ...d, expertMode: t.id === "expert", modePrompted: true }))
+            }
+          />
+        ))}
+      </div>
     </OnboardingShell>
   );
 }
