@@ -109,6 +109,9 @@ export async function addPantryItems(userId, items) {
       .eq("user_id", userId)
       .eq("item_type", "ingredient")
       .in("ingredient_normalized", normalizedKeys);
+    // A DB that hasn't run 0014 has no item_type/frozen columns — degrade to the
+    // base-column path so plain ingredients still save (see addPantryItemsLegacy).
+    if (isMissingColumn(fetchError)) return addPantryItemsLegacy(userId, items);
     if (fetchError) console.error("[pantry] add lookup failed", fetchError);
     const keyOf = (normalized, frozen) => `${normalized}|${frozen ? 1 : 0}`;
     const existingByKey = new Map((existing ?? []).map((r) => [keyOf(r.ingredient_normalized, r.frozen), r]));
@@ -167,6 +170,10 @@ export async function addPantryItems(userId, items) {
       .from("user_pantry")
       .insert(toInsert)
       .select(RETURN_COLS);
+    // Same graceful degradation as the lookup above: a pre-0014 DB rejects the
+    // freezer columns. Plain ingredients fall back to the base-column path;
+    // cooked dishes genuinely need the migration and are dropped there.
+    if (isMissingColumn(error)) return addPantryItemsLegacy(userId, items);
     if (error) console.error("[pantry] insert failed", error);
     else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
   }
@@ -187,6 +194,74 @@ export async function addPantryItems(userId, items) {
   );
   for (const { data, error } of updated) {
     if (error) console.error("[pantry] top-up failed", error);
+    else if (data?.[0]) rows.push({ ...mapRow(data[0]), isNew: false });
+  }
+  return rows;
+}
+
+/**
+ * Base-schema fallback for a DB that hasn't run 0014 (freezer/cooked dishes).
+ * Only plain ingredients can be stored — frozen state and cooked dishes need
+ * the new columns, so cooked items are dropped here (the freezer UI stays inert
+ * until the migration runs). Merges by normalized name (the pre-0014 unique key)
+ * so a repeat buy tops up instead of erroring on the unique constraint.
+ */
+async function addPantryItemsLegacy(userId, items) {
+  const ingredients = items.filter((it) => (it.itemType ?? "ingredient") !== "cooked_dish");
+  if (items.some((it) => (it.itemType ?? "ingredient") === "cooked_dish")) {
+    console.warn("[pantry] cooked dishes need migration 0014 — dropped on legacy schema");
+  }
+  if (!ingredients.length) return [];
+
+  const normalizedKeys = ingredients.map((it) => it.normalized);
+  const { data: existing, error: fetchError } = await supabase
+    .from("user_pantry")
+    .select("id, ingredient_normalized, qty, unit")
+    .eq("user_id", userId)
+    .in("ingredient_normalized", normalizedKeys);
+  if (fetchError) console.error("[pantry] legacy lookup failed", fetchError);
+  const existingByName = new Map((existing ?? []).map((r) => [r.ingredient_normalized, r]));
+
+  const toInsert = [];
+  const toUpdate = [];
+  for (const it of ingredients) {
+    const qty = Number(it.qty) > 0 ? Number(it.qty) : 1;
+    const unit = it.unit ?? "ud";
+    const found = existingByName.get(it.normalized);
+    if (found) {
+      const addQty = found.unit === unit ? qty : convertStockAmount(qty, unit, found.unit, it.name);
+      const nextQty = addQty != null ? (Number(found.qty) || 0) + addQty : Number(found.qty) || 0;
+      toUpdate.push({ id: found.id, qty: nextQty });
+    } else {
+      toInsert.push({
+        user_id: userId,
+        ingredient_name: it.name,
+        ingredient_normalized: it.normalized,
+        qty,
+        unit,
+        source: it.source ?? "manual",
+      });
+    }
+  }
+
+  const rows = [];
+  if (toInsert.length) {
+    const { data, error } = await supabase.from("user_pantry").insert(toInsert).select(BASE_COLS);
+    if (error) console.error("[pantry] legacy insert failed", error);
+    else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
+  }
+  const updated = await Promise.all(
+    toUpdate.map((u) =>
+      supabase
+        .from("user_pantry")
+        .update({ qty: u.qty })
+        .eq("user_id", userId)
+        .eq("id", u.id)
+        .select(BASE_COLS),
+    ),
+  );
+  for (const { data, error } of updated) {
+    if (error) console.error("[pantry] legacy top-up failed", error);
     else if (data?.[0]) rows.push({ ...mapRow(data[0]), isNew: false });
   }
   return rows;

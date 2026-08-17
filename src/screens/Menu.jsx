@@ -81,6 +81,7 @@ import { formatQty, normalizeRichSteps, resolveApplianceSteps } from "../lib/rec
 import {
   assignFreezerToSlot,
   cookedAgoLabel,
+  cookedEatersFor,
   frozenPortionsFor,
   itemPortions,
   pickFrozenItem,

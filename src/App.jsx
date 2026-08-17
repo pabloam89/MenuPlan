@@ -2576,28 +2576,38 @@ export default function App() {
 
   // Public like/dislike rating — independent of favoriting. Feeds the
   // accumulated thumbs-up/down counts shown next to the recipe owner.
+  // Menu slots carry a "<groupId>__<baseId>" recipe id when the household has
+  // several menus; votes/favorites live keyed by the BASE catalog id (the same
+  // id filterRecipes/aiPlanner match on), so normalize before touching the store
+  // or a multi-menu vote would never line up with the recipe it rates.
   const handleVoteRecipe = useCallback((recipeId, vote) => {
-    const nextVotes = toggleRecipeVote(data.recipeVotes, recipeId, vote);
+    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
+    const nextVotes = toggleRecipeVote(data.recipeVotes, baseId, vote);
     setData((d) => ({ ...d, recipeVotes: nextVotes }));
     if (user?.id) {
-      const entry = nextVotes[recipeId] ?? null;
-      if (entry == null) deleteRecipeVote(user.id, recipeId);
-      else saveRecipeVote(user.id, recipeId, entry);
+      const entry = nextVotes[baseId] ?? null;
+      if (entry == null) deleteRecipeVote(user.id, baseId);
+      else saveRecipeVote(user.id, baseId, entry);
     }
   }, [data.recipeVotes, user]);
 
   // Favorite (personal collection) — sets/clears the group scope a recipe
   // applies to ("all" | string[] | null to unfavorite). Independent of vote.
+  // Same "<groupId>__<baseId>" normalization as handleVoteRecipe: without it a
+  // favorite set from a multi-menu dish is stored under the prefixed id and
+  // filterRecipes (which keys on the base id) never marks it isFavorite, so the
+  // planner silently ignores it.
   const handleSetFavoriteScope = useCallback((recipeId, scope) => {
-    const wasFav = isRecipeFavorite(data.recipeVotes, recipeId);
-    const nextVotes = setFavoriteScope(data.recipeVotes, recipeId, scope);
+    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
+    const wasFav = isRecipeFavorite(data.recipeVotes, baseId);
+    const nextVotes = setFavoriteScope(data.recipeVotes, baseId, scope);
     setData((d) => ({ ...d, recipeVotes: nextVotes }));
     if (scope == null && wasFav) showToast("Quitada de favoritas");
     else if (scope != null && !wasFav) showToast("Añadida a favoritas");
     if (user?.id) {
-      const entry = nextVotes[recipeId] ?? null;
-      if (entry == null) deleteRecipeVote(user.id, recipeId);
-      else saveRecipeVote(user.id, recipeId, entry);
+      const entry = nextVotes[baseId] ?? null;
+      if (entry == null) deleteRecipeVote(user.id, baseId);
+      else saveRecipeVote(user.id, baseId, entry);
     }
   }, [data.recipeVotes, showToast, user]);
 
@@ -3942,9 +3952,9 @@ export default function App() {
           allMembers={data.members}
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
-          userVote={voteOf(data.recipeVotes?.[selectedSlot.recipe.id])}
+          userVote={voteOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           onVote={(vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
-          favoriteScope={favScopeOf(data.recipeVotes?.[selectedSlot.recipe.id])}
+          favoriteScope={favScopeOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           scopeGroups={favoriteScopeGroups}
           onSetFavoriteScope={(scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
           onClose={() => setSelectedSlot(null)}
