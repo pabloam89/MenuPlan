@@ -103,6 +103,8 @@ import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx"
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { MenuPlanBadge, RecipeVoteCounts, formatRecipeDate } from "../components/RecipeProvenance.jsx";
+import { RecipeClassificationFields } from "../components/RecipeClassificationFields.jsx";
+import { isUserRecipeOwner, patchUserRecipeClassification } from "../lib/userRecipes.js";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
 import { MenuPdfExportModal } from "../components/MenuPdfExportModal.jsx";
 import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtras } from "./Onboarding.jsx";
@@ -4929,6 +4931,8 @@ export function DishDetail({
   // desde cero, o { fromFreezer, frozenItemId, frozenPortions, freshPortions }.
   // Sin este callback (catálogo, demos) la ficha solo informa, sin poder asignar.
   onSlotFreezerChange = null,
+  // Owner-only: patch classification (tipo / aplica) on a user-created recipe.
+  onUpdateUserRecipe = null,
 }) {
   const isFavorite = favoriteScope != null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
@@ -4938,6 +4942,7 @@ export function DishDetail({
   const [demoPressed, setDemoPressed] = useState(false);
   // Receta section: segmented control between "Ingredientes" and "Pasos".
   const [recipeTab, setRecipeTab] = useState(initialRecipeTab);
+  const [recipeExpanded, setRecipeExpanded] = useState(true);
   const [scopeOpen, setScopeOpen] = useState(false);
   // Pasos del método activo. La base usa los del catálogo (o IA bajo demanda);
   // los métodos por electrodoméstico se piden a /api/recipe-steps (caché Redis).
@@ -4947,6 +4952,30 @@ export function DishDetail({
   );
   const stepsCacheRef = useRef({});
   const catalogId = useMemo(() => catalogRecipeId(recipe), [recipe.baseRecipeId, recipe.id]);
+
+  const userCatalogRecipe = useMemo(() => {
+    const baseId = recipe.baseRecipeId ?? catalogId;
+    if (!baseId?.startsWith?.("user_") && recipe.source !== "user") return null;
+    return (data?.userRecipes ?? []).find((r) => r.id === baseId) ?? null;
+  }, [data?.userRecipes, recipe.source, recipe.baseRecipeId, catalogId]);
+
+  const canEditClassification = Boolean(
+    userCatalogRecipe && isUserRecipeOwner(userCatalogRecipe, user) && onUpdateUserRecipe,
+  );
+
+  const applyClassificationPatch = useCallback(
+    (patch) => {
+      if (!userCatalogRecipe || !onUpdateUserRecipe) return;
+      onUpdateUserRecipe(
+        patchUserRecipeClassification(userCatalogRecipe, {
+          usageTags: patch.usageTags ?? userCatalogRecipe.usageTags,
+          mealRole: patch.mealRole ?? userCatalogRecipe.mealRole,
+          quickDinner: patch.quickDinner ?? userCatalogRecipe.category === "cenas_rapidas",
+        }),
+      );
+    },
+    [userCatalogRecipe, onUpdateUserRecipe],
+  );
 
   // ── Congelador (parte que solo depende del slot) ───────────────────────────
   // Un hueco marcado `fromFreezer` trae ya el reparto que decidió el planner (o
@@ -5783,10 +5812,32 @@ export function DishDetail({
           <div style={{ height: 2, background: "#d5e3da", borderRadius: 2, marginBottom: 14 }} />
 
           <section className="mp-recipe-section" style={{ ...recipeBlockStyle, border: "none", background: "transparent", padding: 0 }}>
-            <div style={sectionTitleStyle}>
+            <button
+              type="button"
+              onClick={() => setRecipeExpanded((v) => !v)}
+              aria-expanded={recipeExpanded}
+              style={{
+                ...sectionTitleStyle, width: "100%", padding: 0,
+                marginBottom: recipeExpanded ? 10 : 0,
+                background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
               <BookOpen size={16} /> Receta
-            </div>
+              <ChevronDown
+                size={16}
+                strokeWidth={2.6}
+                style={{ marginLeft: "auto", color: "#9db3a6", transition: "transform .18s", transform: recipeExpanded ? "rotate(180deg)" : "none" }}
+              />
+            </button>
 
+            {recipeExpanded && (
+              <>
+            {canEditClassification && (
+              <RecipeClassificationFields
+                value={userCatalogRecipe}
+                onChange={applyClassificationPatch}
+              />
+            )}
 
             {/* Segmented control: Ingredientes | Pasos */}
             <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
@@ -6080,6 +6131,8 @@ export function DishDetail({
                   ? isCooked ? "Deshacer descongelado" : "Confirmar descongelado"
                   : isCooked ? "Deshacer cocinado" : "Marcar como cocinado"}
               </button>
+            )}
+              </>
             )}
           </section>
 

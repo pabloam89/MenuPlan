@@ -225,6 +225,43 @@ export function deriveUsageTagsFromType(type) {
   return ["plato_unico"];
 }
 
+/** Whether the logged-in user owns this user-created recipe. */
+export function isUserRecipeOwner(recipe, user) {
+  if (!recipe || recipe.source !== "user" || !user?.id) return false;
+  return !recipe.owner?.id || recipe.owner.id === user.id;
+}
+
+/**
+ * Recompute catalog fields after the owner edits Tipo / Aplica inline.
+ * Mirrors RecipePlannerScreen#saveRecipe classification logic.
+ */
+export function patchUserRecipeClassification(recipe, { usageTags, mealRole, quickDinner } = {}) {
+  const tags = usageTags ?? recipe.usageTags ?? deriveUsageTagsFromType(recipe.type);
+  const type = deriveTypeFromUsageTags(tags);
+  const isGarnishOnly = type === "guarnicion";
+  const qd = quickDinner ?? recipe.category === "cenas_rapidas";
+  const roles = mealRole ?? recipe.mealRole ?? [];
+  const fallbackCategory =
+    recipe.category && recipe.category !== "cenas_rapidas" && recipe.category !== "guarniciones"
+      ? recipe.category
+      : "platos_unicos";
+
+  return {
+    ...recipe,
+    usageTags: tags,
+    type,
+    category: isGarnishOnly ? "guarniciones" : qd ? "cenas_rapidas" : fallbackCategory,
+    mealRole: isGarnishOnly
+      ? ["guarnicion"]
+      : qd
+        ? Array.from(new Set([...roles.filter((r) => r !== "guarnicion"), "cena"]))
+        : roles,
+    pinnedGarnishId: type === "principal" ? recipe.pinnedGarnishId : undefined,
+    linkedCatalogId: tags.includes("guarnicion") ? recipe.linkedCatalogId : undefined,
+    source: "user",
+  };
+}
+
 export const USER_RECIPE_PROTEINS = [
   { id: "pollo", label: "Pollo" },
   { id: "pavo", label: "Pavo" },

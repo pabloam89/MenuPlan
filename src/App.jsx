@@ -2740,6 +2740,26 @@ export default function App() {
     trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id });
   }, [data.members, user]);
 
+  const handleUpdateUserRecipe = useCallback((updated) => {
+    if (!updated?.id) return;
+    setData((d) => ({
+      ...d,
+      userRecipes: (d.userRecipes ?? []).map((r) => (r.id === updated.id ? updated : r)),
+    }));
+    const eaters = selectedSlot?.slot?.eaters ?? Math.max(1, data.members?.length || 4);
+    const fr = catalogToFrontendRecipe(updated, eaters);
+    registerRecipes([fr]);
+    if (user?.id) upsertUserRecipe(user.id, updated);
+    setSelectedSlot((s) => {
+      if (!s) return s;
+      const baseId = String(s.recipe.baseRecipeId ?? s.recipe.id).split("__").pop();
+      if (baseId !== updated.id) return s;
+      const keepId = String(s.recipe.id).includes("__") ? s.recipe.id : fr.id;
+      return { ...s, recipe: { ...fr, id: keepId, baseRecipeId: updated.id } };
+    });
+    showToast("Encaje de la receta actualizado");
+  }, [selectedSlot, data.members, user, showToast]);
+
   const handleReplaceSlot = useCallback(async (selection, { sameCategory = false, reason = null } = {}) => {
     // Learn from the rejection (discard/cooldown/favorite) BEFORE the slot
     // mutates, so slotBaseRecipeId still reads the outgoing dish.
@@ -4017,6 +4037,7 @@ export default function App() {
                     patch,
                   )
           }
+          onUpdateUserRecipe={handleUpdateUserRecipe}
         />
       )}
 
