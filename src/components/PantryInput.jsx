@@ -9,9 +9,11 @@ import { toCanonicalStockQty } from "../lib/kitchenUnits.js";
 import { guessShoppingAisle, isPerishableAisle, normalizeName } from "../lib/ingredientCategories.js";
 import { IngredientPicker } from "../screens/RecipePlanner.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
+import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { aisleImageSrc, categoryImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 
+const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const FIELD_BG = "#fff";
@@ -357,7 +359,9 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
   const [dishFrozen, setDishFrozen] = useState(true);
   const [dishDate, setDishDate] = useState("today");
   const [dishRole, setDishRole] = useState("principal");
-  useEffect(() => { if (selected) setDishRole(inferDishRole(selected)); }, [selected]);
+  const [garnishId, setGarnishId] = useState(null);
+  const [garnishOpen, setGarnishOpen] = useState(false);
+  useEffect(() => { if (selected) { setDishRole(inferDishRole(selected)); setGarnishId(null); } }, [selected]);
   // Volver a la parrilla de categorías (desde el botón externo) también cierra
   // el detalle del plato abierto, para que "Categorías" siempre suba un nivel.
   useEffect(() => { if (!dishCat) setSelected(null); }, [dishCat]);
@@ -376,7 +380,9 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
   );
 
   if (selected) {
-    const photo = dishImageForRecipe(selected);
+    const photo = dishImageForRecipe(selected, garnishId ?? undefined);
+    const showGarnish = dishRole === "principal" || dishRole === "principal_guarnicion";
+    const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
     return (
       <div style={{ border: "1.5px solid #cfe0d6", borderRadius: 14, background: FIELD_BG, padding: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
@@ -388,8 +394,13 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
             </div>
           )}
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.2 }}>{selected.name}</div>
-            <DishRolePicker value={dishRole} onChange={setDishRole} />
+            <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.2 }}>
+              {garnish ? `${selected.name} con ${garnish.shortName ?? garnish.name}` : selected.name}
+            </div>
+            <DishRolePicker value={dishRole} onChange={(role) => {
+              setDishRole(role);
+              if (role !== "principal" && role !== "principal_guarnicion") setGarnishId(null);
+            }} />
           </div>
           <button
             type="button"
@@ -400,6 +411,26 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
             <X size={18} />
           </button>
         </div>
+
+        {showGarnish && (
+          <button
+            type="button"
+            onClick={() => setGarnishOpen(true)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 8,
+              padding: "9px 12px", marginBottom: 12, borderRadius: 12,
+              border: `1.5px solid ${garnish ? "#3f9656" : "#dce8e0"}`,
+              background: garnish ? "#eef8f1" : "#fff", cursor: "pointer",
+              fontFamily: "inherit", textAlign: "left",
+            }}
+          >
+            <Salad size={16} color={GREEN} strokeWidth={2.2} />
+            <span style={{ flex: 1, fontSize: 12.5, fontWeight: 800, color: INK }}>
+              {garnish ? `Guarnición: ${garnish.shortName ?? garnish.name}` : "Añadir guarnición (opcional)"}
+            </span>
+            <ChevronDown size={14} color="#7a9082" />
+          </button>
+        )}
 
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 12 }}>
           <div style={{ flexShrink: 0 }}>
@@ -451,11 +482,19 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
           disabled={saving}
           onClick={() => {
             const p = Number(portions) > 0 ? Number(portions) : 1;
-            onSave?.({ recipe: selected, portions: p, frozen: dishFrozen, cookedAt: cookedAtFromKey(dishDate), dishRole });
+            onSave?.({
+              recipe: selected,
+              portions: p,
+              frozen: dishFrozen,
+              cookedAt: cookedAtFromKey(dishDate),
+              dishRole,
+              garnishRef: showGarnish ? garnishId : null,
+            });
             setSelected(null);
             setPortions(2);
             setDishFrozen(true);
             setDishDate("today");
+            setGarnishId(null);
           }}
           style={{
             width: "100%", padding: "11px 12px", borderRadius: 12, border: "none",
@@ -467,6 +506,57 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
           {saving ? <Loader2 size={16} className="mp-spin" /> : <Plus size={16} />}
           Guardar plato cocinado
         </button>
+
+        {garnishOpen && createPortal(
+          <div
+            onClick={() => setGarnishOpen(false)}
+            style={{
+              position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 220,
+              display: "flex", alignItems: "flex-end", justifyContent: "center",
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420,
+                maxHeight: "70dvh", display: "flex", flexDirection: "column", overflow: "hidden",
+              }}
+            >
+              <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #e8f0ea", flexShrink: 0 }}>
+                <div style={{ fontSize: 16, fontWeight: 900, color: INK }}>Elige guarnición</div>
+                <div style={{ fontSize: 12, color: "#7a9485", marginTop: 2 }}>Opcional — para tuppers ya montados</div>
+              </div>
+              <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px 18px", display: "flex", flexDirection: "column", gap: 6 }}>
+                <button
+                  type="button"
+                  onClick={() => { setGarnishId(null); setGarnishOpen(false); }}
+                  style={{
+                    padding: "11px 12px", borderRadius: 12, border: `1.5px solid ${!garnishId ? GREEN : "#dce8e0"}`,
+                    background: !garnishId ? "#eef8f1" : "#fff", cursor: "pointer", fontFamily: "inherit",
+                    fontSize: 13, fontWeight: 800, color: INK, textAlign: "left",
+                  }}
+                >
+                  Sin guarnición
+                </button>
+                {guarnicionesData.map((g) => (
+                  <button
+                    key={g.id}
+                    type="button"
+                    onClick={() => { setGarnishId(g.id); setGarnishOpen(false); }}
+                    style={{
+                      padding: "11px 12px", borderRadius: 12, border: `1.5px solid ${garnishId === g.id ? GREEN : "#dce8e0"}`,
+                      background: garnishId === g.id ? "#eef8f1" : "#fff", cursor: "pointer", fontFamily: "inherit",
+                      fontSize: 13, fontWeight: 800, color: INK, textAlign: "left",
+                    }}
+                  >
+                    {g.shortName ?? g.name}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>,
+          document.body,
+        )}
       </div>
     );
   }
@@ -1163,15 +1253,20 @@ export function PantryInput({
 
   // Cooked dish → its own row (raciones + nevera/congelador). recipeRef keeps a
   // link back to the catalog recipe so DishDetail can reopen it later.
-  const handleSaveCookedDish = async ({ recipe, portions, frozen: dishFrozen, cookedAt, dishRole }) => {
+  const handleSaveCookedDish = async ({ recipe, portions, frozen: dishFrozen, cookedAt, dishRole, garnishRef }) => {
     if (!recipe || saving) return;
     setSaving(true);
+    const garnish = garnishRef ? GARNISH_BY_ID[garnishRef] : null;
+    const displayName = garnish
+      ? `${recipe.name} con ${garnish.shortName ?? garnish.name}`
+      : recipe.name;
     const items = [{
-      name: recipe.name,
+      name: displayName,
       normalized: recipe.id,
       itemType: "cooked_dish",
       portions,
       recipeRef: recipe.id,
+      garnishRef: garnishRef ?? null,
       frozen: dishFrozen,
       cookedAt,
       dishRole,

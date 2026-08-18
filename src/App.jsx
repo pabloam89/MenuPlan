@@ -38,7 +38,7 @@ import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
-import { clearFreezerFromSlot } from "./lib/freezer.js";
+import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
 import { getDayMeals, DAYS } from "./lib/planner.js";
 import {
@@ -3096,7 +3096,7 @@ export default function App() {
       if (!prevSlot) return plan;
       const nextSlot = patch
         ? { ...prevSlot, ...patch }
-        : clearFreezerFromSlot(prevSlot);
+        : clearPreparedFromSlot(prevSlot);
       const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
       applyShoppingFor(next, groups, pantryIngredients);
       return next;

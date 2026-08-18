@@ -2,7 +2,7 @@ import { RECIPES_BY_ID } from "../data/recipes.js";
 import { categoryForIngredient, normalizeIngredientKey, isQualitativeUnit, qualitativeUnitLabel } from "./ingredientCategories.js";
 import { DAYS, MEALS } from "./planner.js";
 import { ingredientWords, wordsOverlapEither, isWordSubsetOf } from "../utils/normalizePantryInput.js";
-import { cookedEatersFor, slotUsesFreezer } from "./freezer.js";
+import { cookedEatersFor, slotUsesPrepared, slotGarnishInTupper } from "./freezer.js";
 
 // Whole-word match (not raw substring — see normalizePantryInput.js's
 // "Repollo" note) between a shopping-list ingredient name and the user's
@@ -179,16 +179,17 @@ export function buildShoppingList(menuPlan, groups, meals = MEALS, pantryIngredi
           // be flagged in the shopping list instead of blending in as a plain
           // renamed line the user might not notice and buy the wrong product.
           const adaptedNames = new Set((recipe.adaptations ?? []).map((a) => a.to));
-          // Slots cubiertos (total o parcialmente) desde el congelador: del plato
-          // principal solo se compra lo que falte por cocinar — 0 si las raciones
-          // congeladas cubren a todos los comensales. La guarnición no se congela
-          // nunca (el tupper guarda el plato, no el acompañamiento), así que se
-          // sigue comprando para la mesa entera.
-          const usesFreezer = slotUsesFreezer(slot, rid);
-          const mainEaters = usesFreezer ? cookedEatersFor(slot, rid) : slot.eaters;
+          // Slots cubiertos (total o parcialmente) desde nevera/congelador: del
+          // plato principal solo se compra lo que falte por cocinar. Si la
+          // guarnición va en el tupper (preparedGarnishRef), tampoco se compra.
+          const usesPrepared = slotUsesPrepared(slot, rid);
+          const mainEaters = usesPrepared ? cookedEatersFor(slot, rid) : slot.eaters;
+          const garnishInTupper = slotGarnishInTupper(slot, rid);
           for (const ing of recipe.ingredients) {
             const forGarnish = isGarnishIngredient(ing);
-            const ingEaters = forGarnish ? slot.eaters : mainEaters;
+            const ingEaters = forGarnish
+              ? (garnishInTupper ? cookedEatersFor(slot, rid) : slot.eaters)
+              : mainEaters;
             // Nada que comprar de esta mitad del plato: ya está cocinada y
             // esperando en el congelador.
             if (ingEaters <= 0) continue;

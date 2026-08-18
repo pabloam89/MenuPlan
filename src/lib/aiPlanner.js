@@ -22,7 +22,7 @@ import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
 import { buildAdaptationMap } from "./substitutions.js";
-import { assignFreezerToPlan, indexFrozenDishes, itemPortions } from "./freezer.js";
+import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
 import { dominantComponentOf } from "./dominantComponent.js";
 import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
@@ -500,7 +500,7 @@ export function buildGroupContext(data, group) {
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
 // lo de casa, fuerte) | "prefer"/"off" (preferencia blanda). "off" nunca llega
 // aquí con nombres porque App vacía la lista antes.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred") {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred", fridgeDishes = []) {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
@@ -550,6 +550,18 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
         .map((d) => `- ${d.name} (${d.portions} ${d.portions === 1 ? "ración" : "raciones"}) → recipeId "${d.recipeId}"`)
         .join("\n")}` +
         `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca estos platos en algún hueco de la semana donde encajen. Ya están hechos: no hay que cocinarlos ni comprarlos, solo descongelar. Usa EXACTAMENTE el recipeId indicado. No repitas el mismo plato congelado en más huecos de los que dan sus raciones, y no lo fuerces en un hueco donde rompa el tipo de plato, la variedad, la complementación escolar o las alergias.`,
+    );
+  }
+
+  if (fridgeDishes.length > 0) {
+    parts.push(
+      `\nPLATOS YA COCINADOS EN LA NEVERA (raciones listas para comer pronto):\n${fridgeDishes
+        .map((d) => {
+          const garnishNote = d.garnishName ? ` con ${d.garnishName}` : "";
+          return `- ${d.name}${garnishNote} (${d.portions} ${d.portions === 1 ? "ración" : "raciones"}) → recipeId "${d.recipeId}"`;
+        })
+        .join("\n")}` +
+        `\n\nINSTRUCCIÓN ADICIONAL (PRIORIDAD ALTA): coloca estos platos en los huecos más próximos donde encajen — caducan antes que el congelador. Ya están hechos: no hay que cocinarlos ni comprarlos, solo recalentar. Usa EXACTAMENTE el recipeId indicado. No repitas el mismo plato en más huecos de los que dan sus raciones.`,
     );
   }
 
@@ -860,6 +872,22 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     });
   }
 
+  const fridgeDishes = [];
+  for (const [recipeRef, items] of indexFridgeDishes(pantryIngredients)) {
+    if (!frozenPoolIds.has(recipeRef)) continue;
+    const garnishRef = items.find((it) => it.garnishRef)?.garnishRef ?? null;
+    const garnishName = garnishRef ? guarnicionesData.find((g) => g.id === garnishRef)?.shortName : null;
+    fridgeDishes.push({
+      recipeId: recipeRef,
+      name:
+        recipeCatalogById[recipeRef]?.name ??
+        filteredPool.find((r) => r.id === recipeRef)?.name ??
+        items[0].ingredientName,
+      portions: items.reduce((s, it) => s + itemPortions(it), 0),
+      garnishName,
+    });
+  }
+
   const userMessage = buildUserMessage(
     filteredPool,
     ctx.slots,
@@ -872,6 +900,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     pantryMode,
     frozenDishes,
     ctx.filterOpts.recipeMode ?? "preferred",
+    fridgeDishes,
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
@@ -1612,10 +1641,11 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   // stock (ver assignFreezerToPlan). En "off" el usuario ha pedido ignorar lo
   // que hay en casa, así que tampoco se toca el congelador.
   if (pantryMode !== "off") {
-    assignFreezerToPlan(plan, pantryIngredients, {
+    assignPreparedToPlan(plan, pantryIngredients, {
       days: DAYS,
       mealLabels: ["Comida", "Cena"],
     });
+    applyPreparedGarnishes(plan, allRecipes, guarnicionById, results);
   }
 
   if (placedSlots === 0) {
@@ -1623,6 +1653,39 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   }
 
   return { plan, recipes: allRecipes };
+}
+
+/**
+ * Si un hueco se cubrió con un tupper que incluye guarnición (preparedGarnishRef),
+ * sustituye la guarnición auto-emparejada por la del tupper.
+ */
+export function applyPreparedGarnishes(plan, allRecipes, guarnicionById, groupResults) {
+  const restrictionsByGroup = Object.fromEntries(
+    (groupResults ?? []).map(({ group, restrictions }) => [group.id, restrictions ?? []]),
+  );
+  for (const [groupId, slots] of Object.entries(plan)) {
+    if (groupId.startsWith("_")) continue;
+    for (const slot of Object.values(slots ?? {})) {
+      const garnishId = slot.preparedGarnishRef;
+      if (!garnishId || !slotUsesPrepared(slot, slot.recipeId)) continue;
+      const garnish = guarnicionById[garnishId];
+      if (!garnish) continue;
+      const frIdx = allRecipes.findIndex((r) => r.id === slot.recipeId);
+      if (frIdx < 0) continue;
+      const fr = allRecipes[frIdx];
+      if (fr.garnishId === garnishId) continue;
+      const baseId = fr.baseRecipeId ?? catalogIdOfPlanRecipe(slot.recipeId);
+      const catalogRecipe = recipeCatalogById[baseId];
+      if (!catalogRecipe) continue;
+      const eaters = slot.eaters ?? 2;
+      const restrictions = restrictionsByGroup[groupId] ?? [];
+      const base = catalogToFrontendRecipe(catalogRecipe, eaters, restrictions);
+      base.id = fr.id;
+      base.baseRecipeId = baseId;
+      applyGarnishToRecipe(base, garnish, eaters, restrictions);
+      allRecipes[frIdx] = base;
+    }
+  }
 }
 
 // ── Slot replacement (deterministic, from the rich catalog) ──────────────
