@@ -10162,66 +10162,20 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
           <div style={{ fontSize: 13, fontWeight: 800, color: "#142f1d", marginBottom: 12 }}>
             Variedad entre semanas
           </div>
-          <div style={{ display: "flex", gap: 6 }}>
-            {VARIETY_OPTIONS.map((opt) => {
-              const sel = (data.menuVarietyPref ?? "strict") === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setData((d) => ({ ...d, menuVarietyPref: opt.id }))}
-                  style={{
-                    position: "relative",
-                    flex: 1, minWidth: 0,
-                    height: 112,
-                    borderRadius: 15,
-                    overflow: "hidden",
-                    border: "none",
-                    padding: 0,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    boxShadow: sel
-                      ? "0 0 0 2.5px #2d5a3d, 0 6px 18px rgba(45,90,61,.3)"
-                      : "0 1px 4px rgba(0,0,0,.1)",
-                    transition: "box-shadow .16s ease",
-                  }}
-                >
-                  {opt.img && (
-                    <img
-                      src={opt.img}
-                      alt=""
-                      style={{
-                        position: "absolute", inset: 0, width: "100%", height: "100%",
-                        objectFit: "cover", objectPosition: "center top",
-                        filter: sel ? "none" : "saturate(.7) brightness(.95)",
-                        transition: "filter .16s ease",
-                      }}
-                    />
-                  )}
-                  <div style={{
-                    position: "absolute", inset: 0,
-                    background: "linear-gradient(180deg, rgba(0,0,0,0) 35%, rgba(0,0,0,.65) 100%)",
-                  }} />
-                  {sel && (
-                    <span style={{
-                      position: "absolute", top: 5, right: 5,
-                      width: 16, height: 16, borderRadius: 999,
-                      background: "#2d5a3d", border: "1.5px solid #fff",
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <Check size={9} color="#fff" strokeWidth={3} />
-                    </span>
-                  )}
-                  <div style={{
-                    position: "absolute", bottom: 6, left: 4, right: 4,
-                    fontSize: 9.5, fontWeight: 800, color: "#fff",
-                    textAlign: "center", lineHeight: 1.2,
-                  }}>
-                    {opt.label}
-                  </div>
-                </button>
-              );
-            })}
+          <div style={{ display: "flex", gap: 8 }}>
+            {VARIETY_OPTIONS.map((opt) => (
+              <RestrictionTabCard
+                key={opt.id}
+                img={opt.img}
+                title={opt.label}
+                imgRatio="3 / 2"
+                compact
+                accent={CARD_ACCENT_TEAL}
+                selectAccent={CARD_ACCENT_TEAL}
+                active={(data.menuVarietyPref ?? "strict") === opt.id}
+                onClick={() => setData((d) => ({ ...d, menuVarietyPref: opt.id }))}
+              />
+            ))}
           </div>
         </div>
       )}
