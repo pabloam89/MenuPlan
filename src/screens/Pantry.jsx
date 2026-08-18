@@ -1896,6 +1896,7 @@ export function PantryScreen({
             <div data-coach="pantry-add">
               <PantryModePicker tab={addTab} setTab={setAddTab} canUploadReceipt={canUploadReceipt} />
               <PantryInput
+                user={user}
                 hideTabs
                 tab={addTab}
                 onTabChange={setAddTab}
