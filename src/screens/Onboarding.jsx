@@ -26,7 +26,6 @@ import {
   IceCream,
   ChevronDown,
   CircleDot,
-  Drumstick,
   Expand,
   FileText,
   House,
@@ -123,6 +122,15 @@ import {
   slotKey,
 } from "../lib/planner.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
+import {
+  kidMembers,
+  kidSchoolDays,
+  resolveKidDinnerConfig,
+  normalizeKidDinnerConfig,
+  deriveKidsMenuModel,
+  KID_DINNER_DEFAULTS,
+  KID_DINNER_AVOID_DEFAULTS,
+} from "../lib/kidsMenu.js";
 import { POSTRE_TIPOS, POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, normalizeSchoolMenus, replaceSchoolWeeks, setSchoolDishAt, clearSchoolWeek, clearSchoolScope, getSchoolIconOverride, setSchoolIconOverride } from "../lib/schoolMenu.js";
 import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
@@ -2450,6 +2458,7 @@ function RestrictionTabCard({
   imgRatio = "1 / 1",
   imgHeight,
   textOverlay = false,
+  compact = false,
   accent = CARD_ACCENT,
 }) {
   const illustrated = Boolean(img || (images && images.length));
@@ -2501,7 +2510,7 @@ function RestrictionTabCard({
             <img
               src={img ?? images?.[0]}
               alt=""
-              loading="lazy"
+              loading={imgHeight ? "eager" : "lazy"}
               style={{
                 width: "100%",
                 height: "100%",
@@ -2530,14 +2539,16 @@ function RestrictionTabCard({
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              padding: "8px 6px 9px",
+              padding: compact ? "5px 6px 6px" : "8px 6px 9px",
               background: active ? accent : "#fff",
               textAlign: "center",
               color: active ? "#fff" : "#142f1d",
             }}
           >
-            <div style={{ fontSize: 12, fontWeight: 800 }}>{title}</div>
-            <div style={{ fontSize: 10, fontWeight: 600, marginTop: 1, opacity: 0.9 }}>{subtitle}</div>
+            <div style={{ fontSize: compact ? 11.5 : 12, fontWeight: 800, lineHeight: 1.15 }}>{title}</div>
+            {subtitle ? (
+              <div style={{ fontSize: compact ? 9.5 : 10, fontWeight: 600, marginTop: compact ? 0 : 1, opacity: 0.9, lineHeight: 1.2 }}>{subtitle}</div>
+            ) : null}
           </div>
         )}
       </button>
@@ -3247,9 +3258,9 @@ const AFINAR_WIZARD_STEPS = [
   { step: 4, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
   { step: 5, Icon: CalendarDays, label: "Semana", desc: "Elige qué semana planificar" },
   { step: 6, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
-  { step: 7, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
-  { step: 10, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
-  { step: 11, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
+  { step: 8, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
+  { step: 11, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
+  { step: 12, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
 ];
 
 export function AfinarWizardBubble({ onClose, visibleSteps }) {
@@ -3828,6 +3839,437 @@ const MIXED_COLOR = "#aaa";
 // —de ahí que suba respecto al #e9f3ec de antes— pero quedarse por debajo de
 // las fichas de comedor y de fuera, que son las que deben saltar.
 const HOME_BAND = "#d9edde";
+
+// ── ¿Cómo comen los niños? ────────────────────────────────────────────────────
+// Pantalla dedicada tras el horario (y las alergias): ya sabemos qué días come
+// cada niño en el cole y qué días en casa, así que aquí decidimos QUÉ les
+// preparamos. UNA sola decisión de verdad para que no haya repetición:
+//
+//   Lo mismo que la familia  → comen el menú de los mayores (menuModel "same").
+//   Un menú para ellos       → menú aparte (menuModel "separate"). Al elegirlo se
+//                              despliega:
+//                                · ¿Comen de todo? / Comen poquita cosa (+popup
+//                                  con lo que sí comen — el planner garantiza
+//                                  algo suyo en el plato).
+//                                · Solo si hay comedor: la cena esos días, o
+//                                  "lo que comió la familia a mediodía" (para no
+//                                  repetir el cole) o "una cena aparte".
+//
+// Wording pensado para familias españolas clásicas: lenguaje llano, sin jerga.
+// Bajo el capó sigue guardándose el modelo por comida de kidsMenu.js
+// (weekdayLunch/dinner/weekend), que es lo que lee el planner; esta pantalla solo
+// escribe combinaciones coherentes. Sustituye a la vieja «¿coméis lo mismo?»: de
+// estas elecciones se deriva familia vs separado. Se guarda por niño (chips
+// «Todos» / cada uno). Ver src/lib/kidsMenu.js.
+
+const KID_DINNER_ILLUS = {
+  lunchTogether: "/avatares/cards/ninos_comen_cenan_mismo.jpg",
+  lunchOwn: "/avatares/cards/ninos_menu_propio_nino.jpg",
+  comenTodo: "/avatares/cards/ninos_comen_de_todo.jpg",
+  comenPoquito: "/avatares/cards/ninos_comen_poquito.jpg",
+  reuseCole: "/avatares/cards/ninos_cenan_mediodia.jpg",
+};
+
+const KID_AVOID_ROWS = [
+  { key: "protein", img: "/categories/cut/carne.png", label: "Proteína" },
+  { key: "carbs", img: "/categories/cut/pasta_arroz.png", label: "Hidratos" },
+  { key: "veg", img: "/categories/cut/verduras.png", label: "Verdura" },
+];
+
+// Alimentos "seguros" para el niño quisquilloso. Categorías sencillas (nombres
+// que cualquier familia reconoce), no recetas: el planner las mapea a grupos de
+// foodGroups.js para garantizar algo suyo en cada hueco. Cada una lleva su
+// ilustración recortada (las mismas que usamos en despensa/ingredientes).
+const KID_SAFE_FOODS = [
+  { key: "pasta", label: "Pasta", img: "/ingredients/macarrones.png" },
+  { key: "arroz", label: "Arroz", img: "/ingredients/arroz.png" },
+  { key: "pollo", label: "Pollo", img: "/ingredients/pollo.png" },
+  { key: "huevo", label: "Huevo", img: "/ingredients/huevos.png" },
+  { key: "pescado", label: "Pescado", img: "/ingredients/merluza.png" },
+  { key: "carne", label: "Carne", img: "/ingredients/ternera.png" },
+  { key: "legumbres", label: "Legumbres", img: "/ingredients/lentejas.png" },
+  { key: "verdura", label: "Verdura", img: "/categories/verduras.png" },
+  { key: "patata", label: "Patata", img: "/ingredients/patata.png" },
+  { key: "fruta", label: "Fruta", img: "/ingredients/manzana.png" },
+  { key: "pan", label: "Pan", img: "/ingredients/pan.png" },
+  { key: "lacteos", label: "Queso y yogur", img: "/ingredients/queso.png" },
+];
+
+function KidSafeFoodsSheet({ initial, onClose, onSave }) {
+  const [sel, setSel] = useState(() => new Set(initial ?? []));
+  const toggle = (k) =>
+    setSel((s) => {
+      const n = new Set(s);
+      if (n.has(k)) n.delete(k);
+      else n.add(k);
+      return n;
+    });
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 220,
+        background: "rgba(20,47,29,.4)", backdropFilter: "blur(2px)",
+        display: "flex", alignItems: "center", justifyContent: "center", padding: "0 18px",
+        animation: "kidAvoidFade .18s ease",
+      }}
+    >
+      <style>{`@keyframes kidAvoidFade{from{opacity:0}to{opacity:1}}@keyframes kidAvoidPop{from{opacity:0;transform:translateY(14px) scale(.96)}to{opacity:1;transform:none}}`}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: "100%", maxWidth: 360, background: "#fff", borderRadius: 22,
+          padding: "20px 18px 16px", boxShadow: "0 20px 54px rgba(20,47,29,.34)",
+          animation: "kidAvoidPop .28s cubic-bezier(.34,1.4,.5,1) both",
+        }}
+      >
+        <p style={{ margin: "0 0 3px", fontSize: 16, fontWeight: 800, color: "#142f1d" }}>
+          ¿Qué les gusta comer?
+        </p>
+        <p style={{ margin: "0 0 14px", fontSize: 13, fontWeight: 600, color: "#5a7066", lineHeight: 1.45 }}>
+          Marca lo que comen sin problema. Intentaremos que siempre haya algo suyo en el plato.
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 10 }}>
+          {KID_SAFE_FOODS.map((f) => {
+            const on = sel.has(f.key);
+            return (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => toggle(f.key)}
+                style={{
+                  display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                  padding: 0, background: "none", border: "none", cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                <span style={{
+                  position: "relative", width: "100%", aspectRatio: "1 / 1", borderRadius: 12,
+                  overflow: "hidden", background: on ? "#eef5f0" : "#f4f7f5",
+                  border: `2px solid ${on ? "#2d5a3d" : "#e6ece8"}`,
+                  transition: "all .14s ease",
+                }}>
+                  <img src={f.img} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                  {on && (
+                    <span style={{
+                      position: "absolute", top: 3, right: 3,
+                      width: 17, height: 17, borderRadius: "50%", background: "#2d5a3d",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      boxShadow: "0 1px 3px rgba(20,47,29,.3)",
+                    }}>
+                      <Check size={10} color="#fff" strokeWidth={3.2} />
+                    </span>
+                  )}
+                </span>
+                <span style={{
+                  fontSize: 11, fontWeight: 700, lineHeight: 1.15, textAlign: "center",
+                  color: on ? "#2d5a3d" : "#3a4a41",
+                }}>
+                  {f.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <button
+          type="button"
+          onClick={() => onSave(Array.from(sel))}
+          style={{
+            width: "100%", marginTop: 16, padding: "13px 0", borderRadius: 14, border: "none",
+            background: "#2d5a3d", color: "#fff", fontSize: 15, fontWeight: 800,
+            cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          Guardar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function OnboardingKidsDinner({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+  const kids = useMemo(() => kidMembers(data.members), [data.members]);
+  const [scope, setScope] = useState("__all__");
+  const [safeOpen, setSafeOpen] = useState(false);
+
+  // Guard: si no hay niños esta pantalla no debería mostrarse (el onboarding la
+  // salta), pero por si acaso no reventamos.
+  if (kids.length === 0) {
+    return (
+      <OnboardingShell
+        title="El menú de los niños"
+        subtitle="Añade algún niño a la familia para configurarlo."
+        nextLabel={nextLabel} onBack={onBack} onReset={onReset} onNext={onNext} onFinish={onFinish}
+      >
+        <div />
+      </OnboardingShell>
+    );
+  }
+
+  const selectedKids = scope === "__all__" ? kids : kids.filter((k) => k.id === scope);
+  const schedule = data.schedule ?? {};
+  // El ajuste de cena solo aparece si algún día comen en el comedor (si no, no
+  // hay nada del cole que aprovechar ni evitar).
+  const hasSchool = selectedKids.some((k) => kidSchoolDays(schedule, k.id).length > 0);
+
+  const cfgFor = (id) => resolveKidDinnerConfig(data, id);
+  // La tarjeta principal (familia vs propio) mira solo mediodía + finde. La cena
+  // es una decisión aparte que vive en su propia sección (solo con cole), para
+  // que sea siempre visible sin arrastrar el resto.
+  const modeOf = (c) =>
+    c.weekdayLunch === "together" && c.weekend === "together" ? "family" : "own";
+  // Valor común del scope (o null si los niños seleccionados difieren).
+  const common = (fn) => {
+    const vals = selectedKids.map((k) => fn(cfgFor(k.id)));
+    return vals.length > 0 && vals.every((v) => v === vals[0]) ? vals[0] : null;
+  };
+  const mode = common(modeOf);
+  const limited = common((c) => Boolean(c.limited));
+  const reuseCole = common((c) => Boolean(c.reuseColeDinner));
+  const firstCfg = cfgFor(selectedKids[0]?.id ?? "");
+  const safeFoods = firstCfg?.safeFoods ?? [];
+  const avoid = firstCfg?.avoid ?? { ...KID_DINNER_AVOID_DEFAULTS };
+
+  // Escribe la config de los niños seleccionados y, a la vez, deriva el modelo
+  // de menú (familia vs separado) + grupos: esta pantalla sustituye a la vieja
+  // «¿coméis lo mismo?».
+  const commit = (mutate) =>
+    setData((d) => {
+      const cfg = normalizeKidDinnerConfig(d.kidDinnerConfig);
+      const byMember = { ...cfg.byMember };
+      for (const k of selectedKids) {
+        const base = byMember[k.id] ?? { ...KID_DINNER_DEFAULTS, safeFoods: [], avoid: { ...KID_DINNER_AVOID_DEFAULTS } };
+        byMember[k.id] = mutate(base);
+      }
+      const next = { ...d, kidDinnerConfig: { byMember } };
+      const model = deriveKidsMenuModel(next);
+      if (model) {
+        const withAge = (next.members ?? []).map((m) => ({ ...m, age: memberAge(m) }));
+        next.menuModel = model;
+        next.groups = migrateGroupsForBabies(withAge, groupsFromModel(withAge, model), model);
+      }
+      return next;
+    });
+
+  // La elección principal fija la cena base (familia → como los padres; propio →
+  // suya). El aprovechamiento de cole es un toggle aparte que se superpone.
+  const setMode = (m) =>
+    commit((base) =>
+      m === "family"
+        ? { ...base, weekdayLunch: "together", weekend: "together", dinner: "sameDinner" }
+        // El decalaje "aprovechan lo del mediodía" solo existe en modo familia; al
+        // pasar a menú propio lo limpiamos para no dejar un flag oculto activo.
+        : { ...base, weekdayLunch: "own", weekend: "own", dinner: "different", reuseColeDinner: false },
+    );
+  const setReuseCole = (v) => commit((base) => ({ ...base, reuseColeDinner: v }));
+  const setLimited = (v) => commit((base) => ({ ...base, limited: v }));
+  const saveSafeFoods = (list) => commit((base) => ({ ...base, limited: true, safeFoods: [...list] }));
+  // "Puede repetir X del comedor" = avoid[X] false. Se pinta en positivo (card
+  // activa = sí puede repetir), pero por dentro seguimos guardando el "avoid".
+  const toggleCanRepeat = (key) =>
+    commit((base) => {
+      const cur = { ...KID_DINNER_AVOID_DEFAULTS, ...(base.avoid || {}) };
+      return { ...base, avoid: { ...cur, [key]: !cur[key] } };
+    });
+
+  const showComedorRepeat = hasSchool && (mode === "own" || (mode === "family" && !reuseCole));
+
+  const scopeOptions = [
+    { id: "__all__", label: "Todos", abbrev: "T", Icon: Users, color: "#0f766e", members: kids },
+    ...kids.map((m) => ({
+      id: m.id,
+      label: m.name,
+      abbrev: (m.name ?? "?").trim().charAt(0).toUpperCase() || "?",
+      color: memberAvatarColor(m.id, data.members),
+      members: [m],
+    })),
+  ];
+
+  const Card = ({ active, onClick, img, title, subtitle, accent = CARD_ACCENT_TEAL, compact = false, imgHeight }) => (
+    <RestrictionTabCard
+      img={img}
+      title={title}
+      subtitle={subtitle}
+      accent={accent}
+      active={active}
+      onClick={onClick}
+      compact={compact}
+      imgHeight={imgHeight}
+    />
+  );
+
+  const linkStyle = {
+    display: "inline-flex", alignItems: "center", gap: 6, marginTop: 10,
+    background: "none", border: "none", color: "#0f766e",
+    fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit", padding: "4px 2px",
+  };
+
+  return (
+    <OnboardingShell
+      title="¿Cómo comen los niños?"
+      subtitle="Dinos cómo prefieres organizar sus comidas."
+      nextLabel={nextLabel}
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+    >
+      {kids.length > 1 && (
+        <div style={{ marginBottom: 18 }}>
+          <ScopeCirclePicker
+            value={scope}
+            onChange={setScope}
+            allMembers={data.members}
+            options={scopeOptions}
+            style={{ marginBottom: 0 }}
+          />
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+        {/* La única decisión de verdad: mismo menú o menú aparte. */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <Card
+            active={mode === "family"}
+            onClick={() => setMode("family")}
+            img={KID_DINNER_ILLUS.lunchTogether}
+            imgHeight={160}
+            title="Lo mismo que la familia"
+          />
+          <Card
+            active={mode === "own"}
+            onClick={() => setMode("own")}
+            img={KID_DINNER_ILLUS.lunchOwn}
+            imgHeight={160}
+            title="Un menú para ellos"
+          />
+        </div>
+
+        {/* Aprovechar lo del mediodía: decalaje solo en "lo mismo que la familia".
+            La repetición del comedor en cena aplica también en familia (misma cena
+            que padres) y en menú propio — ver showComedorRepeat. */}
+        {mode === "family" && hasSchool && (
+          <section style={{ paddingTop: 18, borderTop: "1px solid #eef3f0" }}>
+            <SectionTitle Icon={Moon} color={mealTimeColor("Cena")}>¿Cenan los niños lo que comen los padres?</SectionTitle>
+            <button
+              type="button"
+              onClick={() => setReuseCole(!reuseCole)}
+              style={{
+                display: "flex", alignItems: "center", gap: 12, width: "100%",
+                padding: "14px", borderRadius: 14, cursor: "pointer", fontFamily: "inherit",
+                textAlign: "left", transition: "all .14s ease",
+                border: `2px solid ${!reuseCole ? CARD_ACCENT : "#e0eae3"}`,
+                background: !reuseCole ? "#eef5f0" : "#fff",
+              }}
+            >
+              <img
+                src={KID_DINNER_ILLUS.reuseCole}
+                alt=""
+                style={{ width: 64, height: 64, borderRadius: 12, objectFit: "cover", flexShrink: 0 }}
+              />
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#5a7066", lineHeight: 1.45 }}>
+                  {reuseCole
+                    ? "Para aprovechar lo que cocinamos en casa: esos días cenan lo del mediodía, sin repetir el cole ni cocinar otra cena."
+                    : "Sí. Esos días por la noche en casa comen lo mismo que vosotros."}
+                </span>
+              </span>
+              <span style={{
+                position: "relative", width: 46, height: 27, borderRadius: 999, flexShrink: 0,
+                background: !reuseCole ? CARD_ACCENT : "#cdd8d0", transition: "background .16s ease",
+              }}>
+                <span style={{
+                  position: "absolute", top: 3, left: !reuseCole ? 22 : 3, width: 21, height: 21,
+                  borderRadius: "50%", background: "#fff", transition: "left .16s ease",
+                  boxShadow: "0 1px 3px rgba(0,0,0,.25)",
+                }} />
+              </span>
+            </button>
+          </section>
+        )}
+
+        {mode === "own" && (
+          <section>
+            <SectionTitle Icon={Sun} color={mealTimeColor("Comida")}>¿Comen de todo?</SectionTitle>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+              <Card
+                accent={CARD_ACCENT}
+                imgHeight={160}
+                active={limited === false}
+                onClick={() => setLimited(false)}
+                img={KID_DINNER_ILLUS.comenTodo}
+                title="Comen de todo"
+              />
+              <Card
+                accent={CARD_ACCENT}
+                imgHeight={160}
+                active={limited === true}
+                onClick={() => { setLimited(true); setSafeOpen(true); }}
+                img={KID_DINNER_ILLUS.comenPoquito}
+                title="Comen sólo lo que les gusta"
+              />
+            </div>
+            {limited === true && (
+              <button type="button" onClick={() => setSafeOpen(true)} style={linkStyle}>
+                <SlidersHorizontal size={14} />
+                {safeFoods.length > 0
+                  ? `Comen: ${safeFoods.length} ${safeFoods.length > 1 ? "alimentos" : "alimento"}`
+                  : "Elegir qué les gusta"}
+              </button>
+            )}
+          </section>
+        )}
+
+        {showComedorRepeat && (
+          <section style={{ paddingTop: 18, borderTop: "1px solid #eef3f0" }}>
+            <SectionTitle Icon={Moon} color={mealTimeColor("Cena")}>¿Pueden repetir algo del comedor en la cena?</SectionTitle>
+            <p style={{ margin: "0 0 12px", fontSize: 12, fontWeight: 600, color: "#5a7066", lineHeight: 1.45 }}>
+              Marca lo que puedan repetir: lo demás lo evitamos por categoría.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+              {KID_AVOID_ROWS.map((row) => {
+                const canRepeat = !avoid[row.key];
+                return (
+                  <button
+                    key={row.key}
+                    type="button"
+                    onClick={() => toggleCanRepeat(row.key)}
+                    style={{
+                      position: "relative", display: "flex", flexDirection: "column",
+                      alignItems: "center", gap: 6, padding: "12px 6px 10px",
+                      borderRadius: 14, cursor: "pointer", fontFamily: "inherit",
+                      transition: "all .14s ease",
+                      border: `2px solid ${canRepeat ? CARD_ACCENT : "#e0eae3"}`,
+                      background: canRepeat ? "#eef5f0" : "#fff",
+                    }}
+                  >
+                    <img src={row.img} alt="" loading="lazy" style={{ width: "100%", height: 54, objectFit: "contain" }} />
+                    <span style={{ fontSize: 12, fontWeight: 800, color: "#142f1d" }}>{row.label}</span>
+                    {canRepeat && (
+                      <span style={{
+                        position: "absolute", top: 6, right: 6, width: 18, height: 18, borderRadius: "50%",
+                        background: CARD_ACCENT, display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>
+                        <Check size={11} color="#fff" strokeWidth={3} />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        )}
+      </div>
+
+      {safeOpen && (
+        <KidSafeFoodsSheet
+          initial={safeFoods}
+          onClose={() => setSafeOpen(false)}
+          onSave={(list) => { saveSafeFoods(list); setSafeOpen(false); }}
+        />
+      )}
+    </OnboardingShell>
+  );
+}
 
 export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, onReset, autoplay = false, demoHeight = null }) {
   // Desayuno is optional (stored in data.extraMeals, not data.meals, so the AI
@@ -4635,7 +5077,7 @@ function SectionTitle({ children, img, Icon, color }) {
       style={{
         fontSize: 11,
         fontWeight: 800,
-          color: ink,
+        color: ink,
         textTransform: "uppercase",
         letterSpacing: 1,
       }}
@@ -6550,59 +6992,9 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
       </WizardSheet>
       )}
 
-      {hasAnyDish && !importing && data.expertMode && householdHasSchoolMenu(data.schoolMenus) && (
-        <button
-          type="button"
-          onClick={() =>
-            setData((d) => ({
-              ...d,
-              kidDinnerMatchesAdultLunch: !d.kidDinnerMatchesAdultLunch,
-              ...(d.menuModel !== "separate"
-                ? { menuModel: "separate", groups: groupsFromModel(d.members ?? [], "separate") }
-                : {}),
-            }))
-          }
-          style={{
-            width: "100%",
-            display: "flex",
-            alignItems: "flex-start",
-            gap: 12,
-            padding: "12px 14px",
-            borderRadius: 14,
-            border: `2px solid ${data.kidDinnerMatchesAdultLunch ? "#2d5a3d" : "#e0eae3"}`,
-            background: data.kidDinnerMatchesAdultLunch ? "#eef6f0" : "#fff",
-            cursor: "pointer",
-            fontFamily: "inherit",
-            textAlign: "left",
-            marginBottom: 12,
-          }}
-        >
-          <span
-            style={{
-              flexShrink: 0,
-              width: 22,
-              height: 22,
-              borderRadius: 7,
-              marginTop: 1,
-              border: `2px solid ${data.kidDinnerMatchesAdultLunch ? "#2d5a3d" : "#c5d4cb"}`,
-              background: data.kidDinnerMatchesAdultLunch ? "#2d5a3d" : "#fff",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {data.kidDinnerMatchesAdultLunch && <Check size={13} color="#fff" strokeWidth={3} />}
-          </span>
-          <span style={{ minWidth: 0 }}>
-            <span style={{ display: "block", fontSize: 13.5, fontWeight: 800, color: "#142f1d" }}>
-              Cena de los niños = comida de los adultos
-            </span>
-            <span style={{ display: "block", fontSize: 12, fontWeight: 600, color: "#6b7d70", marginTop: 3, lineHeight: 1.35 }}>
-              Ajustamos la comida familiar para que no coincida con el cole, y esa misma comida se sirve de cena a los niños.
-            </span>
-          </span>
-        </button>
-      )}
+      {/* "Cena de los niños = comida de los adultos" ya no vive aquí: se decide
+          en la pantalla dedicada «¿Cómo comen los niños?» (OnboardingKidsDinner),
+          que deriva kidDinnerMatchesAdultLunch a partir de la config por niño. */}
 
       {/* Deck-style review — same look & feel as the Menús section. The review
           only shows once there's a menú loaded; tapping any tile renames the

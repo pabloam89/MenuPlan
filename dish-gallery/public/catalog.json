@@ -294,6 +294,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_002+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_002%2Bguarniciones_023.jpg",
+    "name": "Pechugas de pollo a la plancha con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_003+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_003%2Bguarniciones_001.jpg",
     "name": "Albóndigas en salsa de tomate con arroz blanco",
@@ -448,6 +455,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_003+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_003%2Bguarniciones_023.jpg",
+    "name": "Albóndigas en salsa de tomate con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_004+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_004%2Bguarniciones_001.jpg",
     "name": "Filetes de lomo empanados con arroz blanco",
@@ -598,6 +612,13 @@
     "combo_id": "carnes_004+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_004%2Bguarniciones_022.jpg",
     "name": "Filetes de lomo empanados con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_004+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_004%2Bguarniciones_023.jpg",
+    "name": "Filetes de lomo empanados con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -763,6 +784,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_006+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_006%2Bguarniciones_023.jpg",
+    "name": "Pollo al ajillo con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_007+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_007%2Bguarniciones_001.jpg",
     "name": "Cinta de lomo adobada con arroz blanco",
@@ -913,6 +941,13 @@
     "combo_id": "carnes_007+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_007%2Bguarniciones_022.jpg",
     "name": "Cinta de lomo adobada con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_007+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_007%2Bguarniciones_023.jpg",
+    "name": "Cinta de lomo adobada con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1085,6 +1120,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_010+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_010%2Bguarniciones_023.jpg",
+    "name": "Pollo con pimientos con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_011+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_011%2Bguarniciones_001.jpg",
     "name": "Costillas de cerdo al horno con arroz blanco",
@@ -1235,6 +1277,13 @@
     "combo_id": "carnes_011+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_011%2Bguarniciones_022.jpg",
     "name": "Costillas de cerdo al horno con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_011+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_011%2Bguarniciones_023.jpg",
+    "name": "Costillas de cerdo al horno con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1393,6 +1442,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_012+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_012%2Bguarniciones_023.jpg",
+    "name": "San Jacobos caseros con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_013+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_013%2Bguarniciones_001.jpg",
     "name": "Muslos de pollo al horno con arroz blanco",
@@ -1543,6 +1599,13 @@
     "combo_id": "carnes_013+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_013%2Bguarniciones_022.jpg",
     "name": "Muslos de pollo al horno con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_013+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_013%2Bguarniciones_023.jpg",
+    "name": "Muslos de pollo al horno con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1701,6 +1764,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_014+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_014%2Bguarniciones_023.jpg",
+    "name": "Filetes rusos con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_015+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_015%2Bguarniciones_001.jpg",
     "name": "Ternera guisada con zanahorias con arroz blanco",
@@ -1851,6 +1921,13 @@
     "combo_id": "carnes_015+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_015%2Bguarniciones_022.jpg",
     "name": "Ternera guisada con zanahorias con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_015+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_015%2Bguarniciones_023.jpg",
+    "name": "Ternera guisada con zanahorias con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2009,6 +2086,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_016+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_016%2Bguarniciones_023.jpg",
+    "name": "Pollo en pepitoria con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_017+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_017%2Bguarniciones_001.jpg",
     "name": "Magro con tomate con arroz blanco",
@@ -2159,6 +2243,13 @@
     "combo_id": "carnes_017+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_017%2Bguarniciones_022.jpg",
     "name": "Magro con tomate con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_017+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_017%2Bguarniciones_023.jpg",
+    "name": "Magro con tomate con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2317,6 +2408,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_018+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_018%2Bguarniciones_023.jpg",
+    "name": "Secreto ibérico a la plancha con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_019+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_019%2Bguarniciones_001.jpg",
     "name": "Alitas de pollo al horno con arroz blanco",
@@ -2467,6 +2565,13 @@
     "combo_id": "carnes_019+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_019%2Bguarniciones_022.jpg",
     "name": "Alitas de pollo al horno con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_019+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_019%2Bguarniciones_023.jpg",
+    "name": "Alitas de pollo al horno con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2625,6 +2730,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_020+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_020%2Bguarniciones_023.jpg",
+    "name": "Solomillo de cerdo al Pedro Ximénez con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_021+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_021%2Bguarniciones_001.jpg",
     "name": "Carne guisada con verduras con arroz blanco",
@@ -2775,6 +2887,13 @@
     "combo_id": "carnes_021+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_021%2Bguarniciones_022.jpg",
     "name": "Carne guisada con verduras con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_021+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_021%2Bguarniciones_023.jpg",
+    "name": "Carne guisada con verduras con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2933,6 +3052,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_022+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_022%2Bguarniciones_023.jpg",
+    "name": "Lomo de cerdo en salsa con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_023+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_023%2Bguarniciones_001.jpg",
     "name": "Escalopines de ternera al limón con arroz blanco",
@@ -3083,6 +3209,13 @@
     "combo_id": "carnes_023+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_023%2Bguarniciones_022.jpg",
     "name": "Escalopines de ternera al limón con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_023+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_023%2Bguarniciones_023.jpg",
+    "name": "Escalopines de ternera al limón con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3241,6 +3374,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_024+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_023.jpg",
+    "name": "Pavo a la plancha con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_025+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_025%2Bguarniciones_001.jpg",
     "name": "Pollo al curry con arroz blanco",
@@ -3391,6 +3531,13 @@
     "combo_id": "carnes_025+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_025%2Bguarniciones_022.jpg",
     "name": "Pollo al curry con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_025+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_025%2Bguarniciones_023.jpg",
+    "name": "Pollo al curry con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3549,6 +3696,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_026+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_026%2Bguarniciones_023.jpg",
+    "name": "Albóndigas de pollo con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_027+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_027%2Bguarniciones_001.jpg",
     "name": "Chuletas de cerdo a la plancha con arroz blanco",
@@ -3699,6 +3853,13 @@
     "combo_id": "carnes_027+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_027%2Bguarniciones_022.jpg",
     "name": "Chuletas de cerdo a la plancha con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_027+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_027%2Bguarniciones_023.jpg",
+    "name": "Chuletas de cerdo a la plancha con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3857,6 +4018,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_028+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_028%2Bguarniciones_023.jpg",
+    "name": "Pollo con champiñones con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_029+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_029%2Bguarniciones_001.jpg",
     "name": "Redondo de ternera con arroz blanco",
@@ -4007,6 +4175,13 @@
     "combo_id": "carnes_029+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_029%2Bguarniciones_022.jpg",
     "name": "Redondo de ternera con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_029+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_029%2Bguarniciones_023.jpg",
+    "name": "Redondo de ternera con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4165,6 +4340,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_030+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_030%2Bguarniciones_023.jpg",
+    "name": "Brochetas de pollo con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_031+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_031%2Bguarniciones_001.jpg",
     "name": "Fricandó de ternera con arroz blanco",
@@ -4315,6 +4497,13 @@
     "combo_id": "carnes_031+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_031%2Bguarniciones_022.jpg",
     "name": "Fricandó de ternera con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_031+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_031%2Bguarniciones_023.jpg",
+    "name": "Fricandó de ternera con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4473,6 +4662,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_032+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_032%2Bguarniciones_023.jpg",
+    "name": "Escalope de pollo con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_033+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_033%2Bguarniciones_001.jpg",
     "name": "Ragú de ternera con arroz blanco",
@@ -4623,6 +4819,13 @@
     "combo_id": "carnes_033+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_033%2Bguarniciones_022.jpg",
     "name": "Ragú de ternera con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_033+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_033%2Bguarniciones_023.jpg",
+    "name": "Ragú de ternera con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4781,6 +4984,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "carnes_034+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_034%2Bguarniciones_023.jpg",
+    "name": "Pollo a la cerveza con pisto",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "carnes_035+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_035%2Bguarniciones_001.jpg",
     "name": "Flamenquines cordobeses con arroz blanco",
@@ -4931,6 +5141,13 @@
     "combo_id": "carnes_035+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_035%2Bguarniciones_022.jpg",
     "name": "Flamenquines cordobeses con patatas fritas",
+    "family": "carnes",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_035+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_035%2Bguarniciones_023.jpg",
+    "name": "Flamenquines cordobeses con pisto",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -5495,6 +5712,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "huevos_002+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_002%2Bguarniciones_023.jpg",
+    "name": "Tortilla francesa con pisto",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "huevos_003",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_003.jpg",
     "name": "Huevos rotos con jamón",
@@ -5656,6 +5880,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "huevos_004+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_004%2Bguarniciones_023.jpg",
+    "name": "Revuelto de champiñones con pisto",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "huevos_005+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_005%2Bguarniciones_001.jpg",
     "name": "Revuelto de ajetes con arroz blanco",
@@ -5806,6 +6037,13 @@
     "combo_id": "huevos_005+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_005%2Bguarniciones_022.jpg",
     "name": "Revuelto de ajetes con patatas fritas",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "huevos_005+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_005%2Bguarniciones_023.jpg",
+    "name": "Revuelto de ajetes con pisto",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5964,6 +6202,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "huevos_006+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_006%2Bguarniciones_023.jpg",
+    "name": "Tortilla de calabacín con pisto",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "huevos_007+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_007%2Bguarniciones_001.jpg",
     "name": "Huevos fritos con puntillas con arroz blanco",
@@ -6114,6 +6359,13 @@
     "combo_id": "huevos_007+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_007%2Bguarniciones_022.jpg",
     "name": "Huevos fritos con puntillas con patatas fritas",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "huevos_007+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_007%2Bguarniciones_023.jpg",
+    "name": "Huevos fritos con puntillas con pisto",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6272,6 +6524,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "huevos_008+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_008%2Bguarniciones_023.jpg",
+    "name": "Revuelto de espárragos con pisto",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "huevos_009+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_009%2Bguarniciones_001.jpg",
     "name": "Huevos al plato con arroz blanco",
@@ -6422,6 +6681,13 @@
     "combo_id": "huevos_009+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_009%2Bguarniciones_022.jpg",
     "name": "Huevos al plato con patatas fritas",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "huevos_009+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_009%2Bguarniciones_023.jpg",
+    "name": "Huevos al plato con pisto",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6580,6 +6846,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "huevos_010+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_010%2Bguarniciones_023.jpg",
+    "name": "Huevos rellenos con pisto",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "huevos_011+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_011%2Bguarniciones_001.jpg",
     "name": "Revuelto de gambas con arroz blanco",
@@ -6734,6 +7007,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "huevos_011+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_011%2Bguarniciones_023.jpg",
+    "name": "Revuelto de gambas con pisto",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "huevos_012+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_012%2Bguarniciones_001.jpg",
     "name": "Tortilla de espinacas con arroz blanco",
@@ -6884,6 +7164,13 @@
     "combo_id": "huevos_012+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_012%2Bguarniciones_022.jpg",
     "name": "Tortilla de espinacas con patatas fritas",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "huevos_012+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_012%2Bguarniciones_023.jpg",
+    "name": "Tortilla de espinacas con pisto",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -7049,6 +7336,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "huevos_014+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_014%2Bguarniciones_023.jpg",
+    "name": "Huevos cocidos con ensalada con pisto",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "huevos_015+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_015%2Bguarniciones_001.jpg",
     "name": "Revuelto de setas con arroz blanco",
@@ -7199,6 +7493,13 @@
     "combo_id": "huevos_015+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_015%2Bguarniciones_022.jpg",
     "name": "Revuelto de setas con patatas fritas",
+    "family": "huevos",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "huevos_015+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_015%2Bguarniciones_023.jpg",
+    "name": "Revuelto de setas con pisto",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -7728,6 +8029,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_001+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_001%2Bguarniciones_023.jpg",
+    "name": "Merluza en salsa verde con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_002",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_002.jpg",
     "name": "Salmón al horno con patatas",
@@ -7889,6 +8197,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_003+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_003%2Bguarniciones_023.jpg",
+    "name": "Bacalao con tomate con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_004+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_004%2Bguarniciones_001.jpg",
     "name": "Sardinas a la plancha con arroz blanco",
@@ -8039,6 +8354,13 @@
     "combo_id": "pescados_004+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_004%2Bguarniciones_022.jpg",
     "name": "Sardinas a la plancha con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_004+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_004%2Bguarniciones_023.jpg",
+    "name": "Sardinas a la plancha con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8204,6 +8526,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_006+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_006%2Bguarniciones_023.jpg",
+    "name": "Atún a la plancha con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_007+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_007%2Bguarniciones_001.jpg",
     "name": "Merluza rebozada con arroz blanco",
@@ -8354,6 +8683,13 @@
     "combo_id": "pescados_007+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_007%2Bguarniciones_022.jpg",
     "name": "Merluza rebozada con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_007+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_007%2Bguarniciones_023.jpg",
+    "name": "Merluza rebozada con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8519,6 +8855,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_009+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_009%2Bguarniciones_023.jpg",
+    "name": "Salmón a la plancha con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_010+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_010%2Bguarniciones_001.jpg",
     "name": "Bacalao al pil-pil con arroz blanco",
@@ -8669,6 +9012,13 @@
     "combo_id": "pescados_010+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_010%2Bguarniciones_022.jpg",
     "name": "Bacalao al pil-pil con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_010+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_010%2Bguarniciones_023.jpg",
+    "name": "Bacalao al pil-pil con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8827,6 +9177,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_011+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_011%2Bguarniciones_023.jpg",
+    "name": "Calamares a la romana con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_012+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_012%2Bguarniciones_001.jpg",
     "name": "Gambas al ajillo con arroz blanco",
@@ -8977,6 +9334,13 @@
     "combo_id": "pescados_012+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_012%2Bguarniciones_022.jpg",
     "name": "Gambas al ajillo con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_012+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_012%2Bguarniciones_023.jpg",
+    "name": "Gambas al ajillo con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9142,6 +9506,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_014+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_014%2Bguarniciones_023.jpg",
+    "name": "Bacalao rebozado con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_015+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_015%2Bguarniciones_001.jpg",
     "name": "Trucha a la navarra con arroz blanco",
@@ -9292,6 +9663,13 @@
     "combo_id": "pescados_015+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_015%2Bguarniciones_022.jpg",
     "name": "Trucha a la navarra con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_015+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_015%2Bguarniciones_023.jpg",
+    "name": "Trucha a la navarra con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9450,6 +9828,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_016+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_016%2Bguarniciones_023.jpg",
+    "name": "Rape en salsa marinera con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_017+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_017%2Bguarniciones_001.jpg",
     "name": "Palitos de merluza caseros con arroz blanco",
@@ -9600,6 +9985,13 @@
     "combo_id": "pescados_017+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_017%2Bguarniciones_022.jpg",
     "name": "Palitos de merluza caseros con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_017+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_017%2Bguarniciones_023.jpg",
+    "name": "Palitos de merluza caseros con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9758,6 +10150,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_018+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_018%2Bguarniciones_023.jpg",
+    "name": "Salmón en papillote con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_019+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_019%2Bguarniciones_001.jpg",
     "name": "Atún encebollado con arroz blanco",
@@ -9912,6 +10311,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_019+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_019%2Bguarniciones_023.jpg",
+    "name": "Atún encebollado con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_020+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_001.jpg",
     "name": "Emperador a la plancha con arroz blanco",
@@ -10062,6 +10468,13 @@
     "combo_id": "pescados_020+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_022.jpg",
     "name": "Emperador a la plancha con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_020+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_023.jpg",
+    "name": "Emperador a la plancha con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10227,6 +10640,13 @@
     "type": "dish+garnish"
   },
   {
+    "combo_id": "pescados_022+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_022%2Bguarniciones_023.jpg",
+    "name": "Rosada al horno con limón con pisto",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
     "combo_id": "pescados_023+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_001.jpg",
     "name": "Caballa a la plancha con limón con arroz blanco",
@@ -10377,6 +10797,13 @@
     "combo_id": "pescados_023+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_022.jpg",
     "name": "Caballa a la plancha con limón con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_023+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_023.jpg",
+    "name": "Caballa a la plancha con limón con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10538,6 +10965,13 @@
     "combo_id": "pescados_025+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_025%2Bguarniciones_022.jpg",
     "name": "Calamares encebollados con patatas fritas",
+    "family": "pescados",
+    "type": "dish+garnish"
+  },
+  {
+    "combo_id": "pescados_025+guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_025%2Bguarniciones_023.jpg",
+    "name": "Calamares encebollados con pisto",
     "family": "pescados",
     "type": "dish+garnish"
   },

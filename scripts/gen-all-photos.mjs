@@ -9,7 +9,7 @@
  */
 
 import { GoogleGenAI } from "@google/genai";
-import { writeFileSync, mkdirSync, existsSync, readFileSync, openSync, closeSync, unlinkSync } from "fs";
+import { writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync, openSync, closeSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -46,6 +46,38 @@ if (!API_KEY) {
   process.exit(1);
 }
 const MODEL = "gemini-2.5-flash-image";
+
+// ─── Nombre del plato ───────────────────────────────────────────────────────
+// El nombre se deriva de src/data/recipes/*.json, NO del catalog.json que se
+// itera. catalog.json es un fichero generado a partir del manifiesto de fotos:
+// se quedó dos semanas sin reconstruir y, como al limpiar guarniciones se
+// reutilizaron ids (guarniciones_022 pasó de "pepino con yogur" a "patatas
+// fritas"), la tanda entera se generó pidiendo platos que ya no eran ésos y
+// guardándolos bajo el combo_id nuevo. 281 fotos acabaron siendo de otro plato.
+// Leyendo la fuente de verdad, el nombre no puede ir por detrás del id.
+
+function loadRecipes(root) {
+  const dir = join(root, "src", "data", "recipes");
+  const byId = {};
+  for (const file of readdirSync(dir)) {
+    if (!file.endsWith(".json")) continue;
+    for (const r of JSON.parse(readFileSync(join(dir, file), "utf-8"))) {
+      if (r?.id) byId[r.id] = r;
+    }
+  }
+  return byId;
+}
+
+/** "<plato> con <guarnición>", igual que menuName en build-catalog.mjs. */
+function resolveName(comboId, recipeById, fallback) {
+  const [dishId, garnishId] = comboId.split("+");
+  const dish = recipeById[dishId];
+  if (!dish) return fallback;
+  if (!garnishId) return dish.name;
+  const garnish = recipeById[garnishId];
+  if (!garnish) return fallback;
+  return `${dish.name} con ${garnish.shortName ?? garnish.name}`;
+}
 
 // ─── Prompts ────────────────────────────────────────────────────────────────
 
@@ -109,7 +141,12 @@ function buildBabyPureePrompt(dishName) {
 
 // ─── API ────────────────────────────────────────────────────────────────────
 
-async function generateImage(ai, prompt, retries = 5) {
+// Los 429 de Gemini suelen ser cortes pasajeros, no la cuota diaria, así que la
+// espera se corta a 90s: doblar hasta 480s gastaba un cuarto de hora en una sola
+// foto. Mejor reintentar más veces y más seguido.
+const MAX_BACKOFF_MS = 90_000;
+
+async function generateImage(ai, prompt, retries = 8) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
       const stream = await ai.models.generateContentStream({
@@ -135,8 +172,8 @@ async function generateImage(ai, prompt, retries = 5) {
         err?.message?.toLowerCase().includes("rate") ||
         err?.message?.toLowerCase().includes("resource_exhausted");
       if (isRateLimit && attempt < retries) {
-        // 15s, 30s, 60s, 120s, 240s
-        const wait = Math.pow(2, attempt + 1) * 15000;
+        // 30s, 60s, y a partir de ahí 90s
+        const wait = Math.min(Math.pow(2, attempt + 1) * 15000, MAX_BACKOFF_MS);
         console.log(`\n    ↻ Rate limit (intento ${attempt + 1}/${retries}), esperando ${wait / 1000}s...`);
         await new Promise((r) => setTimeout(r, wait));
       } else {
@@ -151,6 +188,19 @@ async function generateImage(ai, prompt, retries = 5) {
 async function main() {
   const catalogPath = join(__dirname, "../dish-gallery/public/catalog.json");
   const catalog = JSON.parse(readFileSync(catalogPath, "utf-8"));
+  const recipeById = loadRecipes(join(__dirname, ".."));
+
+  const stale = catalog.filter(
+    (e) => resolveName(e.combo_id, recipeById, e.name) !== e.name,
+  );
+  if (stale.length) {
+    console.log(
+      `⚠️  ${stale.length} nombres del catálogo van por detrás de las recetas — se usa el de las recetas.\n` +
+        stale.slice(0, 5).map((e) => `     ${e.combo_id}: "${e.name}" → "${resolveName(e.combo_id, recipeById, e.name)}"`).join("\n") +
+        (stale.length > 5 ? `\n     …y ${stale.length - 5} más` : "") +
+        "\n",
+    );
+  }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
 
@@ -178,7 +228,8 @@ async function main() {
 
   for (let i = 0; i < catalog.length; i++) {
     const entry = catalog[i];
-    const { combo_id, name, family } = entry;
+    const { combo_id, family } = entry;
+    const name = resolveName(combo_id, recipeById, entry.name);
 
     // Destino: combo_id.jpg (o .png si la IA devuelve PNG)
     const jpgPath = join(OUT_DIR, `${combo_id}.jpg`);

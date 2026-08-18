@@ -6,6 +6,7 @@ import {
   OnboardingMembers,
   OnboardingRestrictions,
   OnboardingMenuModel,
+  OnboardingKidsDinner,
   OnboardingMealStyle,
   OnboardingMealExtras,
   OnboardingPantry,
@@ -54,6 +55,7 @@ import {
   membersOfGroup,
   reconcileGroupsWithMembers,
 } from "./lib/groups.js";
+import { normalizeKidDinnerConfig, deriveKidDinnerMatchesAdultLunch } from "./lib/kidsMenu.js";
 import { loadState, saveState, clearState } from "./lib/storage.js";
 import {
   clampWeekCount,
@@ -302,9 +304,12 @@ const INITIAL_DATA = {
   //                byMember: { [memberId]: { ... } } }
   schoolMenus: { shared: {}, byMember: {} },
   // Advanced: kids' dinner mirrors adults' lunch that day (and adults' lunch
-  // avoids the school menu). Only meaningful with a school menu uploaded and
-  // separate Adultos/Niños groups.
+  // avoids the school menu). Derived field kept for the planner's mirror
+  // machinery; the source of truth is kidDinnerConfig below (see kidsMenu.js).
   kidDinnerMatchesAdultLunch: false,
+  // Cómo se organiza el menú de los niños (pantalla post-horario). Por miembro:
+  // { byMember: { [kidId]: { weekdayLunch, dinner, weekend, avoid } } }.
+  kidDinnerConfig: { byMember: {} },
   // Reuse the first day's garnish across the week / weekdays / weekend.
   // off | week | weekdays | weekend
   garnishRepeat: "off",
@@ -636,6 +641,7 @@ function migrate(state) {
     planHasDishes(state.menuPlan);
   if (typeof d.expertMode !== "boolean") d.expertMode = false;
   if (typeof d.kidDinnerMatchesAdultLunch !== "boolean") d.kidDinnerMatchesAdultLunch = false;
+  d.kidDinnerConfig = normalizeKidDinnerConfig(d.kidDinnerConfig);
   if (!["off", "week", "weekdays", "weekend"].includes(d.garnishRepeat)) d.garnishRepeat = "off";
   if (typeof d.modePrompted !== "boolean") {
     // Cuentas ya en marcha no deben ver de repente el selector de modo: se da
@@ -1665,6 +1671,9 @@ export default function App() {
           schedule: weekSchedule,
           menuWeek: { offset, startDayIdx },
           schoolMenus: schoolMenusForWeekIndex(working.schoolMenus, w),
+          // kidDinnerConfig manda: derivamos el flag legacy que consume el
+          // planner a partir de la config por niño + el horario de esta semana.
+          kidDinnerMatchesAdultLunch: deriveKidDinnerMatchesAdultLunch({ ...working, schedule: weekSchedule }),
         };
         const crossWeek = varietyPref === "relaxed" || weekCount <= 1
           ? null
@@ -2529,7 +2538,7 @@ export default function App() {
       setQuickMenu(true);
       setFirstRunOnboarding(false);
       dirRef.current = "forward";
-      setOnbStep(11); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
+      setOnbStep(12); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
       setScreen("onboarding");
       return;
     }
@@ -3268,22 +3277,29 @@ export default function App() {
   // real choice: no kids to diverge from adults, nothing to upload if nobody
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
   // Orden de `onbScreens`: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
-  // 5 Semana · 6 Horario · 7 Estilo · 8 Extras · 9 En casa · 10 Cocina ·
-  // 11 Tiempos. Los índices de abajo (y AFINAR_WIZARD_STEPS en Onboarding.jsx)
-  // dependen de ese orden.
-  const ONB_STEP_COUNT = 12;
-  const skipMenuModel = !canSplitMenus(data.members);
+  // 5 Semana · 6 Horario · 7 Niños · 8 Estilo · 9 Extras · 10 En casa ·
+  // 11 Cocina · 12 Tiempos. Los índices de abajo (y AFINAR_WIZARD_STEPS en
+  // Onboarding.jsx) dependen de ese orden.
+  const ONB_STEP_COUNT = 13;
+  // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
+  // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
+  // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
+  // así que en la práctica queda oculta siempre que aplicaría.
+  const skipMenuModel = !canSplitMenus(data.members) || hasChildMember(data.members);
   // School cafeteria only applies to kids (Niños), not pure babies.
   const skipSchoolMenu = !hasChildMember(data.members);
-  // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (7, se asume
-  // equilibrado) y "¿Cómo completamos el menú?" (8, la estructura de plato se
+  // "¿Cómo comen los niños?" (7) solo si hay niños en casa.
+  const skipKidsDinner = !hasChildMember(data.members);
+  // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (8, se asume
+  // equilibrado) y "¿Cómo completamos el menú?" (9, la estructura de plato se
   // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
   const isStepHidden = useCallback(
     (i) =>
       (i === 2 && skipMenuModel) ||
       (i === 3 && skipSchoolMenu) ||
-      (basicMode && (i === 7 || i === 8)) ||
+      (i === 7 && skipKidsDinner) ||
+      (basicMode && (i === 8 || i === 9)) ||
       // "Mi familia habitual" only ever skips Familia (1) — it's the one
       // thing already known. El modo (0) sí se pregunta siempre: es lo que
       // decide qué pantallas vienen detrás y es justo lo que a la gente se le
@@ -3292,7 +3308,7 @@ export default function App() {
       // from una generación a otra, so it's asked in full every time, same
       // as a brand-new family or "Otro grupo".
       (quickMenu && i === 1),
-    [skipMenuModel, skipSchoolMenu, quickMenu, basicMode]
+    [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -3420,7 +3436,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMealStyle
+    <OnboardingKidsDinner
       data={data}
       setData={setData}
       onNext={nextOf(7)}
@@ -3428,7 +3444,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMealExtras
+    <OnboardingMealStyle
       data={data}
       setData={setData}
       onNext={nextOf(8)}
@@ -3436,7 +3452,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingPantry
+    <OnboardingMealExtras
       data={data}
       setData={setData}
       onNext={nextOf(9)}
@@ -3444,7 +3460,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCooking
+    <OnboardingPantry
       data={data}
       setData={setData}
       onNext={nextOf(10)}
@@ -3452,11 +3468,19 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCookTime
+    <OnboardingCooking
       data={data}
       setData={setData}
       onNext={nextOf(11)}
       onBack={backOf(11)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingCookTime
+      data={data}
+      setData={setData}
+      onNext={nextOf(12)}
+      onBack={backOf(12)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
