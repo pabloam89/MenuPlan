@@ -8,7 +8,6 @@ import {
   BookOpen,
   BookOpenCheck,
   CalendarDays,
-  CalendarOff,
   Check,
   ChefHat,
   ChevronDown,
@@ -54,7 +53,6 @@ import {
   Soup,
   Sparkles,
   Heart,
-  ThumbsDown,
   Sun,
   Undo2,
   Users,
@@ -3386,19 +3384,6 @@ const SAME_CATEGORY_LABEL = {
   postres: "Otro postre",
 };
 
-// Reasons shown when rejecting a dish (Regenerar / Quitar → sub-radial). Each
-// carries its own persistent consequence in App.jsx#applyDiscardReason:
-//   dislike → descartar para siempre (Recetas ▸ Descartados)
-//   week    → descartar esta semana (~7 días)
-//   timing  → tarda demasiado = descartar esta semana (~7 días)
-//   recent  → «me gusta pero reciente»: enfriamiento ~14 días + favorito
-const REJECT_REASONS = [
-  { key: "dislike", Icon: ThumbsDown, color: "#e0405a", label: "No me gusta" },
-  { key: "week", Icon: CalendarOff, color: "#e08a2f", label: "Esta semana no" },
-  { key: "timing", Icon: Clock3, color: "#2f6fb8", label: "Tarda demasiado" },
-  { key: "recent", Icon: History, color: "#7a5cc0", label: "Lo comí hace poco" },
-];
-
 // Radial ("rosco") action menu: chips laid out around the spotlighted dish
 // thumbnail. The main dish-action menu (5 actions) spreads them on a full circle
 // with a thin ring connector; callers can instead pass an explicit `angle`
@@ -3680,10 +3665,6 @@ export const MenuScreen = memo(function MenuScreen({
   // "Regenerar" on a dish that carries a garnish first asks what to regenerate:
   // just the side ("Guarnición") or the whole dish ("Plato completo").
   const [regenChoice, setRegenChoice] = useState(null); // null | dishAction
-  // Reason sub-radial (No me gusta / Esta semana no / Tarda demasiado / Lo comí
-  // hace poco). Shown by "Quitar" and by the dish-replacing options of Regenerar.
-  // `{ ctx, run }` where run(reasonKey) executes the action carrying that reason.
-  const [reasonChoice, setReasonChoice] = useState(null);
 
   const handleTileTap = useCallback(
     (sel) => {
@@ -4476,28 +4457,18 @@ export const MenuScreen = memo(function MenuScreen({
               },
               {
                 id: "clear", Icon: Trash2, label: "Quitar",
-                // Quitar pregunta por qué (razón) → vacía el hueco aplicando la
-                // consecuencia (descarte para siempre / semana / enfriamiento).
-                onPick: () => {
-                  const ctx = dishAction;
-                  setReasonChoice({ ctx, run: (reason) => onDishClear?.(ctx, { reason }) });
-                  setDishAction(null);
-                },
+                onPick: () => { onDishClear?.(dishAction); setDishAction(null); },
               },
             ]}
           />
         )}
 
-        {/* "Regenerar" sub-radial — cómo reemplazar. Las opciones que cambian el
-            plato (otra categoría / otro plato / elegir a mano) abren después el
-            sub-radial de razones; "Otra guarnición" se aplica directa (no rechaza
-            el plato). Chips reutilizan el icono + color de la categoría. */}
+        {/* "Regenerar" sub-radial — cómo reemplazar. Chips reutilizan el icono +
+            color de la categoría. */}
         {regenChoice &&
           (() => {
             const cat = regenChoice.recipe?.category;
             const hasGarnish = Boolean(regenChoice.recipe?.garnishId);
-            // Ask the reason, then run the replacement carrying that reason.
-            const askReason = (run) => { setReasonChoice({ ctx: regenChoice, run }); setRegenChoice(null); };
             const sameCatIcon = cat ? categoryIcon(cat) : RotateCw;
             const sameCatColor = cat ? categoryColor(cat) : undefined;
             const sameCat = {
@@ -4506,15 +4477,15 @@ export const MenuScreen = memo(function MenuScreen({
               color: sameCatColor,
               content: categoryChipContent(cat, sameCatIcon, sameCatColor ?? "#3f5a49"),
               label: (cat && SAME_CATEGORY_LABEL[cat]) || "Otro parecido",
-              onPick: () => askReason((reason) => onDishReplaceSameCategory?.(regenChoice, { reason })),
+              onPick: () => { onDishReplaceSameCategory?.(regenChoice); setRegenChoice(null); },
             };
             const anyDish = {
               id: "any", Icon: Shuffle, label: "Otro plato",
-              onPick: () => askReason((reason) => onDishReplace?.(regenChoice, { reason })),
+              onPick: () => { onDishReplace?.(regenChoice); setRegenChoice(null); },
             };
             const pick = {
               id: "pick", Icon: Search, label: "Elegir a mano",
-              onPick: () => askReason((reason) => onDishManualPick?.(regenChoice, { reason })),
+              onPick: () => { onDishManualPick?.(regenChoice); setRegenChoice(null); },
             };
             const garnish = {
               id: "garnish", Icon: Salad, label: "Otra guarnición", color: "#16a34a",
@@ -4558,23 +4529,6 @@ export const MenuScreen = memo(function MenuScreen({
               />
             );
           })()}
-
-        {/* Reason sub-radial (por qué) — used by Quitar and by Regenerar's
-            dish-replacing options. Picking a reason runs the pending action with
-            that reason, so App.jsx applies its persistent consequence. */}
-        {reasonChoice && (
-          <RoscoMenu
-            anchor={reasonChoice.ctx.anchor}
-            onClose={() => setReasonChoice(null)}
-            actions={REJECT_REASONS.map((r) => ({
-              id: r.key,
-              Icon: r.Icon,
-              color: r.color,
-              label: r.label,
-              onPick: () => { reasonChoice.run(r.key); setReasonChoice(null); },
-            }))}
-          />
-        )}
 
         {armed && autoDemo !== "actions" &&
           createPortal(

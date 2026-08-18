@@ -39,7 +39,7 @@ import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageUrl } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
-import { getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
+import { favoriteRecipeIds, getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
 import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
 import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
@@ -166,6 +166,8 @@ export function CatalogBrowserSheet({
   // and the Todos/Platos/Guarniciones toggle is hidden (used by the recipe
   // planner's review step, where the type is already decided).
   gatePickType = null,
+  // Manual slot pick from the menu: show Mis recetas / Favoritas / Catálogo tabs.
+  gatePickSourceTabs = false,
   selectedPlatoId = null,
   selectedGarnishId = null,
   onPickPlato,
@@ -220,14 +222,30 @@ export function CatalogBrowserSheet({
   onDiscardRecipe = null,
   onRecoverRecipe = null,
 }) {
+  const resolvedFavoriteIds = useMemo(
+    () => favoriteIds ?? (gatePickSourceTabs ? new Set(favoriteRecipeIds(recipeVotes)) : null),
+    [favoriteIds, gatePickSourceTabs, recipeVotes],
+  );
+
   const fullCatalog = useMemo(
-    () =>
-      sourceRecipes
+    () => {
+      if (gatePickSourceTabs && gatePick) {
+        if (sourceTab === "mine") return extraRecipes;
+        const pool = extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog;
+        if (sourceTab === "favorites") {
+          return resolvedFavoriteIds
+            ? pool.filter((r) => resolvedFavoriteIds.has(r.id))
+            : [];
+        }
+        return pool;
+      }
+      return sourceRecipes
         ? sourceRecipes
         : extraRecipes.length > 0
           ? [...recipeCatalog, ...extraRecipes]
-          : recipeCatalog,
-    [sourceRecipes, extraRecipes],
+          : recipeCatalog;
+    },
+    [gatePickSourceTabs, gatePick, sourceTab, sourceRecipes, extraRecipes, resolvedFavoriteIds],
   );
   const platoCatalog = useMemo(
     () => fullCatalog.filter((r) => !isGuarnicionRecipe(r)),
@@ -245,6 +263,7 @@ export function CatalogBrowserSheet({
     return merged;
   }, [extraGarnishes]);
   const [query, setQuery] = useState("");
+  const [sourceTab, setSourceTab] = useState("catalog"); // mine | favorites | catalog
   // all | plato | guarnicion — locked to gatePickType when provided.
   const [typeFilter, setTypeFilter] = useState(gatePickType ?? "all");
   useEffect(() => {
@@ -339,7 +358,15 @@ export function CatalogBrowserSheet({
   // Reset pagination whenever the result set or page size changes.
   useEffect(() => {
     setLimit(pageSize);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize, typeFilter, gatePick]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize, typeFilter, gatePick, sourceTab]);
+
+  const gatePickTabEmptyLabel = gatePickSourceTabs && gatePick
+    ? sourceTab === "mine"
+      ? "Aún no tienes recetas propias"
+      : sourceTab === "favorites"
+        ? "Aún no tienes favoritas"
+        : null
+    : null;
 
   const visible = results.slice(0, limit);
   const hasMore = results.length > visible.length;
@@ -400,6 +427,49 @@ export function CatalogBrowserSheet({
 
   const searchRow = (
     <>
+      {gatePickSourceTabs && gatePick && (
+        <div style={{ padding: `0 ${px}px`, marginBottom: 10, flexShrink: 0 }}>
+          <div style={{ display: "flex", background: "#e8efe9", borderRadius: 12, padding: 3 }}>
+            {[
+              { id: "mine", label: "Mis recetas", count: extraRecipes.length },
+              { id: "favorites", label: "Favoritas", count: resolvedFavoriteIds?.size ?? 0 },
+              { id: "catalog", label: "Catálogo" },
+            ].map((opt) => {
+              const active = sourceTab === opt.id;
+              return (
+                <button
+                  key={opt.id}
+                  type="button"
+                  onClick={() => setSourceTab(opt.id)}
+                  style={{
+                    flex: 1, minWidth: 0, padding: "7px 2px", borderRadius: 9, border: "none",
+                    background: active ? "#fff" : "transparent",
+                    color: active ? "#142f1d" : "#7a9485",
+                    fontSize: 12, fontWeight: active ? 800 : 700,
+                    cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
+                    boxShadow: active ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+                    transition: "all .15s",
+                  }}
+                >
+                  {opt.label}
+                  {opt.count > 0 && (
+                    <span
+                      style={{
+                        marginLeft: 4, fontSize: 9.5, fontWeight: 900,
+                        color: active ? "#2d5a3d" : "#9ab0a1",
+                        background: active ? "#e4f3e9" : "#dce8de",
+                        padding: "1px 5px", borderRadius: 999,
+                      }}
+                    >
+                      {opt.count}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
       {gatePick && !gatePickType && (
         <div style={{ display: "flex", gap: 6, marginBottom: 10, padding: `0 ${px}px`, flexShrink: 0 }}>
           {[
@@ -667,6 +737,8 @@ export function CatalogBrowserSheet({
             <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5, maxWidth: 260 }}>
               {emptyLabel
                 ? emptyLabel
+                : gatePickTabEmptyLabel
+                  ? gatePickTabEmptyLabel
                 : gatePick
                   ? "No encontramos platos ni guarniciones con esos filtros."
                   : "No encontramos platos con esos filtros."}
@@ -811,10 +883,12 @@ export function CatalogBrowserSheet({
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
             <div>
               <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>
-                Explorar catálogo
+                {gatePick ? "Elegir plato" : "Explorar catálogo"}
               </h3>
               <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485" }}>
-                Elige platos que ya sabes cocinar
+                {gatePick
+                  ? "Mis recetas, favoritas o catálogo"
+                  : "Elige platos que ya sabes cocinar"}
               </p>
             </div>
             <button
