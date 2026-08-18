@@ -1,0 +1,16 @@
+Esquema — onboarding «Cómo completamos el menú» · Merienda (3 opciones).
+Misma fórmula que casa_solo / desayuno_variado: personaje de cuerpo entero, cocina minimalista, gesto claro, luz cálida de tarde.
+Cola fija: full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
+
+Archivo: public/avatares/cards/{slug}.jpg
+
+--- Opciones ---
+
+[merienda_off]  Sin merienda
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, gently waving off a small empty snack plate with one hand while a child's backpack sits on a kitchen chair, relaxed no-snack-today expression, clock on the wall showing late afternoon, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
+
+[merienda_semana]  Toda la semana
+3D illustrated cartoon character, a man home cook with short brown hair wearing an apron, proudly presenting a colorful kids snack tray with fruit slices, yogurt cup and a small sandwich, seven tiny colored dots on the counter suggesting every day of the week, cheerful proud expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
+
+[merienda_laborables]  Solo L–V
+3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, packing a snack lunchbox for a child while a wall calendar behind her shows five weekdays highlighted and the weekend faded, focused friendly expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2

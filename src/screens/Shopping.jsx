@@ -1215,7 +1215,7 @@ export function ShoppingScreen({
               style={{
                 display: "flex",
                 alignItems: "stretch",
-                gap: STRIP_GROUPS_GAP,
+                gap: orderedAll.length >= 4 ? 28 : STRIP_GROUPS_GAP,
               }}
             >
               <div

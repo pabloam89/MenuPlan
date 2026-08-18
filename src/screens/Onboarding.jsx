@@ -200,9 +200,9 @@ const DESAYUNO_OPTS = [
   { id: "igual", label: "Siempre igual", img: "/avatares/cards/desayuno_igual.jpg" },
 ];
 const MERIENDA_OPTS = [
-  { id: "off", label: "Sin merienda", Icon: X },
-  { id: "semana", label: "Toda la semana", Icon: CalendarDays },
-  { id: "laborables", label: "Solo L–V", Icon: BriefcaseBusiness },
+  { id: "off", label: "Sin merienda", img: "/avatares/cards/merienda_off.jpg" },
+  { id: "semana", label: "Toda la semana", img: "/avatares/cards/merienda_semana.jpg" },
+  { id: "laborables", label: "Solo L–V", img: "/avatares/cards/merienda_laborables.jpg" },
 ];
 
 const PantryScreen = lazy(() =>
@@ -2523,13 +2523,17 @@ function RestrictionTabCard({
   textOverlay = false,
   compact = false,
   accent = CARD_ACCENT,
+  selectAccent,
+  pillAccent,
   pill,
   spectrumIdx,
 }) {
   const illustrated = Boolean(img || (images && images.length));
+  const selColor = selectAccent ?? accent;
+  const pillColor = pillAccent ?? accent;
   if (illustrated) {
     const shadow = active
-      ? `0 6px 18px ${accent}33`
+      ? `0 6px 18px ${selColor}33`
       : "0 1px 2px rgba(0,0,0,.04)";
     return (
       <button
@@ -2546,8 +2550,8 @@ function RestrictionTabCard({
           padding: 0,
           overflow: "hidden",
           borderRadius: 15,
-          border: `2px solid ${active ? accent : "#e0eae3"}`,
-          background: active ? accent : "#fff",
+          border: `2px solid ${active ? selColor : "#e0eae3"}`,
+          background: active ? selColor : "#fff",
           cursor: "pointer",
           fontFamily: "inherit",
           transition: "all .16s ease",
@@ -2558,7 +2562,7 @@ function RestrictionTabCard({
           <span
             style={{
               position: "absolute", top: 8, right: 8, zIndex: 2,
-              width: 20, height: 20, borderRadius: "50%", background: accent,
+              width: 20, height: 20, borderRadius: "50%", background: selColor,
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 1px 4px rgba(20,47,29,.3)",
             }}
@@ -2603,7 +2607,7 @@ function RestrictionTabCard({
                 zIndex: 2,
                 fontSize: 10.5,
                 fontWeight: 800,
-                color: accent,
+                color: pillColor,
                 background: "rgba(255,255,255,.92)",
                 borderRadius: 999,
                 padding: "3px 8px",
@@ -2624,7 +2628,7 @@ function RestrictionTabCard({
               flexDirection: "column",
               justifyContent: "center",
               padding: compact ? "5px 6px 6px" : "8px 6px 9px",
-              background: active ? accent : "#fff",
+              background: active ? selColor : "#fff",
               textAlign: "center",
               color: active ? "#fff" : "#142f1d",
             }}
@@ -8785,56 +8789,18 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
       extrasSection("merienda",
         <>
           <SectionTitle Icon={Apple} color="#c0504d">Merienda</SectionTitle>
-          {segmented(
-            MERIENDA_OPTS,
-            (id) => (em.merienda ?? "off") === id,
-            (id) => setExtraMeal("merienda", id),
-          )}
-        </>,
-      ),
-    );
-  }
-  if (expert) {
-    otrosSections.push(
-      extrasSection("guarnicion",
-        <>
-          <SectionTitle Icon={Salad} color="#2d8659">Guarnición</SectionTitle>
-          <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 10px", lineHeight: 1.4 }}>
-            Cocina una vez y repite el complemento.
-          </p>
           <div style={{ display: "flex", gap: 8 }}>
-            {[
-              { id: "off", label: "Cada día distinta" },
-              { id: "week", label: "Toda la semana" },
-              { id: "weekdays", label: "Solo entre semana" },
-              { id: "weekend", label: "Solo finde" },
-            ].map((opt) => {
-              const active = (data.garnishRepeat ?? "off") === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setData((d) => ({ ...d, garnishRepeat: opt.id }))}
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    padding: "10px 6px",
-                    borderRadius: 12,
-                    border: active ? "2px solid #2d8659" : "1.5px solid #dde8e1",
-                    background: active ? "#2d8659" : "#fff",
-                    color: active ? "#fff" : "#142f1d",
-                    fontSize: 11,
-                    fontWeight: 800,
-                    lineHeight: 1.2,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    textAlign: "center",
-                  }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
+            {MERIENDA_OPTS.map((t) => (
+              <RestrictionTabCard
+                key={t.id}
+                img={t.img}
+                title={t.label}
+                imgHeight={160}
+                textOverlay
+                active={(em.merienda ?? "off") === t.id}
+                onClick={() => setExtraMeal("merienda", t.id)}
+              />
+            ))}
           </div>
         </>,
       ),
@@ -8929,7 +8895,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
           <RestrictionTabCard
             img="/avatares/cards/otros.jpg"
             title="Otros"
-            subtitle="postre y guarnición"
+            subtitle="merienda y postre"
             accent={CARD_ACCENT_TEAL}
             active={extrasTab === "otros"}
             onClick={() => setExtrasTab("otros")}
@@ -9019,6 +8985,8 @@ export function OnboardingPantry({ data, setData, onNext, onBack, onFinish, onRe
             pill={t.pill}
             spectrumIdx={t.spectrumIdx}
             accent={t.accent}
+            selectAccent={CARD_ACCENT_TEAL}
+            pillAccent={t.accent}
             active={current === t.id}
             onClick={() => setData((d) => ({ ...d, pantryMode: t.id, useHomeStock: t.id !== "off" }))}
           />
