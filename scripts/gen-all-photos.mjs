@@ -12,6 +12,7 @@ import { GoogleGenAI } from "@google/genai";
 import { writeFileSync, mkdirSync, existsSync, readFileSync, readdirSync, openSync, closeSync, unlinkSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { disambiguationClause } from "../src/lib/photoDisambiguation.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT_DIR = join(__dirname, "test-photos");
@@ -98,31 +99,6 @@ function buildPrompt(dishName) {
   );
 }
 
-function disambiguationClause(dishName) {
-  const d = String(dishName).toLowerCase();
-  const clauses = [];
-  const hasTomate = /\btomate\b/.test(d);
-  const isSalad = /ensalada|gazpacho|tomate fresco|tomate natural/.test(d);
-  const isStarch = /arroz|pasta|macarrones|espagueti|fideos|ñoquis|noquis/.test(d);
-  if (hasTomate && isStarch && !isSalad) {
-    clauses.push(
-      `El tomate es salsa de tomate frito COCINADA, roja y brillante, en cantidad MODERADA ` +
-        `sobre arroz blanco suelto: se ven claramente los granos de arroz alrededor y por debajo, ` +
-        `la salsa NO cubre todo el bol ni forma una capa gruesa y uniforme; ` +
-        `presentación casera, ligera y apetitosa. NO tomate crudo en dados ni rodajas frescas. `
-    );
-  }
-  if (/patatas fritas/.test(d)) {
-    clauses.push(
-      `Las patatas fritas son OBLIGATORIAS y bien visibles: bastones alargados de patata ` +
-        `fritos, dorados y crujientes, tipo patatas fritas caseras clásicas, apiladas junto al ` +
-        `plato principal ocupando buena parte del bol. NADA de salsa de yogur, NADA de pepino, ` +
-        `NADA de crema blanca ni tzatziki. `
-    );
-  }
-  return clauses.join("");
-}
-
 function buildBabyPureePrompt(dishName) {
   return (
     `Fotografía cenital de una papilla de bebé de "${dishName}". ` +
@@ -186,8 +162,19 @@ async function generateImage(ai, prompt, retries = 8) {
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
+  const onlyQueued = process.argv.includes("--only-queued");
+  const pendingPath = join(__dirname, "../output/pending-photos.json");
   const catalogPath = join(__dirname, "../dish-gallery/public/catalog.json");
-  const catalog = JSON.parse(readFileSync(catalogPath, "utf-8"));
+  if (onlyQueued && !existsSync(pendingPath)) {
+    console.error(`❌  Falta ${pendingPath}. Ejecuta primero: node scripts/queue-missing-photos.mjs`);
+    process.exit(1);
+  }
+  const catalog = onlyQueued
+    ? JSON.parse(readFileSync(pendingPath, "utf-8"))
+    : JSON.parse(readFileSync(catalogPath, "utf-8"));
+  if (onlyQueued) {
+    console.log(`Modo --only-queued: ${catalog.length} fotos en cola (sin recorrer todo el catálogo)\n`);
+  }
   const recipeById = loadRecipes(join(__dirname, ".."));
 
   const stale = catalog.filter(
