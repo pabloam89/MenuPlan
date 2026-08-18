@@ -361,13 +361,24 @@ export function CatalogBrowserSheet({
     setLimit(pageSize);
   }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize, typeFilter, gatePick, sourceTab]);
 
-  const gatePickTabEmptyLabel = gatePickSourceTabs && gatePick
-    ? sourceTab === "mine"
-      ? "Aún no tienes recetas propias"
-      : sourceTab === "favorites"
-        ? "Aún no tienes favoritas"
-        : null
-    : null;
+  const gatePickTabEmpty = useMemo(() => {
+    if (!gatePickSourceTabs || !gatePick) return null;
+    if (sourceTab === "mine" && extraRecipes.length === 0) {
+      return {
+        img: "/avatares/cards/empty_recetas_propias.jpg",
+        title: "Aún no tienes recetas propias",
+        subtitle: "Prueba en Catálogo o Favoritas para elegir otro plato.",
+      };
+    }
+    if (sourceTab === "favorites" && (resolvedFavoriteIds?.size ?? 0) === 0) {
+      return {
+        img: "/avatares/cards/empty_favoritas.jpg",
+        title: "Aún no tienes favoritas",
+        subtitle: "Pulsa el corazón en cualquier receta del catálogo para guardarla aquí.",
+      };
+    }
+    return null;
+  }, [gatePickSourceTabs, gatePick, sourceTab, extraRecipes.length, resolvedFavoriteIds]);
 
   const visible = results.slice(0, limit);
   const hasMore = results.length > visible.length;
@@ -707,12 +718,12 @@ export function CatalogBrowserSheet({
             />
           ))}
       {results.length === 0 && (
-        emptyImg ? (
+        emptyImg || gatePickTabEmpty?.img ? (
           <div style={{ padding: "16px 20px" }}>
             <EmptyIllustration
-              img={emptyImg}
-              title={emptyLabel}
-              subtitle={emptySubtitle}
+              img={emptyImg ?? gatePickTabEmpty.img}
+              title={emptyLabel ?? gatePickTabEmpty?.title}
+              subtitle={emptySubtitle ?? gatePickTabEmpty?.subtitle}
               maxWidth={240}
               minHeight={emptyMinHeight}
               solidBand={emptySolidBand}
@@ -738,8 +749,6 @@ export function CatalogBrowserSheet({
             <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5, maxWidth: 260 }}>
               {emptyLabel
                 ? emptyLabel
-                : gatePickTabEmptyLabel
-                  ? gatePickTabEmptyLabel
                 : gatePick
                   ? "No encontramos platos ni guarniciones con esos filtros."
                   : "No encontramos platos con esos filtros."}
