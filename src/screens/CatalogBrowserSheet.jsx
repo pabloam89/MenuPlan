@@ -34,6 +34,8 @@ import {
   Pencil,
   Ban,
   RotateCcw,
+  BookOpen,
+  NotebookPen,
 } from "lucide-react";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
@@ -478,9 +480,9 @@ export function CatalogBrowserSheet({
         <div style={{ padding: `12px ${px}px 0`, marginBottom: 12, flexShrink: 0 }}>
           <SegmentedTabBar>
             {[
-              { id: "mine", label: "Mis recetas", count: gatePickMinePlatoCount },
-              { id: "favorites", label: "Favoritas", count: resolvedFavoriteIds?.size ?? 0 },
-              { id: "catalog", label: "Catálogo" },
+              { id: "mine", label: "Mis recetas", count: gatePickMinePlatoCount, Icon: NotebookPen },
+              { id: "favorites", label: "Favoritas", count: resolvedFavoriteIds?.size ?? 0, Icon: Heart },
+              { id: "catalog", label: "Catálogo", Icon: BookOpen },
             ].map((opt) => (
               <SegmentedTabButton
                 key={opt.id}
@@ -488,6 +490,7 @@ export function CatalogBrowserSheet({
                 onClick={() => setSourceTab(opt.id)}
                 label={opt.label}
                 count={opt.count ?? 0}
+                Icon={opt.Icon}
               />
             ))}
           </SegmentedTabBar>
