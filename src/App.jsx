@@ -4036,6 +4036,7 @@ export default function App() {
       {slotPicker && !slotPicker.kind && (
         <CatalogBrowserSheet
           gatePick
+          gatePickSourceTabs
           gatePickType="plato"
           selectedPlatoId={null}
           onPickPlato={(id) => { if (id) handleChooseRecipeForSlot(id); }}
