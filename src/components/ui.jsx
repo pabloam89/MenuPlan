@@ -139,6 +139,9 @@ export function EmptyIllustration({
   solidBand = false,
   imgAspect = "16 / 10",
   imgPosition = "center 40%",
+  // Footer band padding — smaller callers (e.g. the compact profile action
+  // cards) can shrink the band so it doesn't dwarf the illustration.
+  bandPadding = "16px 18px 18px",
   onClick,
 }) {
   return (
@@ -168,7 +171,7 @@ export function EmptyIllustration({
       <div
         style={{
           flex: 1,
-          padding: "16px 18px 18px",
+          padding: bandPadding,
           textAlign: "center",
           background: solidBand ? accent : "transparent",
           display: "flex",

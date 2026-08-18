@@ -69,21 +69,21 @@ const LOCATION_META = {
   nevera: {
     label: "Nevera",
     img: "/avatares/cards/nevera.png",
-    tint: "#ddf4e8",
+    tint: "#b1c9bf",
     ink: "#1f7a52",
     Icon: Refrigerator,
   },
   despensa: {
     label: "Despensa",
     img: "/avatares/cards/despensa.png",
-    tint: "#faefd0",
+    tint: "#dac484",
     ink: "#a06818",
     Icon: Package,
   },
   congelador: {
     label: "Congelador",
     img: "/avatares/cards/congelador.png",
-    tint: "#dce9f8",
+    tint: "#a4bbd7",
     ink: "#2563ab",
     Icon: Snowflake,
   },
@@ -224,49 +224,6 @@ const pageTitle = { fontSize: 20, fontWeight: 900, color: INK, margin: 0, letter
 // as the same family.
 const EMPTY_ACCENT = "#0f766e";
 
-// Illustration that cross-fades + slides between several images on a timer —
-// same treatment as the onboarding Alergias card. Images that 404 (e.g. an
-// asset not generated yet) are dropped so the card never flashes a blank frame.
-function RotatingCardImage({ images, interval = 2000, alt = "" }) {
-  const [idx, setIdx] = useState(0);
-  const [failed, setFailed] = useState(() => new Set());
-  const valid = images.filter((s) => !failed.has(s));
-  useEffect(() => {
-    if (valid.length <= 1) return undefined;
-    const reduce =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduce) return undefined;
-    const t = setInterval(() => setIdx((v) => (v + 1) % valid.length), interval);
-    return () => clearInterval(t);
-  }, [valid.length, interval]);
-  const active = valid.length ? idx % valid.length : 0;
-  return (
-    <div style={{ position: "absolute", inset: 0, overflow: "hidden" }}>
-      {valid.map((src, i) => (
-        <img
-          key={src}
-          src={src}
-          alt={i === active ? alt : ""}
-          loading="lazy"
-          onError={() => setFailed((prev) => new Set(prev).add(src))}
-          style={{
-            position: "absolute",
-            inset: 0,
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            opacity: i === active ? 1 : 0,
-            transform: i === active ? "translateX(0)" : "translateX(-22px)",
-            transition: "opacity .45s ease, transform .55s cubic-bezier(.34,1.08,.5,1)",
-          }}
-        />
-      ))}
-    </div>
-  );
-}
-
 // Mode card for "Añadir a mano" / "Subir foto o ticket".
 //
 // Default (no items added yet):  Alergias-card style — illustration on top,
@@ -344,7 +301,7 @@ function PantryModeCard({ label, active, compact, onClick, children }) {
           <Check size={12} color="#fff" strokeWidth={3} />
         </span>
       )}
-      <div style={{ position: "relative", width: "100%", aspectRatio: "3 / 2", background: "#eef4ef", flexShrink: 0 }}>
+      <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 3", background: "#eef4ef", flexShrink: 0 }}>
         {children}
       </div>
       <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "11px 8px", background: active ? EMPTY_ACCENT : "#fff", color: active ? "#fff" : "#3d6652", fontSize: 12.5, fontWeight: 800, lineHeight: 1.2, textAlign: "center" }}>
@@ -362,17 +319,14 @@ function PantryModePicker({ tab, setTab, canUploadReceipt, addedCount = 0 }) {
         <img
           src="/avatares/cards/subir_a_mano.jpg"
           alt="Añadir a mano"
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 18%" }}
         />
       </PantryModeCard>
       <PantryModeCard label="Subir foto o ticket" active={tab === "upload"} compact={compact} onClick={() => setTab("upload")}>
-        <RotatingCardImage
-          images={
-            canUploadReceipt
-              ? ["/avatares/cards/subir_foto.jpg", "/avatares/cards/escanear.jpg"]
-              : ["/avatares/cards/subir_foto.jpg"]
-          }
+        <img
+          src="/avatares/cards/escanear.jpg"
           alt="Subir foto o ticket"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover", objectPosition: "center 18%" }}
         />
       </PantryModeCard>
     </div>
@@ -475,7 +429,6 @@ function PantryLocationCards({ selected, counts, onPick }) {
                 width: "100%",
                 aspectRatio: "2 / 3",
                 background: meta.tint,
-                padding: "10px 8px 0",
                 boxSizing: "border-box",
                 overflow: "hidden",
               }}
@@ -487,7 +440,7 @@ function PantryLocationCards({ selected, counts, onPick }) {
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "contain",
+                  objectFit: "cover",
                   objectPosition: "center bottom",
                   display: "block",
                 }}
@@ -519,10 +472,10 @@ function PantryLocationCards({ selected, counts, onPick }) {
               style={{
                 width: "100%",
                 padding: "7px 6px",
-                background: on ? meta.ink : meta.tint,
-                color: on ? "#fff" : meta.ink,
+                background: "#fff",
+                color: meta.ink,
                 fontSize: 12.5,
-                fontWeight: 800,
+                fontWeight: 900,
                 textAlign: "center",
                 lineHeight: 1.2,
               }}

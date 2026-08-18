@@ -128,6 +128,7 @@ import { navDirection } from "./lib/motion.js";
 import { useAuth } from "./lib/useAuth.js";
 import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
+import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
 import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud } from "./lib/pantry.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
@@ -2028,6 +2029,7 @@ export default function App() {
   const recipePlannerOriginRef = useRef("dashboard");
   // When set, the recipe planner opens in "edit" mode for this user recipe.
   const [editingRecipe, setEditingRecipe] = useState(null);
+  const [recipePrefsOpen, setRecipePrefsOpen] = useState(false);
   const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
   const back = (fn) => { dirRef.current = "backward"; fn(); };
 
@@ -3857,6 +3859,7 @@ export default function App() {
                   if (user?.id) upsertUserRecipe(user.id, combo);
                   showToast(`Guardada en Mis recetas: ${combo.name}`);
                 }}
+                onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
             </Suspense>
           </div>
@@ -3864,6 +3867,18 @@ export default function App() {
 
         {screen === "recipes" && !recipesCoachSeen && (
           <RecipesCoachTour onClose={markRecipesCoachSeen} />
+        )}
+
+        {recipePrefsOpen && (
+          <RecipePrefsWizard
+            initial={data.recipeMode ?? "preferred"}
+            onComplete={(mode) => {
+              setData((d) => ({ ...d, recipeMode: mode }));
+              setRecipePrefsOpen(false);
+              showToast("Preferencias de recetas guardadas");
+            }}
+            onClose={() => setRecipePrefsOpen(false)}
+          />
         )}
 
         {screen === "profile" && (

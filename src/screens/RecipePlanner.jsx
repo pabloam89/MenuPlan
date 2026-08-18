@@ -827,6 +827,7 @@ export function IngredientPicker({
   onAddCustom,
   compact = false,
   hideSearch = false,
+  hideBackButton = false,
   onPlus: _onPlus,
   plusDisabled: _plusDisabled = false,
   onUpload,
@@ -863,8 +864,9 @@ export function IngredientPicker({
     return (
       <div style={{ marginBottom: 14 }}>
         {/* Con búsqueda externa (hideSearch) solo hace falta el "Volver a
-            categorías" cuando hay un aisle abierto; el input vive fuera. */}
-        {hideSearch && aisle && (
+            categorías" cuando hay un aisle abierto; el input vive fuera. Si el
+            caller ya pinta su propio botón (hideBackButton), lo omitimos. */}
+        {hideSearch && !hideBackButton && aisle && (
           <button
             type="button"
             onClick={() => setAisle(null)}

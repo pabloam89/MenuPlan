@@ -6,6 +6,8 @@ import {
   ChefHat,
   ChevronLeft,
   Check,
+  BookOpen,
+  Globe,
 } from "lucide-react";
 import { WizardSheet } from "./ui.jsx";
 
@@ -263,6 +265,113 @@ export function PantryPrefsWizard({ initial, onComplete, onLater }) {
         }}
       >
         Responder más tarde
+      </button>
+    </WizardSheet>
+  );
+}
+
+// ── Wizard de preferencias de recetas ──────────────────────────────────────
+// Una sola pregunta: de dónde saca recetas el planificador al generar el menú.
+
+const RECIPE_PREF_IMG = (slug) => `/avatares/cards/${slug}.png`;
+
+const RECIPE_OPTIONS = [
+  {
+    id: "preferred",
+    img: RECIPE_PREF_IMG("recetas_preferir_mias"),
+    Icon: BookOpen,
+    iconColor: "#2d5a3d",
+    iconBg: "#e6f3ea",
+    title: "Preferir las mías",
+    subtitle: "Usa tus recetas siempre que puede; el catálogo cubre el resto.",
+  },
+  {
+    id: "only",
+    img: RECIPE_PREF_IMG("recetas_solo_mias"),
+    Icon: BookOpen,
+    iconColor: "#7a4e00",
+    iconBg: "#fff8e7",
+    title: "Solo las mías",
+    subtitle: "El menú se genera únicamente con tus recetas propias.",
+  },
+  {
+    id: "catalog",
+    img: RECIPE_PREF_IMG("recetas_solo_catalog"),
+    Icon: Globe,
+    iconColor: "#5a2d7a",
+    iconBg: "#f5edfc",
+    title: "Solo catálogo",
+    subtitle: "El menú usa únicamente el catálogo de recetas.",
+  },
+];
+
+export function RecipePrefsWizard({ initial, onComplete, onClose }) {
+  const [selected, setSelected] = useState(initial ?? "preferred");
+
+  return (
+    <WizardSheet
+      icon={BookOpen}
+      title="Recetas en el menú"
+      subtitle="¿De dónde sacamos las recetas al generarlo?"
+      onClose={onClose}
+      maxWidth={360}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        {RECIPE_OPTIONS.map((opt) => (
+          <PantryPrefOptionCard
+            key={opt.id}
+            img={opt.img}
+            Icon={opt.Icon}
+            iconColor={opt.iconColor}
+            iconBg={opt.iconBg}
+            title={opt.title}
+            subtitle={opt.subtitle}
+            selected={selected === opt.id}
+            onSelect={() => setSelected(opt.id)}
+          />
+        ))}
+      </div>
+
+      <button
+        type="button"
+        onClick={() => onComplete(selected)}
+        style={{
+          display: "block",
+          width: "100%",
+          marginTop: 14,
+          padding: "12px 16px",
+          borderRadius: 14,
+          border: "none",
+          background: "#2d5a3d",
+          color: "#fff",
+          fontSize: 14,
+          fontWeight: 800,
+          cursor: "pointer",
+          fontFamily: "inherit",
+        }}
+      >
+        Guardar preferencias
+      </button>
+
+      <button
+        type="button"
+        onClick={onClose}
+        style={{
+          display: "block",
+          width: "100%",
+          marginTop: 8,
+          border: "none",
+          background: "transparent",
+          color: "#7a9080",
+          fontSize: 12.5,
+          fontWeight: 700,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          padding: "6px 2px",
+          textAlign: "center",
+        }}
+      >
+        Cerrar
       </button>
     </WizardSheet>
   );
