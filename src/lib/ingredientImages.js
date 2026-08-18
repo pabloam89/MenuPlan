@@ -385,7 +385,7 @@ export function aisleImageSrc(aisle) {
 const RECIPE_CATEGORY_IMAGES = new Set([
   "legumbres", "carnes", "pescados", "huevos", "pasta_arroces", "sopas_cremas",
   "ensaladas_verduras", "platos_unicos", "cenas_rapidas", "bebes", "desayunos",
-  "meriendas", "postres",
+  "meriendas", "postres", "guarniciones",
 ]);
 
 /** Illustration for a recipe category id, or null when there's no art for it. */
