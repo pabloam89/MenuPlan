@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { BookOpen, Heart, NotebookPen, Ban, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { BottomNav, bottomNavSpacer, EmptyIllustration, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
@@ -75,10 +75,10 @@ export function RecipesScreen({
   );
 
   const TABS = [
-    { id: "mine", label: "Mis recetas", count: userRecipes.length },
-    { id: "catalog", label: "Catálogo" },
-    { id: "favorites", label: "Favoritas", count: favoriteIds.size },
-    { id: "discarded", label: "Descartados", count: discardedRecipes.length },
+    { id: "mine", label: "Mis recetas", count: userRecipes.length, Icon: NotebookPen },
+    { id: "catalog", label: "Catálogo", Icon: BookOpen },
+    { id: "favorites", label: "Favoritas", count: favoriteIds.size, Icon: Heart },
+    { id: "discarded", label: "Descartados", count: discardedRecipes.length, Icon: Ban },
   ];
 
   return (
@@ -154,6 +154,7 @@ export function RecipesScreen({
               onClick={() => setTab(t.id)}
               label={t.label}
               count={t.count}
+              Icon={t.Icon}
               accent={GREEN}
             />
           ))}

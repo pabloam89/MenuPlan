@@ -116,7 +116,7 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
   );
 }
 
-/** Tab bar for Recetas / Elegir a mano: count badge pinned top-right so labels breathe. */
+/** Tab bar for Recetas / Elegir a mano — stacked icon + label when `Icon` is passed. */
 export function SegmentedTabBar({ children, style }) {
   return (
     <div
@@ -126,6 +126,7 @@ export function SegmentedTabBar({ children, style }) {
         borderRadius: 12,
         padding: 4,
         gap: 2,
+        alignItems: "stretch",
         ...style,
       }}
     >
@@ -140,19 +141,97 @@ export function SegmentedTabButton({
   label,
   count = 0,
   accent = "#2d5a3d",
-  fontSize = 12,
+  fontSize = 11,
+  Icon,
   ...rest
 }) {
   const hasBadge = count > 0;
+  const ariaLabel = hasBadge ? `${label}, ${count}` : label;
+  const iconColor = selected ? accent : "#9ab0a1";
+
+  if (Icon) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        aria-label={ariaLabel}
+        style={{
+          flex: 1,
+          minWidth: 0,
+          padding: "5px 2px 6px",
+          borderRadius: 9,
+          border: "none",
+          background: selected ? "#fff" : "transparent",
+          color: selected ? "#142f1d" : "#7a9485",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          boxShadow: selected ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+          transition: "all .15s",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 3,
+          minHeight: 54,
+        }}
+        {...rest}
+      >
+        <span
+          aria-hidden
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: hasBadge ? 3 : 0,
+            minHeight: 20,
+          }}
+        >
+          <Icon size={18} strokeWidth={2.35} color={iconColor} />
+          {hasBadge && (
+            <span
+              style={{
+                minWidth: 14,
+                height: 14,
+                padding: "0 3px",
+                borderRadius: 999,
+                fontSize: 8.5,
+                fontWeight: 900,
+                lineHeight: "14px",
+                textAlign: "center",
+                color: selected ? accent : "#7a9485",
+                background: selected ? "#e4f3e9" : "#dce8de",
+              }}
+            >
+              {count}
+            </span>
+          )}
+        </span>
+        <span
+          style={{
+            display: "block",
+            textAlign: "center",
+            lineHeight: 1.15,
+            fontSize,
+            fontWeight: selected ? 800 : 700,
+            letterSpacing: "-0.1px",
+          }}
+        >
+          {label}
+        </span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       onClick={onClick}
+      aria-label={ariaLabel}
       style={{
         position: "relative",
         flex: 1,
         minWidth: 0,
-        padding: hasBadge ? "9px 16px 9px 8px" : "9px 8px",
+        padding: hasBadge ? "11px 4px 8px" : "9px 4px",
         borderRadius: 9,
         border: "none",
         background: selected ? "#fff" : "transparent",
@@ -161,22 +240,18 @@ export function SegmentedTabButton({
         fontWeight: selected ? 800 : 700,
         cursor: "pointer",
         fontFamily: "inherit",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
         boxShadow: selected ? "0 1px 4px rgba(0,0,0,.1)" : "none",
         transition: "all .15s",
       }}
       {...rest}
     >
-      <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
       {hasBadge && (
         <span
           aria-hidden
           style={{
             position: "absolute",
-            top: 4,
-            right: 5,
+            top: 3,
+            left: 4,
             minWidth: 15,
             height: 15,
             padding: "0 3px",
@@ -193,6 +268,7 @@ export function SegmentedTabButton({
           {count}
         </span>
       )}
+      <span style={{ display: "block", textAlign: "center", lineHeight: 1.2 }}>{label}</span>
     </button>
   );
 }
