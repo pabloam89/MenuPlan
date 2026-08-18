@@ -29,6 +29,7 @@ function mapRow(row) {
     itemType: row.item_type ?? "ingredient",
     portions: row.portions != null ? Number(row.portions) : null,
     recipeRef: row.recipe_ref ?? null,
+    garnishRef: row.garnish_ref ?? null,
     cookedAt: row.cooked_at ?? null,
     // Ubicación fijada a mano (0015). null → se deriva en la UI (frozen/aisle).
     location: row.location ?? null,
@@ -52,6 +53,10 @@ function omitLocationFromRows(rows) {
   return rows.map(({ location: _loc, ...rest }) => rest);
 }
 
+function omitGarnishRefFromRows(rows) {
+  return rows.map(({ garnish_ref: _g, ...rest }) => rest);
+}
+
 /**
  * Inserts pantry rows, degrading tier-by-tier on a pre-migration DB:
  * full schema → without `location` (0015) → legacy base columns (pre-0014).
@@ -69,6 +74,12 @@ async function insertPantryRows(userId, toInsert, itemsForLegacy) {
   if (isMissingColumn(error) && payload.some((r) => "location" in r)) {
     console.warn("[pantry] insert: `location` column missing (run migration 0015) — retrying without it");
     payload = omitLocationFromRows(payload);
+    ({ data, error } = await supabase.from("user_pantry").insert(payload).select(RETURN_COLS));
+  }
+
+  if (isMissingColumn(error) && payload.some((r) => "garnish_ref" in r)) {
+    console.warn("[pantry] insert: `garnish_ref` column missing (run migration 0016) — retrying without it");
+    payload = omitGarnishRefFromRows(payload);
     ({ data, error } = await supabase.from("user_pantry").insert(payload).select(RETURN_COLS));
   }
 
@@ -122,6 +133,7 @@ async function patchPantryRow(userId, id, patch) {
 // on a pre-migration DB (see loadPantry's graceful fallbacks).
 const BASE_COLS = "id, ingredient_name, ingredient_normalized, qty, unit, source, created_at";
 const FREEZER_COLS = "frozen, item_type, portions, recipe_ref, cooked_at";
+const GARNISH_COL = "garnish_ref";
 // 0015 — kept in its own group so a DB with 0014 but not 0015 still loads the
 // freezer columns (lumping them would drop frozen/item_type on the fallback).
 const LOCATION_COLS = "location";
@@ -129,7 +141,7 @@ const UPDATED_AT_COL = "updated_at";
 // Must mirror the fullest loadPantry tier so insert/update `.select()` returns
 // location + timestamps — otherwise mapRow() zeroes them and Inventario briefly
 // (or permanently, if the caller skips reload) shows Nevera / Hoy / 1 ud.
-const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${LOCATION_COLS}`;
+const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`;
 
 /** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
 export async function loadPantry(userId) {
@@ -144,7 +156,9 @@ export async function loadPantry(userId) {
   // Newest schema first, then fall back tier by tier so the pantry still loads
   // on a DB missing 0015 (location), 0014 (freezer) or 0009 (updated_at).
   const tiers = [
+    `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`,
     `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${LOCATION_COLS}`,
+    `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${GARNISH_COL}`,
     `${BASE_COLS}, updated_at, ${FREEZER_COLS}`,
     `${BASE_COLS}, updated_at`,
     BASE_COLS,
@@ -247,6 +261,7 @@ export async function addPantryItems(userId, items) {
       item_type: "cooked_dish",
       portions,
       recipe_ref: it.recipeRef ?? null,
+      garnish_ref: it.garnishRef ?? null,
       cooked_at: it.cookedAt ?? new Date().toISOString(),
       source: it.source ?? "manual",
     });
@@ -509,6 +524,7 @@ export function addLocalPantryItems(items) {
         itemType: "cooked_dish",
         portions,
         recipeRef: it.recipeRef ?? null,
+        garnishRef: it.garnishRef ?? null,
         cookedAt: it.cookedAt ?? now,
         updatedAt: now,
       });
@@ -597,6 +613,7 @@ export async function mergeLocalPantryIntoCloud(userId) {
       itemType: it.itemType,
       portions: it.portions,
       recipeRef: it.recipeRef,
+      garnishRef: it.garnishRef,
       cookedAt: it.cookedAt,
     })),
   );

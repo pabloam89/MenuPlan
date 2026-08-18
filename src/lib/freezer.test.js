@@ -1,17 +1,24 @@
 import { describe, it, expect } from "vitest";
 import {
   assignFreezerToPlan,
+  assignFridgeToSlot,
   assignFreezerToSlot,
   catalogIdOfPlanRecipe,
   clearFreezerFromSlot,
   cookedAgoLabel,
   cookedEatersFor,
+  fridgePortionsFor,
   frozenPortionsFor,
+  indexFridgeDishes,
   indexFrozenDishes,
+  isFridgeCookedDish,
   isFrozenCookedDish,
+  pickFridgeItem,
   pickFrozenItem,
   portionsLabel,
+  slotUsesFridge,
   slotUsesFreezer,
+  slotUsesPrepared,
   splitSlotPortions,
 } from "./freezer.js";
 
@@ -25,6 +32,20 @@ function frozenDish(recipeRef, portions, extra = {}) {
     qty: portions,
     unit: "racion",
     cookedAt: "2026-08-01T12:00:00.000Z",
+    ...extra,
+  };
+}
+
+function fridgeDish(recipeRef, portions, extra = {}) {
+  return {
+    id: `f_${recipeRef}_${portions}`,
+    itemType: "cooked_dish",
+    frozen: false,
+    recipeRef,
+    portions,
+    qty: portions,
+    unit: "racion",
+    cookedAt: "2026-08-10T12:00:00.000Z",
     ...extra,
   };
 }
@@ -282,6 +303,54 @@ describe("assignFreezerToPlan", () => {
     const plan = { g1: { "Lun-Comida": { recipeId: "carnes_003", eaters: 2 } } };
     expect(run(plan, [])).toBe(0);
     expect(plan.g1["Lun-Comida"].fromFreezer).toBeUndefined();
+  });
+
+  it("marca huecos con platos de nevera (fromFridge)", () => {
+    const plan = { g1: { "Lun-Comida": { recipeId: "carnes_003", eaters: 2 } } };
+    expect(run(plan, [fridgeDish("carnes_003", 2)])).toBe(1);
+    expect(plan.g1["Lun-Comida"]).toMatchObject({
+      fromFridge: true,
+      fridgePortions: 2,
+      freshPortions: 0,
+    });
+  });
+
+  it("nevera va antes que congelador en el mismo plato", () => {
+    const plan = {
+      g1: {
+        "Lun-Comida": { recipeId: "carnes_003", eaters: 2 },
+        "Mar-Comida": { recipeId: "carnes_003", eaters: 2 },
+      },
+    };
+    expect(run(plan, [fridgeDish("carnes_003", 2), frozenDish("carnes_003", 2)])).toBe(2);
+    expect(plan.g1["Lun-Comida"].fromFridge).toBe(true);
+    expect(plan.g1["Mar-Comida"].fromFreezer).toBe(true);
+  });
+
+  it("guarda preparedGarnishRef del tupper", () => {
+    const plan = { g1: { "Lun-Comida": { recipeId: "carnes_003", eaters: 2 } } };
+    run(plan, [fridgeDish("carnes_003", 2, { garnishRef: "guarniciones_001" })]);
+    expect(plan.g1["Lun-Comida"].preparedGarnishRef).toBe("guarniciones_001");
+  });
+});
+
+describe("nevera helpers", () => {
+  it("isFridgeCookedDish distingue nevera de congelador", () => {
+    expect(isFridgeCookedDish(fridgeDish("carnes_003", 2))).toBe(true);
+    expect(isFridgeCookedDish(frozenDish("carnes_003", 2))).toBe(false);
+  });
+
+  it("slotUsesPrepared cubre nevera y congelador", () => {
+    expect(slotUsesPrepared({ fromFridge: true, fridgePortions: 2, recipeId: "x" }, "x")).toBe(true);
+    expect(slotUsesPrepared({ fromFreezer: true, frozenPortions: 2, recipeId: "x" }, "x")).toBe(true);
+  });
+
+  it("assignFridgeToSlot marca el slot", () => {
+    const slot = { eaters: 4, recipeId: "carnes_003" };
+    const next = assignFridgeToSlot(slot, fridgeDish("carnes_003", 3));
+    expect(next.fromFridge).toBe(true);
+    expect(next.fridgePortions).toBe(3);
+    expect(next.freshPortions).toBe(1);
   });
 });
 

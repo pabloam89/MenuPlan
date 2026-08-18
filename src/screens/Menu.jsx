@@ -41,6 +41,7 @@ import {
   Plus,
   RotateCcw,
   RotateCw,
+  Refrigerator,
   Salad,
   Search,
   Shell,
@@ -78,13 +79,19 @@ import { RecipeStepList } from "../components/RecipeSteps.jsx";
 import { formatQty, normalizeRichSteps, resolveApplianceSteps } from "../lib/recipeSteps.js";
 import {
   assignFreezerToSlot,
+  assignFridgeToSlot,
   cookedAgoLabel,
   cookedEatersFor,
+  fridgePortionsFor,
   frozenPortionsFor,
   itemPortions,
+  pickFridgeItem,
   pickFrozenItem,
   portionsLabel,
+  preparedPortionsFor,
+  slotUsesFridge,
   slotUsesFreezer,
+  slotUsesPrepared,
   splitSlotPortions,
 } from "../lib/freezer.js";
 import { ingredientImageFor, ingredientThumbSrc, categoryImageSrc } from "../lib/ingredientImages.js";
@@ -1573,7 +1580,14 @@ export function DishCard({
   // ya en la semana, porque cambia el plan del día — hay que bajarlo a la nevera
   // la noche antes, y no hay que comprar para él.
   const fromFreezer = slotUsesFreezer(slot, slot.recipeId);
-  const freezerFresh = fromFreezer ? Number(slot.freshPortions) || 0 : 0;
+  const fromFridge = slotUsesFridge(slot, slot.recipeId);
+  const fromPrepared = fromFreezer || fromFridge;
+  const preparedFresh = fromPrepared ? Number(slot.freshPortions) || 0 : 0;
+  const preparedCount = fromFreezer
+    ? Number(slot.frozenPortions) || 0
+    : fromFridge
+      ? Number(slot.fridgePortions) || 0
+      : 0;
 
   // "Menú más cuidado" badge — active health profiles of the group this dish
   // was planned for, matched against the dish's own healthFlags (see
@@ -1618,23 +1632,26 @@ export function DishCard({
           bottom-anchored dot away from the thumbnail's actual corner. */}
       <span style={{ position: "relative", flexShrink: 0, alignSelf: "flex-start" }}>
         <DishIcon recipe={recipe} size={44} imageUrl={dishImageForRecipe(recipe)} />
-        {fromFreezer && (
+        {fromPrepared && (
           <span
             aria-hidden="true"
             title={
-              freezerFresh > 0
-                ? `${portionsLabel(slot.frozenPortions)} del congelador · cocinas ${freezerFresh} más`
-                : `${portionsLabel(slot.frozenPortions)} del congelador: solo descongelar`
+              preparedFresh > 0
+                ? `${portionsLabel(preparedCount)} ${fromFridge ? "de la nevera" : "del congelador"} · cocinas ${preparedFresh} más`
+                : `${portionsLabel(preparedCount)} ${fromFridge ? "de la nevera" : "del congelador"}: solo ${fromFridge ? "recalentar" : "descongelar"}`
             }
             style={{
               position: "absolute", top: -3, right: -3,
               width: 18, height: 18, borderRadius: 999,
               display: "flex", alignItems: "center", justifyContent: "center",
-              background: "#eaf4fb", border: "2px solid #fff",
+              background: fromFridge ? "#eef8f1" : "#eaf4fb",
+              border: "2px solid #fff",
               boxShadow: "0 1px 3px rgba(0,0,0,.18)", boxSizing: "border-box",
             }}
           >
-            <Snowflake size={10} color="#3d6b93" strokeWidth={3} />
+            {fromFridge
+              ? <Refrigerator size={10} color="#2f6d8a" strokeWidth={3} />
+              : <Snowflake size={10} color="#3d6b93" strokeWidth={3} />}
           </span>
         )}
         {availability && availability.have < availability.total && (
@@ -4983,11 +5000,11 @@ export function DishDetail({
   // cuántas raciones se escalan los ingredientes: de las que salen del
   // congelador no hay nada que comprar ni medir, solo las frescas cuentan.
   const slotFromFreezer = slotUsesFreezer(slot, recipe.id);
-  const frozenPortionsInSlot = slotFromFreezer ? Number(slot.frozenPortions) || 0 : 0;
+  const slotFromFridge = slotUsesFridge(slot, recipe.id);
+  const slotFromPrepared = slotFromFreezer || slotFromFridge;
+  const preparedPortionsInSlot = slotFromPrepared ? preparedPortionsFor(slot, recipe.id) : 0;
   const cookedEaters = cookedEatersFor(slot, recipe.id);
-  // Un plato mixto (2 raciones congeladas de 4 comensales) sigue necesitando
-  // cocinar: se pintan los dos bloques de pasos, descongelar y receta.
-  const needsFreshCooking = slotFromFreezer && cookedEaters > 0;
+  const needsFreshCooking = slotFromPrepared && cookedEaters > 0;
   // Las cantidades de la ficha (y los marcadores {{Ingrediente}} de los pasos)
   // se refieren SOLO a lo que hay que cocinar de verdad. Un plato cubierto del
   // todo por el congelador se queda con la lista vacía: no se compra ni se pesa
@@ -5149,18 +5166,24 @@ export function DishDetail({
     () => frozenPortionsFor(pantryStock, catalogId),
     [pantryStock, catalogId],
   );
+  const fridgePortions = useMemo(
+    () => fridgePortionsFor(pantryStock, catalogId),
+    [pantryStock, catalogId],
+  );
   const freezerItem = useMemo(
     () => pickFrozenItem(pantryStock, catalogId),
     [pantryStock, catalogId],
   );
-  // Si el slot ya está marcado manda su reparto; si no, se simula con el stock
-  // actual para poder enseñar en el banner qué pasaría al pulsar el botón.
-  const freezerSplit = useMemo(
+  const fridgeItem = useMemo(
+    () => pickFridgeItem(pantryStock, catalogId),
+    [pantryStock, catalogId],
+  );
+  const preparedSplit = useMemo(
     () =>
-      slotFromFreezer
-        ? { frozenPortions: frozenPortionsInSlot, freshPortions: cookedEaters }
-        : splitSlotPortions(slot.eaters, freezerPortions),
-    [slotFromFreezer, frozenPortionsInSlot, cookedEaters, slot.eaters, freezerPortions],
+      slotFromPrepared
+        ? { preparedPortions: preparedPortionsInSlot, freshPortions: cookedEaters }
+        : splitSlotPortions(slot.eaters, Math.max(fridgePortions, freezerPortions)),
+    [slotFromPrepared, preparedPortionsInSlot, cookedEaters, slot.eaters, fridgePortions, freezerPortions],
   );
   const thawSteps = useMemo(() => {
     const own = normalizeRichSteps(recipe.thawSteps);
@@ -5169,7 +5192,9 @@ export function DishDetail({
     return fromCatalog.length > 0 ? fromCatalog : null;
   }, [recipe.thawSteps, catalogId]);
   const canUseFreezer =
-    Boolean(onSlotFreezerChange) && !slotFromFreezer && freezerPortions > 0 && !isCooked;
+    Boolean(onSlotFreezerChange) && !slotFromPrepared && freezerPortions > 0 && !isCooked;
+  const canUseFridge =
+    Boolean(onSlotFreezerChange) && !slotFromPrepared && fridgePortions > 0 && !isCooked;
 
   const handleUseFreezer = () => {
     if (!canUseFreezer || !freezerItem) return;
@@ -5181,6 +5206,7 @@ export function DishDetail({
       frozenRecipeId: next.frozenRecipeId,
       frozenPortions: next.frozenPortions,
       freshPortions: next.freshPortions,
+      ...(next.preparedGarnishRef ? { preparedGarnishRef: next.preparedGarnishRef } : {}),
     });
     onToast?.(
       next.freshPortions > 0
@@ -5189,31 +5215,48 @@ export function DishDetail({
     );
   };
 
+  const handleUseFridge = () => {
+    if (!canUseFridge || !fridgeItem) return;
+    const next = assignFridgeToSlot(slot, fridgeItem, recipe.id);
+    if (!slotUsesFridge(next, recipe.id)) return;
+    onSlotFreezerChange({
+      fromFridge: true,
+      fridgeItemId: next.fridgeItemId,
+      fridgeRecipeId: next.fridgeRecipeId,
+      fridgePortions: next.fridgePortions,
+      freshPortions: next.freshPortions,
+      ...(next.preparedGarnishRef ? { preparedGarnishRef: next.preparedGarnishRef } : {}),
+    });
+    onToast?.(
+      next.freshPortions > 0
+        ? `Sacarás ${portionsLabel(next.fridgePortions)} de la nevera · cocinas ${next.freshPortions} más`
+        : `Sacarás ${portionsLabel(next.fridgePortions)} de la nevera`,
+    );
+  };
+
   const handleCookFromScratch = () => {
-    if (!onSlotFreezerChange || !slotFromFreezer) return;
+    if (!onSlotFreezerChange || !slotFromPrepared) return;
     onSlotFreezerChange(null);
     onToast?.("Este plato se cocinará desde cero");
   };
 
   /**
-   * Saca del congelador las raciones que este hueco tenía reservadas y devuelve
-   * el delta para poder deshacerlo. Reparte entre varios tuppers de la misma
-   * receta gastando primero el más antiguo, porque el slot solo apunta a uno y
-   * puede no tener él solo todas las raciones (dos tuppers de 2 para 4 bocas).
+   * Saca de nevera/congelador las raciones reservadas en este hueco.
    */
-  const consumeFreezerPortions = async () => {
-    let pending = frozenPortionsInSlot;
+  const consumePreparedPortions = async () => {
+    let pending = preparedPortionsInSlot;
     if (pending <= 0) return null;
-    // El tupper que eligió el slot primero, luego el resto de la misma receta
-    // del más antiguo al más nuevo: el slot apunta a uno solo, pero puede no
-    // tener él todas las raciones (dos tuppers de 2 para cuatro bocas).
+    const fromFridge = slotFromFridge;
+    const primaryItemId = fromFridge ? slot.fridgeItemId : slot.frozenItemId;
     const mine = pantryStock.filter(
-      (it) => it.itemType === "cooked_dish" && it.frozen && it.recipeRef === catalogId,
+      (it) => it.itemType === "cooked_dish"
+        && Boolean(it.frozen) === !fromFridge
+        && it.recipeRef === catalogId,
     );
     const candidates = [
-      ...mine.filter((it) => it.id === slot.frozenItemId),
+      ...mine.filter((it) => it.id === primaryItemId),
       ...mine
-        .filter((it) => it.id !== slot.frozenItemId)
+        .filter((it) => it.id !== primaryItemId)
         .sort((a, b) => String(a.cookedAt ?? "").localeCompare(String(b.cookedAt ?? ""))),
     ];
 
@@ -5227,24 +5270,22 @@ export function DishDetail({
         ? await adjustCookedDishPortions(user.id, item.id, -take)
         : adjustLocalCookedDishPortions(item.id, -take);
       if (left == null) continue;
-      // Snapshot del tupper: al agotarlo su fila desaparece, así que sin esto un
-      // "deshacer" no tendría a dónde devolver las raciones.
       taken.push({
         itemId: item.id,
         portions: take,
         name: item.ingredientName,
         normalized: item.ingredientNormalized,
         cookedAt: item.cookedAt,
+        frozen: Boolean(item.frozen),
+        garnishRef: item.garnishRef ?? null,
       });
       pending -= take;
     }
     if (taken.length === 0) return null;
-    return { portions: taken.reduce((s, t) => s + t.portions, 0), taken };
+    return { portions: taken.reduce((s, t) => s + t.portions, 0), taken, fromFridge };
   };
 
-  /** Devuelve al congelador las raciones de un descongelado deshecho,
-   *  recreando el tupper si se había agotado del todo. */
-  const restoreFreezerPortions = async (delta) => {
+  const restorePreparedPortions = async (delta) => {
     for (const t of delta?.taken ?? []) {
       const restored = user
         ? await adjustCookedDishPortions(user.id, t.itemId, t.portions)
@@ -5256,9 +5297,10 @@ export function DishDetail({
         portions: t.portions,
         qty: t.portions,
         unit: "racion",
-        frozen: true,
+        frozen: Boolean(t.frozen),
         itemType: "cooked_dish",
         recipeRef: catalogId,
+        garnishRef: t.garnishRef ?? null,
         cookedAt: t.cookedAt,
         source: "manual",
       };
@@ -5280,8 +5322,8 @@ export function DishDetail({
       // ingredientes. En un slot mixto se hacen las dos cosas — salen las
       // raciones congeladas Y se descuentan los ingredientes de las frescas
       // (que `ingredients` ya trae escalados a los comensales que toca).
-      const freezerDelta = slotFromFreezer
-        ? await consumeFreezerPortions()
+      const preparedDelta = slotFromPrepared
+        ? await consumePreparedPortions()
         : null;
       const consumeIngredients = shouldConsumeOnCook && ingredients.length > 0;
       const { deltas, decremented } = consumeIngredients
@@ -5291,13 +5333,13 @@ export function DishDetail({
         ...d,
         cookedDishes: [...(d?.cookedDishes ?? []), cookedKey],
         cookedDeltas: { ...(d?.cookedDeltas ?? {}), [cookedKey]: deltas },
-        ...(freezerDelta
-          ? { cookedFreezerDeltas: { ...(d?.cookedFreezerDeltas ?? {}), [cookedKey]: freezerDelta } }
+        ...(preparedDelta
+          ? { cookedFreezerDeltas: { ...(d?.cookedFreezerDeltas ?? {}), [cookedKey]: preparedDelta } }
           : {}),
       }));
-      if (consumeIngredients || freezerDelta) await reloadCookStock();
-      if (freezerDelta) {
-        onToast?.(`¡Listo! ${portionsLabel(freezerDelta.portions)} fuera del congelador`);
+      if (consumeIngredients || preparedDelta) await reloadCookStock();
+      if (preparedDelta) {
+        onToast?.(`¡Listo! ${portionsLabel(preparedDelta.portions)} ${preparedDelta.fromFridge ? "de la nevera" : "del congelador"}`);
       } else {
         onToast?.(decremented ? `¡Cocinado! Stock en casa actualizado (${decremented})` : "¡Cocinado!");
       }
@@ -5311,8 +5353,8 @@ export function DishDetail({
     try {
       const deltas = data?.cookedDeltas?.[cookedKey] ?? [];
       const restored = await restoreToPantry(deltas, { user });
-      const freezerDelta = data?.cookedFreezerDeltas?.[cookedKey] ?? null;
-      if (freezerDelta) await restoreFreezerPortions(freezerDelta);
+      const preparedDelta = data?.cookedFreezerDeltas?.[cookedKey] ?? null;
+      if (preparedDelta) await restorePreparedPortions(preparedDelta);
       setData((d) => {
         const nextDeltas = { ...(d?.cookedDeltas ?? {}) };
         delete nextDeltas[cookedKey];
@@ -5326,8 +5368,8 @@ export function DishDetail({
         };
       });
       await reloadCookStock();
-      if (freezerDelta) {
-        onToast?.(`Deshecho · ${portionsLabel(freezerDelta.portions)} de vuelta al congelador`);
+      if (preparedDelta) {
+        onToast?.(`Deshecho · ${portionsLabel(preparedDelta.portions)} de vuelta ${preparedDelta.fromFridge ? "a la nevera" : "al congelador"}`);
       } else {
         onToast?.(restored ? `Cocinado deshecho · stock devuelto (${restored})` : "Cocinado deshecho");
       }
@@ -5744,66 +5786,109 @@ export function DishDetail({
             </div>
           ))}
 
-          {/* Congelador: o el plato ya viene marcado (lo repartió el planner /
-              lo eligió el usuario) o hay raciones disponibles y se ofrece usarlas. */}
-          {(slotFromFreezer || canUseFreezer) && (
+          {/* Nevera / congelador: el plato ya viene marcado o hay raciones disponibles. */}
+          {(slotFromPrepared || canUseFridge || canUseFreezer) && (
             <div
               style={{
                 display: "flex", alignItems: "flex-start", gap: 10,
                 padding: "12px 14px", borderRadius: 14, marginBottom: 14,
-                background: slotFromFreezer ? "#eaf4fb" : "#f4f8fa",
-                border: `2px solid ${slotFromFreezer ? "#6b8cae" : "#d3e2ec"}`,
+                background: slotFromFridge ? "#eef8f1" : slotFromFreezer ? "#eaf4fb" : "#f4f8fa",
+                border: `2px solid ${slotFromFridge ? "#6aab7a" : slotFromFreezer ? "#6b8cae" : "#d3e2ec"}`,
               }}
             >
-              <Snowflake size={17} color="#4a7ba7" strokeWidth={2.5} style={{ marginTop: 1, flexShrink: 0 }} />
+              {slotFromFridge
+                ? <Refrigerator size={17} color="#2f6d8a" strokeWidth={2.5} style={{ marginTop: 1, flexShrink: 0 }} />
+                : <Snowflake size={17} color="#4a7ba7" strokeWidth={2.5} style={{ marginTop: 1, flexShrink: 0 }} />}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#3d6b93", letterSpacing: ".3px", textTransform: "uppercase" }}>
-                  {slotFromFreezer ? "Del congelador" : "Lo tienes en el congelador"}
+                <div style={{ fontSize: 11, fontWeight: 800, color: slotFromFridge ? "#2f6d8a" : "#3d6b93", letterSpacing: ".3px", textTransform: "uppercase" }}>
+                  {slotFromPrepared
+                    ? (slotFromFridge ? "De la nevera" : "Del congelador")
+                    : (canUseFridge ? "Lo tienes en la nevera" : "Lo tienes en el congelador")}
                 </div>
                 <div style={{ fontSize: 12.5, fontWeight: 600, color: "#3a4a42", marginTop: 3, lineHeight: 1.45 }}>
-                  {slotFromFreezer ? (
+                  {slotFromPrepared ? (
                     needsFreshCooking ? (
                       <>
-                        Sacas {portionsLabel(freezerSplit.frozenPortions)} y cocinas{" "}
-                        {freezerSplit.freshPortions} más para llegar a {slot.eaters}.
-                        No hace falta comprar para las raciones congeladas.
+                        Sacas {portionsLabel(preparedSplit.preparedPortions)} y cocinas{" "}
+                        {preparedSplit.freshPortions} más para llegar a {slot.eaters}.
+                        No hace falta comprar para las raciones ya cocinadas.
                       </>
                     ) : (
                       <>
-                        {portionsLabel(freezerSplit.frozenPortions)} listas para{" "}
+                        {portionsLabel(preparedSplit.preparedPortions)} listas para{" "}
                         {slot.eaters === 1 ? "el comensal" : `los ${slot.eaters} comensales`}: solo hay que
-                        descongelar. Este plato no entra en la compra.
+                        {slotFromFridge ? " recalentar" : " descongelar"}. Este plato no entra en la compra.
                       </>
                     )
                   ) : (
                     <>
-                      Hay {portionsLabel(freezerPortions)} de este plato ya cocinadas
-                      {freezerItem?.cookedAt && cookedAgoLabel(freezerItem.cookedAt)
-                        ? ` (${cookedAgoLabel(freezerItem.cookedAt)})`
-                        : ""}
-                      . Úsalas y te ahorras cocinarlo{freezerSplit.freshPortions > 0
-                        ? ` casi entero: cocinarías solo ${freezerSplit.freshPortions} raciones más`
-                        : " y comprarlo"}.
+                      {canUseFridge && (
+                        <>Hay {portionsLabel(fridgePortions)} en la nevera
+                          {fridgeItem?.cookedAt && cookedAgoLabel(fridgeItem.cookedAt)
+                            ? ` (${cookedAgoLabel(fridgeItem.cookedAt)})`
+                            : ""}. </>
+                      )}
+                      {canUseFreezer && (
+                        <>Hay {portionsLabel(freezerPortions)} en el congelador
+                          {freezerItem?.cookedAt && cookedAgoLabel(freezerItem.cookedAt)
+                            ? ` (${cookedAgoLabel(freezerItem.cookedAt)})`
+                            : ""}. </>
+                      )}
+                      Úsalas y te ahorras cocinar.
                     </>
                   )}
                 </div>
                 {onSlotFreezerChange && (
-                  <button
-                    type="button"
-                    onClick={slotFromFreezer ? handleCookFromScratch : handleUseFreezer}
-                    disabled={isCooked}
-                    style={{
-                      marginTop: 9, padding: "8px 14px", borderRadius: 999,
-                      border: slotFromFreezer ? "1.5px solid #a8c3d8" : "none",
-                      background: slotFromFreezer ? "#fff" : "linear-gradient(135deg,#5b8fbd,#3d6b93)",
-                      color: slotFromFreezer ? "#3d6b93" : "#fff",
-                      fontSize: 12, fontWeight: 800,
-                      cursor: isCooked ? "default" : "pointer", fontFamily: "inherit",
-                      opacity: isCooked ? 0.5 : 1,
-                    }}
-                  >
-                    {slotFromFreezer ? "Cocinarlo desde cero" : "Usar del congelador"}
-                  </button>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 9 }}>
+                    {slotFromPrepared ? (
+                      <button
+                        type="button"
+                        onClick={handleCookFromScratch}
+                        disabled={isCooked}
+                        style={{
+                          padding: "8px 14px", borderRadius: 999,
+                          border: "1.5px solid #a8c3d8", background: "#fff", color: "#3d6b93",
+                          fontSize: 12, fontWeight: 800, cursor: isCooked ? "default" : "pointer",
+                          fontFamily: "inherit", opacity: isCooked ? 0.5 : 1,
+                        }}
+                      >
+                        Cocinarlo desde cero
+                      </button>
+                    ) : (
+                      <>
+                        {canUseFridge && (
+                          <button
+                            type="button"
+                            onClick={handleUseFridge}
+                            disabled={isCooked}
+                            style={{
+                              padding: "8px 14px", borderRadius: 999, border: "none",
+                              background: "linear-gradient(135deg,#4a9e6e,#2f6d8a)", color: "#fff",
+                              fontSize: 12, fontWeight: 800, cursor: isCooked ? "default" : "pointer",
+                              fontFamily: "inherit", opacity: isCooked ? 0.5 : 1,
+                            }}
+                          >
+                            Usar de la nevera
+                          </button>
+                        )}
+                        {canUseFreezer && (
+                          <button
+                            type="button"
+                            onClick={handleUseFreezer}
+                            disabled={isCooked}
+                            style={{
+                              padding: "8px 14px", borderRadius: 999, border: "none",
+                              background: "linear-gradient(135deg,#5b8fbd,#3d6b93)", color: "#fff",
+                              fontSize: 12, fontWeight: 800, cursor: isCooked ? "default" : "pointer",
+                              fontFamily: "inherit", opacity: isCooked ? 0.5 : 1,
+                            }}
+                          >
+                            Usar del congelador
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
                 )}
               </div>
             </div>
@@ -5914,8 +5999,9 @@ export function DishDetail({
               }}>
                 <Snowflake size={16} color="#4a7ba7" strokeWidth={2.4} style={{ marginTop: 1, flexShrink: 0 }} />
                 <p style={{ fontSize: 12.5, color: "#3a4a42", margin: 0, fontWeight: 600, lineHeight: 1.5 }}>
-                  Nada que comprar ni pesar: el plato ya está cocinado en el congelador.
-                  Solo hay que descongelarlo.
+                  Nada que comprar ni pesar: el plato ya está cocinado
+                  {slotFromFridge ? " en la nevera" : " en el congelador"}.
+                  Solo hay que {slotFromFridge ? "recalentarlo" : "descongelarlo"}.
                 </p>
               </div>
             )}
@@ -5926,8 +6012,8 @@ export function DishDetail({
                     solo la lista para no duplicar descuentos. */}
                 {needsFreshCooking && cookCourse && (
                   <p style={{ fontSize: 11.5, color: "#5a6b60", margin: "0 0 10px", fontWeight: 700 }}>
-                    Cantidades para las {freezerSplit.freshPortions} raciones que hay que cocinar
-                    (las otras {freezerSplit.frozenPortions} salen del congelador).
+                    Cantidades para las {preparedSplit.freshPortions} raciones que hay que cocinar
+                    (las otras {preparedSplit.preparedPortions} {slotFromFridge ? "salen de la nevera" : "salen del congelador"}).
                   </p>
                 )}
                 {courseIngredients.map((ing, i) => (
@@ -5979,23 +6065,25 @@ export function DishDetail({
                 cocinado — no hay nada que cocinar, hay que resucitarlo. Si además
                 quedan raciones frescas por hacer, debajo van los pasos normales
                 con su propia etiqueta, para que se vea que son dos tareas. */}
-            {recipeTab === "pasos" && activeCourse === "principal" && slotFromFreezer && (
+            {recipeTab === "pasos" && activeCourse === "principal" && slotFromPrepared && (
               <div style={{ marginBottom: needsFreshCooking ? 18 : 0 }}>
                 <div style={{
                   display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
                   padding: "3px 10px", borderRadius: 999,
-                  background: "#6b8cae14", color: "#3d6b93", fontSize: 11.5, fontWeight: 800,
+                  background: slotFromFridge ? "#6aab7a14" : "#6b8cae14",
+                  color: slotFromFridge ? "#2f6d8a" : "#3d6b93",
+                  fontSize: 11.5, fontWeight: 800,
                 }}>
-                  <Snowflake size={13} strokeWidth={2.4} />
-                  Descongelar {portionsLabel(freezerSplit.frozenPortions)}
+                  {slotFromFridge ? <Refrigerator size={13} strokeWidth={2.4} /> : <Snowflake size={13} strokeWidth={2.4} />}
+                  {slotFromFridge ? "Recalentar" : "Descongelar"} {portionsLabel(preparedSplit.preparedPortions)}
                 </div>
                 {thawSteps ? (
                   <RecipeStepList rich={thawSteps} plain={[]} ingredients={ingredients} kitchenTools={kitchenTools} />
                 ) : (
                   <p style={{ fontSize: 13, color: "#5a6b60", margin: 0, lineHeight: 1.55 }}>
-                    Pasa el tupper del congelador a la nevera la noche anterior. Al ir a comer,
-                    calienta a fuego medio o en el microondas removiendo a mitad, hasta que
-                    esté caliente por dentro.
+                    {slotFromFridge
+                      ? "Calienta el tupper a fuego medio o en el microondas removiendo a mitad, hasta que esté caliente por dentro."
+                      : "Pasa el tupper del congelador a la nevera la noche anterior. Al ir a comer, calienta a fuego medio o en el microondas removiendo a mitad, hasta que esté caliente por dentro."}
                   </p>
                 )}
               </div>
@@ -6007,10 +6095,10 @@ export function DishDetail({
                 background: "#2d5a3d14", color: "#2d5a3d", fontSize: 11.5, fontWeight: 800,
               }}>
                 <CookingPot size={13} strokeWidth={2.4} />
-                Cocinar {portionsLabel(freezerSplit.freshPortions)} más
+                Cocinar {portionsLabel(preparedSplit.freshPortions)} más
               </div>
             )}
-            {recipeTab === "pasos" && activeCourse === "principal" && (!slotFromFreezer || needsFreshCooking) && (
+            {recipeTab === "pasos" && activeCourse === "principal" && (!slotFromPrepared || needsFreshCooking) && (
               <>
                 {/* Tipos de cocina (electrodomésticos) — segundo segmented control,
                     solo dentro de Pasos y solo si hay más de una forma de cocinarlo. */}
@@ -6093,10 +6181,10 @@ export function DishDetail({
                 onClick={isCooked ? handleUndoCooked : handleMarkCooked}
                 disabled={cookBusy}
                 title={
-                  slotFromFreezer
+                  slotFromPrepared
                     ? isCooked
-                      ? "Deshacer: devuelve las raciones al congelador"
-                      : "Saca las raciones del congelador y las descuenta de lo que tienes en casa"
+                      ? `Deshacer: devuelve las raciones ${slotFromFridge ? "a la nevera" : "al congelador"}`
+                      : `Saca las raciones ${slotFromFridge ? "de la nevera" : "del congelador"} y las descuenta de lo que tienes en casa`
                     : isCooked
                       ? "Deshacer: devuelve estos ingredientes a lo que tienes en casa"
                       : "Descuenta estos ingredientes de lo que tienes en casa"
@@ -6107,16 +6195,16 @@ export function DishDetail({
                   border: "none",
                   background: isCooked
                     ? "#eaf3ec"
-                    : slotFromFreezer
-                      ? "linear-gradient(135deg,#5b8fbd,#3d6b93)"
+                    : slotFromPrepared
+                      ? (slotFromFridge ? "linear-gradient(135deg,#4a9e6e,#2f6d8a)" : "linear-gradient(135deg,#5b8fbd,#3d6b93)")
                       : "linear-gradient(135deg,#3a7d52,#2d5a3d)",
                   color: isCooked ? "#2d5a3d" : "#fff",
                   fontSize: 14, fontWeight: 900,
                   cursor: cookBusy ? "default" : "pointer", fontFamily: "inherit",
                   boxShadow: isCooked
                     ? "none"
-                    : slotFromFreezer
-                      ? "0 10px 24px -10px rgba(61,107,147,.7)"
+                    : slotFromPrepared
+                      ? (slotFromFridge ? "0 10px 24px -10px rgba(47,109,138,.7)" : "0 10px 24px -10px rgba(61,107,147,.7)")
                       : "0 10px 24px -10px rgba(45,90,61,.7)",
                   opacity: cookBusy ? 0.6 : 1,
                   transition: "all .15s ease",
@@ -6124,11 +6212,13 @@ export function DishDetail({
               >
                 {isCooked
                   ? <Undo2 size={16} strokeWidth={2.6} />
-                  : slotFromFreezer
-                    ? <Snowflake size={16} strokeWidth={2.4} />
+                  : slotFromPrepared
+                    ? (slotFromFridge ? <Refrigerator size={16} strokeWidth={2.4} /> : <Snowflake size={16} strokeWidth={2.4} />)
                     : <ChefHat size={16} strokeWidth={2.4} />}
-                {slotFromFreezer
-                  ? isCooked ? "Deshacer descongelado" : "Confirmar descongelado"
+                {slotFromPrepared
+                  ? isCooked
+                    ? (slotFromFridge ? "Deshacer recalentado" : "Deshacer descongelado")
+                    : (slotFromFridge ? "Confirmar recalentado" : "Confirmar descongelado")
                   : isCooked ? "Deshacer cocinado" : "Marcar como cocinado"}
               </button>
             )}
