@@ -13,6 +13,7 @@ SRC = Path("Avatares/cards")
 OUT = Path("public/avatares/cards")
 WIDTH = 360
 COLORS = 192
+JPEG_NAMES = {"merienda_off", "merienda_semana", "merienda_laborables"}
 
 # source stem in Avatares/cards -> filename the app requests
 CARDS = [
@@ -32,6 +33,9 @@ CARDS = [
     # that saved it, so these two are matched by glob rather than exact name.
     ("mismo_menu_ni*os",       "mismo_menu_ninos"),
     ("distinto_menu_ni*os",    "distinto_menu_ninos"),
+    ("sin_merienda",           "merienda_off"),
+    ("merienda_toda_semana",   "merienda_semana"),
+    ("merienda_lunes_viernes", "merienda_laborables"),
 ]
 
 
@@ -53,10 +57,16 @@ def main():
         img = Image.open(src).convert("RGB")
         ratio = WIDTH / img.width
         img = img.resize((WIDTH, round(img.height * ratio)), Image.LANCZOS)
-        dst = OUT / f"{name}.png"
-        before = dst.stat().st_size // 1024 if dst.exists() else 0
-        img.quantize(colors=COLORS, method=Image.MEDIANCUT).save(dst, optimize=True)
-        print(f"{name}.png  {img.size[0]}x{img.size[1]}  {before}KB -> {dst.stat().st_size // 1024}KB")
+        if name in JPEG_NAMES:
+            dst = OUT / f"{name}.jpg"
+            before = dst.stat().st_size // 1024 if dst.exists() else 0
+            img.save(dst, "JPEG", quality=85, optimize=True)
+            print(f"{name}.jpg  {img.size[0]}x{img.size[1]}  {before}KB -> {dst.stat().st_size // 1024}KB")
+        else:
+            dst = OUT / f"{name}.png"
+            before = dst.stat().st_size // 1024 if dst.exists() else 0
+            img.quantize(colors=COLORS, method=Image.MEDIANCUT).save(dst, optimize=True)
+            print(f"{name}.png  {img.size[0]}x{img.size[1]}  {before}KB -> {dst.stat().st_size // 1024}KB")
 
 
 if __name__ == "__main__":
