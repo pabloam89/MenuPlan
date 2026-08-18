@@ -10,21 +10,9 @@
 import manifest from "./dishImages.json";
 import { isSeasonalFruitRecipe, seasonalFruitMeta } from "../../lib/postres.js";
 
-// Precompute a fallback per dish: the first available combo photo for each base
-// dish id. Covers dishes that exist ONLY as dish+garnish combos (no standalone
-// photo) when they are served on their own — and also pre-fix saved menus whose
-// recipe objects don't carry a garnishId yet.
-const firstComboByDish = {};
-for (const key of Object.keys(manifest)) {
-  const plus = key.indexOf("+");
-  if (plus === -1) continue;
-  const base = key.slice(0, plus);
-  if (!firstComboByDish[base]) firstComboByDish[base] = manifest[key];
-}
-
 /**
  * Resolve the photo URL for a given recipe + garnish pairing.
- * Order: exact combo → standalone dish → any combo of that dish.
+ * Order: exact combo → standalone dish photo.
  * Returns null when nothing matches (caller renders the icon fallback).
  *
  * @param {string} recipeId
@@ -38,27 +26,32 @@ export function dishImageUrl(recipeId, garnishId) {
     if (manifest[combo]) return manifest[combo];
   }
   if (manifest[recipeId]) return manifest[recipeId];
-  return firstComboByDish[recipeId] ?? null;
+  return null;
 }
 
 /**
- * Resolve the photo URL from a frontend recipe object. Uses `baseRecipeId`
- * (the catalog id, prefix-free) and `garnishId` set by the AI planner when a
- * garnish is merged in. Falls back to the recipe id for static catalog dishes.
+ * Resolve the photo URL from a recipe object (catalog, menu slot, or user-owned).
+ * Uses `linkedCatalogId` + `pinnedGarnishId` for user-saved dish+garnish combos.
  *
- * @param {{id?: string, baseRecipeId?: string, garnishId?: string}} recipe
+ * @param {{id?: string, baseRecipeId?: string, linkedCatalogId?: string, garnishId?: string, pinnedGarnishId?: string, photo?: string}} recipe
+ * @param {string} [garnishId]  Optional override (e.g. fixed-dish garnish picker in catalog)
  * @returns {string|null}
  */
-export function dishImageForRecipe(recipe) {
+export function dishImageForRecipe(recipe, garnishId) {
   if (!recipe) return null;
   if (isSeasonalFruitRecipe(recipe)) return seasonalFruitMeta().image;
   if (recipe.photo) return recipe.photo;
-  let baseId = recipe.baseRecipeId ?? recipe.id;
-  // Strip group prefix (e.g. "groupA__carnes_001" → "carnes_001") for recipes
-  // persisted before baseRecipeId was introduced.
+
+  if (recipe.linkedCatalogId && recipe.pinnedGarnishId) {
+    return dishImageUrl(recipe.linkedCatalogId, recipe.pinnedGarnishId);
+  }
+
+  let baseId = recipe.baseRecipeId ?? recipe.linkedCatalogId ?? recipe.id;
   const dunder = baseId.indexOf("__");
   if (dunder !== -1) baseId = baseId.slice(dunder + 2);
-  return dishImageUrl(baseId, recipe.garnishId);
+  if (String(baseId).startsWith("user_")) return null;
+
+  return dishImageUrl(baseId, garnishId ?? recipe.garnishId ?? recipe.pinnedGarnishId);
 }
 
 export const hasDishImages = Object.keys(manifest).length > 0;
