@@ -37,9 +37,9 @@ import {
   BookOpen,
   NotebookPen,
 } from "lucide-react";
-import { recipeCatalog } from "../data/recipeCatalog.js";
+import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
-import { dishImageUrl } from "../assets/dishes/dishImages.js";
+import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { favoriteRecipeIds, getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
 import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
@@ -66,6 +66,7 @@ const CATEGORY_META = {
   desayunos:          { label: "Desayunos",       icon: Coffee,         color: "#c98a3a", img: "/categories/desayunos.png" },
   meriendas:          { label: "Meriendas",       icon: Apple,          color: "#4a9d6b", img: "/categories/meriendas.png" },
   postres:            { label: "Postres",         icon: IceCream,       color: "#c463a0", img: "/categories/postres.png" },
+  guarniciones:       { label: "Guarnición",      icon: Salad,          color: "#3f9656", img: "/categories/guarniciones.png" },
 };
 
 const DEFAULT_COLOR = "#5a7066";
@@ -279,6 +280,23 @@ export function CatalogBrowserSheet({
     }
     return merged;
   }, [extraGarnishes]);
+  // Bundled guarniciones live outside recipeCatalog — merge them for browse/search.
+  const catalogGarnishBrowseList = useMemo(() => {
+    const seen = new Set();
+    const merged = [];
+    for (const g of garnishCatalog) {
+      if (!g?.id || seen.has(g.id)) continue;
+      seen.add(g.id);
+      merged.push(g);
+    }
+    for (const r of fullCatalog) {
+      if (isGuarnicionRecipe(r) && r.id && !seen.has(r.id)) {
+        seen.add(r.id);
+        merged.push(r);
+      }
+    }
+    return merged;
+  }, [garnishCatalog, fullCatalog]);
   // all | plato | guarnicion — locked to gatePickType when provided.
   const [typeFilter, setTypeFilter] = useState(gatePickType ?? "all");
   useEffect(() => {
@@ -310,14 +328,15 @@ export function CatalogBrowserSheet({
     const p = new Set();
     const source = gatePick ? platoCatalog : fullCatalog;
     for (const r of source) {
-      if (r.category) c.add(r.category);
+      if (r.category && !isGuarnicionRecipe(r)) c.add(r.category);
       if (isRealProtein(r.mainProtein)) p.add(r.mainProtein);
     }
+    if (!gatePick && catalogGarnishBrowseList.length > 0) c.add("guarniciones");
     return {
       allCats: [...c].sort((a, b) => categoryLabel(a).localeCompare(categoryLabel(b))),
       allProteins: [...p].sort((a, b) => titleCase(a).localeCompare(titleCase(b))),
     };
-  }, [fullCatalog, gatePick, platoCatalog]);
+  }, [fullCatalog, gatePick, platoCatalog, catalogGarnishBrowseList.length]);
 
   const activeFilterCount =
     cats.size +
@@ -365,19 +384,37 @@ export function CatalogBrowserSheet({
     }
 
     const q = norm(query);
-    const filtered = fullCatalog.filter((r) => {
+    const onlyGuarniciones = cats.size === 1 && cats.has("guarniciones");
+    const includeGuarniciones = onlyGuarniciones || (cats.size === 0 && Boolean(q)) || (cats.has("guarniciones") && cats.size > 1);
+    const includePlatos = !onlyGuarniciones;
+
+    const matchesCommon = (r) => {
       if (favoriteIds && !favoriteIds.has(r.id)) return false;
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
-      if (cats.size && !cats.has(r.category)) return false;
-      if (proteins.size && !proteins.has(r.mainProtein)) return false;
       if (maxTime && (r.time ?? 999) > maxTime) return false;
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
       return true;
-    });
-    return sortByNameQuery(filtered, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds]);
+    };
+
+    const out = [];
+    if (includePlatos) {
+      for (const r of fullCatalog) {
+        if (isGuarnicionRecipe(r)) continue;
+        if (cats.size && !cats.has(r.category)) continue;
+        if (proteins.size && !proteins.has(r.mainProtein)) continue;
+        if (matchesCommon(r)) out.push(r);
+      }
+    }
+    if (includeGuarniciones) {
+      for (const g of catalogGarnishBrowseList) {
+        if (cats.size && !cats.has("guarniciones")) continue;
+        if (matchesCommon(g)) out.push(g);
+      }
+    }
+    return sortByNameQuery(out, q);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList]);
 
   // Reset pagination whenever the result set or page size changes.
   useEffect(() => {
@@ -437,6 +474,12 @@ export function CatalogBrowserSheet({
     setKidOnly(false);
   };
 
+  const goBackToCategories = () => {
+    setQuery("");
+    clearFilters();
+    setShowFilters(false);
+  };
+
   const px = inline ? inlinePadding : 18;
 
   // Full-catalog browse mode (not gate-pick, not a scoped/limited list like
@@ -448,10 +491,15 @@ export function CatalogBrowserSheet({
   const categoryCounts = useMemo(() => {
     const counts = {};
     for (const r of fullCatalog) {
-      if (r.category) counts[r.category] = (counts[r.category] ?? 0) + 1;
+      if (r.category && !isGuarnicionRecipe(r)) {
+        counts[r.category] = (counts[r.category] ?? 0) + 1;
+      }
+    }
+    if (catalogGarnishBrowseList.length > 0) {
+      counts.guarniciones = catalogGarnishBrowseList.length;
     }
     return counts;
-  }, [fullCatalog]);
+  }, [fullCatalog, catalogGarnishBrowseList.length]);
 
   const styleBlock = (
     <style>{`
@@ -552,7 +600,23 @@ export function CatalogBrowserSheet({
             </button>
           )}
         </div>
-        {showPlatoFilters && (
+        {isBrowseCatalog && !showCategoryGrid ? (
+          <button
+            type="button"
+            onClick={goBackToCategories}
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 5,
+              height: 42, padding: "0 14px", borderRadius: 12, cursor: "pointer",
+              border: `1.5px solid ${GREEN}`,
+              background: "#f4f7f5",
+              color: GREEN,
+              fontSize: 13, fontWeight: 800, fontFamily: "inherit", flexShrink: 0,
+            }}
+          >
+            <ChevronLeft size={16} strokeWidth={2.5} />
+            Volver
+          </button>
+        ) : showPlatoFilters ? (
           <button
             type="button"
             onClick={() => setShowFilters((v) => !v)}
@@ -579,7 +643,7 @@ export function CatalogBrowserSheet({
               </span>
             )}
           </button>
-        )}
+        ) : null}
       </div>
     </>
   );
@@ -647,9 +711,11 @@ export function CatalogBrowserSheet({
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              {meta?.img
-                ? <img src={meta.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                : <Icon size={14} color={color} strokeWidth={2} />}
+              {meta?.img ? (
+                <img src={meta.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <Icon size={14} color={color} strokeWidth={2} />
+              )}
             </span>
             <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 800, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {categoryLabel(catId)}
@@ -797,6 +863,13 @@ export function CatalogBrowserSheet({
           currentGarnishId={garnishByCatalogId[garnishFor.id] ?? null}
           onSelect={(gid) => { onSetGarnish?.(garnishFor, gid); setGarnishFor(null); }}
           onClose={() => setGarnishFor(null)}
+          recipeVotes={recipeVotes}
+          scopeGroups={scopeGroups}
+          onSetFavoriteScope={onSetFavoriteScope}
+          onOpenScopePicker={setScopeFor}
+          discardedIds={discardedIds}
+          onDiscardRecipe={onDiscardRecipe}
+          onRecoverRecipe={onRecoverRecipe}
         />
       )}
       {combineFor && (
@@ -811,6 +884,13 @@ export function CatalogBrowserSheet({
             setCombineFor(null);
           }}
           onClose={() => setCombineFor(null)}
+          recipeVotes={recipeVotes}
+          scopeGroups={scopeGroups}
+          onSetFavoriteScope={onSetFavoriteScope}
+          onOpenScopePicker={setScopeFor}
+          discardedIds={discardedIds}
+          onDiscardRecipe={onDiscardRecipe}
+          onRecoverRecipe={onRecoverRecipe}
         />
       )}
       {showFilters && (
@@ -1515,7 +1595,7 @@ function RecipeCard({
   const color = categoryColor(recipe.category);
   const isPrincipal = recipe.type === "principal";
   const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
-  const photo = recipe.photo ?? dishImageUrl(recipe.id, garnishId ?? undefined);
+  const photo = dishImageForRecipe(recipe, garnishId ?? undefined);
 
   const card = (
     <div
@@ -1824,7 +1904,12 @@ function RecipeCard({
 // Small centered popup shown when tapping the heart on a recipe card in a
 // multi-group household: picks whether the favorite applies to everyone or
 // to one specific group, in a single tap.
-function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose, title, subtitle }) {
+function GarnishPickerSheet({
+  recipe, currentGarnishId, onSelect, onClose, title, subtitle,
+  recipeVotes = {}, scopeGroups = [], onSetFavoriteScope, onOpenScopePicker,
+  discardedIds = null, onDiscardRecipe, onRecoverRecipe,
+}) {
+  const hasScopeChoice = scopeGroups.length > 1 && onOpenScopePicker;
   return (
     <div
       onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -1861,65 +1946,220 @@ function GarnishPickerSheet({ recipe, currentGarnishId, onSelect, onClose, title
           </button>
         </div>
 
-        {/* list — lean, tabulated rows */}
-        <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "0 18px 18px" }}>
-          <GarnishRow
-            label="Sin guarnición"
+        {/* list — same card layout as the catalog */}
+        <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "0 12px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+          <NoGarnishPickCard
             selected={currentGarnishId == null}
             onSelect={() => onSelect(null)}
           />
-          {GARNISHES.map((g) => (
-            <GarnishRow
-              key={g.id}
-              label={g.name}
-              time={g.time}
-              selected={g.id === currentGarnishId}
-              onSelect={() => onSelect(g.id === currentGarnishId ? null : g.id)}
-            />
-          ))}
+          {GARNISHES.map((g, i) => {
+            const enriched = recipeCatalogById[g.id] ?? g;
+            const cardRecipe = { ...enriched, category: enriched.category ?? "guarniciones" };
+            return (
+              <GarnishPickCard
+                key={g.id}
+                recipe={cardRecipe}
+                selected={g.id === currentGarnishId}
+                onSelect={() => onSelect(g.id === currentGarnishId ? null : g.id)}
+                favorite={isRecipeFavorite(recipeVotes, g.id)}
+                onSetFavoriteScope={onSetFavoriteScope}
+                hasScopeChoice={hasScopeChoice}
+                onOpenScopePicker={() => onOpenScopePicker?.(cardRecipe)}
+                discarded={discardedIds ? discardedIds.has(g.id) : false}
+                onDiscard={onDiscardRecipe ? () => onDiscardRecipe(g.id) : undefined}
+                onRecover={onRecoverRecipe ? () => onRecoverRecipe(g.id) : undefined}
+                animDelay={i < 8 ? i * 18 : 0}
+              />
+            );
+          })}
         </div>
       </div>
     </div>
   );
 }
 
-function GarnishRow({ label, time, selected, onSelect }) {
+function NoGarnishPickCard({ selected, onSelect }) {
+  const color = "#9ab0a1";
   return (
     <button
       type="button"
       onClick={onSelect}
+      className="catalog-card-enter"
       style={{
-        width: "100%", display: "flex", alignItems: "center", gap: 10,
-        padding: "11px 2px", border: "none", borderBottom: "1px solid #eef3f0",
-        background: "transparent", cursor: "pointer", fontFamily: "inherit",
+        width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit",
+        flexShrink: 0, borderRadius: 14, padding: 0,
+        border: `1.5px solid ${selected ? "#bfe6cb" : "#eef3f0"}`,
+        background: selected ? "#f2fbf5" : "#fff",
+        transition: "border-color .15s ease, background .15s ease",
       }}
     >
-      <span
-        style={{
-          flex: 1, minWidth: 0, textAlign: "left",
-          fontSize: 14, fontWeight: selected ? 800 : 600,
-          color: selected ? GREEN : "#142f1d",
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-        }}
-      >
-        {label}
-      </span>
-      {time != null && (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11.5, color: "#9ab0a1", flexShrink: 0 }}>
-          <Clock size={11} /> {time} min
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 8 }}>
+        <div
+          style={{
+            width: 52, height: 52, borderRadius: 12, flexShrink: 0,
+            boxSizing: "border-box", border: `2.5px dashed ${color}`,
+            background: "#f4f8f5", display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Ban size={20} color={color} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: selected ? GREEN : "#142f1d", lineHeight: 1.25 }}>
+            Sin guarnición
+          </p>
+          <p style={{ margin: "4px 0 0", fontSize: 11, color: "#7a9485" }}>Solo el plato principal</p>
+        </div>
+        <span
+          style={{
+            width: 34, height: 34, borderRadius: 10, flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: selected ? GREEN : "#eaf3ed", color: selected ? "#fff" : GREEN,
+          }}
+        >
+          {selected ? <Check size={18} /> : <Plus size={18} />}
         </span>
-      )}
-      <span
-        style={{
-          width: 28, height: 28, borderRadius: 8, flexShrink: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          background: selected ? GREEN : "#eaf3ed",
-          color: selected ? "#fff" : GREEN,
-        }}
-      >
-        {selected ? <Check size={16} /> : <Plus size={16} />}
-      </span>
+      </div>
     </button>
+  );
+}
+
+function GarnishPickCard({
+  recipe, selected, onSelect, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker,
+  discarded, onDiscard, onRecover, animDelay = 0,
+}) {
+  const color = categoryColor(recipe.category);
+  const photo = dishImageForRecipe(recipe);
+
+  return (
+    <div
+      className="catalog-card-enter"
+      style={{
+        flexShrink: 0, borderRadius: 14,
+        border: `1.5px solid ${selected ? "#bfe6cb" : "#eef3f0"}`,
+        background: selected ? "#f2fbf5" : "#fff",
+        transition: "border-color .15s ease, background .15s ease",
+        animationDelay: `${animDelay}ms`,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: 8 }}>
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <div
+            style={{
+              width: 52, height: 52, borderRadius: 12, overflow: "hidden",
+              boxSizing: "border-box", border: `2.5px solid ${color}`,
+              background: `${color}14`, display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {photo ? (
+              <img src={deckImg(photo, 104)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <Salad size={22} color={color} />
+            )}
+          </div>
+          {onSetFavoriteScope && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (hasScopeChoice) onOpenScopePicker?.();
+                else onSetFavoriteScope(recipe.id, favorite ? null : "all");
+              }}
+              aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+              title={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+              style={{
+                position: "absolute", top: -6, right: -6,
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0,
+                border: "2px solid #fff", cursor: "pointer",
+                background: favorite ? "#e0405a" : "#fff",
+                boxShadow: "0 1px 4px rgba(0,0,0,.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all .15s ease", zIndex: 1,
+              }}
+            >
+              <Heart
+                size={11}
+                color={favorite ? "#fff" : "#c9b8ae"}
+                strokeWidth={2.4}
+                fill={favorite ? "#fff" : "none"}
+              />
+            </button>
+          )}
+          {(onDiscard || onRecover) && (
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); discarded ? onRecover?.() : onDiscard?.(); }}
+              aria-label={discarded ? `Recuperar ${recipe.name}` : `Descartar ${recipe.name}`}
+              title={discarded ? "Recuperar (vuelve al catálogo)" : "Descartar (No me gusta)"}
+              style={{
+                position: "absolute", bottom: -6, right: -6,
+                width: 22, height: 22, borderRadius: "50%", flexShrink: 0, cursor: "pointer",
+                border: "2px solid #fff",
+                background: discarded ? "#c0392b" : "#fff",
+                color: discarded ? "#fff" : "#c9adb0",
+                boxShadow: "0 1px 4px rgba(0,0,0,.2)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                transition: "all .15s ease", zIndex: 1,
+              }}
+            >
+              {discarded ? <RotateCcw size={11} /> : <Ban size={11} />}
+            </button>
+          )}
+        </div>
+
+        <button
+          type="button"
+          onClick={onSelect}
+          style={{
+            flex: 1, minWidth: 0, display: "block",
+            padding: 0, border: "none", background: "transparent",
+            cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+          }}
+        >
+          <p
+            style={{
+              margin: 0, fontSize: 13.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.25,
+              display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+            }}
+          >
+            {recipe.name}
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color }}>{categoryLabel(recipe.category)}</span>
+            {favorite && (
+              <span style={{ fontSize: 10, fontWeight: 800, color: GREEN, background: "#eaf6ee", padding: "2px 6px", borderRadius: 6 }}>
+                Favorita
+              </span>
+            )}
+            {recipe.time != null && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "#7a9485" }}>
+                <Clock size={11} /> {recipe.time} min
+              </span>
+            )}
+            {recipe.kcal != null && (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 3, fontSize: 11, color: "#7a9485" }}>
+                <Flame size={11} /> {recipe.kcal} kcal
+              </span>
+            )}
+          </div>
+        </button>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={onSelect}
+            aria-label={selected ? `Quitar ${recipe.name}` : `Elegir ${recipe.name}`}
+            style={{
+              width: 34, height: 34, borderRadius: 10, flexShrink: 0, cursor: "pointer",
+              border: "none", background: selected ? GREEN : "#eaf3ed", color: selected ? "#fff" : GREEN,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}
+          >
+            {selected ? <Check size={18} /> : <Plus size={18} />}
+          </button>
+          <RecipeProvenance recipe={recipe} />
+        </div>
+      </div>
+    </div>
   );
 }
 

@@ -98,6 +98,7 @@ describe("categoryImageSrc", () => {
   it("maps recipe categories to their illustration", () => {
     expect(categoryImageSrc("ensaladas_verduras")).toBe("/categories/ensaladas_verduras.png");
     expect(categoryImageSrc("cenas_rapidas")).toBe("/categories/cenas_rapidas.png");
+    expect(categoryImageSrc("guarniciones")).toBe("/categories/guarniciones.png");
   });
 
   it("returns null for a category with no art", () => {

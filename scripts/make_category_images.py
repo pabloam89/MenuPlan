@@ -30,6 +30,7 @@ MAPS = [
     ("desayunos2",        ["desayunos"]),
     ("meriendas",         ["meriendas"]),
     ("postres",           ["postres"]),
+    ("guarnicion",        ["guarniciones"]),
     # shopping-only
     ("fruta",             ["frutas"]),
     ("lacteos2",          ["lacteos"]),
