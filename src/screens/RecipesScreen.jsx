@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Plus, RotateCcw } from "lucide-react";
+import { BookOpen, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
 import { BottomNav, bottomNavSpacer, EmptyIllustration } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
@@ -39,6 +39,7 @@ export function RecipesScreen({
   onDeleteRecipe,
   onEditRecipe,
   onCombineGarnish,
+  onOpenRecipePrefs,
   // Optional demo hooks (first-run value-prop carousel): preset the visible tab
   // and optionally auto-cycle Catálogo → Favoritas → Mis recetas. Default to the
   // normal interactive behaviour; never passed in the real app.
@@ -105,18 +106,35 @@ export function RecipesScreen({
             </h1>
             <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
-          <button
-            type="button"
-            data-coach="recipes-create"
-            onClick={onOpenRecipePlanner}
-            style={{
-              display: "flex", alignItems: "center", gap: 6, padding: "8px 13px",
-              borderRadius: 12, border: "none", background: GREEN, color: "#fff",
-              fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            <Plus size={14} strokeWidth={2.8} /> Crear
-          </button>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {onOpenRecipePrefs && (
+              <button
+                type="button"
+                onClick={onOpenRecipePrefs}
+                title="Preferencias de recetas"
+                style={{
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  width: 36, height: 36, borderRadius: 12,
+                  border: "1.5px solid #d5e6da", background: "#fff",
+                  color: GREEN, cursor: "pointer",
+                }}
+              >
+                <SlidersHorizontal size={16} strokeWidth={2.3} />
+              </button>
+            )}
+            <button
+              type="button"
+              data-coach="recipes-create"
+              onClick={onOpenRecipePlanner}
+              style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 13px",
+                borderRadius: 12, border: "none", background: GREEN, color: "#fff",
+                fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              <Plus size={14} strokeWidth={2.8} /> Crear
+            </button>
+          </div>
         </div>
       </div>
 

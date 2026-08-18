@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
   ChevronDown,
-  ChevronRight,
   ChevronUp,
   User,
   Users,
-  BookOpen,
-  Globe,
-  Users2,
-  Lock,
   Camera,
   Check,
   Info,
@@ -59,49 +54,6 @@ function Card({ children, style }) {
 
 // ── Segmented option card (no subcopy) ────────────────────────────────────
 
-function SegOpt({ id, icon: Icon, label, color, bg, border, active, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={() => onClick(id)}
-      style={{
-        flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
-        gap: 6, padding: "12px 6px", borderRadius: 13, cursor: "pointer",
-        fontFamily: "inherit", border: `1.5px solid ${active ? border : "#eef3f0"}`,
-        background: active ? bg : "#fafcfa", transition: "all .15s",
-        position: "relative",
-      }}
-    >
-      <Icon size={18} color={active ? color : "#9ab0a1"} />
-      <span style={{ fontSize: 11, fontWeight: 800, color: active ? color : "#7a9485", lineHeight: 1.2, textAlign: "center" }}>
-        {label}
-      </span>
-      {active && (
-        <span style={{
-          position: "absolute", top: 5, right: 5,
-          width: 14, height: 14, borderRadius: 99, background: color,
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <Check size={8} color="#fff" strokeWidth={3} />
-        </span>
-      )}
-    </button>
-  );
-}
-
-// ── Recipe mode options ────────────────────────────────────────────────────
-
-const RECIPE_MODES = [
-  { id: "preferred", icon: BookOpen,  label: "Preferir las mías", color: "#2d5a3d", bg: "#e6f3ea", border: "#a8d5b5" },
-  { id: "only",      icon: Users2,    label: "Solo las mías",     color: "#7a4e00", bg: "#fff8e7", border: "#f0d090" },
-  { id: "catalog",   icon: Globe,     label: "Solo catálogo",     color: "#5a2d7a", bg: "#f5edfc", border: "#c9a0e8" },
-];
-
-const VIS_MODES = [
-  { id: "public",  icon: Globe,   label: "Pública",  color: "#2d5a3d", bg: "#e6f3ea", border: "#a8d5b5" },
-  { id: "friends", icon: Users2,  label: "Amigos",   color: "#7a4e00", bg: "#fff8e7", border: "#f0d090" },
-  { id: "private", icon: Lock,    label: "Privada",  color: "#5a2d7a", bg: "#f5edfc", border: "#c9a0e8" },
-];
 
 // ── Collapsible section with optional action button in header ──────────────
 
@@ -243,11 +195,12 @@ function familyPhotos(members) {
 
 // ── Compact horizontal nav row (illustration 40% + copy + chevron) ──────────
 
-function CompactNavRow({ photos = [], title, subtitle, chevron, onClick, emptyLabel }) {
+function FamilyCardV({ members, onEditMembers }) {
+  const photos = members.length === 0 ? [] : familyPhotos(members);
   const [idx, setIdx] = useState(0);
 
   useEffect(() => {
-    if (photos.length <= 1) return;
+    if (photos.length <= 1) return undefined;
     const t = setInterval(() => setIdx((i) => (i + 1) % photos.length), 5000);
     return () => clearInterval(t);
   }, [photos.length]);
@@ -255,22 +208,20 @@ function CompactNavRow({ photos = [], title, subtitle, chevron, onClick, emptyLa
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={onEditMembers}
       style={{
-        width: "100%", display: "flex", alignItems: "stretch",
-        padding: 0, overflow: "hidden", minHeight: 112,
+        width: "100%", display: "flex", flexDirection: "column",
+        padding: 0, overflow: "hidden", marginBottom: 10,
         background: "#fff", border: "1.5px solid #cfe3d8", borderRadius: 16,
-        cursor: "pointer", fontFamily: "inherit", textAlign: "left",
+        cursor: "pointer", fontFamily: "inherit",
       }}
     >
-      <div style={{
-        width: "40%", flexShrink: 0, position: "relative", overflow: "hidden",
-        background: "#0f766e", minHeight: 112,
-      }}>
+      {/* Illustration on top — wide/landscape band */}
+      <div style={{ width: "100%", aspectRatio: "16 / 9", position: "relative", overflow: "hidden", background: "#0f766e" }}>
         {photos.length === 0 ? (
           <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, opacity: 0.75 }}>
             <Users size={22} color="#fff" />
-            {emptyLabel && <span style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>{emptyLabel}</span>}
+            <span style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>Vacío</span>
           </div>
         ) : (
           photos.map((src, i) => (
@@ -279,47 +230,21 @@ function CompactNavRow({ photos = [], title, subtitle, chevron, onClick, emptyLa
               src={src}
               alt=""
               style={{
-                position: "absolute",
-                inset: 0, width: "100%", height: "100%",
-                objectFit: "cover", objectPosition: "center",
-                opacity: i === idx ? 1 : 0,
-                transition: "opacity .8s ease",
-                display: "block",
+                position: "absolute", inset: 0, width: "100%", height: "100%",
+                objectFit: "cover", objectPosition: "center top",
+                opacity: i === idx ? 1 : 0, transition: "opacity .8s ease", display: "block",
               }}
             />
           ))
         )}
       </div>
-      <div style={{ flex: 1, display: "flex", alignItems: "center", gap: 8, padding: "12px 14px", minWidth: 0 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <p style={{ margin: subtitle ? "0 0 2px" : 0, fontSize: 14, fontWeight: 800, color: INK }}>
-            {title}
-          </p>
-          {subtitle && (
-            <p style={{ margin: 0, fontSize: 12, color: "#7a9485", lineHeight: 1.4 }}>
-              {subtitle}
-            </p>
-          )}
-        </div>
-        {chevron}
+      {/* Copy band below, centered */}
+      <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, textAlign: "center" }}>
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: INK }}>Gestionar tu familia</p>
+        <p style={{ margin: 0, fontSize: 12, color: "#7a9485", lineHeight: 1.4 }}>Edita quién come en casa y sus perfiles.</p>
+        <ChevronDown size={16} color="#9ab0a1" style={{ marginTop: 2 }} />
       </div>
     </button>
-  );
-}
-
-function FamilyCardV({ members, onEditMembers }) {
-  const photos = members.length === 0 ? [] : familyPhotos(members);
-  return (
-    <div style={{ marginBottom: 10 }}>
-      <CompactNavRow
-        photos={photos}
-        title="Gestionar tu familia"
-        subtitle="Edita quién come en casa y sus perfiles."
-        emptyLabel="Vacío"
-        onClick={onEditMembers}
-        chevron={<ChevronRight size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />}
-      />
-    </div>
   );
 }
 
@@ -334,13 +259,14 @@ function ActionCardV({ img, title, accent, onClick }) {
         imgPosition="center top"
         accent={accent}
         maxWidth={200}
+        bandPadding="8px 8px 10px"
         onClick={onClick}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 4, width: "100%" }}>
-          <p style={{ margin: 0, fontSize: 13.5, fontWeight: 800, color: INK, flex: 1, lineHeight: 1.3, textAlign: "left" }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, width: "100%" }}>
+          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: INK, lineHeight: 1.25, textAlign: "center" }}>
             {title}
           </p>
-          <ChevronRight size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />
+          <ChevronDown size={15} color="#9ab0a1" style={{ flexShrink: 0 }} />
         </div>
       </EmptyIllustration>
     </div>
@@ -373,10 +299,6 @@ export function HomeProfileScreen({
 }) {
   const g = googleInfo(user);
   const fileInputRef = useRef(null);
-  const [showGeneral, setShowGeneral] = useState(false);
-
-  const recipeMode = data.recipeMode ?? "preferred";
-  const defaultVisibility = data.defaultRecipeVisibility ?? "public";
   const members = data.members ?? [];
   const userRecipes = data.userRecipes ?? [];
 
@@ -488,46 +410,6 @@ export function HomeProfileScreen({
 
         {/* ── 2. Tu familia ─────────────────────────── */}
         <FamilyCardV members={members} onEditMembers={onEditMembers} />
-
-        {/* ── 3. Tus ajustes generales ───────────────── */}
-        <div style={{ marginBottom: 14 }}>
-          <CompactNavRow
-            photos={["/avatares/cards/ajustes_generales.jpg"]}
-            title="Tus ajustes generales"
-            subtitle="Personaliza cómo la IA genera tu menú y tus recetas."
-            onClick={() => setShowGeneral((v) => !v)}
-            chevron={showGeneral
-              ? <ChevronUp size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />
-              : <ChevronDown size={16} color="#9ab0a1" style={{ flexShrink: 0 }} />
-            }
-          />
-
-          {showGeneral && (
-            <div style={{
-              background: "#fff", border: "1.5px solid #e3ebe6",
-              borderRadius: 14, padding: "14px 16px", marginTop: 10,
-            }}>
-              <FieldLabel>Recetas en el menú generado</FieldLabel>
-              <div style={{ display: "flex", gap: 7, marginBottom: 18 }}>
-                {RECIPE_MODES.map((opt) => (
-                  <SegOpt key={opt.id} {...opt} active={recipeMode === opt.id} onClick={(id) => setField("recipeMode", id)} />
-                ))}
-              </div>
-
-              <FieldLabel>Visibilidad por defecto al crear recetas</FieldLabel>
-              <div style={{ display: "flex", gap: 7 }}>
-                {VIS_MODES.map((opt) => (
-                  <SegOpt key={opt.id} {...opt} active={defaultVisibility === opt.id} onClick={(id) => setField("defaultRecipeVisibility", id)} />
-                ))}
-              </div>
-              {userRecipes.length > 0 && (
-                <p style={{ margin: "10px 0 0", fontSize: 11.5, color: "#9ab0a1" }}>
-                  {userRecipes.length} receta{userRecipes.length === 1 ? "" : "s"} propia{userRecipes.length === 1 ? "" : "s"}.
-                </p>
-              )}
-            </div>
-          )}
-        </div>
 
         {/* ── Cuenta y datos ─────────────────────── */}
         <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>

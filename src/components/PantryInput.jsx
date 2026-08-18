@@ -31,14 +31,17 @@ const editInputBase = {
 };
 
 // Barra de búsqueda compartida (arriba del todo): filtra el modo activo
-// (ingrediente o plato). Debajo van las 2 ilustraciones y luego el grid.
-function PantrySearchBar({ query, onQueryChange, mode }) {
+// (ingrediente o plato). Debajo va el grid. Cuando hay un modo elegido, muestra
+// a su derecha (misma altura) un botón para volver — a Categorías si hay una
+// categoría abierta, o al selector de miniaturas si estás en la parrilla raíz.
+function PantrySearchBar({ query, onQueryChange, mode, onBack, backLabel = "Categorías" }) {
   const active = query.trim().length > 0;
-  return (
+  const field = (
     <div
       style={{
+        flex: onBack ? 1 : undefined, minWidth: 0,
         display: "flex", alignItems: "center", gap: 7, height: 42,
-        padding: "0 10px", borderRadius: 12, marginBottom: 12,
+        padding: "0 10px", borderRadius: 12,
         background: active ? "#fff" : "#f0f5f2",
         border: `1.5px solid ${active ? GREEN : "transparent"}`,
         transition: "background .15s, border-color .15s",
@@ -67,6 +70,29 @@ function PantrySearchBar({ query, onQueryChange, mode }) {
       )}
     </div>
   );
+  if (!onBack) {
+    return <div style={{ marginBottom: 12 }}>{field}</div>;
+  }
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 12 }}>
+      {field}
+      <button
+        type="button"
+        onClick={onBack}
+        aria-label={backLabel === "Categorías" ? "Volver a categorías" : "Volver"}
+        style={{
+          flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 5,
+          height: 42, padding: "0 12px 0 9px", borderRadius: 12,
+          border: "1.5px solid #d7e6dc", background: "#fff", color: GREEN,
+          cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 800,
+          whiteSpace: "nowrap",
+        }}
+      >
+        <ChevronLeft size={14} strokeWidth={2.6} />
+        {backLabel}
+      </button>
+    </div>
+  );
 }
 
 // Dos ilustraciones que hacen de selector: ingrediente (fruta) vs plato
@@ -77,7 +103,7 @@ function AddModeIllustrations({ active, onPick }) {
     { id: "cooked_dish", label: "Plato cocinado", img: categoryImageSrc("platos_unicos") },
   ];
   return (
-    <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+    <div style={{ display: "flex", gap: 10, marginBottom: 14, maxWidth: 300, marginLeft: "auto", marginRight: "auto" }}>
       {opts.map(({ id, label, img }) => {
         const on = active === id;
         return (
@@ -93,8 +119,8 @@ function AddModeIllustrations({ active, onPick }) {
           >
             <div
               style={{
-                position: "relative", width: "100%", aspectRatio: "1 / 1", overflow: "hidden",
-                borderRadius: 18, background: "#eef4ef",
+                position: "relative", width: "100%", aspectRatio: "4 / 3", overflow: "hidden",
+                borderRadius: 16, background: "#eef4ef",
                 border: `2px solid ${on ? GREEN : "transparent"}`,
                 boxShadow: on ? "0 12px 26px -14px rgba(45,90,61,.6)" : "0 4px 14px -10px rgba(20,47,29,.4)",
                 transition: "all .16s ease",
@@ -104,7 +130,7 @@ function AddModeIllustrations({ active, onPick }) {
                 <img src={img} alt={label} loading="lazy" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
               )}
             </div>
-            <div style={{ marginTop: 8, textAlign: "center", fontSize: 13, fontWeight: 800, color: on ? GREEN : "#3d6652", lineHeight: 1.2 }}>
+            <div style={{ marginTop: 6, textAlign: "center", fontSize: 12, fontWeight: 800, color: on ? GREEN : "#3d6652", lineHeight: 1.2 }}>
               {label}
             </div>
           </button>
@@ -323,35 +349,19 @@ function DishThumbCard({ recipe, onSelect }) {
   );
 }
 
-function CookedDishBackChip({ label, onClick }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        display: "inline-flex", alignItems: "center", gap: 5, marginBottom: 10,
-        height: 34, padding: "0 12px 0 8px", borderRadius: 11,
-        border: "1.5px solid #d7e6dc", background: "#fff", color: GREEN,
-        cursor: "pointer", fontFamily: "inherit", fontSize: 12, fontWeight: 800,
-      }}
-    >
-      <ChevronLeft size={14} strokeWidth={2.6} />
-      {label}
-    </button>
-  );
-}
-
 // Alta de plato ya cocinado: grid de categorías (réplica) → platos de la
 // categoría → confirmar (raciones + nevera/congelador). El buscador es el
 // compartido de arriba (prop `query`); recipeRef enlaza con DishDetail luego.
-function CookedDishPicker({ query = "", onSave, saving }) {
-  const [dishCat, setDishCat] = useState(null);
+function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave, saving }) {
   const [selected, setSelected] = useState(null);
   const [portions, setPortions] = useState(2);
   const [dishFrozen, setDishFrozen] = useState(true);
   const [dishDate, setDishDate] = useState("today");
   const [dishRole, setDishRole] = useState("principal");
   useEffect(() => { if (selected) setDishRole(inferDishRole(selected)); }, [selected]);
+  // Volver a la parrilla de categorías (desde el botón externo) también cierra
+  // el detalle del plato abierto, para que "Categorías" siempre suba un nivel.
+  useEffect(() => { if (!dishCat) setSelected(null); }, [dishCat]);
 
   const allRecipes = useMemo(() => Object.values(recipeCatalogById), []);
   const q = normalizeName((query ?? "").trim());
@@ -477,16 +487,14 @@ function CookedDishPicker({ query = "", onSave, saving }) {
     );
   }
 
-  // Categoría abierta: platos de esa categoría.
+  // Categoría abierta: platos de esa categoría. El botón "Categorías" para
+  // volver vive ahora junto a la barra de búsqueda (en PantryInput).
   if (dishCat) {
     return (
-      <div>
-        <CookedDishBackChip label="Categorías" onClick={() => setDishCat(null)} />
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
-          {catDishes.map((r) => (
-            <DishThumbCard key={r.id} recipe={r} onSelect={setSelected} />
-          ))}
-        </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
+        {catDishes.map((r) => (
+          <DishThumbCard key={r.id} recipe={r} onSelect={setSelected} />
+        ))}
       </div>
     );
   }
@@ -495,7 +503,7 @@ function CookedDishPicker({ query = "", onSave, saving }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 7 }}>
       {DISH_CATEGORIES.map((c) => (
-        <DishCategoryCard key={c.id} id={c.id} label={c.label} onSelect={setDishCat} />
+        <DishCategoryCard key={c.id} id={c.id} label={c.label} onSelect={onDishCatChange} />
       ))}
     </div>
   );
@@ -930,6 +938,7 @@ export function PantryInput({
   const [photoError, setPhotoError] = useState("");
   const [pickQuery, setPickQuery] = useState("");
   const [pickAisle, setPickAisle] = useState(null);
+  const [dishCat, setDishCat] = useState(null);
   const [focusQtyIndex, setFocusQtyIndex] = useState(null);
   const fileInputRef = useRef(null);
 
@@ -1173,22 +1182,40 @@ export function PantryInput({
       </div>
       )}
 
-      {/* A mano: search bar → 2 ilustraciones (ingrediente / plato) → grid */}
+      {/* A mano: search bar (+ botón Volver) → grid de categorías → grid */}
       {tab === "text" && (() => {
         const searching = pickQuery.trim().length > 0;
         const effMode = addCategory ?? "ingredient";
+        // Nivel abierto dentro del modo: categoría (aisle) o categoría de platos.
+        const subLevel = addCategory === "cooked_dish" ? dishCat : pickAisle;
+        // El botón de volver acompaña a la barra solo cuando ya hay un modo
+        // elegido y no estás buscando (buscar se limpia con su propia X).
+        const showBack = Boolean(addCategory) && !searching;
+        const handleBack = () => {
+          setPickQuery("");
+          if (subLevel) {
+            setPickAisle(null);
+            setDishCat(null);
+          } else {
+            setAddCategory(null);
+            setPickAisle(null);
+            setDishCat(null);
+          }
+        };
         return (
           <>
             <PantrySearchBar
               query={pickQuery}
               onQueryChange={(v) => { setPickQuery(v); if (v) setPickAisle(null); }}
               mode={effMode}
+              onBack={showBack ? handleBack : undefined}
+              backLabel={subLevel ? "Categorías" : "Volver"}
             />
 
-            {!searching && (
+            {!searching && !addCategory && (
               <AddModeIllustrations
                 active={addCategory}
-                onPick={(m) => { setAddCategory((cur) => (cur === m ? null : m)); setPickAisle(null); }}
+                onPick={(m) => { setAddCategory(m); setPickAisle(null); setDishCat(null); }}
               />
             )}
 
@@ -1203,13 +1230,20 @@ export function PantryInput({
                 onAddCustom={addCustomIngredient}
                 compact
                 hideSearch
+                hideBackButton
                 onPlus={handlePlus}
                 plusDisabled={!pickQuery.trim()}
               />
             )}
 
             {effMode === "cooked_dish" && (searching || addCategory === "cooked_dish") && (
-              <CookedDishPicker query={pickQuery} onSave={handleSaveCookedDish} saving={saving} />
+              <CookedDishPicker
+                query={pickQuery}
+                dishCat={dishCat}
+                onDishCatChange={setDishCat}
+                onSave={handleSaveCookedDish}
+                saving={saving}
+              />
             )}
           </>
         );
