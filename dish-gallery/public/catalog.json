@@ -1,133 +1,133 @@
 [
   {
     "combo_id": "bebes_001",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_001.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_001.jpg",
     "name": "Puré de calabacín con pollo y cuscús",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_002",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_002.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_002.jpg",
     "name": "Puré de zanahoria con merluza y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_003",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_003.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_003.jpg",
     "name": "Puré de calabaza con pavo y boniato",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_004",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_004.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_004.jpg",
     "name": "Puré de judías verdes con ternera y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_005",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_005.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_005.jpg",
     "name": "Puré de guisantes con pollo y arroz",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_006",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_006.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_006.jpg",
     "name": "Puré de brócoli con merluza y arroz",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_007",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_007.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_007.jpg",
     "name": "Papilla de arroz con pollo y zanahoria",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_008",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_008.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_008.jpg",
     "name": "Puré de lentejas rojas con zanahoria y calabacín",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_009",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_009.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_009.jpg",
     "name": "Puré de boniato con pavo y calabacín",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_010",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_010.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_010.jpg",
     "name": "Puré de puerro con salmón y arroz",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_012",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_012.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_012.jpg",
     "name": "Puré de garbanzos con calabaza",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_013",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_013.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_013.jpg",
     "name": "Revuelto de huevo con boniato y tomate",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_014",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_014.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_014.jpg",
     "name": "Papilla de avena con ternera y espinacas",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_015",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_015.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_015.jpg",
     "name": "Crema de calabacín con huevo y sémola",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_016",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_016.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_016.jpg",
     "name": "Puré de coliflor con pollo y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_018",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_018.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_018.jpg",
     "name": "Puré de remolacha con pavo y patata",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_019",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_019.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_019.jpg",
     "name": "Puré de espinacas con salmón y boniato",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_021",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_021.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_021.jpg",
     "name": "Puré de garbanzos con pollo y espinacas",
     "family": "bebes",
     "type": "dish"
   },
   {
     "combo_id": "bebes_022",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_022.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_022.jpg",
     "name": "Puré de lentejas con ternera y zanahoria",
     "family": "bebes",
     "type": "dish"
@@ -163,14 +163,14 @@
   {
     "combo_id": "carnes_002+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_002%2Bguarniciones_004.jpg",
-    "name": "Pechugas de pollo a la plancha con patatas al ajillo",
+    "name": "Pechugas de pollo a la plancha con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_002+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_002%2Bguarniciones_005.jpg",
-    "name": "Pechugas de pollo a la plancha con pasta al ajillo",
+    "name": "Pechugas de pollo a la plancha con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -254,7 +254,7 @@
   {
     "combo_id": "carnes_002+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_002%2Bguarniciones_017.jpg",
-    "name": "Pechugas de pollo a la plancha con pan",
+    "name": "Pechugas de pollo a la plancha con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -289,7 +289,7 @@
   {
     "combo_id": "carnes_002+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_002%2Bguarniciones_022.jpg",
-    "name": "Pechugas de pollo a la plancha con pepino con yogur",
+    "name": "Pechugas de pollo a la plancha con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -317,14 +317,14 @@
   {
     "combo_id": "carnes_003+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_003%2Bguarniciones_004.jpg",
-    "name": "Albóndigas en salsa de tomate con patatas al ajillo",
+    "name": "Albóndigas en salsa de tomate con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_003+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_003%2Bguarniciones_005.jpg",
-    "name": "Albóndigas en salsa de tomate con pasta al ajillo",
+    "name": "Albóndigas en salsa de tomate con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -408,7 +408,7 @@
   {
     "combo_id": "carnes_003+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_003%2Bguarniciones_017.jpg",
-    "name": "Albóndigas en salsa de tomate con pan",
+    "name": "Albóndigas en salsa de tomate con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -443,7 +443,7 @@
   {
     "combo_id": "carnes_003+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_003%2Bguarniciones_022.jpg",
-    "name": "Albóndigas en salsa de tomate con pepino con yogur",
+    "name": "Albóndigas en salsa de tomate con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -471,14 +471,14 @@
   {
     "combo_id": "carnes_004+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_004%2Bguarniciones_004.jpg",
-    "name": "Filetes de lomo empanados con patatas al ajillo",
+    "name": "Filetes de lomo empanados con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_004+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_004%2Bguarniciones_005.jpg",
-    "name": "Filetes de lomo empanados con pasta al ajillo",
+    "name": "Filetes de lomo empanados con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -562,7 +562,7 @@
   {
     "combo_id": "carnes_004+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_004%2Bguarniciones_017.jpg",
-    "name": "Filetes de lomo empanados con pan",
+    "name": "Filetes de lomo empanados con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -597,7 +597,7 @@
   {
     "combo_id": "carnes_004+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_004%2Bguarniciones_022.jpg",
-    "name": "Filetes de lomo empanados con pepino con yogur",
+    "name": "Filetes de lomo empanados con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -632,14 +632,14 @@
   {
     "combo_id": "carnes_006+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_006%2Bguarniciones_004.jpg",
-    "name": "Pollo al ajillo con patatas al ajillo",
+    "name": "Pollo al ajillo con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_006+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_006%2Bguarniciones_005.jpg",
-    "name": "Pollo al ajillo con pasta al ajillo",
+    "name": "Pollo al ajillo con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -723,7 +723,7 @@
   {
     "combo_id": "carnes_006+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_006%2Bguarniciones_017.jpg",
-    "name": "Pollo al ajillo con pan",
+    "name": "Pollo al ajillo con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -758,7 +758,7 @@
   {
     "combo_id": "carnes_006+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_006%2Bguarniciones_022.jpg",
-    "name": "Pollo al ajillo con pepino con yogur",
+    "name": "Pollo al ajillo con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -786,14 +786,14 @@
   {
     "combo_id": "carnes_007+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_007%2Bguarniciones_004.jpg",
-    "name": "Cinta de lomo adobada con patatas al ajillo",
+    "name": "Cinta de lomo adobada con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_007+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_007%2Bguarniciones_005.jpg",
-    "name": "Cinta de lomo adobada con pasta al ajillo",
+    "name": "Cinta de lomo adobada con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -877,7 +877,7 @@
   {
     "combo_id": "carnes_007+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_007%2Bguarniciones_017.jpg",
-    "name": "Cinta de lomo adobada con pan",
+    "name": "Cinta de lomo adobada con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -912,7 +912,7 @@
   {
     "combo_id": "carnes_007+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_007%2Bguarniciones_022.jpg",
-    "name": "Cinta de lomo adobada con pepino con yogur",
+    "name": "Cinta de lomo adobada con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -954,14 +954,14 @@
   {
     "combo_id": "carnes_010+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_010%2Bguarniciones_004.jpg",
-    "name": "Pollo con pimientos con patatas al ajillo",
+    "name": "Pollo con pimientos con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_010+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_010%2Bguarniciones_005.jpg",
-    "name": "Pollo con pimientos con pasta al ajillo",
+    "name": "Pollo con pimientos con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1045,7 +1045,7 @@
   {
     "combo_id": "carnes_010+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_010%2Bguarniciones_017.jpg",
-    "name": "Pollo con pimientos con pan",
+    "name": "Pollo con pimientos con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1080,7 +1080,7 @@
   {
     "combo_id": "carnes_010+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_010%2Bguarniciones_022.jpg",
-    "name": "Pollo con pimientos con pepino con yogur",
+    "name": "Pollo con pimientos con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1108,14 +1108,14 @@
   {
     "combo_id": "carnes_011+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_011%2Bguarniciones_004.jpg",
-    "name": "Costillas de cerdo al horno con patatas al ajillo",
+    "name": "Costillas de cerdo al horno con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_011+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_011%2Bguarniciones_005.jpg",
-    "name": "Costillas de cerdo al horno con pasta al ajillo",
+    "name": "Costillas de cerdo al horno con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1199,7 +1199,7 @@
   {
     "combo_id": "carnes_011+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_011%2Bguarniciones_017.jpg",
-    "name": "Costillas de cerdo al horno con pan",
+    "name": "Costillas de cerdo al horno con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1234,7 +1234,7 @@
   {
     "combo_id": "carnes_011+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_011%2Bguarniciones_022.jpg",
-    "name": "Costillas de cerdo al horno con pepino con yogur",
+    "name": "Costillas de cerdo al horno con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1262,14 +1262,14 @@
   {
     "combo_id": "carnes_012+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_012%2Bguarniciones_004.jpg",
-    "name": "San Jacobos caseros con patatas al ajillo",
+    "name": "San Jacobos caseros con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_012+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_012%2Bguarniciones_005.jpg",
-    "name": "San Jacobos caseros con pasta al ajillo",
+    "name": "San Jacobos caseros con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1353,7 +1353,7 @@
   {
     "combo_id": "carnes_012+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_012%2Bguarniciones_017.jpg",
-    "name": "San Jacobos caseros con pan",
+    "name": "San Jacobos caseros con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1388,7 +1388,7 @@
   {
     "combo_id": "carnes_012+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_012%2Bguarniciones_022.jpg",
-    "name": "San Jacobos caseros con pepino con yogur",
+    "name": "San Jacobos caseros con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1416,14 +1416,14 @@
   {
     "combo_id": "carnes_013+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_013%2Bguarniciones_004.jpg",
-    "name": "Muslos de pollo al horno con patatas al ajillo",
+    "name": "Muslos de pollo al horno con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_013+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_013%2Bguarniciones_005.jpg",
-    "name": "Muslos de pollo al horno con pasta al ajillo",
+    "name": "Muslos de pollo al horno con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1507,7 +1507,7 @@
   {
     "combo_id": "carnes_013+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_013%2Bguarniciones_017.jpg",
-    "name": "Muslos de pollo al horno con pan",
+    "name": "Muslos de pollo al horno con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1542,7 +1542,7 @@
   {
     "combo_id": "carnes_013+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_013%2Bguarniciones_022.jpg",
-    "name": "Muslos de pollo al horno con pepino con yogur",
+    "name": "Muslos de pollo al horno con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1570,14 +1570,14 @@
   {
     "combo_id": "carnes_014+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_014%2Bguarniciones_004.jpg",
-    "name": "Filetes rusos con patatas al ajillo",
+    "name": "Filetes rusos con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_014+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_014%2Bguarniciones_005.jpg",
-    "name": "Filetes rusos con pasta al ajillo",
+    "name": "Filetes rusos con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1661,7 +1661,7 @@
   {
     "combo_id": "carnes_014+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_014%2Bguarniciones_017.jpg",
-    "name": "Filetes rusos con pan",
+    "name": "Filetes rusos con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1696,7 +1696,7 @@
   {
     "combo_id": "carnes_014+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_014%2Bguarniciones_022.jpg",
-    "name": "Filetes rusos con pepino con yogur",
+    "name": "Filetes rusos con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1724,14 +1724,14 @@
   {
     "combo_id": "carnes_015+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_015%2Bguarniciones_004.jpg",
-    "name": "Ternera guisada con zanahorias con patatas al ajillo",
+    "name": "Ternera guisada con zanahorias con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_015+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_015%2Bguarniciones_005.jpg",
-    "name": "Ternera guisada con zanahorias con pasta al ajillo",
+    "name": "Ternera guisada con zanahorias con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1815,7 +1815,7 @@
   {
     "combo_id": "carnes_015+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_015%2Bguarniciones_017.jpg",
-    "name": "Ternera guisada con zanahorias con pan",
+    "name": "Ternera guisada con zanahorias con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1850,7 +1850,7 @@
   {
     "combo_id": "carnes_015+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_015%2Bguarniciones_022.jpg",
-    "name": "Ternera guisada con zanahorias con pepino con yogur",
+    "name": "Ternera guisada con zanahorias con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1878,14 +1878,14 @@
   {
     "combo_id": "carnes_016+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_016%2Bguarniciones_004.jpg",
-    "name": "Pollo en pepitoria con patatas al ajillo",
+    "name": "Pollo en pepitoria con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_016+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_016%2Bguarniciones_005.jpg",
-    "name": "Pollo en pepitoria con pasta al ajillo",
+    "name": "Pollo en pepitoria con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -1969,7 +1969,7 @@
   {
     "combo_id": "carnes_016+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_016%2Bguarniciones_017.jpg",
-    "name": "Pollo en pepitoria con pan",
+    "name": "Pollo en pepitoria con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2004,7 +2004,7 @@
   {
     "combo_id": "carnes_016+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_016%2Bguarniciones_022.jpg",
-    "name": "Pollo en pepitoria con pepino con yogur",
+    "name": "Pollo en pepitoria con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2032,14 +2032,14 @@
   {
     "combo_id": "carnes_017+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_017%2Bguarniciones_004.jpg",
-    "name": "Magro con tomate con patatas al ajillo",
+    "name": "Magro con tomate con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_017+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_017%2Bguarniciones_005.jpg",
-    "name": "Magro con tomate con pasta al ajillo",
+    "name": "Magro con tomate con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2123,7 +2123,7 @@
   {
     "combo_id": "carnes_017+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_017%2Bguarniciones_017.jpg",
-    "name": "Magro con tomate con pan",
+    "name": "Magro con tomate con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2158,7 +2158,7 @@
   {
     "combo_id": "carnes_017+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_017%2Bguarniciones_022.jpg",
-    "name": "Magro con tomate con pepino con yogur",
+    "name": "Magro con tomate con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2186,14 +2186,14 @@
   {
     "combo_id": "carnes_018+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_018%2Bguarniciones_004.jpg",
-    "name": "Secreto ibérico a la plancha con patatas al ajillo",
+    "name": "Secreto ibérico a la plancha con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_018+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_018%2Bguarniciones_005.jpg",
-    "name": "Secreto ibérico a la plancha con pasta al ajillo",
+    "name": "Secreto ibérico a la plancha con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2277,7 +2277,7 @@
   {
     "combo_id": "carnes_018+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_018%2Bguarniciones_017.jpg",
-    "name": "Secreto ibérico a la plancha con pan",
+    "name": "Secreto ibérico a la plancha con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2312,7 +2312,7 @@
   {
     "combo_id": "carnes_018+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_018%2Bguarniciones_022.jpg",
-    "name": "Secreto ibérico a la plancha con pepino con yogur",
+    "name": "Secreto ibérico a la plancha con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2340,14 +2340,14 @@
   {
     "combo_id": "carnes_019+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_019%2Bguarniciones_004.jpg",
-    "name": "Alitas de pollo al horno con patatas al ajillo",
+    "name": "Alitas de pollo al horno con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_019+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_019%2Bguarniciones_005.jpg",
-    "name": "Alitas de pollo al horno con pasta al ajillo",
+    "name": "Alitas de pollo al horno con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2431,7 +2431,7 @@
   {
     "combo_id": "carnes_019+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_019%2Bguarniciones_017.jpg",
-    "name": "Alitas de pollo al horno con pan",
+    "name": "Alitas de pollo al horno con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2466,7 +2466,7 @@
   {
     "combo_id": "carnes_019+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_019%2Bguarniciones_022.jpg",
-    "name": "Alitas de pollo al horno con pepino con yogur",
+    "name": "Alitas de pollo al horno con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2494,14 +2494,14 @@
   {
     "combo_id": "carnes_020+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_020%2Bguarniciones_004.jpg",
-    "name": "Solomillo de cerdo al Pedro Ximénez con patatas al ajillo",
+    "name": "Solomillo de cerdo al Pedro Ximénez con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_020+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_020%2Bguarniciones_005.jpg",
-    "name": "Solomillo de cerdo al Pedro Ximénez con pasta al ajillo",
+    "name": "Solomillo de cerdo al Pedro Ximénez con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2585,7 +2585,7 @@
   {
     "combo_id": "carnes_020+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_020%2Bguarniciones_017.jpg",
-    "name": "Solomillo de cerdo al Pedro Ximénez con pan",
+    "name": "Solomillo de cerdo al Pedro Ximénez con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2620,7 +2620,7 @@
   {
     "combo_id": "carnes_020+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_020%2Bguarniciones_022.jpg",
-    "name": "Solomillo de cerdo al Pedro Ximénez con pepino con yogur",
+    "name": "Solomillo de cerdo al Pedro Ximénez con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2648,14 +2648,14 @@
   {
     "combo_id": "carnes_021+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_021%2Bguarniciones_004.jpg",
-    "name": "Carne guisada con verduras con patatas al ajillo",
+    "name": "Carne guisada con verduras con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_021+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_021%2Bguarniciones_005.jpg",
-    "name": "Carne guisada con verduras con pasta al ajillo",
+    "name": "Carne guisada con verduras con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2739,7 +2739,7 @@
   {
     "combo_id": "carnes_021+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_021%2Bguarniciones_017.jpg",
-    "name": "Carne guisada con verduras con pan",
+    "name": "Carne guisada con verduras con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2774,7 +2774,7 @@
   {
     "combo_id": "carnes_021+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_021%2Bguarniciones_022.jpg",
-    "name": "Carne guisada con verduras con pepino con yogur",
+    "name": "Carne guisada con verduras con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2802,14 +2802,14 @@
   {
     "combo_id": "carnes_022+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_022%2Bguarniciones_004.jpg",
-    "name": "Lomo de cerdo en salsa con patatas al ajillo",
+    "name": "Lomo de cerdo en salsa con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_022+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_022%2Bguarniciones_005.jpg",
-    "name": "Lomo de cerdo en salsa con pasta al ajillo",
+    "name": "Lomo de cerdo en salsa con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2893,7 +2893,7 @@
   {
     "combo_id": "carnes_022+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_022%2Bguarniciones_017.jpg",
-    "name": "Lomo de cerdo en salsa con pan",
+    "name": "Lomo de cerdo en salsa con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2928,7 +2928,7 @@
   {
     "combo_id": "carnes_022+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_022%2Bguarniciones_022.jpg",
-    "name": "Lomo de cerdo en salsa con pepino con yogur",
+    "name": "Lomo de cerdo en salsa con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -2956,14 +2956,14 @@
   {
     "combo_id": "carnes_023+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_023%2Bguarniciones_004.jpg",
-    "name": "Escalopines de ternera al limón con patatas al ajillo",
+    "name": "Escalopines de ternera al limón con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_023+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_023%2Bguarniciones_005.jpg",
-    "name": "Escalopines de ternera al limón con pasta al ajillo",
+    "name": "Escalopines de ternera al limón con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3047,7 +3047,7 @@
   {
     "combo_id": "carnes_023+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_023%2Bguarniciones_017.jpg",
-    "name": "Escalopines de ternera al limón con pan",
+    "name": "Escalopines de ternera al limón con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3082,161 +3082,161 @@
   {
     "combo_id": "carnes_023+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_023%2Bguarniciones_022.jpg",
-    "name": "Escalopines de ternera al limón con pepino con yogur",
+    "name": "Escalopines de ternera al limón con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_001",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_001.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_001.jpg",
     "name": "Pavo a la plancha con arroz blanco",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_002",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_002.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_002.jpg",
     "name": "Pavo a la plancha con patatas cocidas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_003",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_003.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_003.jpg",
     "name": "Pavo a la plancha con puré de patatas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_004",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_004.jpg?v=3",
-    "name": "Pavo a la plancha con patatas al ajillo",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_004.jpg",
+    "name": "Pavo a la plancha con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_005",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_005.jpg?v=3",
-    "name": "Pavo a la plancha con pasta al ajillo",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_005.jpg",
+    "name": "Pavo a la plancha con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_006",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_006.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_006.jpg",
     "name": "Pavo a la plancha con cuscús al limón",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_007",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_007.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_007.jpg",
     "name": "Pavo a la plancha con quinoa",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_008",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_008.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_008.jpg",
     "name": "Pavo a la plancha con arroz integral",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_009",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_009.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_009.jpg",
     "name": "Pavo a la plancha con judías verdes",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_010",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_010.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_010.jpg",
     "name": "Pavo a la plancha con brócoli salteado",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_011",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_011.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_011.jpg",
     "name": "Pavo a la plancha con zanahoria glaseada",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_012",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_012.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_012.jpg",
     "name": "Pavo a la plancha con espinacas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_013",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_013.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_013.jpg",
     "name": "Pavo a la plancha con calabacín a la plancha",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_014",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_014.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_014.jpg",
     "name": "Pavo a la plancha con ensalada verde",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_015",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_015.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_015.jpg",
     "name": "Pavo a la plancha con ensalada de tomate",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_016",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_016.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_016.jpg",
     "name": "Pavo a la plancha con pimientos del piquillo",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_017",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_017.jpg?v=3",
-    "name": "Pavo a la plancha con pan",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_017.jpg",
+    "name": "Pavo a la plancha con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_018",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_018.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_018.jpg",
     "name": "Pavo a la plancha con verduras salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_019",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_019.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_019.jpg",
     "name": "Pavo a la plancha con espárragos a la plancha",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_020",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_020.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_020.jpg",
     "name": "Pavo a la plancha con menestra de verduras",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_021",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_021.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_021.jpg",
     "name": "Pavo a la plancha con champiñones salteados",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_024+guarniciones_022",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_022.jpg?v=3",
-    "name": "Pavo a la plancha con pepino con yogur",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_024%2Bguarniciones_022.jpg",
+    "name": "Pavo a la plancha con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3264,14 +3264,14 @@
   {
     "combo_id": "carnes_025+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_025%2Bguarniciones_004.jpg",
-    "name": "Pollo al curry con patatas al ajillo",
+    "name": "Pollo al curry con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_025+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_025%2Bguarniciones_005.jpg",
-    "name": "Pollo al curry con pasta al ajillo",
+    "name": "Pollo al curry con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3355,7 +3355,7 @@
   {
     "combo_id": "carnes_025+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_025%2Bguarniciones_017.jpg",
-    "name": "Pollo al curry con pan",
+    "name": "Pollo al curry con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3390,7 +3390,7 @@
   {
     "combo_id": "carnes_025+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_025%2Bguarniciones_022.jpg",
-    "name": "Pollo al curry con pepino con yogur",
+    "name": "Pollo al curry con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3418,14 +3418,14 @@
   {
     "combo_id": "carnes_026+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_026%2Bguarniciones_004.jpg",
-    "name": "Albóndigas de pollo con patatas al ajillo",
+    "name": "Albóndigas de pollo con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_026+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_026%2Bguarniciones_005.jpg",
-    "name": "Albóndigas de pollo con pasta al ajillo",
+    "name": "Albóndigas de pollo con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3509,7 +3509,7 @@
   {
     "combo_id": "carnes_026+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_026%2Bguarniciones_017.jpg",
-    "name": "Albóndigas de pollo con pan",
+    "name": "Albóndigas de pollo con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3544,7 +3544,7 @@
   {
     "combo_id": "carnes_026+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_026%2Bguarniciones_022.jpg",
-    "name": "Albóndigas de pollo con pepino con yogur",
+    "name": "Albóndigas de pollo con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3572,14 +3572,14 @@
   {
     "combo_id": "carnes_027+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_027%2Bguarniciones_004.jpg",
-    "name": "Chuletas de cerdo a la plancha con patatas al ajillo",
+    "name": "Chuletas de cerdo a la plancha con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_027+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_027%2Bguarniciones_005.jpg",
-    "name": "Chuletas de cerdo a la plancha con pasta al ajillo",
+    "name": "Chuletas de cerdo a la plancha con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3663,7 +3663,7 @@
   {
     "combo_id": "carnes_027+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_027%2Bguarniciones_017.jpg",
-    "name": "Chuletas de cerdo a la plancha con pan",
+    "name": "Chuletas de cerdo a la plancha con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3698,7 +3698,7 @@
   {
     "combo_id": "carnes_027+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_027%2Bguarniciones_022.jpg",
-    "name": "Chuletas de cerdo a la plancha con pepino con yogur",
+    "name": "Chuletas de cerdo a la plancha con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3726,14 +3726,14 @@
   {
     "combo_id": "carnes_028+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_028%2Bguarniciones_004.jpg",
-    "name": "Pollo con champiñones con patatas al ajillo",
+    "name": "Pollo con champiñones con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_028+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_028%2Bguarniciones_005.jpg",
-    "name": "Pollo con champiñones con pasta al ajillo",
+    "name": "Pollo con champiñones con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3817,7 +3817,7 @@
   {
     "combo_id": "carnes_028+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_028%2Bguarniciones_017.jpg",
-    "name": "Pollo con champiñones con pan",
+    "name": "Pollo con champiñones con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3852,7 +3852,7 @@
   {
     "combo_id": "carnes_028+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_028%2Bguarniciones_022.jpg",
-    "name": "Pollo con champiñones con pepino con yogur",
+    "name": "Pollo con champiñones con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3880,14 +3880,14 @@
   {
     "combo_id": "carnes_029+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_029%2Bguarniciones_004.jpg",
-    "name": "Redondo de ternera con patatas al ajillo",
+    "name": "Redondo de ternera con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_029+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_029%2Bguarniciones_005.jpg",
-    "name": "Redondo de ternera con pasta al ajillo",
+    "name": "Redondo de ternera con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -3971,7 +3971,7 @@
   {
     "combo_id": "carnes_029+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_029%2Bguarniciones_017.jpg",
-    "name": "Redondo de ternera con pan",
+    "name": "Redondo de ternera con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4006,7 +4006,7 @@
   {
     "combo_id": "carnes_029+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_029%2Bguarniciones_022.jpg",
-    "name": "Redondo de ternera con pepino con yogur",
+    "name": "Redondo de ternera con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4034,14 +4034,14 @@
   {
     "combo_id": "carnes_030+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_030%2Bguarniciones_004.jpg",
-    "name": "Brochetas de pollo con patatas al ajillo",
+    "name": "Brochetas de pollo con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_030+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_030%2Bguarniciones_005.jpg",
-    "name": "Brochetas de pollo con pasta al ajillo",
+    "name": "Brochetas de pollo con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4125,7 +4125,7 @@
   {
     "combo_id": "carnes_030+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_030%2Bguarniciones_017.jpg",
-    "name": "Brochetas de pollo con pan",
+    "name": "Brochetas de pollo con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4160,7 +4160,7 @@
   {
     "combo_id": "carnes_030+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_030%2Bguarniciones_022.jpg",
-    "name": "Brochetas de pollo con pepino con yogur",
+    "name": "Brochetas de pollo con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4188,14 +4188,14 @@
   {
     "combo_id": "carnes_031+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_031%2Bguarniciones_004.jpg",
-    "name": "Fricandó de ternera con patatas al ajillo",
+    "name": "Fricandó de ternera con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_031+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_031%2Bguarniciones_005.jpg",
-    "name": "Fricandó de ternera con pasta al ajillo",
+    "name": "Fricandó de ternera con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4279,7 +4279,7 @@
   {
     "combo_id": "carnes_031+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_031%2Bguarniciones_017.jpg",
-    "name": "Fricandó de ternera con pan",
+    "name": "Fricandó de ternera con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4314,7 +4314,7 @@
   {
     "combo_id": "carnes_031+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_031%2Bguarniciones_022.jpg",
-    "name": "Fricandó de ternera con pepino con yogur",
+    "name": "Fricandó de ternera con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4342,14 +4342,14 @@
   {
     "combo_id": "carnes_032+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_032%2Bguarniciones_004.jpg",
-    "name": "Escalope de pollo con patatas al ajillo",
+    "name": "Escalope de pollo con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_032+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_032%2Bguarniciones_005.jpg",
-    "name": "Escalope de pollo con pasta al ajillo",
+    "name": "Escalope de pollo con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4433,7 +4433,7 @@
   {
     "combo_id": "carnes_032+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_032%2Bguarniciones_017.jpg",
-    "name": "Escalope de pollo con pan",
+    "name": "Escalope de pollo con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4468,7 +4468,7 @@
   {
     "combo_id": "carnes_032+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_032%2Bguarniciones_022.jpg",
-    "name": "Escalope de pollo con pepino con yogur",
+    "name": "Escalope de pollo con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4496,14 +4496,14 @@
   {
     "combo_id": "carnes_033+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_033%2Bguarniciones_004.jpg",
-    "name": "Ragú de ternera con patatas al ajillo",
+    "name": "Ragú de ternera con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_033+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_033%2Bguarniciones_005.jpg",
-    "name": "Ragú de ternera con pasta al ajillo",
+    "name": "Ragú de ternera con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4587,7 +4587,7 @@
   {
     "combo_id": "carnes_033+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_033%2Bguarniciones_017.jpg",
-    "name": "Ragú de ternera con pan",
+    "name": "Ragú de ternera con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4622,7 +4622,7 @@
   {
     "combo_id": "carnes_033+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_033%2Bguarniciones_022.jpg",
-    "name": "Ragú de ternera con pepino con yogur",
+    "name": "Ragú de ternera con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4650,14 +4650,14 @@
   {
     "combo_id": "carnes_034+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_034%2Bguarniciones_004.jpg",
-    "name": "Pollo a la cerveza con patatas al ajillo",
+    "name": "Pollo a la cerveza con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_034+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_034%2Bguarniciones_005.jpg",
-    "name": "Pollo a la cerveza con pasta al ajillo",
+    "name": "Pollo a la cerveza con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4741,7 +4741,7 @@
   {
     "combo_id": "carnes_034+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_034%2Bguarniciones_017.jpg",
-    "name": "Pollo a la cerveza con pan",
+    "name": "Pollo a la cerveza con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4776,7 +4776,7 @@
   {
     "combo_id": "carnes_034+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_034%2Bguarniciones_022.jpg",
-    "name": "Pollo a la cerveza con pepino con yogur",
+    "name": "Pollo a la cerveza con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4804,14 +4804,14 @@
   {
     "combo_id": "carnes_035+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_035%2Bguarniciones_004.jpg",
-    "name": "Flamenquines cordobeses con patatas al ajillo",
+    "name": "Flamenquines cordobeses con patatas salteadas",
     "family": "carnes",
     "type": "dish+garnish"
   },
   {
     "combo_id": "carnes_035+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_035%2Bguarniciones_005.jpg",
-    "name": "Flamenquines cordobeses con pasta al ajillo",
+    "name": "Flamenquines cordobeses con pasta al aceite",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4895,7 +4895,7 @@
   {
     "combo_id": "carnes_035+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_035%2Bguarniciones_017.jpg",
-    "name": "Flamenquines cordobeses con pan",
+    "name": "Flamenquines cordobeses con guarniciones 017",
     "family": "carnes",
     "type": "dish+garnish"
   },
@@ -4930,9 +4930,16 @@
   {
     "combo_id": "carnes_035+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_035%2Bguarniciones_022.jpg",
-    "name": "Flamenquines cordobeses con pepino con yogur",
+    "name": "Flamenquines cordobeses con patatas fritas",
     "family": "carnes",
     "type": "dish+garnish"
+  },
+  {
+    "combo_id": "carnes_036",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_036.jpg",
+    "name": "Nuggets de pollo caseros",
+    "family": "carnes",
+    "type": "dish"
   },
   {
     "combo_id": "cenas_rapidas_001",
@@ -4951,7 +4958,7 @@
   {
     "combo_id": "cenas_rapidas_003",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_003.jpg",
-    "name": "Ensalada de quinoa",
+    "name": "Ensalada de quinoa, feta y granada",
     "family": "cenas_rapidas",
     "type": "dish"
   },
@@ -4964,8 +4971,8 @@
   },
   {
     "combo_id": "cenas_rapidas_005",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_005.jpg?v=3",
-    "name": "Tostada de aguacate",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_005.jpg",
+    "name": "Tostada de aguacate y tomate",
     "family": "cenas_rapidas",
     "type": "dish"
   },
@@ -5007,7 +5014,7 @@
   {
     "combo_id": "cenas_rapidas_011",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_011.jpg",
-    "name": "Ensalada caprese",
+    "name": "cenas rapidas 011",
     "family": "cenas_rapidas",
     "type": "dish"
   },
@@ -5021,7 +5028,7 @@
   {
     "combo_id": "cenas_rapidas_013",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_013.jpg",
-    "name": "Huevos revueltos con tostadas",
+    "name": "Tostas de aguacate y huevo poché",
     "family": "cenas_rapidas",
     "type": "dish"
   },
@@ -5040,8 +5047,22 @@
     "type": "dish"
   },
   {
+    "combo_id": "cenas_rapidas_016",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_016.jpg",
+    "name": "Tostas de salmón ahumado y aguacate",
+    "family": "cenas_rapidas",
+    "type": "dish"
+  },
+  {
+    "combo_id": "cenas_rapidas_017",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/cenas_rapidas_017.jpg",
+    "name": "Tostas de burrata, tomate y albahaca",
+    "family": "cenas_rapidas",
+    "type": "dish"
+  },
+  {
     "combo_id": "desayunos_001",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_001.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_001.jpg",
     "name": "Bol de yogur con fruta y avena",
     "family": "desayunos",
     "type": "dish"
@@ -5062,7 +5083,7 @@
   },
   {
     "combo_id": "desayunos_004",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_004.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_004.jpg",
     "name": "Tostada de jamón serrano y aceite",
     "family": "desayunos",
     "type": "dish"
@@ -5111,8 +5132,8 @@
   },
   {
     "combo_id": "ensaladas_verduras_003",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_003.jpg?v=3",
-    "name": "Menestra de verduras",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_003.jpg",
+    "name": "Menestra de verduras con jamón",
     "family": "ensaladas_verduras",
     "type": "dish"
   },
@@ -5189,7 +5210,7 @@
   {
     "combo_id": "ensaladas_verduras_014",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_014.jpg",
-    "name": "Champiñones al ajillo",
+    "name": "ensaladas verduras 014",
     "family": "ensaladas_verduras",
     "type": "dish"
   },
@@ -5216,15 +5237,15 @@
   },
   {
     "combo_id": "ensaladas_verduras_018",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_018.jpg?v=3",
-    "name": "Espárragos a la plancha",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_018.jpg",
+    "name": "Espárragos a la plancha con ajo",
     "family": "ensaladas_verduras",
     "type": "dish"
   },
   {
     "combo_id": "ensaladas_verduras_019",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_019.jpg",
-    "name": "Pimientos del padrón",
+    "name": "ensaladas verduras 019",
     "family": "ensaladas_verduras",
     "type": "dish"
   },
@@ -5238,7 +5259,7 @@
   {
     "combo_id": "ensaladas_verduras_021",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_021.jpg",
-    "name": "Ensalada de tomate",
+    "name": "Ensalada griega",
     "family": "ensaladas_verduras",
     "type": "dish"
   },
@@ -5271,9 +5292,51 @@
     "type": "dish"
   },
   {
+    "combo_id": "ensaladas_verduras_026",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_026.jpg",
+    "name": "Ensalada de espinacas, queso de cabra y nueces",
+    "family": "ensaladas_verduras",
+    "type": "dish"
+  },
+  {
+    "combo_id": "ensaladas_verduras_027",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_027.jpg",
+    "name": "Ensalada caprese",
+    "family": "ensaladas_verduras",
+    "type": "dish"
+  },
+  {
+    "combo_id": "ensaladas_verduras_028",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_028.jpg",
+    "name": "Ensalada de garbanzos, pimiento y maíz",
+    "family": "ensaladas_verduras",
+    "type": "dish"
+  },
+  {
+    "combo_id": "ensaladas_verduras_029",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_029.jpg",
+    "name": "Ensalada de lentejas, tomate y comino",
+    "family": "ensaladas_verduras",
+    "type": "dish"
+  },
+  {
+    "combo_id": "ensaladas_verduras_030",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_030.jpg",
+    "name": "Ensalada de tomate, aguacate y cebolla morada",
+    "family": "ensaladas_verduras",
+    "type": "dish"
+  },
+  {
+    "combo_id": "guarniciones_023",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_023.jpg",
+    "name": "guarniciones 023",
+    "family": "guarniciones",
+    "type": "dish"
+  },
+  {
     "combo_id": "huevos_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_001.jpg",
-    "name": "Tortilla española",
+    "name": "Tortilla de patatas",
     "family": "huevos",
     "type": "dish"
   },
@@ -5301,14 +5364,14 @@
   {
     "combo_id": "huevos_002+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_002%2Bguarniciones_004.jpg",
-    "name": "Tortilla francesa con patatas al ajillo",
+    "name": "Tortilla francesa con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_002+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_002%2Bguarniciones_005.jpg",
-    "name": "Tortilla francesa con pasta al ajillo",
+    "name": "Tortilla francesa con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5392,7 +5455,7 @@
   {
     "combo_id": "huevos_002+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_002%2Bguarniciones_017.jpg",
-    "name": "Tortilla francesa con pan",
+    "name": "Tortilla francesa con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5427,7 +5490,7 @@
   {
     "combo_id": "huevos_002+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_002%2Bguarniciones_022.jpg",
-    "name": "Tortilla francesa con pepino con yogur",
+    "name": "Tortilla francesa con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5462,14 +5525,14 @@
   {
     "combo_id": "huevos_004+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_004%2Bguarniciones_004.jpg",
-    "name": "Revuelto de champiñones con patatas al ajillo",
+    "name": "Revuelto de champiñones con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_004+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_004%2Bguarniciones_005.jpg",
-    "name": "Revuelto de champiñones con pasta al ajillo",
+    "name": "Revuelto de champiñones con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5553,7 +5616,7 @@
   {
     "combo_id": "huevos_004+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_004%2Bguarniciones_017.jpg",
-    "name": "Revuelto de champiñones con pan",
+    "name": "Revuelto de champiñones con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5588,7 +5651,7 @@
   {
     "combo_id": "huevos_004+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_004%2Bguarniciones_022.jpg",
-    "name": "Revuelto de champiñones con pepino con yogur",
+    "name": "Revuelto de champiñones con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5616,14 +5679,14 @@
   {
     "combo_id": "huevos_005+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_005%2Bguarniciones_004.jpg",
-    "name": "Revuelto de ajetes con patatas al ajillo",
+    "name": "Revuelto de ajetes con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_005+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_005%2Bguarniciones_005.jpg",
-    "name": "Revuelto de ajetes con pasta al ajillo",
+    "name": "Revuelto de ajetes con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5707,7 +5770,7 @@
   {
     "combo_id": "huevos_005+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_005%2Bguarniciones_017.jpg",
-    "name": "Revuelto de ajetes con pan",
+    "name": "Revuelto de ajetes con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5742,7 +5805,7 @@
   {
     "combo_id": "huevos_005+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_005%2Bguarniciones_022.jpg",
-    "name": "Revuelto de ajetes con pepino con yogur",
+    "name": "Revuelto de ajetes con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5770,14 +5833,14 @@
   {
     "combo_id": "huevos_006+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_006%2Bguarniciones_004.jpg",
-    "name": "Tortilla de calabacín con patatas al ajillo",
+    "name": "Tortilla de calabacín con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_006+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_006%2Bguarniciones_005.jpg",
-    "name": "Tortilla de calabacín con pasta al ajillo",
+    "name": "Tortilla de calabacín con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5861,7 +5924,7 @@
   {
     "combo_id": "huevos_006+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_006%2Bguarniciones_017.jpg",
-    "name": "Tortilla de calabacín con pan",
+    "name": "Tortilla de calabacín con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5896,7 +5959,7 @@
   {
     "combo_id": "huevos_006+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_006%2Bguarniciones_022.jpg",
-    "name": "Tortilla de calabacín con pepino con yogur",
+    "name": "Tortilla de calabacín con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -5924,14 +5987,14 @@
   {
     "combo_id": "huevos_007+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_007%2Bguarniciones_004.jpg",
-    "name": "Huevos fritos con puntillas con patatas al ajillo",
+    "name": "Huevos fritos con puntillas con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_007+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_007%2Bguarniciones_005.jpg",
-    "name": "Huevos fritos con puntillas con pasta al ajillo",
+    "name": "Huevos fritos con puntillas con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6015,7 +6078,7 @@
   {
     "combo_id": "huevos_007+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_007%2Bguarniciones_017.jpg",
-    "name": "Huevos fritos con puntillas con pan",
+    "name": "Huevos fritos con puntillas con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6050,7 +6113,7 @@
   {
     "combo_id": "huevos_007+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_007%2Bguarniciones_022.jpg",
-    "name": "Huevos fritos con puntillas con pepino con yogur",
+    "name": "Huevos fritos con puntillas con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6078,14 +6141,14 @@
   {
     "combo_id": "huevos_008+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_008%2Bguarniciones_004.jpg",
-    "name": "Revuelto de espárragos con patatas al ajillo",
+    "name": "Revuelto de espárragos con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_008+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_008%2Bguarniciones_005.jpg",
-    "name": "Revuelto de espárragos con pasta al ajillo",
+    "name": "Revuelto de espárragos con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6169,7 +6232,7 @@
   {
     "combo_id": "huevos_008+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_008%2Bguarniciones_017.jpg",
-    "name": "Revuelto de espárragos con pan",
+    "name": "Revuelto de espárragos con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6204,7 +6267,7 @@
   {
     "combo_id": "huevos_008+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_008%2Bguarniciones_022.jpg",
-    "name": "Revuelto de espárragos con pepino con yogur",
+    "name": "Revuelto de espárragos con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6232,14 +6295,14 @@
   {
     "combo_id": "huevos_009+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_009%2Bguarniciones_004.jpg",
-    "name": "Huevos al plato con patatas al ajillo",
+    "name": "Huevos al plato con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_009+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_009%2Bguarniciones_005.jpg",
-    "name": "Huevos al plato con pasta al ajillo",
+    "name": "Huevos al plato con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6323,7 +6386,7 @@
   {
     "combo_id": "huevos_009+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_009%2Bguarniciones_017.jpg",
-    "name": "Huevos al plato con pan",
+    "name": "Huevos al plato con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6358,7 +6421,7 @@
   {
     "combo_id": "huevos_009+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_009%2Bguarniciones_022.jpg",
-    "name": "Huevos al plato con pepino con yogur",
+    "name": "Huevos al plato con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6386,14 +6449,14 @@
   {
     "combo_id": "huevos_010+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_010%2Bguarniciones_004.jpg",
-    "name": "Huevos rellenos con patatas al ajillo",
+    "name": "Huevos rellenos con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_010+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_010%2Bguarniciones_005.jpg",
-    "name": "Huevos rellenos con pasta al ajillo",
+    "name": "Huevos rellenos con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6477,7 +6540,7 @@
   {
     "combo_id": "huevos_010+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_010%2Bguarniciones_017.jpg",
-    "name": "Huevos rellenos con pan",
+    "name": "Huevos rellenos con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6512,7 +6575,7 @@
   {
     "combo_id": "huevos_010+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_010%2Bguarniciones_022.jpg",
-    "name": "Huevos rellenos con pepino con yogur",
+    "name": "Huevos rellenos con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6540,14 +6603,14 @@
   {
     "combo_id": "huevos_011+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_011%2Bguarniciones_004.jpg",
-    "name": "Revuelto de gambas con patatas al ajillo",
+    "name": "Revuelto de gambas con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_011+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_011%2Bguarniciones_005.jpg",
-    "name": "Revuelto de gambas con pasta al ajillo",
+    "name": "Revuelto de gambas con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6631,7 +6694,7 @@
   {
     "combo_id": "huevos_011+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_011%2Bguarniciones_017.jpg",
-    "name": "Revuelto de gambas con pan",
+    "name": "Revuelto de gambas con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6666,7 +6729,7 @@
   {
     "combo_id": "huevos_011+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_011%2Bguarniciones_022.jpg",
-    "name": "Revuelto de gambas con pepino con yogur",
+    "name": "Revuelto de gambas con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6694,14 +6757,14 @@
   {
     "combo_id": "huevos_012+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_012%2Bguarniciones_004.jpg",
-    "name": "Tortilla de espinacas con patatas al ajillo",
+    "name": "Tortilla de espinacas con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_012+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_012%2Bguarniciones_005.jpg",
-    "name": "Tortilla de espinacas con pasta al ajillo",
+    "name": "Tortilla de espinacas con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6785,7 +6848,7 @@
   {
     "combo_id": "huevos_012+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_012%2Bguarniciones_017.jpg",
-    "name": "Tortilla de espinacas con pan",
+    "name": "Tortilla de espinacas con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6820,7 +6883,7 @@
   {
     "combo_id": "huevos_012+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_012%2Bguarniciones_022.jpg",
-    "name": "Tortilla de espinacas con pepino con yogur",
+    "name": "Tortilla de espinacas con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6855,14 +6918,14 @@
   {
     "combo_id": "huevos_014+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_014%2Bguarniciones_004.jpg",
-    "name": "Huevos cocidos con ensalada con patatas al ajillo",
+    "name": "Huevos cocidos con ensalada con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_014+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_014%2Bguarniciones_005.jpg",
-    "name": "Huevos cocidos con ensalada con pasta al ajillo",
+    "name": "Huevos cocidos con ensalada con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6946,7 +7009,7 @@
   {
     "combo_id": "huevos_014+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_014%2Bguarniciones_017.jpg",
-    "name": "Huevos cocidos con ensalada con pan",
+    "name": "Huevos cocidos con ensalada con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -6981,7 +7044,7 @@
   {
     "combo_id": "huevos_014+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_014%2Bguarniciones_022.jpg",
-    "name": "Huevos cocidos con ensalada con pepino con yogur",
+    "name": "Huevos cocidos con ensalada con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -7009,14 +7072,14 @@
   {
     "combo_id": "huevos_015+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_015%2Bguarniciones_004.jpg",
-    "name": "Revuelto de setas con patatas al ajillo",
+    "name": "Revuelto de setas con patatas salteadas",
     "family": "huevos",
     "type": "dish+garnish"
   },
   {
     "combo_id": "huevos_015+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_015%2Bguarniciones_005.jpg",
-    "name": "Revuelto de setas con pasta al ajillo",
+    "name": "Revuelto de setas con pasta al aceite",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -7100,7 +7163,7 @@
   {
     "combo_id": "huevos_015+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_015%2Bguarniciones_017.jpg",
-    "name": "Revuelto de setas con pan",
+    "name": "Revuelto de setas con guarniciones 017",
     "family": "huevos",
     "type": "dish+garnish"
   },
@@ -7135,9 +7198,23 @@
   {
     "combo_id": "huevos_015+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_015%2Bguarniciones_022.jpg",
-    "name": "Revuelto de setas con pepino con yogur",
+    "name": "Revuelto de setas con patatas fritas",
     "family": "huevos",
     "type": "dish+garnish"
+  },
+  {
+    "combo_id": "huevos_016",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_016.jpg",
+    "name": "Pisto con huevos",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_017",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_017.jpg",
+    "name": "Pisto con huevo y patatas fritas",
+    "family": "huevos",
+    "type": "dish"
   },
   {
     "combo_id": "legumbres_001",
@@ -7240,7 +7317,7 @@
   {
     "combo_id": "legumbres_015",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_015.jpg",
-    "name": "Ensalada de garbanzos",
+    "name": "Ensalada templada de garbanzos",
     "family": "legumbres",
     "type": "dish"
   },
@@ -7281,7 +7358,7 @@
   },
   {
     "combo_id": "meriendas_001",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_001.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_001.jpg",
     "name": "Smoothie de kéfir y fruta",
     "family": "meriendas",
     "type": "dish"
@@ -7295,21 +7372,21 @@
   },
   {
     "combo_id": "meriendas_003",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_003.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_003.jpg",
     "name": "Bocadillo de jamón serrano",
     "family": "meriendas",
     "type": "dish"
   },
   {
     "combo_id": "meriendas_004",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_004.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_004.jpg",
     "name": "Bocadillo de pavo y queso",
     "family": "meriendas",
     "type": "dish"
   },
   {
     "combo_id": "meriendas_005",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_005.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_005.jpg",
     "name": "Fruta con frutos secos",
     "family": "meriendas",
     "type": "dish"
@@ -7338,7 +7415,7 @@
   {
     "combo_id": "pasta_arroces_003",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_003.jpg",
-    "name": "Arroz blanco con tomate",
+    "name": "Arroz con tomate frito",
     "family": "pasta_arroces",
     "type": "dish"
   },
@@ -7415,7 +7492,7 @@
   {
     "combo_id": "pasta_arroces_014",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_014.jpg",
-    "name": "Pasta con champiñones",
+    "name": "Pasta con salmón y champiñones",
     "family": "pasta_arroces",
     "type": "dish"
   },
@@ -7485,7 +7562,7 @@
   {
     "combo_id": "pasta_arroces_024",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_024.jpg",
-    "name": "Ensalada de pasta",
+    "name": "Ensalada de pasta mediterránea",
     "family": "pasta_arroces",
     "type": "dish"
   },
@@ -7520,14 +7597,14 @@
   {
     "combo_id": "pescados_001+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_001%2Bguarniciones_004.jpg",
-    "name": "Merluza en salsa verde con patatas al ajillo",
+    "name": "Merluza en salsa verde con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_001+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_001%2Bguarniciones_005.jpg",
-    "name": "Merluza en salsa verde con pasta al ajillo",
+    "name": "Merluza en salsa verde con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7611,7 +7688,7 @@
   {
     "combo_id": "pescados_001+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_001%2Bguarniciones_017.jpg",
-    "name": "Merluza en salsa verde con pan",
+    "name": "Merluza en salsa verde con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7646,7 +7723,7 @@
   {
     "combo_id": "pescados_001+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_001%2Bguarniciones_022.jpg",
-    "name": "Merluza en salsa verde con pepino con yogur",
+    "name": "Merluza en salsa verde con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7681,14 +7758,14 @@
   {
     "combo_id": "pescados_003+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_003%2Bguarniciones_004.jpg",
-    "name": "Bacalao con tomate con patatas al ajillo",
+    "name": "Bacalao con tomate con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_003+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_003%2Bguarniciones_005.jpg",
-    "name": "Bacalao con tomate con pasta al ajillo",
+    "name": "Bacalao con tomate con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7772,7 +7849,7 @@
   {
     "combo_id": "pescados_003+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_003%2Bguarniciones_017.jpg",
-    "name": "Bacalao con tomate con pan",
+    "name": "Bacalao con tomate con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7807,7 +7884,7 @@
   {
     "combo_id": "pescados_003+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_003%2Bguarniciones_022.jpg",
-    "name": "Bacalao con tomate con pepino con yogur",
+    "name": "Bacalao con tomate con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7835,14 +7912,14 @@
   {
     "combo_id": "pescados_004+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_004%2Bguarniciones_004.jpg",
-    "name": "Sardinas a la plancha con patatas al ajillo",
+    "name": "Sardinas a la plancha con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_004+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_004%2Bguarniciones_005.jpg",
-    "name": "Sardinas a la plancha con pasta al ajillo",
+    "name": "Sardinas a la plancha con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7926,7 +8003,7 @@
   {
     "combo_id": "pescados_004+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_004%2Bguarniciones_017.jpg",
-    "name": "Sardinas a la plancha con pan",
+    "name": "Sardinas a la plancha con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7961,7 +8038,7 @@
   {
     "combo_id": "pescados_004+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_004%2Bguarniciones_022.jpg",
-    "name": "Sardinas a la plancha con pepino con yogur",
+    "name": "Sardinas a la plancha con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -7996,14 +8073,14 @@
   {
     "combo_id": "pescados_006+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_006%2Bguarniciones_004.jpg",
-    "name": "Atún a la plancha con patatas al ajillo",
+    "name": "Atún a la plancha con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_006+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_006%2Bguarniciones_005.jpg",
-    "name": "Atún a la plancha con pasta al ajillo",
+    "name": "Atún a la plancha con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8087,7 +8164,7 @@
   {
     "combo_id": "pescados_006+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_006%2Bguarniciones_017.jpg",
-    "name": "Atún a la plancha con pan",
+    "name": "Atún a la plancha con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8122,7 +8199,7 @@
   {
     "combo_id": "pescados_006+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_006%2Bguarniciones_022.jpg",
-    "name": "Atún a la plancha con pepino con yogur",
+    "name": "Atún a la plancha con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8150,14 +8227,14 @@
   {
     "combo_id": "pescados_007+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_007%2Bguarniciones_004.jpg",
-    "name": "Merluza rebozada con patatas al ajillo",
+    "name": "Merluza rebozada con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_007+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_007%2Bguarniciones_005.jpg",
-    "name": "Merluza rebozada con pasta al ajillo",
+    "name": "Merluza rebozada con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8241,7 +8318,7 @@
   {
     "combo_id": "pescados_007+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_007%2Bguarniciones_017.jpg",
-    "name": "Merluza rebozada con pan",
+    "name": "Merluza rebozada con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8276,7 +8353,7 @@
   {
     "combo_id": "pescados_007+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_007%2Bguarniciones_022.jpg",
-    "name": "Merluza rebozada con pepino con yogur",
+    "name": "Merluza rebozada con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8311,14 +8388,14 @@
   {
     "combo_id": "pescados_009+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_009%2Bguarniciones_004.jpg",
-    "name": "Salmón a la plancha con patatas al ajillo",
+    "name": "Salmón a la plancha con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_009+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_009%2Bguarniciones_005.jpg",
-    "name": "Salmón a la plancha con pasta al ajillo",
+    "name": "Salmón a la plancha con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8402,7 +8479,7 @@
   {
     "combo_id": "pescados_009+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_009%2Bguarniciones_017.jpg",
-    "name": "Salmón a la plancha con pan",
+    "name": "Salmón a la plancha con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8437,7 +8514,7 @@
   {
     "combo_id": "pescados_009+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_009%2Bguarniciones_022.jpg",
-    "name": "Salmón a la plancha con pepino con yogur",
+    "name": "Salmón a la plancha con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8465,14 +8542,14 @@
   {
     "combo_id": "pescados_010+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_010%2Bguarniciones_004.jpg",
-    "name": "Bacalao al pil-pil con patatas al ajillo",
+    "name": "Bacalao al pil-pil con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_010+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_010%2Bguarniciones_005.jpg",
-    "name": "Bacalao al pil-pil con pasta al ajillo",
+    "name": "Bacalao al pil-pil con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8556,7 +8633,7 @@
   {
     "combo_id": "pescados_010+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_010%2Bguarniciones_017.jpg",
-    "name": "Bacalao al pil-pil con pan",
+    "name": "Bacalao al pil-pil con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8591,7 +8668,7 @@
   {
     "combo_id": "pescados_010+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_010%2Bguarniciones_022.jpg",
-    "name": "Bacalao al pil-pil con pepino con yogur",
+    "name": "Bacalao al pil-pil con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8619,14 +8696,14 @@
   {
     "combo_id": "pescados_011+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_011%2Bguarniciones_004.jpg",
-    "name": "Calamares a la romana con patatas al ajillo",
+    "name": "Calamares a la romana con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_011+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_011%2Bguarniciones_005.jpg",
-    "name": "Calamares a la romana con pasta al ajillo",
+    "name": "Calamares a la romana con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8710,7 +8787,7 @@
   {
     "combo_id": "pescados_011+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_011%2Bguarniciones_017.jpg",
-    "name": "Calamares a la romana con pan",
+    "name": "Calamares a la romana con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8745,7 +8822,7 @@
   {
     "combo_id": "pescados_011+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_011%2Bguarniciones_022.jpg",
-    "name": "Calamares a la romana con pepino con yogur",
+    "name": "Calamares a la romana con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8773,14 +8850,14 @@
   {
     "combo_id": "pescados_012+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_012%2Bguarniciones_004.jpg",
-    "name": "Gambas al ajillo con patatas al ajillo",
+    "name": "Gambas al ajillo con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_012+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_012%2Bguarniciones_005.jpg",
-    "name": "Gambas al ajillo con pasta al ajillo",
+    "name": "Gambas al ajillo con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8864,7 +8941,7 @@
   {
     "combo_id": "pescados_012+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_012%2Bguarniciones_017.jpg",
-    "name": "Gambas al ajillo con pan",
+    "name": "Gambas al ajillo con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8899,7 +8976,7 @@
   {
     "combo_id": "pescados_012+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_012%2Bguarniciones_022.jpg",
-    "name": "Gambas al ajillo con pepino con yogur",
+    "name": "Gambas al ajillo con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -8934,14 +9011,14 @@
   {
     "combo_id": "pescados_014+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_014%2Bguarniciones_004.jpg",
-    "name": "Bacalao rebozado con patatas al ajillo",
+    "name": "Bacalao rebozado con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_014+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_014%2Bguarniciones_005.jpg",
-    "name": "Bacalao rebozado con pasta al ajillo",
+    "name": "Bacalao rebozado con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9025,7 +9102,7 @@
   {
     "combo_id": "pescados_014+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_014%2Bguarniciones_017.jpg",
-    "name": "Bacalao rebozado con pan",
+    "name": "Bacalao rebozado con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9060,7 +9137,7 @@
   {
     "combo_id": "pescados_014+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_014%2Bguarniciones_022.jpg",
-    "name": "Bacalao rebozado con pepino con yogur",
+    "name": "Bacalao rebozado con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9088,14 +9165,14 @@
   {
     "combo_id": "pescados_015+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_015%2Bguarniciones_004.jpg",
-    "name": "Trucha a la navarra con patatas al ajillo",
+    "name": "Trucha a la navarra con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_015+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_015%2Bguarniciones_005.jpg",
-    "name": "Trucha a la navarra con pasta al ajillo",
+    "name": "Trucha a la navarra con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9179,7 +9256,7 @@
   {
     "combo_id": "pescados_015+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_015%2Bguarniciones_017.jpg",
-    "name": "Trucha a la navarra con pan",
+    "name": "Trucha a la navarra con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9214,7 +9291,7 @@
   {
     "combo_id": "pescados_015+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_015%2Bguarniciones_022.jpg",
-    "name": "Trucha a la navarra con pepino con yogur",
+    "name": "Trucha a la navarra con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9242,14 +9319,14 @@
   {
     "combo_id": "pescados_016+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_016%2Bguarniciones_004.jpg",
-    "name": "Rape en salsa marinera con patatas al ajillo",
+    "name": "Rape en salsa marinera con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_016+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_016%2Bguarniciones_005.jpg",
-    "name": "Rape en salsa marinera con pasta al ajillo",
+    "name": "Rape en salsa marinera con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9333,7 +9410,7 @@
   {
     "combo_id": "pescados_016+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_016%2Bguarniciones_017.jpg",
-    "name": "Rape en salsa marinera con pan",
+    "name": "Rape en salsa marinera con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9368,7 +9445,7 @@
   {
     "combo_id": "pescados_016+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_016%2Bguarniciones_022.jpg",
-    "name": "Rape en salsa marinera con pepino con yogur",
+    "name": "Rape en salsa marinera con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9396,14 +9473,14 @@
   {
     "combo_id": "pescados_017+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_017%2Bguarniciones_004.jpg",
-    "name": "Palitos de merluza caseros con patatas al ajillo",
+    "name": "Palitos de merluza caseros con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_017+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_017%2Bguarniciones_005.jpg",
-    "name": "Palitos de merluza caseros con pasta al ajillo",
+    "name": "Palitos de merluza caseros con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9487,7 +9564,7 @@
   {
     "combo_id": "pescados_017+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_017%2Bguarniciones_017.jpg",
-    "name": "Palitos de merluza caseros con pan",
+    "name": "Palitos de merluza caseros con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9522,7 +9599,7 @@
   {
     "combo_id": "pescados_017+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_017%2Bguarniciones_022.jpg",
-    "name": "Palitos de merluza caseros con pepino con yogur",
+    "name": "Palitos de merluza caseros con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9550,14 +9627,14 @@
   {
     "combo_id": "pescados_018+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_018%2Bguarniciones_004.jpg",
-    "name": "Salmón en papillote con patatas al ajillo",
+    "name": "Salmón en papillote con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_018+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_018%2Bguarniciones_005.jpg",
-    "name": "Salmón en papillote con pasta al ajillo",
+    "name": "Salmón en papillote con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9641,7 +9718,7 @@
   {
     "combo_id": "pescados_018+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_018%2Bguarniciones_017.jpg",
-    "name": "Salmón en papillote con pan",
+    "name": "Salmón en papillote con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9676,7 +9753,7 @@
   {
     "combo_id": "pescados_018+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_018%2Bguarniciones_022.jpg",
-    "name": "Salmón en papillote con pepino con yogur",
+    "name": "Salmón en papillote con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9704,14 +9781,14 @@
   {
     "combo_id": "pescados_019+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_019%2Bguarniciones_004.jpg",
-    "name": "Atún encebollado con patatas al ajillo",
+    "name": "Atún encebollado con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_019+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_019%2Bguarniciones_005.jpg",
-    "name": "Atún encebollado con pasta al ajillo",
+    "name": "Atún encebollado con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9795,7 +9872,7 @@
   {
     "combo_id": "pescados_019+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_019%2Bguarniciones_017.jpg",
-    "name": "Atún encebollado con pan",
+    "name": "Atún encebollado con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -9830,161 +9907,161 @@
   {
     "combo_id": "pescados_019+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_019%2Bguarniciones_022.jpg",
-    "name": "Atún encebollado con pepino con yogur",
+    "name": "Atún encebollado con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_001",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_001.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_001.jpg",
     "name": "Emperador a la plancha con arroz blanco",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_002",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_002.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_002.jpg",
     "name": "Emperador a la plancha con patatas cocidas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_003",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_003.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_003.jpg",
     "name": "Emperador a la plancha con puré de patatas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_004",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_004.jpg?v=2",
-    "name": "Emperador a la plancha con patatas al ajillo",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_004.jpg",
+    "name": "Emperador a la plancha con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_005",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_005.jpg?v=2",
-    "name": "Emperador a la plancha con pasta al ajillo",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_005.jpg",
+    "name": "Emperador a la plancha con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_006",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_006.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_006.jpg",
     "name": "Emperador a la plancha con cuscús al limón",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_007",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_007.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_007.jpg",
     "name": "Emperador a la plancha con quinoa",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_008",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_008.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_008.jpg",
     "name": "Emperador a la plancha con arroz integral",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_009",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_009.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_009.jpg",
     "name": "Emperador a la plancha con judías verdes",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_010",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_010.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_010.jpg",
     "name": "Emperador a la plancha con brócoli salteado",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_011",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_011.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_011.jpg",
     "name": "Emperador a la plancha con zanahoria glaseada",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_012",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_012.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_012.jpg",
     "name": "Emperador a la plancha con espinacas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_013",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_013.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_013.jpg",
     "name": "Emperador a la plancha con calabacín a la plancha",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_014",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_014.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_014.jpg",
     "name": "Emperador a la plancha con ensalada verde",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_015",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_015.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_015.jpg",
     "name": "Emperador a la plancha con ensalada de tomate",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_016",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_016.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_016.jpg",
     "name": "Emperador a la plancha con pimientos del piquillo",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_017",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_017.jpg?v=2",
-    "name": "Emperador a la plancha con pan",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_017.jpg",
+    "name": "Emperador a la plancha con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_018",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_018.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_018.jpg",
     "name": "Emperador a la plancha con verduras salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_019",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_019.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_019.jpg",
     "name": "Emperador a la plancha con espárragos a la plancha",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_020",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_020.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_020.jpg",
     "name": "Emperador a la plancha con menestra de verduras",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_021",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_021.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_021.jpg",
     "name": "Emperador a la plancha con champiñones salteados",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_020+guarniciones_022",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_022.jpg?v=2",
-    "name": "Emperador a la plancha con pepino con yogur",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_020%2Bguarniciones_022.jpg",
+    "name": "Emperador a la plancha con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10019,14 +10096,14 @@
   {
     "combo_id": "pescados_022+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_022%2Bguarniciones_004.jpg",
-    "name": "Rosada al horno con limón con patatas al ajillo",
+    "name": "Rosada al horno con limón con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_022+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_022%2Bguarniciones_005.jpg",
-    "name": "Rosada al horno con limón con pasta al ajillo",
+    "name": "Rosada al horno con limón con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10110,7 +10187,7 @@
   {
     "combo_id": "pescados_022+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_022%2Bguarniciones_017.jpg",
-    "name": "Rosada al horno con limón con pan",
+    "name": "Rosada al horno con limón con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10145,161 +10222,161 @@
   {
     "combo_id": "pescados_022+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_022%2Bguarniciones_022.jpg",
-    "name": "Rosada al horno con limón con pepino con yogur",
+    "name": "Rosada al horno con limón con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_001.jpg",
-    "name": "Boquerones en vinagre con arroz blanco",
+    "name": "Caballa a la plancha con limón con arroz blanco",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_002",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_002.jpg",
-    "name": "Boquerones en vinagre con patatas cocidas",
+    "name": "Caballa a la plancha con limón con patatas cocidas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_003",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_003.jpg",
-    "name": "Boquerones en vinagre con puré de patatas",
+    "name": "Caballa a la plancha con limón con puré de patatas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_004.jpg",
-    "name": "Boquerones en vinagre con patatas al ajillo",
+    "name": "Caballa a la plancha con limón con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_005.jpg",
-    "name": "Boquerones en vinagre con pasta al ajillo",
+    "name": "Caballa a la plancha con limón con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_006",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_006.jpg",
-    "name": "Boquerones en vinagre con cuscús al limón",
+    "name": "Caballa a la plancha con limón con cuscús al limón",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_007",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_007.jpg",
-    "name": "Boquerones en vinagre con quinoa",
+    "name": "Caballa a la plancha con limón con quinoa",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_008",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_008.jpg",
-    "name": "Boquerones en vinagre con arroz integral",
+    "name": "Caballa a la plancha con limón con arroz integral",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_009",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_009.jpg",
-    "name": "Boquerones en vinagre con judías verdes",
+    "name": "Caballa a la plancha con limón con judías verdes",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_010",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_010.jpg",
-    "name": "Boquerones en vinagre con brócoli salteado",
+    "name": "Caballa a la plancha con limón con brócoli salteado",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_011",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_011.jpg",
-    "name": "Boquerones en vinagre con zanahoria glaseada",
+    "name": "Caballa a la plancha con limón con zanahoria glaseada",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_012",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_012.jpg",
-    "name": "Boquerones en vinagre con espinacas salteadas",
+    "name": "Caballa a la plancha con limón con espinacas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_013",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_013.jpg",
-    "name": "Boquerones en vinagre con calabacín a la plancha",
+    "name": "Caballa a la plancha con limón con calabacín a la plancha",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_014",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_014.jpg",
-    "name": "Boquerones en vinagre con ensalada verde",
+    "name": "Caballa a la plancha con limón con ensalada verde",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_015",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_015.jpg",
-    "name": "Boquerones en vinagre con ensalada de tomate",
+    "name": "Caballa a la plancha con limón con ensalada de tomate",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_016",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_016.jpg",
-    "name": "Boquerones en vinagre con pimientos del piquillo",
+    "name": "Caballa a la plancha con limón con pimientos del piquillo",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_017.jpg",
-    "name": "Boquerones en vinagre con pan",
+    "name": "Caballa a la plancha con limón con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_018",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_018.jpg",
-    "name": "Boquerones en vinagre con verduras salteadas",
+    "name": "Caballa a la plancha con limón con verduras salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_019",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_019.jpg",
-    "name": "Boquerones en vinagre con espárragos a la plancha",
+    "name": "Caballa a la plancha con limón con espárragos a la plancha",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_020",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_020.jpg",
-    "name": "Boquerones en vinagre con menestra de verduras",
+    "name": "Caballa a la plancha con limón con menestra de verduras",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_021",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_021.jpg",
-    "name": "Boquerones en vinagre con champiñones salteados",
+    "name": "Caballa a la plancha con limón con champiñones salteados",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_023+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_023%2Bguarniciones_022.jpg",
-    "name": "Boquerones en vinagre con pepino con yogur",
+    "name": "Caballa a la plancha con limón con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10334,14 +10411,14 @@
   {
     "combo_id": "pescados_025+guarniciones_004",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_025%2Bguarniciones_004.jpg",
-    "name": "Calamares encebollados con patatas al ajillo",
+    "name": "Calamares encebollados con patatas salteadas",
     "family": "pescados",
     "type": "dish+garnish"
   },
   {
     "combo_id": "pescados_025+guarniciones_005",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_025%2Bguarniciones_005.jpg",
-    "name": "Calamares encebollados con pasta al ajillo",
+    "name": "Calamares encebollados con pasta al aceite",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10425,7 +10502,7 @@
   {
     "combo_id": "pescados_025+guarniciones_017",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_025%2Bguarniciones_017.jpg",
-    "name": "Calamares encebollados con pan",
+    "name": "Calamares encebollados con guarniciones 017",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10460,7 +10537,7 @@
   {
     "combo_id": "pescados_025+guarniciones_022",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_025%2Bguarniciones_022.jpg",
-    "name": "Calamares encebollados con pepino con yogur",
+    "name": "Calamares encebollados con patatas fritas",
     "family": "pescados",
     "type": "dish+garnish"
   },
@@ -10606,7 +10683,7 @@
   },
   {
     "combo_id": "postres_001",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_001.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_001.jpg",
     "name": "Macedonia de fruta fresca",
     "family": "postres",
     "type": "dish"
@@ -10620,7 +10697,7 @@
   },
   {
     "combo_id": "postres_003",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_003.jpg?v=3",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_003.jpg",
     "name": "Fruta de temporada",
     "family": "postres",
     "type": "dish"
@@ -10654,6 +10731,62 @@
     "type": "dish"
   },
   {
+    "combo_id": "postres_008",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_008.jpg",
+    "name": "Yogur natural",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_009",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_009.jpg",
+    "name": "Yogur con fruta",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_013",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_013.jpg",
+    "name": "Yogur de frutas",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_014",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_014.jpg",
+    "name": "Compota de manzana",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_015",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_015.jpg",
+    "name": "Crema de chocolate",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_016",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_016.jpg",
+    "name": "Tarta de limón",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_017",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_017.jpg",
+    "name": "Tarta de queso",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
+    "combo_id": "postres_018",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_018.jpg",
+    "name": "Bizcocho de yogur",
+    "family": "postres",
+    "type": "dish"
+  },
+  {
     "combo_id": "sopas_cremas_001",
     "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_001.jpg",
     "name": "Crema de calabacín",
@@ -10662,7 +10795,7 @@
   },
   {
     "combo_id": "sopas_cremas_002",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_002.jpg?v=2",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_002.jpg",
     "name": "Sopa de fideos",
     "family": "sopas_cremas",
     "type": "dish"
@@ -10739,8 +10872,8 @@
   },
   {
     "combo_id": "sopas_cremas_013",
-    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_013.jpg?v=3",
-    "name": "Puré de patatas",
+    "imageUrl": "https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_013.jpg",
+    "name": "Puré de patatas gratinado",
     "family": "sopas_cremas",
     "type": "dish"
   },
