@@ -1,16 +1,16 @@
 Esquema — onboarding «Cómo completamos el menú» · Merienda (3 opciones).
-Misma fórmula que casa_solo / desayuno_variado: personaje de cuerpo entero, cocina minimalista, gesto claro, luz cálida de tarde.
-Cola fija: full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
+Estilo cards casa_solo / desayuno: Pixar 3D, personajes expresivos, escenas exteriores o hogar abuelos, luz cálida de tarde.
+Cola fija: Pixar animation style, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
 
 Archivo: public/avatares/cards/{slug}.jpg
 
 --- Opciones ---
 
-[merienda_off]  Sin merienda
-3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, gently waving off a small empty snack plate with one hand while a child's backpack sits on a kitchen chair, relaxed no-snack-today expression, clock on the wall showing late afternoon, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
+[merienda_off]  Sin merienda — alegre, sin pena ni “falta de comida”
+3D illustrated cartoon scene, two energetic school-age siblings racing their bicycles down a sunny tree-lined sidewalk after school, wind in their hair, huge joyful laughs, backpacks bouncing, no food or snack anywhere, pure playful freedom on a bright afternoon, dynamic motion and warmth, Pixar animation style, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
 
-[merienda_semana]  Toda la semana
-3D illustrated cartoon character, a man home cook with short brown hair wearing an apron, proudly presenting a colorful kids snack tray with fruit slices, yogurt cup and a small sandwich, seven tiny colored dots on the counter suggesting every day of the week, cheerful proud expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
+[merienda_semana]  Toda la semana — merienda con los abuelos
+3D illustrated cartoon scene, two cheerful grandparents and two grandchildren sharing an afternoon snack at a sunny terrace table, bocadillos, fruit and glasses of milk, the grandmother cutting an apple while the grandfather laughs, warm multigenerational joy, potted plants and a white village house behind them, late afternoon golden light, Pixar animation style, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
 
-[merienda_laborables]  Solo L–V
-3D illustrated cartoon character, a woman home cook with brown hair wearing an apron, packing a snack lunchbox for a child while a wall calendar behind her shows five weekdays highlighted and the weekend faded, focused friendly expression, full body standing in a modern minimalist kitchen with contemporary appliances softly blurred in the background, warm afternoon light through a window, Pixar animation style, soft natural colors, clean app illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
+[merienda_laborables]  Solo L–V — bocadillo en el parque, uniforme
+3D illustrated cartoon scene, two school children in neat school uniforms sitting on a park bench under green trees eating bocadillos from small paper bags, backpacks on the ground, laughing together in soft late-afternoon sunlight, a playground blurred in the background, wholesome after-school snack moment, Pixar animation style, soft natural colors, clean app illustration, shallow depth of field --no text, letters, watermark --seed 2151241667 --v 7 --ar 3:2
