@@ -935,6 +935,10 @@ function ModeToggle({ mode, onSelect, modes }) {
  * on first login).
  */
 export function PantryInput({
+  // Prefer the parent-provided user (PantryScreen already has it) so saves and
+  // reloads always hit the same backend — useAuth() alone can lag behind on
+  // first paint after login.
+  user: userProp = null,
   onSaved,
   onUploadReceipt = null,
   initialTab = "text",
@@ -945,7 +949,8 @@ export function PantryInput({
   onTabChange,
   hideTabs = false,
 }) {
-  const { user } = useAuth();
+  const { user: authUser } = useAuth();
+  const user = userProp ?? authUser;
   const [tabState, setTabState] = useState(initialTab); // "text" | "upload"
   const tab = tabProp ?? tabState;
   const setTab = onTabChange ?? setTabState;

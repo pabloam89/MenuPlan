@@ -47,6 +47,77 @@ function isMissingColumn(error) {
   return error?.code === UNDEFINED_COLUMN;
 }
 
+/** Drop `location` from insert payloads when the DB hasn't run 0015 yet. */
+function omitLocationFromRows(rows) {
+  return rows.map(({ location: _loc, ...rest }) => rest);
+}
+
+/**
+ * Inserts pantry rows, degrading tier-by-tier on a pre-migration DB:
+ * full schema → without `location` (0015) → legacy base columns (pre-0014).
+ * The old code jumped straight to legacy on a missing `location` column, which
+ * silently discarded `frozen`, `item_type`, `portions` and `cooked_at` even
+ * when 0014 was already applied — the root cause of "everything in Nevera /
+ * Hoy / 1 ud / 2 raciones" in prod when 0015 hadn't been run yet.
+ */
+async function insertPantryRows(userId, toInsert, itemsForLegacy) {
+  if (!toInsert.length) return [];
+
+  let payload = toInsert;
+  let { data, error } = await supabase.from("user_pantry").insert(payload).select(RETURN_COLS);
+
+  if (isMissingColumn(error) && payload.some((r) => "location" in r)) {
+    console.warn("[pantry] insert: `location` column missing (run migration 0015) — retrying without it");
+    payload = omitLocationFromRows(payload);
+    ({ data, error } = await supabase.from("user_pantry").insert(payload).select(RETURN_COLS));
+  }
+
+  if (isMissingColumn(error)) {
+    console.warn("[pantry] insert: freezer columns missing (run migration 0014) — using legacy path");
+    return addPantryItemsLegacy(userId, itemsForLegacy);
+  }
+
+  if (error) {
+    console.error("[pantry] insert failed", error);
+    return [];
+  }
+
+  return (data ?? []).map((r) => ({ ...mapRow(r), isNew: true }));
+}
+
+/** Applies a top-up patch, degrading when optional columns aren't migrated yet. */
+async function patchPantryRow(userId, id, patch) {
+  const { location, frozen, ...base } = patch;
+  const withLoc =
+    location != null ? { ...base, location, frozen: Boolean(frozen) } : base;
+  const withFrozen = location != null ? { ...base, frozen: Boolean(frozen) } : base;
+
+  let result = await supabase
+    .from("user_pantry")
+    .update(withLoc)
+    .eq("user_id", userId)
+    .eq("id", id)
+    .select(RETURN_COLS);
+
+  if (isMissingColumn(result.error) && location != null) {
+    result = await supabase
+      .from("user_pantry")
+      .update(withFrozen)
+      .eq("user_id", userId)
+      .eq("id", id)
+      .select(RETURN_COLS);
+  }
+  if (isMissingColumn(result.error)) {
+    result = await supabase
+      .from("user_pantry")
+      .update(base)
+      .eq("user_id", userId)
+      .eq("id", id)
+      .select(RETURN_COLS);
+  }
+  return result;
+}
+
 // Columns added after the original table. Selected together, dropped as a group
 // on a pre-migration DB (see loadPantry's graceful fallbacks).
 const BASE_COLS = "id, ingredient_name, ingredient_normalized, qty, unit, source, created_at";
@@ -54,7 +125,11 @@ const FREEZER_COLS = "frozen, item_type, portions, recipe_ref, cooked_at";
 // 0015 — kept in its own group so a DB with 0014 but not 0015 still loads the
 // freezer columns (lumping them would drop frozen/item_type on the fallback).
 const LOCATION_COLS = "location";
-const RETURN_COLS = `${BASE_COLS}, ${FREEZER_COLS}`;
+const UPDATED_AT_COL = "updated_at";
+// Must mirror the fullest loadPantry tier so insert/update `.select()` returns
+// location + timestamps — otherwise mapRow() zeroes them and Inventario briefly
+// (or permanently, if the caller skips reload) shows Nevera / Hoy / 1 ud.
+const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${LOCATION_COLS}`;
 
 /** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
 export async function loadPantry(userId) {
@@ -135,7 +210,11 @@ export async function addPantryItems(userId, items) {
         const addQty =
           found.unit === unit ? qty : convertStockAmount(qty, unit, found.unit, it.name);
         const nextQty = addQty != null ? (Number(found.qty) || 0) + addQty : Number(found.qty) || 0;
-        toUpdate.push({ id: found.id, qty: nextQty });
+        toUpdate.push({
+          id: found.id,
+          qty: nextQty,
+          ...(it.location != null ? { location: it.location, frozen } : {}),
+        });
       } else {
         toInsert.push({
           user_id: userId,
@@ -156,13 +235,15 @@ export async function addPantryItems(userId, items) {
   // not the same stock as the first — different cooked_at, own portions).
   for (const it of cooked) {
     const portions = Number(it.portions ?? it.qty) > 0 ? Number(it.portions ?? it.qty) : 1;
+    const dishFrozen = Boolean(it.frozen);
     toInsert.push({
       user_id: userId,
       ingredient_name: it.name,
       ingredient_normalized: it.normalized,
       qty: portions,
       unit: "racion",
-      frozen: Boolean(it.frozen),
+      frozen: dishFrozen,
+      location: it.location ?? (dishFrozen ? "congelador" : "nevera"),
       item_type: "cooked_dish",
       portions,
       recipe_ref: it.recipeRef ?? null,
@@ -173,16 +254,7 @@ export async function addPantryItems(userId, items) {
 
   const rows = [];
   if (toInsert.length) {
-    const { data, error } = await supabase
-      .from("user_pantry")
-      .insert(toInsert)
-      .select(RETURN_COLS);
-    // Same graceful degradation as the lookup above: a pre-0014 DB rejects the
-    // freezer columns. Plain ingredients fall back to the base-column path;
-    // cooked dishes genuinely need the migration and are dropped there.
-    if (isMissingColumn(error)) return addPantryItemsLegacy(userId, items);
-    if (error) console.error("[pantry] insert failed", error);
-    else rows.push(...(data ?? []).map((r) => ({ ...mapRow(r), isNew: true })));
+    rows.push(...(await insertPantryRows(userId, toInsert, items)));
   }
   // Top-ups fire together rather than one after another. Each row needs its own
   // statement (a different qty per id), but awaiting them in sequence made a
@@ -190,14 +262,7 @@ export async function addPantryItems(userId, items) {
   // shop meant 30 chained requests, several seconds of staring at a spinner on
   // mobile. Concurrently it's one round-trip's worth of waiting.
   const updated = await Promise.all(
-    toUpdate.map((u) =>
-      supabase
-        .from("user_pantry")
-        .update({ qty: u.qty })
-        .eq("user_id", userId)
-        .eq("id", u.id)
-        .select(RETURN_COLS),
-    ),
+    toUpdate.map((u) => patchPantryRow(userId, u.id, u)),
   );
   for (const { data, error } of updated) {
     if (error) console.error("[pantry] top-up failed", error);
