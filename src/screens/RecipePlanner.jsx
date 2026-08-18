@@ -1598,6 +1598,7 @@ function EditableStepsList({ steps, onUpdate, onRemove, onAdd }) {
 }
 
 // ── Visibility options ─────────────────────────────────────────────────────
+
 const VISIBILITY_OPTIONS = [
   {
     id: "public",
@@ -2249,6 +2250,7 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
       // voting (persisting votes across users needs a Supabase table, wired
       // later); the owner never counts as a voter on their own recipe.
       owner: ownerFromUser(user),
+      source: "user",
       createdAt: draft.createdAt ?? Date.now(),
       rating: draft.rating ?? { up: 0, down: 0, score: 0 },
       // Visibility: "public" | "friends" | "private"
