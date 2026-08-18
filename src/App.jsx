@@ -3098,7 +3098,7 @@ export default function App() {
   // with thumbnails + tap-to-open dish detail. Placing one also flips this slot's
   // type (data.slotType) so future regenerations keep honoring the choice.
   const handlePickSlotType = useCallback((sel, kind) => {
-    const all = Object.values(recipeCatalogById);
+    const all = [...Object.values(recipeCatalogById), ...(data.userRecipes ?? [])];
     const recipes =
       kind === "cena_rapida"
         ? all.filter((r) => r.category === "cenas_rapidas")
@@ -3111,13 +3111,15 @@ export default function App() {
       kind,
       recipes,
     });
-  }, []);
+  }, [data.userRecipes]);
 
   // Apply the catalog dish the user picked into the pending slot.
   const handleChooseRecipeForSlot = useCallback(async (recipeId) => {
     if (!slotPicker || !recipeId) return;
     const { groupId, day, meal, course, kind = null } = slotPicker;
-    const catalogRecipe = recipeCatalogById[recipeId];
+    const catalogRecipe =
+      recipeCatalogById[recipeId] ??
+      (data.userRecipes ?? []).find((r) => r.id === recipeId);
     if (!catalogRecipe) { showToast("Receta no encontrada"); setSlotPicker(null); return; }
     // Plato único takes over the WHOLE comida (single dish, no primero/segundo),
     // so force it into the main course regardless of which one was long-pressed.
@@ -4039,6 +4041,7 @@ export default function App() {
           onPickPlato={(id) => { if (id) handleChooseRecipeForSlot(id); }}
           onClose={() => setSlotPicker(null)}
           recipeVotes={data.recipeVotes ?? {}}
+          extraRecipes={data.userRecipes ?? []}
         />
       )}
 

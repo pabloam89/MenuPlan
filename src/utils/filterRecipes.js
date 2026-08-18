@@ -320,7 +320,7 @@ export function filterRecipes({
   // Validate minimum viable pool. "Solo las mías" naturally has far fewer
   // recipes, so relax the minimums (repetition is expected and acceptable).
   const categories = new Set(pool.map((r) => r.category));
-  const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 5 : 25;
+  const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 1 : 25;
   const minCategories = isBabyGroup ? 1 : recipeMode === "only" ? 1 : 4;
   if (pool.length < minRecipes) {
     return {

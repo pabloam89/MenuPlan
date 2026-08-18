@@ -500,7 +500,7 @@ export function buildGroupContext(data, group) {
 // pantryMode: "strict" (solo con lo de casa, sin comprar) | "only" (partir de
 // lo de casa, fuerte) | "prefer"/"off" (preferencia blanda). "off" nunca llega
 // aquí con nombres porque App vacía la lista antes.
-export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = []) {
+export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay, fixedDishes = [], pantryNames = [], pantryMode = "prefer", frozenDishes = [], recipeMode = "preferred") {
   const catalog = decisionCatalog(filteredRecipes);
   const slotsForLLM = slots.map((s) => {
     const out = { slotId: s.slotId, mealType: s.mealType, mode: s.mode, maxTime: s.maxTime };
@@ -558,6 +558,15 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
   if (catalog.some((r) => r.favorite)) {
     parts.push(
       `\nRECETAS FAVORITAS DEL USUARIO: las marcadas con "favorite": true en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre otras equivalentes. Es una preferencia fuerte pero no absoluta: no repitas la misma favorita más de lo razonable ni rompas la variedad del menú solo por incluirlas.`,
+    );
+  }
+
+  const ownRecipes = catalog.filter((r) => r.own);
+  if (ownRecipes.length > 0 && recipeMode !== "catalog") {
+    parts.push(
+      recipeMode === "only"
+        ? `\nRECETAS PROPIAS DEL USUARIO: las marcadas con "own": true. El menú DEBE usar EXCLUSIVAMENTE estas recetas (${ownRecipes.length} disponibles). Repite las que hagan falta para cubrir todos los huecos, respetando tipo de plato, tiempo, variedad y todas las demás reglas.`
+        : `\nRECETAS PROPIAS DEL USUARIO: las marcadas con "own": true en el catálogo. Cuando encajen en un hueco (respetando tipo de plato, tiempo, variedad y todas las demás reglas), PRIORÍZALAS sobre las del catálogo. Es una preferencia fuerte: incluye al menos una receta propia en la semana si alguna encaja, y no las ignores sistemáticamente a favor del catálogo.`,
     );
   }
 
@@ -843,7 +852,10 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     if (!frozenPoolIds.has(recipeRef)) continue;
     frozenDishes.push({
       recipeId: recipeRef,
-      name: recipeCatalogById[recipeRef]?.name ?? items[0].ingredientName,
+      name:
+        recipeCatalogById[recipeRef]?.name ??
+        filteredPool.find((r) => r.id === recipeRef)?.name ??
+        items[0].ingredientName,
       portions: items.reduce((s, it) => s + itemPortions(it), 0),
     });
   }
@@ -859,6 +871,7 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
       .map((p) => p.ingredientName),
     pantryMode,
     frozenDishes,
+    ctx.filterOpts.recipeMode ?? "preferred",
   );
 
   // The primary planner model is resolvable per-generation (A/B Sonnet vs
