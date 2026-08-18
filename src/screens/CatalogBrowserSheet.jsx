@@ -43,7 +43,7 @@ import { favoriteRecipeIds, getFavoriteScope, isRecipeFavorite, applyFavoriteSco
 import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
 import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
-import { EmptyIllustration } from "../components/ui.jsx";
+import { EmptyIllustration, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
 
 const GARNISHES = guarnicionesData;
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
@@ -475,46 +475,22 @@ export function CatalogBrowserSheet({
   const searchRow = (
     <>
       {gatePickSourceTabs && gatePick && (
-        <div style={{ padding: `0 ${px}px`, marginBottom: 10, flexShrink: 0 }}>
-          <div style={{ display: "flex", background: "#e8efe9", borderRadius: 12, padding: 3 }}>
+        <div style={{ padding: `12px ${px}px 0`, marginBottom: 12, flexShrink: 0 }}>
+          <SegmentedTabBar>
             {[
               { id: "mine", label: "Mis recetas", count: gatePickMinePlatoCount },
               { id: "favorites", label: "Favoritas", count: resolvedFavoriteIds?.size ?? 0 },
               { id: "catalog", label: "Catálogo" },
-            ].map((opt) => {
-              const active = sourceTab === opt.id;
-              return (
-                <button
-                  key={opt.id}
-                  type="button"
-                  onClick={() => setSourceTab(opt.id)}
-                  style={{
-                    flex: 1, minWidth: 0, padding: "7px 2px", borderRadius: 9, border: "none",
-                    background: active ? "#fff" : "transparent",
-                    color: active ? "#142f1d" : "#7a9485",
-                    fontSize: 12, fontWeight: active ? 800 : 700,
-                    cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
-                    boxShadow: active ? "0 1px 4px rgba(0,0,0,.1)" : "none",
-                    transition: "all .15s",
-                  }}
-                >
-                  {opt.label}
-                  {opt.count > 0 && (
-                    <span
-                      style={{
-                        marginLeft: 4, fontSize: 9.5, fontWeight: 900,
-                        color: active ? "#2d5a3d" : "#9ab0a1",
-                        background: active ? "#e4f3e9" : "#dce8de",
-                        padding: "1px 5px", borderRadius: 999,
-                      }}
-                    >
-                      {opt.count}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
+            ].map((opt) => (
+              <SegmentedTabButton
+                key={opt.id}
+                selected={sourceTab === opt.id}
+                onClick={() => setSourceTab(opt.id)}
+                label={opt.label}
+                count={opt.count ?? 0}
+              />
+            ))}
+          </SegmentedTabBar>
         </div>
       )}
       {gatePick && !gatePickType && (

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { BookOpen, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
-import { BottomNav, bottomNavSpacer, EmptyIllustration } from "../components/ui.jsx";
+import { BottomNav, bottomNavSpacer, EmptyIllustration, SegmentedTabBar, SegmentedTabButton } from "../components/ui.jsx";
 import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
 import { RecipesCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { favoriteRecipeIds } from "../lib/recipeVotes.js";
@@ -141,49 +141,23 @@ export function RecipesScreen({
       {/* Tab switcher (white) */}
       <div
         style={{
-          padding: "14px 18px 6px", background: "#fff",
+          padding: "12px 18px 12px", background: "#fff",
           maxWidth: 420, margin: "0 auto", width: "100%", boxSizing: "border-box",
         }}
       >
-        <div
-          style={{
-            display: "flex", background: "#e8efe9", borderRadius: 12, padding: 3,
-          }}
-        >
-          {TABS.map((t) => {
-            const sel = tab === t.id;
-            return (
-              <button
-                key={t.id}
-                type="button"
-                data-coach={`recipes-tab-${t.id}`}
-                onClick={() => setTab(t.id)}
-                style={{
-                  flex: 1, minWidth: 0, padding: "7px 2px", borderRadius: 9, border: "none",
-                  background: sel ? "#fff" : "transparent",
-                  color: sel ? INK : "#7a9485",
-                  fontSize: 12, fontWeight: sel ? 800 : 700,
-                  cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap",
-                  boxShadow: sel ? "0 1px 4px rgba(0,0,0,.1)" : "none",
-                  transition: "all .15s",
-                }}
-              >
-                {t.label}
-                {t.count > 0 && (
-                  <span
-                    style={{
-                      marginLeft: 4, fontSize: 9.5, fontWeight: 900, color: sel ? GREEN : "#9ab0a1",
-                      background: sel ? "#e4f3e9" : "#dce8de",
-                      padding: "1px 5px", borderRadius: 999,
-                    }}
-                  >
-                    {t.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
+        <SegmentedTabBar>
+          {TABS.map((t) => (
+            <SegmentedTabButton
+              key={t.id}
+              data-coach={`recipes-tab-${t.id}`}
+              selected={tab === t.id}
+              onClick={() => setTab(t.id)}
+              label={t.label}
+              count={t.count}
+              accent={GREEN}
+            />
+          ))}
+        </SegmentedTabBar>
       </div>
 
       {/* Content */}

@@ -116,6 +116,87 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
   );
 }
 
+/** Tab bar for Recetas / Elegir a mano: count badge pinned top-right so labels breathe. */
+export function SegmentedTabBar({ children, style }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        background: "#e8efe9",
+        borderRadius: 12,
+        padding: 4,
+        gap: 2,
+        ...style,
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function SegmentedTabButton({
+  selected,
+  onClick,
+  label,
+  count = 0,
+  accent = "#2d5a3d",
+  fontSize = 12,
+  ...rest
+}) {
+  const hasBadge = count > 0;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        position: "relative",
+        flex: 1,
+        minWidth: 0,
+        padding: hasBadge ? "9px 16px 9px 8px" : "9px 8px",
+        borderRadius: 9,
+        border: "none",
+        background: selected ? "#fff" : "transparent",
+        color: selected ? "#142f1d" : "#7a9485",
+        fontSize,
+        fontWeight: selected ? 800 : 700,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        whiteSpace: "nowrap",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        boxShadow: selected ? "0 1px 4px rgba(0,0,0,.1)" : "none",
+        transition: "all .15s",
+      }}
+      {...rest}
+    >
+      <span style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
+      {hasBadge && (
+        <span
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 4,
+            right: 5,
+            minWidth: 15,
+            height: 15,
+            padding: "0 3px",
+            borderRadius: 999,
+            fontSize: 9,
+            fontWeight: 900,
+            lineHeight: "15px",
+            textAlign: "center",
+            color: selected ? accent : "#7a9485",
+            background: selected ? "#e4f3e9" : "#dce8de",
+            boxShadow: "0 0 0 1.5px #fff",
+          }}
+        >
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
 // Empty-state illustration card: a large square illustration on top and the
 // message inside a footer band, both wrapped in one rounded teal-bordered
 // container — mirrors the illustrated onboarding cards when selected. `title`
