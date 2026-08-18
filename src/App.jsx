@@ -2724,14 +2724,12 @@ export default function App() {
   const handleOpenCatalogRecipe = useCallback((recipe) => {
     if (!recipe?.id) return;
     const eaters = Math.max(1, data.members?.length || 4);
-    // Catalog/user-recipe objects use the protein_g/carbs_g/fat_g + baseServings
-    // shape; DishDetail expects the "frontend" shape (macros object, scaled
-    // ingredients) that the menu/planner already produce for every dish that's
-    // been placed in a menu. Reuse that converter so opening a dish straight
-    // from the catalog looks identical, and cache it in the runtime registry.
-    const already = RECIPES_BY_ID[recipe.id];
-    const full = already ?? catalogToFrontendRecipe(recipe, eaters);
-    if (!already) registerRecipes([full]);
+    // Always rebuild from the bundled catalog row when available so secondary
+    // nutrients (fiber, sugar, sodium…) picked up by enrichment aren't lost to
+    // a stale RECIPES_BY_ID entry from an earlier session.
+    const fromCatalog = recipeCatalogById[recipe.id] ?? recipe;
+    const full = catalogToFrontendRecipe(fromCatalog, eaters);
+    registerRecipes([full]);
     setSelectedSlot({
       recipe: full,
       slot: { eaters: full.servings ?? eaters },

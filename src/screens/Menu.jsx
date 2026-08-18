@@ -5356,7 +5356,7 @@ export function DishDetail({
     { key: "sugar", label: "Azúcares", value: macros.sugar ?? recipe.sugar_g, unit: "g", color: "#c98aa8" },
     { key: "satfat", label: "Grasas sat.", value: macros.saturatedFat ?? recipe.saturated_fat_g, unit: "g", color: "#a86f5a" },
     { key: "sodium", label: "Sodio", value: macros.sodium ?? recipe.sodium_mg, unit: "mg", color: "#6f8aa8" },
-  ].filter((n) => n.value != null);
+  ];
   const nutrientCircles = [...baseNutrients, ...extraNutrients];
   const selectedMethod = selectMethodForRecipe(recipe, kitchenTools);
 
@@ -5830,8 +5830,6 @@ export function DishDetail({
               />
             </button>
 
-            {recipeExpanded && (
-              <>
             {canEditClassification && (
               <RecipeClassificationFields
                 value={userCatalogRecipe}
@@ -5839,6 +5837,8 @@ export function DishDetail({
               />
             )}
 
+            {recipeExpanded && (
+              <>
             {/* Segmented control: Ingredientes | Pasos */}
             <div style={{ display: "flex", background: "#eef3f0", borderRadius: 12, padding: 3, marginBottom: 14 }}>
               {[
@@ -6171,7 +6171,12 @@ export function DishDetail({
                       display: "flex", alignItems: "center", justifyContent: "center",
                     }}>
                       <span style={{ fontSize: 15, fontWeight: 900, color: "#142f1d", lineHeight: 1 }}>
-                        {Math.round(value)}{unit && <span style={{ fontSize: 12, fontWeight: 900, color: "#142f1d" }}>{unit}</span>}
+                        {value == null || Number.isNaN(Number(value))
+                          ? "—"
+                          : <>
+                              {Math.round(value)}
+                              {unit && <span style={{ fontSize: 12, fontWeight: 900, color: "#142f1d" }}>{unit}</span>}
+                            </>}
                       </span>
                     </div>
                     <span style={{ fontSize: 10, fontWeight: 700, color: "#7a8a7f", textAlign: "center", maxWidth: 68 }}>{label}</span>
