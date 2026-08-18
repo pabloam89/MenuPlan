@@ -10168,8 +10168,7 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
                 key={opt.id}
                 img={opt.img}
                 title={opt.label}
-                imgRatio="3 / 2"
-                compact
+                imgHeight={112}
                 accent={CARD_ACCENT_TEAL}
                 selectAccent={CARD_ACCENT_TEAL}
                 active={(data.menuVarietyPref ?? "strict") === opt.id}
