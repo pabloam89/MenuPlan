@@ -158,6 +158,50 @@ export function itemsByCategory(items) {
     .filter((g) => g.items.length > 0);
 }
 
+/** Full-week view uses this sentinel instead of a day id. */
+export const SHOPPING_DAY_WEEK = "__week__";
+
+/** @returns {Set<string>|null} null = full week (no day filter). */
+export function normalizeDayFilter(days) {
+  if (days == null || days === SHOPPING_DAY_WEEK) return null;
+  if (typeof days === "string") return new Set([days]);
+  if (days instanceof Set) return days.size ? days : null;
+  if (Array.isArray(days)) return days.length ? new Set(days) : null;
+  return null;
+}
+
+/**
+ * Restrict buy rows to selected planner days (qty/displayQty from matching sources only).
+ * Manual lines without sources stay visible only in full-week mode.
+ */
+export function filterItemsByDays(items, days) {
+  const daySet = normalizeDayFilter(days);
+  if (!daySet) return items;
+  return items
+    .map((it) => {
+      if (it.manual && !(it.sources?.length)) {
+        return null;
+      }
+      const sources = (it.sources ?? []).filter((s) => daySet.has(s.day));
+      if (!sources.length) return null;
+      const qty = sources.reduce((sum, s) => sum + (s.qty ?? 0), 0);
+      const unit = sources[0]?.unit ?? it.unit ?? "ud";
+      return enrichItem({
+        ...it,
+        sources,
+        qty,
+        unit,
+        displayQty: formatDisplay(qty, unit),
+      });
+    })
+    .filter(Boolean);
+}
+
+/** @deprecated Prefer filterItemsByDays — kept for single-day callers. */
+export function filterItemsByDay(items, day) {
+  return filterItemsByDays(items, day);
+}
+
 /** Per-day rows: one entry per ingredient with qty only for that day. */
 export function itemsByDay(items) {
   const dayMap = Object.fromEntries(DAYS.map((d) => [d, new Map()]));

@@ -47,7 +47,6 @@ import {
   EmptyIllustration,
   ProgressDots,
   SegmentedControl,
-  WeekRangeBadge,
   WizardOptionCard,
   WizardSheet,
   bottomNavSpacer,
@@ -79,13 +78,22 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import {
   enrichItem,
   formatDisplay,
+  filterItemsByDays,
   isActiveItem,
   itemsByAisle,
   itemsByDayMeal,
   mergeShoppingItems,
   matchReceiptProducts,
+  SHOPPING_DAY_WEEK,
 } from "../lib/shoppingListUtils.js";
-import { calendarDayNumber, formatWeekRangeLabel, getWeekDates, getWeekDatesByMenuWeek } from "../lib/weekCalendar.js";
+import { DAYS } from "../lib/planner.js";
+import {
+  calendarDayNumber,
+  formatWeekRangeLabel,
+  getWeekDates,
+  getWeekDatesByMenuWeek,
+  getWeekDatesFromStartISO,
+} from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
@@ -99,6 +107,43 @@ const DAY_FULL = {
   Sáb: "Sábado",
   Dom: "Domingo",
 };
+
+const WEEK_CHIP_THEMES = [
+  {
+    idleBg: "#eef7f8",
+    idleLetter: "#3a9aa8",
+    idleNum: "#2a7a86",
+    activeGradient: "linear-gradient(180deg, #55c8d8 0%, #2e9faf 100%)",
+    activeShadow: "#2e9faf55",
+  },
+  {
+    idleBg: "#eef2fa",
+    idleLetter: "#5a7fd0",
+    idleNum: "#3d5fb0",
+    activeGradient: "linear-gradient(180deg, #7898ee 0%, #4a6fd0 100%)",
+    activeShadow: "#5b7fd455",
+  },
+  {
+    idleBg: "#f3eef9",
+    idleLetter: "#8b6fd0",
+    idleNum: "#6b4fb0",
+    activeGradient: "linear-gradient(180deg, #a888e8 0%, #8060d0 100%)",
+    activeShadow: "#8b6fd455",
+  },
+  {
+    idleBg: "#faf2ee",
+    idleLetter: "#c9785a",
+    idleNum: "#a8583a",
+    activeGradient: "linear-gradient(180deg, #e89878 0%, #d07050 100%)",
+    activeShadow: "#d47a5b55",
+  },
+];
+
+/** Tamaño compartido del strip L–D + S1–S4 (caso extremo: 7+4 en una fila). */
+const STRIP_CHIP_W = 30;
+const STRIP_CHIP_H = 44;
+const STRIP_CHIP_GAP = 2;
+const STRIP_GROUPS_GAP = 6;
 
 const MEAL_BADGE = {
   Desayuno: { Icon: Coffee, color: "#a16207" },
@@ -209,6 +254,8 @@ const HEADER_BAND = "#e9f4ed";
 // as a state, not as another piece of chrome; only one shows at a time, which
 // is what lets it be this saturated without weighing the list down.
 const AISLE_OPEN_BAND = "#2e7d75";
+const AISLE_DIVIDER = "1px solid rgba(45,110,70,.18)";
+const STRIP_DIVIDER = "1.5px solid rgba(45,110,70,.24)";
 
 export function ShoppingScreen({
   shopping,
@@ -302,6 +349,8 @@ export function ShoppingScreen({
   // (see handleReceiptConfirm) — shown as a small celebratory follow-up.
   const [unlockedDishes, setUnlockedDishes] = useState(null);
   const [editingQtyId, setEditingQtyId] = useState(null);
+  /** Empty set = full week; non-empty = union of selected days. */
+  const [selectedDays, setSelectedDays] = useState(() => new Set());
   const fileRef = useRef(null);
 
   const menuMode = Array.isArray(menuWeeks) && menuWeeks.length > 0;
@@ -586,10 +635,52 @@ export function ShoppingScreen({
     setEditingQtyId(null);
   };
 
+  // Calendar for the day strip — anchor on the first selected week.
+  const stripAnchor = selectedWeeks[0];
+  const { dates: stripDates, activeDays: stripActiveDays } = stripAnchor?.startISO
+    ? getWeekDatesFromStartISO(stripAnchor.startISO, stripAnchor.startDayIdx ?? 0)
+    : menuWeek
+      ? getWeekDatesByMenuWeek(menuWeek)
+      : { dates: getWeekDates(), activeDays: DAYS };
+
+  const stripDays = DAYS;
+  const activeDaySet = new Set(multiWeek ? DAYS : stripActiveDays);
+
+  const dayHasPending = (day) =>
+    activeDaySet.has(day) &&
+    enrichedItems.some(
+      (it) =>
+        isActiveItem(it) &&
+        (it.sources ?? []).some((s) => s.day === day),
+    );
+
+  const activeDayKey = [...activeDaySet].join(",");
+  useEffect(() => {
+    setSelectedDays((cur) => {
+      if (!cur.size) return cur;
+      const next = new Set([...cur].filter((d) => activeDaySet.has(d)));
+      if (next.size === cur.size && [...next].every((d) => cur.has(d))) return cur;
+      return next;
+    });
+  }, [activeDayKey]);
+
+  const toggleDayFilter = (day) => {
+    if (!activeDaySet.has(day)) return;
+    setSelectedDays((cur) => {
+      const next = new Set(cur);
+      if (next.has(day)) next.delete(day);
+      else next.add(day);
+      return next;
+    });
+  };
+
   // The buy list only ever shows what's still pending. Cooking (ingredient
   // ticks + "Marcar cocinado", which discounts stock) moved to each dish's
   // detail in "Menú", so this screen no longer builds a day→meal cook tree.
-  const visibleItems = enrichedItems.filter(isActiveItem);
+  const visibleItems = filterItemsByDays(
+    enrichedItems,
+    selectedDays.size ? selectedDays : SHOPPING_DAY_WEEK,
+  ).filter(isActiveItem);
   const sections = itemsByAisle(visibleItems).map((g) => ({
     key: g.aisle,
     title: g.aisle,
@@ -597,6 +688,17 @@ export function ShoppingScreen({
   }));
 
   const isEmpty = sections.every((s) => s.items.length === 0);
+
+  // Tinte cromático del strip de días según la(s) semana(s) marcada(s) en S1–S4.
+  const dayStripWeekTint =
+    orderedAll.length > 1
+      ? WEEK_CHIP_THEMES[
+          Math.max(
+            0,
+            orderedAll.findIndex((w) => selectedOffsets?.has(w.offset)),
+          ) % WEEK_CHIP_THEMES.length
+        ]
+      : null;
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.
@@ -946,7 +1048,7 @@ export function ShoppingScreen({
             background: open ? AISLE_OPEN_BAND : "#fff",
             borderRadius: open ? "12px 12px 0 0" : 0,
             borderBottom:
-              !open && !isLastSection ? "1px solid rgba(45,110,70,.18)" : "none",
+              !open && !isLastSection ? AISLE_DIVIDER : "none",
             cursor: "pointer",
             fontFamily: "inherit",
             textAlign: "left",
@@ -1101,80 +1203,214 @@ export function ShoppingScreen({
       </div>
 
       <div style={{ padding: "16px 16px 0", position: "relative" }}>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            rowGap: 10,
-            flexWrap: "wrap",
-            marginBottom: 16,
-          }}
-        >
-          {!isEmpty && <WeekRangeBadge label={weekLabel} hideLabel />}
-          {orderedAll.length > 1 && (
+        {!isEmpty && (
+          <div
+            style={{
+              marginBottom: 12,
+              paddingBottom: 12,
+              borderBottom: STRIP_DIVIDER,
+            }}
+          >
             <div
-              role="group"
-              aria-label="Semanas del menú"
               style={{
                 display: "flex",
-                marginLeft: "auto",
-                borderRadius: 12,
-                border: "1.5px solid #9cc7ab",
-                overflow: "hidden",
-                background: "#fff",
-                flexShrink: 0,
+                alignItems: "stretch",
+                gap: STRIP_GROUPS_GAP,
               }}
             >
-              {orderedAll.map((w, i) => {
-                const sel = selectedOffsets?.has(w.offset);
+              <div
+                role="group"
+                aria-label="Días incluidos en la lista"
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "stretch",
+                  gap: STRIP_CHIP_GAP,
+                }}
+              >
+              {stripDays.map((day) => {
+                const sel = selectedDays.has(day);
+                const inactive = !activeDaySet.has(day);
+                const isWeekend = day === "Sáb" || day === "Dom";
+                const dayNum = calendarDayNumber(day, stripDates);
+                const tint = dayStripWeekTint;
                 return (
                   <button
-                    key={w.weekStart}
+                    key={day}
                     type="button"
-                    onClick={() => toggleWeek(w.offset)}
+                    onClick={() => toggleDayFilter(day)}
+                    disabled={inactive}
                     aria-pressed={sel}
-                    title={`Semana ${i + 1}`}
+                    aria-label={DAY_FULL[day] ?? day}
+                    aria-disabled={inactive}
                     style={{
-                      display: "inline-flex",
+                      flex: "1 1 0",
+                      minWidth: 0,
+                      maxWidth: STRIP_CHIP_W,
+                      display: "flex",
+                      flexDirection: "column",
                       alignItems: "center",
                       justifyContent: "center",
-                      gap: 5,
-                      padding: "8px 10px",
+                      gap: 2,
+                      minHeight: STRIP_CHIP_H,
+                      padding: sel ? "6px 0 5px" : "5px 0",
+                      borderRadius: 8,
                       border: "none",
-                      borderLeft: i === 0 ? "none" : "1.5px solid #9cc7ab",
-                      background: "#fff",
-                      color: sel ? "#1c4a2e" : "#3d5245",
-                      fontSize: 12.5,
-                      fontWeight: 800,
-                      cursor: "pointer",
+                      background: inactive
+                        ? "#f7f9f8"
+                        : sel
+                          ? tint
+                            ? tint.activeGradient
+                            : "#4cba6e"
+                          : tint
+                            ? tint.idleBg
+                            : isWeekend
+                              ? "#f0f8f3"
+                              : "#f0f4f1",
+                      color: inactive
+                        ? "#c5d0ca"
+                        : sel
+                          ? "#fff"
+                          : tint
+                            ? tint.idleNum
+                            : isWeekend
+                              ? "#4cba6e"
+                              : "#5a7066",
+                      cursor: inactive ? "default" : "pointer",
                       fontFamily: "inherit",
-                      transition: "color .15s",
+                      opacity: inactive ? 0.55 : 1,
+                      boxShadow:
+                        sel && !inactive
+                          ? tint
+                            ? `0 2px 8px ${tint.activeShadow}`
+                            : "0 1px 5px #4cba6e44"
+                          : "none",
+                      transition: "all .15s ease",
                     }}
                   >
                     <span
                       style={{
-                        width: 15,
-                        height: 15,
-                        borderRadius: 5,
-                        flexShrink: 0,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        border: `1.5px solid ${sel ? "#4cba6e" : "#bcd3c4"}`,
-                        background: sel ? "#4cba6e" : "transparent",
-                        transition: "background .15s, border-color .15s",
+                        fontSize: 8,
+                        fontWeight: 800,
+                        letterSpacing: 0.2,
+                        textTransform: "uppercase",
+                        lineHeight: 1,
+                        color: inactive
+                          ? "#c5d0ca"
+                          : sel
+                            ? "rgba(255,255,255,.88)"
+                            : tint
+                              ? tint.idleLetter
+                              : isWeekend
+                                ? "#4cba6e"
+                                : "#9ab0a1",
                       }}
                     >
-                      {sel && <Check size={10} strokeWidth={3.4} color="#fff" />}
+                      {DAY_LETTERS[day]}
                     </span>
-                    S{i + 1}
+                    {dayNum != null && (
+                      <span style={{ fontSize: sel ? 12 : 11, fontWeight: 900, lineHeight: 1 }}>
+                        {dayNum}
+                      </span>
+                    )}
+                    <span
+                      style={{
+                        width: 3,
+                        height: 3,
+                        borderRadius: 999,
+                        background: inactive
+                          ? "transparent"
+                          : sel
+                            ? "rgba(255,255,255,.65)"
+                            : dayHasPending(day)
+                              ? tint
+                                ? tint.idleLetter
+                                : "#4cba6e"
+                              : "transparent",
+                      }}
+                    />
                   </button>
                 );
               })}
+              </div>
+            {orderedAll.length > 1 && (
+              <div
+                role="group"
+                aria-label="Semanas incluidas en la compra — marca varias para combinar"
+                style={{
+                  flexShrink: 0,
+                  display: "flex",
+                  alignItems: "stretch",
+                  gap: STRIP_CHIP_GAP,
+                }}
+              >
+                {orderedAll.map((w, i) => {
+                  const sel = selectedOffsets?.has(w.offset);
+                  const theme = WEEK_CHIP_THEMES[i % WEEK_CHIP_THEMES.length];
+                  return (
+                    <button
+                      key={w.weekStart}
+                      type="button"
+                      onClick={() => toggleWeek(w.offset)}
+                      aria-pressed={sel}
+                      aria-label={`Semana ${i + 1}`}
+                      title={
+                        sel
+                          ? `Quitar semana ${i + 1} de la lista combinada`
+                          : `Incluir semana ${i + 1} en la lista combinada`
+                      }
+                      style={{
+                        flex: "0 0 auto",
+                        width: STRIP_CHIP_W,
+                        minHeight: STRIP_CHIP_H,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 2,
+                        padding: sel ? "6px 0 5px" : "5px 0",
+                        borderRadius: 8,
+                        border: "none",
+                        background: sel ? theme.activeGradient : theme.idleBg,
+                        color: sel ? "#fff" : theme.idleNum,
+                        cursor: "pointer",
+                        fontFamily: "inherit",
+                        boxShadow: sel ? `0 2px 8px ${theme.activeShadow}` : "none",
+                        transition: "all .15s ease",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: 8,
+                          fontWeight: 800,
+                          letterSpacing: 0.2,
+                          textTransform: "uppercase",
+                          lineHeight: 1,
+                          color: sel ? "rgba(255,255,255,.88)" : theme.idleLetter,
+                        }}
+                      >
+                        S
+                      </span>
+                      <span style={{ fontSize: sel ? 12 : 11, fontWeight: 900, lineHeight: 1 }}>
+                        {i + 1}
+                      </span>
+                      <span
+                        style={{
+                          width: 3,
+                          height: 3,
+                          borderRadius: 999,
+                          background: sel ? "rgba(255,255,255,.65)" : "transparent",
+                        }}
+                      />
+                    </button>
+                  );
+                })}
+              </div>
+            )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {showIconCoach && (
           <ShoppingCoachTour onClose={() => setShowIconCoach(false)} />

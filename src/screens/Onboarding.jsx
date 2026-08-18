@@ -153,10 +153,42 @@ const MEAL_STRUCTURE_CARDS = [
 ];
 
 const DESPENSA_OPTS = [
-  { id: "strict", label: "Solo con lo de casa", subtitle: "Sin comprar: menú solo con nevera, despensa y congelador.", img: "/avatares/cards/casa_solo.jpg" },
-  { id: "only", label: "Partir de lo que tengo", subtitle: "El menú se monta con lo de casa y se completa en la compra.", img: "/avatares/cards/casa_partir.jpg" },
-  { id: "prefer", label: "Tenerlo en cuenta", subtitle: "Priorizo recetas que aprovechan lo que ya tienes.", img: "/avatares/cards/casa_encuenta.jpg" },
-  { id: "off", label: "Menú libre", subtitle: "Planifico sin mirar el stock. En compra sigo marcando lo que tienes.", img: "/avatares/cards/casa_libre.jpg" },
+  {
+    id: "strict",
+    label: "Solo con lo de casa",
+    subtitle: "Esta semana no hace falta ir al súper.",
+    pill: "Sin comprar",
+    accent: "#0f766e",
+    spectrumIdx: 0,
+    img: "/avatares/cards/casa_solo.jpg",
+  },
+  {
+    id: "only",
+    label: "Con lo que hay",
+    subtitle: "Cocinas con lo tuyo y compras solo lo que falte.",
+    pill: "+ lo que falte",
+    accent: "#2d8a4e",
+    spectrumIdx: 1,
+    img: "/avatares/cards/casa_partir.jpg",
+  },
+  {
+    id: "prefer",
+    label: "Aprovechando casa",
+    subtitle: "Busco recetas que gasten lo que ya tienes.",
+    pill: "Recomendado",
+    accent: "#c9820a",
+    spectrumIdx: 2,
+    img: "/avatares/cards/casa_encuenta.jpg",
+  },
+  {
+    id: "off",
+    label: "Menú libre",
+    subtitle: "No miro lo de casa al montar el menú.",
+    pill: "Sin mirar casa",
+    accent: "#8a9a90",
+    spectrumIdx: 3,
+    img: "/avatares/cards/casa_libre.jpg",
+  },
 ];
 const MODO_OPTS = [
   { id: "basic", label: "Sencillo", subtitle: "Comidas y cenas. El resto lo decidimos por ti.", img: "/avatares/cards/modo_sencillo.jpg" },
@@ -2447,6 +2479,37 @@ function RotatingCardImage({ images, interval = 2500, alt = "" }) {
 const CARD_ACCENT = "#2d5a3d";
 const CARD_ACCENT_TEAL = "#0f766e";
 
+/** 4-ray cumulative spectrum (casa ← → libre): 1, 2, 3 or 4 bars filled in teal. */
+function PantrySpectrumBar({ index }) {
+  const filled = CARD_ACCENT_TEAL;
+  return (
+    <div
+      aria-hidden
+      style={{
+        position: "absolute",
+        bottom: 8,
+        left: 8,
+        right: 8,
+        display: "flex",
+        gap: 3,
+        zIndex: 2,
+      }}
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <div
+          key={i}
+          style={{
+            flex: 1,
+            height: 5,
+            borderRadius: 2,
+            background: i <= index ? filled : "rgba(255,255,255,0.45)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 function RestrictionTabCard({
   Icon,
   img,
@@ -2460,13 +2523,13 @@ function RestrictionTabCard({
   textOverlay = false,
   compact = false,
   accent = CARD_ACCENT,
+  pill,
+  spectrumIdx,
 }) {
   const illustrated = Boolean(img || (images && images.length));
   if (illustrated) {
     const shadow = active
-      ? accent === CARD_ACCENT_TEAL
-        ? "0 6px 18px rgba(15,118,110,.22)"
-        : "0 6px 18px rgba(45,90,61,.22)"
+      ? `0 6px 18px ${accent}33`
       : "0 1px 2px rgba(0,0,0,.04)";
     return (
       <button
@@ -2531,6 +2594,27 @@ function RestrictionTabCard({
               <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>{title}</div>
             </div>
           )}
+          {pill ? (
+            <span
+              style={{
+                position: "absolute",
+                top: 8,
+                left: 8,
+                zIndex: 2,
+                fontSize: 10.5,
+                fontWeight: 800,
+                color: accent,
+                background: "rgba(255,255,255,.92)",
+                borderRadius: 999,
+                padding: "3px 8px",
+                whiteSpace: "nowrap",
+                boxShadow: "0 1px 4px rgba(20,47,29,.12)",
+              }}
+            >
+              {pill}
+            </span>
+          ) : null}
+          {spectrumIdx != null ? <PantrySpectrumBar index={spectrumIdx} /> : null}
         </div>
         {!textOverlay && (
           <div
@@ -8918,7 +9002,7 @@ export function OnboardingPantry({ data, setData, onNext, onBack, onFinish, onRe
   return (
     <OnboardingShell
       title="¿Aprovechamos lo que ya tienes en casa?"
-      subtitle="Elige una opción · nevera, despensa y congelador."
+      subtitle="Nevera, despensa y congelador — tú eliges cuánto cuentan."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
@@ -8932,7 +9016,9 @@ export function OnboardingPantry({ data, setData, onNext, onBack, onFinish, onRe
             img={t.img}
             title={t.label}
             subtitle={t.subtitle}
-            accent={CARD_ACCENT_TEAL}
+            pill={t.pill}
+            spectrumIdx={t.spectrumIdx}
+            accent={t.accent}
             active={current === t.id}
             onClick={() => setData((d) => ({ ...d, pantryMode: t.id, useHomeStock: t.id !== "off" }))}
           />
