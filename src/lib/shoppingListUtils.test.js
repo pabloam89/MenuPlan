@@ -1,9 +1,60 @@
 import { describe, it, expect } from "vitest";
-import { matchReceiptProducts } from "./shoppingListUtils.js";
+import {
+  filterItemsByDay,
+  filterItemsByDays,
+  matchReceiptProducts,
+  SHOPPING_DAY_WEEK,
+} from "./shoppingListUtils.js";
 
 function item(id, name, opts = {}) {
   return { id, name, have: false, atHome: false, fromPantry: false, adapted: false, ...opts };
 }
+
+describe("filterItemsByDay", () => {
+  it("returns all rows for full-week mode", () => {
+    const rows = [
+      item("1", "Tomate", { sources: [{ day: "Lun", qty: 1, unit: "ud" }] }),
+      item("2", "Pollo", { sources: [{ day: "Jue", qty: 2, unit: "ud" }] }),
+    ];
+    expect(filterItemsByDay(rows, SHOPPING_DAY_WEEK)).toHaveLength(2);
+    expect(filterItemsByDay(rows, null)).toHaveLength(2);
+  });
+
+  it("keeps only matching day sources and trims qty", () => {
+    const rows = [
+      item("1", "Tomate", {
+        qty: 3,
+        unit: "ud",
+        sources: [
+          { day: "Lun", qty: 1, unit: "ud", recipeName: "A" },
+          { day: "Jue", qty: 2, unit: "ud", recipeName: "B" },
+        ],
+      }),
+    ];
+    const out = filterItemsByDay(rows, "Jue");
+    expect(out).toHaveLength(1);
+    expect(out[0].qty).toBe(2);
+    expect(out[0].sources).toHaveLength(1);
+    expect(out[0].sources[0].day).toBe("Jue");
+  });
+
+  it("merges qty across multiple selected days", () => {
+    const rows = [
+      item("1", "Tomate", {
+        qty: 3,
+        unit: "ud",
+        sources: [
+          { day: "Lun", qty: 1, unit: "ud", recipeName: "A" },
+          { day: "Mié", qty: 2, unit: "ud", recipeName: "B" },
+        ],
+      }),
+    ];
+    const out = filterItemsByDays(rows, new Set(["Lun", "Mié"]));
+    expect(out).toHaveLength(1);
+    expect(out[0].qty).toBe(3);
+    expect(out[0].sources).toHaveLength(2);
+  });
+});
 
 describe("matchReceiptProducts (Fase 5 — receipt-to-list matching audit)", () => {
   describe("baseline behaviour", () => {
