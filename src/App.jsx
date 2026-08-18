@@ -2724,14 +2724,12 @@ export default function App() {
   const handleOpenCatalogRecipe = useCallback((recipe) => {
     if (!recipe?.id) return;
     const eaters = Math.max(1, data.members?.length || 4);
-    // Catalog/user-recipe objects use the protein_g/carbs_g/fat_g + baseServings
-    // shape; DishDetail expects the "frontend" shape (macros object, scaled
-    // ingredients) that the menu/planner already produce for every dish that's
-    // been placed in a menu. Reuse that converter so opening a dish straight
-    // from the catalog looks identical, and cache it in the runtime registry.
-    const already = RECIPES_BY_ID[recipe.id];
-    const full = already ?? catalogToFrontendRecipe(recipe, eaters);
-    if (!already) registerRecipes([full]);
+    // Always rebuild from the bundled catalog row when available so secondary
+    // nutrients (fiber, sugar, sodium…) picked up by enrichment aren't lost to
+    // a stale RECIPES_BY_ID entry from an earlier session.
+    const fromCatalog = recipeCatalogById[recipe.id] ?? recipe;
+    const full = catalogToFrontendRecipe(fromCatalog, eaters);
+    registerRecipes([full]);
     setSelectedSlot({
       recipe: full,
       slot: { eaters: full.servings ?? eaters },
@@ -2739,6 +2737,26 @@ export default function App() {
     });
     trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id });
   }, [data.members, user]);
+
+  const handleUpdateUserRecipe = useCallback((updated) => {
+    if (!updated?.id) return;
+    setData((d) => ({
+      ...d,
+      userRecipes: (d.userRecipes ?? []).map((r) => (r.id === updated.id ? updated : r)),
+    }));
+    const eaters = selectedSlot?.slot?.eaters ?? Math.max(1, data.members?.length || 4);
+    const fr = catalogToFrontendRecipe(updated, eaters);
+    registerRecipes([fr]);
+    if (user?.id) upsertUserRecipe(user.id, updated);
+    setSelectedSlot((s) => {
+      if (!s) return s;
+      const baseId = String(s.recipe.baseRecipeId ?? s.recipe.id).split("__").pop();
+      if (baseId !== updated.id) return s;
+      const keepId = String(s.recipe.id).includes("__") ? s.recipe.id : fr.id;
+      return { ...s, recipe: { ...fr, id: keepId, baseRecipeId: updated.id } };
+    });
+    showToast("Encaje de la receta actualizado");
+  }, [selectedSlot, data.members, user, showToast]);
 
   const handleReplaceSlot = useCallback(async (selection, { sameCategory = false, reason = null } = {}) => {
     // Learn from the rejection (discard/cooldown/favorite) BEFORE the slot
@@ -4017,6 +4035,7 @@ export default function App() {
                     patch,
                   )
           }
+          onUpdateUserRecipe={handleUpdateUserRecipe}
         />
       )}
 

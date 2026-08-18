@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateUserRecipeDraft } from "./userRecipes.js";
+import { generateUserRecipeDraft, patchUserRecipeClassification } from "./userRecipes.js";
 
 function mockAIResponse(payload) {
   vi.stubGlobal(
@@ -102,5 +102,20 @@ describe("generateUserRecipeDraft ingredients", () => {
     });
 
     expect(draft.ingredients).toEqual([{ name: "Sal", unit: "al gusto" }]);
+  });
+});
+
+describe("patchUserRecipeClassification", () => {
+  it("maps cena rápida to category and cena role", () => {
+    const base = {
+      id: "user_test",
+      category: "pasta_arroces",
+      usageTags: ["plato_normal"],
+      type: "principal",
+      mealRole: ["segundo"],
+    };
+    const next = patchUserRecipeClassification(base, { quickDinner: true, mealRole: ["segundo", "cena"] });
+    expect(next.category).toBe("cenas_rapidas");
+    expect(next.mealRole).toContain("cena");
   });
 });

@@ -112,6 +112,18 @@ function isGuarnicionRecipe(r) {
   return r?.type === "guarnicion" || r?.mealRole?.includes?.("guarnicion");
 }
 
+const MAIN_MEAL_ROLES = new Set(["primero", "segundo", "plato_unico", "cena"]);
+
+/** Plato elegible para un hueco de comida/cena (picker del menú). */
+function isGatePickPlato(r) {
+  if (!r) return false;
+  if (r.type === "guarnicion" || r.category === "guarniciones") return false;
+  const roles = r.mealRole ?? [];
+  if (roles.some((role) => MAIN_MEAL_ROLES.has(role))) return true;
+  // Sin roles explícitos de plato principal: excluir solo guarnición pura.
+  return roles.length === 0 || !roles.every((role) => role === "guarnicion");
+}
+
 function sortByNameQuery(items, q) {
   const sorted = [...items];
   if (q) {
@@ -222,6 +234,9 @@ export function CatalogBrowserSheet({
   onDiscardRecipe = null,
   onRecoverRecipe = null,
 }) {
+  const [query, setQuery] = useState("");
+  const [sourceTab, setSourceTab] = useState("catalog"); // mine | favorites | catalog
+
   const resolvedFavoriteIds = useMemo(
     () => favoriteIds ?? (gatePickSourceTabs ? new Set(favoriteRecipeIds(recipeVotes)) : null),
     [favoriteIds, gatePickSourceTabs, recipeVotes],
@@ -248,8 +263,8 @@ export function CatalogBrowserSheet({
     [gatePickSourceTabs, gatePick, sourceTab, sourceRecipes, extraRecipes, resolvedFavoriteIds],
   );
   const platoCatalog = useMemo(
-    () => fullCatalog.filter((r) => !isGuarnicionRecipe(r)),
-    [fullCatalog],
+    () => fullCatalog.filter((r) => (gatePick ? isGatePickPlato(r) : !isGuarnicionRecipe(r))),
+    [fullCatalog, gatePick],
   );
   const garnishCatalog = useMemo(() => {
     const seen = new Set(GARNISHES.map((g) => g.id));
@@ -262,13 +277,20 @@ export function CatalogBrowserSheet({
     }
     return merged;
   }, [extraGarnishes]);
-  const [query, setQuery] = useState("");
-  const [sourceTab, setSourceTab] = useState("catalog"); // mine | favorites | catalog
   // all | plato | guarnicion — locked to gatePickType when provided.
   const [typeFilter, setTypeFilter] = useState(gatePickType ?? "all");
   useEffect(() => {
     if (gatePickType) setTypeFilter(gatePickType);
   }, [gatePickType]);
+  useEffect(() => {
+    if (!gatePickSourceTabs || !gatePick) return;
+    setQuery("");
+    setCats(new Set());
+    setProteins(new Set());
+    setMaxTime(0);
+    setDifficulties(new Set());
+    setKidOnly(false);
+  }, [sourceTab, gatePickSourceTabs, gatePick]);
   const [showFilters, setShowFilters] = useState(false);
   const [cats, setCats] = useState(() => (initialCategory ? new Set([initialCategory]) : new Set()));
   const [proteins, setProteins] = useState(() => new Set());
@@ -360,13 +382,38 @@ export function CatalogBrowserSheet({
     setLimit(pageSize);
   }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize, typeFilter, gatePick, sourceTab]);
 
-  const gatePickTabEmptyLabel = gatePickSourceTabs && gatePick
-    ? sourceTab === "mine"
-      ? "Aún no tienes recetas propias"
-      : sourceTab === "favorites"
-        ? "Aún no tienes favoritas"
-        : null
-    : null;
+  const gatePickMinePlatoCount = useMemo(
+    () => extraRecipes.filter(isGatePickPlato).length,
+    [extraRecipes],
+  );
+
+  const gatePickTabEmpty = useMemo(() => {
+    if (!gatePickSourceTabs || !gatePick) return null;
+    if (sourceTab === "mine") {
+      if (extraRecipes.length === 0) {
+        return {
+          img: "/avatares/cards/empty_recetas_propias.jpg",
+          title: "Aún no tienes recetas propias",
+          subtitle: "Prueba en Catálogo o Favoritas para elegir otro plato.",
+        };
+      }
+      if (gatePickMinePlatoCount === 0) {
+        return {
+          img: "/avatares/cards/empty_recetas_propias.jpg",
+          title: "Ninguna receta propia encaja como plato",
+          subtitle: "Las que tienes son solo guarnición. Elige un plato en Catálogo o Favoritas.",
+        };
+      }
+    }
+    if (sourceTab === "favorites" && (resolvedFavoriteIds?.size ?? 0) === 0) {
+      return {
+        img: "/avatares/cards/empty_favoritas.jpg",
+        title: "Aún no tienes favoritas",
+        subtitle: "Pulsa el corazón en cualquier receta del catálogo para guardarla aquí.",
+      };
+    }
+    return null;
+  }, [gatePickSourceTabs, gatePick, sourceTab, extraRecipes.length, gatePickMinePlatoCount, resolvedFavoriteIds]);
 
   const visible = results.slice(0, limit);
   const hasMore = results.length > visible.length;
@@ -431,7 +478,7 @@ export function CatalogBrowserSheet({
         <div style={{ padding: `0 ${px}px`, marginBottom: 10, flexShrink: 0 }}>
           <div style={{ display: "flex", background: "#e8efe9", borderRadius: 12, padding: 3 }}>
             {[
-              { id: "mine", label: "Mis recetas", count: extraRecipes.length },
+              { id: "mine", label: "Mis recetas", count: gatePickMinePlatoCount },
               { id: "favorites", label: "Favoritas", count: resolvedFavoriteIds?.size ?? 0 },
               { id: "catalog", label: "Catálogo" },
             ].map((opt) => {
@@ -706,12 +753,12 @@ export function CatalogBrowserSheet({
             />
           ))}
       {results.length === 0 && (
-        emptyImg ? (
+        emptyImg || gatePickTabEmpty?.img ? (
           <div style={{ padding: "16px 20px" }}>
             <EmptyIllustration
-              img={emptyImg}
-              title={emptyLabel}
-              subtitle={emptySubtitle}
+              img={emptyImg ?? gatePickTabEmpty.img}
+              title={emptyLabel ?? gatePickTabEmpty?.title}
+              subtitle={emptySubtitle ?? gatePickTabEmpty?.subtitle}
               maxWidth={240}
               minHeight={emptyMinHeight}
               solidBand={emptySolidBand}
@@ -737,8 +784,6 @@ export function CatalogBrowserSheet({
             <p style={{ margin: 0, fontSize: 13, color: "#7a9485", lineHeight: 1.5, maxWidth: 260 }}>
               {emptyLabel
                 ? emptyLabel
-                : gatePickTabEmptyLabel
-                  ? gatePickTabEmptyLabel
                 : gatePick
                   ? "No encontramos platos ni guarniciones con esos filtros."
                   : "No encontramos platos con esos filtros."}
