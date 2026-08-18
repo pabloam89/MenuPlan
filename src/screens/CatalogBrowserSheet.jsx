@@ -222,6 +222,9 @@ export function CatalogBrowserSheet({
   onDiscardRecipe = null,
   onRecoverRecipe = null,
 }) {
+  const [query, setQuery] = useState("");
+  const [sourceTab, setSourceTab] = useState("catalog"); // mine | favorites | catalog
+
   const resolvedFavoriteIds = useMemo(
     () => favoriteIds ?? (gatePickSourceTabs ? new Set(favoriteRecipeIds(recipeVotes)) : null),
     [favoriteIds, gatePickSourceTabs, recipeVotes],
@@ -262,8 +265,6 @@ export function CatalogBrowserSheet({
     }
     return merged;
   }, [extraGarnishes]);
-  const [query, setQuery] = useState("");
-  const [sourceTab, setSourceTab] = useState("catalog"); // mine | favorites | catalog
   // all | plato | guarnicion — locked to gatePickType when provided.
   const [typeFilter, setTypeFilter] = useState(gatePickType ?? "all");
   useEffect(() => {
