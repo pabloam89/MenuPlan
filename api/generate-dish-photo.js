@@ -2,22 +2,26 @@ import { GoogleGenAI } from "@google/genai";
 import { blocked } from "./_guard.js";
 
 // Generates a single dish photo on demand for the recipe-creation wizard
-// (src/screens/RecipePlanner.jsx). Reuses, verbatim, the fixed style formula
-// that produced the entire curated catalog (scripts/lib/combos.mjs#buildPrompt)
-// so AI-made photos stay visually consistent with the rest of MenuPlan —
-// only the dish name changes, nothing else about the prompt.
+// (src/screens/RecipePlanner.jsx). Mirrors the fixed style formula used by
+// scripts/gen-all-photos.mjs (marble background, white ceramic bowl, golden
+// lateral lighting) so AI-made photos stay visually consistent with the
+// curated catalog — only the dish name changes, nothing else about the prompt.
 const MODEL = "gemini-2.5-flash-image";
 
 function buildPhotoPrompt(dishName) {
   return (
     `Fotografía gastronómica cenital a exactamente 90 grados (vista de pájaro perfecta) de ${dishName}. ` +
-    `Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ` +
-    `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
-    `Iluminación natural difusa y suave, texturas hiperrealistas, estética minimalista y rústica, ` +
-    `calidad de libro de cocina. ` +
+    `Servido en un bol de cerámica artesanal de color blanco roto con borde irregular, ` +
+    `perfectamente centrado sobre una superficie de mármol blanco cálido con vetas grises suaves que llena todo el encuadre. ` +
+    `Iluminación lateral dorada y cálida con destello suave que crea brillos tentadores sobre la comida, ` +
+    `resaltando jugosidad, vapor delicado y texturas irresistibles. ` +
+    `Colores vivos, ricos y muy saturados; salsas brillantes y espesas; ingredientes jugosos y apetitosos; ` +
+    `hierbas frescas como detalle final. Estética de portada de revista gastronómica de lujo, ` +
+    `hiperrealista, calidad editorial Bon Appétit. ` +
     disambiguationClause(dishName) +
     `SOLO el bol con la comida en el encuadre: sin cubiertos, sin servilletas, sin manteles, ` +
-    `sin cuencos adicionales, sin ingredientes sueltos alrededor, sin ningún objeto fuera del bol.`
+    `sin cuencos adicionales, sin ingredientes sueltos alrededor, sin ningún objeto fuera del bol. ` +
+    `SIN TEXTO, SIN LETRAS, SIN PALABRAS, SIN NÚMEROS en la imagen.`
   );
 }
 
@@ -80,11 +84,12 @@ function buildBabyPureePrompt(dishName) {
     `receta (por ejemplo: si lleva verdura de hoja verde en cantidad significativa, el resultado debe ` +
     `tener un tono verdoso u oliva perceptible, no el color limpio de un solo ingrediente dominante) — ` +
     `nunca el color aislado del ingrediente más vistoso o apetitoso, sino el tono real de una mezcla batida. ` +
-    `Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ` +
-    `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
-    `Iluminación natural difusa y suave, estética minimalista y rústica. ` +
+    `Servido en un bol de cerámica artesanal de color blanco roto con borde irregular, ` +
+    `perfectamente centrado sobre una superficie de mármol blanco cálido con vetas grises suaves que llena todo el encuadre. ` +
+    `Iluminación lateral dorada y cálida, estética de revista gastronómica de alta gama, hiperrealista. ` +
     `SOLO el bol con la papilla en el encuadre: sin cubiertos, sin servilletas, sin manteles, ` +
-    `sin cuencos adicionales, sin ningún objeto fuera del bol.`
+    `sin cuencos adicionales, sin ningún objeto fuera del bol. ` +
+    `SIN TEXTO, SIN LETRAS, SIN PALABRAS, SIN NÚMEROS en la imagen — imagen pura sin ninguna superposición gráfica.`
   );
 }
 
@@ -106,11 +111,12 @@ function buildBabyMashPrompt(dishName) {
     `líquida sin ninguna textura — debe verse claramente machacado/chafado, con pequeños grumos ` +
     `blandos visibles en la superficie, nunca un puré de textura perfectamente uniforme. ` +
     `El color resulta de mezclar visualmente todos los ingredientes según su proporción real en la receta. ` +
-    `Servido en un bol de cerámica rústica moteada de color crema con borde marrón oscuro, ` +
-    `perfectamente centrado sobre un fondo de pizarra negra texturizada que llena todo el encuadre. ` +
-    `Iluminación natural difusa y suave, estética minimalista y rústica. ` +
+    `Servido en un bol de cerámica artesanal de color blanco roto con borde irregular, ` +
+    `perfectamente centrado sobre una superficie de mármol blanco cálido con vetas grises suaves que llena todo el encuadre. ` +
+    `Iluminación lateral dorada y cálida, estética de revista gastronómica de alta gama, hiperrealista. ` +
     `SOLO el bol con la papilla en el encuadre: sin cubiertos, sin servilletas, sin manteles, ` +
-    `sin cuencos adicionales, sin ningún objeto fuera del bol.`
+    `sin cuencos adicionales, sin ningún objeto fuera del bol. ` +
+    `SIN TEXTO, SIN LETRAS, SIN PALABRAS, SIN NÚMEROS en la imagen — imagen pura sin ninguna superposición gráfica.`
   );
 }
 

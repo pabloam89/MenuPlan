@@ -23,7 +23,33 @@ import { pairGarnishes } from "../utils/pairGarnishes.js";
 import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
 import { buildAdaptationMap } from "./substitutions.js";
 import { assignFreezerToPlan, indexFrozenDishes, itemPortions } from "./freezer.js";
+import { dominantComponentOf } from "./dominantComponent.js";
+import { normalizeKidDinnerConfig, schoolAvoidCategories, householdKidPolicy, kidsSlotAction } from "./kidsMenu.js";
 import { PLANNER_MODEL, FAST_MODEL } from "./aiModels.js";
+
+// School-menu avoidance categories for the kids' cena. Historically the kids'
+// dinner ALWAYS avoided the school's protein + carb base (that's the "cena
+// diferente" default, locked in by tests). The per-kid kidDinnerConfig can now
+// relax that or add vegetables via the "cena diferente" pop-up, but only when
+// the household actually configured it — otherwise we keep the legacy default so
+// existing setups (and the test suite) behave exactly as before.
+function effectiveSchoolAvoid(data) {
+  const cfg = normalizeKidDinnerConfig(data?.kidDinnerConfig);
+  if (Object.keys(cfg.byMember).length === 0) {
+    return { protein: true, carbs: true, veg: false };
+  }
+  return schoolAvoidCategories(data);
+}
+
+// Whether the school's course that day was vegetable-dominant, so the kids' cena
+// can be told to avoid repeating it. Soft signal (name-based), only consulted
+// when a kid opted into avoiding veg repetition.
+// Runs on accent-stripped, lowercased text (see below), so keep it ascii-only.
+const SCHOOL_VEG_RE = /ensalad|verdur|acelg|espinac|calabac|crema de |pure de |menestra|judia verde|brocoli|coliflor|guisante|zanahoria|pisto/;
+function schoolServedVeg(text) {
+  const t = String(text ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  return SCHOOL_VEG_RE.test(t) ? "verdura" : null;
+}
 
 // ── Helpers ─────────────────────────────────────────────────────
 
@@ -301,6 +327,19 @@ export function buildGroupContext(data, group) {
         .filter(Boolean),
     );
 
+    // Whether the school served vegetables that day (primero+segundo). Only
+    // consulted when a kid opted into avoiding veg repetition at dinner.
+    const schoolVeg = new Set(
+      schoolSourceMembers
+        .map((m) => {
+          const courses = getSchoolDish(data.schoolMenus, m.id, day);
+          if (!hasAnySchoolDish(courses)) return null;
+          const text = [courses.primero, courses.segundo].filter(Boolean).join(" ");
+          return schoolServedVeg(text);
+        })
+        .filter(Boolean),
+    );
+
     // Collect school menu text for context
     for (const m of schoolSourceMembers) {
       const courses = getSchoolDish(data.schoolMenus, m.id, day);
@@ -313,6 +352,12 @@ export function buildGroupContext(data, group) {
     for (const meal of meals) {
       const mode = modeForGroupSlot(group, data.members, data.schedule, day, meal);
       if (!mode.cook) continue;
+
+      // El menú de los niños: los huecos que copian del menú de los adultos
+      // (mediodía en familia, "cena como los padres" / "lo del mediodía",
+      // finde juntos) o que no se planifican se resuelven tras la generación
+      // (ver bloque de copia). Aquí solo generamos los que son "suyos".
+      if (isKidsGroup && kidsSlotAction(data, day, meal) !== "generate") continue;
 
       const eaters = groupMembers.filter((m) => {
         const status = data.schedule[slotKey(m.id, day, meal)] ?? "casa";
@@ -382,8 +427,8 @@ export function buildGroupContext(data, group) {
           slots.push(primero, segundo);
         }
       } else {
-        // Kids' dinner is filled from adults' lunch after generation.
-        if (linkKidDinner && isKidsGroup) continue;
+        // (Los huecos de cena de niños que copian/omiten ya se filtraron arriba
+        // con kidsSlotAction; aquí solo llega "cena diferente" o menú propio.)
         const isQuick = slotTypeSel === "rapida";
         const slot = {
           day, daySlug, mealType, eaters, mode: mode.mode,
@@ -391,11 +436,17 @@ export function buildGroupContext(data, group) {
           slotId: `${daySlug}_cena`,
         };
         if (isQuick) slot.preferType = "cena_rapida";
-        if (schoolProteins.size > 0) {
+        // "Cena diferente": qué NO puede repetir respecto al comedor. Proteína e
+        // hidratos por defecto; verdura solo si algún niño lo pidió (pop-up).
+        const avoidCats = effectiveSchoolAvoid(data);
+        if (avoidCats.protein && schoolProteins.size > 0) {
           slot.schoolProteinsToAvoid = Array.from(schoolProteins);
         }
-        if (schoolCarbs.size > 0) {
+        if (avoidCats.carbs && schoolCarbs.size > 0) {
           slot.schoolCarbsToAvoid = Array.from(schoolCarbs);
+        }
+        if (avoidCats.veg && schoolVeg.size > 0) {
+          slot.schoolVegToAvoid = Array.from(schoolVeg);
         }
         slots.push(slot);
       }
@@ -457,6 +508,7 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
     if (s.preferType) out.preferType = s.preferType;
     if (s.schoolProteinsToAvoid) out.schoolProteinsToAvoid = s.schoolProteinsToAvoid;
     if (s.schoolCarbsToAvoid) out.schoolCarbsToAvoid = s.schoolCarbsToAvoid;
+    if (s.schoolVegToAvoid) out.schoolVegToAvoid = s.schoolVegToAvoid;
     return out;
   });
 
@@ -1430,37 +1482,32 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
     }
   }
 
-  // Kid dinner = adults' lunch: copy Adultos' Comida main into Niños' Cena.
-  if (data.kidDinnerMatchesAdultLunch) {
+  // Menú de los niños: copiar los platos de los adultos en los huecos que la
+  // config de niños marca como "del menú de la familia" — mediodía en familia
+  // (adultLunch), "cena como los padres" (adultDinner), "lo del mediodía" los
+  // días de comedor (adultLunch), y finde juntos (ambos). kidsSlotAction decide
+  // qué hueco copia de qué; aquí solo materializamos la copia.
+  const kidsPolicy = householdKidPolicy(data);
+  if (kidsPolicy) {
     const adults = activeGroups.find((g) => g.label === "Adultos");
     const kids = activeGroups.find((g) => g.label === "Niños");
     if (adults && kids) {
       const kidsMembers = membersOfGroup(kids, data.members);
-      for (const day of DAYS) {
-        const lunch = plan[adults.id]?.[`${day}-Comida`];
-        if (!lunch?.recipeId) continue;
-        const mode = modeForGroupSlot(kids, data.members, data.schedule, day, "Cena");
-        if (!mode.cook) continue;
-        const eaters = kidsMembers.filter((m) => {
-          const status = data.schedule[slotKey(m.id, day, "Cena")] ?? "casa";
-          return status === "casa" || status === "tupper";
-        }).length;
-        if (eaters <= 0) continue;
-
-        const adultFrontendId = lunch.recipeId;
+      // Clona un plato del menú de los adultos al espacio de nombres de los
+      // niños (prefijo de grupo si hay varios menús), arrastrando su guarnición.
+      const cloneForKids = (adultFrontendId, eaters) => {
+        if (!adultFrontendId) return null;
         const baseId = adultFrontendId.includes("__")
           ? adultFrontendId.split("__").slice(1).join("__")
           : adultFrontendId;
         const catalogRecipe = recipeCatalogById[baseId] ?? userRecipeById[baseId];
-        if (!catalogRecipe) continue;
-
+        if (!catalogRecipe) return null;
         const kidsFrontendId = multi ? `${kids.id}__${baseId}` : baseId;
         if (!seenRecipeIds.has(kidsFrontendId)) {
           seenRecipeIds.add(kidsFrontendId);
           const fr = catalogToFrontendRecipe(catalogRecipe, eaters, []);
           if (multi) fr.id = kidsFrontendId;
           fr.baseRecipeId = baseId;
-          // Carry adults' garnish into the kids copy when present on the lunch main.
           const adultFr = allRecipes.find((r) => r.id === adultFrontendId);
           if (adultFr?.garnishId) {
             const garnish = guarnicionById[adultFr.garnishId];
@@ -1468,16 +1515,39 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
           }
           allRecipes.push(fr);
         }
+        return kidsFrontendId;
+      };
 
-        plan[kids.id][`${day}-Cena`] = {
-          recipeId: kidsFrontendId,
-          firstRecipeId: null,
-          eaters,
-          mode: mode.mode,
-          warnings: [],
-          fromAdultLunch: true,
-        };
-        placedSlots++;
+      for (const day of DAYS) {
+        for (const meal of ["Comida", "Cena"]) {
+          const action = kidsSlotAction(data, day, meal);
+          if (action !== "adultLunch" && action !== "adultDinner") continue;
+          const srcMeal = action === "adultLunch" ? "Comida" : "Cena";
+          const src = plan[adults.id]?.[`${day}-${srcMeal}`];
+          if (!src?.recipeId && !src?.firstRecipeId) continue;
+          const mode = modeForGroupSlot(kids, data.members, data.schedule, day, meal);
+          if (!mode.cook) continue;
+          const eaters = kidsMembers.filter((m) => {
+            const status = data.schedule[slotKey(m.id, day, meal)] ?? "casa";
+            return status === "casa" || status === "tupper";
+          }).length;
+          if (eaters <= 0) continue;
+
+          const mainId = cloneForKids(src.recipeId, eaters);
+          const firstId = cloneForKids(src.firstRecipeId, eaters);
+          if (!mainId && !firstId) continue;
+
+          plan[kids.id][`${day}-${meal}`] = {
+            recipeId: mainId ?? firstId,
+            firstRecipeId: mainId ? firstId : null,
+            eaters,
+            mode: mode.mode,
+            warnings: [],
+            fromAdultLunch: action === "adultLunch",
+            fromAdultDinner: action === "adultDinner",
+          };
+          placedSlots++;
+        }
       }
     }
   }
@@ -1981,12 +2051,14 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     const schoolSlotCtx = ctx.slots.find((s) => s.slotId === `${DAY_SLUG[day]}_cena`);
     const schoolProteinsToAvoid = new Set(schoolSlotCtx?.schoolProteinsToAvoid ?? []);
     const schoolCarbsToAvoid = new Set(schoolSlotCtx?.schoolCarbsToAvoid ?? []);
-    if (schoolProteinsToAvoid.size > 0 || schoolCarbsToAvoid.size > 0) {
+    const avoidSchoolVeg = (schoolSlotCtx?.schoolVegToAvoid ?? []).length > 0;
+    if (schoolProteinsToAvoid.size > 0 || schoolCarbsToAvoid.size > 0 || avoidSchoolVeg) {
       const schoolSafe = candidates.filter((r) => {
         const proteinGroup = proteinGroupOf(r);
         if (proteinGroup && schoolProteinsToAvoid.has(proteinGroup)) return false;
         const carb = getCarbType(r);
         if (carb && schoolCarbsToAvoid.has(carb)) return false;
+        if (avoidSchoolVeg && dominantComponentOf(r) === "verdura") return false;
         return true;
       });
       if (schoolSafe.length > 0) candidates = schoolSafe;

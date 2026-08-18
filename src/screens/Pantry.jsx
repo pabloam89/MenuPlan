@@ -60,6 +60,10 @@ import { DATE_BUCKET_OPTIONS, estimateListCost, formatEuro, matchesDateBucket } 
 // aisle: frescos perecederos → nevera, el resto → despensa. Los platos
 // cocinados no congelados viven en la nevera.
 function itemLocation(item) {
+  // Ubicación fijada a mano (0015) manda sobre la derivación.
+  if (item?.location === "nevera" || item?.location === "despensa" || item?.location === "congelador") {
+    return item.location;
+  }
   if (item?.frozen) return "congelador";
   if ((item?.itemType ?? "ingredient") === "cooked_dish") return "nevera";
   return isPerishableAisle(guessShoppingAisle(item?.ingredientName)) ? "nevera" : "despensa";
@@ -92,6 +96,49 @@ const LOCATION_ORDER = ["nevera", "despensa", "congelador"];
 
 function isCookedDish(item) {
   return (item?.itemType ?? "ingredient") === "cooked_dish";
+}
+
+// Segmented control de 3 iconos (nevera / despensa / congelador) para fijar a
+// mano la ubicación de un ingrediente al editarlo. La pastilla activa toma el
+// color de esa ubicación (mismo lenguaje que las cards de arriba).
+function LocationSegmentedControl({ value, onChange }) {
+  return (
+    <span
+      role="group"
+      aria-label="Ubicación"
+      style={{
+        display: "inline-flex", gap: 2, padding: 2, borderRadius: 9,
+        background: "#eef4ef", border: "1px solid #dce8e0",
+      }}
+    >
+      {LOCATION_ORDER.map((loc) => {
+        const meta = LOCATION_META[loc];
+        const Icon = meta.Icon;
+        const on = value === loc;
+        return (
+          <button
+            key={loc}
+            type="button"
+            onClick={() => onChange(loc)}
+            aria-pressed={on}
+            aria-label={meta.label}
+            title={meta.label}
+            style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              padding: "6px 10px", borderRadius: 7, border: "none",
+              cursor: "pointer", fontFamily: "inherit",
+              background: on ? "#fff" : "transparent",
+              color: on ? meta.ink : "#7a9082",
+              boxShadow: on ? "0 1px 3px rgba(20,47,29,.12)" : "none",
+              transition: "all .15s",
+            }}
+          >
+            <Icon size={15} strokeWidth={2.2} />
+          </button>
+        );
+      })}
+    </span>
+  );
 }
 
 // Etiqueta cualitativa de frescura (chip bajo el nombre en la tabla). No es una
@@ -1145,6 +1192,7 @@ export function PantryScreen({
   const [editingId, setEditingId] = useState(null);
   const [editQty, setEditQty] = useState(1);
   const [editUnit, setEditUnit] = useState("ud");
+  const [editLocation, setEditLocation] = useState("nevera");
   // Which reading the single value column shows (mobile: one column, toggled).
   const [stockView, setStockView] = useState("cantidad");
   // "Subir ticket" overlay (receipt capture + intent chooser), launched in place.
@@ -1327,19 +1375,35 @@ export function PantryScreen({
     setEditingId(item.id);
     setEditQty(editable.qty);
     setEditUnit(editable.unit);
+    // Por defecto, la ubicación actual del ítem (derivada o fijada).
+    setEditLocation(itemLocation(item));
   };
 
   const saveEdit = async (id) => {
     const { qty, unit } = toCanonicalStockQty(editQty, editUnit);
     const now = new Date().toISOString();
+    const target = items.find((i) => i.id === id);
+    // Los platos cocinados conservan su ubicación (nevera/congelador la fija su
+    // propio alta); el control triple es solo para ingredientes.
+    const location = target && !isCookedDish(target) ? editLocation : undefined;
     setItems((prev) =>
       qty > 0
-        ? prev.map((i) => (i.id === id ? { ...i, qty, unit, updatedAt: now } : i))
+        ? prev.map((i) =>
+            i.id === id
+              ? {
+                  ...i,
+                  qty,
+                  unit,
+                  ...(location != null ? { location, frozen: location === "congelador" } : {}),
+                  updatedAt: now,
+                }
+              : i,
+          )
         : prev.filter((i) => i.id !== id),
     );
     setEditingId(null);
-    if (user) await setPantryItemQty(user.id, id, qty, unit);
-    else setLocalPantryItemQty(id, qty, unit);
+    if (user) await setPantryItemQty(user.id, id, qty, unit, location);
+    else setLocalPantryItemQty(id, qty, unit, location);
   };
 
   // Header options — same actions as before, now behind a burger → sliding
@@ -1701,6 +1765,14 @@ export function PantryScreen({
                                 OK
                               </button>
                             </span>
+                            {!cooked && (
+                              <span style={{ display: "inline-flex", flexDirection: "column", gap: 4 }}>
+                                <span style={{ fontSize: 11, fontWeight: 800, color: "#5a7066" }}>
+                                  ¿Dónde?
+                                </span>
+                                <LocationSegmentedControl value={editLocation} onChange={setEditLocation} />
+                              </span>
+                            )}
                             {lastUpdated && (
                               // The "when did I buy this" answer lives here instead of on every
                               // row: it's one tap away (the row is already tappable-to-edit) and

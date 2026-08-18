@@ -30,6 +30,8 @@ function mapRow(row) {
     portions: row.portions != null ? Number(row.portions) : null,
     recipeRef: row.recipe_ref ?? null,
     cookedAt: row.cooked_at ?? null,
+    // Ubicación fijada a mano (0015). null → se deriva en la UI (frozen/aisle).
+    location: row.location ?? null,
     // Proxy for "fecha de compra" (see 0009_user_pantry_updated_at.sql):
     // bumped by a DB trigger on every qty change, so it's naturally "last
     // time this stock was touched" — new tickets, top-ups, manual edits.
@@ -49,6 +51,9 @@ function isMissingColumn(error) {
 // on a pre-migration DB (see loadPantry's graceful fallbacks).
 const BASE_COLS = "id, ingredient_name, ingredient_normalized, qty, unit, source, created_at";
 const FREEZER_COLS = "frozen, item_type, portions, recipe_ref, cooked_at";
+// 0015 — kept in its own group so a DB with 0014 but not 0015 still loads the
+// freezer columns (lumping them would drop frozen/item_type on the fallback).
+const LOCATION_COLS = "location";
 const RETURN_COLS = `${BASE_COLS}, ${FREEZER_COLS}`;
 
 /** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
@@ -61,22 +66,23 @@ export async function loadPantry(userId) {
       .eq("user_id", userId)
       .order("created_at", { ascending: true });
 
-  // Newest schema first, then fall back column-group by column-group so the
-  // pantry still loads on a DB that hasn't run 0014 (freezer) or 0009 (updated_at).
-  let { data, error } = await run(`${BASE_COLS}, updated_at, ${FREEZER_COLS}`);
-  if (!error) return (data ?? []).map(mapRow);
-
-  if (isMissingColumn(error)) {
-    let retry = await run(`${BASE_COLS}, updated_at`);
-    if (!retry.error) return (retry.data ?? []).map(mapRow);
-    if (isMissingColumn(retry.error)) {
-      retry = await run(BASE_COLS);
-      if (!retry.error) return (retry.data ?? []).map(mapRow);
-    }
-    error = retry.error;
+  // Newest schema first, then fall back tier by tier so the pantry still loads
+  // on a DB missing 0015 (location), 0014 (freezer) or 0009 (updated_at).
+  const tiers = [
+    `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${LOCATION_COLS}`,
+    `${BASE_COLS}, updated_at, ${FREEZER_COLS}`,
+    `${BASE_COLS}, updated_at`,
+    BASE_COLS,
+  ];
+  let lastError = null;
+  for (const cols of tiers) {
+    const { data, error } = await run(cols);
+    if (!error) return (data ?? []).map(mapRow);
+    lastError = error;
+    if (!isMissingColumn(error)) break;
   }
 
-  console.error("[pantry] load failed", error);
+  console.error("[pantry] load failed", lastError);
   return [];
 }
 
@@ -138,6 +144,7 @@ export async function addPantryItems(userId, items) {
           qty,
           unit,
           frozen,
+          location: it.location ?? null,
           item_type: "ingredient",
           source: it.source ?? "manual",
         });
@@ -268,16 +275,30 @@ async function addPantryItemsLegacy(userId, items) {
 }
 
 /** Sets a pantry item's stock to an exact amount, deleting it once it hits 0.
- *  Optional `unit` updates the stored unit in the same write (Pantry row edit). */
-export async function setPantryItemQty(userId, id, qty, unit) {
+ *  Optional `unit` updates the stored unit in the same write (Pantry row edit).
+ *  Optional `location` ('nevera'|'despensa'|'congelador') fixes the item's
+ *  location and keeps `frozen` in sync so the planner/freezer logic still works. */
+export async function setPantryItemQty(userId, id, qty, unit, location) {
   if (!supabase || !userId) return false;
   if (!(qty > 0)) return removePantryItem(userId, id);
-  const patch = unit != null ? { qty, unit } : { qty };
-  const { error } = await supabase
-    .from("user_pantry")
-    .update(patch)
-    .eq("user_id", userId)
-    .eq("id", id);
+  const base = unit != null ? { qty, unit } : { qty };
+  const update = (patch) =>
+    supabase.from("user_pantry").update(patch).eq("user_id", userId).eq("id", id);
+
+  if (location == null) {
+    const { error } = await update(base);
+    if (error) console.error("[pantry] set qty failed", error);
+    return !error;
+  }
+
+  // Full write (location + synced frozen), degrading if the DB predates 0015
+  // (no `location`) or even 0014 (no `frozen`) so edits still persist qty/unit.
+  const frozen = location === "congelador";
+  let { error } = await update({ ...base, location, frozen });
+  if (isMissingColumn(error)) {
+    ({ error } = await update({ ...base, frozen }));
+    if (isMissingColumn(error)) ({ error } = await update(base));
+  }
   if (error) {
     console.error("[pantry] set qty failed", error);
     return false;
@@ -448,6 +469,7 @@ export function addLocalPantryItems(items) {
         unit,
         source: it.source ?? "manual",
         frozen,
+        location: it.location ?? null,
         itemType: "ingredient",
         updatedAt: now,
       };
@@ -459,13 +481,15 @@ export function addLocalPantryItems(items) {
   return next;
 }
 
-export function setLocalPantryItemQty(id, qty, unit) {
+export function setLocalPantryItemQty(id, qty, unit, location) {
   const current = readLocalPantry();
   const now = new Date().toISOString();
+  const locPatch =
+    location != null ? { location, frozen: location === "congelador" } : {};
   const next = qty > 0
     ? current.map((it) =>
         it.id === id
-          ? { ...it, qty, ...(unit != null ? { unit } : {}), updatedAt: now }
+          ? { ...it, qty, ...(unit != null ? { unit } : {}), ...locPatch, updatedAt: now }
           : it,
       )
     : current.filter((it) => it.id !== id);
@@ -504,6 +528,7 @@ export async function mergeLocalPantryIntoCloud(userId) {
       unit: it.unit,
       source: it.source,
       frozen: it.frozen,
+      location: it.location,
       itemType: it.itemType,
       portions: it.portions,
       recipeRef: it.recipeRef,

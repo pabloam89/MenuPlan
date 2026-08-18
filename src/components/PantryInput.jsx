@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CalendarDays, Camera, ChevronDown, ChevronLeft, Clock, Layers, Loader2, Package, Plus, Receipt, Refrigerator, Salad, Search, Snowflake, Soup, Trash2, Utensils, UtensilsCrossed, X } from "lucide-react";
+import { CalendarDays, Camera, ChevronDown, ChevronLeft, Clock, Layers, Loader2, Package, Plus, Receipt, Refrigerator, Salad, Search, Snowflake, Soup, Utensils, UtensilsCrossed, X } from "lucide-react";
 import { useAuth } from "../lib/useAuth.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { addPantryItems, addLocalPantryItems } from "../lib/pantry.js";
@@ -10,11 +10,10 @@ import { guessShoppingAisle, isPerishableAisle, normalizeName } from "../lib/ing
 import { IngredientPicker } from "../screens/RecipePlanner.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
-import { aisleImageSrc, categoryImageSrc } from "../lib/ingredientImages.js";
+import { aisleImageSrc, categoryImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
-const CARD_BG = "#eaf3ec";
 const FIELD_BG = "#fff";
 
 const PANTRY_UNITS = ["ud", "g", "kg", "ml", "l"];
@@ -674,29 +673,69 @@ function CualPicker({ candidates, onSelect, ariaLabel }) {
   );
 }
 
-// Botón-columna de ubicación por fila: alterna congelador; cuando no está
-// congelado muestra a dónde irá (nevera para frescos, despensa para el resto).
-function RowLocationButton({ name, frozen, onToggle }) {
-  const nevera = isPerishableAisle(guessShoppingAisle(name));
-  const dest = frozen ? "Congelador" : nevera ? "Nevera" : "Despensa";
-  const Icon = frozen ? Snowflake : nevera ? Refrigerator : Package;
-  const color = frozen ? "#3f7fb0" : nevera ? "#2f6d8a" : "#9a7b34";
+// Ubicación por defecto de un ingrediente recién añadido: nevera si es fresco
+// perecedero, despensa en el resto. Es solo el punto de partida — el usuario
+// puede cambiarla (p. ej. peras en la despensa para que maduren).
+function defaultLocationForName(name) {
+  return isPerishableAisle(guessShoppingAisle(name)) ? "nevera" : "despensa";
+}
+
+const CHIP_LOCATIONS = [
+  { id: "nevera", label: "Nevera", Icon: Refrigerator, color: "#2f6d8a" },
+  { id: "despensa", label: "Despensa", Icon: Package, color: "#9a7b34" },
+  { id: "congelador", label: "Congelador", Icon: Snowflake, color: "#3f7fb0" },
+];
+
+// Selector "¿Dónde?" (mismo modelo que el plato cocinado): va DEBAJO de la fila
+// para no saturarla. Solo la opción activa muestra su texto; el usuario elige
+// libremente nevera / despensa / congelador.
+function ChipLocationRow({ value, onChange }) {
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      aria-label={`Ubicación: ${dest}. Tocar para ${frozen ? "quitar de" : "enviar al"} congelador`}
-      title={frozen ? "En el congelador — tocar para nevera/despensa" : `Irá a ${dest} — tocar para congelar`}
-      style={{
-        width: 34, height: 34, borderRadius: 9, flexShrink: 0,
-        border: `1.5px solid ${frozen ? "#bcd7ea" : "#dbe7df"}`,
-        background: frozen ? "#eaf2f8" : "#fff",
-        color, cursor: "pointer", display: "inline-flex",
-        alignItems: "center", justifyContent: "center", padding: 0,
-      }}
-    >
-      <Icon size={16} strokeWidth={2.2} />
-    </button>
+    <div style={{ display: "inline-flex", gap: 2, padding: 2, borderRadius: 9, background: "#fff", border: "1px solid #dbe7df", height: 34, boxSizing: "border-box", alignItems: "center" }}>
+      {CHIP_LOCATIONS.map(({ id, label, Icon, color }) => {
+        const on = value === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            onClick={() => onChange(id)}
+            aria-pressed={on}
+            aria-label={label}
+            title={label}
+            style={{
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              height: 28, padding: "0 9px", borderRadius: 7, border: "none",
+              cursor: "pointer", fontFamily: "inherit",
+              background: on ? color : "transparent",
+              color: on ? "#fff" : "#7a9082",
+              transition: "all .15s",
+            }}
+          >
+            <Icon size={15} strokeWidth={2.2} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// Miniatura del ingrediente para la ficha de edición (mismo lenguaje que la
+// tarjeta del plato cocinado): ilustración si la hay, icono neutro si no.
+function ChipThumb({ name }) {
+  const [failed, setFailed] = useState(false);
+  const src = ingredientThumbSrc(name);
+  const show = Boolean(src) && !failed;
+  return show ? (
+    <img
+      src={src}
+      alt=""
+      onError={() => setFailed(true)}
+      style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0, background: "#eef4ef" }}
+    />
+  ) : (
+    <div style={{ width: 44, height: 44, borderRadius: 10, background: "#eef4ef", display: "grid", placeItems: "center", flexShrink: 0 }}>
+      <Salad size={20} color={GREEN} />
+    </div>
   );
 }
 
@@ -705,7 +744,7 @@ function PantryEditList({
   onUpdateQty,
   onUpdateUnit,
   onUpdateName,
-  onUpdateFrozen,
+  onUpdateLocation,
   onResolve,
   onRemove,
   onConfirmRow,
@@ -723,26 +762,22 @@ function PantryEditList({
   }, [focusQtyIndex, chips.length]);
 
   if (chips.length === 0) return null;
-  const nameSize = 13;
   return (
-    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
+    <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
       {chips.map((chip, idx) => {
         const rowDisabled = Boolean(chip.ambiguous) || confirming;
         return (
-          <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div
-              style={{
-                flex: 1,
-                minWidth: 0,
-                display: "flex",
-                alignItems: "center",
-                gap: 6,
-                padding: "8px 10px",
-                background: CARD_BG,
-                border: "1px solid #d7e6dc",
-                borderRadius: 14,
-              }}
-            >
+          <div
+            key={idx}
+            style={{
+              border: "1.5px solid #cfe0d6",
+              borderRadius: 14,
+              background: FIELD_BG,
+              padding: 12,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: chip.ambiguous ? 10 : 12 }}>
+              <ChipThumb name={chip.raw} />
               <input
                 value={chip.raw}
                 onChange={(e) => onUpdateName(idx, e.target.value)}
@@ -751,108 +786,93 @@ function PantryEditList({
                   ...editInputBase,
                   flex: 1,
                   minWidth: 0,
-                  padding: "7px 8px",
-                  fontSize: nameSize,
-                  fontWeight: 700,
+                  padding: "8px 9px",
+                  fontSize: 13.5,
+                  fontWeight: 800,
                   color: INK,
                 }}
               />
-              {chip.ambiguous ? (
-                <CualPicker
-                  candidates={chip.candidates}
-                  ariaLabel={`Elegir coincidencia para ${chip.raw}`}
-                  onSelect={(candidate) => onResolve(idx, candidate)}
-                />
-              ) : (
-                <>
-                  <input
-                    ref={(el) => {
-                      qtyRefs.current[idx] = el;
-                    }}
-                    value={chip.entryQty}
-                    onChange={(e) => onUpdateQty(idx, e.target.value)}
-                    inputMode="decimal"
-                    placeholder="0"
-                    aria-label={`Cantidad de ${chip.raw}`}
-                    style={{
-                      ...editInputBase,
-                      width: 42,
-                      flexShrink: 0,
-                      padding: "7px 2px",
-                      fontSize: nameSize,
-                      fontWeight: 700,
-                      textAlign: "center",
-                    }}
-                  />
-                  <select
-                    value={chip.entryUnit}
-                    onChange={(e) => onUpdateUnit(idx, e.target.value)}
-                    aria-label={`Unidad de ${chip.raw}`}
-                    style={{
-                      ...editInputBase,
-                      width: 56,
-                      flexShrink: 0,
-                      padding: "7px 2px",
-                      fontSize: nameSize,
-                      fontWeight: 700,
-                    }}
-                  >
-                    {PANTRY_UNITS.map((u) => (
-                      <option key={u} value={u}>
-                        {u === "l" ? "L" : u}
-                      </option>
-                    ))}
-                  </select>
-                  <RowLocationButton
-                    name={chip.raw}
-                    frozen={Boolean(chip.frozen)}
-                    onToggle={() => onUpdateFrozen(idx)}
-                  />
-                </>
-              )}
               <button
                 type="button"
                 onClick={() => onRemove(idx)}
                 aria-label={`Quitar ${chip.raw}`}
                 style={{
-                  width: 28,
-                  height: 28,
-                  borderRadius: 8,
                   border: "none",
-                  flexShrink: 0,
-                  background: "#fdf1ef",
-                  color: "#c0392b",
+                  background: "transparent",
                   cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
+                  padding: 4,
+                  color: "#7a9082",
+                  flexShrink: 0,
                 }}
               >
-                <Trash2 size={13} />
+                <X size={18} />
               </button>
             </div>
-            <button
-              type="button"
-              onClick={() => onConfirmRow(idx)}
-              disabled={rowDisabled}
-              aria-label={`Añadir ${chip.raw} en casa`}
-              title="Añadir"
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: 12,
-                border: "none",
-                flexShrink: 0,
-                background: rowDisabled ? "#c8d9ce" : GREEN,
-                color: "#fff",
-                cursor: rowDisabled ? "not-allowed" : "pointer",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Plus size={20} strokeWidth={2.6} />
-            </button>
+
+            {chip.ambiguous ? (
+              <CualPicker
+                candidates={chip.candidates}
+                ariaLabel={`Elegir coincidencia para ${chip.raw}`}
+                onSelect={(candidate) => onResolve(idx, candidate)}
+              />
+            ) : (
+              <>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 12 }}>
+                  <div style={{ flexShrink: 0 }}>
+                    <div style={qLabelStyle}>Cantidad</div>
+                    <input
+                      ref={(el) => {
+                        qtyRefs.current[idx] = el;
+                      }}
+                      value={chip.entryQty}
+                      onChange={(e) => onUpdateQty(idx, e.target.value)}
+                      inputMode="decimal"
+                      placeholder="0"
+                      aria-label={`Cantidad de ${chip.raw}`}
+                      style={{ ...editInputBase, background: FIELD_BG, width: 54, height: 34, padding: "0 6px", textAlign: "center", fontSize: 14, fontWeight: 800 }}
+                    />
+                  </div>
+                  <div style={{ flexShrink: 0 }}>
+                    <div style={qLabelStyle}>Unidad</div>
+                    <select
+                      value={chip.entryUnit}
+                      onChange={(e) => onUpdateUnit(idx, e.target.value)}
+                      aria-label={`Unidad de ${chip.raw}`}
+                      style={{ ...editInputBase, background: FIELD_BG, width: 62, height: 34, padding: "0 6px", fontSize: 13, fontWeight: 800 }}
+                    >
+                      {PANTRY_UNITS.map((u) => (
+                        <option key={u} value={u}>
+                          {u === "l" ? "L" : u}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div style={{ flexShrink: 0 }}>
+                    <div style={qLabelStyle}>¿Dónde?</div>
+                    <ChipLocationRow
+                      value={chip.location ?? "nevera"}
+                      onChange={(loc) => onUpdateLocation(idx, loc)}
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => onConfirmRow(idx)}
+                  disabled={rowDisabled}
+                  aria-label={`Guardar ${chip.raw} en casa`}
+                  style={{
+                    width: "100%", padding: "11px 12px", borderRadius: 12, border: "none",
+                    background: rowDisabled ? "#c8d9ce" : GREEN, color: "#fff", fontSize: 13.5, fontWeight: 800,
+                    fontFamily: "inherit", cursor: rowDisabled ? "default" : "pointer",
+                    display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
+                  }}
+                >
+                  {confirming ? <Loader2 size={16} className="mp-spin" /> : <Plus size={16} />}
+                  Guardar ingrediente
+                </button>
+              </>
+            )}
           </div>
         );
       })}
@@ -949,7 +969,13 @@ export function PantryInput({
         const key = item.ambiguous ? item.raw.toLowerCase() : item.normalized;
         if (next.some((c) => (c.ambiguous ? c.raw.toLowerCase() : c.normalized) === key)) continue;
         const guess = qtyUnitByRaw?.get(item.raw) ?? { qty: 1, unit: "ud" };
-        next.push({ ...item, entryQty: guess.qty, entryUnit: guess.unit, source });
+        next.push({
+          ...item,
+          entryQty: guess.qty,
+          entryUnit: guess.unit,
+          source,
+          location: defaultLocationForName(item.raw ?? item.normalized),
+        });
       }
       return next;
     });
@@ -1008,10 +1034,10 @@ export function PantryInput({
   const updateChipUnit = (idx, unit) =>
     setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, entryUnit: unit } : c)));
 
-  // Ubicación por fila: solo alterna congelador (nevera/despensa se deriva del
-  // ingrediente). Sustituye al viejo segmented global "¿Dónde lo guardas?".
-  const updateChipFrozen = (idx) =>
-    setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, frozen: !c.frozen } : c)));
+  // Ubicación por fila: el usuario elige nevera / despensa / congelador con el
+  // control "¿Dónde?" que va bajo cada fila (modelo del plato cocinado).
+  const updateChipLocation = (idx, loc) =>
+    setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, location: loc } : c)));
 
   // Live rename (esp. after OCR). Re-match after a short pause so typing
   // "pasta" can open ¿Cuál? without fighting every keystroke.
@@ -1033,7 +1059,7 @@ export function PantryInput({
             entryQty: c.entryQty,
             entryUnit: c.entryUnit,
             source: c.source,
-            frozen: c.frozen,
+            location: c.location ?? defaultLocationForName(name),
           };
         }),
       );
@@ -1052,7 +1078,7 @@ export function PantryInput({
               entryQty: c.entryQty,
               entryUnit: c.entryUnit,
               source: c.source,
-              frozen: c.frozen,
+              location: c.location ?? defaultLocationForName(candidate.label),
             }
           : c,
       ),
@@ -1073,7 +1099,16 @@ export function PantryInput({
       setPickQuery("");
       return;
     }
-    setChips((prev) => [...prev, { ...parsed, entryQty: 1, entryUnit: "ud", source: "manual", frozen: false }]);
+    setChips((prev) => [
+      ...prev,
+      {
+        ...parsed,
+        entryQty: 1,
+        entryUnit: "ud",
+        source: "manual",
+        location: defaultLocationForName(parsed.raw ?? parsed.normalized),
+      },
+    ]);
     setFocusQtyIndex(chips.length);
     setPickQuery("");
   };
@@ -1102,7 +1137,8 @@ export function PantryInput({
     if (!chip || chip.ambiguous || saving) return;
     setSaving(true);
     const { qty, unit } = toCanonicalStockQty(chip.entryQty, chip.entryUnit);
-    const items = [{ name: chip.raw, normalized: chip.normalized, qty, unit, source: chip.source ?? "manual", frozen: Boolean(chip.frozen) }];
+    const location = chip.location ?? defaultLocationForName(chip.raw);
+    const items = [{ name: chip.raw, normalized: chip.normalized, qty, unit, source: chip.source ?? "manual", location, frozen: location === "congelador" }];
     const saved = user ? await addPantryItems(user.id, items) : addLocalPantryItems(items);
     setSaving(false);
     setChips((prev) => prev.filter((_, i) => i !== idx));
@@ -1294,7 +1330,7 @@ export function PantryInput({
           onUpdateQty={updateChipQty}
           onUpdateUnit={updateChipUnit}
           onUpdateName={updateChipName}
-          onUpdateFrozen={updateChipFrozen}
+          onUpdateLocation={updateChipLocation}
           onResolve={resolveAmbiguous}
           onRemove={removeChip}
           onConfirmRow={handleSaveRow}
