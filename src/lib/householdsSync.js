@@ -45,14 +45,14 @@ export function parseHouseholdRow(row) {
 /**
  * Ensures the signed-in user has an owned household, migrates legacy data,
  * and returns memberships + active household id.
- * @returns {Promise<{ households: HouseholdSummary[], activeHouseholdId: string|null }|null>}
+ * @returns {Promise<{ households: HouseholdSummary[], activeHouseholdId: string|null, error?: string }|null>}
  */
 export async function ensureUserHousehold() {
-  if (!supabase) return null;
+  if (!supabase) return { error: "Supabase no configurado en este build" };
   const { data, error } = await supabase.rpc("ensure_user_household");
   if (error) {
-    console.warn("[householdsSync] ensure failed", error.message);
-    return null;
+    console.warn("[householdsSync] ensure failed", error.message, error.code, error.details);
+    return { error: error.message, households: [], activeHouseholdId: null };
   }
   const payload = data ?? {};
   const rawList = Array.isArray(payload.households) ? payload.households : [];

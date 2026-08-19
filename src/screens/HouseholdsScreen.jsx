@@ -5,11 +5,11 @@ import {
   LogOut,
   Share2,
   BookOpen,
-  CheckCircle2,
   Link2,
   RotateCw,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
+import { googleInfo } from "./Settings.jsx";
 import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 
 const GREEN = "#2d5a3d";
@@ -20,17 +20,12 @@ const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.jpg";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.jpg";
 
-function setupBadge(status) {
-  if (status === "active") return null;
-  if (status === "invite_ready") return "Listo para invitar";
-  return "Sin configurar";
-}
-
 function formatJoinedAt(iso) {
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  return d.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${mm}/${d.getFullYear()}`;
 }
 
 function buildSlots(households, activeHousehold, user) {
@@ -48,47 +43,39 @@ function buildSlots(households, activeHousehold, user) {
   ];
 }
 
-function SlotMeta({ joinedLabel, members, showMembers }) {
+function RoleIcon({ role, size = 22 }) {
+  const src = role === "owner" ? IMG_OWNER : IMG_VIEWER;
   return (
-    <div
+    <img
+      src={src}
+      alt=""
       style={{
+        width: size,
+        height: size,
+        borderRadius: 6,
+        objectFit: "cover",
         flexShrink: 0,
-        width: 88,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "flex-end",
-        justifyContent: "center",
-        gap: 6,
-        textAlign: "right",
       }}
-    >
-      {joinedLabel && (
-        <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.25 }}>
-          Desde {joinedLabel}
-        </p>
-      )}
-      {showMembers && members.length > 0 && (
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 4 }}>
-          <p style={{ margin: 0, fontSize: 9, fontWeight: 800, color: "#9ab0a1", textTransform: "uppercase", letterSpacing: ".35px" }}>
-            Comen
-          </p>
-          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 4, maxWidth: 88 }}>
-            {members.slice(0, 5).map((m) => (
-              <div
-                key={m.id}
-                style={{
-                  borderRadius: "50%",
-                  border: "1.5px solid #e3ebe6",
-                  lineHeight: 0,
-                  boxShadow: "0 1px 4px rgba(20,47,29,.12)",
-                }}
-              >
-                <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={26} color={memberAvatarColor(m.id, members)} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+    />
+  );
+}
+
+function MemberRow({ name, role }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
+      <RoleIcon role={role} />
+      <span
+        style={{
+          fontSize: 12.5,
+          fontWeight: 700,
+          color: INK,
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {name}
+      </span>
     </div>
   );
 }
@@ -96,9 +83,10 @@ function SlotMeta({ joinedLabel, members, showMembers }) {
 function SlotCard({
   slot,
   active,
+  userName,
   userLoggedIn,
   householdLoading,
-  members = [],
+  familyMembers = [],
   onSwitch,
   onLeave,
   onJoin,
@@ -113,127 +101,72 @@ function SlotCard({
   const h = slot.household;
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
-  const statusBadge = h ? setupBadge(h.setupStatus) : null;
   const joinedLabel = h ? formatJoinedAt(h.joinedAt) : null;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
+  const showFamily = active && slot.kind === "owner" && familyMembers.length > 0;
+
+  const accessRows = useMemo(() => {
+    if (!h || !userName) return [];
+    if (h.role === "owner") return [{ name: userName, role: "owner" }];
+    return [{ name: userName, role: "viewer" }];
+  }, [h, userName]);
 
   let emptyHint = null;
   if (empty && !userLoggedIn) {
     emptyHint = slot.kind === "owner" ? "Inicia sesión" : "Vacío";
   } else if (ownerPending && householdLoading) {
-    emptyHint = "Cargando tu hogar…";
+    emptyHint = "Cargando…";
   } else if (ownerPending) {
-    emptyHint = "Sin hogar en la nube";
+    emptyHint = "Sin hogar";
   }
+
+  const displayName = h?.name ?? slot.label;
 
   return (
     <div
       style={{
+        position: "relative",
         background: "#fff",
         borderRadius: 18,
         border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-        padding: "11px 12px",
+        padding: "12px 12px 12px 10px",
         boxShadow: active ? "0 10px 22px -14px rgba(45,90,61,.38)" : "0 4px 14px -10px rgba(20,47,29,.08)",
-        opacity: empty && !ownerPending ? 0.75 : 1,
+        opacity: empty && !ownerPending ? 0.72 : 1,
       }}
     >
-      <div style={{ display: "flex", gap: 11, alignItems: "stretch" }}>
-        <div style={{ width: 80, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-          <div
-            style={{
-              width: 64,
-              height: 64,
-              borderRadius: 14,
-              overflow: "hidden",
-              border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-              background: "#eef4f0",
-              filter: empty && !ownerPending ? "grayscale(.75)" : "none",
-            }}
-          >
-            <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
-          </div>
-          <span
-            style={{
-              padding: "2px 7px",
-              borderRadius: 999,
-              fontSize: 9.5,
-              fontWeight: 800,
-              background: slot.kind === "owner" ? GREEN : "#eef4f0",
-              color: slot.kind === "owner" ? "#fff" : GREEN,
-            }}
-          >
-            {slot.roleLabel}
-          </span>
-          {h && (
-            active ? (
-              <span
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 3,
-                  padding: "4px 8px",
-                  borderRadius: 999,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  background: GREEN,
-                  color: "#fff",
-                  width: "100%",
-                  justifyContent: "center",
-                  boxSizing: "border-box",
-                }}
-              >
-                <CheckCircle2 size={11} strokeWidth={2.5} />
-                Activo
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={() => onSwitch?.(h.id)}
-                style={{
-                  width: "100%",
-                  padding: "4px 7px",
-                  borderRadius: 999,
-                  border: `1.5px solid ${GREEN}`,
-                  background: "#fff",
-                  color: GREEN,
-                  fontSize: 10,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                Activar
-              </button>
-            )
-          )}
-          {empty && slot.kind === "viewer" && userLoggedIn && (
-            <button
-              type="button"
-              onClick={onJoin}
-              style={{
-                width: "100%",
-                padding: "4px 7px",
-                borderRadius: 999,
-                border: "none",
-                background: GREEN,
-                color: "#fff",
-                fontSize: 10,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 3,
-              }}
-            >
-              <Link2 size={11} />
-              Unirse
-            </button>
-          )}
-        </div>
+      {active && h && (
+        <span
+          style={{
+            position: "absolute",
+            top: 10,
+            right: 10,
+            zIndex: 2,
+            padding: "4px 10px",
+            borderRadius: 999,
+            fontSize: 10,
+            fontWeight: 800,
+            background: GREEN,
+            color: "#fff",
+            boxShadow: "0 2px 8px rgba(45,90,61,.35)",
+          }}
+        >
+          Activo
+        </span>
+      )}
 
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+        {/* Col 1 — nombre, ilustración, rol, acciones */}
+        <div
+          style={{
+            width: 76,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            paddingTop: active ? 0 : 0,
+          }}
+        >
           {h && renamingId === h.id ? (
             <input
               value={renameDraft}
@@ -243,132 +176,238 @@ function SlotCard({
               autoFocus
               style={{
                 width: "100%",
-                fontSize: 14,
+                fontSize: 11,
                 fontWeight: 800,
                 border: "1.5px solid #c8ddd0",
-                borderRadius: 10,
-                padding: "6px 8px",
+                borderRadius: 8,
+                padding: "5px 6px",
                 fontFamily: "inherit",
                 boxSizing: "border-box",
+                textAlign: "center",
               }}
             />
           ) : (
             <button
               type="button"
-              onClick={() => h?.role === "owner" && startRename(h)}
+              onClick={() => h?.role === "owner" && h.isOwn && startRename(h)}
               style={{
                 margin: 0,
                 padding: 0,
                 border: "none",
                 background: "transparent",
                 font: "inherit",
-                fontSize: 15,
+                fontSize: 12,
                 fontWeight: 900,
                 color: empty && !ownerPending ? "#9ab0a1" : INK,
-                cursor: h?.role === "owner" ? "pointer" : "default",
-                textAlign: "left",
-                letterSpacing: "-.25px",
-                lineHeight: 1.2,
+                cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
+                textAlign: "center",
+                lineHeight: 1.15,
+                letterSpacing: "-.2px",
+                maxWidth: "100%",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
               }}
             >
-              {h?.name ?? slot.label}
+              {displayName}
             </button>
           )}
 
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 5 }}>
-            {statusBadge && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 999, background: "#fff7e6", color: "#9a6b00" }}>
-                {statusBadge}
-              </span>
-            )}
-            {emptyHint && (
-              <span style={{ fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 999, background: "#f0f4f1", color: "#7a9485" }}>
-                {emptyHint}
-              </span>
-            )}
+          <div
+            style={{
+              width: 58,
+              height: 58,
+              borderRadius: 14,
+              overflow: "hidden",
+              background: "#eef4f0",
+              filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+            }}
+          >
+            <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
           </div>
+
+          <span
+            style={{
+              padding: "2px 8px",
+              borderRadius: 999,
+              fontSize: 9,
+              fontWeight: 800,
+              background: slot.kind === "owner" ? GREEN : "#eef4f0",
+              color: slot.kind === "owner" ? "#fff" : GREEN,
+            }}
+          >
+            {slot.roleLabel}
+          </span>
+
+          {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
+            <button
+              type="button"
+              onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
+              style={{
+                width: "100%",
+                padding: "5px 6px",
+                borderRadius: 8,
+                border: "none",
+                background: GREEN,
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 9.5,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                lineHeight: 1.2,
+              }}
+            >
+              Configurar hogar
+            </button>
+          )}
+
+          {h && !active && (
+            <button
+              type="button"
+              onClick={() => onSwitch?.(h.id)}
+              style={{
+                width: "100%",
+                padding: "4px 6px",
+                borderRadius: 999,
+                border: `1.5px solid ${GREEN}`,
+                background: "#fff",
+                color: GREEN,
+                fontSize: 9.5,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              Activar
+            </button>
+          )}
+
+          {empty && slot.kind === "viewer" && userLoggedIn && (
+            <button
+              type="button"
+              onClick={onJoin}
+              style={{
+                width: "100%",
+                padding: "5px 6px",
+                borderRadius: 8,
+                border: "none",
+                background: GREEN,
+                color: "#fff",
+                fontSize: 9.5,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 3,
+              }}
+            >
+              <Link2 size={10} />
+              Unirse
+            </button>
+          )}
 
           {ownerPending && !householdLoading && (
             <button
               type="button"
               onClick={onRetry}
               style={{
-                marginTop: 8,
-                alignSelf: "flex-start",
-                padding: "6px 10px",
-                borderRadius: 9,
+                width: "100%",
+                padding: "4px 6px",
+                borderRadius: 8,
                 border: `1.5px solid ${GREEN}`,
                 background: "#fff",
                 color: GREEN,
                 fontWeight: 700,
-                fontSize: 11,
+                fontSize: 9,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 4,
+                justifyContent: "center",
+                gap: 3,
               }}
             >
-              <RotateCw size={12} />
+              <RotateCw size={10} />
               Reintentar
-            </button>
-          )}
-
-          {h?.role === "viewer" && (
-            <button
-              type="button"
-              onClick={() => onLeave?.(h.id)}
-              style={{
-                marginTop: 8,
-                alignSelf: "flex-start",
-                padding: "6px 10px",
-                borderRadius: 9,
-                border: "1.5px solid #f0d4d4",
-                background: "#fff",
-                color: "#b42318",
-                fontWeight: 700,
-                fontSize: 11,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 4,
-              }}
-            >
-              <LogOut size={13} />
-              Abandonar
-            </button>
-          )}
-          {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
-            <button
-              type="button"
-              onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
-              style={{
-                marginTop: 8,
-                alignSelf: "flex-start",
-                padding: "6px 10px",
-                borderRadius: 9,
-                border: "none",
-                background: GREEN,
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 11,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              Configurar hogar
             </button>
           )}
         </div>
 
-        {(h || (active && members.length > 0)) && (
-          <SlotMeta
-            joinedLabel={joinedLabel}
-            members={members}
-            showMembers={active && slot.kind === "owner"}
-          />
-        )}
+        {/* Col 2 — miembros (cuenta) */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 4 }}>
+          {h ? (
+            <>
+              <p style={{ margin: "0 0 8px", fontSize: 9.5, fontWeight: 800, color: "#9ab0a1", textTransform: "uppercase", letterSpacing: ".4px" }}>
+                Miembros
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
+                {accessRows.map((row) => (
+                  <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
+                ))}
+              </div>
+              {h.role === "viewer" && (
+                <button
+                  type="button"
+                  onClick={() => onLeave?.(h.id)}
+                  style={{
+                    marginTop: 10,
+                    alignSelf: "flex-start",
+                    padding: "5px 9px",
+                    borderRadius: 8,
+                    border: "1.5px solid #f0d4d4",
+                    background: "#fff",
+                    color: "#b42318",
+                    fontWeight: 700,
+                    fontSize: 10.5,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <LogOut size={12} />
+                  Abandonar
+                </button>
+              )}
+            </>
+          ) : (
+            emptyHint && (
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#9ab0a1" }}>{emptyHint}</p>
+            )
+          )}
+        </div>
+
+        {/* Col 3 — fecha + avatares familia */}
+        <div
+          style={{
+            width: 72,
+            flexShrink: 0,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            gap: 8,
+            paddingTop: active ? 18 : 0,
+          }}
+        >
+          {joinedLabel && (
+            <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.25, textAlign: "right" }}>
+              Desde {joinedLabel}
+            </p>
+          )}
+          {showFamily && (
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 4 }}>
+              {familyMembers.slice(0, 6).map((m) => (
+                <div key={m.id} style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
+                  <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={24} color={memberAvatarColor(m.id, familyMembers)} />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -399,6 +438,7 @@ export function HouseholdsScreen({
   const [copied, setCopied] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
+  const userName = googleInfo(user)?.name ?? user?.email?.split("@")[0] ?? "Tú";
 
   useEffect(() => {
     if (user?.id) onRefresh?.();
@@ -563,9 +603,10 @@ export function HouseholdsScreen({
                     key={slot.kind + (slot.household?.id ?? slot.label)}
                     slot={slot}
                     active={isActive}
+                    userName={userName}
                     userLoggedIn={Boolean(user)}
                     householdLoading={householdLoading}
-                    members={members}
+                    familyMembers={members}
                     onSwitch={onSwitchHousehold}
                     onLeave={onLeaveHousehold}
                     onJoin={handleJoin}
