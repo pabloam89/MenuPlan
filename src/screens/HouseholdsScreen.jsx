@@ -754,16 +754,7 @@ function CardOverflowMenu({ actions }) {
   return (
     <div
       ref={rootRef}
-      style={{
-        position: "absolute",
-        top: 10,
-        right: 10,
-        zIndex: 4,
-        display: "flex",
-        flexDirection: "row-reverse",
-        alignItems: "center",
-        gap: 6,
-      }}
+      style={{ position: "relative", flexShrink: 0 }}
       onClick={(e) => e.stopPropagation()}
     >
       <button
@@ -793,14 +784,20 @@ function CardOverflowMenu({ actions }) {
 
       <div
         style={{
+          position: "absolute",
+          top: "calc(100% + 6px)",
+          right: 0,
+          zIndex: 6,
           display: "flex",
-          alignItems: "center",
+          flexDirection: "column",
+          alignItems: "stretch",
           gap: 6,
           overflow: "hidden",
-          maxWidth: open ? actions.length * 44 : 0,
+          maxHeight: open ? actions.length * 44 + (actions.length - 1) * 6 : 0,
           opacity: open ? 1 : 0,
+          pointerEvents: open ? "auto" : "none",
           transition:
-            "max-width 0.38s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.22s ease",
+            "max-height 0.34s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.22s ease",
         }}
       >
         {actions.map(({ id, icon: Icon, label, color = GREEN, onClick }, i) => (
@@ -826,7 +823,7 @@ function CardOverflowMenu({ actions }) {
               cursor: "pointer",
               padding: 0,
               flexShrink: 0,
-              transform: open ? "scale(1) translateX(0)" : "scale(0.6) translateX(8px)",
+              transform: open ? "scale(1) translateY(0)" : "scale(0.6) translateY(-6px)",
               opacity: open ? 1 : 0,
               transition: `transform 0.32s cubic-bezier(0.34, 1.25, 0.64, 1) ${i * 0.05}s, opacity 0.22s ease ${i * 0.04}s`,
             }}
@@ -949,47 +946,53 @@ function SlotCard({
     onLeave,
   ]);
 
-  const titleNode = h && renamingId === h.id ? (
+  const cardTitleNode = h && renamingId === h.id ? (
     <input
       value={renameDraft}
       onChange={(e) => setRenameDraft(e.target.value)}
       onBlur={() => commitRename(h.id)}
       onKeyDown={(e) => e.key === "Enter" && commitRename(h.id)}
+      onClick={(e) => e.stopPropagation()}
       autoFocus
       style={{
         width: "100%",
-        maxWidth: 260,
-        fontSize: 14,
+        fontSize: 15,
         fontWeight: 800,
-        border: "1.5px solid #c8ddd0",
+        border: "1.5px solid rgba(255,255,255,.55)",
         borderRadius: 8,
-        padding: "4px 8px",
+        padding: "3px 8px",
         fontFamily: "inherit",
         boxSizing: "border-box",
         textAlign: "center",
+        background: "rgba(20,47,29,.28)",
+        color: "#fff",
       }}
     />
   ) : (
     <button
       type="button"
-      onClick={() => h?.role === "owner" && h.isOwn && startRename(h)}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (h?.role === "owner" && h.isOwn) startRename(h);
+      }}
       style={{
         margin: 0,
         padding: 0,
         border: "none",
         background: "transparent",
         font: "inherit",
-        fontSize: 26,
+        fontSize: 20,
         fontWeight: 900,
-        color: empty && !ownerPending ? "#9ab0a1" : INK,
+        color: empty && !ownerPending ? "rgba(255,255,255,.72)" : "#fff",
         cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
-        lineHeight: 1.12,
-        letterSpacing: "-.5px",
-        maxWidth: "100%",
+        lineHeight: 1.15,
+        letterSpacing: "-.3px",
+        width: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
         textAlign: "center",
+        textShadow: "0 1px 6px rgba(20,47,29,.45)",
       }}
     >
       {displayName}
@@ -1031,8 +1034,6 @@ function SlotCard({
         gap: 8,
       }}
     >
-      {titleNode}
-
       <div
         style={{
           position: "relative",
@@ -1060,30 +1061,52 @@ function SlotCard({
           />
         </div>
 
-        {showMemberAvatars && (
-          <button
-            type="button"
-            aria-label="Editar comensales"
-            disabled={!canEditComensales}
-            onClick={(e) => {
-              e.stopPropagation();
-              if (canEditComensales) onEditMembers?.();
-            }}
-            style={{
-              position: "absolute",
-              top: 10,
-              left: 10,
-              zIndex: 3,
-              lineHeight: 0,
-              border: "none",
-              padding: 0,
-              background: "transparent",
-              cursor: canEditComensales ? "pointer" : "default",
-            }}
-          >
-            <GroupAvatarStack faces={avatarFaces} size={32} active max={3} />
-          </button>
-        )}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 5,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "10px 10px 18px",
+            background: "linear-gradient(180deg, rgba(20,47,29,.55) 0%, rgba(20,47,29,.08) 72%, transparent 100%)",
+            borderRadius: "20px 20px 0 0",
+            boxSizing: "border-box",
+          }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div style={{ flexShrink: 0, width: showMemberAvatars ? "auto" : 34, minHeight: 34 }}>
+            {showMemberAvatars && (
+              <button
+                type="button"
+                aria-label="Editar comensales"
+                disabled={!canEditComensales}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (canEditComensales) onEditMembers?.();
+                }}
+                style={{
+                  lineHeight: 0,
+                  border: "none",
+                  padding: 0,
+                  background: "transparent",
+                  cursor: canEditComensales ? "pointer" : "default",
+                }}
+              >
+                <GroupAvatarStack faces={avatarFaces} size={32} active max={3} />
+              </button>
+            )}
+          </div>
+
+          <div style={{ flex: 1, minWidth: 0 }}>{cardTitleNode}</div>
+
+          <div style={{ flexShrink: 0, width: menuActions.length ? "auto" : 34 }}>
+            <CardOverflowMenu actions={menuActions} />
+          </div>
+        </div>
 
         {h && (
           <button
@@ -1114,8 +1137,6 @@ function SlotCard({
             <Users size={19} color={GREEN} strokeWidth={2.35} />
           </button>
         )}
-
-        <CardOverflowMenu actions={menuActions} />
       </div>
 
       {h && (
