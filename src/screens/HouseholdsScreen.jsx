@@ -80,6 +80,43 @@ function MemberRow({ name, role }) {
   );
 }
 
+function SelectionCheck({ active, disabled, onSelect }) {
+  return (
+    <button
+      type="button"
+      aria-label={active ? "Hogar seleccionado" : "Seleccionar hogar"}
+      aria-pressed={active}
+      disabled={disabled}
+      onClick={() => !active && onSelect?.()}
+      style={{
+        margin: 0,
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: disabled ? "default" : active ? "default" : "pointer",
+        lineHeight: 0,
+        flexShrink: 0,
+      }}
+    >
+      <span
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: "50%",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: active ? "none" : "2px solid #cdd8d0",
+          background: active ? GREEN : "#fff",
+          boxShadow: active ? "0 2px 8px rgba(45,90,61,.28)" : "none",
+        }}
+      >
+        {active && <Check size={14} color="#fff" strokeWidth={3} />}
+      </span>
+    </button>
+  );
+}
+
 function SlotCard({
   slot,
   active,
@@ -125,46 +162,75 @@ function SlotCard({
   return (
     <div
       style={{
-        position: "relative",
         background: "#fff",
         borderRadius: 18,
         border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-        padding: "12px 12px 12px 10px",
+        padding: "14px 12px",
         boxShadow: active ? "0 10px 22px -14px rgba(45,90,61,.38)" : "0 4px 14px -10px rgba(20,47,29,.08)",
         opacity: empty && !ownerPending ? 0.72 : 1,
       }}
     >
-      {active && h && (
-        <span
-          style={{
-            position: "absolute",
-            top: 10,
-            right: 10,
-            zIndex: 2,
-            padding: "4px 10px",
-            borderRadius: 999,
-            fontSize: 10,
-            fontWeight: 800,
-            background: GREEN,
-            color: "#fff",
-            boxShadow: "0 2px 8px rgba(45,90,61,.35)",
-          }}
-        >
-          Activo
-        </span>
-      )}
-
-      <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
-        {/* Col 1 — nombre, ilustración, rol, acciones */}
+      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
+        {/* Izquierda — miembros */}
         <div
           style={{
-            width: 76,
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
+            gap: 8,
+          }}
+        >
+          {h ? (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {accessRows.map((row) => (
+                  <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
+                ))}
+              </div>
+              {h.role === "viewer" && (
+                <button
+                  type="button"
+                  onClick={() => onLeave?.(h.id)}
+                  style={{
+                    alignSelf: "flex-start",
+                    padding: "4px 8px",
+                    borderRadius: 8,
+                    border: "1.5px solid #f0d4d4",
+                    background: "#fff",
+                    color: "#b42318",
+                    fontWeight: 700,
+                    fontSize: 10,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 4,
+                  }}
+                >
+                  <LogOut size={11} />
+                  Abandonar
+                </button>
+              )}
+            </>
+          ) : (
+            emptyHint && (
+              <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
+            )
+          )}
+        </div>
+
+        {/* Centro — nombre, casa grande, rol, acciones */}
+        <div
+          style={{
+            width: 108,
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
-            gap: 6,
-            paddingTop: active ? 0 : 0,
+            gap: 7,
+            textAlign: "center",
           }}
         >
           {h && renamingId === h.id ? (
@@ -176,7 +242,7 @@ function SlotCard({
               autoFocus
               style={{
                 width: "100%",
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: 800,
                 border: "1.5px solid #c8ddd0",
                 borderRadius: 8,
@@ -196,13 +262,12 @@ function SlotCard({
                 border: "none",
                 background: "transparent",
                 font: "inherit",
-                fontSize: 12,
+                fontSize: 13.5,
                 fontWeight: 900,
                 color: empty && !ownerPending ? "#9ab0a1" : INK,
                 cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
-                textAlign: "center",
                 lineHeight: 1.15,
-                letterSpacing: "-.2px",
+                letterSpacing: "-.25px",
                 maxWidth: "100%",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
@@ -215,9 +280,9 @@ function SlotCard({
 
           <div
             style={{
-              width: 58,
-              height: 58,
-              borderRadius: 14,
+              width: 88,
+              height: 88,
+              borderRadius: 18,
               overflow: "hidden",
               background: "#eef4f0",
               filter: empty && !ownerPending ? "grayscale(.7)" : "none",
@@ -226,18 +291,20 @@ function SlotCard({
             <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
           </div>
 
-          <span
-            style={{
-              padding: "2px 8px",
-              borderRadius: 999,
-              fontSize: 9,
-              fontWeight: 800,
-              background: slot.kind === "owner" ? GREEN : "#eef4f0",
-              color: slot.kind === "owner" ? "#fff" : GREEN,
-            }}
-          >
-            {slot.roleLabel}
-          </span>
+          {h && (
+            <span
+              style={{
+                padding: "3px 10px",
+                borderRadius: 999,
+                fontSize: 9.5,
+                fontWeight: 800,
+                background: slot.kind === "owner" ? GREEN : "#eef4f0",
+                color: slot.kind === "owner" ? "#fff" : GREEN,
+              }}
+            >
+              {slot.roleLabel}
+            </span>
+          )}
 
           {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
             <button
@@ -245,13 +312,13 @@ function SlotCard({
               onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
               style={{
                 width: "100%",
-                padding: "5px 6px",
-                borderRadius: 8,
+                padding: "6px 8px",
+                borderRadius: 9,
                 border: "none",
                 background: GREEN,
                 color: "#fff",
                 fontWeight: 700,
-                fontSize: 9.5,
+                fontSize: 10,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 lineHeight: 1.2,
@@ -261,49 +328,28 @@ function SlotCard({
             </button>
           )}
 
-          {h && !active && (
-            <button
-              type="button"
-              onClick={() => onSwitch?.(h.id)}
-              style={{
-                width: "100%",
-                padding: "4px 6px",
-                borderRadius: 999,
-                border: `1.5px solid ${GREEN}`,
-                background: "#fff",
-                color: GREEN,
-                fontSize: 9.5,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-              }}
-            >
-              Activar
-            </button>
-          )}
-
           {empty && slot.kind === "viewer" && userLoggedIn && (
             <button
               type="button"
               onClick={onJoin}
               style={{
                 width: "100%",
-                padding: "5px 6px",
-                borderRadius: 8,
+                padding: "6px 8px",
+                borderRadius: 9,
                 border: "none",
                 background: GREEN,
                 color: "#fff",
-                fontSize: 9.5,
+                fontSize: 10,
                 fontWeight: 800,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 3,
+                gap: 4,
               }}
             >
-              <Link2 size={10} />
+              <Link2 size={11} />
               Unirse
             </button>
           )}
@@ -314,95 +360,71 @@ function SlotCard({
               onClick={onRetry}
               style={{
                 width: "100%",
-                padding: "4px 6px",
-                borderRadius: 8,
+                padding: "5px 8px",
+                borderRadius: 9,
                 border: `1.5px solid ${GREEN}`,
                 background: "#fff",
                 color: GREEN,
                 fontWeight: 700,
-                fontSize: 9,
+                fontSize: 9.5,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 3,
+                gap: 4,
               }}
             >
-              <RotateCw size={10} />
+              <RotateCw size={11} />
               Reintentar
             </button>
           )}
         </div>
 
-        {/* Col 2 — miembros (cuenta) */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center", paddingTop: 4 }}>
-          {h ? (
-            <>
-              <p style={{ margin: "0 0 8px", fontSize: 9.5, fontWeight: 800, color: "#9ab0a1", textTransform: "uppercase", letterSpacing: ".4px" }}>
-                Miembros
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
-                {accessRows.map((row) => (
-                  <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                ))}
-              </div>
-              {h.role === "viewer" && (
-                <button
-                  type="button"
-                  onClick={() => onLeave?.(h.id)}
-                  style={{
-                    marginTop: 10,
-                    alignSelf: "flex-start",
-                    padding: "5px 9px",
-                    borderRadius: 8,
-                    border: "1.5px solid #f0d4d4",
-                    background: "#fff",
-                    color: "#b42318",
-                    fontWeight: 700,
-                    fontSize: 10.5,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <LogOut size={12} />
-                  Abandonar
-                </button>
-              )}
-            </>
-          ) : (
-            emptyHint && (
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#9ab0a1" }}>{emptyHint}</p>
-            )
-          )}
-        </div>
-
-        {/* Col 3 — fecha + avatares familia */}
+        {/* Derecha — check, fecha, avatares */}
         <div
           style={{
-            width: 72,
+            width: 78,
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-end",
-            justifyContent: "center",
-            gap: 8,
-            paddingTop: active ? 18 : 0,
+            justifyContent: "flex-start",
+            gap: 10,
+            paddingTop: 2,
           }}
         >
+          {h ? (
+            <SelectionCheck
+              active={active}
+              disabled={active}
+              onSelect={() => onSwitch?.(h.id)}
+            />
+          ) : (
+            <span style={{ width: 26, height: 26, flexShrink: 0 }} />
+          )}
+
           {joinedLabel && (
-            <p style={{ margin: 0, fontSize: 10, fontWeight: 700, color: "#9ab0a1", lineHeight: 1.25, textAlign: "right" }}>
+            <p
+              style={{
+                margin: 0,
+                fontSize: 10.5,
+                fontWeight: 700,
+                color: "#9ab0a1",
+                lineHeight: 1.2,
+                textAlign: "right",
+                whiteSpace: "nowrap",
+              }}
+            >
               Desde {joinedLabel}
             </p>
           )}
+
           {showFamily && (
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 4 }}>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 5, marginTop: "auto" }}>
               {familyMembers.slice(0, 6).map((m) => (
                 <div key={m.id} style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
-                  <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={24} color={memberAvatarColor(m.id, familyMembers)} />
+                  <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={26} color={memberAvatarColor(m.id, familyMembers)} />
                 </div>
               ))}
             </div>
