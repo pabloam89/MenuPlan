@@ -1105,6 +1105,7 @@ export default function App() {
     leave: leaveHouseholdMembership,
     renameHousehold,
     advanceSetupStatus,
+    destroyHousehold,
     refresh: refreshHouseholds,
     joinByToken: joinHouseholdByToken,
   } = useHousehold({ user, loading: authLoading });
@@ -4023,6 +4024,7 @@ export default function App() {
                 onRefresh={refreshHouseholds}
                 onSwitchHousehold={handleSwitchHousehold}
                 onLeaveHousehold={leaveHouseholdMembership}
+                onDestroyHousehold={destroyHousehold}
                 onJoinByToken={joinHouseholdByToken}
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
