@@ -76,9 +76,21 @@ function RoleIllustration({ roleLabel }) {
   );
 }
 
+function formatHouseholdCreatedAt(iso) {
+  if (!iso) return "";
+  const t = Date.parse(iso);
+  if (Number.isNaN(t)) return "";
+  return new Date(t).toLocaleDateString("es-ES", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
+
 function HouseholdAccessList({
   householdId,
   userId,
+  householdCreatedAt,
   isOwner,
   onRemoveMember,
   coachHighlight = false,
@@ -152,7 +164,7 @@ function HouseholdAccessList({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "auto 1fr auto auto",
+                    gridTemplateColumns: "auto minmax(0, 1fr) auto auto auto",
                     alignItems: "center",
                     gap: 10,
                     padding: "2px 0",
@@ -171,6 +183,17 @@ function HouseholdAccessList({
                     }}
                   >
                     {acc.name}
+                  </span>
+                  <span
+                    style={{
+                      fontSize: 11.5,
+                      fontWeight: 600,
+                      color: MUTED,
+                      whiteSpace: "nowrap",
+                      textAlign: "right",
+                    }}
+                  >
+                    {acc.roleLabel === "Propietario" ? formatHouseholdCreatedAt(householdCreatedAt) : ""}
                   </span>
                   <RoleIllustration roleLabel={acc.roleLabel} />
                   {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember ? (
@@ -1007,6 +1030,7 @@ function SlotCard({
         <HouseholdAccessList
           householdId={h.id}
           userId={user?.id}
+          householdCreatedAt={h.createdAt}
           isOwner={Boolean(h.role === "owner" && h.isOwn)}
           onRemoveMember={onRemoveMember}
           coachHighlight={coachOwner}
