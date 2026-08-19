@@ -3,8 +3,7 @@
 // Guards the two ways a coach tour silently rots:
 //
 // 1. A step points at a selector nobody renders any more (the deck rewrite left
-//    `menu-filters` on a classic-mode-only chevron, and `shop-add` never had an
-//    anchor at all). Those steps just vanish, so nothing fails loudly.
+//    `menu-filters` on a classic-mode-only chevron). Those steps just vanish, so nothing fails loudly.
 // 2. The tour mounts before its lazy-loaded screen paints, the step list is
 //    filtered once against an empty DOM, and a 7-step tour collapses to the one
 //    step whose target lives in the always-mounted BottomNav.

@@ -413,26 +413,6 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
           </button>
         </div>
 
-        {showGarnish && (
-          <button
-            type="button"
-            onClick={() => setGarnishOpen(true)}
-            style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 12px", marginBottom: 12, borderRadius: 12,
-              border: `1.5px solid ${garnish ? GREEN : "#dce8e0"}`,
-              background: "#fff", cursor: "pointer",
-              fontFamily: "inherit", textAlign: "left",
-            }}
-          >
-            <Salad size={16} color={GREEN} strokeWidth={2.2} />
-            <span style={{ flex: 1, fontSize: 12.5, fontWeight: 800, color: INK }}>
-              {garnish ? `Guarnición: ${garnish.shortName ?? garnish.name}` : "Añadir guarnición (opcional)"}
-            </span>
-            <ChevronDown size={14} color="#7a9082" />
-          </button>
-        )}
-
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end", marginBottom: 12 }}>
           <div style={{ flexShrink: 0 }}>
             <div style={qLabelStyle}>Raciones</div>
@@ -449,6 +429,54 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
               style={{ ...editInputBase, background: FIELD_BG, width: 50, height: 34, padding: "0 6px", textAlign: "center", fontSize: 14, fontWeight: 800 }}
             />
           </div>
+          {showGarnish && (
+            <div style={{ flexShrink: 0, paddingTop: 6, display: "flex", flexDirection: "column", alignItems: "center" }}>
+              <div
+                style={{
+                  ...qLabelStyle,
+                  marginBottom: 5,
+                  lineHeight: 1.15,
+                  textAlign: "center",
+                  minWidth: 54,
+                }}
+              >
+                {garnish ? (
+                  <>
+                    Guarnición
+                    <br />
+                    añadida
+                  </>
+                ) : (
+                  <>
+                    Añadir
+                    <br />
+                    guarnición
+                  </>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setGarnishOpen(true)}
+                aria-label={garnish ? "Guarnición añadida — pulsa para cambiar" : "Añadir guarnición"}
+                title={garnish ? "Guarnición añadida — pulsa para cambiar" : "Añadir guarnición"}
+                style={{
+                  ...editInputBase,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: 50,
+                  height: 34,
+                  padding: 0,
+                  cursor: "pointer",
+                  background: garnish ? GREEN : FIELD_BG,
+                  borderColor: garnish ? GREEN : "#cfe0d6",
+                  color: garnish ? "#fff" : GREEN,
+                }}
+              >
+                <Salad size={16} strokeWidth={garnish ? 2.4 : 2.2} />
+              </button>
+            </div>
+          )}
           <div style={{ flexShrink: 0 }}>
             <div style={qLabelStyle}>¿Dónde?</div>
             <div style={{ ...modeToggleStyle, marginBottom: 0 }}>
@@ -514,7 +542,11 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
             currentGarnishId={garnishId}
             title="Elige guarnición"
             subtitle="Opcional — para tuppers ya montados"
-            onSelect={(id) => { setGarnishId(id); setGarnishOpen(false); }}
+            onSelect={(id) => {
+              setGarnishId(id);
+              setDishRole(id ? "principal_guarnicion" : inferDishRole(selected));
+              setGarnishOpen(false);
+            }}
             onClose={() => setGarnishOpen(false)}
           />
         )}

@@ -184,13 +184,6 @@ export const SHOPPING_COACH_STEPS = [
     place: "below",
   },
   {
-    selector: '[data-coach="shop-add"]',
-    Icon: Plus,
-    title: "Añadir",
-    desc: "Suma a mano cualquier cosa que falte y no esté en el menú.",
-    place: "below",
-  },
-  {
     selector: '[data-coach="shop-purchased"]',
     Icon: Check,
     title: "Comprado",

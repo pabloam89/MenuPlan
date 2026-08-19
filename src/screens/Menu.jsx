@@ -39,6 +39,7 @@ import {
   MoreVertical,
   Pizza,
   Plus,
+  Ban,
   RotateCcw,
   RotateCw,
   Refrigerator,
@@ -626,11 +627,12 @@ function DishIcon({ recipe, size = 44, imageUrl = null }) {
   );
 }
 
-function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta de la semana" }) {
+function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta de la semana", title = null }) {
   const visual = visualForRecipe(recipe);
   const Icon = ICONS_BY_TYPE[recipe.iconType] ?? Utensils;
   const [imgFailed, setImgFailed] = useState(false);
   const showPhoto = imageUrl && !imgFailed;
+  const displayTitle = title ?? recipe.name;
 
   return (
     <div
@@ -647,7 +649,7 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
           src={deckImg(imageUrl, 720)}
           srcSet={deckSrcSet(imageUrl, 720)}
           sizes="100vw"
-          alt={recipe.name}
+          alt={displayTitle}
           decoding="async"
           onError={() => setImgFailed(true)}
           style={{
@@ -741,7 +743,7 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
             textShadow: showPhoto ? "0 1px 12px rgba(0,0,0,.5)" : "none",
           }}
         >
-          {recipe.name}
+          {displayTitle}
         </div>
       </div>
     </div>
@@ -2517,6 +2519,7 @@ function catalogRecipeId(recipeOrId) {
 /** Qué guarnición enlazar: garnishId persistido, nombre fusionado o demo de catálogo. */
 function resolveGarnishKey(recipe, catalogId) {
   if (recipe?.garnishId && GUARNICION_BY_ID[recipe.garnishId]) return recipe.garnishId;
+  if (recipe?.pinnedGarnishId && GUARNICION_BY_ID[recipe.pinnedGarnishId]) return recipe.pinnedGarnishId;
 
   // Menús viejos: "Escalope de pollo con puré de patatas" sin garnishId en el objeto.
   const suffix = (recipe?.name ?? "").split(/\s+con\s+/i).pop()?.trim().toLowerCase();
@@ -4921,6 +4924,10 @@ export function DishDetail({
   favoriteScope = null,
   scopeGroups = [],
   onSetFavoriteScope,
+  // Catálogo (browse): descartar / recuperar el plato del pool permanente.
+  discarded = false,
+  onDiscardRecipe = null,
+  onRecoverRecipe = null,
   // Optional demo hooks (first-run value-prop carousel):
   // - initialAppliance: preselect a cooking method tab.
   // - stepsByAppliance: bundled step lists per appliance, so the demo shows
@@ -4928,6 +4935,7 @@ export function DishDetail({
   // - autoDemo: "methods" cycles the method tabs; "reject" auto-picks a swap
   //   reason and fires onReject once. Default null → normal interactive behaviour.
   initialAppliance = null,
+  initialCourse = "principal",
   initialRecipeTab = "ingredientes",
   stepsByAppliance = null,
   autoDemo = null,
@@ -4977,7 +4985,7 @@ export function DishDetail({
   }, [data?.userRecipes, recipe.source, recipe.baseRecipeId, catalogId]);
 
   const canEditClassification = Boolean(
-    userCatalogRecipe && isUserRecipeOwner(userCatalogRecipe, user) && onUpdateUserRecipe,
+    !browse && userCatalogRecipe && isUserRecipeOwner(userCatalogRecipe, user) && onUpdateUserRecipe,
   );
 
   const applyClassificationPatch = useCallback(
@@ -5057,10 +5065,19 @@ export function DishDetail({
     () => (garnishRecipe ? resolvePlainSteps(garnishRecipe.id, garnishRecipe) : []),
     [garnishRecipe],
   );
-  const [activeCourse, setActiveCourse] = useState("principal");
+  const [activeCourse, setActiveCourse] = useState(initialCourse);
   const showGarnishCourse = Boolean(garnishRecipe);
   const onGarnishCourse = showGarnishCourse && activeCourse === "guarnicion";
   const onCombinedCourse = showGarnishCourse && activeCourse === "combinado";
+  const garnishShortName = garnishRecipe
+    ? (GUARNICION_BY_ID[garnishRecipe.id]?.shortName ?? garnishRecipe.name)
+    : null;
+  const displayName = useMemo(() => {
+    if (!garnishRecipe) return recipe.name;
+    if (activeCourse === "guarnicion") return garnishRecipe.name;
+    if (activeCourse === "combinado") return `${recipe.name} con ${garnishShortName}`;
+    return recipe.name;
+  }, [recipe.name, garnishRecipe, garnishShortName, activeCourse]);
   // Solo el plato principal soporta el modo cocina (ticks "lo tengo" + descontar
   // de la despensa); en guarnición/combinado se muestra solo la lista.
   const cookCourse = !onGarnishCourse && !onCombinedCourse;
@@ -5591,7 +5608,7 @@ export function DishDetail({
             }}
             aria-label={isFavorite ? "Quitar de favoritas" : "Añadir a favoritas"}
             title={isFavorite ? "Quitar de favoritas" : "Añadir a favoritas"}
-            style={{ ...closeButtonStyle, right: "auto", left: 26 }}
+            style={{ ...heroActionButtonStyle, position: "absolute", left: 26, top: 26, zIndex: 2 }}
           >
             <Heart
               size={18}
@@ -5602,11 +5619,32 @@ export function DishDetail({
           </button>
         )}
 
+        {browse && onDiscardRecipe && (
+          <button
+            type="button"
+            onClick={() => (discarded ? onRecoverRecipe?.() : onDiscardRecipe?.())}
+            aria-label={discarded ? "Recuperar plato" : "Descartar plato"}
+            title={discarded ? "Recuperar (vuelve al catálogo)" : "Descartar (No me gusta)"}
+            style={{
+              ...heroActionButtonStyle,
+              position: "absolute",
+              left: onSetFavoriteScope ? 66 : 26,
+              top: 26,
+              zIndex: 2,
+              background: discarded ? "#c0392b" : "rgba(255,255,255,.92)",
+              color: discarded ? "#fff" : "#c0392b",
+            }}
+          >
+            {discarded ? <RotateCcw size={17} /> : <Ban size={17} strokeWidth={2.4} />}
+          </button>
+        )}
+
         <DishVisual
           recipe={recipe}
           height={220}
           imageUrl={dishImageForRecipe(recipe)}
           eyebrow={browse ? "Catálogo" : "Receta de la semana"}
+          title={displayName}
         />
 
         <div style={{ padding: "18px 2px 0" }}>
@@ -6417,11 +6455,7 @@ const detailSheetStyle = {
   position: "relative",
 };
 
-const closeButtonStyle = {
-  position: "absolute",
-  right: 26,
-  top: 26,
-  zIndex: 2,
+const heroActionButtonStyle = {
   width: 32,
   height: 32,
   borderRadius: 999,
@@ -6432,6 +6466,15 @@ const closeButtonStyle = {
   alignItems: "center",
   justifyContent: "center",
   cursor: "pointer",
+  boxShadow: "0 1px 4px rgba(0,0,0,.12)",
+};
+
+const closeButtonStyle = {
+  position: "absolute",
+  right: 26,
+  top: 26,
+  zIndex: 2,
+  ...heroActionButtonStyle,
 };
 
 const detailTagStyle = {
