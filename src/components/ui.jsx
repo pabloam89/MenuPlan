@@ -429,7 +429,7 @@ const NAV_ITEMS = [
   { id: "shopping",  icon: ShoppingCart,  label: "Compra",  color: "#5a82d4" },
 ];
 
-export function BottomNav({ active, onNav }) {
+export function BottomNav({ active, onNav, dissolved = false }) {
   const items = NAV_ITEMS;
   const nav = (
     <nav
@@ -445,26 +445,41 @@ export function BottomNav({ active, onNav }) {
         display: "flex",
         justifyContent: "center",
         paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        background: "linear-gradient(to top, #fff 88%, rgba(255,255,255,0))",
+        background: dissolved
+          ? "#fff"
+          : "linear-gradient(to top, #fff 88%, rgba(255,255,255,0))",
         pointerEvents: "none",
         boxSizing: "border-box",
+        transition: "background 0.55s cubic-bezier(0.4, 0, 0.2, 1)",
       }}
     >
       <div
         style={{
-          pointerEvents: "auto",
+          pointerEvents: dissolved ? "none" : "auto",
           width: "100%",
-          display: "flex",
-          alignItems: "stretch",
-          gap: 4,
-          padding: "8px 6px 10px",
-          marginBottom: 4,
+          position: "relative",
           borderRadius: "18px 18px 0 0",
-          borderTop: "1px solid #e0eae3",
-          background: "#fff",
-          boxShadow: "0 -6px 24px rgba(20,47,29,.08)",
         }}
       >
+        <div
+          style={{
+            width: "100%",
+            display: "flex",
+            alignItems: "stretch",
+            gap: 4,
+            padding: "8px 6px 10px",
+            marginBottom: 4,
+            borderRadius: "18px 18px 0 0",
+            borderTop: dissolved ? "1px solid #f0f0f0" : "1px solid #e0eae3",
+            background: "#fff",
+            boxShadow: dissolved ? "none" : "0 -6px 24px rgba(20,47,29,.08)",
+            opacity: dissolved ? 0.12 : 1,
+            transform: dissolved ? "scale(0.985) translateY(2px)" : "scale(1) translateY(0)",
+            filter: dissolved ? "blur(1.2px)" : "none",
+            transition:
+              "opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1), transform 0.55s cubic-bezier(0.4, 0, 0.2, 1), filter 0.55s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.55s ease, border-color 0.55s ease",
+          }}
+        >
         {items.map((it) => {
           const sel = active === it.id;
           return (
@@ -522,6 +537,19 @@ export function BottomNav({ active, onNav }) {
             </button>
           );
         })}
+        </div>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            inset: 0,
+            borderRadius: "inherit",
+            background: "linear-gradient(to top, #fff 82%, rgba(255,255,255,.94))",
+            opacity: dissolved ? 1 : 0,
+            transition: "opacity 0.55s cubic-bezier(0.4, 0, 0.2, 1)",
+            pointerEvents: "none",
+          }}
+        />
       </div>
     </nav>
   );
