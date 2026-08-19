@@ -45,8 +45,8 @@ export const HOUSEHOLDS_COACH_STEPS = [
     selector: '[data-coach="households-members"]',
     Icon: Users,
     title: "Quién tiene acceso",
-    desc: "Cuentas Google invitadas (propietario o visitante). Las caritas de comensales del menú son otra cosa.",
-    place: "above",
+    desc: "Cuentas Google con acceso al hogar, listadas debajo de la tarjeta. Las caritas de comensales del menú son otra cosa.",
+    place: "below",
   },
   {
     selector: '[data-coach="households-menu"]',
@@ -59,8 +59,8 @@ export const HOUSEHOLDS_COACH_STEPS = [
     selector: '[data-coach="households-dots"]',
     Icon: ArrowRight,
     title: "Desliza a la derecha",
-    desc: "Tu hogar es la primera tarjeta. A la derecha hay huecos para hogares ajenos — en el siguiente paso vamos al primero.",
-    place: "above",
+    desc: "Arriba ves en qué hogar estás. Desliza la tarjeta a la derecha para ver huecos de hogares ajenos.",
+    place: "below",
   },
   {
     selector: '[data-coach="households-viewer-card"]',
