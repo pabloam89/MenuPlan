@@ -34,6 +34,7 @@ const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").the
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
+const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, pickGarnishReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
@@ -1041,6 +1042,8 @@ export default function App() {
     setMenuCoachSeen(true);
   }, []);
   const [data, setData] = useState(persisted?.data ?? INITIAL_DATA);
+  /** Votes personales (recipe_votes), sin favoritas del hogar — para Biblioteca. */
+  const [personalRecipeVotes, setPersonalRecipeVotes] = useState({});
   // Safety net: if a history entry gets deleted (e.g. from another tab/
   // device, or a race the per-row delete-button guard in MenusScreen didn't
   // catch) while the user is viewing it, the "menuHistory" screen block
@@ -1189,6 +1192,7 @@ export default function App() {
     if (!user?.id) {
       cloudReadyRef.current = false;
       hydratedUserRef.current = null;
+      setPersonalRecipeVotes({});
       return;
     }
     if (householdLoading || !activeHouseholdId) return;
@@ -1236,10 +1240,12 @@ export default function App() {
       if (cancelled) return;
 
       const mergedRecipes = mergeUserRecipesById(localRecipes, remoteRecipes);
+      const personalVotes = mergeVotes(localVotes, remoteVotes);
       const mergedVotes = mergeVotes(
-        mergeVotes(localVotes, remoteVotes),
+        personalVotes,
         householdFavoritesToVotes(remoteHouseholdFavs),
       );
+      setPersonalRecipeVotes(personalVotes);
 
       // Adopt the remote profile snapshot only to hydrate a session that
       // hasn't built a local profile yet (new device, cleared storage, or
@@ -2663,6 +2669,21 @@ export default function App() {
     }
   }, [data.recipeVotes, showToast, user, householdReadOnly, syncHouseholdId]);
 
+  // Favoritas personales (Biblioteca) — solo recipe_votes, no household_favorites.
+  const handlePersonalSetFavoriteScope = useCallback((recipeId, scope) => {
+    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
+    const wasFav = isRecipeFavorite(personalRecipeVotes, baseId);
+    const nextPersonal = setFavoriteScope(personalRecipeVotes, baseId, scope);
+    setPersonalRecipeVotes(nextPersonal);
+    if (scope == null && wasFav) showToast("Quitada de favoritas");
+    else if (scope != null && !wasFav) showToast("Añadida a favoritas");
+    if (user?.id) {
+      const entry = nextPersonal[baseId] ?? null;
+      if (entry == null) deleteRecipeVote(user.id, baseId);
+      else saveRecipeVote(user.id, baseId, entry);
+    }
+  }, [personalRecipeVotes, showToast, user]);
+
   // ── Discards (menu rejections) ──────────────────────────────────────────
   // Base catalog id (prefix-free) of whatever currently sits in a slot, so a
   // discard matches the id filterRecipes/aiPlanner filter on.
@@ -3988,30 +4009,70 @@ export default function App() {
                 households={households}
                 activeHousehold={activeHousehold}
                 activeHouseholdId={activeHouseholdId}
+                members={data.members ?? []}
                 readOnly={householdReadOnly}
                 canShareInvite={canShareInvite}
                 inviteUrl={inviteUrl}
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("dashboard"))}
+                onOpenBiblioteca={() => fwd(() => setScreen("biblioteca"))}
                 onSwitchHousehold={handleSwitchHousehold}
                 onLeaveHousehold={leaveHouseholdMembership}
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "biblioteca" && (
+          <div
+            key="biblioteca"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <BibliotecaScreen
+                user={user}
                 userRecipes={ownUserRecipes}
-                recipeVotes={data.recipeVotes}
+                recipeVotes={personalRecipeVotes}
                 scopeGroups={favoriteScopeGroups}
-                onSetFavoriteScope={handleSetFavoriteScope}
+                onSetFavoriteScope={handlePersonalSetFavoriteScope}
                 onOpenRecipe={handleOpenCatalogRecipe}
+                onNav={handleNav}
+                onBack={() => back(() => setScreen("households"))}
                 onOpenRecipePlanner={() => {
-                  recipePlannerOriginRef.current = "households";
+                  recipePlannerOriginRef.current = "biblioteca";
                   setEditingRecipe(null);
+                  fwd(() => setScreen("recipePlanner"));
+                }}
+                onChangeRecipeVisibility={(recipeId, visibility) => {
+                  setData((d) => ({
+                    ...d,
+                    userRecipes: (d.userRecipes ?? []).map((r) =>
+                      (r.id ?? r.name) === recipeId ? { ...r, visibility } : r
+                    ),
+                  }));
+                  if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
+                }}
+                onDeleteRecipe={(recipeId) => {
+                  setData((d) => ({
+                    ...d,
+                    userRecipes: (d.userRecipes ?? []).filter((r) => (r.id ?? r.name) !== recipeId),
+                  }));
+                  if (user?.id) deleteUserRecipe(user.id, recipeId);
+                  showToast("Receta eliminada");
+                }}
+                onEditRecipe={(recipe) => {
+                  recipePlannerOriginRef.current = "biblioteca";
+                  setEditingRecipe(recipe);
                   fwd(() => setScreen("recipePlanner"));
                 }}
                 onBrowseGarnishCombo={(recipe, garnish) => {
                   if (!garnish?.id) return;
                   handleOpenCatalogRecipe(recipe, { garnishId: garnish.id, initialCourse: "combinado" });
                 }}
+                onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
             </Suspense>
           </div>

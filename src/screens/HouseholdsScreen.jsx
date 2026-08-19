@@ -1,28 +1,14 @@
 import { useMemo, useState } from "react";
 import {
-  ChevronDown,
-  ChevronUp,
   Copy,
   Check,
   LogOut,
   Share2,
-  Plus,
   BookOpen,
-  Heart,
-  NotebookPen,
+  CheckCircle2,
 } from "lucide-react";
-import {
-  BottomNav,
-  bottomNavSpacer,
-  EmptyIllustration,
-  GoogleButton,
-  SegmentedTabBar,
-  SegmentedTabButton,
-} from "../components/ui.jsx";
-import { googleInfo } from "./Settings.jsx";
-import { CatalogBrowserSheet } from "./CatalogBrowserSheet.jsx";
-import { favoriteRecipeIds } from "../lib/recipeVotes.js";
-import { filterOwnCreatedRecipes } from "../lib/userRecipes.js";
+import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
+import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -31,8 +17,6 @@ const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 
 
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.jpg";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.jpg";
-const IMG_BIB_MINE = "/avatares/cards/recetas_solo_mias.png";
-const IMG_BIB_FAV = "/avatares/cards/empty_favoritas.jpg";
 
 function setupBadge(status) {
   if (status === "active") return null;
@@ -55,6 +39,8 @@ function buildSlots(households) {
 function SlotCard({
   slot,
   active,
+  members = [],
+  showMembers,
   onSwitch,
   onLeave,
   onAdvanceSetup,
@@ -67,194 +53,222 @@ function SlotCard({
   const h = slot.household;
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
+  const statusBadge = h ? setupBadge(h.setupStatus) : null;
 
   return (
     <div
       style={{
         background: "#fff",
-        borderRadius: 20,
+        borderRadius: 18,
         border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-        overflow: "hidden",
-        boxShadow: active ? "0 14px 28px -16px rgba(45,90,61,.45)" : "0 8px 20px -14px rgba(20,47,29,.12)",
-        opacity: empty ? 0.72 : 1,
+        padding: 12,
+        boxShadow: active ? "0 12px 24px -14px rgba(45,90,61,.4)" : "0 6px 18px -12px rgba(20,47,29,.1)",
+        opacity: empty ? 0.68 : 1,
       }}
     >
-      <div style={{ position: "relative", aspectRatio: "16 / 9", background: "#eef4f0", overflow: "hidden" }}>
-        <img
-          src={img}
-          alt=""
-          style={{
-            width: "100%",
-            height: "100%",
-            objectFit: "cover",
-            objectPosition: "center top",
-            display: "block",
-            filter: empty ? "grayscale(.85) brightness(1.05)" : "none",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            inset: 0,
-            background: empty
-              ? "linear-gradient(180deg, rgba(244,248,245,.15) 0%, rgba(244,248,245,.75) 100%)"
-              : "linear-gradient(180deg, rgba(10,26,16,0) 40%, rgba(10,26,16,.55) 100%)",
-          }}
-        />
-        <span
-          style={{
-            position: "absolute",
-            top: 10,
-            left: 10,
-            padding: "4px 10px",
-            borderRadius: 999,
-            fontSize: 10.5,
-            fontWeight: 800,
-            background: slot.kind === "owner" ? GREEN : "rgba(255,255,255,.92)",
-            color: slot.kind === "owner" ? "#fff" : GREEN,
-          }}
-        >
-          {slot.roleLabel}
-        </span>
-        {active && h && (
+      <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>
+        {/* Ilustración + badge + activo */}
+        <div style={{ width: 92, flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
+          <div
+            style={{
+              width: 72,
+              height: 72,
+              borderRadius: 16,
+              overflow: "hidden",
+              border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
+              background: "#eef4f0",
+              filter: empty ? "grayscale(.8)" : "none",
+            }}
+          >
+            <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+          </div>
           <span
             style={{
-              position: "absolute",
-              top: 10,
-              right: 10,
-              padding: "4px 10px",
+              padding: "3px 8px",
               borderRadius: 999,
-              fontSize: 10.5,
+              fontSize: 10,
               fontWeight: 800,
-              background: "#fff",
-              color: GREEN,
+              background: slot.kind === "owner" ? GREEN : "#eef4f0",
+              color: slot.kind === "owner" ? "#fff" : GREEN,
+              textAlign: "center",
+              lineHeight: 1.2,
             }}
           >
-            Activo
+            {slot.roleLabel}
           </span>
-        )}
-      </div>
-
-      <div style={{ padding: "14px 14px 12px" }}>
-        {h && renamingId === h.id ? (
-          <input
-            value={renameDraft}
-            onChange={(e) => setRenameDraft(e.target.value)}
-            onBlur={() => commitRename(h.id)}
-            onKeyDown={(e) => e.key === "Enter" && commitRename(h.id)}
-            autoFocus
-            style={{
-              width: "100%",
-              fontSize: 16,
-              fontWeight: 800,
-              border: "1.5px solid #c8ddd0",
-              borderRadius: 10,
-              padding: "8px 10px",
-              fontFamily: "inherit",
-              boxSizing: "border-box",
-            }}
-          />
-        ) : (
-          <button
-            type="button"
-            onClick={() => h?.role === "owner" && startRename(h)}
-            style={{
-              margin: 0,
-              padding: 0,
-              border: "none",
-              background: "transparent",
-              font: "inherit",
-              fontSize: 17,
-              fontWeight: 900,
-              color: empty ? "#9ab0a1" : INK,
-              cursor: h?.role === "owner" ? "pointer" : "default",
-              textAlign: "left",
-              letterSpacing: "-.3px",
-            }}
-          >
-            {h?.name ?? slot.label}
-          </button>
-        )}
-
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, minHeight: 22 }}>
-          {h && setupBadge(h.setupStatus) && (
-            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "#fff7e6", color: "#9a6b00" }}>
-              {setupBadge(h.setupStatus)}
-            </span>
-          )}
-          {empty && (
-            <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 8px", borderRadius: 999, background: "#f0f4f1", color: "#7a9485" }}>
-              {slot.kind === "owner" ? "Se crea al iniciar sesión" : "Únete con un enlace"}
-            </span>
-          )}
-        </div>
-
-        {h && (
-          <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
-            {!active && (
+          {h && (
+            active ? (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 4,
+                  padding: "5px 10px",
+                  borderRadius: 999,
+                  fontSize: 10.5,
+                  fontWeight: 800,
+                  background: GREEN,
+                  color: "#fff",
+                  width: "100%",
+                  justifyContent: "center",
+                  boxSizing: "border-box",
+                }}
+              >
+                <CheckCircle2 size={12} strokeWidth={2.5} />
+                Activo
+              </span>
+            ) : (
               <button
                 type="button"
                 onClick={() => onSwitch?.(h.id)}
                 style={{
-                  flex: 1,
-                  minWidth: 120,
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: GREEN,
-                  color: "#fff",
-                  fontWeight: 800,
-                  fontSize: 13,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                Usar este hogar
-              </button>
-            )}
-            {h.role === "viewer" && (
-              <button
-                type="button"
-                onClick={() => onLeave?.(h.id)}
-                style={{
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "1.5px solid #f0d4d4",
+                  width: "100%",
+                  padding: "5px 8px",
+                  borderRadius: 999,
+                  border: `1.5px solid ${GREEN}`,
                   background: "#fff",
-                  color: "#b42318",
-                  fontWeight: 700,
-                  fontSize: 13,
+                  color: GREEN,
+                  fontSize: 10.5,
+                  fontWeight: 800,
                   cursor: "pointer",
                   fontFamily: "inherit",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
                 }}
               >
-                <LogOut size={15} />
-                Abandonar
+                Activar
               </button>
+            )
+          )}
+        </div>
+
+        {/* Nombre + estado + acciones */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          {h && renamingId === h.id ? (
+            <input
+              value={renameDraft}
+              onChange={(e) => setRenameDraft(e.target.value)}
+              onBlur={() => commitRename(h.id)}
+              onKeyDown={(e) => e.key === "Enter" && commitRename(h.id)}
+              autoFocus
+              style={{
+                width: "100%",
+                fontSize: 15,
+                fontWeight: 800,
+                border: "1.5px solid #c8ddd0",
+                borderRadius: 10,
+                padding: "7px 9px",
+                fontFamily: "inherit",
+                boxSizing: "border-box",
+              }}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => h?.role === "owner" && startRename(h)}
+              style={{
+                margin: 0,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                font: "inherit",
+                fontSize: 16,
+                fontWeight: 900,
+                color: empty ? "#9ab0a1" : INK,
+                cursor: h?.role === "owner" ? "pointer" : "default",
+                textAlign: "left",
+                letterSpacing: "-.3px",
+                lineHeight: 1.2,
+              }}
+            >
+              {h?.name ?? slot.label}
+            </button>
+          )}
+
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
+            {statusBadge && (
+              <span style={{ fontSize: 10.5, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: "#fff7e6", color: "#9a6b00" }}>
+                {statusBadge}
+              </span>
             )}
-            {h.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
-              <button
-                type="button"
-                onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
-                style={{
-                  flex: 1,
-                  minWidth: 120,
-                  padding: "10px 12px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: GREEN,
-                  color: "#fff",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                }}
-              >
-                Configurar hogar
-              </button>
+            {empty && (
+              <span style={{ fontSize: 10.5, fontWeight: 700, padding: "2px 7px", borderRadius: 999, background: "#f0f4f1", color: "#7a9485" }}>
+                {slot.kind === "owner" ? "Al iniciar sesión" : "Con enlace de invitación"}
+              </span>
+            )}
+          </div>
+
+          {h?.role === "viewer" && (
+            <button
+              type="button"
+              onClick={() => onLeave?.(h.id)}
+              style={{
+                marginTop: 10,
+                alignSelf: "flex-start",
+                padding: "7px 10px",
+                borderRadius: 10,
+                border: "1.5px solid #f0d4d4",
+                background: "#fff",
+                color: "#b42318",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 5,
+              }}
+            >
+              <LogOut size={14} />
+              Abandonar
+            </button>
+          )}
+          {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
+            <button
+              type="button"
+              onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
+              style={{
+                marginTop: 10,
+                alignSelf: "flex-start",
+                padding: "7px 10px",
+                borderRadius: 10,
+                border: "none",
+                background: GREEN,
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: 12,
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              Configurar hogar
+            </button>
+          )}
+        </div>
+
+        {/* Miembros (solo hogar activo) */}
+        {showMembers && members.length > 0 && (
+          <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, minWidth: 56 }}>
+            <p style={{ margin: 0, fontSize: 9.5, fontWeight: 800, color: "#9ab0a1", textTransform: "uppercase", letterSpacing: ".4px" }}>
+              Comen
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+              {members.slice(0, 4).map((m, i) => (
+                <div
+                  key={m.id}
+                  style={{
+                    marginTop: i === 0 ? 0 : -8,
+                    borderRadius: "50%",
+                    border: "2px solid #fff",
+                    zIndex: members.length - i,
+                    lineHeight: 0,
+                    boxShadow: "0 2px 6px rgba(20,47,29,.15)",
+                  }}
+                >
+                  <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={30} color={memberAvatarColor(m.id, members)} />
+                </div>
+              ))}
+            </div>
+            {members.length > 4 && (
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#7a9485" }}>+{members.length - 4}</span>
             )}
           </div>
         )}
@@ -268,37 +282,29 @@ export function HouseholdsScreen({
   households = [],
   activeHousehold,
   activeHouseholdId,
+  members = [],
   readOnly,
   canShareInvite,
   inviteUrl,
   onNav,
   onBack,
+  onOpenBiblioteca,
   onSwitchHousehold,
   onLeaveHousehold,
   onRenameHousehold,
   onAdvanceSetup,
   onSignIn,
-  userRecipes = [],
-  recipeVotes = {},
-  scopeGroups = [],
-  onSetFavoriteScope,
-  onOpenRecipe,
-  onOpenRecipePlanner,
-  onBrowseGarnishCombo,
 }) {
   const [copied, setCopied] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
-  const [bibOpen, setBibOpen] = useState(false);
-  const [bibTab, setBibTab] = useState("mine");
 
-  const g = googleInfo(user);
   const slots = useMemo(() => buildSlots(households), [households]);
-  const favoriteIds = useMemo(() => new Set(favoriteRecipeIds(recipeVotes)), [recipeVotes]);
-  const ownRecipes = useMemo(
-    () => filterOwnCreatedRecipes(userRecipes, user),
-    [userRecipes, user],
-  );
+  const effectiveActiveId =
+    activeHouseholdId ??
+    households.find((h) => h.role === "owner" && h.isOwn)?.id ??
+    households[0]?.id ??
+    null;
 
   const handleCopyInvite = async () => {
     if (!inviteUrl) return;
@@ -326,11 +332,6 @@ export function HouseholdsScreen({
     setRenamingId(null);
   };
 
-  const BIB_TABS = [
-    { id: "mine", label: "Mis recetas", count: ownRecipes.length, Icon: NotebookPen },
-    { id: "favorites", label: "Favoritas", count: favoriteIds.size, Icon: Heart },
-  ];
-
   return (
     <div style={{ minHeight: "100dvh", background: BG, color: INK }}>
       <div
@@ -345,58 +346,72 @@ export function HouseholdsScreen({
       >
         <div
           style={{
-            position: "relative",
             background: MENU_GRADIENT,
             borderRadius: "0 0 26px 26px",
-            padding: "22px 18px 24px",
+            padding: "20px 18px 22px",
             margin: "0 -18px 18px",
-            overflow: "hidden",
             boxShadow: "0 18px 34px -16px rgba(20,47,29,.55)",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10, position: "relative", zIndex: 1 }}>
-            {onBack && (
-              <button
-                type="button"
-                onClick={onBack}
-                style={{
-                  border: "1px solid rgba(255,255,255,.35)",
-                  background: "rgba(255,255,255,.16)",
-                  color: "#fff",
-                  borderRadius: 10,
-                  padding: "7px 12px",
-                  fontSize: 13,
-                  fontWeight: 700,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  flexShrink: 0,
-                }}
-              >
-                Atrás
-              </button>
-            )}
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <h1 style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-.4px" }}>
-                Hogares
-              </h1>
-              <p style={{ margin: "4px 0 0", fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,.88)", lineHeight: 1.35 }}>
-                {user ? "Tu hogar, invitados y biblioteca personal" : "Inicia sesión para sincronizar"}
-              </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <img
+              src={IMG_OWNER}
+              alt=""
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: 12,
+                objectFit: "cover",
+                border: "2px solid rgba(255,255,255,.45)",
+                flexShrink: 0,
+              }}
+            />
+            <h1 style={{ margin: 0, flex: 1, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-.4px" }}>
+              Hogares
+            </h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              {onOpenBiblioteca && user && (
+                <button
+                  type="button"
+                  onClick={onOpenBiblioteca}
+                  aria-label="Biblioteca"
+                  title="Tu biblioteca"
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 11,
+                    border: "1px solid rgba(255,255,255,.35)",
+                    background: "rgba(255,255,255,.18)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  <BookOpen size={17} color="#fff" strokeWidth={2.3} />
+                </button>
+              )}
+              {onBack && (
+                <button
+                  type="button"
+                  onClick={onBack}
+                  style={{
+                    border: "1px solid rgba(255,255,255,.35)",
+                    background: "rgba(255,255,255,.16)",
+                    color: "#fff",
+                    borderRadius: 10,
+                    padding: "7px 12px",
+                    fontSize: 13,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  Atrás
+                </button>
+              )}
             </div>
-            {user && (
-              <img
-                src={IMG_OWNER}
-                alt=""
-                style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 14,
-                  objectFit: "cover",
-                  border: "2px solid rgba(255,255,255,.45)",
-                  flexShrink: 0,
-                }}
-              />
-            )}
           </div>
         </div>
 
@@ -411,22 +426,27 @@ export function HouseholdsScreen({
 
         {user && (
           <>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
-              {slots.map((slot) => (
-                <SlotCard
-                  key={slot.kind + (slot.household?.id ?? slot.label)}
-                  slot={slot}
-                  active={slot.household?.id === activeHouseholdId}
-                  onSwitch={onSwitchHousehold}
-                  onLeave={onLeaveHousehold}
-                  onAdvanceSetup={onAdvanceSetup}
-                  renamingId={renamingId}
-                  renameDraft={renameDraft}
-                  setRenameDraft={setRenameDraft}
-                  startRename={startRename}
-                  commitRename={commitRename}
-                />
-              ))}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
+              {slots.map((slot) => {
+                const isActive = slot.household?.id === effectiveActiveId;
+                return (
+                  <SlotCard
+                    key={slot.kind + (slot.household?.id ?? slot.label)}
+                    slot={slot}
+                    active={isActive}
+                    members={members}
+                    showMembers={isActive && !!slot.household}
+                    onSwitch={onSwitchHousehold}
+                    onLeave={onLeaveHousehold}
+                    onAdvanceSetup={onAdvanceSetup}
+                    renamingId={renamingId}
+                    renameDraft={renameDraft}
+                    setRenameDraft={setRenameDraft}
+                    startRename={startRename}
+                    commitRename={commitRename}
+                  />
+                );
+              })}
             </div>
 
             {canShareInvite && inviteUrl && (
@@ -465,178 +485,11 @@ export function HouseholdsScreen({
             )}
 
             {readOnly && activeHousehold && (
-              <div style={{ background: "#fffdf5", border: "1.5px solid #f5e6b8", borderRadius: 14, padding: 14, marginBottom: 16 }}>
+              <div style={{ background: "#fffdf5", border: "1.5px solid #f5e6b8", borderRadius: 14, padding: 14 }}>
                 <p style={{ margin: 0, fontSize: 13, lineHeight: 1.45, color: "#7a5d00" }}>
                   Estás en <strong>{activeHousehold.name}</strong> como visitante (solo lectura).
                 </p>
               </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() => setBibOpen((v) => !v)}
-              style={{
-                width: "100%",
-                marginBottom: bibOpen ? 0 : 8,
-                padding: 0,
-                border: "1.5px solid #cfe3d8",
-                borderRadius: bibOpen ? "16px 16px 0 0" : 16,
-                background: "#fff",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                textAlign: "left",
-                overflow: "hidden",
-                boxShadow: "0 8px 22px -14px rgba(20,47,29,.2)",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "stretch", minHeight: 88 }}>
-                <div style={{ width: "38%", position: "relative", overflow: "hidden", background: "#e6f3ea" }}>
-                  <img src={IMG_BIB_MINE} alt="" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
-                </div>
-                <div style={{ flex: 1, padding: "14px 12px 14px 14px", display: "flex", flexDirection: "column", justifyContent: "center", gap: 4 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <BookOpen size={16} color={GREEN} />
-                    <p style={{ margin: 0, fontSize: 15, fontWeight: 900, color: INK }}>Tu biblioteca</p>
-                  </div>
-                  <p style={{ margin: 0, fontSize: 12, color: "#7a9485", lineHeight: 1.35 }}>
-                    {ownRecipes.length} recetas creadas · {favoriteIds.size} favoritas
-                  </p>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", paddingRight: 14 }}>
-                  {bibOpen ? <ChevronUp size={18} color="#9ab0a1" /> : <ChevronDown size={18} color="#9ab0a1" />}
-                </div>
-              </div>
-            </button>
-
-            {bibOpen && (
-              <div
-                style={{
-                  background: "#fff",
-                  border: "1.5px solid #cfe3d8",
-                  borderTop: "1px solid #eef2ef",
-                  borderRadius: "0 0 16px 16px",
-                  padding: "14px 0 8px",
-                  marginBottom: 16,
-                  boxShadow: "0 8px 22px -14px rgba(20,47,29,.15)",
-                }}
-              >
-                <div style={{ padding: "0 14px 12px", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <div style={{ flex: 1, minWidth: 200 }}>
-                    <SegmentedTabBar>
-                      {BIB_TABS.map((t) => (
-                        <SegmentedTabButton
-                          key={t.id}
-                          selected={bibTab === t.id}
-                          onClick={() => setBibTab(t.id)}
-                          label={t.label}
-                          count={t.count}
-                          Icon={t.Icon}
-                          accent={GREEN}
-                        />
-                      ))}
-                    </SegmentedTabBar>
-                  </div>
-                  {onOpenRecipePlanner && (
-                    <button
-                      type="button"
-                      onClick={onOpenRecipePlanner}
-                      style={{
-                        flexShrink: 0,
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 5,
-                        padding: "8px 11px",
-                        borderRadius: 11,
-                        border: "none",
-                        background: GREEN,
-                        color: "#fff",
-                        fontSize: 12,
-                        fontWeight: 800,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      <Plus size={14} strokeWidth={2.8} />
-                      Crear
-                    </button>
-                  )}
-                </div>
-
-                {bibTab === "favorites" && (
-                  <CatalogBrowserSheet
-                    inline
-                    inlinePadding={14}
-                    reference
-                    recipeVotes={recipeVotes}
-                    scopeGroups={scopeGroups}
-                    onSetFavoriteScope={onSetFavoriteScope}
-                    onOpenRecipe={onOpenRecipe}
-                    favoriteIds={favoriteIds}
-                    emptyImg={IMG_BIB_FAV}
-                    emptyLabel="Aún no tienes favoritas"
-                    emptySubtitle="Pulsa el corazón en cualquier receta del catálogo para guardarla aquí."
-                  />
-                )}
-
-                {bibTab === "mine" && (
-                  ownRecipes.length === 0 ? (
-                    <div style={{ padding: "8px 14px 12px" }}>
-                      <EmptyIllustration
-                        img="/avatares/cards/empty_recetas_propias.jpg"
-                        title="Aún no tienes recetas propias"
-                        subtitle="Crea tu primera receta y la IA rellenará macros, pasos y foto."
-                        maxWidth={220}
-                        imgAspect="1 / 1"
-                        imgPosition="center"
-                      >
-                        {onOpenRecipePlanner && (
-                          <button
-                            type="button"
-                            onClick={onOpenRecipePlanner}
-                            style={{
-                              marginTop: 14,
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: 7,
-                              padding: "11px 18px",
-                              borderRadius: 13,
-                              border: "none",
-                              background: GREEN,
-                              color: "#fff",
-                              fontSize: 14,
-                              fontWeight: 800,
-                              cursor: "pointer",
-                              fontFamily: "inherit",
-                            }}
-                          >
-                            <Plus size={15} strokeWidth={2.8} /> Crear receta
-                          </button>
-                        )}
-                      </EmptyIllustration>
-                    </div>
-                  ) : (
-                    <CatalogBrowserSheet
-                      inline
-                      inlinePadding={14}
-                      reference
-                      recipeVotes={recipeVotes}
-                      scopeGroups={scopeGroups}
-                      onSetFavoriteScope={onSetFavoriteScope}
-                      onOpenRecipe={onOpenRecipe}
-                      onBrowseGarnishCombo={onBrowseGarnishCombo}
-                      sourceRecipes={ownRecipes}
-                      ownRecipesView
-                      emptyLabel="Ninguna de tus recetas coincide con esos filtros."
-                    />
-                  )
-                )}
-              </div>
-            )}
-
-            {g?.name && (
-              <p style={{ margin: "8px 0 0", textAlign: "center", fontSize: 12, color: "#9ab0a1", fontWeight: 600 }}>
-                {g.name}
-              </p>
             )}
           </>
         )}
