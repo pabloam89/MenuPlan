@@ -1,26 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Check,
-  Share2,
-  Trash2,
   BookOpen,
   Link2,
   RotateCw,
-  Users,
-  UserRound,
 } from "lucide-react";
-import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
-import { googleInfo } from "./Settings.jsx";
-import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
-
+import { BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const BG = "#f4f8f5";
 const MUTED = "#5a7262";
 const ACTIVE_CARD_BG = "#f8fbf9";
-const PANEL_BG = "#f4f8f5";
 const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
-
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
 
@@ -47,215 +37,12 @@ function buildSlots(households, activeHousehold, user) {
   ];
 }
 
-function MemberRow({ name, status }) {
-  const isOwner = status === "Prop";
-  return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr auto",
-        alignItems: "center",
-        gap: 8,
-        padding: "6px 0 4px",
-        borderBottom: "1px solid #e3ebe6",
-      }}
-    >
-      <span
-        style={{
-          fontSize: 13,
-          fontWeight: 800,
-          color: INK,
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          minWidth: 0,
-        }}
-      >
-        {name}
-      </span>
-      <span
-        style={{
-          padding: "2px 8px",
-          borderRadius: 999,
-          fontSize: 9,
-          fontWeight: 800,
-          background: isOwner ? GREEN : "#eef4f0",
-          color: isOwner ? "#fff" : GREEN,
-          lineHeight: 1.3,
-          flexShrink: 0,
-        }}
-      >
-        {status}
-      </span>
-    </div>
-  );
-}
-
-const ILLU_V_GAP = 6;
-
-function HeaderIconButton({ label, title, onClick, color = GREEN, children }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={title ?? label}
-      onClick={onClick}
-      style={{
-        margin: 0,
-        padding: 0,
-        border: "none",
-        background: "transparent",
-        cursor: "pointer",
-        lineHeight: 0,
-        color,
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function PeopleSegment({ value, onChange }) {
-  const segments = [
-    { id: "members", label: "Miembros", Icon: Users },
-    { id: "diners", label: "Comensales", Icon: UserRound },
-  ];
-  return (
-    <div
-      role="group"
-      aria-label="Miembros o comensales"
-      style={{
-        display: "flex",
-        gap: 2,
-        padding: 3,
-        borderRadius: 10,
-        background: "#e8f0eb",
-      }}
-    >
-      {segments.map(({ id, label, Icon }) => {
-        const on = value === id;
-        return (
-          <button
-            key={id}
-            type="button"
-            aria-label={label}
-            aria-pressed={on}
-            title={label}
-            onClick={() => onChange(id)}
-            style={{
-              flex: 1,
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "7px 0",
-              borderRadius: 7,
-              border: "none",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              background: on ? GREEN : "transparent",
-              boxShadow: on ? "0 1px 4px rgba(45,90,61,.22)" : "none",
-              transition: "background .15s ease",
-            }}
-          >
-            <Icon size={17} strokeWidth={2.3} color={on ? "#fff" : GREEN} />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function SelectionCheck({ active, onSelect }) {
-  return (
-    <HeaderIconButton
-      label={active ? "Hogar seleccionado" : "Seleccionar hogar"}
-      onClick={(e) => {
-        e.stopPropagation();
-        if (!active) onSelect?.();
-      }}
-    >
-      <span
-        style={{
-          width: 26,
-          height: 26,
-          borderRadius: "50%",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: active ? "none" : "2px solid #cdd8d0",
-          background: active ? GREEN : "#fff",
-          boxShadow: active ? "0 2px 8px rgba(45,90,61,.28)" : "none",
-          cursor: active ? "default" : "pointer",
-        }}
-      >
-        {active && <Check size={14} color="#fff" strokeWidth={3} />}
-      </span>
-    </HeaderIconButton>
-  );
-}
-
-function CardSection({ children }) {
-  return <div style={{ width: "100%", minWidth: 0 }}>{children}</div>;
-}
-
-function DinerTile({ member, allMembers, large = false }) {
-  const shortName = member.name?.trim().split(/\s+/)[0] ?? member.name ?? "?";
-  const size = large ? 44 : 34;
-  return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 6,
-        width: large ? 58 : 50,
-        minWidth: 0,
-      }}
-    >
-      <div style={{ lineHeight: 0, borderRadius: "50%", border: `2px solid ${memberAvatarColor(member.id, allMembers)}44` }}>
-        <Avatar
-          name={member.name}
-          photo={memberAvatarThumbSrc(member)}
-          size={size}
-          color={memberAvatarColor(member.id, allMembers)}
-        />
-      </div>
-      <span
-        style={{
-          fontSize: large ? 11 : 10,
-          fontWeight: 700,
-          color: INK,
-          textAlign: "center",
-          width: "100%",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-          whiteSpace: "nowrap",
-          lineHeight: 1.1,
-        }}
-      >
-        {shortName}
-      </span>
-    </div>
-  );
-}
-
 function SlotCard({
   slot,
   active,
-  userName,
   userLoggedIn,
   householdLoading,
-  familyMembers = [],
-  canShareInvite = false,
-  inviteUrl = null,
-  inviteCopied = false,
-  onCopyInvite,
   onSwitch,
-  onLeave,
   onJoin,
   onAdvanceSetup,
   onRetry,
@@ -264,19 +51,12 @@ function SlotCard({
   setRenameDraft,
   startRename,
   commitRename,
-}) {
-  const h = slot.household;
+}) {  const h = slot.household;
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
   const joinedLabel = h ? formatJoinedAt(h.joinedAt) : null;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
-
-  const accessRows = useMemo(() => {
-    if (!h || !userName) return [];
-    const status = h.role === "owner" ? "Prop" : "Vis";
-    return [{ name: userName, role: h.role, status }];
-  }, [h, userName]);
-
+  const roleShort = slot.kind === "owner" ? "Prop" : "Vis";
   let emptyHint = null;
   if (empty && !userLoggedIn) {
     emptyHint = slot.kind === "owner" ? "Inicia sesión" : "Vacío";
@@ -287,12 +67,8 @@ function SlotCard({
   }
 
   const displayName = h?.name ?? slot.label;
-  const showOwnerPanel = Boolean(h && active && slot.kind === "owner" && h.isOwn);
-  const showShare = showOwnerPanel && canShareInvite && inviteUrl;
-  const [peopleTab, setPeopleTab] = useState("members");
 
-  const titleNode = h && renamingId === h.id ? (
-    <input
+  const titleNode = h && renamingId === h.id ? (    <input
       value={renameDraft}
       onChange={(e) => setRenameDraft(e.target.value)}
       onBlur={() => commitRename(h.id)}
@@ -300,11 +76,12 @@ function SlotCard({
       autoFocus
       style={{
         width: "100%",
-        fontSize: 12,
+        maxWidth: 220,
+        fontSize: 13,
         fontWeight: 800,
         border: "1.5px solid #c8ddd0",
         borderRadius: 8,
-        padding: "3px 6px",
+        padding: "4px 8px",
         fontFamily: "inherit",
         boxSizing: "border-box",
         textAlign: "center",
@@ -320,276 +97,181 @@ function SlotCard({
         border: "none",
         background: "transparent",
         font: "inherit",
-        fontSize: 15.5,
+        fontSize: 22,
         fontWeight: 900,
         color: empty && !ownerPending ? "#9ab0a1" : INK,
         cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
         lineHeight: 1.15,
-        letterSpacing: "-.3px",
-        width: "100%",
+        letterSpacing: "-.4px",
+        maxWidth: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
         textAlign: "center",
-        display: "block",
       }}
     >
       {displayName}
     </button>
   );
 
+  const canSelect = Boolean(h && !active);
+
   return (
     <div
+      role={canSelect ? "button" : undefined}
+      tabIndex={canSelect ? 0 : undefined}
+      onClick={() => {
+        if (canSelect) onSwitch?.(h.id);
+      }}
+      onKeyDown={(e) => {
+        if (canSelect && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onSwitch?.(h.id);
+        }
+      }}
       style={{
-        background: active ? ACTIVE_CARD_BG : "#fff",
-        borderRadius: 18,
-        border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-        padding: "12px 12px 10px 14px",
-        boxShadow: active ? "0 10px 22px -14px rgba(45,90,61,.38)" : "0 4px 14px -10px rgba(20,47,29,.08)",
-        opacity: empty && !ownerPending ? 0.72 : 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        textAlign: "center",
+        gap: 10,
+        padding: "12px 16px 16px",
+        borderRadius: 16,
+        background: active && h ? ACTIVE_CARD_BG : "transparent",
+        opacity: empty && !ownerPending ? 0.65 : 1,
+        cursor: canSelect ? "pointer" : "default",
+        outline: "none",
       }}
     >
-      {/* Cabecera: solo acciones */}
+      {titleNode}
+
       <div
         style={{
+          width: "min(200px, 68vw)",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "flex-end",
-          gap: 8,
-          minHeight: 26,
-          marginBottom: 4,
+          justifyContent: "center",
+          background: empty && !ownerPending ? "#eef4f0" : "transparent",
+          borderRadius: empty && !ownerPending ? 16 : 0,
+          filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+          overflow: "hidden",
         }}
       >
-        {showShare && (
-          <HeaderIconButton
-            label={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
-            onClick={(e) => {
-              e.stopPropagation();
-              onCopyInvite?.();
-            }}
-          >
-            {inviteCopied ? <Check size={18} strokeWidth={2.5} /> : <Share2 size={18} strokeWidth={2.2} />}
-          </HeaderIconButton>
-        )}
-        {h?.role === "viewer" && (
-          <HeaderIconButton
-            label="Abandonar hogar"
-            color="#b42318"
-            onClick={(e) => {
-              e.stopPropagation();
-              onLeave?.(h.id);
-            }}
-          >
-            <Trash2 size={18} strokeWidth={2.2} />
-          </HeaderIconButton>
-        )}
-        {h && (
-          <SelectionCheck
-            active={active}
-            onSelect={() => onSwitch?.(h.id)}
-          />
-        )}
+        <img
+          src={img}
+          alt=""
+          style={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+          }}
+        />
       </div>
 
-      {/* Cuerpo: ilustración | panel info */}
-      <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+      {h && (
         <div
           style={{
-            width: "42%",
-            flexShrink: 0,
             display: "flex",
-            flexDirection: "column",
-            gap: ILLU_V_GAP,
-            minWidth: 0,
+            alignItems: "center",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: 8,
           }}
         >
-          <div style={{ textAlign: "center", width: "100%" }}>{titleNode}</div>
-
-          <div
+          <span
             style={{
-              display: "flex",
-              alignItems: "flex-start",
-              justifyContent: "center",
-              background: empty && !ownerPending ? "#eef4f0" : "transparent",
-              borderRadius: empty && !ownerPending ? 14 : 0,
-              filter: empty && !ownerPending ? "grayscale(.7)" : "none",
-              overflow: "hidden",
+              padding: "3px 10px",
+              borderRadius: 999,
+              fontSize: 10,
+              fontWeight: 800,
+              background: slot.kind === "owner" ? GREEN : "#eef4f0",
+              color: slot.kind === "owner" ? "#fff" : GREEN,
+              lineHeight: 1.3,
             }}
           >
-            <img
-              src={img}
-              alt=""
-              style={{
-                width: "100%",
-                height: "auto",
-                display: "block",
-              }}
-            />
-          </div>
-
-          {h && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexWrap: "wrap",
-                gap: 5,
-              }}
-            >
-              <span
-                style={{
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  fontSize: 9.5,
-                  fontWeight: 800,
-                  background: slot.kind === "owner" ? GREEN : "#eef4f0",
-                  color: slot.kind === "owner" ? "#fff" : GREEN,
-                  lineHeight: 1.3,
-                }}
-              >
-                {slot.roleLabel}
-              </span>
-              {joinedLabel && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: MUTED, lineHeight: 1.3, whiteSpace: "nowrap" }}>
-                  Desde {joinedLabel}
-                </span>
-              )}
-            </div>
-          )}
-
-          {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
-            <button
-              type="button"
-              onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
-              style={{
-                width: "100%",
-                padding: "5px 6px",
-                borderRadius: 8,
-                border: "none",
-                background: GREEN,
-                color: "#fff",
-                fontWeight: 700,
-                fontSize: 9.5,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                lineHeight: 1.2,
-              }}
-            >
-              Configurar hogar
-            </button>
-          )}
-
-          {empty && slot.kind === "viewer" && userLoggedIn && (
-            <button
-              type="button"
-              onClick={onJoin}
-              style={{
-                width: "100%",
-                padding: "5px 6px",
-                borderRadius: 8,
-                border: "none",
-                background: GREEN,
-                color: "#fff",
-                fontSize: 9.5,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-              }}
-            >
-              <Link2 size={10} />
-              Unirse
-            </button>
-          )}
-
-          {ownerPending && !householdLoading && (
-            <button
-              type="button"
-              onClick={onRetry}
-              style={{
-                width: "100%",
-                padding: "4px 6px",
-                borderRadius: 8,
-                border: `1.5px solid ${GREEN}`,
-                background: "#fff",
-                color: GREEN,
-                fontWeight: 700,
-                fontSize: 9,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 4,
-              }}
-            >
-              <RotateCw size={10} />
-              Reintentar
-            </button>
+            {roleShort}
+          </span>
+          {joinedLabel && (
+            <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, lineHeight: 1.3, whiteSpace: "nowrap" }}>
+              Desde {joinedLabel}
+            </span>
           )}
         </div>
+      )}
 
-        <div
+      {emptyHint && (
+        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
+      )}
+
+      {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
+        <button
+          type="button"
+          onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
           style={{
-            flex: 1,
-            minWidth: 0,
-            background: h ? PANEL_BG : "transparent",
-            borderRadius: 12,
-            padding: h ? "8px 8px 6px" : 0,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "flex-start",
+            padding: "6px 14px",
+            borderRadius: 8,
+            border: "none",
+            background: GREEN,
+            color: "#fff",
+            fontWeight: 700,
+            fontSize: 11,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            lineHeight: 1.2,
           }}
         >
-          {h ? (
-            <>
-              {showOwnerPanel && (
-                <PeopleSegment value={peopleTab} onChange={setPeopleTab} />
-              )}
+          Configurar hogar
+        </button>
+      )}
 
-              {(!showOwnerPanel || peopleTab === "members") && (
-                <CardSection>
-                  <div style={{ marginTop: showOwnerPanel ? 4 : 0 }}>
-                    {accessRows.map((row) => (
-                      <MemberRow
-                        key={row.role + row.name}
-                        name={row.name}
-                        status={row.status}
-                      />
-                    ))}
-                  </div>
-                </CardSection>
-              )}
+      {empty && slot.kind === "viewer" && userLoggedIn && (
+        <button
+          type="button"
+          onClick={onJoin}
+          style={{
+            padding: "6px 14px",
+            borderRadius: 8,
+            border: "none",
+            background: GREEN,
+            color: "#fff",
+            fontSize: 11,
+            fontWeight: 800,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          <Link2 size={12} />
+          Unirse
+        </button>
+      )}
 
-              {showOwnerPanel && peopleTab === "diners" && (
-                <CardSection>
-                  <div style={{ marginTop: 6, padding: "2px 0 4px" }}>
-                    {familyMembers.length > 0 ? (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "flex-start" }}>
-                        {familyMembers.slice(0, 6).map((m) => (
-                          <DinerTile key={m.id} member={m} allMembers={familyMembers} large />
-                        ))}
-                      </div>
-                    ) : (
-                      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: MUTED, textAlign: "center", padding: "16px 0" }}>
-                        Ninguno aún
-                      </p>
-                    )}
-                  </div>
-                </CardSection>
-              )}
-            </>
-          ) : (
-            emptyHint && (
-              <p style={{ margin: "auto 0", fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
-            )
-          )}
-        </div>
-      </div>
+      {ownerPending && !householdLoading && (
+        <button
+          type="button"
+          onClick={onRetry}
+          style={{
+            padding: "5px 12px",
+            borderRadius: 8,
+            border: `1.5px solid ${GREEN}`,
+            background: "#fff",
+            color: GREEN,
+            fontWeight: 700,
+            fontSize: 10,
+            cursor: "pointer",
+            fontFamily: "inherit",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 4,
+          }}
+        >
+          <RotateCw size={11} />
+          Reintentar
+        </button>
+      )}
     </div>
   );
 }
@@ -601,25 +283,19 @@ export function HouseholdsScreen({
   activeHouseholdId,
   householdLoading = false,
   householdError = null,
-  members = [],
   readOnly,
-  canShareInvite,
-  inviteUrl,
   onNav,
   onBack,
   onOpenBiblioteca,
   onRefresh,
   onSwitchHousehold,
-  onLeaveHousehold,
   onJoinByToken,
   onRenameHousehold,
   onAdvanceSetup,
   onSignIn,
 }) {
-  const [copied, setCopied] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
-  const userName = googleInfo(user)?.name ?? user?.email?.split("@")[0] ?? "Tú";
 
   useEffect(() => {
     if (user?.id) onRefresh?.();
@@ -635,17 +311,6 @@ export function HouseholdsScreen({
     households.find((h) => h.role === "owner" && h.isOwn)?.id ??
     households[0]?.id ??
     null;
-
-  const handleCopyInvite = async () => {
-    if (!inviteUrl) return;
-    try {
-      await navigator.clipboard.writeText(inviteUrl);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      window.prompt("Copia este enlace:", inviteUrl);
-    }
-  };
 
   const handleJoin = async () => {
     const raw = window.prompt("Pega el enlace de invitación de otro hogar:");
@@ -776,7 +441,7 @@ export function HouseholdsScreen({
               </p>
             )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
               {slots.map((slot) => {
                 const isActive = Boolean(slot.household?.id && slot.household.id === effectiveActiveId);
                 return (
@@ -784,16 +449,9 @@ export function HouseholdsScreen({
                     key={slot.kind + (slot.household?.id ?? slot.label)}
                     slot={slot}
                     active={isActive}
-                    userName={userName}
                     userLoggedIn={Boolean(user)}
                     householdLoading={householdLoading}
-                    familyMembers={members}
-                    canShareInvite={Boolean(isActive && canShareInvite && inviteUrl && slot.kind === "owner")}
-                    inviteUrl={inviteUrl}
-                    inviteCopied={copied}
-                    onCopyInvite={handleCopyInvite}
                     onSwitch={onSwitchHousehold}
-                    onLeave={onLeaveHousehold}
                     onJoin={handleJoin}
                     onAdvanceSetup={onAdvanceSetup}
                     onRetry={() => onRefresh?.()}
@@ -806,7 +464,6 @@ export function HouseholdsScreen({
                 );
               })}
             </div>
-
             {readOnly && activeHousehold && (
               <div style={{ background: "#fffdf5", border: "1.5px solid #f5e6b8", borderRadius: 12, padding: "10px 12px", marginTop: 14 }}>
                 <p style={{ margin: 0, fontSize: 12, lineHeight: 1.4, color: "#7a5d00" }}>
