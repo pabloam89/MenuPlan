@@ -6,6 +6,8 @@ import {
   BookOpen,
   Link2,
   RotateCw,
+  Users,
+  UserRound,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -93,10 +95,9 @@ function HeaderIconButton({ label, title, onClick, color = GREEN, children }) {
       onClick={onClick}
       style={{
         margin: 0,
-        padding: "6px 7px",
-        border: "1px solid rgba(45,90,61,.12)",
-        borderRadius: 9,
-        background: "rgba(45,90,61,.08)",
+        padding: 0,
+        border: "none",
+        background: "transparent",
         cursor: "pointer",
         lineHeight: 0,
         color,
@@ -108,6 +109,58 @@ function HeaderIconButton({ label, title, onClick, color = GREEN, children }) {
     >
       {children}
     </button>
+  );
+}
+
+function PeopleSegment({ value, onChange }) {
+  const segments = [
+    { id: "members", label: "Miembros", Icon: Users },
+    { id: "diners", label: "Comensales", Icon: UserRound },
+  ];
+  return (
+    <div
+      role="group"
+      aria-label="Miembros o comensales"
+      style={{
+        display: "flex",
+        gap: 2,
+        padding: 3,
+        borderRadius: 11,
+        background: "#eef4ef",
+        border: "1px solid #dce8e0",
+      }}
+    >
+      {segments.map(({ id, label, Icon }) => {
+        const on = value === id;
+        return (
+          <button
+            key={id}
+            type="button"
+            aria-label={label}
+            aria-pressed={on}
+            title={label}
+            onClick={() => onChange(id)}
+            style={{
+              flex: 1,
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "7px 0",
+              borderRadius: 8,
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              background: on ? "#fff" : "transparent",
+              color: on ? GREEN : "#7a9082",
+              boxShadow: on ? "0 1px 3px rgba(20,47,29,.12)" : "none",
+              transition: "all .15s",
+            }}
+          >
+            <Icon size={16} strokeWidth={2.2} />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -140,41 +193,35 @@ function SelectionCheck({ active, onSelect }) {
   );
 }
 
-function CardSection({ label, children }) {
-  return (
-    <div style={{ width: "100%", minWidth: 0 }}>
-      <p
-        style={{
-          margin: "0 0 5px",
-          fontSize: 11,
-          fontWeight: 800,
-          color: GREEN,
-          letterSpacing: "-.15px",
-          lineHeight: 1.2,
-        }}
-      >
-        {label}
-      </p>
-      {children}
-    </div>
-  );
+function CardSection({ children }) {
+  return <div style={{ width: "100%", minWidth: 0 }}>{children}</div>;
 }
 
-function DinerTile({ member, allMembers }) {
+function DinerTile({ member, allMembers, large = false }) {
   const shortName = member.name?.trim().split(/\s+/)[0] ?? member.name ?? "?";
+  const size = large ? 44 : 34;
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: 50, minWidth: 0 }}>
-      <div style={{ lineHeight: 0, borderRadius: "50%", border: `2px solid ${memberAvatarColor(member.id, allMembers)}33` }}>
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 6,
+        width: large ? 58 : 50,
+        minWidth: 0,
+      }}
+    >
+      <div style={{ lineHeight: 0, borderRadius: "50%", border: `2px solid ${memberAvatarColor(member.id, allMembers)}44` }}>
         <Avatar
           name={member.name}
           photo={memberAvatarThumbSrc(member)}
-          size={34}
+          size={size}
           color={memberAvatarColor(member.id, allMembers)}
         />
       </div>
       <span
         style={{
-          fontSize: 10,
+          fontSize: large ? 11 : 10,
           fontWeight: 700,
           color: INK,
           textAlign: "center",
@@ -237,6 +284,7 @@ function SlotCard({
   const displayName = h?.name ?? slot.label;
   const showOwnerPanel = Boolean(h && active && slot.kind === "owner" && h.isOwn);
   const showShare = showOwnerPanel && canShareInvite && inviteUrl;
+  const [peopleTab, setPeopleTab] = useState("members");
 
   const titleNode = h && renamingId === h.id ? (
     <input
@@ -247,6 +295,7 @@ function SlotCard({
       autoFocus
       style={{
         width: "100%",
+        maxWidth: 160,
         fontSize: 12,
         fontWeight: 800,
         border: "1.5px solid #c8ddd0",
@@ -254,7 +303,7 @@ function SlotCard({
         padding: "3px 6px",
         fontFamily: "inherit",
         boxSizing: "border-box",
-        textAlign: "left",
+        textAlign: "center",
       }}
     />
   ) : (
@@ -273,11 +322,11 @@ function SlotCard({
         cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
         lineHeight: 1.15,
         letterSpacing: "-.3px",
-        width: "100%",
+        maxWidth: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
-        textAlign: "left",
+        textAlign: "center",
         display: "block",
       }}
     >
@@ -296,42 +345,31 @@ function SlotCard({
         opacity: empty && !ownerPending ? 0.72 : 1,
       }}
     >
-      {/* Cabecera: título + acciones */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: h ? 6 : ILLU_V_GAP }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {titleNode}
-          {h && (
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                flexWrap: "wrap",
-                gap: 5,
-                marginTop: 5,
-              }}
-            >
-              <span
-                style={{
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  fontSize: 9.5,
-                  fontWeight: 800,
-                  background: slot.kind === "owner" ? GREEN : "#eef4f0",
-                  color: slot.kind === "owner" ? "#fff" : GREEN,
-                  lineHeight: 1.3,
-                }}
-              >
-                {slot.roleLabel}
-              </span>
-              {joinedLabel && (
-                <span style={{ fontSize: 10, fontWeight: 700, color: MUTED, lineHeight: 1.3, whiteSpace: "nowrap" }}>
-                  Desde {joinedLabel}
-                </span>
-              )}
-            </div>
-          )}
+      {/* Cabecera: título centrado + acciones */}
+      <div
+        style={{
+          position: "relative",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          minHeight: 30,
+          marginBottom: ILLU_V_GAP,
+        }}
+      >
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            display: "flex",
+            justifyContent: "center",
+            pointerEvents: "none",
+            padding: "0 72px",
+          }}
+        >
+          <div style={{ pointerEvents: "auto", minWidth: 0, maxWidth: "100%" }}>{titleNode}</div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0, paddingTop: 2 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, zIndex: 1 }}>
           {showShare && (
             <HeaderIconButton
               label={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
@@ -340,7 +378,7 @@ function SlotCard({
                 onCopyInvite?.();
               }}
             >
-              {inviteCopied ? <Check size={16} strokeWidth={2.5} /> : <Share2 size={16} strokeWidth={2.2} />}
+              {inviteCopied ? <Check size={18} strokeWidth={2.5} /> : <Share2 size={18} strokeWidth={2.2} />}
             </HeaderIconButton>
           )}
           {h?.role === "viewer" && (
@@ -352,7 +390,7 @@ function SlotCard({
                 onLeave?.(h.id);
               }}
             >
-              <Trash2 size={16} strokeWidth={2.2} />
+              <Trash2 size={18} strokeWidth={2.2} />
             </HeaderIconButton>
           )}
           {h && (
@@ -397,6 +435,37 @@ function SlotCard({
               }}
             />
           </div>
+
+          {h && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexWrap: "wrap",
+                gap: 5,
+              }}
+            >
+              <span
+                style={{
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  fontSize: 9.5,
+                  fontWeight: 800,
+                  background: slot.kind === "owner" ? GREEN : "#eef4f0",
+                  color: slot.kind === "owner" ? "#fff" : GREEN,
+                  lineHeight: 1.3,
+                }}
+              >
+                {slot.roleLabel}
+              </span>
+              {joinedLabel && (
+                <span style={{ fontSize: 10, fontWeight: 700, color: MUTED, lineHeight: 1.3, whiteSpace: "nowrap" }}>
+                  Desde {joinedLabel}
+                </span>
+              )}
+            </div>
+          )}
 
           {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
             <button
@@ -479,35 +548,46 @@ function SlotCard({
             minWidth: 0,
             background: h ? PANEL_BG : "transparent",
             borderRadius: 12,
-            padding: h ? "10px 10px 8px" : 0,
+            padding: h ? "12px 10px" : 0,
             display: "flex",
             flexDirection: "column",
-            gap: 10,
+            gap: 12,
+            minHeight: showOwnerPanel ? 132 : undefined,
           }}
         >
           {h ? (
             <>
-              <CardSection label="Miembros">
-                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                  {accessRows.map((row) => (
-                    <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                  ))}
-                </div>
-              </CardSection>
-
               {showOwnerPanel && (
-                <CardSection label="Comensales">
-                  {familyMembers.length > 0 ? (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-                      {familyMembers.slice(0, 6).map((m) => (
-                        <DinerTile key={m.id} member={m} allMembers={familyMembers} />
+                <PeopleSegment value={peopleTab} onChange={setPeopleTab} />
+              )}
+
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 2px 8px" }}>
+                {(!showOwnerPanel || peopleTab === "members") && (
+                  <CardSection>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                      {accessRows.map((row) => (
+                        <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
                       ))}
                     </div>
-                  ) : (
-                    <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: MUTED }}>Ninguno aún</p>
-                  )}
-                </CardSection>
-              )}
+                  </CardSection>
+                )}
+
+                {showOwnerPanel && peopleTab === "diners" && (
+                  <CardSection>
+                    {familyMembers.length > 0 ? (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "flex-start" }}>
+                        {familyMembers.slice(0, 6).map((m) => (
+                          <DinerTile key={m.id} member={m} allMembers={familyMembers} large />
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: MUTED, textAlign: "center", padding: "12px 0" }}>
+                        Ninguno aún
+                      </p>
+                    )}
+                  </CardSection>
+                )}
+              </div>
             </>
           ) : (
             emptyHint && (
