@@ -66,34 +66,20 @@ export const HOME_COACH_STEPS = [
   },
 ];
 
-// Recetas screen: the "Crear" button + the three tabs.
+// Recetas del hogar: favoritas, mis recetas y descartados (catálogo → Biblioteca).
 export const RECIPES_COACH_STEPS = [
-  {
-    selector: '[data-coach="recipes-create"]',
-    Icon: Plus,
-    title: "Crear receta",
-    desc: "No te limitas a nuestro catálogo: añade tus recetas tal como las cocináis en casa. Te lo ponemos fácil y entran solas en la lista de la compra.",
-    place: "below",
-  },
-  {
-    selector: '[data-coach="recipes-tab-catalog"]',
-    Icon: BookOpen,
-    title: "Catálogo",
-    desc: "Nuestras recetas y las que comparten otras familias, con sus valores nutricionales y alérgenos. Porque no hay una única forma de cocinar.",
-    place: "below",
-  },
   {
     selector: '[data-coach="recipes-tab-favorites"]',
     Icon: Heart,
-    title: "Favoritas",
-    desc: "Guarda con el corazón las recetas que más os gustan —nuestras o tuyas— para que puedan formar parte de tu menú.",
+    title: "Favoritas del hogar",
+    desc: "Las recetas que este hogar guarda para generar menús — las del propietario si entras como visitante.",
     place: "below",
   },
   {
     selector: '[data-coach="recipes-tab-mine"]',
     Icon: ChefHat,
     title: "Mis recetas",
-    desc: "Las que tú creas: edítalas, bórralas y, si quieres, compártelas para que otras familias también las vean.",
+    desc: "Las recetas creadas para este hogar: edítalas y elige si las ve el resto de la familia.",
     place: "below",
   },
   {

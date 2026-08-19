@@ -16,11 +16,8 @@ const INK = "#142f1d";
 const HEADER_BAND = "#e9f4ed";
 
 /**
- * Recetas screen — three internal tabs, all backed by CatalogBrowserSheet so
- * search + filters + card style stay identical across them:
- *   Catálogo:    full catalog + the user's own recipes
- *   Favoritas:   only recipes the user liked (thumbs-up), catalog or own
- *   Mis recetas: only the user's created recipes, with inline visibility
+ * Recetas del hogar activo — favoritas, recetas del propietario y descartados
+ * del menú. Catálogo y biblioteca personal viven en Biblioteca (desde Hogares).
  */
 export function RecipesScreen({
   user = null,
@@ -53,12 +50,12 @@ export function RecipesScreen({
   // thumbnails show instead of the category grid.
   catalogInitialCategory = null,
 }) {
-  const [tab, setTab] = useState(initialTab ?? "mine");
+  const [tab, setTab] = useState(initialTab ?? "favorites");
   const [showIconCoach, setShowIconCoach] = useState(false);
 
   useEffect(() => {
     if (!autoplay) return undefined;
-    const tabs = ["mine", "catalog", "favorites"];
+    const tabs = ["favorites", "mine", "discarded"];
     let k = tabs.indexOf(initialTab ?? "mine");
     if (k < 0) k = 0;
     const id = setInterval(() => {
@@ -89,9 +86,8 @@ export function RecipesScreen({
   );
 
   const TABS = [
-    { id: "mine", label: "Mis recetas", count: ownRecipes.length, Icon: NotebookPen },
-    { id: "catalog", label: "Catálogo", Icon: BookOpen },
     { id: "favorites", label: "Favoritas", count: favoriteIds.size, Icon: Heart },
+    { id: "mine", label: "Mis recetas", count: ownRecipes.length, Icon: NotebookPen },
     { id: "discarded", label: "Descartados", count: discardedRecipes.length, Icon: Ban },
   ];
 
@@ -136,20 +132,6 @@ export function RecipesScreen({
                 <SlidersHorizontal size={16} strokeWidth={2.3} />
               </button>
             )}
-            {!readOnly && (
-            <button
-              type="button"
-              data-coach="recipes-create"
-              onClick={onOpenRecipePlanner}
-              style={{
-                display: "flex", alignItems: "center", gap: 6, padding: "8px 13px",
-                borderRadius: 12, border: "none", background: GREEN, color: "#fff",
-                fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-              }}
-            >
-              <Plus size={14} strokeWidth={2.8} /> Crear
-            </button>
-            )}
           </div>
         </div>
       </div>
@@ -193,24 +175,6 @@ export function RecipesScreen({
           paddingBottom: bottomNavSpacer(),
         }}
       >
-        {tab === "catalog" && (
-          <CatalogBrowserSheet
-            inline
-            inlinePadding={18}
-            reference
-            recipeVotes={recipeVotes}
-            scopeGroups={scopeGroups}
-            onSetFavoriteScope={readOnly ? undefined : onSetFavoriteScope}
-            onOpenRecipe={onOpenRecipe}
-            extraRecipes={catalogExtraRecipes}
-            onBrowseGarnishCombo={onBrowseGarnishCombo}
-            initialCategory={catalogInitialCategory}
-            discardedIds={new Set(discardedIds)}
-            onDiscardRecipe={readOnly ? undefined : onDiscardRecipe}
-            onRecoverRecipe={readOnly ? undefined : onRecoverRecipe}
-          />
-        )}
-
         {tab === "favorites" && (
           <CatalogBrowserSheet
             inline
