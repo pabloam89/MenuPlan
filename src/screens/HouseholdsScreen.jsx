@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   ChevronDown,
   Copy,
@@ -315,7 +315,7 @@ export function HouseholdsScreen({
           </>
         )}
       </div>
-      <div style={bottomNavSpacer} />
+      <div style={{ paddingBottom: bottomNavSpacer() }} />
       <BottomNav active="dashboard" onNav={onNav} />
     </div>
   );
