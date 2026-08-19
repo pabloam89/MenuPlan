@@ -142,11 +142,15 @@ export async function updateRecipeVisibility(userId, recipeId, visibility) {
 }
 
 export async function deleteUserRecipe(userId, recipeId) {
-  if (!supabase || !userId || !recipeId) return;
+  if (!supabase || !userId || !recipeId) return false;
   const { error } = await supabase
     .from("user_recipes")
     .delete()
     .eq("id", recipeId)
     .eq("owner_id", userId);
-  if (error) console.warn("[userRecipes] delete failed", error.message);
+  if (error) {
+    console.warn("[userRecipes] delete failed", error.message);
+    return false;
+  }
+  return true;
 }
