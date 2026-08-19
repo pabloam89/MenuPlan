@@ -1097,6 +1097,7 @@ export default function App() {
     activeHousehold,
     activeHouseholdId,
     loading: householdLoading,
+    error: householdError,
     readOnly: householdReadOnly,
     canShareInvite,
     inviteUrl,
@@ -1105,6 +1106,7 @@ export default function App() {
     renameHousehold,
     advanceSetupStatus,
     refresh: refreshHouseholds,
+    joinByToken: joinHouseholdByToken,
   } = useHousehold({ user, loading: authLoading });
 
   const syncMenuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user?.id;
@@ -4009,6 +4011,8 @@ export default function App() {
                 households={households}
                 activeHousehold={activeHousehold}
                 activeHouseholdId={activeHouseholdId}
+                householdLoading={householdLoading}
+                householdError={householdError}
                 members={data.members ?? []}
                 readOnly={householdReadOnly}
                 canShareInvite={canShareInvite}
@@ -4016,8 +4020,10 @@ export default function App() {
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("dashboard"))}
                 onOpenBiblioteca={() => fwd(() => setScreen("biblioteca"))}
+                onRefresh={refreshHouseholds}
                 onSwitchHousehold={handleSwitchHousehold}
                 onLeaveHousehold={leaveHouseholdMembership}
+                onJoinByToken={joinHouseholdByToken}
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
