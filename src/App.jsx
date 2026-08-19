@@ -112,7 +112,12 @@ import { loadHouseholdState, saveHouseholdState } from "./lib/householdState.js"
 import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
-import { shouldAdoptRemoteProfile, mergeUserRecipesById } from "./lib/profileMerge.js";
+import { shouldAdoptRemoteProfile, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
+import {
+  rememberDeletedRecipeId,
+  reconcileDeletedRecipeIds,
+  withoutDeletedRecipes,
+} from "./lib/deletedRecipeIds.js";
 import {
   loadUserRecipes,
   upsertUserRecipe,
@@ -1251,7 +1256,8 @@ export default function App() {
       ]);
       if (cancelled) return;
 
-      const mergedRecipes = mergeUserRecipesById(localRecipes, remoteRecipes);
+      const deletedRecipeIds = reconcileDeletedRecipeIds(remoteRecipes);
+
       const personalVotes = mergeVotes(localVotes, remoteVotes);
       const mergedVotes = mergeVotes(
         personalVotes,
@@ -1306,17 +1312,31 @@ export default function App() {
         ? (remoteData?.priceAliases ?? {})
         : { ...(remoteData?.priceAliases ?? {}), ...localAliases };
 
-      setData((d) => ({
-        ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
-        // Merge against the current live recipes, not the stale snapshot, so a
-        // recipe created mid-hydration survives (see mergeUserRecipesById).
-        userRecipes: mergeUserRecipesById(d.userRecipes ?? [], remoteRecipes),
-        recipeVotes: mergedVotes,
-        discards: mergedDiscards,
-        priceObs: mergedPriceObs,
-        receipts: mergedReceipts,
-        priceAliases: mergedAliases,
-      }));
+      setData((d) => {
+        const mergedUserRecipes = mergeUserRecipesAfterCloudLoad(
+          withoutDeletedRecipes(d.userRecipes ?? [], deletedRecipeIds),
+          remoteRecipes,
+          deletedRecipeIds,
+        );
+
+        // Backfill local-only rows the cloud doesn't have yet (live state, not stale snapshot).
+        const remoteIds = new Set(remoteRecipes.map((r) => r.id));
+        const localOnly = withoutDeletedRecipes(
+          (d.userRecipes ?? []).filter((r) => r.id && !remoteIds.has(r.id)),
+          deletedRecipeIds,
+        );
+        if (localOnly.length) upsertUserRecipes(user.id, localOnly);
+
+        return {
+          ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
+          userRecipes: mergedUserRecipes,
+          recipeVotes: mergedVotes,
+          discards: mergedDiscards,
+          priceObs: mergedPriceObs,
+          receipts: mergedReceipts,
+          priceAliases: mergedAliases,
+        };
+      });
       if (useRemote) {
         setMenuPlan(remoteState?.state?.menuPlan ?? {});
         setShopping(remoteState?.state?.shopping ?? { items: [] });
@@ -1328,12 +1348,7 @@ export default function App() {
           setAiRecipes([]);
         }
       }
-      if (mergedRecipes.length) registerRecipes(mergedRecipes);
 
-      // Backfill local-only rows the cloud doesn't have yet.
-      const remoteIds = new Set(remoteRecipes.map((r) => r.id));
-      const localOnly = localRecipes.filter((r) => r.id && !remoteIds.has(r.id));
-      if (localOnly.length) upsertUserRecipes(user.id, localOnly);
       const votesBackfill = {};
       for (const [rid, v] of Object.entries(localVotes)) {
         if (!(rid in remoteVotes)) votesBackfill[rid] = v;
@@ -1615,6 +1630,33 @@ export default function App() {
     window.clearTimeout(toastTimer.current);
     toastTimer.current = window.setTimeout(() => setToast(null), action ? 5000 : 1800);
   }, []);
+
+  const handleDeleteRecipe = useCallback(async (recipeId) => {
+    if (!recipeId) return;
+    rememberDeletedRecipeId(recipeId);
+
+    let nextData = null;
+    setData((d) => {
+      nextData = {
+        ...d,
+        userRecipes: (d.userRecipes ?? []).filter((r) => (r.id ?? r.name) !== recipeId),
+      };
+      return nextData;
+    });
+
+    if (user?.id) {
+      const ok = await deleteUserRecipe(user.id, recipeId);
+      if (!ok) {
+        showToast("No se pudo borrar la receta. Inténtalo de nuevo.");
+        return;
+      }
+    }
+
+    if (nextData) {
+      saveState({ screen, onbStep, data: nextData, menuPlan, shopping, aiRecipes });
+    }
+    showToast("Receta eliminada");
+  }, [user?.id, screen, onbStep, menuPlan, shopping, aiRecipes, showToast]);
 
   const regenerateMenu = useCallback(async (nextData) => {
     if (householdReadOnly) {
@@ -4051,14 +4093,7 @@ export default function App() {
                   }));
                   if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
                 }}
-                onDeleteRecipe={(recipeId) => {
-                  setData((d) => ({
-                    ...d,
-                    userRecipes: (d.userRecipes ?? []).filter((r) => (r.id ?? r.name) !== recipeId),
-                  }));
-                  if (user?.id) deleteUserRecipe(user.id, recipeId);
-                  showToast("Receta eliminada");
-                }}
+                onDeleteRecipe={handleDeleteRecipe}
                 onBrowseGarnishCombo={(recipe, garnish) => {
                   if (!garnish?.id) return;
                   handleOpenCatalogRecipe(recipe, { garnishId: garnish.id, initialCourse: "combinado" });
@@ -4158,14 +4193,7 @@ export default function App() {
                   }));
                   if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
                 }}
-                onDeleteRecipe={(recipeId) => {
-                  setData((d) => ({
-                    ...d,
-                    userRecipes: (d.userRecipes ?? []).filter((r) => (r.id ?? r.name) !== recipeId),
-                  }));
-                  if (user?.id) deleteUserRecipe(user.id, recipeId);
-                  showToast("Receta eliminada");
-                }}
+                onDeleteRecipe={handleDeleteRecipe}
                 onEditRecipe={(recipe) => {
                   recipePlannerOriginRef.current = "biblioteca";
                   setEditingRecipe(recipe);

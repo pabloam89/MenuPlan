@@ -42,3 +42,21 @@ export function mergeUserRecipesById(current = [], remote = []) {
   for (const r of remote) byId.set(r.id ?? r.name, r);
   return Array.from(byId.values());
 }
+
+/**
+ * Cloud user_recipes wins on conflict; local-only rows are kept (offline / mid-sync).
+ * Rows tombstoned as deleted are never revived from a stale local snapshot.
+ * @param {object[]} current
+ * @param {object[]} remote
+ * @param {Set<string>} [deletedIds]
+ */
+export function mergeUserRecipesAfterCloudLoad(current = [], remote = [], deletedIds = new Set()) {
+  const remoteById = new Map(remote.map((r) => [r.id ?? r.name, r]));
+  const merged = [...remote];
+  for (const r of current) {
+    const key = r.id ?? r.name;
+    if (!key || remoteById.has(key) || deletedIds.has(key)) continue;
+    merged.push(r);
+  }
+  return merged;
+}

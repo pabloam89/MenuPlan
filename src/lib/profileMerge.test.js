@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { shouldAdoptRemoteProfile, mergeUserRecipesById } from "./profileMerge.js";
+import { shouldAdoptRemoteProfile, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./profileMerge.js";
 
 // Fase 5, punto 5: "Entrar sin cuenta" → completa onboarding localmente →
 // luego "Continuar con Google" no debe perder el perfil local (miembros,
@@ -70,6 +70,15 @@ describe("mergeUserRecipesById", () => {
     const fixed = mergeUserRecipesById(liveStateAtApplyTime, remoteRecipes);
     expect(fixed.find((r) => r.id === "user_2")?.name).toBe("Recién creada");
     expect(fixed).toHaveLength(2);
+  });
+
+  it("does not revive local rows deleted from cloud (tombstone)", () => {
+    const deleted = new Set(["gone"]);
+    const current = [{ id: "gone", name: "Stale local" }, { id: "new", name: "Pending" }];
+    const remote = [];
+    const merged = mergeUserRecipesAfterCloudLoad(current, remote, deleted);
+    expect(merged.find((r) => r.id === "gone")).toBeUndefined();
+    expect(merged.find((r) => r.id === "new")?.name).toBe("Pending");
   });
 
   it("handles empty inputs without throwing", () => {
