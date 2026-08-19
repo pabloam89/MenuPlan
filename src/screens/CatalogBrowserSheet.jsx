@@ -1947,28 +1947,25 @@ export function GarnishPickerSheet({
           </button>
         </div>
 
-        {/* Grid 3× — mismas miniaturas que el catálogo de platos */}
+        {/* Grid 2× — miniaturas con nombre y aire entre filas/columnas */}
         <div
           style={{
             flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
-            padding: "0 12px calc(18px + env(safe-area-inset-bottom, 0px))",
-            display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7,
+            padding: "4px 16px calc(20px + env(safe-area-inset-bottom, 0px))",
+            display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12,
             alignContent: "start",
           }}
         >
-          <NoGarnishGridTile
-            selected={currentGarnishId == null}
-            onSelect={() => onSelect(null)}
-          />
           {GARNISHES.map((g, i) => {
             const enriched = recipeCatalogById[g.id] ?? g;
             const cardRecipe = { ...enriched, category: enriched.category ?? "guarniciones" };
+            const label = capitalizeGarnishLabel(g.shortName ?? g.name);
             return (
               <GarnishGridTile
                 key={g.id}
                 garnish={g}
                 mainRecipeId={mainId}
-                label={g.shortName ?? g.name}
+                label={label}
                 selected={g.id === currentGarnishId}
                 onSelect={() => onSelect(g.id === currentGarnishId ? null : g.id)}
                 favorite={isRecipeFavorite(recipeVotes, g.id)}
@@ -1988,35 +1985,10 @@ export function GarnishPickerSheet({
   );
 }
 
-function NoGarnishGridTile({ selected, onSelect }) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="catalog-card-enter"
-      aria-pressed={selected}
-      style={{
-        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
-        borderRadius: 12, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
-        background: selected ? "#eef8f1" : "#f4f8f5",
-        boxShadow: selected ? `inset 0 0 0 2.5px ${GREEN}` : "inset 0 0 0 1.5px #dce8e0",
-      }}
-    >
-      <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-        <Ban size={24} color="#9ab0a1" strokeWidth={2.2} />
-      </span>
-      <span
-        style={{
-          position: "absolute", left: 0, right: 0, bottom: 0, padding: "16px 4px 5px",
-          background: "linear-gradient(to top, rgba(20,47,29,.82) 0%, transparent 100%)",
-          fontSize: 9.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.15,
-          textShadow: "0 1px 2px rgba(0,0,0,.4)",
-        }}
-      >
-        Sin guarnición
-      </span>
-    </button>
-  );
+function capitalizeGarnishLabel(text) {
+  const s = String(text ?? "").trim();
+  if (!s) return s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 function GarnishGridTile({
@@ -2038,7 +2010,7 @@ function GarnishGridTile({
       aria-pressed={selected}
       style={{
         position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
-        borderRadius: 12, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
+        borderRadius: 14, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
         background: "#eef4ef", animationDelay: `${animDelay}ms`,
         boxShadow: selected ? `inset 0 0 0 2.5px ${GREEN}` : "none",
         opacity: discarded ? 0.45 : 1,
@@ -2080,10 +2052,11 @@ function GarnishGridTile({
       )}
       <span
         style={{
-          position: "absolute", left: 0, right: 0, bottom: 0, padding: "16px 4px 5px",
-          background: "linear-gradient(to top, rgba(20,47,29,.86) 0%, rgba(20,47,29,.42) 55%, transparent 100%)",
-          fontSize: 9.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.15,
-          textShadow: "0 1px 2px rgba(0,0,0,.45)",
+          position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1,
+          padding: "22px 8px 8px",
+          background: "linear-gradient(to top, rgba(20,47,29,.92) 0%, rgba(20,47,29,.55) 45%, transparent 100%)",
+          fontSize: 11.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.25,
+          textShadow: "0 1px 3px rgba(0,0,0,.5)",
           display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}
       >
