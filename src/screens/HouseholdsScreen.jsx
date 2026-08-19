@@ -3,12 +3,15 @@ import { createPortal } from "react-dom";
 import {
   BookOpen,
   Check,
+  KeyRound,
   Link2,
   LogOut,
   MoreHorizontal,
   RotateCw,
   Share2,
   Trash2,
+  Users,
+  UserRound,
 } from "lucide-react";
 import {
   Avatar,
@@ -18,20 +21,14 @@ import {
   GoogleButton,
   groupAvatarFaces,
 } from "../components/ui.jsx";
-import { googleInfo } from "./Settings.jsx";const GREEN = "#2d5a3d";
+import { googleInfo } from "./Settings.jsx";
+
+const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
 const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
-
-function formatJoinedAt(iso) {
-  if (!iso) return null;
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return null;
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  return `${mm}/${d.getFullYear()}`;
-}
 
 function buildSlots(households, activeHousehold, user) {
   let owner =
@@ -74,121 +71,146 @@ function buildAccessAccounts(h, user) {
   return [you];
 }
 
-function AccessAccountsSheet({ open, onClose, accounts, householdName, isOwner }) {
+function MembersSheet({ open, onClose, accounts, householdName, isOwner }) {
   if (!open) return null;
 
   return createPortal(
     <div
       onClick={onClose}
+      className="mp-overlay-in"
       style={{
         position: "fixed",
         inset: 0,
         zIndex: 1000,
-        background: "rgba(15,30,20,.34)",
-        backdropFilter: "blur(2px)",
-        WebkitBackdropFilter: "blur(2px)",
+        background: "rgba(15,30,20,.38)",
+        backdropFilter: "blur(4px)",
+        WebkitBackdropFilter: "blur(4px)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
-        animation: "hogGlassFade .18s ease both",
       }}
     >
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Cuentas con acceso"
+        aria-label="Miembros"
         onClick={(e) => e.stopPropagation()}
         style={{
-          width: 340,
+          width: 320,
           maxWidth: "calc(100vw - 40px)",
-          background: "rgba(247,251,248,.82)",
-          backdropFilter: "blur(26px) saturate(180%)",
-          WebkitBackdropFilter: "blur(26px) saturate(180%)",
-          borderRadius: 24,
-          border: "1px solid rgba(255,255,255,.7)",
-          boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
-          padding: "18px 18px 16px",
-          animation: "hogGlassIn .22s cubic-bezier(.4,0,.2,1) both",
+          background: "#fff",
+          borderRadius: 22,
+          border: "1px solid #e3ebe6",
+          boxShadow: "0 24px 48px rgba(20,47,29,.18)",
+          padding: "20px 18px 18px",
+          animation: "hogSheetIn .24s cubic-bezier(.4,0,.2,1) both",
         }}
       >
-        <div
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: 10,
+              background: "#eef6f0",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Users size={17} color={GREEN} strokeWidth={2.4} />
+          </span>
+          <span style={{ fontSize: 17, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
+            Miembros
+          </span>
+        </div>
+        <p
           style={{
-            fontSize: 10.5,
-            fontWeight: 800,
-            letterSpacing: ".6px",
-            textTransform: "uppercase",
-            color: "#5f7568",
-            marginBottom: 4,
+            margin: "0 0 16px",
+            paddingLeft: 40,
+            fontSize: 13,
+            fontWeight: 700,
+            color: MUTED,
+            lineHeight: 1.3,
           }}
         >
-          Cuentas con acceso
-        </div>
-        <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: MUTED, lineHeight: 1.35 }}>
           {householdName}
         </p>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {accounts.map((acc) => (
-            <div
-              key={acc.id}
-              style={{
-                display: "grid",
-                gridTemplateColumns: "auto 1fr auto",
-                alignItems: "center",
-                gap: 10,
-                padding: "8px 10px",
-                borderRadius: 14,
-                background: "rgba(255,255,255,.72)",
-                border: "1px solid rgba(212,230,218,.9)",
-              }}
-            >
-              <Avatar name={acc.name} photo={acc.photo} size={36} color={acc.isYou ? GREEN : "#9ab0a1"} />
-              <div style={{ minWidth: 0 }}>
-                <div
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {accounts.map((acc) => {
+            const isProp = acc.roleLabel === "Propietario";
+            const RoleIcon = isProp ? KeyRound : UserRound;
+            return (
+              <div
+                key={acc.id}
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr auto",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "4px 2px",
+                }}
+              >
+                <Avatar
+                  name={acc.name}
+                  photo={acc.photo}
+                  size={42}
+                  color={acc.muted ? "#9ab0a1" : GREEN}
+                />
+                <span
                   style={{
-                    fontSize: 13,
+                    fontSize: 14,
                     fontWeight: 800,
                     color: acc.muted ? MUTED : INK,
                     overflow: "hidden",
                     textOverflow: "ellipsis",
                     whiteSpace: "nowrap",
+                    textAlign: "left",
                   }}
                 >
                   {acc.name}
-                  {acc.isYou && (
-                    <span style={{ fontWeight: 700, color: MUTED }}> · tú</span>
-                  )}
+                </span>
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: 2,
+                    width: 36,
+                    flexShrink: 0,
+                  }}
+                >
+                  <RoleIcon size={18} color={isProp ? GREEN : "#7a9082"} strokeWidth={2.3} />
+                  <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : MUTED, lineHeight: 1 }}>
+                    {isProp ? "Prop" : "Vis"}
+                  </span>
                 </div>
               </div>
-              <span
-                style={{
-                  padding: "2px 8px",
-                  borderRadius: 999,
-                  fontSize: 9,
-                  fontWeight: 800,
-                  background: acc.roleLabel === "Propietario" ? GREEN : "#eef4f0",
-                  color: acc.roleLabel === "Propietario" ? "#fff" : GREEN,
-                  lineHeight: 1.3,
-                  flexShrink: 0,
-                }}
-              >
-                {acc.roleLabel === "Propietario" ? "Prop" : "Vis"}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {isOwner && accounts.length <= 1 && (
-          <p style={{ margin: "12px 0 0", fontSize: 11, fontWeight: 600, color: MUTED, lineHeight: 1.4, textAlign: "center" }}>
+          <p
+            style={{
+              margin: "14px 0 0",
+              fontSize: 11,
+              fontWeight: 600,
+              color: MUTED,
+              lineHeight: 1.45,
+              textAlign: "center",
+            }}
+          >
             Cuando alguien acepte tu invitación, aparecerá aquí.
           </p>
         )}
       </div>
       <style>{`
-        @keyframes hogGlassFade { from { opacity: 0; } to { opacity: 1; } }
-        @keyframes hogGlassIn {
-          from { opacity: 0; transform: translateY(10px) scale(.98); }
+        @keyframes hogSheetIn {
+          from { opacity: 0; transform: translateY(12px) scale(.97); }
           to { opacity: 1; transform: none; }
         }
       `}</style>
@@ -328,7 +350,6 @@ function SlotCard({
   const h = slot.household;
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
-  const joinedLabel = h ? formatJoinedAt(h.joinedAt) : null;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
 
   let emptyHint = null;
@@ -460,7 +481,7 @@ function SlotCard({
         width: "100%",
         maxWidth: 380,
         margin: "0 auto",
-        padding: "0 4px 8px",
+        padding: "0 4px 2px",
         border: "none",
         background: "transparent",
         boxShadow: "none",
@@ -472,7 +493,7 @@ function SlotCard({
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        gap: 12,
+        gap: 8,
       }}
     >
       {titleNode}
@@ -480,16 +501,17 @@ function SlotCard({
       <div
         style={{
           position: "relative",
-          width: "min(340px, 94vw)",
-          marginBottom: 2,
+          width: "min(310px, 88vw)",
+          marginBottom: 0,
         }}
       >
         <div
           style={{
-            borderRadius: 22,
+            borderRadius: 20,
             overflow: "hidden",
             filter: empty && !ownerPending ? "grayscale(.7)" : "none",
             background: empty && !ownerPending ? "#e3ebe6" : "transparent",
+            maxHeight: "min(52vw, 220px)",
           }}
         >
           <img
@@ -497,9 +519,11 @@ function SlotCard({
             alt=""
             style={{
               width: "100%",
-              height: "auto",
+              height: "100%",
+              maxHeight: "min(52vw, 220px)",
+              objectFit: "cover",
+              objectPosition: "center top",
               display: "block",
-              verticalAlign: "top",
             }}
           />
         </div>
@@ -510,48 +534,54 @@ function SlotCard({
           </div>
         )}
 
-        <CardOverflowMenu actions={menuActions} />
-      </div>
-
-      {h && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            flexWrap: "wrap",
-            gap: 8,
-            marginTop: 4,
-            paddingBottom: 4,
-          }}
-        >
+        {h && (
           <button
             type="button"
+            aria-label="Ver miembros con acceso"
             onClick={(e) => {
               e.stopPropagation();
               setAccountsOpen(true);
             }}
             style={{
-              padding: "3px 11px",
+              position: "absolute",
+              bottom: 10,
+              left: 10,
+              zIndex: 3,
+              width: 40,
+              height: 40,
               borderRadius: 999,
-              fontSize: 10,
-              fontWeight: 800,
-              background: slot.kind === "owner" ? GREEN : "#eef4f0",
-              color: slot.kind === "owner" ? "#fff" : GREEN,
-              lineHeight: 1.3,
               border: "none",
+              background: "rgba(255,255,255,.94)",
+              boxShadow: "0 3px 14px rgba(20,47,29,.18)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
               cursor: "pointer",
-              fontFamily: "inherit",
+              padding: 0,
             }}
           >
-            {slot.roleLabel}
+            <Users size={19} color={GREEN} strokeWidth={2.35} />
           </button>
-          {joinedLabel && (
-            <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, lineHeight: 1.3, whiteSpace: "nowrap" }}>
-              Desde {joinedLabel}
-            </span>
-          )}
-        </div>
+        )}
+
+        <CardOverflowMenu actions={menuActions} />
+      </div>
+
+      {h && (
+        <span
+          style={{
+            padding: "3px 11px",
+            borderRadius: 999,
+            fontSize: 10,
+            fontWeight: 800,
+            background: slot.kind === "owner" ? GREEN : "#eef4f0",
+            color: slot.kind === "owner" ? "#fff" : GREEN,
+            lineHeight: 1.3,
+            marginTop: 2,
+          }}
+        >
+          {slot.roleLabel}
+        </span>
       )}
 
       {canActivate && (
@@ -644,7 +674,7 @@ function SlotCard({
         </button>
       )}
 
-      <AccessAccountsSheet
+      <MembersSheet
         open={accountsOpen}
         onClose={() => setAccountsOpen(false)}
         accounts={accessAccounts}
@@ -702,7 +732,7 @@ function HouseholdCarousel({
   };
 
   return (
-    <div style={{ width: "100%", paddingBottom: 8 }}>
+    <div style={{ width: "100%", paddingBottom: 4 }}>
       <div
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
@@ -764,8 +794,8 @@ function HouseholdCarousel({
             display: "flex",
             justifyContent: "center",
             gap: 6,
-            marginTop: 10,
-            marginBottom: 12,
+            marginTop: 6,
+            marginBottom: 28,
             position: "relative",
             zIndex: 2,
           }}
@@ -901,7 +931,7 @@ export function HouseholdsScreen({
       <div
         style={{
           flex: 1,
-          padding: `0 12px calc(${bottomNavSpacer()} + 20px)`,
+          padding: `0 12px calc(${bottomNavSpacer()} + 44px)`,
           maxWidth: 420,
           margin: "0 auto",
           width: "100%",
