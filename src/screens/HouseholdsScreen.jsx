@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import {
   BookOpen,
   Check,
+  Home,
   Link2,
   LogOut,
   MoreHorizontal,
@@ -22,9 +23,9 @@ import {
 import { googleInfo } from "./Settings.jsx";
 
 const GREEN = "#2d5a3d";
+const VIEWER_BLUE = "#4a6fd0";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
-const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
 const HEADER_BAND = "#e9f4ed";
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
@@ -58,7 +59,7 @@ function RoleIllustration({ roleLabel }) {
           border: "1px solid #e3ebe6",
         }}
       />
-      <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : MUTED, lineHeight: 1 }}>
+      <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
         {isProp ? "Prop" : "Vis"}
       </span>
     </div>
@@ -600,8 +601,8 @@ function SlotCard({
             borderRadius: 999,
             fontSize: 10,
             fontWeight: 800,
-            background: slot.kind === "owner" ? GREEN : "#eef4f0",
-            color: slot.kind === "owner" ? "#fff" : GREEN,
+            background: slot.kind === "owner" ? GREEN : VIEWER_BLUE,
+            color: "#fff",
             lineHeight: 1.3,
             marginTop: 2,
           }}
@@ -954,87 +955,96 @@ export function HouseholdsScreen({
 
   return (
     <div style={{ minHeight: "100dvh", background: "#fff", color: INK }}>
+      <div style={{ background: HEADER_BAND }}>
+        <div
+          style={{
+            padding: "20px 16px 14px",
+            maxWidth: 420,
+            margin: "0 auto",
+            width: "100%",
+            boxSizing: "border-box",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 9, minWidth: 0 }}>
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 11,
+                background: "#e8f5ec",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Home size={18} color={GREEN} strokeWidth={2.4} />
+            </span>
+            <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
+              Hogares
+            </h1>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+            {onOpenBiblioteca && user && (
+              <button
+                type="button"
+                onClick={onOpenBiblioteca}
+                aria-label="Biblioteca"
+                title="Tu biblioteca"
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 12,
+                  border: "1.5px solid #d5e6da",
+                  background: "#fff",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: "pointer",
+                  padding: 0,
+                  color: GREEN,
+                }}
+              >
+                <BookOpen size={16} strokeWidth={2.3} />
+              </button>
+            )}
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                style={{
+                  border: "1.5px solid #d5e6da",
+                  background: "#fff",
+                  color: GREEN,
+                  borderRadius: 12,
+                  padding: "7px 12px",
+                  fontSize: 12.5,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                Atrás
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div
         style={{
           flex: 1,
-          padding: `0 12px calc(${bottomNavSpacer()} + 44px)`,
+          padding: `12px 12px calc(${bottomNavSpacer()} + 44px)`,
           maxWidth: 420,
           margin: "0 auto",
           width: "100%",
           boxSizing: "border-box",
         }}
       >
-        <div
-          style={{
-            background: MENU_GRADIENT,
-            borderRadius: "0 0 22px 22px",
-            padding: "16px 16px 18px",
-            margin: "0 -12px 18px",
-            boxShadow: "0 14px 28px -16px rgba(20,47,29,.5)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <img
-              src={IMG_OWNER}
-              alt=""
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 11,
-                objectFit: "cover",
-                border: "2px solid rgba(255,255,255,.45)",
-                flexShrink: 0,
-              }}
-            />
-            <h1 style={{ margin: 0, flex: 1, fontSize: 21, fontWeight: 900, color: "#fff", letterSpacing: "-.4px" }}>
-              Hogares
-            </h1>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-              {onOpenBiblioteca && user && (
-                <button
-                  type="button"
-                  onClick={onOpenBiblioteca}
-                  aria-label="Biblioteca"
-                  title="Tu biblioteca"
-                  style={{
-                    width: 34,
-                    height: 34,
-                    borderRadius: 10,
-                    border: "1px solid rgba(255,255,255,.35)",
-                    background: "rgba(255,255,255,.18)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: "pointer",
-                    padding: 0,
-                  }}
-                >
-                  <BookOpen size={16} color="#fff" strokeWidth={2.3} />
-                </button>
-              )}
-              {onBack && (
-                <button
-                  type="button"
-                  onClick={onBack}
-                  style={{
-                    border: "1px solid rgba(255,255,255,.35)",
-                    background: "rgba(255,255,255,.16)",
-                    color: "#fff",
-                    borderRadius: 10,
-                    padding: "6px 11px",
-                    fontSize: 12.5,
-                    fontWeight: 700,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  Atrás
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
         {!user && (
           <div style={{ background: "#fff", border: "1.5px solid #e3ebe6", borderRadius: 16, padding: 14 }}>
             <p style={{ margin: "0 0 10px", fontSize: 13.5, lineHeight: 1.45 }}>
