@@ -10,14 +10,12 @@ import {
   Trash2,
 } from "lucide-react";
 import {
-  Avatar,
   BottomNav,
   GroupAvatarStack,
   bottomNavSpacer,
   GoogleButton,
   groupAvatarFaces,
 } from "../components/ui.jsx";
-import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
@@ -151,60 +149,6 @@ function CardOverflowMenu({ actions }) {
   );
 }
 
-function ComensalesStrip({ members }) {
-  if (!members.length) return null;
-  return (
-    <div style={{ width: "100%", maxWidth: 340, marginTop: 2 }}>
-      <p
-        style={{
-          margin: "0 0 6px",
-          fontSize: 9,
-          fontWeight: 800,
-          color: MUTED,
-          letterSpacing: ".3px",
-          textTransform: "uppercase",
-          textAlign: "center",
-        }}
-      >
-        Comensales
-      </p>
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          gap: 6,
-        }}
-      >
-        {members.slice(0, 8).map((m) => (
-          <span
-            key={m.id}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 5,
-              padding: "3px 8px 3px 3px",
-              borderRadius: 999,
-              background: "#f4f8f5",
-              border: "1px solid #e3ebe6",
-            }}
-          >
-            <Avatar
-              name={m.name}
-              photo={memberAvatarThumbSrc(m)}
-              size={22}
-              color={memberAvatarColor(m.id, members)}
-            />
-            <span style={{ fontSize: 11, fontWeight: 700, color: INK, lineHeight: 1 }}>
-              {m.name?.trim().split(/\s+/)[0] ?? m.name}
-            </span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function SlotCard({
   slot,
   isGlobalActive,
@@ -247,9 +191,6 @@ function SlotCard({
   const showMemberAvatars =
     Boolean(h && slot.kind === "owner" && h.id === effectiveActiveId && members.length > 0);
   const avatarFaces = showMemberAvatars ? groupAvatarFaces(members, members) : [];
-
-  const showComensales =
-    Boolean(h && slot.kind === "owner" && h.id === effectiveActiveId && isGlobalActive);
 
   const menuActions = useMemo(() => {
     if (!h) return [];
@@ -409,19 +350,7 @@ function SlotCard({
         </div>
 
         {showMemberAvatars && (
-          <div
-            style={{
-              position: "absolute",
-              top: 10,
-              left: 10,
-              zIndex: 3,
-              lineHeight: 0,
-              padding: "2px 6px 2px 2px",
-              borderRadius: 999,
-              background: "rgba(255,255,255,.88)",
-              boxShadow: "0 2px 10px rgba(20,47,29,.1)",
-            }}
-          >
+          <div style={{ position: "absolute", top: 10, left: 10, zIndex: 3, lineHeight: 0 }}>
             <GroupAvatarStack faces={avatarFaces} size={32} active max={3} />
           </div>
         )}
@@ -459,8 +388,6 @@ function SlotCard({
           )}
         </div>
       )}
-
-      {showComensales && <ComensalesStrip members={members} />}
 
       {canActivate && (
         <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: GREEN, lineHeight: 1.3 }}>
