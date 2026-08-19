@@ -1046,6 +1046,22 @@ export default function App() {
     }
     setMenuCoachSeen(true);
   }, []);
+  const [householdsCoachSeen, setHouseholdsCoachSeen] = useState(() => {
+    if (FORCE_TOUR) return false;
+    try {
+      return Boolean(localStorage.getItem("mp_households_coachmarks_seen"));
+    } catch {
+      return false;
+    }
+  });
+  const markHouseholdsCoachSeen = useCallback(() => {
+    try {
+      localStorage.setItem("mp_households_coachmarks_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setHouseholdsCoachSeen(true);
+  }, []);
   const [data, setData] = useState(persisted?.data ?? INITIAL_DATA);
   /** Votes personales (recipe_votes), sin favoritas del hogar — para Biblioteca. */
   const [personalRecipeVotes, setPersonalRecipeVotes] = useState({});
@@ -4159,6 +4175,8 @@ export default function App() {
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
+                showCoach={Boolean(user) && !householdsCoachSeen}
+                onCoachClose={markHouseholdsCoachSeen}
               />
             </Suspense>
           </div>

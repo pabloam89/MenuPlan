@@ -28,6 +28,7 @@ import {
   extractInviteToken,
   loadHouseholdMembers,
 } from "../lib/householdsSync.js";
+import { HouseholdsCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 
 const GREEN = "#2d5a3d";
 const VIEWER_BLUE = "#4a6fd0";
@@ -737,7 +738,7 @@ function MembersSheet({
   );
 }
 
-function CardOverflowMenu({ actions }) {
+function CardOverflowMenu({ actions, coachSelector }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
 
@@ -762,6 +763,7 @@ function CardOverflowMenu({ actions }) {
         type="button"
         aria-label={open ? "Cerrar acciones" : "Acciones del hogar"}
         aria-expanded={open}
+        {...(coachSelector ? { "data-coach": coachSelector } : {})}
         onClick={() => setOpen((v) => !v)}
         style={{
           width: 34,
@@ -860,6 +862,8 @@ function SlotCard({
   setRenameDraft,
   startRename,
   commitRename,
+  coachOwner = false,
+  coachViewer = false,
 }) {
   const [accountsOpen, setAccountsOpen] = useState(false);
   const [confirm, setConfirm] = useState(null);
@@ -1003,9 +1007,14 @@ function SlotCard({
   );
 
   const canActivate = Boolean(h && !isGlobalActive);
+  const coachCard =
+    (coachOwner && slot.kind === "owner" && h && { "data-coach": "households-card" })
+    || (coachViewer && slot.kind === "viewer" && { "data-coach": "households-viewer-card" })
+    || null;
 
   return (
     <div
+      {...coachCard}
       role={canActivate ? "button" : undefined}
       tabIndex={canActivate ? 0 : undefined}
       onClick={() => {
@@ -1107,7 +1116,10 @@ function SlotCard({
           <div style={{ flex: 1, minWidth: 0 }}>{cardTitleNode}</div>
 
           <div style={{ flexShrink: 0, width: menuActions.length ? "auto" : 34 }}>
-            <CardOverflowMenu actions={menuActions} />
+            <CardOverflowMenu
+              actions={menuActions}
+              coachSelector={coachOwner && menuActions.length ? "households-menu" : undefined}
+            />
           </div>
         </div>
 
@@ -1136,6 +1148,7 @@ function SlotCard({
               cursor: "pointer",
               padding: 0,
             }}
+            {...(coachOwner ? { "data-coach": "households-members" } : {})}
           >
             <Users size={19} color={GREEN} strokeWidth={2.35} />
           </button>
@@ -1354,7 +1367,7 @@ function HouseholdCarousel({
             transition: "transform 0.38s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
-          {slots.map((slot) => {
+          {slots.map((slot, slotIdx) => {
             const h = slot.household;
             const isGlobalActive = Boolean(h?.id && h.id === effectiveActiveId);
             return (
@@ -1390,6 +1403,8 @@ function HouseholdCarousel({
                   setRenameDraft={setRenameDraft}
                   startRename={startRename}
                   commitRename={commitRename}
+                  coachOwner={slotIdx === 0}
+                  coachViewer={slotIdx === 1 && slot.kind === "viewer"}
                 />
               </div>
             );
@@ -1399,6 +1414,7 @@ function HouseholdCarousel({
 
       {slots.length > 1 && (
         <div
+          data-coach="households-dots"
           style={{
             display: "flex",
             justifyContent: "center",
@@ -1460,8 +1476,11 @@ export function HouseholdsScreen({
   onRemoveMember,
   onRenameHousehold,
   onSignIn,
+  showCoach = false,
+  onCoachClose,
 }) {
   const [copied, setCopied] = useState(false);
+  const [showIconCoach, setShowIconCoach] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
   const [joinSheetOpen, setJoinSheetOpen] = useState(false);
@@ -1543,6 +1562,20 @@ export function HouseholdsScreen({
     onSwitchHousehold?.(id);
   };
 
+  const handleCoachStep = useCallback((step) => {
+    const sel = step?.selector;
+    if (sel === '[data-coach="households-viewer-card"]') {
+      setSlideIndex(1);
+    } else if (
+      sel === '[data-coach="households-card"]'
+      || sel === '[data-coach="households-members"]'
+      || sel === '[data-coach="households-menu"]'
+      || sel === '[data-coach="households-dots"]'
+    ) {
+      setSlideIndex(0);
+    }
+  }, []);
+
   return (
     <div style={{ minHeight: "100dvh", background: "#fff", color: INK }}>
       <div style={{ background: HEADER_BAND }}>
@@ -1577,11 +1610,18 @@ export function HouseholdsScreen({
             <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
               Hogares
             </h1>
+            {user && (
+              <CoachHelpButton
+                active={showIconCoach || showCoach}
+                onClick={() => setShowIconCoach(true)}
+              />
+            )}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
             {onOpenBiblioteca && user && (
               <button
                 type="button"
+                data-coach="households-biblioteca"
                 onClick={onOpenBiblioteca}
                 aria-label="Biblioteca"
                 title="Tu biblioteca"
@@ -1718,6 +1758,15 @@ export function HouseholdsScreen({
         joining={joining}
         joinError={joinError}
       />
+      {(showCoach || showIconCoach) && (
+        <HouseholdsCoachTour
+          onStepChange={handleCoachStep}
+          onClose={() => {
+            setShowIconCoach(false);
+            onCoachClose?.();
+          }}
+        />
+      )}
       <BottomNav active="dashboard" onNav={onNav} dissolved={navDissolved} />
     </div>
   );
