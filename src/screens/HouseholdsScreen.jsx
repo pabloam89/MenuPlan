@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Copy,
   Check,
   LogOut,
   Share2,
@@ -117,14 +116,14 @@ function SelectionCheck({ active, disabled, onSelect }) {
   );
 }
 
-const ILLU_V_GAP = 4;
+const ILLU_V_GAP = 6;
 
 function CardSection({ label, children }) {
   return (
     <div style={{ width: "100%", minWidth: 0 }}>
       <p
         style={{
-          margin: "0 0 3px",
+          margin: "0 0 4px",
           fontSize: 9,
           fontWeight: 800,
           color: "#9ab0a1",
@@ -140,6 +139,57 @@ function CardSection({ label, children }) {
   );
 }
 
+function StatBlock({ value, label }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "baseline",
+        gap: 8,
+        padding: "7px 10px",
+        borderRadius: 11,
+        background: "#f4f8f5",
+        width: "100%",
+        boxSizing: "border-box",
+      }}
+    >
+      <span style={{ fontSize: 22, fontWeight: 900, color: INK, lineHeight: 1 }}>{value}</span>
+      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#7a9485", lineHeight: 1.2 }}>{label}</span>
+    </div>
+  );
+}
+
+function DinerTile({ member, allMembers }) {
+  const shortName = member.name?.trim().split(/\s+/)[0] ?? member.name ?? "?";
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 3, width: 46, minWidth: 0 }}>
+      <div style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
+        <Avatar
+          name={member.name}
+          photo={memberAvatarThumbSrc(member)}
+          size={30}
+          color={memberAvatarColor(member.id, allMembers)}
+        />
+      </div>
+      <span
+        style={{
+          fontSize: 9,
+          fontWeight: 700,
+          color: INK,
+          textAlign: "center",
+          width: "100%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          lineHeight: 1.1,
+        }}
+      >
+        {shortName}
+      </span>
+    </div>
+  );
+}
+
 function SlotCard({
   slot,
   active,
@@ -148,6 +198,10 @@ function SlotCard({
   householdLoading,
   familyMembers = [],
   menuCount = 0,
+  canShareInvite = false,
+  inviteUrl = null,
+  inviteCopied = false,
+  onCopyInvite,
   onSwitch,
   onLeave,
   onJoin,
@@ -164,7 +218,6 @@ function SlotCard({
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
   const joinedLabel = h ? formatJoinedAt(h.joinedAt) : null;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
-  const showOwnerStats = Boolean(h && active && slot.kind === "owner" && h.isOwn);
 
   const accessRows = useMemo(() => {
     if (!h || !userName) return [];
@@ -182,6 +235,55 @@ function SlotCard({
   }
 
   const displayName = h?.name ?? slot.label;
+  const showOwnerPanel = Boolean(h && active && slot.kind === "owner" && h.isOwn);
+  const showShare = showOwnerPanel && canShareInvite && inviteUrl;
+
+  const titleNode = h && renamingId === h.id ? (
+    <input
+      value={renameDraft}
+      onChange={(e) => setRenameDraft(e.target.value)}
+      onBlur={() => commitRename(h.id)}
+      onKeyDown={(e) => e.key === "Enter" && commitRename(h.id)}
+      autoFocus
+      style={{
+        width: "100%",
+        fontSize: 12,
+        fontWeight: 800,
+        border: "1.5px solid #c8ddd0",
+        borderRadius: 8,
+        padding: "3px 6px",
+        fontFamily: "inherit",
+        boxSizing: "border-box",
+        textAlign: "center",
+      }}
+    />
+  ) : (
+    <button
+      type="button"
+      onClick={() => h?.role === "owner" && h.isOwn && startRename(h)}
+      style={{
+        margin: 0,
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        font: "inherit",
+        fontSize: 13,
+        fontWeight: 900,
+        color: empty && !ownerPending ? "#9ab0a1" : INK,
+        cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
+        lineHeight: 1.15,
+        letterSpacing: "-.25px",
+        width: "100%",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        textAlign: "center",
+        display: "block",
+      }}
+    >
+      {displayName}
+    </button>
+  );
 
   return (
     <div
@@ -189,71 +291,17 @@ function SlotCard({
         background: "#fff",
         borderRadius: 18,
         border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-        padding: "8px 8px",
+        padding: "10px 10px 8px",
         boxShadow: active ? "0 10px 22px -14px rgba(45,90,61,.38)" : "0 4px 14px -10px rgba(20,47,29,.08)",
         opacity: empty && !ownerPending ? 0.72 : 1,
       }}
     >
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "45% 1fr",
-          columnGap: 8,
-          rowGap: ILLU_V_GAP,
-          alignItems: "stretch",
-        }}
-      >
-        {/* Fila 1: título | check */}
-        <div style={{ minWidth: 0, alignSelf: "end" }}>
-          {h && renamingId === h.id ? (
-            <input
-              value={renameDraft}
-              onChange={(e) => setRenameDraft(e.target.value)}
-              onBlur={() => commitRename(h.id)}
-              onKeyDown={(e) => e.key === "Enter" && commitRename(h.id)}
-              autoFocus
-              style={{
-                width: "100%",
-                fontSize: 12,
-                fontWeight: 800,
-                border: "1.5px solid #c8ddd0",
-                borderRadius: 8,
-                padding: "3px 6px",
-                fontFamily: "inherit",
-                boxSizing: "border-box",
-                textAlign: "center",
-              }}
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => h?.role === "owner" && h.isOwn && startRename(h)}
-              style={{
-                margin: 0,
-                padding: 0,
-                border: "none",
-                background: "transparent",
-                font: "inherit",
-                fontSize: 13,
-                fontWeight: 900,
-                color: empty && !ownerPending ? "#9ab0a1" : INK,
-                cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
-                lineHeight: 1.05,
-                letterSpacing: "-.25px",
-                width: "100%",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                textAlign: "center",
-                display: "block",
-              }}
-            >
-              {displayName}
-            </button>
-          )}
+      {/* Cabecera: título + check */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: ILLU_V_GAP }}>
+        <div style={{ width: "45%", flexShrink: 0, minWidth: 0, position: "relative", zIndex: 2 }}>
+          {titleNode}
         </div>
-
-        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-end", minHeight: 22 }}>
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
           {h ? (
             <SelectionCheck
               active={active}
@@ -262,115 +310,42 @@ function SlotCard({
             />
           ) : null}
         </div>
+      </div>
 
-        {/* Fila 2: ilustración | stats */}
+      {/* Cuerpo: ilustración | panel info */}
+      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
         <div
           style={{
-            minWidth: 0,
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "center",
-            background: empty && !ownerPending ? "#eef4f0" : "transparent",
-            borderRadius: empty && !ownerPending ? 14 : 0,
-            filter: empty && !ownerPending ? "grayscale(.7)" : "none",
-          }}
-        >
-          <img
-            src={img}
-            alt=""
-            style={{
-              width: "100%",
-              height: "auto",
-              display: "block",
-              transform: "scaleY(1.08)",
-              transformOrigin: "center bottom",
-            }}
-          />
-        </div>
-
-        <div
-          style={{
-            minWidth: 0,
+            width: "45%",
+            flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
-            gap: 10,
-            padding: "2px 0 4px",
+            gap: ILLU_V_GAP,
+            minWidth: 0,
           }}
         >
-          {h ? (
-            showOwnerStats ? (
-              <>
-                <CardSection label="Menús generados">
-                  <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1 }}>
-                    {menuCount}
-                  </p>
-                </CardSection>
-                <CardSection label="Miembros">
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    {accessRows.map((row) => (
-                      <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                    ))}
-                  </div>
-                </CardSection>
-                <CardSection label="Comensales">
-                  {familyMembers.length > 0 ? (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
-                      {familyMembers.slice(0, 6).map((m) => (
-                        <div key={m.id} style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
-                          <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={24} color={memberAvatarColor(m.id, familyMembers)} />
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#b8c9bd" }}>0</p>
-                  )}
-                </CardSection>
-              </>
-            ) : (
-              <>
-                <CardSection label="Miembros">
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    {accessRows.map((row) => (
-                      <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                    ))}
-                  </div>
-                </CardSection>
-                {h.role === "viewer" && (
-                  <button
-                    type="button"
-                    onClick={() => onLeave?.(h.id)}
-                    style={{
-                      alignSelf: "flex-start",
-                      padding: "4px 8px",
-                      borderRadius: 8,
-                      border: "1.5px solid #f0d4d4",
-                      background: "#fff",
-                      color: "#b42318",
-                      fontWeight: 700,
-                      fontSize: 10,
-                      cursor: "pointer",
-                      fontFamily: "inherit",
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                    }}
-                  >
-                    <LogOut size={11} />
-                    Abandonar
-                  </button>
-                )}
-              </>
-            )
-          ) : (
-            emptyHint && (
-              <p style={{ margin: "auto 0", fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
-            )
-          )}
-        </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "flex-start",
+              justifyContent: "center",
+              background: empty && !ownerPending ? "#eef4f0" : "transparent",
+              borderRadius: empty && !ownerPending ? 14 : 0,
+              filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+              overflow: "hidden",
+            }}
+          >
+            <img
+              src={img}
+              alt=""
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+              }}
+            />
+          </div>
 
-        {/* Fila 3: rol + fecha | acciones */}
-        <div style={{ minWidth: 0 }}>
           {h && (
             <div
               style={{
@@ -408,7 +383,6 @@ function SlotCard({
               onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
               style={{
                 width: "100%",
-                marginTop: 4,
                 padding: "5px 6px",
                 borderRadius: 8,
                 border: "none",
@@ -431,7 +405,6 @@ function SlotCard({
               onClick={onJoin}
               style={{
                 width: "100%",
-                marginTop: 4,
                 padding: "5px 6px",
                 borderRadius: 8,
                 border: "none",
@@ -458,7 +431,6 @@ function SlotCard({
               onClick={onRetry}
               style={{
                 width: "100%",
-                marginTop: 4,
                 padding: "4px 6px",
                 borderRadius: 8,
                 border: `1.5px solid ${GREEN}`,
@@ -480,7 +452,108 @@ function SlotCard({
           )}
         </div>
 
-        <div />
+        <div
+          style={{
+            flex: 1,
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 8,
+            paddingBottom: 2,
+          }}
+        >
+          {h ? (
+            <>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, justifyContent: "space-between" }}>
+                {showOwnerPanel && (
+                  <CardSection label="Menús">
+                    <StatBlock value={menuCount} label="generados" />
+                  </CardSection>
+                )}
+
+                <CardSection label="Miembros">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {accessRows.map((row) => (
+                      <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
+                    ))}
+                  </div>
+                </CardSection>
+
+                {showOwnerPanel && (
+                  <CardSection label="Comensales">
+                    {familyMembers.length > 0 ? (
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                        {familyMembers.slice(0, 6).map((m) => (
+                          <DinerTile key={m.id} member={m} allMembers={familyMembers} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#b8c9bd" }}>Ninguno aún</p>
+                    )}
+                  </CardSection>
+                )}
+              </div>
+
+              {(showShare || h.role === "viewer") && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: "1px solid #eef4f0" }}>
+                  {showShare && (
+                    <button
+                      type="button"
+                      onClick={onCopyInvite}
+                      style={{
+                        margin: 0,
+                        padding: 0,
+                        border: "none",
+                        background: "transparent",
+                        font: "inherit",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        color: GREEN,
+                        fontWeight: 800,
+                        fontSize: 10.5,
+                        cursor: "pointer",
+                        alignSelf: "flex-start",
+                      }}
+                    >
+                      {inviteCopied ? <Check size={13} strokeWidth={2.5} /> : <Share2 size={13} strokeWidth={2.3} />}
+                      {inviteCopied ? "Enlace copiado" : "Compartir invitación"}
+                    </button>
+                  )}
+                  {h.role === "viewer" && (
+                    <button
+                      type="button"
+                      onClick={() => onLeave?.(h.id)}
+                      style={{
+                        margin: 0,
+                        padding: 0,
+                        border: "none",
+                        background: "transparent",
+                        font: "inherit",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 5,
+                        color: "#b42318",
+                        fontWeight: 700,
+                        fontSize: 10.5,
+                        cursor: "pointer",
+                        alignSelf: "flex-start",
+                      }}
+                    >
+                      <LogOut size={13} />
+                      Abandonar hogar
+                    </button>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            emptyHint && (
+              <p style={{ margin: "auto 0", fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
+            )
+          )}
+        </div>
       </div>
     </div>
   );
@@ -682,6 +755,10 @@ export function HouseholdsScreen({
                     householdLoading={householdLoading}
                     familyMembers={members}
                     menuCount={menuCount}
+                    canShareInvite={Boolean(isActive && canShareInvite && inviteUrl && slot.kind === "owner")}
+                    inviteUrl={inviteUrl}
+                    inviteCopied={copied}
+                    onCopyInvite={handleCopyInvite}
                     onSwitch={onSwitchHousehold}
                     onLeave={onLeaveHousehold}
                     onJoin={handleJoin}
@@ -696,34 +773,6 @@ export function HouseholdsScreen({
                 );
               })}
             </div>
-
-            {canShareInvite && inviteUrl && (
-              <div style={{ background: "#fff", border: "1.5px solid #e3ebe6", borderRadius: 14, padding: "12px 14px", marginTop: 14 }}>
-                <button
-                  type="button"
-                  onClick={handleCopyInvite}
-                  style={{
-                    width: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    padding: "10px 12px",
-                    borderRadius: 11,
-                    border: "none",
-                    background: GREEN,
-                    color: "#fff",
-                    fontWeight: 800,
-                    fontSize: 13,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {copied ? <Check size={16} /> : <Copy size={16} />}
-                  {copied ? "Enlace copiado" : "Copiar enlace de invitación"}
-                </button>
-              </div>
-            )}
 
             {readOnly && activeHousehold && (
               <div style={{ background: "#fffdf5", border: "1.5px solid #f5e6b8", borderRadius: 12, padding: "10px 12px", marginTop: 14 }}>
