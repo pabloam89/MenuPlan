@@ -105,7 +105,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, HouseholdReadOnlyBanner, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -3674,6 +3674,8 @@ export const MenuScreen = memo(function MenuScreen({
   // dish can show a "faltan ingredientes" dot instead of making you go check
   // Compra yourself.
   shoppingItems = null,
+  readOnly = false,
+  readOnlyLabel = null,
 }) {
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -3690,6 +3692,7 @@ export const MenuScreen = memo(function MenuScreen({
 
   const handleTileTap = useCallback(
     (sel) => {
+      if (readOnly && sel.empty) return;
       if (armed) {
         // Tapping the same dish cancels the armed action.
         if (sameDish(armed.source, sel)) {
@@ -3708,15 +3711,15 @@ export const MenuScreen = memo(function MenuScreen({
       }
       onDishTap?.(sel);
     },
-    [armed, onDishSwap, onDishDuplicate, onDishManualPick, onDishTap],
+    [armed, onDishSwap, onDishDuplicate, onDishManualPick, onDishTap, readOnly],
   );
 
   const handleTileLongPress = useCallback(
     (sel) => {
-      if (armed || sel.empty) return;
+      if (readOnly || armed || sel.empty) return;
       setDishAction(sel);
     },
-    [armed],
+    [armed, readOnly],
   );
 
   // Demo-only autoplay for the value-props carousel: open the quick-actions
@@ -3811,10 +3814,10 @@ export const MenuScreen = memo(function MenuScreen({
   // perfil" en vez de duplicar un flujo de edición aparte — es un signal
   // one-shot que el padre limpia tras consumirlo.
   useEffect(() => {
-    if (!autoOpenProfile) return;
+    if (!autoOpenProfile || readOnly) return;
     setProfileOpen(true);
     onAutoOpenProfileHandled?.();
-  }, [autoOpenProfile, onAutoOpenProfileHandled]);
+  }, [autoOpenProfile, onAutoOpenProfileHandled, readOnly]);
   const [viewMode, setViewMode] = useState(initialViewMode); // "dia" | "semana"
   const [viewAnimDir, setViewAnimDir] = useState(0);
   // Deck is now the only menu UI. (The classic view has been retired; its render
@@ -4232,7 +4235,7 @@ export const MenuScreen = memo(function MenuScreen({
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
                     hasMenu && { key: "share", label: "Compartir", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
-                    !isGenerating && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
+                    !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
                     .filter(Boolean)
                     .map((a, i, arr) => (
@@ -4263,6 +4266,7 @@ export const MenuScreen = memo(function MenuScreen({
           )}
         </div>
       </div>
+      {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} />}
 
       {/* ── Filter panel: collapsible con animación (solo modo clásico) ── */}
       {uiMode === "clasico" && (
@@ -4416,15 +4420,13 @@ export const MenuScreen = memo(function MenuScreen({
       )}
 
       {!isGenerating && !error && !hasVisibleMenu && (
-        <EmptyState onRegenerate={onRegenerate} />
+        <EmptyState onRegenerate={onRegenerate} readOnly={readOnly} />
       )}
 
       {!isGenerating && !error && hasVisibleMenu && (
       <div>
         {restrictionWarning && (
-          // Keyed on the message text so a NEW conflict (different dishes/
-          // restrictions) re-surfaces even if the user dismissed an earlier one.
-          <RestrictionConflictBanner key={restrictionWarning} message={restrictionWarning} onRegenerate={onRegenerate} />
+          <RestrictionConflictBanner key={restrictionWarning} message={restrictionWarning} onRegenerate={readOnly ? undefined : onRegenerate} />
         )}
         {uiMode === "deck" && (
           <div
@@ -4458,7 +4460,7 @@ export const MenuScreen = memo(function MenuScreen({
           </div>
         )}
 
-        {dishAction && autoDemo !== "actions" && (
+        {dishAction && autoDemo !== "actions" && !readOnly && (
           <RoscoMenu
             anchor={dishAction.anchor}
             onClose={() => setDishAction(null)}
@@ -4487,7 +4489,7 @@ export const MenuScreen = memo(function MenuScreen({
 
         {/* "Regenerar" sub-radial — cómo reemplazar. Chips reutilizan el icono +
             color de la categoría. */}
-        {regenChoice &&
+        {regenChoice && !readOnly &&
           (() => {
             const cat = regenChoice.recipe?.category;
             const hasGarnish = Boolean(regenChoice.recipe?.garnishId);
@@ -4788,14 +4790,14 @@ export const MenuScreen = memo(function MenuScreen({
       </div>
       )}
 
-      {profileOpen && (
+      {profileOpen && !readOnly && (
         <ProfileSettingsSheet
           data={data}
           setData={setData}
           onClose={() => setProfileOpen(false)}
           onRegenerate={() => {
             setProfileOpen(false);
-            onRegenerate();
+            onRegenerate?.();
           }}
         />
       )}
@@ -4874,13 +4876,17 @@ function ErrorCard({ error, onRetry }) {
   );
 }
 
-function EmptyState({ onRegenerate }) {
+function EmptyState({ onRegenerate, readOnly = false }) {
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
         img="/avatares/cards/aun_no_menu_generado.jpg"
-        title="Aún no tienes menú esta semana"
-        subtitle='Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.'
+        title={readOnly ? "Sin menú en este hogar" : "Aún no tienes menú esta semana"}
+        subtitle={
+          readOnly
+            ? "Cuando el propietario genere el menú, lo verás aquí."
+            : 'Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.'
+        }
         maxWidth={240}
         imgAspect="1 / 1"
         imgPosition="center"
@@ -4958,6 +4964,7 @@ export function DishDetail({
   onSlotFreezerChange = null,
   // Owner-only: patch classification (tipo / aplica) on a user-created recipe.
   onUpdateUserRecipe = null,
+  readOnly = false,
 }) {
   const isFavorite = favoriteScope != null;
   const rejectReasons = ["No me gusta", "Esta semana no", "Tarda demasiado", "Lo comí hace poco"];
@@ -5599,7 +5606,7 @@ export function DishDetail({
           <X size={20} />
         </button>
 
-        {onSetFavoriteScope && (
+        {onSetFavoriteScope && !readOnly && (
           <button
             type="button"
             onClick={() => {
@@ -5678,8 +5685,8 @@ export function DishDetail({
                     <RecipeVoteCounts
                       up={recipe.rating?.up ?? 0}
                       down={recipe.rating?.down ?? 0}
-                      userVote={userVote}
-                      onVote={onVote}
+                      userVote={readOnly ? null : userVote}
+                      onVote={readOnly ? undefined : onVote}
                       textSize={13}
                       iconSize={16}
                     />
@@ -6059,9 +6066,9 @@ export function DishDetail({
                     key={ing.id}
                     ing={ing}
                     isLast={i === courseIngredients.length - 1}
-                    cookable={cookable && cookCourse}
+                    cookable={cookable && cookCourse && !readOnly}
                     owned={cookable && cookCourse && haveByIngId[ing.id]}
-                    revertible={cookable && cookCourse && Boolean(manuallyOwnedIds[ing.id])}
+                    revertible={!readOnly && cookable && cookCourse && Boolean(manuallyOwnedIds[ing.id])}
                     onMarkOwned={() => markIngredientOwned(ing)}
                     onRevertOwned={() => revertIngredientOwned(ing)}
                   />
@@ -6213,7 +6220,7 @@ export function DishDetail({
               </>
             )}
 
-            {cookable && cookCourse && (
+            {cookable && cookCourse && !readOnly && (
               <button
                 type="button"
                 onClick={isCooked ? handleUndoCooked : handleMarkCooked}

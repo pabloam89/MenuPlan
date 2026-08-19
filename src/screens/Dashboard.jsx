@@ -13,6 +13,7 @@ import {
   CookingPot,
   Refrigerator,
   Settings,
+  Eye,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -157,7 +158,8 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
 // ── Menu hero: the app is about generating menus, so this is the single, big,
 // full-width action that owns the home. Horizontal banner, left-anchored copy,
 // action arrow on the right over the photo. ────────────────────────────────
-function MenuHeroCard({ photos, onClick, id }) {
+function MenuHeroCard({ photos, onClick, id, title = "Generar menú", subtitle = "Tu menú de la (o las) semanas, en segundos", Icon = RotateCw }) {
+  const HeroIcon = Icon;
   return (
     <button
       type="button"
@@ -199,14 +201,14 @@ function MenuHeroCard({ photos, onClick, id }) {
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
-          <RotateCw size={20} color="#fff" strokeWidth={2.4} />
+          <HeroIcon size={20} color="#fff" strokeWidth={2.4} />
         </div>
         <div style={{ minWidth: 0 }}>
           <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-.4px", lineHeight: 1.05 }}>
-            Generar menú
+            {title}
           </p>
           <p style={{ margin: "4px 0 0", fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,.9)", lineHeight: 1.3 }}>
-            Tu menú de la (o las) semanas, en segundos
+            {subtitle}
           </p>
         </div>
       </div>
@@ -325,11 +327,13 @@ export function DashboardScreen({
   data,
   menuPlan,
   activeHousehold,
+  householdReadOnly = false,
   onOpenHouseholds,
   onNav,
   onViewMenu,
   onGenerateNewMenu,
   onOpenRecipePlanner,
+  onOpenRecipes,
   onOpenStreak,
   onOpenAccount,
 }) {
@@ -566,7 +570,14 @@ export function DashboardScreen({
           <MenuHeroCard
             id="coach-generate-menu"
             photos={[menuCardPhoto2, menuCardPhoto3]}
-            onClick={onGenerateNewMenu}
+            onClick={householdReadOnly ? onViewMenu : onGenerateNewMenu}
+            title={householdReadOnly ? "Ver menú" : "Generar menú"}
+            subtitle={
+              householdReadOnly && activeHousehold
+                ? `Menú de ${activeHousehold.name}`
+                : "Tu menú de la (o las) semanas, en segundos"
+            }
+            Icon={householdReadOnly ? Eye : RotateCw}
           />
         </div>
 
@@ -575,8 +586,8 @@ export function DashboardScreen({
           <QuickActionTile
             id="coach-update-pantry"
             icon={Refrigerator}
-            title="Actualizar despensa"
-            subtitle="Foto, ticket o a mano"
+            title={householdReadOnly ? "Ver despensa" : "Actualizar despensa"}
+            subtitle={householdReadOnly ? "Lo que hay en casa" : "Foto, ticket o a mano"}
             photos={[pantryCardPhoto2, pantryCardPhoto3]}
             objectPosition="center 40%"
             aspectRatio="4 / 5"
@@ -584,13 +595,13 @@ export function DashboardScreen({
           />
           <QuickActionTile
             id="coach-generate-recipes"
-            icon={Sparkles}
-            title="Generar recetas"
-            subtitle="Con lo que hay en casa"
+            icon={householdReadOnly ? Eye : Sparkles}
+            title={householdReadOnly ? "Ver recetas" : "Generar recetas"}
+            subtitle={householdReadOnly ? "Recetas del hogar" : "Con lo que hay en casa"}
             photos={[recipesCardPhoto2, recipesCardPhoto3]}
             objectPosition="center 62%"
             aspectRatio="4 / 5"
-            onClick={onOpenRecipePlanner}
+            onClick={householdReadOnly ? onOpenRecipes : onOpenRecipePlanner}
           />
         </div>
 

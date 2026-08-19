@@ -20,6 +20,7 @@ import {
   GroupScopePicker,
   WeekRangeBadge,
   bottomNavSpacer,
+  HouseholdReadOnlyBanner,
 } from "../components/ui.jsx";
 import { groupsFromModel } from "../lib/groups.js";
 import { getConsumptionInsights, mergeConsumptionGroups, filterConsumptionByMeal } from "../lib/consumptionInsights.js";
@@ -37,7 +38,7 @@ const TAB_OPTIONS = [
   { id: "gasto", label: "Gasto" },
 ];
 
-export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null, onBackToPantry = null, navActive = "menu" }) {
+export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, readOnly = false, readOnlyLabel = null, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null, onBackToPantry = null, navActive = "menu" }) {
   const [tab, setTab] = useState(initialTab ?? "cocina");
   const tabDirRef = useRef(0);
   // Deep link from "En casa" → Gastos: land directly on the requested tab.
@@ -124,6 +125,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
           style={{ marginBottom: 10 }}
         />
         <TabDivider options={TAB_OPTIONS} value={tab} />
+        {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} style={{ marginBottom: 10 }} />}
         <div
           key={tab}
           className={tabDirRef.current >= 0 ? "mp-tab-fwd" : "mp-tab-back"}
@@ -138,7 +140,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
         style={{ padding: "0 16px", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}
       >
         {tab === "gasto" ? (
-          <SpendPanel data={data} setData={setData} shopping={shopping} setShopping={setShopping} onUndoReceiptTachado={onUndoReceiptTachado} onToast={onToast} />
+          <SpendPanel data={data} setData={setData} shopping={shopping} setShopping={setShopping} readOnly={readOnly} onUndoReceiptTachado={onUndoReceiptTachado} onToast={onToast} />
         ) : !insights.hasMenu ? (
           <EmptyAnalytics onNav={onNav} />
         ) : tab === "cocina" ? (

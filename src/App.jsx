@@ -1137,6 +1137,8 @@ export default function App() {
 
   const syncMenuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user?.id;
   const syncHouseholdId = activeHouseholdId ?? null;
+  const householdReadOnlyLabel =
+    householdReadOnly && activeHousehold ? activeHousehold.name : null;
 
   const ownUserRecipes = useMemo(() => {
     if (householdReadOnly && activeHousehold?.ownerUserId) {
@@ -2326,6 +2328,7 @@ export default function App() {
   // (still leaves any OTHER past menús untouched) and clears the live
   // plan/shopping so nothing stale lingers around.
   const deleteActiveMenu = useCallback(() => {
+    if (householdReadOnly) return;
     const menuIdToDelete = data.activeMenuId;
     if (!menuIdToDelete) return;
     // F2: borrar el menú deja huérfano su consumo (lo que descontó al generar,
@@ -2390,6 +2393,7 @@ export default function App() {
   // never touches menuPlan/shopping — those mirror the active menú's current
   // week and have nothing to do with a history entry.
   const deleteHistoryMenu = useCallback((menuId) => {
+    if (householdReadOnly) return;
     if (!menuId) return;
     // F2: normalmente un menú del histórico ya no tiene deltas vivos (el ciclo
     // "weekly"/ventana de 45 días los poda), así que recon.deltas queda vacío y
@@ -2421,6 +2425,7 @@ export default function App() {
   // logistics (schedule) always, and either clones its dishes verbatim or
   // regenerates fresh ones for new dates, per the user's choice.
   const reuseMenu = useCallback(async (menuId, { weekCount, sameRecipes } = {}) => {
+    if (householdReadOnly) return;
     let old = data.menus?.[menuId];
     if (!old) return;
     // A history entry hydrated from the cloud read-preference (see the
@@ -2780,6 +2785,7 @@ export default function App() {
   // id filterRecipes/aiPlanner match on), so normalize before touching the store
   // or a multi-menu vote would never line up with the recipe it rates.
   const handleVoteRecipe = useCallback((recipeId, vote) => {
+    if (householdReadOnly) return;
     const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
     const nextVotes = toggleRecipeVote(data.recipeVotes, baseId, vote);
     setData((d) => ({ ...d, recipeVotes: nextVotes }));
@@ -2788,9 +2794,9 @@ export default function App() {
       if (entry == null) deleteRecipeVote(user.id, baseId);
       else saveRecipeVote(user.id, baseId, entry);
     }
-  }, [data.recipeVotes, user]);
+  }, [data.recipeVotes, user, householdReadOnly]);
 
-  // Favorite (personal collection) — sets/clears the group scope a recipe
+  // Favorite (personal collection)
   // applies to ("all" | string[] | null to unfavorite). Independent of vote.
   // Same "<groupId>__<baseId>" normalization as handleVoteRecipe: without it a
   // favorite set from a multi-menu dish is stored under the prefixed id and
@@ -2916,6 +2922,7 @@ export default function App() {
   // "No me gusta" sin pasar por el menú. Equivalente a elegir «No me gusta» desde
   // el menú; se puede revertir desde la pestaña Descartados.
   const handleDiscardRecipe = useCallback((recipeId) => {
+    if (householdReadOnly) return;
     if (!recipeId) return;
     setData((d) => {
       const forever = [...(d.discards?.forever ?? [])];
@@ -2925,9 +2932,9 @@ export default function App() {
       return { ...d, discards: { forever, cooldownUntil } };
     });
     showToast("Receta descartada — aparece en la pestaña Descartados");
-  }, [showToast]);
+  }, [showToast, householdReadOnly]);
 
-  // Selectable scopes for a favorite: the household's distinct menu-group labels
+  // Selectable scopes for a favorite
   // (excluding the single-family "Familia"). Empty/one → no per-group choice.
   const favoriteScopeGroups = useMemo(() => {
     const labels = (data.groups ?? [])
@@ -2955,6 +2962,7 @@ export default function App() {
   }, [data.members, user]);
 
   const handleUpdateUserRecipe = useCallback((updated) => {
+    if (householdReadOnly) return;
     if (!updated?.id) return;
     setData((d) => ({
       ...d,
@@ -2975,6 +2983,7 @@ export default function App() {
   }, [selectedSlot, data.members, user, showToast]);
 
   const handleReplaceSlot = useCallback(async (selection, { sameCategory = false, reason = null } = {}) => {
+    if (householdReadOnly) return;
     // Learn from the rejection (discard/cooldown/favorite) BEFORE the slot
     // mutates, so slotBaseRecipeId still reads the outgoing dish.
     if (reason) applyDiscardReason(selection, reason);
@@ -3057,6 +3066,7 @@ export default function App() {
   // recipe ids move; each slot keeps its own eaters/mode (they describe who eats
   // that day/meal, not the dish), so the shopping list just needs a rebuild.
   const handleSwapSlots = useCallback(async (source, target) => {
+    if (householdReadOnly) return;
     if (!source || !target) return;
     const sGroup = source.groupId;
     const tGroup = target.groupId;
@@ -3142,6 +3152,7 @@ export default function App() {
   // slot on a working clone so carb/protein dedup stays correct within the day.
   // Defined AFTER applyShoppingFor since it depends on it (const TDZ).
   const handleRegenerateDay = useCallback(async (day, { groupIds = null } = {}) => {
+    if (householdReadOnly) return;
     const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
     let activeGroups = groups.filter((g) => membersOfGroup(g, data.members).length > 0);
     // Scope picker (multi-menu households): regenerate only the chosen menus.
@@ -3209,6 +3220,7 @@ export default function App() {
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
   // tappable placeholder to refill it; offer an undo that restores the dishes.
   const handleClearSlot = useCallback(async (sel, { reason = null } = {}) => {
+    if (householdReadOnly) return;
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
     const prevSlot = menuPlan[groupId]?.[key];
@@ -3230,6 +3242,7 @@ export default function App() {
 
   // Duplicar: copy a dish into another slot (rosco → "Duplicar" → tap target).
   const handleDuplicateSlot = useCallback(async (source, target) => {
+    if (householdReadOnly) return;
     if (!source || !target) return;
     const sKey = `${source.day}-${source.meal}`;
     const sField = source.course === "first" ? "firstRecipeId" : "recipeId";
@@ -3256,6 +3269,7 @@ export default function App() {
   // registry/aiRecipes entry in place and bounce the slot to force a re-render +
   // shopping rebuild with the new garnish's ingredients.
   const handleRegarnishSlot = useCallback(async (sel) => {
+    if (householdReadOnly) return;
     const { groupId, day, meal } = sel;
     const course = sel.course ?? "main";
     const key = `${day}-${meal}`;
@@ -3302,6 +3316,7 @@ export default function App() {
    * fromFreezer/freshPortions del slot — ver lib/freezer.js).
    */
   const handleSlotFreezerChange = useCallback(async (sel, patch) => {
+    if (householdReadOnly) return;
     const { groupId, day, meal } = sel;
     const key = `${day}-${meal}`;
     const groups =
@@ -3323,6 +3338,7 @@ export default function App() {
   // Elegir manualmente: open the catalog picker for a slot. A reason (from the
   // "Regenerar → Elegir a mano" flow) discards the outgoing dish first.
   const handleManualPickSlot = useCallback((sel, { reason = null } = {}) => {
+    if (householdReadOnly) return;
     if (reason) applyDiscardReason(sel, reason);
     setSlotPicker({ groupId: sel.groupId, day: sel.day, meal: sel.meal, course: sel.course ?? "main" });
   }, [applyDiscardReason]);
@@ -3332,6 +3348,7 @@ export default function App() {
   // with thumbnails + tap-to-open dish detail. Placing one also flips this slot's
   // type (data.slotType) so future regenerations keep honoring the choice.
   const handlePickSlotType = useCallback((sel, kind) => {
+    if (householdReadOnly) return;
     const all = [...Object.values(recipeCatalogById), ...(data.userRecipes ?? [])];
     const recipes =
       kind === "cena_rapida"
@@ -3349,6 +3366,7 @@ export default function App() {
 
   // Apply the catalog dish the user picked into the pending slot.
   const handleChooseRecipeForSlot = useCallback(async (recipeId) => {
+    if (householdReadOnly) return;
     if (!slotPicker || !recipeId) return;
     const { groupId, day, meal, course, kind = null } = slotPicker;
     const catalogRecipe =
@@ -3826,32 +3844,33 @@ export default function App() {
           >
             <MenuScreen
               data={data}
-              setData={setData}
+              setData={householdReadOnly ? null : setData}
               menuPlan={menuPlan}
               readOnly={householdReadOnly}
+              readOnlyLabel={householdReadOnlyLabel}
               isGenerating={isGeneratingMenu}
               error={menuError}
               restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
-              onDishReplace={handleReplaceSlot}
-              onDishReplaceSameCategory={(sel, opts = {}) => handleReplaceSlot(sel, { ...opts, sameCategory: true })}
-              onDishRegarnish={handleRegarnishSlot}
-              onDishSwap={handleSwapSlots}
-              onDishDuplicate={handleDuplicateSlot}
-              onDishClear={handleClearSlot}
-              onDishManualPick={handleManualPickSlot}
-              onDishPickCenaRapida={(sel) => handlePickSlotType(sel, "cena_rapida")}
-              onDishPickPlatoUnico={(sel) => handlePickSlotType(sel, "plato_unico")}
-              onRegenerateDay={handleRegenerateDay}
+              onDishReplace={householdReadOnly ? undefined : handleReplaceSlot}
+              onDishReplaceSameCategory={householdReadOnly ? undefined : (sel, opts = {}) => handleReplaceSlot(sel, { ...opts, sameCategory: true })}
+              onDishRegarnish={householdReadOnly ? undefined : handleRegarnishSlot}
+              onDishSwap={householdReadOnly ? undefined : handleSwapSlots}
+              onDishDuplicate={householdReadOnly ? undefined : handleDuplicateSlot}
+              onDishClear={householdReadOnly ? undefined : handleClearSlot}
+              onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
+              onDishPickCenaRapida={householdReadOnly ? undefined : (sel) => handlePickSlotType(sel, "cena_rapida")}
+              onDishPickPlatoUnico={householdReadOnly ? undefined : (sel) => handlePickSlotType(sel, "plato_unico")}
+              onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
               onNav={handleNav}
-              onRegenerate={handleRegenerate}
+              onRegenerate={householdReadOnly ? undefined : handleRegenerate}
               onRetry={retryGenerateMenu}
               onToast={showToast}
               user={user}
               onTrackEvent={(event, metadata) => trackEvent(user, event, "menu", metadata)}
               activeMenu={data.menus?.[data.activeMenuId] ?? null}
               activeFavorite={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
-              onToggleFavorite={toggleActiveFavorite}
+              onToggleFavorite={householdReadOnly ? undefined : toggleActiveFavorite}
               onSwitchWeek={switchActiveWeek}
               onOpenMenus={openMenusScreen}
               onOpenAnalytics={() => {
@@ -3883,22 +3902,23 @@ export default function App() {
               <MenusScreen
                 data={data}
                 hasAccount={Boolean(user)}
+                readOnly={householdReadOnly}
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("menu"))}
                 onOpenCurrent={() => fwd(() => setScreen("menu"))}
-                onGenerateMenu={handleGenerateMenu}
-                onReuseMenu={reuseMenu}
-                onToggleFavorite={(menuId) => {
+                onGenerateMenu={householdReadOnly ? undefined : handleGenerateMenu}
+                onReuseMenu={householdReadOnly ? undefined : reuseMenu}
+                onToggleFavorite={householdReadOnly ? undefined : (menuId) => {
                   const nextFavorite = !data.menus?.[menuId]?.isFavorite;
                   setData((d) => ({ ...d, menus: toggleMenuFavorite(d.menus, menuId) }));
                   if (user) toggleMenuFavoriteRemote(user.id, menuId, nextFavorite);
                 }}
                 onSignIn={signInWithGoogle}
-                onRegenerateActive={() => { fwd(() => setScreen("menu")); regenerateMenu(); }}
-                onEditActive={() => { setPendingProfileOpen(true); fwd(() => setScreen("menu")); }}
-                onDeleteActive={deleteActiveMenu}
+                onRegenerateActive={householdReadOnly ? undefined : () => { fwd(() => setScreen("menu")); regenerateMenu(); }}
+                onEditActive={householdReadOnly ? undefined : () => { setPendingProfileOpen(true); fwd(() => setScreen("menu")); }}
+                onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
                 onOpenHistory={openHistoryMenu}
-                onDeleteHistory={deleteHistoryMenu}
+                onDeleteHistory={householdReadOnly ? undefined : deleteHistoryMenu}
               />
             </Suspense>
           </div>
@@ -3927,10 +3947,12 @@ export default function App() {
             <Suspense fallback={null}>
               <ShoppingScreen
                 shopping={shopping}
-                setShopping={setShopping}
+                setShopping={householdReadOnly ? null : setShopping}
                 data={data}
-                setData={setData}
+                setData={householdReadOnly ? null : setData}
                 readOnly={householdReadOnly}
+                readOnlyLabel={householdReadOnlyLabel}
+                pantryHouseholdId={activeHouseholdId}
                 onNav={handleNav}
                 onToast={showToast}
                 menuWeek={data.menuWeek}
@@ -3953,11 +3975,13 @@ export default function App() {
             <Suspense fallback={null}>
               <AnalyticsScreen
                 data={data}
-                setData={setData}
+                setData={householdReadOnly ? null : setData}
                 menuPlan={menuPlan}
                 shopping={shopping}
-                setShopping={setShopping}
-                onUndoReceiptTachado={undoReceiptTachado}
+                setShopping={householdReadOnly ? null : setShopping}
+                readOnly={householdReadOnly}
+                readOnlyLabel={householdReadOnlyLabel}
+                onUndoReceiptTachado={householdReadOnly ? undefined : undoReceiptTachado}
                 onNav={handleNav}
                 onToast={showToast}
                 initialTab={analyticsInitialTab}
@@ -4024,20 +4048,19 @@ export default function App() {
             <Suspense fallback={null}>
               <PantryScreen
                 user={user}
+                readOnly={householdReadOnly}
+                readOnlyLabel={householdReadOnlyLabel}
+                pantryHouseholdId={activeHouseholdId}
                 onBack={() => back(() => setScreen(pantryOrigin))}
                 priceObs={data.priceObs ?? []}
                 pantryEpoch={pantryEpoch}
                 onNav={handleNav}
-                // One unified nav now (see BottomNav in ui.jsx): "En casa" is always
-                // its own permanent tab, so it's always the one lit up here — no
-                // more borrowing "shopping"/"settings" depending on where you came
-                // from. `pantryOrigin` still matters for the Atrás button below.
                 data={data}
-                setData={setData}
+                setData={householdReadOnly ? null : setData}
                 shopping={shopping}
-                setShopping={setShopping}
+                setShopping={householdReadOnly ? null : setShopping}
                 onToast={showToast}
-                onOpenAnalytics={() => {
+                onOpenAnalytics={householdReadOnly ? null : () => {
                   setAnalyticsInitialTab("gasto");
                   setGastoFromPantry(true);
                   fwd(() => setScreen("analytics"));
@@ -4058,6 +4081,7 @@ export default function App() {
                 data={data}
                 menuPlan={menuPlan}
                 activeHousehold={activeHousehold}
+                householdReadOnly={householdReadOnly}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
@@ -4323,26 +4347,26 @@ export default function App() {
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
           initialCourse={selectedSlot.initialCourse ?? "principal"}
-          userVote={voteOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
-          onVote={(vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
+          userVote={householdReadOnly ? null : voteOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
+          onVote={householdReadOnly ? undefined : (vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
           favoriteScope={favScopeOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           scopeGroups={favoriteScopeGroups}
-          onSetFavoriteScope={(scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
+          onSetFavoriteScope={householdReadOnly ? undefined : (scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
           discarded={canBrowseDiscard && (data.discards?.forever ?? []).includes(browseCatalogId)}
-          onDiscardRecipe={canBrowseDiscard ? () => handleDiscardRecipe(browseCatalogId) : undefined}
-          onRecoverRecipe={canBrowseDiscard ? () => handleUndiscardRecipe(browseCatalogId) : undefined}
+          onDiscardRecipe={householdReadOnly || !canBrowseDiscard ? undefined : () => handleDiscardRecipe(browseCatalogId)}
+          onRecoverRecipe={householdReadOnly || !canBrowseDiscard ? undefined : () => handleUndiscardRecipe(browseCatalogId)}
           onClose={() => setSelectedSlot(null)}
-          onReject={selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
+          onReject={householdReadOnly || selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
           day={selectedSlot.day ?? null}
           meal={selectedSlot.meal ?? null}
           cookWeekKey={`${data.activeMenuId ?? "live"}:${data.menuWeek?.offset ?? 0}`}
           user={user}
-          data={data}
-          setData={setData}
+          data={householdReadOnly ? null : data}
+          setData={householdReadOnly ? null : setData}
           onToast={showToast}
-          onPantryChanged={() => setPantryEpoch((n) => n + 1)}
+          onPantryChanged={householdReadOnly ? undefined : () => setPantryEpoch((n) => n + 1)}
           onSlotFreezerChange={
-            selectedSlot.browse || !selectedSlot.group || selectedSlot.day == null || selectedSlot.meal == null
+            householdReadOnly || selectedSlot.browse || !selectedSlot.group || selectedSlot.day == null || selectedSlot.meal == null
               ? null
               : (patch) =>
                   handleSlotFreezerChange(
@@ -4350,7 +4374,8 @@ export default function App() {
                     patch,
                   )
           }
-          onUpdateUserRecipe={handleUpdateUserRecipe}
+          onUpdateUserRecipe={householdReadOnly ? undefined : handleUpdateUserRecipe}
+          readOnly={householdReadOnly && !selectedSlot.browse}
         />
         );
       })()}
