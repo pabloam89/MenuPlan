@@ -10,6 +10,7 @@ import {
   RotateCw,
   Share2,
   Trash2,
+  UserMinus,
   Users,
 } from "lucide-react";
 import {
@@ -20,7 +21,12 @@ import {
   GoogleButton,
   groupAvatarFaces,
 } from "../components/ui.jsx";
-import { googleInfo } from "./Settings.jsx";
+import {
+  buildInviteUrl,
+  canShareHouseholdInvite,
+  extractInviteToken,
+  loadHouseholdMembers,
+} from "../lib/householdsSync.js";
 
 const GREEN = "#2d5a3d";
 const VIEWER_BLUE = "#4a6fd0";
@@ -81,52 +87,322 @@ function buildSlots(households, activeHousehold, user) {
   ];
 }
 
-function buildAccessAccounts(h, user) {
-  if (!h || !user) return [];
-  const g = googleInfo(user);
-  const you = {
-    id: user.id,
-    name: g.name,
-    photo: g.photo,
-    roleLabel: h.role === "owner" ? "Propietario" : "Visitante",
-    isYou: true,
-  };
-  if (h.role === "viewer") {
-    return [
-      {
-        id: "owner-slot",
-        name: "Propietario del hogar",
-        photo: null,
-        roleLabel: "Propietario",
-        isYou: false,
-        muted: true,
-      },
-      you,
-    ];
-  }
-  return [you];
+function WhatsAppIcon({ size = 22 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden style={{ display: "block" }}>
+      <path
+        fill="#25D366"
+        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.435 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
+      />
+    </svg>
+  );
 }
 
-function MembersSheet({ open, onClose, accounts, householdName, isOwner }) {
+function sheetOverlayStyle() {
+  return {
+    position: "fixed",
+    inset: 0,
+    zIndex: 1000,
+    background: "rgba(15,30,20,.38)",
+    backdropFilter: "blur(4px)",
+    WebkitBackdropFilter: "blur(4px)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+  };
+}
+
+function JoinSheet({ open, onClose, onJoin, joining, joinError }) {
+  const [linkDraft, setLinkDraft] = useState("");
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) {
+      setLinkDraft("");
+      return;
+    }
+    inputRef.current?.focus();
+    if (typeof navigator !== "undefined" && navigator.clipboard?.readText) {
+      navigator.clipboard.readText().then((text) => {
+        if (text?.includes("join=")) setLinkDraft((prev) => prev || text.trim());
+      }).catch(() => {});
+    }
+  }, [open]);
+
   if (!open) return null;
 
+  const handleJoin = () => {
+    const token = extractInviteToken(linkDraft);
+    if (token) onJoin?.(token);
+  };
+
   return createPortal(
+    <div onClick={onClose} className="mp-overlay-in" style={sheetOverlayStyle()}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Unirse a un hogar"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 320,
+          maxWidth: "calc(100vw - 40px)",
+          background: "#fff",
+          borderRadius: 24,
+          border: `3px solid ${VIEWER_BLUE}`,
+          boxShadow: "0 24px 48px rgba(20,47,29,.2)",
+          overflow: "hidden",
+          animation: "hogSheetIn .24s cubic-bezier(.4,0,.2,1) both",
+        }}
+      >
+        <img
+          src={IMG_VIEWER}
+          alt=""
+          style={{
+            width: "100%",
+            aspectRatio: CARD_ASPECT,
+            objectFit: "cover",
+            objectPosition: "center top",
+            display: "block",
+          }}
+        />
+        <div style={{ padding: "18px 18px 20px", textAlign: "center" }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 999,
+              background: "#e8faf0",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              marginBottom: 12,
+              boxShadow: "0 2px 10px rgba(37,211,102,.15)",
+            }}
+          >
+            <WhatsAppIcon size={24} />
+          </div>
+          <p style={{ margin: "0 0 14px", fontSize: 13, fontWeight: 600, color: MUTED, lineHeight: 1.45 }}>
+            Pega el enlace de invitación que te han enviado
+          </p>
+          <input
+            ref={inputRef}
+            type="url"
+            inputMode="url"
+            autoComplete="off"
+            placeholder="https://…?join=…"
+            value={linkDraft}
+            onChange={(e) => setLinkDraft(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleJoin()}
+            style={{
+              width: "100%",
+              boxSizing: "border-box",
+              border: "1.5px solid #d5e6da",
+              borderRadius: 12,
+              padding: "11px 12px",
+              fontSize: 13,
+              fontFamily: "inherit",
+              color: INK,
+              marginBottom: 12,
+              background: "#fafcfb",
+            }}
+          />
+          {joinError && (
+            <p style={{ margin: "0 0 10px", fontSize: 12, fontWeight: 600, color: "#b42318", lineHeight: 1.35 }}>
+              {joinError}
+            </p>
+          )}
+          <button
+            type="button"
+            disabled={!linkDraft.trim() || joining}
+            onClick={handleJoin}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              borderRadius: 12,
+              border: "none",
+              background: joining ? "#9ab0a1" : GREEN,
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 800,
+              cursor: joining ? "wait" : "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {joining ? "Uniéndote…" : "Unirse"}
+          </button>
+        </div>
+      </div>
+      <style>{`
+        @keyframes hogSheetIn {
+          from { opacity: 0; transform: translateY(12px) scale(.97); }
+          to { opacity: 1; transform: none; }
+        }
+      `}</style>
+    </div>,
+    document.body,
+  );
+}
+
+export function HouseholdInviteBanner({ pendingInvite, accepting, onAccept, onDismiss }) {
+  if (!pendingInvite) return null;
+
+  return (
     <div
-      onClick={onClose}
-      className="mp-overlay-in"
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 1000,
-        background: "rgba(15,30,20,.38)",
-        backdropFilter: "blur(4px)",
-        WebkitBackdropFilter: "blur(4px)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 20,
+        margin: "0 0 14px",
+        borderRadius: 18,
+        border: `2px solid ${GREEN}`,
+        background: "linear-gradient(180deg, #f4fbf6 0%, #fff 100%)",
+        padding: "14px 16px",
+        boxShadow: "0 8px 24px -12px rgba(45,90,61,.35)",
       }}
     >
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        <img
+          src={IMG_VIEWER}
+          alt=""
+          style={{
+            width: 52,
+            height: 64,
+            borderRadius: 12,
+            objectFit: "cover",
+            objectPosition: "center top",
+            flexShrink: 0,
+            border: "1px solid #e3ebe6",
+          }}
+        />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: MUTED, textTransform: "uppercase", letterSpacing: ".04em" }}>
+            Invitación
+          </p>
+          <p style={{ margin: "4px 0 0", fontSize: 15, fontWeight: 900, color: INK, lineHeight: 1.25 }}>
+            Te han invitado a <span style={{ color: GREEN }}>{pendingInvite.householdName}</span>
+          </p>
+          <p style={{ margin: "6px 0 0", fontSize: 12, fontWeight: 600, color: MUTED, lineHeight: 1.4 }}>
+            Podrás ver menú, compra y despensa en solo lectura.
+          </p>
+        </div>
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+        <button
+          type="button"
+          onClick={onDismiss}
+          disabled={accepting}
+          style={{
+            flex: 1,
+            padding: "10px 12px",
+            borderRadius: 11,
+            border: "1.5px solid #d5e6da",
+            background: "#fff",
+            color: MUTED,
+            fontSize: 13,
+            fontWeight: 700,
+            cursor: "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          Ahora no
+        </button>
+        <button
+          type="button"
+          onClick={onAccept}
+          disabled={accepting}
+          style={{
+            flex: 1.4,
+            padding: "10px 12px",
+            borderRadius: 11,
+            border: "none",
+            background: accepting ? "#9ab0a1" : GREEN,
+            color: "#fff",
+            fontSize: 13,
+            fontWeight: 800,
+            cursor: accepting ? "wait" : "pointer",
+            fontFamily: "inherit",
+          }}
+        >
+          {accepting ? "Uniéndote…" : "Aceptar invitación"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MembersSheet({
+  open,
+  onClose,
+  householdId,
+  householdName,
+  userId,
+  isOwner,
+  canShare,
+  inviteUrl,
+  onRemoveMember,
+}) {
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [shareCopied, setShareCopied] = useState(false);
+  const [removingId, setRemovingId] = useState(null);
+
+  useEffect(() => {
+    if (!open || !householdId) {
+      setAccounts([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    loadHouseholdMembers(householdId, userId).then((rows) => {
+      if (!cancelled) {
+        setAccounts(rows);
+        setLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, householdId, userId]);
+
+  const refreshMembers = useCallback(async () => {
+    if (!householdId) return;
+    const rows = await loadHouseholdMembers(householdId, userId);
+    setAccounts(rows);
+  }, [householdId, userId]);
+
+  const handleShare = async () => {
+    if (!inviteUrl) return;
+    const text = `Únete a mi hogar en MenuPlan: ${inviteUrl}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: "Invitación MenuPlan", text, url: inviteUrl });
+        return;
+      }
+    } catch {
+      /* fall through */
+    }
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch {
+      window.prompt("Copia este enlace:", inviteUrl);
+    }
+  };
+
+  const handleRemove = async (memberId) => {
+    if (!householdId || !onRemoveMember) return;
+    if (!window.confirm("¿Quitar el acceso de esta cuenta al hogar?")) return;
+    setRemovingId(memberId);
+    const ok = await onRemoveMember(householdId, memberId);
+    setRemovingId(null);
+    if (ok) await refreshMembers();
+  };
+
+  if (!open) return null;
+
+  const viewerCount = accounts.filter((a) => a.roleLabel === "Visitante").length;
+
+  return createPortal(
+    <div onClick={onClose} className="mp-overlay-in" style={sheetOverlayStyle()}>
       <div
         role="dialog"
         aria-modal="true"
@@ -186,43 +462,94 @@ function MembersSheet({ open, onClose, accounts, householdName, isOwner }) {
         />
 
         <div style={{ padding: "14px 18px 18px" }}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {accounts.map((acc) => (
-              <div
-                key={acc.id}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr auto",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "2px 0",
-                }}
-              >
-                <Avatar
-                  name={acc.name}
-                  photo={acc.photo}
-                  size={42}
-                  color={acc.muted ? "#9ab0a1" : GREEN}
-                />
-                <span
+          {loading ? (
+            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: MUTED, textAlign: "center", padding: "8px 0" }}>
+              Cargando…
+            </p>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {accounts.map((acc) => (
+                <div
+                  key={acc.id}
                   style={{
-                    fontSize: 14,
-                    fontWeight: 800,
-                    color: acc.muted ? MUTED : INK,
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                    textAlign: "left",
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr auto auto",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "2px 0",
                   }}
                 >
-                  {acc.name}
-                </span>
-                <RoleIllustration roleLabel={acc.roleLabel} />
-              </div>
-            ))}
-          </div>
+                  <Avatar name={acc.name} photo={acc.photo} size={42} color={GREEN} />
+                  <span
+                    style={{
+                      fontSize: 14,
+                      fontWeight: 800,
+                      color: INK,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
+                      textAlign: "left",
+                    }}
+                  >
+                    {acc.name}
+                  </span>
+                  <RoleIllustration roleLabel={acc.roleLabel} />
+                  {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember && (
+                    <button
+                      type="button"
+                      aria-label={`Quitar a ${acc.name}`}
+                      disabled={removingId === acc.id}
+                      onClick={() => handleRemove(acc.id)}
+                      style={{
+                        width: 32,
+                        height: 32,
+                        borderRadius: 10,
+                        border: "1.5px solid #f0d4d4",
+                        background: "#fff5f5",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        cursor: removingId === acc.id ? "wait" : "pointer",
+                        padding: 0,
+                        flexShrink: 0,
+                      }}
+                    >
+                      <UserMinus size={15} color="#b42318" strokeWidth={2.3} />
+                    </button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
 
-          {isOwner && accounts.length <= 1 && (
+          {isOwner && canShare && inviteUrl && (
+            <button
+              type="button"
+              onClick={handleShare}
+              style={{
+                width: "100%",
+                marginTop: 14,
+                padding: "11px 14px",
+                borderRadius: 12,
+                border: "none",
+                background: shareCopied ? "#eef6f0" : GREEN,
+                color: shareCopied ? GREEN : "#fff",
+                fontSize: 13,
+                fontWeight: 800,
+                cursor: "pointer",
+                fontFamily: "inherit",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 8,
+              }}
+            >
+              {shareCopied ? <Check size={16} /> : <Share2 size={16} />}
+              {shareCopied ? "Enlace copiado" : "Compartir enlace"}
+            </button>
+          )}
+
+          {isOwner && !loading && viewerCount === 0 && (
             <p
               style={{
                 margin: "14px 0 0",
@@ -238,12 +565,6 @@ function MembersSheet({ open, onClose, accounts, householdName, isOwner }) {
           )}
         </div>
       </div>
-      <style>{`
-        @keyframes hogSheetIn {
-          from { opacity: 0; transform: translateY(12px) scale(.97); }
-          to { opacity: 1; transform: none; }
-        }
-      `}</style>
     </div>,
     document.body,
   );
@@ -360,15 +681,14 @@ function SlotCard({
   effectiveActiveId,
   userLoggedIn,
   householdLoading,
-  canShareInvite,
-  inviteUrl,
   inviteCopied,
   onCopyInvite,
   onLeave,
   onDestroy,
   onActivate,
-  onJoin,
-  onAdvanceSetup,
+  onOpenJoinSheet,
+  onRemoveMember,
+  onEditMembers,
   onRetry,
   renamingId,
   renameDraft,
@@ -381,6 +701,8 @@ function SlotCard({
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
+  const slotInviteUrl = h?.inviteToken ? buildInviteUrl(h.inviteToken) : null;
+  const slotCanShare = Boolean(h && h.role === "owner" && h.isOwn && canShareHouseholdInvite(h));
 
   let emptyHint = null;
   if (empty && !userLoggedIn) {
@@ -395,12 +717,12 @@ function SlotCard({
   const showMemberAvatars =
     Boolean(h && slot.kind === "owner" && h.id === effectiveActiveId && members.length > 0);
   const avatarFaces = showMemberAvatars ? groupAvatarFaces(members, members) : [];
-  const accessAccounts = useMemo(() => buildAccessAccounts(h, user), [h, user]);
+  const canEditComensales = showMemberAvatars && isGlobalActive && Boolean(onEditMembers);
 
   const menuActions = useMemo(() => {
     if (!h) return [];
     const items = [];
-    if (h.role === "owner" && h.isOwn && isGlobalActive && canShareInvite && inviteUrl) {
+    if (h.role === "owner" && h.isOwn && isGlobalActive && slotCanShare && slotInviteUrl) {
       items.push({
         id: "share",
         icon: inviteCopied ? Check : Share2,
@@ -436,8 +758,8 @@ function SlotCard({
   }, [
     h,
     isGlobalActive,
-    canShareInvite,
-    inviteUrl,
+    slotCanShare,
+    slotInviteUrl,
     inviteCopied,
     onCopyInvite,
     onDestroy,
@@ -556,9 +878,28 @@ function SlotCard({
         </div>
 
         {showMemberAvatars && (
-          <div style={{ position: "absolute", top: 10, left: 10, zIndex: 3, lineHeight: 0 }}>
+          <button
+            type="button"
+            aria-label="Editar comensales"
+            disabled={!canEditComensales}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (canEditComensales) onEditMembers?.();
+            }}
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              zIndex: 3,
+              lineHeight: 0,
+              border: "none",
+              padding: 0,
+              background: "transparent",
+              cursor: canEditComensales ? "pointer" : "default",
+            }}
+          >
             <GroupAvatarStack faces={avatarFaces} size={32} active max={3} />
-          </div>
+          </button>
         )}
 
         {h && (
@@ -621,36 +962,12 @@ function SlotCard({
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
       )}
 
-      {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            onAdvanceSetup?.(h.id, "invite_ready");
-          }}
-          style={{
-            padding: "6px 14px",
-            borderRadius: 8,
-            border: "none",
-            background: GREEN,
-            color: "#fff",
-            fontWeight: 700,
-            fontSize: 11,
-            cursor: "pointer",
-            fontFamily: "inherit",
-            lineHeight: 1.2,
-          }}
-        >
-          Configurar hogar
-        </button>
-      )}
-
       {empty && slot.kind === "viewer" && userLoggedIn && (
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            onJoin();
+            onOpenJoinSheet?.();
           }}
           style={{
             padding: "6px 14px",
@@ -704,9 +1021,13 @@ function SlotCard({
       <MembersSheet
         open={accountsOpen}
         onClose={() => setAccountsOpen(false)}
-        accounts={accessAccounts}
+        householdId={h?.id}
         householdName={displayName}
-        isOwner={h?.role === "owner" && h?.isOwn}
+        userId={user?.id}
+        isOwner={Boolean(h?.role === "owner" && h?.isOwn)}
+        canShare={slotCanShare}
+        inviteUrl={slotInviteUrl}
+        onRemoveMember={onRemoveMember}
       />
     </div>
   );
@@ -719,15 +1040,14 @@ function HouseholdCarousel({
   members,
   userLoggedIn,
   householdLoading,
-  canShareInvite,
-  inviteUrl,
   inviteCopied,
   onCopyInvite,
   onLeave,
   onDestroy,
   onActivate,
-  onJoin,
-  onAdvanceSetup,
+  onOpenJoinSheet,
+  onRemoveMember,
+  onEditMembers,
   onRetry,
   slideIndex,
   onSlideChange,
@@ -793,15 +1113,14 @@ function HouseholdCarousel({
                   effectiveActiveId={effectiveActiveId}
                   userLoggedIn={userLoggedIn}
                   householdLoading={householdLoading}
-                  canShareInvite={canShareInvite}
-                  inviteUrl={inviteUrl}
                   inviteCopied={inviteCopied}
                   onCopyInvite={onCopyInvite}
                   onLeave={onLeave}
                   onDestroy={onDestroy}
                   onActivate={onActivate}
-                  onJoin={onJoin}
-                  onAdvanceSetup={onAdvanceSetup}
+                  onOpenJoinSheet={onOpenJoinSheet}
+                  onRemoveMember={onRemoveMember}
+                  onEditMembers={onEditMembers}
                   onRetry={onRetry}
                   renamingId={renamingId}
                   renameDraft={renameDraft}
@@ -860,23 +1179,30 @@ export function HouseholdsScreen({
   householdError = null,
   members = [],
   readOnly,
-  canShareInvite,
   inviteUrl,
+  pendingInvite,
+  acceptingInvite = false,
+  onAcceptPendingInvite,
+  onDismissPendingInvite,
   onNav,
   onBack,
   onOpenBiblioteca,
+  onEditMembers,
   onRefresh,
   onSwitchHousehold,
   onLeaveHousehold,
   onDestroyHousehold,
   onJoinByToken,
+  onRemoveMember,
   onRenameHousehold,
-  onAdvanceSetup,
   onSignIn,
 }) {
   const [copied, setCopied] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
+  const [joinSheetOpen, setJoinSheetOpen] = useState(false);
+  const [joining, setJoining] = useState(false);
+  const [joinError, setJoinError] = useState(null);
 
   useEffect(() => {
     if (user?.id) onRefresh?.();
@@ -920,17 +1246,17 @@ export function HouseholdsScreen({
     }
   };
 
-  const handleJoin = async () => {
-    const raw = window.prompt("Pega el enlace de invitación de otro hogar:");
-    if (!raw?.trim()) return;
-    let token = raw.trim();
-    try {
-      const url = new URL(raw.trim());
-      token = url.searchParams.get("join") ?? token;
-    } catch {
-      /* plain token */
+  const handleJoinFromSheet = async (token) => {
+    setJoining(true);
+    setJoinError(null);
+    const result = await onJoinByToken?.(token);
+    setJoining(false);
+    if (!result) {
+      setJoinError("No se pudo unir al hogar. Comprueba el enlace.");
+      return;
     }
-    await onJoinByToken?.(token);
+    setJoinSheetOpen(false);
+    setJoinError(null);
     onRefresh?.();
   };
 
@@ -1062,6 +1388,15 @@ export function HouseholdsScreen({
               </p>
             )}
 
+            {pendingInvite && (
+              <HouseholdInviteBanner
+                pendingInvite={pendingInvite}
+                accepting={acceptingInvite}
+                onAccept={onAcceptPendingInvite}
+                onDismiss={onDismissPendingInvite}
+              />
+            )}
+
             <HouseholdCarousel
               slots={slots}
               effectiveActiveId={effectiveActiveId}
@@ -1069,15 +1404,17 @@ export function HouseholdsScreen({
               members={members}
               userLoggedIn={Boolean(user)}
               householdLoading={householdLoading}
-              canShareInvite={canShareInvite}
-              inviteUrl={inviteUrl}
               inviteCopied={copied}
               onCopyInvite={handleCopyInvite}
               onLeave={onLeaveHousehold}
               onDestroy={onDestroyHousehold}
               onActivate={handleActivate}
-              onJoin={handleJoin}
-              onAdvanceSetup={onAdvanceSetup}
+              onOpenJoinSheet={() => {
+                setJoinError(null);
+                setJoinSheetOpen(true);
+              }}
+              onRemoveMember={onRemoveMember}
+              onEditMembers={onEditMembers}
               onRetry={() => onRefresh?.()}
               slideIndex={slideIndex}
               onSlideChange={setSlideIndex}
@@ -1106,6 +1443,16 @@ export function HouseholdsScreen({
           </>
         )}
       </div>
+      <JoinSheet
+        open={joinSheetOpen}
+        onClose={() => {
+          setJoinSheetOpen(false);
+          setJoinError(null);
+        }}
+        onJoin={handleJoinFromSheet}
+        joining={joining}
+        joinError={joinError}
+      />
       <BottomNav active="dashboard" onNav={onNav} dissolved={navDissolved} />
     </div>
   );

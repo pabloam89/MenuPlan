@@ -43,6 +43,90 @@ export function parseHouseholdRow(row) {
 }
 
 /**
+ * @param {unknown} row
+ * @param {string} [currentUserId]
+ * @returns {{ id: string, name: string, photo: string|null, roleLabel: string, joinedAt: string, isYou: boolean }|null}
+ */
+export function parseHouseholdMemberRow(row, currentUserId) {
+  if (!row || typeof row !== "object") return null;
+  const r = /** @type {Record<string, unknown>} */ (row);
+  const id = String(r.userId ?? r.user_id ?? "");
+  if (!id) return null;
+  const role = r.role === "owner" ? "owner" : "viewer";
+  return {
+    id,
+    name: String(r.name ?? "Usuario"),
+    photo: r.photo != null && String(r.photo).trim() ? String(r.photo) : null,
+    roleLabel: role === "owner" ? "Propietario" : "Visitante",
+    joinedAt: String(r.joinedAt ?? r.joined_at ?? ""),
+    isYou: currentUserId ? id === currentUserId : false,
+  };
+}
+
+/**
+ * @param {string} householdId
+ * @param {string} [currentUserId]
+ */
+export async function loadHouseholdMembers(householdId, currentUserId) {
+  if (!supabase || !householdId) return [];
+  const { data, error } = await supabase.rpc("list_household_members", {
+    p_household_id: householdId,
+  });
+  if (error) {
+    console.warn("[householdsSync] list members failed", error.message);
+    return [];
+  }
+  const list = Array.isArray(data) ? data : [];
+  return list.map((row) => parseHouseholdMemberRow(row, currentUserId)).filter(Boolean);
+}
+
+/**
+ * @param {string} token
+ * @returns {Promise<{ householdId: string, householdName: string }|null>}
+ */
+export async function previewHouseholdInvite(token) {
+  if (!supabase || !token?.trim()) return null;
+  const { data, error } = await supabase.rpc("preview_household_invite", {
+    p_token: token.trim(),
+  });
+  if (error || !data) {
+    console.warn("[householdsSync] preview invite failed", error?.message);
+    return null;
+  }
+  const id = data.householdId ?? data.household_id;
+  const name = data.householdName ?? data.household_name;
+  if (!id || !name) return null;
+  return { householdId: String(id), householdName: String(name) };
+}
+
+/**
+ * @param {string} userId
+ */
+export async function clearPendingInviteToken(userId) {
+  if (!supabase || !userId) return;
+  const { error } = await supabase
+    .from("user_profiles")
+    .update({ pending_invite_token: null })
+    .eq("user_id", userId);
+  if (error) console.warn("[householdsSync] clear pending invite failed", error.message);
+}
+
+/**
+ * @param {string} raw
+ * @returns {string}
+ */
+export function extractInviteToken(raw) {
+  const s = raw?.trim() ?? "";
+  if (!s) return "";
+  try {
+    const url = new URL(s);
+    return url.searchParams.get("join")?.trim() || s;
+  } catch {
+    return s;
+  }
+}
+
+/**
  * Ensures the signed-in user has an owned household, migrates legacy data,
  * and returns memberships + active household id.
  * @returns {Promise<{ households: HouseholdSummary[], activeHouseholdId: string|null, error?: string }|null>}
