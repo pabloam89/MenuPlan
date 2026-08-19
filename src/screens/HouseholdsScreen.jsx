@@ -1,15 +1,20 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
   Link2,
   RotateCw,
 } from "lucide-react";
-import { BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
+import {
+  BottomNav,
+  GroupAvatarStack,
+  bottomNavSpacer,
+  GoogleButton,
+  groupAvatarFaces,
+} from "../components/ui.jsx";
+
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
-const BG = "#f4f8f5";
 const MUTED = "#5a7262";
-const ACTIVE_CARD_BG = "#f8fbf9";
 const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
@@ -39,10 +44,12 @@ function buildSlots(households, activeHousehold, user) {
 
 function SlotCard({
   slot,
-  active,
+  isGlobalActive,
+  members = [],
+  effectiveActiveId,
   userLoggedIn,
   householdLoading,
-  onSwitch,
+  onActivate,
   onJoin,
   onAdvanceSetup,
   onRetry,
@@ -51,12 +58,13 @@ function SlotCard({
   setRenameDraft,
   startRename,
   commitRename,
-}) {  const h = slot.household;
+}) {
+  const h = slot.household;
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
   const joinedLabel = h ? formatJoinedAt(h.joinedAt) : null;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
-  const roleShort = slot.kind === "owner" ? "Prop" : "Vis";
+
   let emptyHint = null;
   if (empty && !userLoggedIn) {
     emptyHint = slot.kind === "owner" ? "Inicia sesión" : "Vacío";
@@ -67,8 +75,12 @@ function SlotCard({
   }
 
   const displayName = h?.name ?? slot.label;
+  const showMemberAvatars =
+    Boolean(h && slot.kind === "owner" && h.id === effectiveActiveId && members.length > 0);
+  const avatarFaces = showMemberAvatars ? groupAvatarFaces(members, members) : [];
 
-  const titleNode = h && renamingId === h.id ? (    <input
+  const titleNode = h && renamingId === h.id ? (
+    <input
       value={renameDraft}
       onChange={(e) => setRenameDraft(e.target.value)}
       onBlur={() => commitRename(h.id)}
@@ -76,8 +88,8 @@ function SlotCard({
       autoFocus
       style={{
         width: "100%",
-        maxWidth: 220,
-        fontSize: 13,
+        maxWidth: 260,
+        fontSize: 14,
         fontWeight: 800,
         border: "1.5px solid #c8ddd0",
         borderRadius: 8,
@@ -97,12 +109,12 @@ function SlotCard({
         border: "none",
         background: "transparent",
         font: "inherit",
-        fontSize: 22,
+        fontSize: 26,
         fontWeight: 900,
         color: empty && !ownerPending ? "#9ab0a1" : INK,
         cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
-        lineHeight: 1.15,
-        letterSpacing: "-.4px",
+        lineHeight: 1.12,
+        letterSpacing: "-.5px",
         maxWidth: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
@@ -114,44 +126,60 @@ function SlotCard({
     </button>
   );
 
-  const canSelect = Boolean(h && !active);
+  const canActivate = Boolean(h && !isGlobalActive);
 
   return (
     <div
-      role={canSelect ? "button" : undefined}
-      tabIndex={canSelect ? 0 : undefined}
+      role={canActivate ? "button" : undefined}
+      tabIndex={canActivate ? 0 : undefined}
       onClick={() => {
-        if (canSelect) onSwitch?.(h.id);
+        if (canActivate) onActivate?.(h.id);
       }}
       onKeyDown={(e) => {
-        if (canSelect && (e.key === "Enter" || e.key === " ")) {
+        if (canActivate && (e.key === "Enter" || e.key === " ")) {
           e.preventDefault();
-          onSwitch?.(h.id);
+          onActivate?.(h.id);
         }
       }}
       style={{
+        position: "relative",
+        width: "100%",
+        maxWidth: 360,
+        margin: "0 auto",
+        padding: showMemberAvatars ? "44px 16px 22px" : "20px 16px 22px",
+        borderRadius: 22,
+        border: isGlobalActive ? `2px solid ${GREEN}` : "1.5px solid #e8eeea",
+        background: "#fff",
+        boxShadow: isGlobalActive
+          ? "0 12px 32px -14px rgba(45,90,61,.28)"
+          : "0 6px 20px -10px rgba(20,47,29,.1)",
+        opacity: empty && !ownerPending ? 0.7 : 1,
+        cursor: canActivate ? "pointer" : "default",
+        outline: "none",
+        boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        gap: 10,
-        padding: "12px 16px 16px",
-        borderRadius: 16,
-        background: active && h ? ACTIVE_CARD_BG : "transparent",
-        opacity: empty && !ownerPending ? 0.65 : 1,
-        cursor: canSelect ? "pointer" : "default",
-        outline: "none",
+        gap: 12,
+        transition: "box-shadow 0.35s ease, border-color 0.35s ease",
       }}
     >
+      {showMemberAvatars && (
+        <div style={{ position: "absolute", top: 14, left: 14, zIndex: 2, lineHeight: 0 }}>
+          <GroupAvatarStack faces={avatarFaces} size={36} active max={4} />
+        </div>
+      )}
+
       {titleNode}
 
       <div
         style={{
-          width: "min(200px, 68vw)",
+          width: "min(280px, 88vw)",
           display: "flex",
           justifyContent: "center",
           background: empty && !ownerPending ? "#eef4f0" : "transparent",
-          borderRadius: empty && !ownerPending ? 16 : 0,
+          borderRadius: empty && !ownerPending ? 18 : 0,
           filter: empty && !ownerPending ? "grayscale(.7)" : "none",
           overflow: "hidden",
         }}
@@ -179,7 +207,7 @@ function SlotCard({
         >
           <span
             style={{
-              padding: "3px 10px",
+              padding: "3px 11px",
               borderRadius: 999,
               fontSize: 10,
               fontWeight: 800,
@@ -188,7 +216,7 @@ function SlotCard({
               lineHeight: 1.3,
             }}
           >
-            {roleShort}
+            {slot.roleLabel}
           </span>
           {joinedLabel && (
             <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, lineHeight: 1.3, whiteSpace: "nowrap" }}>
@@ -198,6 +226,12 @@ function SlotCard({
         </div>
       )}
 
+      {canActivate && (
+        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: GREEN, lineHeight: 1.3 }}>
+          Toca para activar este hogar
+        </p>
+      )}
+
       {emptyHint && (
         <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
       )}
@@ -205,7 +239,10 @@ function SlotCard({
       {h?.role === "owner" && h.setupStatus === "dormant" && h.isOwn && (
         <button
           type="button"
-          onClick={() => onAdvanceSetup?.(h.id, "invite_ready")}
+          onClick={(e) => {
+            e.stopPropagation();
+            onAdvanceSetup?.(h.id, "invite_ready");
+          }}
           style={{
             padding: "6px 14px",
             borderRadius: 8,
@@ -226,7 +263,10 @@ function SlotCard({
       {empty && slot.kind === "viewer" && userLoggedIn && (
         <button
           type="button"
-          onClick={onJoin}
+          onClick={(e) => {
+            e.stopPropagation();
+            onJoin();
+          }}
           style={{
             padding: "6px 14px",
             borderRadius: 8,
@@ -251,7 +291,10 @@ function SlotCard({
       {ownerPending && !householdLoading && (
         <button
           type="button"
-          onClick={onRetry}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRetry();
+          }}
           style={{
             padding: "5px 12px",
             borderRadius: 8,
@@ -276,6 +319,128 @@ function SlotCard({
   );
 }
 
+function HouseholdCarousel({
+  slots,
+  effectiveActiveId,
+  members,
+  userLoggedIn,
+  householdLoading,
+  onActivate,
+  onJoin,
+  onAdvanceSetup,
+  onRetry,
+  slideIndex,
+  onSlideChange,
+  renamingId,
+  renameDraft,
+  setRenameDraft,
+  startRename,
+  commitRename,
+}) {
+  const touchX = useRef(null);
+
+  const go = useCallback(
+    (delta) => {
+      onSlideChange((i) => Math.max(0, Math.min(slots.length - 1, i + delta)));
+    },
+    [onSlideChange, slots.length],
+  );
+
+  const onTouchStart = (e) => {
+    touchX.current = e.touches[0].clientX;
+  };
+
+  const onTouchEnd = (e) => {
+    if (touchX.current == null) return;
+    const dx = e.changedTouches[0].clientX - touchX.current;
+    touchX.current = null;
+    if (dx <= -48) go(1);
+    else if (dx >= 48) go(-1);
+  };
+
+  return (
+    <div style={{ width: "100%" }}>
+      <div
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        style={{ overflow: "hidden", width: "100%", touchAction: "pan-y" }}
+      >
+        <div
+          style={{
+            display: "flex",
+            transform: `translateX(-${slideIndex * 100}%)`,
+            transition: "transform 0.38s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          {slots.map((slot) => {
+            const h = slot.household;
+            const isGlobalActive = Boolean(h?.id && h.id === effectiveActiveId);
+            return (
+              <div
+                key={slot.kind + (h?.id ?? slot.label)}
+                style={{
+                  minWidth: "100%",
+                  flexShrink: 0,
+                  padding: "0 4px",
+                  boxSizing: "border-box",
+                }}
+              >
+                <SlotCard
+                  slot={slot}
+                  isGlobalActive={isGlobalActive}
+                  members={members}
+                  effectiveActiveId={effectiveActiveId}
+                  userLoggedIn={userLoggedIn}
+                  householdLoading={householdLoading}
+                  onActivate={onActivate}
+                  onJoin={onJoin}
+                  onAdvanceSetup={onAdvanceSetup}
+                  onRetry={onRetry}
+                  renamingId={renamingId}
+                  renameDraft={renameDraft}
+                  setRenameDraft={setRenameDraft}
+                  startRename={startRename}
+                  commitRename={commitRename}
+                />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {slots.length > 1 && (
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 6,
+            marginTop: 14,
+          }}
+        >
+          {slots.map((slot, i) => (
+            <button
+              key={slot.kind + (slot.household?.id ?? slot.label)}
+              type="button"
+              aria-label={`Hogar ${i + 1}`}
+              onClick={() => onSlideChange(i)}
+              style={{
+                width: i === slideIndex ? 18 : 7,
+                height: 7,
+                borderRadius: 999,
+                border: "none",
+                padding: 0,
+                background: i === slideIndex ? GREEN : "#d4e0d8",
+                cursor: "pointer",
+                transition: "width 0.25s ease, background 0.25s ease",
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function HouseholdsScreen({
   user,
   households = [],
@@ -283,6 +448,7 @@ export function HouseholdsScreen({
   activeHouseholdId,
   householdLoading = false,
   householdError = null,
+  members = [],
   readOnly,
   onNav,
   onBack,
@@ -305,12 +471,28 @@ export function HouseholdsScreen({
     () => buildSlots(households, activeHousehold, user),
     [households, activeHousehold, user],
   );
+
   const effectiveActiveId =
     activeHouseholdId ??
     activeHousehold?.id ??
     households.find((h) => h.role === "owner" && h.isOwn)?.id ??
     households[0]?.id ??
     null;
+
+  const activeSlideIndex = useMemo(() => {
+    const i = slots.findIndex((s) => s.household?.id === effectiveActiveId);
+    return i >= 0 ? i : 0;
+  }, [slots, effectiveActiveId]);
+
+  const [slideIndex, setSlideIndex] = useState(activeSlideIndex);
+
+  useEffect(() => {
+    setSlideIndex(activeSlideIndex);
+  }, [activeSlideIndex]);
+
+  const viewedSlot = slots[slideIndex] ?? slots[0];
+  const viewedHousehold = viewedSlot?.household;
+  const navDissolved = !viewedHousehold || viewedHousehold.id !== effectiveActiveId;
 
   const handleJoin = async () => {
     const raw = window.prompt("Pega el enlace de invitación de otro hogar:");
@@ -341,12 +523,16 @@ export function HouseholdsScreen({
     setRenamingId(null);
   };
 
+  const handleActivate = (id) => {
+    onSwitchHousehold?.(id);
+  };
+
   return (
-    <div style={{ minHeight: "100dvh", background: BG, color: INK }}>
+    <div style={{ minHeight: "100dvh", background: "#fff", color: INK }}>
       <div
         style={{
           flex: 1,
-          padding: `0 16px calc(${bottomNavSpacer()} + 10px)`,
+          padding: `0 12px calc(${bottomNavSpacer()} + 10px)`,
           maxWidth: 420,
           margin: "0 auto",
           width: "100%",
@@ -358,7 +544,7 @@ export function HouseholdsScreen({
             background: MENU_GRADIENT,
             borderRadius: "0 0 22px 22px",
             padding: "16px 16px 18px",
-            margin: "0 -16px 14px",
+            margin: "0 -12px 18px",
             boxShadow: "0 14px 28px -16px rgba(20,47,29,.5)",
           }}
         >
@@ -441,31 +627,35 @@ export function HouseholdsScreen({
               </p>
             )}
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}>
-              {slots.map((slot) => {
-                const isActive = Boolean(slot.household?.id && slot.household.id === effectiveActiveId);
-                return (
-                  <SlotCard
-                    key={slot.kind + (slot.household?.id ?? slot.label)}
-                    slot={slot}
-                    active={isActive}
-                    userLoggedIn={Boolean(user)}
-                    householdLoading={householdLoading}
-                    onSwitch={onSwitchHousehold}
-                    onJoin={handleJoin}
-                    onAdvanceSetup={onAdvanceSetup}
-                    onRetry={() => onRefresh?.()}
-                    renamingId={renamingId}
-                    renameDraft={renameDraft}
-                    setRenameDraft={setRenameDraft}
-                    startRename={startRename}
-                    commitRename={commitRename}
-                  />
-                );
-              })}
-            </div>
+            <HouseholdCarousel
+              slots={slots}
+              effectiveActiveId={effectiveActiveId}
+              members={members}
+              userLoggedIn={Boolean(user)}
+              householdLoading={householdLoading}
+              onActivate={handleActivate}
+              onJoin={handleJoin}
+              onAdvanceSetup={onAdvanceSetup}
+              onRetry={() => onRefresh?.()}
+              slideIndex={slideIndex}
+              onSlideChange={setSlideIndex}
+              renamingId={renamingId}
+              renameDraft={renameDraft}
+              setRenameDraft={setRenameDraft}
+              startRename={startRename}
+              commitRename={commitRename}
+            />
+
             {readOnly && activeHousehold && (
-              <div style={{ background: "#fffdf5", border: "1.5px solid #f5e6b8", borderRadius: 12, padding: "10px 12px", marginTop: 14 }}>
+              <div
+                style={{
+                  background: "#fffdf5",
+                  border: "1.5px solid #f5e6b8",
+                  borderRadius: 12,
+                  padding: "10px 12px",
+                  marginTop: 16,
+                }}
+              >
                 <p style={{ margin: 0, fontSize: 12, lineHeight: 1.4, color: "#7a5d00" }}>
                   Visitante en <strong>{activeHousehold.name}</strong> (solo lectura).
                 </p>
@@ -474,7 +664,7 @@ export function HouseholdsScreen({
           </>
         )}
       </div>
-      <BottomNav active="dashboard" onNav={onNav} />
+      <BottomNav active="dashboard" onNav={onNav} dissolved={navDissolved} />
     </div>
   );
 }
