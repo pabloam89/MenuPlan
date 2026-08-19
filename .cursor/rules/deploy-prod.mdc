@@ -1,21 +1,19 @@
 ---
-description: Tras cambios en MenuPlan, commit y deploy a producción (main → Vercel)
+description: MenuPlan — no desplegar a prod salvo petición explícita del usuario
 alwaysApply: true
 ---
 
-# MenuPlan — siempre subir a prod
+# MenuPlan — deploy a prod solo bajo petición
 
-El usuario **prueba en producción**, no en local (`npm run dev` no le sirve para validar UI).
+El usuario **prueba en producción** (Vercel, rama `main`), pero **no** quiere deploy automático al cerrar tareas.
 
-Tras **cualquier cambio de código** (UI, lógica, assets en `public/`), al terminar la tarea:
+**No** hagas `git push origin main` ni merge a `main` salvo que el usuario lo pida explícitamente (p. ej. «sube a prod», «despliega», «publícalo»).
 
-1. Commit en `staging` con mensaje claro.
+Flujo cuando **sí** lo pida:
+
+1. Commit en `staging` si hay cambios sin commitear.
 2. `git push origin staging`
-3. `git checkout main && git merge staging -m "merge staging: …" && git push origin main`
-4. `git checkout staging`
-5. Confirmar deploy Vercel: `gh api repos/pabloartinano/MenuPlan/commits/main/status --jq ".state"`
-6. Avisar al usuario: **recarga forzada** (Ctrl+Shift+R) por service worker.
+3. `git checkout main && git merge staging && git push origin main && git checkout staging`
+4. Confirmar deploy Vercel y avisar: recarga forzada (Ctrl+Shift+R).
 
-No esperes a que pida "sube a prod" — hazlo como cierre habitual de la tarea.
-
-Repo: `C:\Users\pablo\OneDrive\Escritorio\MenuPlan` · remoto: `pabloartinano/MenuPlan` · prod = rama `main`.
+Repo: `C:\Users\pablo\OneDrive\Escritorio\MenuPlan` · remoto: `pabloartinano/MenuPlan`.

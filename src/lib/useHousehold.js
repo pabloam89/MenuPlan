@@ -52,6 +52,7 @@ export function useHousehold({ user, loading: authLoading }) {
     if (!result) {
       setLoading(false);
       setError("No se pudieron cargar los hogares");
+      bootedRef.current = false;
       return null;
     }
     setHouseholds(result.households);
