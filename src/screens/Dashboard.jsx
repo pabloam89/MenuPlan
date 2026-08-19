@@ -432,6 +432,7 @@ export function DashboardScreen({
           {onOpenHouseholds && (
             <button
               type="button"
+              data-coach="dashboard-households"
               onClick={onOpenHouseholds}
               aria-label="Hogares"
               title="Hogares"

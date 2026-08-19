@@ -22,6 +22,8 @@ import {
   Trash2,
   CircleHelp,
   X,
+  Home,
+  Eye,
 } from "lucide-react";
 
 // One-shot guided tours ("coach-marks"): a dimming overlay with a cut-out
@@ -29,6 +31,52 @@ import {
 // that explains what it does. Unlike the centered "bubble" modals elsewhere in
 // the app, these point at real UI. Targets are located by a stable selector so
 // we don't have to thread refs through screens or the portaled BottomNav.
+
+// Hogares: tarjeta propia, acceso, acciones, carrusel y biblioteca personal.
+export const HOUSEHOLDS_COACH_STEPS = [
+  {
+    selector: '[data-coach="households-card"]',
+    Icon: Home,
+    title: "Tu hogar",
+    desc: "Menú, compra y despensa de la familia viven aquí. Al terminar el asistente ya quedó creado — renómbralo tocando el nombre.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="households-members"]',
+    Icon: Users,
+    title: "Quién tiene acceso",
+    desc: "Cuentas Google invitadas (propietario o visitante). Las caritas de comensales del menú son otra cosa.",
+    place: "above",
+  },
+  {
+    selector: '[data-coach="households-menu"]',
+    Icon: MoreVertical,
+    title: "Acciones del hogar",
+    desc: "Invitar, compartir enlace o vaciar. El menú ⋯ está arriba a la derecha de la tarjeta.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="households-dots"]',
+    Icon: ArrowRight,
+    title: "Desliza a la derecha",
+    desc: "Tu hogar es la primera tarjeta. A la derecha hay huecos para hogares ajenos — en el siguiente paso vamos al primero.",
+    place: "above",
+  },
+  {
+    selector: '[data-coach="households-viewer-card"]',
+    Icon: Eye,
+    title: "Hogar ajeno (solo lectura)",
+    desc: "Si te invitan, entras aquí como visitante: ves menú, compra y despensa pero no editas. Máximo 2. Pega el enlace y pulsa Unirse.",
+    place: "below",
+  },
+  {
+    selector: '[data-coach="households-biblioteca"]',
+    Icon: BookOpen,
+    title: "Tu biblioteca",
+    desc: "Favoritas y recetas creadas solo tuyas (cuenta Google), aparte del hogar activo.",
+    place: "below",
+  },
+];
 
 // Home: the two action tiles + the meaningful nav tabs.
 export const HOME_COACH_STEPS = [
@@ -226,7 +274,7 @@ function measure(selector) {
   return { top: r.top, left: r.left, right: r.right, bottom: r.bottom, width: r.width, height: r.height };
 }
 
-export function CoachTour({ steps, onClose }) {
+export function CoachTour({ steps, onClose, onStepChange }) {
   const [idx, setIdx] = useState(0);
   const [rect, setRect] = useState(null);
   const [vp, setVp] = useState(() => ({
@@ -244,6 +292,7 @@ export function CoachTour({ steps, onClose }) {
 
   // Re-measure whenever the step changes, and keep the target in view.
   useLayoutEffect(() => {
+    onStepChange?.(step, idx);
     const el = document.querySelector(step.selector);
     if (el && typeof el.scrollIntoView === "function") {
       el.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -265,7 +314,7 @@ export function CoachTour({ steps, onClose }) {
       cancelAnimationFrame(raf);
       clearInterval(timer);
     };
-  }, [idx, step.selector, recompute]);
+  }, [idx, step.selector, recompute, step, onStepChange]);
 
   useEffect(() => {
     window.addEventListener("resize", recompute);
@@ -541,7 +590,7 @@ function useResolvedSteps(steps, grace) {
   return resolved;
 }
 
-function ResolvingCoachTour({ steps, grace, onClose }) {
+function ResolvingCoachTour({ steps, grace, onClose, onStepChange }) {
   const resolved = useResolvedSteps(steps, grace);
   const empty = resolved?.length === 0;
 
@@ -551,7 +600,7 @@ function ResolvingCoachTour({ steps, grace, onClose }) {
   }, [empty, onClose]);
 
   if (!resolved || empty) return null;
-  return <CoachTour steps={resolved} onClose={onClose} />;
+  return <CoachTour steps={resolved} onClose={onClose} onStepChange={onStepChange} />;
 }
 
 // 1.8s covers a cold lazy-load of the screen without leaving a first-time user
@@ -576,6 +625,17 @@ export function ShoppingCoachTour({ onClose }) {
 export function PantryCoachTour({ onClose }) {
   // Receipt/settings targets are conditional, so some steps may be absent.
   return <ResolvingCoachTour steps={PANTRY_COACH_STEPS} grace={0} onClose={onClose} />;
+}
+
+export function HouseholdsCoachTour({ onClose, onStepChange }) {
+  return (
+    <ResolvingCoachTour
+      steps={HOUSEHOLDS_COACH_STEPS}
+      grace={SCREEN_LOAD_GRACE}
+      onClose={onClose}
+      onStepChange={onStepChange}
+    />
+  );
 }
 
 // Round help button that (re)launches a screen's spotlight tour on demand —
