@@ -29,6 +29,7 @@ import recipesCardPhoto3 from "../assets/dashboard/recipes-card-3.jpg";
 import pantryCardPhoto2 from "../assets/dashboard/pantry-card-2.jpg";
 import pantryCardPhoto3 from "../assets/dashboard/pantry-card-3.jpg";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
+import { HouseholdSwitcher } from "./HouseholdsScreen.jsx";
 
 const PAGE_BG = "#f4f8f5";
 const GREEN = "#2d5a3d";
@@ -322,6 +323,10 @@ export function DashboardScreen({
   user,
   data,
   menuPlan,
+  households,
+  activeHousehold,
+  onSwitchHousehold,
+  onOpenHouseholds,
   onNav,
   onViewMenu,
   onGenerateNewMenu,
@@ -467,6 +472,17 @@ export function DashboardScreen({
           >
             {g.name}
           </p>
+
+          {user && activeHousehold && (
+            <div style={{ position: "relative", zIndex: 1, marginTop: 10 }}>
+              <HouseholdSwitcher
+                households={households ?? []}
+                activeHousehold={activeHousehold}
+                onOpenHouseholds={onOpenHouseholds}
+                onSwitchHousehold={onSwitchHousehold}
+              />
+            </div>
+          )}
 
           {/* family avatars */}
           {members.length > 0 && (

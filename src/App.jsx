@@ -33,6 +33,7 @@ const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => (
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
+const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, pickGarnishReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
@@ -106,6 +107,10 @@ import {
   mergeDiscards,
 } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
+import { loadHouseholdState, saveHouseholdState } from "./lib/householdState.js";
+import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
+import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
+import { useHousehold } from "./lib/useHousehold.js";
 import { shouldAdoptRemoteProfile, mergeUserRecipesById } from "./lib/profileMerge.js";
 import {
   loadUserRecipes,
@@ -1083,12 +1088,31 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
-  const { user, session, signInWithGoogle, signOut } = useAuth();
+  const { user, session, loading: authLoading, signInWithGoogle, signOut } = useAuth();
+  const {
+    households,
+    activeHousehold,
+    activeHouseholdId,
+    loading: householdLoading,
+    readOnly: householdReadOnly,
+    canShareInvite,
+    inviteUrl,
+    switchHousehold,
+    leave: leaveHouseholdMembership,
+    renameHousehold,
+    advanceSetupStatus,
+    refresh: refreshHouseholds,
+  } = useHousehold({ user, loading: authLoading });
 
-  const ownUserRecipes = useMemo(
-    () => filterOwnCreatedRecipes(data.userRecipes, user),
-    [data.userRecipes, user],
-  );
+  const syncMenuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user?.id;
+  const syncHouseholdId = activeHouseholdId ?? null;
+
+  const ownUserRecipes = useMemo(() => {
+    if (householdReadOnly && activeHousehold?.ownerUserId) {
+      return data.userRecipes ?? [];
+    }
+    return filterOwnCreatedRecipes(data.userRecipes, user);
+  }, [data.userRecipes, user, householdReadOnly, activeHousehold?.ownerUserId]);
 
   // User-created recipes must live in RECIPES_BY_ID for DishDetail — but in the
   // "frontend" shape (macros object, scaled ingredients), not the raw catalog
@@ -1167,8 +1191,14 @@ export default function App() {
       hydratedUserRef.current = null;
       return;
     }
-    if (hydratedUserRef.current === user.id) return;
-    hydratedUserRef.current = user.id;
+    if (householdLoading || !activeHouseholdId) return;
+    const hydrateKey = `${user.id}:${activeHouseholdId}`;
+    if (hydratedUserRef.current === hydrateKey) return;
+    hydratedUserRef.current = hydrateKey;
+    cloudReadyRef.current = false;
+
+    const menuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user.id;
+    const householdId = activeHouseholdId;
 
     // Capture local-only blobs before any await so a mid-hydration edit
     // isn't the source of truth for the union (same as before).
@@ -1187,31 +1217,29 @@ export default function App() {
     // Fold signed-out stock into the account first, then bump pantryEpoch so
     // any open En casa / Compra UI reloads after the merge (not mid-flight).
     (async () => {
-      await mergeLocalPantryIntoCloud(user.id);
+      await mergeLocalPantryIntoCloud(user.id, householdId);
       if (cancelled) return;
       setPantryEpoch((n) => n + 1);
 
-      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards] = await Promise.all([
-        loadUserState(user.id),
-        loadUserRecipes(user.id),
+      const loadState = () =>
+        householdId ? loadHouseholdState(householdId) : loadUserState(user.id);
+      const loadDiscards = () =>
+        householdId ? loadHouseholdDiscards(householdId) : loadRecipeDiscards(user.id);
+
+      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs] = await Promise.all([
+        loadState(),
+        loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
-        loadRecipeDiscards(user.id),
+        loadDiscards(),
+        householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({}),
       ]);
       if (cancelled) return;
 
-      // Recipes: union by id (remote wins on conflict); votes: same.
-      // IMPORTANT: this merge must run against the LIVE state at apply time
-      // (see the setData below), not just the pre-await `localRecipes`
-      // snapshot. Hydration does slow network work (much slower in prod), and
-      // a recipe the user creates WHILE it's in flight lives in state but is in
-      // neither the stale snapshot nor the cloud yet — folding it in only via
-      // the snapshot silently wiped it ("creo mi receta, genero el menú y
-      // desaparece"). The snapshot-based value here is kept solely for the
-      // registerRecipes/backfill side effects below.
       const mergedRecipes = mergeUserRecipesById(localRecipes, remoteRecipes);
-      // Remote is authoritative for the vote itself, but a locally-set group
-      // scope survives if it hasn't round-tripped to the server yet.
-      const mergedVotes = mergeVotes(localVotes, remoteVotes);
+      const mergedVotes = mergeVotes(
+        mergeVotes(localVotes, remoteVotes),
+        householdFavoritesToVotes(remoteHouseholdFavs),
+      );
 
       // Adopt the remote profile snapshot only to hydrate a session that
       // hasn't built a local profile yet (new device, cleared storage, or
@@ -1291,12 +1319,7 @@ export default function App() {
       };
       upsertRecipeDiscards(user.id, discardsBackfill);
 
-      // Fase 3/4 of the menú-archive migration: the cloud tables
-      // (user_menus/user_menu_weeks/user_menu_recipes) are the read
-      // preference once they hold anything for this account; the JSONB
-      // blob (data.menus, hydrated above) is only the fallback for an
-      // account that hasn't migrated yet.
-      const cloudSummaries = await loadMenuSummariesRemote(user.id);
+      const cloudSummaries = await loadMenuSummariesRemote(menuUserId, householdId);
       if (cancelled) return;
 
       if (cloudSummaries.length === 0) {
@@ -1312,7 +1335,7 @@ export default function App() {
           const recipes = Array.from(collectMenuRecipeIds({ [menu.id]: menu }))
             .map((id) => RECIPES_BY_ID[id])
             .filter(Boolean);
-          const res = await saveMenuRemote(user.id, menu, recipes);
+          const res = await saveMenuRemote(user.id, menu, recipes, householdId);
           if (cancelled) return;
           // Only (re)activate in the cloud if this menú is STILL the active
           // one locally right now — otherwise a menú freshly generated while
@@ -1332,7 +1355,7 @@ export default function App() {
         // switcher (switchActiveWeek) needs it right away. Any OTHER
         // historic menú's full detail is fetched lazily, on demand, by
         // reuseMenu() only when the user actually taps "Repetir" on it.
-        const weekRanges = await loadMenuWeekRangesRemote(user.id);
+        const weekRanges = await loadMenuWeekRangesRemote(menuUserId, householdId);
         if (cancelled) return;
 
         const cloudMenus = {};
@@ -1345,7 +1368,7 @@ export default function App() {
         const activeSummary = cloudSummaries.find((s) => s.isActive) ?? null;
         let activeWeek = null;
         if (activeSummary) {
-          const detail = await loadMenuDetailRemote(user.id, activeSummary.id);
+          const detail = await loadMenuDetailRemote(menuUserId, activeSummary.id, householdId);
           if (cancelled) return;
           if (detail) {
             cloudMenus[activeSummary.id] = { ...cloudMenus[activeSummary.id], weeks: detail.menu.weeks };
@@ -1407,32 +1430,25 @@ export default function App() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [user?.id, activeHouseholdId, householdLoading, householdReadOnly]);
 
   // Debounced push of the private profile snapshot (everything except the
   // normalized recipes/votes, which sync through their own tables). Gated on
   // cloudReadyRef so we never clobber the remote copy before hydration lands.
   useEffect(() => {
-    if (!user?.id || !cloudReadyRef.current) return;
+    if (!user?.id || !cloudReadyRef.current || !activeHouseholdId || householdReadOnly) return;
     const t = window.setTimeout(() => {
       const profile = { ...data };
       delete profile.userRecipes;
       delete profile.recipeVotes;
-      // discards now sync through user_recipe_discards (0010_recipe_discards.sql)
-      // with their own immediate write — stop duplicating into this blob.
       delete profile.discards;
-      // Fase 7 (multi-week-menus plan): user_menus/user_menu_weeks/
-      // user_menu_recipes are now the source of truth for a signed-in
-      // account's menú archive (see the Fase 3/4 hydration above) — stop
-      // duplicating it into this JSONB blob. Untouched for accounts that
-      // haven't cut over yet: their existing remote snapshot still carries
-      // whatever `menus` it had until the one-time backfill (line ~585)
-      // consumes it, and this write simply never re-adds it afterwards.
       delete profile.menus;
-      saveUserState(user.id, { data: profile, menuPlan, shopping, aiRecipes, onbStep });
+      const snapshot = { data: profile, menuPlan, shopping, aiRecipes, onbStep };
+      if (syncHouseholdId) saveHouseholdState(syncHouseholdId, snapshot);
+      else saveUserState(user.id, snapshot);
     }, 1200);
     return () => window.clearTimeout(t);
-  }, [user?.id, data, menuPlan, shopping, aiRecipes, onbStep]);
+  }, [user?.id, activeHouseholdId, householdReadOnly, syncHouseholdId, data, menuPlan, shopping, aiRecipes, onbStep]);
 
   // Reconcilia el modo de consumo saliente cuando el usuario lo cambia con un
   // menú ya activo. Ejemplo: modo "onGenerate" → "endOfDay". El stock se
@@ -1570,6 +1586,10 @@ export default function App() {
   }, []);
 
   const regenerateMenu = useCallback(async (nextData) => {
+    if (householdReadOnly) {
+      showToast("Solo lectura: no puedes editar el menú");
+      return;
+    }
     // En modo básico forzamos los ajustes sencillos (comidas/cenas, cocina
     // normal, despensa "usar lo que haya", menú equilibrado, decisiones de
     // despensa por defecto) sin tocar lo guardado del usuario.
@@ -1863,7 +1883,7 @@ export default function App() {
       // resolves we re-sync the live isFavorite state from menusRef.
       if (user) {
         const _menuId = newMenu.id;
-        saveAndActivateMenu(user.id, newMenu, allRecipes).then(() => {
+        saveAndActivateMenu(user.id, newMenu, allRecipes, syncHouseholdId).then(() => {
           if (menusRef.current?.[_menuId]?.isFavorite) {
             toggleMenuFavoriteRemote(user.id, _menuId, true).catch(() => {});
           }
@@ -2128,7 +2148,7 @@ export default function App() {
     // shopping change on reload (the generation-time row would win). Debounced
     // + fire-and-forget inside queueSaveMenuWeek; local blob is still the belt.
     if (user && menuId && wk) {
-      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping });
+      queueSaveMenuWeek(user.id, menuId, weekStart, { ...wk, shopping: nextShopping }, 1200, syncHouseholdId);
     }
   }, [data.menus, data.activeMenuId, data.menuWeek?.offset, user]);
 
@@ -2243,6 +2263,7 @@ export default function App() {
   // (edited) plan into the archive first, so the favorite keeps the menú the
   // user actually shaped — not the raw generated one.
   const toggleActiveFavorite = useCallback(() => {
+    if (householdReadOnly) return;
     const menuId = data.activeMenuId;
     const current = data.menus?.[menuId];
     if (!current) return;
@@ -2252,7 +2273,7 @@ export default function App() {
       setData((d) => ({ ...d, menus }));
       if (user) {
         toggleMenuFavoriteRemote(user.id, menuId, true);
-        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week);
+        if (weekStart && week) queueSaveMenuWeek(user.id, menuId, weekStart, week, 1200, syncHouseholdId);
       }
       showToast("Menú guardado en favoritos");
     } else {
@@ -2394,7 +2415,7 @@ export default function App() {
         const recipes = Array.from(collectMenuRecipeIds({ [_menuId]: newMenu }))
           .map((id) => RECIPES_BY_ID[id])
           .filter(Boolean);
-        saveAndActivateMenu(user.id, newMenu, recipes).then(() => {
+        saveAndActivateMenu(user.id, newMenu, recipes, syncHouseholdId).then(() => {
           if (menusRef.current?.[_menuId]?.isFavorite) {
             toggleMenuFavoriteRemote(user.id, _menuId, true).catch(() => {});
           }
@@ -2446,6 +2467,14 @@ export default function App() {
     setHistoryMenuId(menuId);
     fwd(() => setScreen("menuHistory"));
   }, [data.menus, user, showToast]);
+
+  const handleSwitchHousehold = useCallback(async (householdId) => {
+    const ok = await switchHousehold(householdId);
+    if (ok) {
+      hydratedUserRef.current = null;
+      cloudReadyRef.current = false;
+    }
+  }, [switchHousehold]);
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
@@ -2510,6 +2539,10 @@ export default function App() {
   // into onboarding (edit shortcuts, "Otro grupo", quick menu…) resets this.
   const [firstRunOnboarding, setFirstRunOnboarding] = useState(false);
   const handleGenerateMenu = useCallback(() => {
+    if (householdReadOnly) {
+      showToast("Solo lectura: no puedes generar menú aquí");
+      return;
+    }
     if ((data.members ?? []).length > 0) {
       setOnbResumeOpen(true);
     } else {
@@ -2613,6 +2646,7 @@ export default function App() {
   // filterRecipes (which keys on the base id) never marks it isFavorite, so the
   // planner silently ignores it.
   const handleSetFavoriteScope = useCallback((recipeId, scope) => {
+    if (householdReadOnly) return;
     const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
     const wasFav = isRecipeFavorite(data.recipeVotes, baseId);
     const nextVotes = setFavoriteScope(data.recipeVotes, baseId, scope);
@@ -2621,10 +2655,13 @@ export default function App() {
     else if (scope != null && !wasFav) showToast("Añadida a favoritas");
     if (user?.id) {
       const entry = nextVotes[baseId] ?? null;
-      if (entry == null) deleteRecipeVote(user.id, baseId);
+      if (syncHouseholdId) {
+        if (entry == null) deleteHouseholdFavorite(syncHouseholdId, baseId);
+        else saveHouseholdFavorite(syncHouseholdId, baseId, entry.scope);
+      } else if (entry == null) deleteRecipeVote(user.id, baseId);
       else saveRecipeVote(user.id, baseId, entry);
     }
-  }, [data.recipeVotes, showToast, user]);
+  }, [data.recipeVotes, showToast, user, householdReadOnly, syncHouseholdId]);
 
   // ── Discards (menu rejections) ──────────────────────────────────────────
   // Base catalog id (prefix-free) of whatever currently sits in a slot, so a
@@ -2645,6 +2682,7 @@ export default function App() {
   //   "recent"  → «me gusta pero lo comí hace poco»: enfriamiento ~14 días +
   //               marcar favorito para que vuelva en próximos menús.
   const applyDiscardReason = useCallback((sel, reason) => {
+    if (householdReadOnly) return;
     if (!reason) return;
     const baseId = slotBaseRecipeId(sel);
     if (!baseId) return;
@@ -2672,10 +2710,13 @@ export default function App() {
     }
     if (user?.id) {
       if (reason === "dislike") {
-        saveRecipeDiscard(user.id, baseId, { isPermanent: true });
+        if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, { isPermanent: true });
+        else saveRecipeDiscard(user.id, baseId, { isPermanent: true });
       } else if (!(data.discards?.forever ?? []).includes(baseId)) {
         const days = reason === "recent" ? 14 : 7;
-        saveRecipeDiscard(user.id, baseId, { cooldownUntil: Date.now() + days * DAY_MS });
+        const until = Date.now() + days * DAY_MS;
+        if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, { cooldownUntil: until });
+        else saveRecipeDiscard(user.id, baseId, { cooldownUntil: until });
       }
     }
     const label = reason === "dislike"
@@ -2685,11 +2726,12 @@ export default function App() {
         : "Descartado esta semana";
     trackEvent(user, "dish_discarded", "menu", { reason, recipeId: baseId });
     return label;
-  }, [slotBaseRecipeId, data.recipeVotes, data.discards, user]);
+  }, [slotBaseRecipeId, data.recipeVotes, data.discards, user, householdReadOnly, syncHouseholdId]);
 
   // Recuperar (Recetas ▸ Descartados): clear a permanent discard so the dish
   // rejoins the active catalog.
   const handleUndiscardRecipe = useCallback((recipeId) => {
+    if (householdReadOnly) return;
     if (!recipeId) return;
     setData((d) => {
       const forever = (d.discards?.forever ?? []).filter((id) => id !== recipeId);
@@ -2697,9 +2739,12 @@ export default function App() {
       delete cooldownUntil[recipeId];
       return { ...d, discards: { forever, cooldownUntil } };
     });
-    if (user?.id) deleteRecipeDiscard(user.id, recipeId);
+    if (user?.id) {
+      if (syncHouseholdId) deleteHouseholdDiscard(syncHouseholdId, recipeId);
+      else deleteRecipeDiscard(user.id, recipeId);
+    }
     showToast("Receta recuperada");
-  }, [showToast, user]);
+  }, [showToast, user, householdReadOnly, syncHouseholdId]);
 
   // Descartar desde el catálogo (Recetas ▸ Catálogo): añade al listado permanente
   // "No me gusta" sin pasar por el menú. Equivalente a elegir «No me gusta» desde
@@ -3617,6 +3662,7 @@ export default function App() {
               data={data}
               setData={setData}
               menuPlan={menuPlan}
+              readOnly={householdReadOnly}
               isGenerating={isGeneratingMenu}
               error={menuError}
               restrictionConflicts={restrictionConflicts}
@@ -3718,6 +3764,7 @@ export default function App() {
                 setShopping={setShopping}
                 data={data}
                 setData={setData}
+                readOnly={householdReadOnly}
                 onNav={handleNav}
                 onToast={showToast}
                 menuWeek={data.menuWeek}
@@ -3844,6 +3891,10 @@ export default function App() {
                 user={user}
                 data={data}
                 menuPlan={menuPlan}
+                households={households}
+                activeHousehold={activeHousehold}
+                onSwitchHousehold={handleSwitchHousehold}
+                onOpenHouseholds={() => fwd(() => setScreen("households"))}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
@@ -3872,10 +3923,12 @@ export default function App() {
             <Suspense fallback={null}>
               <RecipesScreen
                 user={user}
-                userRecipes={data.userRecipes}
+                userRecipes={ownUserRecipes}
                 recipeVotes={data.recipeVotes}
                 scopeGroups={favoriteScopeGroups}
                 discardedIds={data.discards?.forever ?? []}
+                readOnly={householdReadOnly}
+                readOnlyLabel={householdReadOnly && activeHousehold ? `Recetas de ${activeHousehold.name}` : null}
                 onRecoverRecipe={handleUndiscardRecipe}
                 onDiscardRecipe={handleDiscardRecipe}
                 onSetFavoriteScope={handleSetFavoriteScope}
@@ -3926,6 +3979,33 @@ export default function App() {
           />
         )}
 
+        {screen === "households" && (
+          <div
+            key="households"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <HouseholdsScreen
+                user={user}
+                households={households}
+                activeHousehold={activeHousehold}
+                activeHouseholdId={activeHouseholdId}
+                readOnly={householdReadOnly}
+                canShareInvite={canShareInvite}
+                inviteUrl={inviteUrl}
+                onNav={handleNav}
+                onSwitchHousehold={handleSwitchHousehold}
+                onLeaveHousehold={leaveHouseholdMembership}
+                onRenameHousehold={renameHousehold}
+                onAdvanceSetup={advanceSetupStatus}
+                onSignIn={signInWithGoogle}
+                personalRecipes={ownUserRecipes}
+                personalFavoriteCount={Object.values(data.recipeVotes ?? {}).filter((v) => v?.isFavorite).length}
+              />
+            </Suspense>
+          </div>
+        )}
+
         {screen === "profile" && (
           <div
             key="profile"
@@ -3943,6 +4023,7 @@ export default function App() {
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
                 onEditMembers={() => fwd(() => setScreen("members"))}
+                onOpenHouseholds={() => fwd(() => setScreen("households"))}
               />
             </Suspense>
           </div>

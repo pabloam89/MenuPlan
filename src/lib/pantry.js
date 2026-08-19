@@ -144,14 +144,17 @@ const UPDATED_AT_COL = "updated_at";
 const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`;
 
 /** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
-export async function loadPantry(userId) {
+export async function loadPantry(userId, householdId = null) {
   if (!supabase || !userId) return [];
-  const run = (cols) =>
-    supabase
+  const run = (cols) => {
+    let q = supabase
       .from("user_pantry")
       .select(cols)
-      .eq("user_id", userId)
       .order("created_at", { ascending: true });
+    if (householdId) q = q.eq("household_id", householdId);
+    else q = q.eq("user_id", userId);
+    return q;
+  };
 
   // Newest schema first, then fall back tier by tier so the pantry still loads
   // on a DB missing 0015 (location), 0014 (freezer) or 0009 (updated_at).
@@ -184,7 +187,7 @@ export async function loadPantry(userId) {
  * ticket) can tell a top-up apart from a fresh row.
  * @param {{ name: string, normalized: string, qty?: number, unit?: 'g'|'ml'|'ud', source?: 'manual'|'voice'|'photo' }[]} items
  */
-export async function addPantryItems(userId, items) {
+export async function addPantryItems(userId, items, householdId = null) {
   if (!supabase || !userId || items.length === 0) return [];
 
   const ingredients = items.filter((it) => (it.itemType ?? "ingredient") !== "cooked_dish");
@@ -232,6 +235,7 @@ export async function addPantryItems(userId, items) {
       } else {
         toInsert.push({
           user_id: userId,
+          ...(householdId ? { household_id: householdId } : {}),
           ingredient_name: it.name,
           ingredient_normalized: it.normalized,
           qty,
@@ -252,6 +256,7 @@ export async function addPantryItems(userId, items) {
     const dishFrozen = Boolean(it.frozen);
     toInsert.push({
       user_id: userId,
+      ...(householdId ? { household_id: householdId } : {}),
       ingredient_name: it.name,
       ingredient_normalized: it.normalized,
       qty: portions,
@@ -596,7 +601,7 @@ export function clearLocalPantry() {
  * place would silently double the quantities on the next login.
  * @returns {Promise<boolean>} true when something was merged
  */
-export async function mergeLocalPantryIntoCloud(userId) {
+export async function mergeLocalPantryIntoCloud(userId, householdId = null) {
   if (!supabase || !userId) return false;
   const local = readLocalPantry();
   if (local.length === 0) return false;
@@ -616,6 +621,7 @@ export async function mergeLocalPantryIntoCloud(userId) {
       garnishRef: it.garnishRef,
       cookedAt: it.cookedAt,
     })),
+    householdId,
   );
   writeLocalPantry([]);
   return true;

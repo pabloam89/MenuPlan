@@ -18,10 +18,11 @@ import { supabase } from "./supabase.js";
 
 // ── Row <-> camelCase mapping (pure, exported for direct unit testing) ────
 
-export function menuToRow(menu, userId) {
+export function menuToRow(menu, userId, householdId = null) {
   return {
     id: menu.id,
     user_id: userId,
+    ...(householdId ? { household_id: householdId } : {}),
     variety_pref: menu.varietyPref ?? "strict",
     is_favorite: Boolean(menu.isFavorite),
     // Activation is always a separate, explicit step (see activateMenu) —
@@ -42,9 +43,10 @@ export function rowToMenuSummary(row) {
   };
 }
 
-export function weekToRow(userId, menuId, startISO, week) {
+export function weekToRow(userId, menuId, startISO, week, householdId = null) {
   return {
     user_id: userId,
+    ...(householdId ? { household_id: householdId } : {}),
     menu_id: menuId,
     week_start: startISO,
     week_end: week.endISO,
@@ -88,19 +90,19 @@ export function rowToWeek(row) {
  *   array already collected during generation — see App.jsx)
  * @returns {Promise<{ ok: boolean, error?: string }>}
  */
-export async function saveMenu(userId, menu, recipes = []) {
+export async function saveMenu(userId, menu, recipes = [], householdId = null) {
   if (!supabase || !userId || !menu?.id) return { ok: false, error: "no-op" };
 
   const { error: menuError } = await supabase
     .from("user_menus")
-    .upsert(menuToRow(menu, userId), { onConflict: "user_id,id" });
+    .upsert(menuToRow(menu, userId, householdId), { onConflict: "user_id,id" });
   if (menuError) {
     console.warn("[menusSync] save menu failed", menuError.message);
     return { ok: false, error: menuError.message };
   }
 
   const weekRows = Object.entries(menu.weeks ?? {}).map(([startISO, week]) =>
-    weekToRow(userId, menu.id, startISO, week),
+    weekToRow(userId, menu.id, startISO, week, householdId),
   );
   if (weekRows.length > 0) {
     const { error: weeksError } = await supabase
@@ -108,21 +110,27 @@ export async function saveMenu(userId, menu, recipes = []) {
       .upsert(weekRows, { onConflict: "user_id,menu_id,week_start" });
     if (weeksError) {
       console.warn("[menusSync] save weeks failed", weeksError.message);
-      await deleteMenu(userId, menu.id);
+      await deleteMenu(userId, menu.id, householdId);
       return { ok: false, error: weeksError.message };
     }
   }
 
   const recipeRows = recipes
     .filter((r) => r?.id)
-    .map((r) => ({ user_id: userId, menu_id: menu.id, recipe_id: r.id, recipe_snapshot: r }));
+    .map((r) => ({
+      user_id: userId,
+      ...(householdId ? { household_id: householdId } : {}),
+      menu_id: menu.id,
+      recipe_id: r.id,
+      recipe_snapshot: r,
+    }));
   if (recipeRows.length > 0) {
     const { error: recipesError } = await supabase
       .from("user_menu_recipes")
       .upsert(recipeRows, { onConflict: "user_id,menu_id,recipe_id" });
     if (recipesError) {
       console.warn("[menusSync] save recipes failed", recipesError.message);
-      await deleteMenu(userId, menu.id);
+      await deleteMenu(userId, menu.id, householdId);
       return { ok: false, error: recipesError.message };
     }
   }
@@ -137,13 +145,14 @@ export async function saveMenu(userId, menu, recipes = []) {
  * on demand via loadMenuDetail only for the menú actually being opened.
  * @returns {Promise<Record<string, Record<string, {offset:number, startDayIdx:number, startISO:string, endISO:string}>>>}
  */
-export async function loadMenuWeekRanges(userId) {
+export async function loadMenuWeekRanges(userId, householdId = null) {
   if (!supabase || !userId) return {};
-  const { data, error } = await supabase
+  let q = supabase
     .from("user_menu_weeks")
     .select("menu_id, week_start, week_end, week_offset, start_day_idx")
-    .eq("user_id", userId)
     .order("week_offset");
+  q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
+  const { data, error } = await q;
   if (error) {
     console.warn("[menusSync] load week ranges failed", error.message);
     return {};
@@ -162,13 +171,14 @@ export async function loadMenuWeekRanges(userId) {
 }
 
 /** Lightweight list for a history screen: metadata only, no weeks/recipes. */
-export async function loadMenuSummaries(userId) {
+export async function loadMenuSummaries(userId, householdId = null) {
   if (!supabase || !userId) return [];
-  const { data, error } = await supabase
+  let q = supabase
     .from("user_menus")
     .select("id, variety_pref, is_favorite, is_active, created_at, updated_at")
-    .eq("user_id", userId)
     .order("created_at", { ascending: false });
+  q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
+  const { data, error } = await q;
   if (error) {
     console.warn("[menusSync] load summaries failed", error.message);
     return [];
@@ -181,13 +191,15 @@ export async function loadMenuSummaries(userId) {
  * entry. Returns null if not found or on any read failure.
  * @returns {Promise<{ menu: Object, recipes: Object[] } | null>}
  */
-export async function loadMenuDetail(userId, menuId) {
+export async function loadMenuDetail(userId, menuId, householdId = null) {
   if (!supabase || !userId || !menuId) return null;
 
+  const userScope = (q) => (householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId));
+
   const [menuRes, weeksRes, recipesRes] = await Promise.all([
-    supabase.from("user_menus").select("*").eq("user_id", userId).eq("id", menuId).maybeSingle(),
-    supabase.from("user_menu_weeks").select("*").eq("user_id", userId).eq("menu_id", menuId).order("week_offset"),
-    supabase.from("user_menu_recipes").select("recipe_id, recipe_snapshot").eq("user_id", userId).eq("menu_id", menuId),
+    userScope(supabase.from("user_menus").select("*").eq("id", menuId)).maybeSingle(),
+    userScope(supabase.from("user_menu_weeks").select("*").eq("menu_id", menuId)).order("week_offset"),
+    userScope(supabase.from("user_menu_recipes").select("recipe_id, recipe_snapshot").eq("menu_id", menuId)),
   ]);
 
   if (menuRes.error || weeksRes.error || recipesRes.error || !menuRes.data) {
@@ -207,9 +219,11 @@ export async function loadMenuDetail(userId, menuId) {
 }
 
 /** Deletes a menú; its weeks and recipe snapshots cascade with it. */
-export async function deleteMenu(userId, menuId) {
+export async function deleteMenu(userId, menuId, householdId = null) {
   if (!supabase || !userId || !menuId) return { ok: false, error: "no-op" };
-  const { error } = await supabase.from("user_menus").delete().eq("user_id", userId).eq("id", menuId);
+  let q = supabase.from("user_menus").delete();
+  q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
+  const { error } = await q.eq("id", menuId);
   if (error) {
     console.warn("[menusSync] delete menu failed", error.message);
     return { ok: false, error: error.message };
@@ -217,13 +231,11 @@ export async function deleteMenu(userId, menuId) {
   return { ok: true };
 }
 
-export async function toggleMenuFavorite(userId, menuId, isFavorite) {
+export async function toggleMenuFavorite(userId, menuId, isFavorite, householdId = null) {
   if (!supabase || !userId || !menuId) return { ok: false, error: "no-op" };
-  const { error } = await supabase
-    .from("user_menus")
-    .update({ is_favorite: isFavorite })
-    .eq("user_id", userId)
-    .eq("id", menuId);
+  let q = supabase.from("user_menus").update({ is_favorite: isFavorite });
+  q = householdId ? q.eq("household_id", householdId) : q.eq("user_id", userId);
+  const { error } = await q.eq("id", menuId);
   if (error) {
     console.warn("[menusSync] toggle favorite failed", error.message);
     return { ok: false, error: error.message };
@@ -258,16 +270,17 @@ export async function activateMenu(menuId) {
 // them to resolve in the order they were issued.
 const activationQueues = new Map();
 
-export function saveAndActivateMenu(userId, menu, recipes) {
-  const prev = activationQueues.get(userId) ?? Promise.resolve();
+export function saveAndActivateMenu(userId, menu, recipes, householdId = null) {
+  const queueKey = householdId ? `${householdId}:${userId}` : userId;
+  const prev = activationQueues.get(queueKey) ?? Promise.resolve();
   const next = prev
     .catch(() => {}) // an earlier failure must never block this call
     .then(async () => {
-      const res = await saveMenu(userId, menu, recipes);
+      const res = await saveMenu(userId, menu, recipes, householdId);
       if (res.ok) await activateMenu(menu.id);
       return res;
     });
-  activationQueues.set(userId, next);
+  activationQueues.set(queueKey, next);
   return next;
 }
 
@@ -284,16 +297,16 @@ export function saveAndActivateMenu(userId, menu, recipes) {
 // Fire-and-forget; the user_state blob is still the belt-and-suspenders copy.
 const weekSaveTimers = new Map();
 
-export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200) {
+export function queueSaveMenuWeek(userId, menuId, startISO, week, delay = 1200, householdId = null) {
   if (!supabase || !userId || !menuId || !startISO || !week) return;
-  const key = `${userId}:${menuId}:${startISO}`;
+  const key = `${householdId ?? userId}:${menuId}:${startISO}`;
   const existing = weekSaveTimers.get(key);
   if (existing) clearTimeout(existing);
   const timer = setTimeout(async () => {
     weekSaveTimers.delete(key);
     const { error } = await supabase
       .from("user_menu_weeks")
-      .upsert(weekToRow(userId, menuId, startISO, week), {
+      .upsert(weekToRow(userId, menuId, startISO, week, householdId), {
         onConflict: "user_id,menu_id,week_start",
       });
     if (error) console.warn("[menusSync] save week (live) failed", error.message);

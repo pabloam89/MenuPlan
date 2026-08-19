@@ -42,6 +42,8 @@ export function RecipesScreen({
   onEditRecipe,
   onBrowseGarnishCombo,
   onOpenRecipePrefs,
+  readOnly = false,
+  readOnlyLabel = null,
   // Optional demo hooks (first-run value-prop carousel): preset the visible tab
   // and optionally auto-cycle Catálogo → Favoritas → Mis recetas. Default to the
   // normal interactive behaviour; never passed in the real app.
@@ -72,8 +74,8 @@ export function RecipesScreen({
   );
 
   const ownRecipes = useMemo(
-    () => filterOwnCreatedRecipes(userRecipes, user),
-    [userRecipes, user],
+    () => (readOnly ? userRecipes : filterOwnCreatedRecipes(userRecipes, user)),
+    [userRecipes, user, readOnly],
   );
 
   const catalogExtraRecipes = useMemo(
@@ -119,7 +121,7 @@ export function RecipesScreen({
             <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {onOpenRecipePrefs && (
+            {onOpenRecipePrefs && !readOnly && (
               <button
                 type="button"
                 onClick={onOpenRecipePrefs}
@@ -134,6 +136,7 @@ export function RecipesScreen({
                 <SlidersHorizontal size={16} strokeWidth={2.3} />
               </button>
             )}
+            {!readOnly && (
             <button
               type="button"
               data-coach="recipes-create"
@@ -146,9 +149,18 @@ export function RecipesScreen({
             >
               <Plus size={14} strokeWidth={2.8} /> Crear
             </button>
+            )}
           </div>
         </div>
       </div>
+
+      {readOnly && readOnlyLabel && (
+        <div style={{ background: "#fff7e6", borderBottom: "1px solid #f5e6b8", padding: "10px 18px" }}>
+          <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: "#7a5d00", lineHeight: 1.4, textAlign: "center" }}>
+            Solo lectura — {readOnlyLabel}
+          </p>
+        </div>
+      )}
 
       {/* Tab switcher (white) */}
       <div
@@ -188,14 +200,14 @@ export function RecipesScreen({
             reference
             recipeVotes={recipeVotes}
             scopeGroups={scopeGroups}
-            onSetFavoriteScope={onSetFavoriteScope}
+            onSetFavoriteScope={readOnly ? undefined : onSetFavoriteScope}
             onOpenRecipe={onOpenRecipe}
             extraRecipes={catalogExtraRecipes}
             onBrowseGarnishCombo={onBrowseGarnishCombo}
             initialCategory={catalogInitialCategory}
             discardedIds={new Set(discardedIds)}
-            onDiscardRecipe={onDiscardRecipe}
-            onRecoverRecipe={onRecoverRecipe}
+            onDiscardRecipe={readOnly ? undefined : onDiscardRecipe}
+            onRecoverRecipe={readOnly ? undefined : onRecoverRecipe}
           />
         )}
 
@@ -206,13 +218,13 @@ export function RecipesScreen({
             reference
             recipeVotes={recipeVotes}
             scopeGroups={scopeGroups}
-            onSetFavoriteScope={onSetFavoriteScope}
+            onSetFavoriteScope={readOnly ? undefined : onSetFavoriteScope}
             onOpenRecipe={onOpenRecipe}
             extraRecipes={catalogExtraRecipes}
             favoriteIds={favoriteIds}
             emptyImg="/avatares/cards/empty_favoritas.jpg"
-            emptyLabel="Aún no tienes favoritas"
-            emptySubtitle="Pulsa el corazón en cualquier receta del catálogo para guardarla aquí."
+            emptyLabel={readOnly ? "Sin favoritas en este hogar" : "Aún no tienes favoritas"}
+            emptySubtitle={readOnly ? "El propietario aún no ha guardado favoritas aquí." : "Pulsa el corazón en cualquier receta del catálogo para guardarla aquí."}
           />
         )}
 
@@ -221,12 +233,13 @@ export function RecipesScreen({
             <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
               <EmptyIllustration
                 img="/avatares/cards/empty_recetas_propias.jpg"
-                title="Aún no tienes recetas propias"
-                subtitle="Crea tu primera receta y la IA rellenará macros, pasos y foto."
+                title={readOnly ? "Sin recetas propias en este hogar" : "Aún no tienes recetas propias"}
+                subtitle={readOnly ? "Las recetas creadas por el propietario aparecerán aquí." : "Crea tu primera receta y la IA rellenará macros, pasos y foto."}
                 maxWidth={240}
                 imgAspect="1 / 1"
                 imgPosition="center"
               >
+                {!readOnly && (
                 <button
                   type="button"
                   onClick={onOpenRecipePlanner}
@@ -239,6 +252,7 @@ export function RecipesScreen({
                 >
                   <Plus size={15} strokeWidth={2.8} /> Crear receta
                 </button>
+                )}
               </EmptyIllustration>
             </div>
           ) : (
@@ -248,12 +262,12 @@ export function RecipesScreen({
               reference
               recipeVotes={recipeVotes}
               scopeGroups={scopeGroups}
-              onSetFavoriteScope={onSetFavoriteScope}
+              onSetFavoriteScope={readOnly ? undefined : onSetFavoriteScope}
               onOpenRecipe={onOpenRecipe}
               sourceRecipes={ownRecipes}
-              onChangeVisibility={onChangeRecipeVisibility}
-              onDeleteRecipe={onDeleteRecipe}
-              onEditRecipe={onEditRecipe}
+              onChangeVisibility={readOnly ? undefined : onChangeRecipeVisibility}
+              onDeleteRecipe={readOnly ? undefined : onDeleteRecipe}
+              onEditRecipe={readOnly ? undefined : onEditRecipe}
               ownRecipesView
               emptyLabel="Ninguna de tus recetas coincide con esos filtros."
             />
