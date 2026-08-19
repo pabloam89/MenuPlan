@@ -30,6 +30,7 @@ import {
 import { HouseholdsCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 
 const GREEN = "#2d5a3d";
+const VIEWER_BLUE = "#4a6fd0";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
 const HEADER_BAND = "#e9f4ed";
@@ -40,6 +41,49 @@ const IMG_JOIN = "/avatares/cards/ninos_findesemana_juntos.jpg";
 const JOIN_ASPECT = "3/4";
 /** Visible height ≈92% of 4:5 illustration (~8% bottom crop). */
 const CARD_ASPECT = "32/37";
+
+const MEMBER_GLASS = {
+  background: "rgba(247,251,248,.82)",
+  backdropFilter: "blur(26px) saturate(180%)",
+  WebkitBackdropFilter: "blur(26px) saturate(180%)",
+  borderRadius: 18,
+  border: "1px solid rgba(255,255,255,.72)",
+  boxShadow: "0 8px 28px rgba(20,47,29,.12), inset 0 1px 0 rgba(255,255,255,.6)",
+};
+
+function RoleIllustration({ roleLabel }) {
+  const isProp = roleLabel === "Propietario";
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 3,
+        width: 36,
+        flexShrink: 0,
+      }}
+    >
+      <img
+        src={isProp ? IMG_OWNER : IMG_VIEWER}
+        alt=""
+        style={{
+          width: 28,
+          height: 34,
+          borderRadius: 8,
+          objectFit: "cover",
+          objectPosition: "center top",
+          display: "block",
+          boxShadow: "0 2px 8px rgba(20,47,29,.12)",
+          border: "1px solid #e3ebe6",
+        }}
+      />
+      <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
+        {isProp ? "Prop" : "Vis"}
+      </span>
+    </div>
+  );
+}
 
 function HouseholdAccessList({
   householdId,
@@ -90,77 +134,81 @@ function HouseholdAccessList({
       <div
         {...(coachHighlight ? { "data-coach": "households-members" } : {})}
         style={{
-          width: "100%",
-          maxWidth: 280,
-          marginTop: 6,
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          alignItems: "stretch",
+          width: "min(310px, 88vw)",
+          maxWidth: "100%",
+          marginTop: 8,
+          ...MEMBER_GLASS,
+          padding: loading || accounts.length === 0 ? "12px 14px" : "10px 12px",
+          boxSizing: "border-box",
         }}
       >
         {loading ? (
           <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: MUTED, textAlign: "center" }}>
             Cargando…
           </p>
+        ) : accounts.length === 0 ? (
+          <p style={{ margin: 0, fontSize: 11.5, fontWeight: 600, color: MUTED, textAlign: "center", lineHeight: 1.4 }}>
+            Sin cuentas con acceso
+          </p>
         ) : (
-          accounts.map((acc) => (
-            <div
-              key={acc.id}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                padding: "2px 0",
-              }}
-            >
-              <Avatar name={acc.name} photo={acc.photo} size={36} color={GREEN} />
-              <span
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {accounts.map((acc) => (
+              <div
+                key={acc.id}
                 style={{
-                  flex: 1,
-                  minWidth: 0,
-                  fontSize: 13.5,
-                  fontWeight: 800,
-                  color: INK,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                  textAlign: "left",
+                  display: "grid",
+                  gridTemplateColumns: "auto 1fr auto auto",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "2px 0",
                 }}
               >
-                {acc.name}
-                {acc.isYou ? (
-                  <span style={{ fontWeight: 600, color: MUTED }}> · tú</span>
-                ) : null}
-              </span>
-              {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember && (
-                <button
-                  type="button"
-                  aria-label={`Quitar a ${acc.name}`}
-                  disabled={removingId === acc.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setRemoveConfirm({ id: acc.id, name: acc.name });
-                  }}
+                <Avatar name={acc.name} photo={acc.photo} size={42} color={GREEN} />
+                <span
                   style={{
-                    width: 30,
-                    height: 30,
-                    borderRadius: 9,
-                    border: "1.5px solid #f0d4d4",
-                    background: "#fff5f5",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    cursor: removingId === acc.id ? "wait" : "pointer",
-                    padding: 0,
-                    flexShrink: 0,
+                    fontSize: 14,
+                    fontWeight: 800,
+                    color: INK,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    textAlign: "left",
                   }}
                 >
-                  <UserMinus size={14} color="#b42318" strokeWidth={2.3} />
-                </button>
-              )}
-            </div>
-          ))
+                  {acc.name}
+                </span>
+                <RoleIllustration roleLabel={acc.roleLabel} />
+                {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember ? (
+                  <button
+                    type="button"
+                    aria-label={`Quitar a ${acc.name}`}
+                    disabled={removingId === acc.id}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setRemoveConfirm({ id: acc.id, name: acc.name });
+                    }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 10,
+                      border: "1.5px solid #f0d4d4",
+                      background: "#fff5f5",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      cursor: removingId === acc.id ? "wait" : "pointer",
+                      padding: 0,
+                      flexShrink: 0,
+                    }}
+                  >
+                    <UserMinus size={15} color="#b42318" strokeWidth={2.3} />
+                  </button>
+                ) : (
+                  <span style={{ width: 32, flexShrink: 0 }} aria-hidden />
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </div>
 
@@ -963,7 +1011,7 @@ function SlotCard({
         <HouseholdAccessList
           householdId={h.id}
           userId={user?.id}
-          isOwner={Boolean(h.role === "owner" && h.isOwn && isGlobalActive)}
+          isOwner={Boolean(h.role === "owner" && h.isOwn)}
           onRemoveMember={onRemoveMember}
           coachHighlight={coachOwner}
         />
