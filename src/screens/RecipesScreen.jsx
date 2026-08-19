@@ -285,7 +285,7 @@ export function RecipesScreen({
                         type="button"
                         onClick={() => onRecoverRecipe?.(recipe.id)}
                         style={{
-                          display: "inline-flex", alignItems: "center", gap: 6, flexShrink: 0,
+                          display: onRecoverRecipe ? "inline-flex" : "none", alignItems: "center", gap: 6, flexShrink: 0,
                           padding: "8px 12px", borderRadius: 11, border: "1.5px solid #cfe6d6",
                           background: "#f2f9f4", color: GREEN, fontSize: 12.5, fontWeight: 800,
                           cursor: "pointer", fontFamily: "inherit",

@@ -214,13 +214,15 @@ function ActiveMenuCard({ menu, onOpen, onRegenerate, onEdit, onDelete }) {
         <ChevronRight size={18} color="#9ab0a1" />
       </button>
 
+      {(onRegenerate || onEdit || onDelete) && (
       <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 14, borderTop: "1px solid #eef2ef" }}>
-        <CardActionButton icon={RotateCw} label="Regenerar" onClick={onRegenerate} />
-        <CardActionButton icon={Pencil} label="Editar" onClick={onEdit} />
-        <CardActionButton icon={Trash2} label="Borrar" danger onClick={() => setConfirmDelete(true)} />
+        {onRegenerate && <CardActionButton icon={RotateCw} label="Regenerar" onClick={onRegenerate} />}
+        {onEdit && <CardActionButton icon={Pencil} label="Editar" onClick={onEdit} />}
+        {onDelete && <CardActionButton icon={Trash2} label="Borrar" danger onClick={() => setConfirmDelete(true)} />}
       </div>
+      )}
 
-      {confirmDelete && (
+      {confirmDelete && onDelete && (
         <DeleteMenuConfirmSheet
           onCancel={() => setConfirmDelete(false)}
           onConfirm={() => { setConfirmDelete(false); onDelete(); }}
@@ -275,16 +277,18 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, on
       </button>
       <button
         type="button"
-        onClick={onToggleFavorite}
+        onClick={() => onToggleFavorite?.()}
         aria-label={menu.isFavorite ? "Quitar de favoritos" : "Marcar como favorito"}
         aria-pressed={menu.isFavorite}
+        disabled={!onToggleFavorite}
         style={{
-          border: "none", background: "transparent", cursor: "pointer", padding: 6, flexShrink: 0,
+          border: "none", background: "transparent", cursor: onToggleFavorite ? "pointer" : "default", padding: 6, flexShrink: 0,
+          opacity: onToggleFavorite ? 1 : 0.35,
         }}
       >
         <Heart size={18} color={menu.isFavorite ? "#e0405a" : "#d5ddd8"} fill={menu.isFavorite ? "#e0405a" : "none"} />
       </button>
-      {!isActive && (
+      {!isActive && onReuse && (
         <button
           type="button"
           onClick={onReuse}
@@ -297,7 +301,7 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, on
           <RotateCw size={13} /> Repetir
         </button>
       )}
-      {!isActive && (
+      {!isActive && onDelete && (
         <button
           type="button"
           onClick={() => setConfirmDelete(true)}
@@ -313,7 +317,7 @@ function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, on
         </button>
       )}
 
-      {confirmDelete && (
+      {confirmDelete && onDelete && (
         <DeleteMenuConfirmSheet
           subtitle="Se borrará permanentemente este menú del histórico. Esta acción no se puede deshacer."
           onCancel={() => setConfirmDelete(false)}
@@ -506,6 +510,7 @@ function MenuTabSwitch({ tab, onChange, favCount, histCount }) {
 export function MenusScreen({
   data,
   hasAccount,
+  readOnly = false,
   onNav,
   onBack,
   onOpenCurrent,
@@ -573,8 +578,8 @@ export function MenusScreen({
           />
         ) : (
           <EmptyState
-            text="Todavía no tienes un menú generado."
-            onAction={onGenerateMenu}
+            text={readOnly ? "Sin menú activo en este hogar" : "Todavía no tienes un menú generado."}
+            onAction={readOnly ? undefined : onGenerateMenu}
             actionLabel="Generar menú"
           />
         )}
@@ -622,9 +627,9 @@ export function MenusScreen({
                       key={m.id}
                       menu={m}
                       isActive={isActive}
-                      onToggleFavorite={() => onToggleFavorite(m.id)}
-                      onReuse={() => setReuseTargetId(m.id)}
-                      onDelete={() => onDeleteHistory(m.id)}
+                      onToggleFavorite={onToggleFavorite ? () => onToggleFavorite(m.id) : undefined}
+                      onReuse={onReuseMenu ? () => setReuseTargetId(m.id) : undefined}
+                      onDelete={onDeleteHistory ? () => onDeleteHistory(m.id) : undefined}
                       isOpening={openingId === m.id}
                       onOpen={async () => {
                         if (isActive) {

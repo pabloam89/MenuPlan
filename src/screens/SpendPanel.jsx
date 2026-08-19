@@ -596,7 +596,7 @@ const PERIOD_OPTIONS = [
   { id: "custom", label: "Fechas" },
 ];
 
-export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast }) {
+export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast, readOnly = false }) {
   const { user } = useAuth();
   const allObs = data.priceObs ?? [];
   const allReceipts = data.receipts ?? [];
@@ -675,6 +675,7 @@ export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast }) {
   // every week the ticket touched — see App.undoReceiptTachado) and removes
   // the pantry entries it created (leaves anything the user added separately).
   const deleteReceipt = (receiptId) => {
+    if (readOnly || !setData) return;
     const receipt = allReceipts.find((r) => r.id === receiptId);
     const tachedKeys = receipt?.tachedKeys ?? [];
     if (tachedKeys.length) onUndoReceiptTachado?.(tachedKeys, receipt?.tachedWeekStart ?? null);
@@ -720,7 +721,7 @@ export function SpendPanel({ data, setData, onUndoReceiptTachado, onToast }) {
                   {ticketFilterCount > 0 && <span style={ticketFilterBadge}>{ticketFilterCount}</span>}
                 </button>
               </div>
-              <TicketHistoryTable receipts={filteredReceipts} obs={allObs} onDelete={deleteReceipt} />
+              <TicketHistoryTable receipts={filteredReceipts} obs={allObs} onDelete={readOnly ? undefined : deleteReceipt} />
               {showTicketFilters && (
                 <TicketFiltersSheet
                   onClose={() => setShowTicketFilters(false)}
@@ -984,7 +985,7 @@ function TicketHistoryTable({ receipts, obs, onDelete }) {
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onDelete(r.id);
+                    onDelete?.(r.id);
                   }}
                   aria-label="Eliminar ticket"
                   style={{
@@ -994,7 +995,7 @@ function TicketHistoryTable({ receipts, obs, onDelete }) {
                     border: "none",
                     background: "transparent",
                     color: "#c0392b",
-                    display: "inline-flex",
+                    display: onDelete ? "inline-flex" : "none",
                     alignItems: "center",
                     justifyContent: "center",
                     cursor: "pointer",

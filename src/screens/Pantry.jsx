@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
-import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
+import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, HouseholdReadOnlyBanner, ToggleSwitch } from "../components/ui.jsx";
 import { PantryPrefsWizard } from "../components/ModeSheets.jsx";
 import { PantryCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import {
@@ -1158,6 +1158,9 @@ function PantryFiltersSheet({
  */
 export function PantryScreen({
   user,
+  readOnly = false,
+  readOnlyLabel = null,
+  pantryHouseholdId = null,
   priceObs = [],
   onNav,
   navActive = "pantry",
@@ -1220,8 +1223,8 @@ export function PantryScreen({
   // the picked mode. Local state, so leaving without adding anything resets it
   // back to the illustration on the next visit.
   const [addTab, setAddTab] = useState("text");
-  // Doble segmented control: Añadir (default) · Inventario.
-  const [mainTab, setMainTab] = useState("add");
+  // Doble segmented control: Añadir (default) · Inventario. Visitantes solo ven inventario.
+  const [mainTab, setMainTab] = useState(readOnly ? "inventory" : "add");
   // Filtro de ubicación de la pestaña Inventario (card nevera/despensa/congelador).
   const [locationFilters, setLocationFilters] = useState(() => new Set());
   const rowRefs = useRef({});
@@ -1342,7 +1345,7 @@ export function PantryScreen({
     }
     let active = true;
     setLoading(true);
-    loadPantry(user.id).then((rows) => {
+    loadPantry(user.id, pantryHouseholdId || null).then((rows) => {
       if (active) {
         setItems(rows);
         setLoading(false);
@@ -1351,7 +1354,7 @@ export function PantryScreen({
     return () => {
       active = false;
     };
-  }, [user, pantryEpoch]);
+  }, [user, pantryEpoch, pantryHouseholdId]);
 
   const handleRemove = async (id) => {
     setItems((prev) => prev.filter((i) => i.id !== id));
@@ -1464,13 +1467,13 @@ export function PantryScreen({
 
   // Con el doble segmented control, Añadir e Inventario son pestañas. En
   // embedded (onboarding «¿Qué repetimos?») no hay pestañas: se apila todo.
-  const showAdd = embedded || mainTab === "add";
-  const showInventory = embedded || mainTab === "inventory";
+  const showAdd = !readOnly && (embedded || mainTab === "add");
+  const showInventory = readOnly || embedded || mainTab === "inventory";
   const inventoryHasItems = !loading && items.length > 0;
 
   const content = (
     <>
-        {!embedded && <PantryMainTabs value={mainTab} onChange={setMainTab} />}
+        {!embedded && !readOnly && <PantryMainTabs value={mainTab} onChange={setMainTab} />}
 
         {showInventory && !embedded && inventoryHasItems && (
           <PantryLocationCards
@@ -1491,11 +1494,16 @@ export function PantryScreen({
           <div style={{ padding: "20px 0 8px" }}>
             <EmptyIllustration
               img="/avatares/cards/empty_despensa.jpg"
-              title="Tu nevera y tu despensa están vacías"
-              subtitle="Añade lo que tienes en casa: ingredientes de la nevera, la despensa o el congelador, y platos que ya has cocinado."
+              title={readOnly ? "Despensa vacía en este hogar" : "Tu nevera y tu despensa están vacías"}
+              subtitle={
+                readOnly
+                  ? "Cuando el propietario añada ingredientes, los verás aquí."
+                  : "Añade lo que tienes en casa: ingredientes de la nevera, la despensa o el congelador, y platos que ya has cocinado."
+              }
               maxWidth={300}
               imgAspect="16 / 12"
             >
+              {!readOnly && (
               <button
                 type="button"
                 onClick={() => setMainTab("add")}
@@ -1518,6 +1526,7 @@ export function PantryScreen({
               >
                 <Plus size={15} strokeWidth={2.8} /> Añadir
               </button>
+              )}
             </EmptyIllustration>
           </div>
         )}
@@ -1823,9 +1832,10 @@ export function PantryScreen({
                             </span>
                             <button
                               type="button"
-                              onClick={() => startEdit(item)}
+                              onClick={() => !readOnly && startEdit(item)}
+                              disabled={readOnly}
                               aria-label={`Editar ${viewLabel.toLowerCase()} de ${item.ingredientName}`}
-                              title="Tocar para editar la cantidad"
+                              title={readOnly ? undefined : "Tocar para editar la cantidad"}
                               style={{
                                 // Plain text, same treatment as the Precio column
                                 // (no pill) — just the number, tappable to edit.
@@ -1837,7 +1847,7 @@ export function PantryScreen({
                                 fontSize: 13,
                                 fontWeight: 800,
                                 fontFamily: "inherit",
-                                cursor: "pointer",
+                                cursor: readOnly ? "default" : "pointer",
                                 lineHeight: 1.2,
                                 textAlign: "center",
                               }}
@@ -1858,6 +1868,7 @@ export function PantryScreen({
                             </span>
                           </>
                         )}
+                        {!readOnly && (
                         <button
                           type="button"
                           onClick={() => handleRemove(item.id)}
@@ -1878,6 +1889,7 @@ export function PantryScreen({
                         >
                           <Trash2 size={13} />
                         </button>
+                        )}
                       </div>
                     );
                   })
@@ -1918,6 +1930,7 @@ export function PantryScreen({
       <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
         {header}
       </div>
+      {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} />}
       <div style={{ padding: `16px 16px calc(${bottomNavSpacer()} + 28px)` }}>
         {content}
       </div>

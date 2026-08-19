@@ -45,6 +45,7 @@ import {
 import {
   BottomNav,
   EmptyIllustration,
+  HouseholdReadOnlyBanner,
   ProgressDots,
   SegmentedControl,
   WizardOptionCard,
@@ -260,6 +261,9 @@ const STRIP_DIVIDER = "1.5px solid rgba(45,110,70,.24)";
 export function ShoppingScreen({
   shopping,
   setShopping,
+  readOnly = false,
+  readOnlyLabel = null,
+  pantryHouseholdId = null,
   // Full app blob + writer, so spend capture (ticket / manual) lives right here
   // in Compra instead of forcing a trip to Análisis → Gasto.
   data = null,
@@ -307,13 +311,13 @@ export function ShoppingScreen({
       setPantryStock(loadLocalPantry());
       return undefined;
     }
-    loadPantry(user.id).then((rows) => {
+    loadPantry(user.id, pantryHouseholdId || null).then((rows) => {
       if (active) setPantryStock(rows);
     });
     return () => {
       active = false;
     };
-  }, [user, pantryEpoch]);
+  }, [user, pantryEpoch, pantryHouseholdId]);
 
   // "Subir ticket" from En casa: open the capture chooser as soon as we land.
   useEffect(() => {
@@ -1082,11 +1086,12 @@ export function ShoppingScreen({
                 item={item}
                 isLast={i === section.items.length - 1}
                 expanded={expandedId === item.id}
-                isEditingQty={editingQtyId === item.id}
+                isEditingQty={!readOnly && editingQtyId === item.id}
+                readOnly={readOnly}
                 onToggleRecipes={() =>
                   setExpandedId(expandedId === item.id ? null : item.id)
                 }
-                onEditQty={() => setEditingQtyId(item.id)}
+                onEditQty={() => !readOnly && setEditingQtyId(item.id)}
                 onSaveQty={(val) => saveItemQty(item.id, val)}
                 onCancelQty={() => setEditingQtyId(null)}
                 onPurchased={() => (setData ? setPurchaseChoice(item) : markItemBought(item.id))}
@@ -1167,6 +1172,7 @@ export function ShoppingScreen({
             >
               <Share2 size={17} strokeWidth={2.2} />
             </button>
+            {!readOnly && (
             <button
               type="button"
               data-coach="shop-receipt"
@@ -1182,9 +1188,11 @@ export function ShoppingScreen({
                 <Wallet size={17} strokeWidth={2.4} color="#fff" />
               )}
             </button>
+            )}
           </div>
         </div>
       </div>
+      {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} />}
 
       <div style={{ padding: "16px 16px 0", position: "relative" }}>
         {!isEmpty && (
@@ -2004,6 +2012,7 @@ function ShoppingRow({
   isLast = false,
   expanded,
   isEditingQty,
+  readOnly = false,
   onToggleRecipes,
   onEditQty,
   onSaveQty,
@@ -2031,7 +2040,7 @@ function ShoppingRow({
   // in the instant between tapping Comprado and it filtering out of the list.
   const dimmed = item.have || item.atHome;
   // Merged Despensa lines spanning several weeks have no single editable qty.
-  const canEditQty = !dimmed && !item.__qtyLocked;
+  const canEditQty = !readOnly && !dimmed && !item.__qtyLocked;
 
   // Swipe-style actions: the row shows name + quantities by default and a single
   // trailing button. Tapping it slides the quantities out and reveals the
@@ -2138,7 +2147,7 @@ function ShoppingRow({
             )}
           </div>
 
-          {!isEditingQty && (
+          {!isEditingQty && !readOnly && (
             <button
               type="button"
               onClick={() => setActionsOpen((o) => !o)}
@@ -2179,7 +2188,7 @@ function ShoppingRow({
 
       {/* Coloured actions overlay — slides in from the right, big enough for
           single-line labels even if it covers part of the ingredient name. */}
-      {!isEditingQty && (
+      {!isEditingQty && !readOnly && (
         <div
           aria-hidden={!actionsOpen}
           style={{
