@@ -8,6 +8,7 @@ import { extractPantryPhoto } from "../lib/receiptParser.js";
 import { toCanonicalStockQty } from "../lib/kitchenUnits.js";
 import { guessShoppingAisle, isPerishableAisle, normalizeName } from "../lib/ingredientCategories.js";
 import { IngredientPicker } from "../screens/RecipePlanner.jsx";
+import { GarnishPickerSheet } from "../screens/CatalogBrowserSheet.jsx";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -418,9 +419,9 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
             onClick={() => setGarnishOpen(true)}
             style={{
               width: "100%", display: "flex", alignItems: "center", gap: 8,
-              padding: "9px 12px", marginBottom: 12, borderRadius: 12,
-              border: `1.5px solid ${garnish ? "#3f9656" : "#dce8e0"}`,
-              background: garnish ? "#eef8f1" : "#fff", cursor: "pointer",
+              padding: "10px 12px", marginBottom: 12, borderRadius: 12,
+              border: `1.5px solid ${garnish ? GREEN : "#dce8e0"}`,
+              background: "#fff", cursor: "pointer",
               fontFamily: "inherit", textAlign: "left",
             }}
           >
@@ -507,55 +508,15 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
           Guardar plato cocinado
         </button>
 
-        {garnishOpen && createPortal(
-          <div
-            onClick={() => setGarnishOpen(false)}
-            style={{
-              position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 220,
-              display: "flex", alignItems: "flex-end", justifyContent: "center",
-            }}
-          >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420,
-                maxHeight: "70dvh", display: "flex", flexDirection: "column", overflow: "hidden",
-              }}
-            >
-              <div style={{ padding: "14px 16px 10px", borderBottom: "1px solid #e8f0ea", flexShrink: 0 }}>
-                <div style={{ fontSize: 16, fontWeight: 900, color: INK }}>Elige guarnición</div>
-                <div style={{ fontSize: 12, color: "#7a9485", marginTop: 2 }}>Opcional — para tuppers ya montados</div>
-              </div>
-              <div style={{ flex: 1, overflowY: "auto", padding: "10px 12px 18px", display: "flex", flexDirection: "column", gap: 6 }}>
-                <button
-                  type="button"
-                  onClick={() => { setGarnishId(null); setGarnishOpen(false); }}
-                  style={{
-                    padding: "11px 12px", borderRadius: 12, border: `1.5px solid ${!garnishId ? GREEN : "#dce8e0"}`,
-                    background: !garnishId ? "#eef8f1" : "#fff", cursor: "pointer", fontFamily: "inherit",
-                    fontSize: 13, fontWeight: 800, color: INK, textAlign: "left",
-                  }}
-                >
-                  Sin guarnición
-                </button>
-                {guarnicionesData.map((g) => (
-                  <button
-                    key={g.id}
-                    type="button"
-                    onClick={() => { setGarnishId(g.id); setGarnishOpen(false); }}
-                    style={{
-                      padding: "11px 12px", borderRadius: 12, border: `1.5px solid ${garnishId === g.id ? GREEN : "#dce8e0"}`,
-                      background: garnishId === g.id ? "#eef8f1" : "#fff", cursor: "pointer", fontFamily: "inherit",
-                      fontSize: 13, fontWeight: 800, color: INK, textAlign: "left",
-                    }}
-                  >
-                    {g.shortName ?? g.name}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>,
-          document.body,
+        {garnishOpen && (
+          <GarnishPickerSheet
+            recipe={selected}
+            currentGarnishId={garnishId}
+            title="Elige guarnición"
+            subtitle="Opcional — para tuppers ya montados"
+            onSelect={(id) => { setGarnishId(id); setGarnishOpen(false); }}
+            onClose={() => setGarnishOpen(false)}
+          />
         )}
       </div>
     );
