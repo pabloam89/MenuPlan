@@ -1904,12 +1904,13 @@ function RecipeCard({
 // Small centered popup shown when tapping the heart on a recipe card in a
 // multi-group household: picks whether the favorite applies to everyone or
 // to one specific group, in a single tap.
-function GarnishPickerSheet({
+export function GarnishPickerSheet({
   recipe, currentGarnishId, onSelect, onClose, title, subtitle,
   recipeVotes = {}, scopeGroups = [], onSetFavoriteScope, onOpenScopePicker,
   discardedIds = null, onDiscardRecipe, onRecoverRecipe,
 }) {
   const hasScopeChoice = scopeGroups.length > 1 && onOpenScopePicker;
+  const mainId = recipe?.id ?? recipe?.baseRecipeId ?? null;
   return (
     <div
       onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -1946,9 +1947,16 @@ function GarnishPickerSheet({
           </button>
         </div>
 
-        {/* list — same card layout as the catalog */}
-        <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "0 12px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
-          <NoGarnishPickCard
+        {/* Grid 3× — mismas miniaturas que el catálogo de platos */}
+        <div
+          style={{
+            flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
+            padding: "0 12px calc(18px + env(safe-area-inset-bottom, 0px))",
+            display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 7,
+            alignContent: "start",
+          }}
+        >
+          <NoGarnishGridTile
             selected={currentGarnishId == null}
             onSelect={() => onSelect(null)}
           />
@@ -1956,9 +1964,11 @@ function GarnishPickerSheet({
             const enriched = recipeCatalogById[g.id] ?? g;
             const cardRecipe = { ...enriched, category: enriched.category ?? "guarniciones" };
             return (
-              <GarnishPickCard
+              <GarnishGridTile
                 key={g.id}
-                recipe={cardRecipe}
+                garnish={g}
+                mainRecipeId={mainId}
+                label={g.shortName ?? g.name}
                 selected={g.id === currentGarnishId}
                 onSelect={() => onSelect(g.id === currentGarnishId ? null : g.id)}
                 favorite={isRecipeFavorite(recipeVotes, g.id)}
@@ -1968,13 +1978,118 @@ function GarnishPickerSheet({
                 discarded={discardedIds ? discardedIds.has(g.id) : false}
                 onDiscard={onDiscardRecipe ? () => onDiscardRecipe(g.id) : undefined}
                 onRecover={onRecoverRecipe ? () => onRecoverRecipe(g.id) : undefined}
-                animDelay={i < 8 ? i * 18 : 0}
+                animDelay={i < 12 ? i * 18 : 0}
               />
             );
           })}
         </div>
       </div>
     </div>
+  );
+}
+
+function NoGarnishGridTile({ selected, onSelect }) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="catalog-card-enter"
+      aria-pressed={selected}
+      style={{
+        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
+        borderRadius: 12, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
+        background: selected ? "#eef8f1" : "#f4f8f5",
+        boxShadow: selected ? `inset 0 0 0 2.5px ${GREEN}` : "inset 0 0 0 1.5px #dce8e0",
+      }}
+    >
+      <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
+        <Ban size={24} color="#9ab0a1" strokeWidth={2.2} />
+      </span>
+      <span
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, padding: "16px 4px 5px",
+          background: "linear-gradient(to top, rgba(20,47,29,.82) 0%, transparent 100%)",
+          fontSize: 9.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.15,
+          textShadow: "0 1px 2px rgba(0,0,0,.4)",
+        }}
+      >
+        Sin guarnición
+      </span>
+    </button>
+  );
+}
+
+function GarnishGridTile({
+  garnish, mainRecipeId, label, selected, onSelect,
+  favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker,
+  discarded, onDiscard, onRecover, animDelay = 0,
+}) {
+  const [failed, setFailed] = useState(false);
+  const rawPhoto = mainRecipeId
+    ? (dishImageUrl(mainRecipeId, garnish.id) ?? dishImageUrl(garnish.id))
+    : dishImageUrl(garnish.id);
+  const photo = rawPhoto && !failed ? deckImg(rawPhoto, 200) : null;
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className="catalog-card-enter"
+      aria-pressed={selected}
+      style={{
+        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
+        borderRadius: 12, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
+        background: "#eef4ef", animationDelay: `${animDelay}ms`,
+        boxShadow: selected ? `inset 0 0 0 2.5px ${GREEN}` : "none",
+        opacity: discarded ? 0.45 : 1,
+      }}
+    >
+      {photo ? (
+        <img
+          src={photo}
+          alt=""
+          loading="lazy"
+          onError={() => setFailed(true)}
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
+          <Salad size={22} color="#3f9656" />
+        </span>
+      )}
+      {onSetFavoriteScope && (
+        <span
+          role="button"
+          tabIndex={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasScopeChoice) onOpenScopePicker?.();
+            else onSetFavoriteScope(garnish.id, favorite ? null : "all");
+          }}
+          onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
+          aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+          style={{
+            position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: "50%",
+            border: "1.5px solid #fff", background: favorite ? "#e0405a" : "rgba(255,255,255,.92)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
+          }}
+        >
+          <Heart size={10} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+        </span>
+      )}
+      <span
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, padding: "16px 4px 5px",
+          background: "linear-gradient(to top, rgba(20,47,29,.86) 0%, rgba(20,47,29,.42) 55%, transparent 100%)",
+          fontSize: 9.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.15,
+          textShadow: "0 1px 2px rgba(0,0,0,.45)",
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+        }}
+      >
+        {label}
+      </span>
+    </button>
   );
 }
 
