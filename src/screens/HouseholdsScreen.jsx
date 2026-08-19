@@ -101,11 +101,11 @@ function WhatsAppIcon({ size = 22 }) {
   );
 }
 
-function sheetOverlayStyle() {
+function sheetOverlayStyle(zIndex = 1000) {
   return {
     position: "fixed",
     inset: 0,
-    zIndex: 1000,
+    zIndex,
     background: "rgba(15,30,20,.38)",
     backdropFilter: "blur(4px)",
     WebkitBackdropFilter: "blur(4px)",
@@ -114,6 +114,140 @@ function sheetOverlayStyle() {
     justifyContent: "center",
     padding: 20,
   };
+}
+
+function ConfirmSheet({
+  open,
+  title,
+  message,
+  confirmLabel = "Confirmar",
+  cancelLabel = "Cancelar",
+  danger = false,
+  busy = false,
+  onConfirm,
+  onClose,
+}) {
+  if (!open) return null;
+
+  const accent = danger ? "#b42318" : GREEN;
+  const bandBg = danger ? "#fff5f5" : HEADER_BAND;
+
+  return createPortal(
+    <div onClick={onClose} className="mp-overlay-in" style={sheetOverlayStyle(1001)}>
+      <div
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="hog-confirm-title"
+        aria-describedby="hog-confirm-msg"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 320,
+          maxWidth: "calc(100vw - 40px)",
+          background: "#fff",
+          borderRadius: 22,
+          border: `1px solid ${danger ? "#f0d4d4" : "#dce8e1"}`,
+          boxShadow: "0 24px 48px rgba(20,47,29,.2)",
+          overflow: "hidden",
+          animation: "hogSheetIn .24s cubic-bezier(.4,0,.2,1) both",
+        }}
+      >
+        <div style={{ background: bandBg, padding: "18px 18px 14px" }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 11,
+                background: danger ? "#fde8e8" : "#eef6f0",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              {danger ? (
+                <Trash2 size={18} color={accent} strokeWidth={2.3} />
+              ) : (
+                <LogOut size={18} color={accent} strokeWidth={2.3} />
+              )}
+            </span>
+            <h2
+              id="hog-confirm-title"
+              style={{
+                margin: 0,
+                flex: 1,
+                fontSize: 17,
+                fontWeight: 900,
+                color: INK,
+                letterSpacing: "-.25px",
+                lineHeight: 1.25,
+                textAlign: "left",
+              }}
+            >
+              {title}
+            </h2>
+          </div>
+        </div>
+
+        <p
+          id="hog-confirm-msg"
+          style={{
+            margin: 0,
+            padding: "14px 18px 18px",
+            fontSize: 13.5,
+            fontWeight: 600,
+            color: MUTED,
+            lineHeight: 1.45,
+            textAlign: "left",
+          }}
+        >
+          {message}
+        </p>
+
+        <div style={{ display: "flex", gap: 8, padding: "0 18px 18px" }}>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onClose}
+            style={{
+              flex: 1,
+              padding: "11px 12px",
+              borderRadius: 12,
+              border: "1.5px solid #d5e6da",
+              background: "#fff",
+              color: MUTED,
+              fontSize: 13,
+              fontWeight: 700,
+              cursor: busy ? "wait" : "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            type="button"
+            disabled={busy}
+            onClick={onConfirm}
+            style={{
+              flex: 1.2,
+              padding: "11px 12px",
+              borderRadius: 12,
+              border: "none",
+              background: busy ? "#9ab0a1" : accent,
+              color: "#fff",
+              fontSize: 13,
+              fontWeight: 800,
+              cursor: busy ? "wait" : "pointer",
+              fontFamily: "inherit",
+            }}
+          >
+            {busy ? "Un momento…" : confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
 }
 
 function JoinSheet({ open, onClose, onJoin, joining, joinError }) {
@@ -346,6 +480,7 @@ function MembersSheet({
   const [loading, setLoading] = useState(false);
   const [shareCopied, setShareCopied] = useState(false);
   const [removingId, setRemovingId] = useState(null);
+  const [removeConfirm, setRemoveConfirm] = useState(null);
 
   useEffect(() => {
     if (!open || !householdId) {
@@ -391,20 +526,26 @@ function MembersSheet({
     }
   };
 
-  const handleRemove = async (memberId) => {
+  const handleRemove = (memberId, memberName) => {
     if (!householdId || !onRemoveMember) return;
-    if (!window.confirm("¿Quitar el acceso de esta cuenta al hogar?")) return;
-    setRemovingId(memberId);
-    const ok = await onRemoveMember(householdId, memberId);
+    setRemoveConfirm({ id: memberId, name: memberName });
+  };
+
+  const confirmRemove = async () => {
+    if (!removeConfirm || !householdId || !onRemoveMember) return;
+    setRemovingId(removeConfirm.id);
+    const ok = await onRemoveMember(householdId, removeConfirm.id);
     setRemovingId(null);
+    setRemoveConfirm(null);
     if (ok) await refreshMembers();
   };
 
-  if (!open) return null;
+  if (!open && !removeConfirm) return null;
 
   const viewerCount = accounts.filter((a) => a.roleLabel === "Visitante").length;
 
-  return createPortal(
+  const sheet = open
+    ? createPortal(
     <div onClick={onClose} className="mp-overlay-in" style={sheetOverlayStyle()}>
       <div
         role="dialog"
@@ -502,7 +643,7 @@ function MembersSheet({
                       type="button"
                       aria-label={`Quitar a ${acc.name}`}
                       disabled={removingId === acc.id}
-                      onClick={() => handleRemove(acc.id)}
+                      onClick={() => handleRemove(acc.id, acc.name)}
                       style={{
                         width: 32,
                         height: 32,
@@ -570,6 +711,28 @@ function MembersSheet({
       </div>
     </div>,
     document.body,
+  )
+    : null;
+
+  return (
+    <>
+      {sheet}
+      <ConfirmSheet
+        open={Boolean(removeConfirm)}
+        title="¿Quitar acceso?"
+        message={
+          removeConfirm
+            ? `${removeConfirm.name} dejará de ver menú, compra y despensa de este hogar.`
+            : ""
+        }
+        confirmLabel="Quitar acceso"
+        cancelLabel="Cancelar"
+        danger
+        busy={Boolean(removingId)}
+        onConfirm={confirmRemove}
+        onClose={() => !removingId && setRemoveConfirm(null)}
+      />
+    </>
   );
 }
 
@@ -700,6 +863,7 @@ function SlotCard({
   commitRename,
 }) {
   const [accountsOpen, setAccountsOpen] = useState(false);
+  const [confirm, setConfirm] = useState(null);
   const h = slot.household;
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
@@ -740,9 +904,16 @@ function SlotCard({
         label: "Vaciar hogar",
         color: "#b42318",
         onClick: () => {
-          if (window.confirm("¿Vaciar este hogar? Se borrarán los datos compartidos.")) {
-            onDestroy?.(h.id);
-          }
+          setConfirm({
+            title: "¿Vaciar este hogar?",
+            message: "Se borrarán los datos compartidos de menú, compra y despensa.",
+            confirmLabel: "Vaciar hogar",
+            danger: true,
+            onConfirm: () => {
+              onDestroy?.(h.id);
+              setConfirm(null);
+            },
+          });
         },
       });
     }
@@ -753,7 +924,16 @@ function SlotCard({
         label: "Abandonar",
         color: "#b42318",
         onClick: () => {
-          if (window.confirm("¿Abandonar este hogar?")) onLeave?.(h.id);
+          setConfirm({
+            title: "¿Abandonar este hogar?",
+            message: "Dejarás de ver el menú, la compra y la despensa compartidos.",
+            confirmLabel: "Abandonar",
+            danger: true,
+            onConfirm: () => {
+              onLeave?.(h.id);
+              setConfirm(null);
+            },
+          });
         },
       });
     }
@@ -1031,6 +1211,17 @@ function SlotCard({
         canShare={slotCanShare}
         inviteUrl={slotInviteUrl}
         onRemoveMember={onRemoveMember}
+      />
+
+      <ConfirmSheet
+        open={Boolean(confirm)}
+        title={confirm?.title ?? ""}
+        message={confirm?.message ?? ""}
+        confirmLabel={confirm?.confirmLabel ?? "Confirmar"}
+        cancelLabel="Cancelar"
+        danger={confirm?.danger}
+        onConfirm={() => confirm?.onConfirm?.()}
+        onClose={() => setConfirm(null)}
       />
     </div>
   );
