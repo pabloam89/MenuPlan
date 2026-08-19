@@ -35,8 +35,9 @@ const MUTED = "#5a7262";
 const HEADER_BAND = "#e9f4ed";
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
-/** Ilustración join / invitación — distinta del slot visitante del carrusel. */
-const IMG_JOIN = "/avatares/cards/familia/familia_0.jpg";
+/** Ilustración join / invitación — vertical y alegre (distinta del carrusel). */
+const IMG_JOIN = "/avatares/cards/ninos_findesemana_juntos.jpg";
+const JOIN_ASPECT = "3/4";
 /** Visible height ≈92% of 4:5 illustration (~8% bottom crop). */
 const CARD_ASPECT = "32/37";
 
@@ -162,9 +163,9 @@ function JoinSheet({ open, onClose, onJoin, joining, joinError }) {
           alt=""
           style={{
             width: "100%",
-            aspectRatio: "4/5",
+            aspectRatio: JOIN_ASPECT,
             objectFit: "cover",
-            objectPosition: "center center",
+            objectPosition: "center 18%",
             display: "block",
           }}
         />
@@ -265,11 +266,11 @@ export function HouseholdInviteBanner({ pendingInvite, accepting, onAccept, onDi
           src={IMG_JOIN}
           alt=""
           style={{
-            width: 52,
+            width: 48,
             height: 64,
             borderRadius: 12,
             objectFit: "cover",
-            objectPosition: "center center",
+            objectPosition: "center 20%",
             flexShrink: 0,
             border: "1px solid #e3ebe6",
           }}
