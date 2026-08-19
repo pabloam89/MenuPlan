@@ -17,8 +17,8 @@ const INK = "#142f1d";
 const BG = "#f4f8f5";
 const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
 
-const IMG_OWNER = "/avatares/hogares/hogar_propietario.jpg";
-const IMG_VIEWER = "/avatares/hogares/hogar_visitante.jpg";
+const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
+const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
 
 function formatJoinedAt(iso) {
   if (!iso) return null;
@@ -232,14 +232,23 @@ function SlotCard({
           <div
             style={{
               width: "100%",
-              aspectRatio: "1",
-              borderRadius: 14,
-              overflow: "hidden",
-              background: "#eef4f0",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: empty && !ownerPending ? "#eef4f0" : "transparent",
+              borderRadius: empty && !ownerPending ? 14 : 0,
               filter: empty && !ownerPending ? "grayscale(.7)" : "none",
             }}
           >
-            <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "center top" }} />
+            <img
+              src={img}
+              alt=""
+              style={{
+                width: "100%",
+                height: "auto",
+                display: "block",
+              }}
+            />
           </div>
 
           {h && (
