@@ -144,15 +144,12 @@ function SlotCard({
       style={{
         position: "relative",
         width: "100%",
-        maxWidth: 360,
+        maxWidth: 380,
         margin: "0 auto",
-        padding: showMemberAvatars ? "44px 16px 22px" : "20px 16px 22px",
-        borderRadius: 22,
-        border: isGlobalActive ? `2px solid ${GREEN}` : "1.5px solid #e8eeea",
-        background: "#fff",
-        boxShadow: isGlobalActive
-          ? "0 12px 32px -14px rgba(45,90,61,.28)"
-          : "0 6px 20px -10px rgba(20,47,29,.1)",
+        padding: "0 4px 12px",
+        border: "none",
+        background: "transparent",
+        boxShadow: "none",
         opacity: empty && !ownerPending ? 0.7 : 1,
         cursor: canActivate ? "pointer" : "default",
         outline: "none",
@@ -161,29 +158,26 @@ function SlotCard({
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        gap: 12,
-        transition: "box-shadow 0.35s ease, border-color 0.35s ease",
+        gap: 10,
       }}
     >
-      {showMemberAvatars && (
-        <div style={{ position: "absolute", top: 14, left: 14, zIndex: 2, lineHeight: 0 }}>
-          <GroupAvatarStack faces={avatarFaces} size={36} active max={4} />
-        </div>
-      )}
-
       {titleNode}
 
       <div
         style={{
-          width: "min(280px, 88vw)",
-          display: "flex",
-          justifyContent: "center",
-          background: empty && !ownerPending ? "#eef4f0" : "transparent",
-          borderRadius: empty && !ownerPending ? 18 : 0,
-          filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+          position: "relative",
+          width: "min(340px, 94vw)",
+          borderRadius: 22,
           overflow: "hidden",
+          filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+          background: empty && !ownerPending ? "#e3ebe6" : "transparent",
         }}
       >
+        {showMemberAvatars && (
+          <div style={{ position: "absolute", top: 10, right: 10, zIndex: 2, lineHeight: 0 }}>
+            <GroupAvatarStack faces={avatarFaces} size={36} active max={4} />
+          </div>
+        )}
         <img
           src={img}
           alt=""
@@ -191,6 +185,7 @@ function SlotCard({
             width: "100%",
             height: "auto",
             display: "block",
+            verticalAlign: "top",
           }}
         />
       </div>

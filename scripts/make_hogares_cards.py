@@ -1,4 +1,7 @@
-"""Process hogar slot icons: trim white margins and export transparent PNGs.
+"""Process hogar slot illustrations for the carousel.
+
+- COLOR_CARDS: full-bleed colored backgrounds, resize only (no trim).
+- LEGACY_CARDS: transparent icons via white flood-fill trim.
 
 Run: python scripts/make_hogares_cards.py
 """
@@ -9,11 +12,16 @@ from PIL import Image, ImageDraw
 SRC = Path("Avatares/cards")
 OUT = Path("public/avatares/hogares")
 WIDTH = 360
+COLOR_WIDTH = 400
 FLOOD_THRESH = 28
 
-CARDS = [
-    ("hogar_prop", "hogar_propietario"),
-    ("hogar_viewer", "hogar_visitante"),
+# Fuentes MJ con fondo de color (carrusel Hogares)
+COLOR_CARDS = [
+    ("hogares_comensales", "hogar_propietario"),  # MJ slug; es propietario con llave
+    ("hogares_viewer", "hogar_visitante"),
+]
+
+LEGACY_CARDS = [
     ("segcontrol_miembros", "segcontrol_miembros"),
     ("segcontrol_comensales", "segcontrol_comensales"),
 ]
@@ -76,21 +84,32 @@ def trim_icon_matte(img: Image.Image) -> Image.Image:
     return img
 
 
+def resize_export(img: Image.Image, width: int, dst: Path) -> None:
+    ratio = width / img.width
+    img = img.resize((width, round(img.height * ratio)), Image.LANCZOS)
+    img.save(dst, "PNG", optimize=True)
+    print(f"{dst.name}  {img.size[0]}x{img.size[1]}  {dst.stat().st_size // 1024}KB")
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
-    for stem, name in CARDS:
+
+    for stem, name in COLOR_CARDS:
         src = SRC / f"{stem}.png"
         if not src.exists():
             print(f"FALTA {src}")
             continue
-        img = Image.open(src)
-        img = trim_white_border(img)
+        img = Image.open(src).convert("RGBA")
+        resize_export(img, COLOR_WIDTH, OUT / f"{name}.png")
+
+    for stem, name in LEGACY_CARDS:
+        src = SRC / f"{stem}.png"
+        if not src.exists():
+            print(f"FALTA {src}")
+            continue
+        img = trim_white_border(Image.open(src))
         width = SEG_WIDTH if stem.startswith("segcontrol_") else WIDTH
-        ratio = width / img.width
-        img = img.resize((width, round(img.height * ratio)), Image.LANCZOS)
-        dst = OUT / f"{name}.png"
-        img.save(dst, "PNG", optimize=True)
-        print(f"{name}.png  {img.size[0]}x{img.size[1]}  {dst.stat().st_size // 1024}KB")
+        resize_export(img, width, OUT / f"{name}.png")
 
 
 if __name__ == "__main__":

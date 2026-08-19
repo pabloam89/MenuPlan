@@ -40,3 +40,14 @@ Flat 2D app icon, a simple golden house key beside a small green door keyhole ci
 
 [segment_comensales]  Tab Comensales — familia que come junta
 Flat 2D app icon, a simple round dinner plate with two small steam lines and a fork silhouette behind it, bold clean vector shapes, no people no faces no depth no shadows, cozy mealtime symbol, cream plate with soft tomato red and forest green accents, single centered subject, modern iOS tab icon style, pure white background --no text, letters, watermark, logo, people, faces, 3D, realistic --seed 2151241667 --v 7 --ar 1:1
+
+--- Ilustraciones slot hogar CON fondo de color (carrusel) ---
+
+Destino: public/avatares/hogares/hogar_propietario_color.png · hogar_visitante_color.png
+Estilo: Pixar 3D escena completa — personaje a cuerpo entro delante de fachada de casita española, fondo sólido de color (no blanco), seed 2151241667, 4:5
+
+[hogar_propietario_color]  Propietario — llave, dueño de casa
+3D illustrated cartoon scene, full-body friendly Spanish dad standing proudly in front of a charming cottage facade with terracotta curved roof tiles cream stucco walls and dark green wooden door, potted geraniums and ferns around the entrance, he holds a small golden house key up with a confident warm smile one hand on hip, mustard yellow linen shirt rolled sleeves, owner of the home feeling, soft warm top-left lighting gentle shadows, the entire illustration on a solid flat mint-green background color #eef6f0 edge to edge no white, Pixar animation style, Disney warmth, Spanish family home vibe, soft natural colors, clean mobile app card illustration, centered symmetrical composition, shallow depth of field --no text, letters, watermark, logo --seed 2151241667 --v 7 --ar 4:5
+
+[hogar_visitante_color]  Visitante — saluda, sin llave, invitado
+3D illustrated cartoon scene, full-body friendly Spanish man standing in front of the same charming cottage facade with terracotta curved roof tiles cream stucco walls and dark green wooden door, potted geraniums and ferns around the entrance, he waves hello with a grateful warm smile open empty hands no keys no keyring, mustard yellow linen shirt rolled sleeves dark trousers, welcomed guest feeling not the owner, soft warm top-left lighting gentle shadows, the entire illustration on a solid flat pale blue-grey background color #e8eef4 edge to edge no white, Pixar animation style, Disney warmth, Spanish family home vibe, soft natural colors, clean mobile app card illustration, centered symmetrical composition, shallow depth of field --no text, letters, watermark, logo --seed 2151241667 --v 7 --ar 4:5
