@@ -186,7 +186,7 @@ returns text
 language sql
 volatile
 as $$
-  select encode(gen_random_bytes(16), 'hex');
+  select replace(gen_random_uuid()::text, '-', '');
 $$;
 
 -- ── RLS: households ─────────────────────────────────────────────

@@ -55,6 +55,14 @@ export function useHousehold({ user, loading: authLoading }) {
       bootedRef.current = false;
       return null;
     }
+    if (result.error) {
+      setHouseholds(result.households ?? []);
+      setActiveHouseholdId(result.activeHouseholdId ?? null);
+      setLoading(false);
+      setError(result.error);
+      bootedRef.current = false;
+      return null;
+    }
     setHouseholds(result.households);
     setActiveHouseholdId(result.activeHouseholdId);
     setLoading(false);
