@@ -116,7 +116,7 @@ import {
 } from "./lib/userRecipesSync.js";
 import { migrateFixedDishes } from "./lib/fixedDishes.js";
 import { schoolMenusForWeekIndex } from "./lib/schoolMenu.js";
-import { buildGarnishComboRecipe } from "./lib/userRecipes.js";
+import { filterOwnCreatedRecipes } from "./lib/userRecipes.js";
 import { suggestHomeRole, migrateHomeRole } from "./lib/stages.js";
 import { migrateCookTime, COOK_TIME_DEFAULTS } from "./lib/cookTime.js";
 import {
@@ -1083,18 +1083,22 @@ export default function App() {
   }, [persisted]);
   const [aiRecipes, setAiRecipes] = useState(persisted?.aiRecipes ?? []);
 
+  const { user, session, signInWithGoogle, signOut } = useAuth();
+
+  const ownUserRecipes = useMemo(
+    () => filterOwnCreatedRecipes(data.userRecipes, user),
+    [data.userRecipes, user],
+  );
+
   // User-created recipes must live in RECIPES_BY_ID for DishDetail — but in the
   // "frontend" shape (macros object, scaled ingredients), not the raw catalog
   // shape (flat protein_g/…). Registering them raw made DishDetail crash on
   // recipe.macros.protein when a user opened their own recipe from the catalog.
   useEffect(() => {
-    const own = data.userRecipes ?? [];
-    if (own.length === 0) return;
+    if (ownUserRecipes.length === 0) return;
     const eaters = Math.max(1, data.members?.length || 4);
-    registerRecipes(own.map((r) => catalogToFrontendRecipe(r, eaters)));
-  }, [data.userRecipes, data.members]);
-
-  const { user, session, signInWithGoogle, signOut } = useAuth();
+    registerRecipes(ownUserRecipes.map((r) => catalogToFrontendRecipe(r, eaters)));
+  }, [ownUserRecipes, data.members]);
 
   // Debounced: serializar todo el estado a localStorage en cada pulsación de
   // tecla del onboarding es perceptible en móviles modestos. Si la cuota está
@@ -2721,21 +2725,22 @@ export default function App() {
     return Array.from(new Set(labels));
   }, [data.groups]);
 
-  const handleOpenCatalogRecipe = useCallback((recipe) => {
+  const handleOpenCatalogRecipe = useCallback((recipe, opts = {}) => {
     if (!recipe?.id) return;
-    const eaters = Math.max(1, data.members?.length || 4);
-    // Always rebuild from the bundled catalog row when available so secondary
-    // nutrients (fiber, sugar, sodium…) picked up by enrichment aren't lost to
-    // a stale RECIPES_BY_ID entry from an earlier session.
     const fromCatalog = recipeCatalogById[recipe.id] ?? recipe;
+    const resolvedGarnishId = opts.garnishId ?? fromCatalog.pinnedGarnishId ?? null;
+    const initialCourse = opts.initialCourse ?? (resolvedGarnishId ? "combinado" : "principal");
+    const eaters = Math.max(1, data.members?.length || 4);
     const full = catalogToFrontendRecipe(fromCatalog, eaters);
+    if (resolvedGarnishId) full.garnishId = resolvedGarnishId;
     registerRecipes([full]);
     setSelectedSlot({
       recipe: full,
       slot: { eaters: full.servings ?? eaters },
       browse: true,
+      initialCourse,
     });
-    trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id });
+    trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id, garnishId: resolvedGarnishId ?? undefined });
   }, [data.members, user]);
 
   const handleUpdateUserRecipe = useCallback((updated) => {
@@ -3866,6 +3871,7 @@ export default function App() {
           >
             <Suspense fallback={null}>
               <RecipesScreen
+                user={user}
                 userRecipes={data.userRecipes}
                 recipeVotes={data.recipeVotes}
                 scopeGroups={favoriteScopeGroups}
@@ -3894,14 +3900,9 @@ export default function App() {
                   if (user?.id) deleteUserRecipe(user.id, recipeId);
                   showToast("Receta eliminada");
                 }}
-                onCombineGarnish={(recipe, garnish) => {
-                  if (!garnish) return;
-                  const combo = buildGarnishComboRecipe(recipe, garnish);
-                  setData((d) => ({ ...d, userRecipes: [...(d.userRecipes ?? []), combo] }));
-                  const eaters = Math.max(1, data.members?.length || 4);
-                  registerRecipes([catalogToFrontendRecipe(combo, eaters)]);
-                  if (user?.id) upsertUserRecipe(user.id, combo);
-                  showToast(`Guardada en Mis recetas: ${combo.name}`);
+                onBrowseGarnishCombo={(recipe, garnish) => {
+                  if (!garnish?.id) return;
+                  handleOpenCatalogRecipe(recipe, { garnishId: garnish.id, initialCourse: "combinado" });
                 }}
                 onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
@@ -4002,7 +4003,14 @@ export default function App() {
         />
       )}
 
-      {selectedSlot && (
+      {selectedSlot && (() => {
+        const browseCatalogId = selectedSlot.browse
+          ? String(selectedSlot.recipe.baseRecipeId ?? selectedSlot.recipe.id).split("__").pop()
+          : null;
+        const canBrowseDiscard = Boolean(
+          browseCatalogId && !String(browseCatalogId).startsWith("user_"),
+        );
+        return (
         <DishDetail
           key={selectedSlot.recipe.id}
           recipe={selectedSlot.recipe}
@@ -4011,11 +4019,15 @@ export default function App() {
           allMembers={data.members}
           kitchenTools={data.kitchenTools ?? []}
           browse={Boolean(selectedSlot.browse)}
+          initialCourse={selectedSlot.initialCourse ?? "principal"}
           userVote={voteOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           onVote={(vote) => handleVoteRecipe(selectedSlot.recipe.id, vote)}
           favoriteScope={favScopeOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           scopeGroups={favoriteScopeGroups}
           onSetFavoriteScope={(scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
+          discarded={canBrowseDiscard && (data.discards?.forever ?? []).includes(browseCatalogId)}
+          onDiscardRecipe={canBrowseDiscard ? () => handleDiscardRecipe(browseCatalogId) : undefined}
+          onRecoverRecipe={canBrowseDiscard ? () => handleUndiscardRecipe(browseCatalogId) : undefined}
           onClose={() => setSelectedSlot(null)}
           onReject={selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
           day={selectedSlot.day ?? null}
@@ -4037,7 +4049,8 @@ export default function App() {
           }
           onUpdateUserRecipe={handleUpdateUserRecipe}
         />
-      )}
+        );
+      })()}
 
       {/* Cena rápida / Plato único: minimal thumbnail-only picker. */}
       {slotPicker && (slotPicker.kind === "cena_rapida" || slotPicker.kind === "plato_unico") && (
@@ -4061,7 +4074,7 @@ export default function App() {
           onPickPlato={(id) => { if (id) handleChooseRecipeForSlot(id); }}
           onClose={() => setSlotPicker(null)}
           recipeVotes={data.recipeVotes ?? {}}
-          extraRecipes={data.userRecipes ?? []}
+          extraRecipes={ownUserRecipes}
         />
       )}
 

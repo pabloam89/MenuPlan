@@ -11359,5 +11359,586 @@
     "name": "Crema de lentejas",
     "family": "sopas_cremas",
     "type": "dish"
+  },
+  {
+    "combo_id": "carnes_002",
+    "imageUrl": null,
+    "name": "Pechugas de pollo a la plancha",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_003",
+    "imageUrl": null,
+    "name": "Albóndigas en salsa de tomate",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_004",
+    "imageUrl": null,
+    "name": "Filetes de lomo empanados",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_006",
+    "imageUrl": null,
+    "name": "Pollo al ajillo",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_007",
+    "imageUrl": null,
+    "name": "Cinta de lomo adobada",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_010",
+    "imageUrl": null,
+    "name": "Pollo con pimientos",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_011",
+    "imageUrl": null,
+    "name": "Costillas de cerdo al horno",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_012",
+    "imageUrl": null,
+    "name": "San Jacobos caseros",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_013",
+    "imageUrl": null,
+    "name": "Muslos de pollo al horno",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_014",
+    "imageUrl": null,
+    "name": "Filetes rusos",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_015",
+    "imageUrl": null,
+    "name": "Ternera guisada con zanahorias",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_016",
+    "imageUrl": null,
+    "name": "Pollo en pepitoria",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_017",
+    "imageUrl": null,
+    "name": "Magro con tomate",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_018",
+    "imageUrl": null,
+    "name": "Secreto ibérico a la plancha",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_019",
+    "imageUrl": null,
+    "name": "Alitas de pollo al horno",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_020",
+    "imageUrl": null,
+    "name": "Solomillo de cerdo al Pedro Ximénez",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_021",
+    "imageUrl": null,
+    "name": "Carne guisada con verduras",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_022",
+    "imageUrl": null,
+    "name": "Lomo de cerdo en salsa",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_023",
+    "imageUrl": null,
+    "name": "Escalopines de ternera al limón",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_024",
+    "imageUrl": null,
+    "name": "Pavo a la plancha",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_025",
+    "imageUrl": null,
+    "name": "Pollo al curry",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_026",
+    "imageUrl": null,
+    "name": "Albóndigas de pollo",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_027",
+    "imageUrl": null,
+    "name": "Chuletas de cerdo a la plancha",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_028",
+    "imageUrl": null,
+    "name": "Pollo con champiñones",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_029",
+    "imageUrl": null,
+    "name": "Redondo de ternera",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_030",
+    "imageUrl": null,
+    "name": "Brochetas de pollo",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_031",
+    "imageUrl": null,
+    "name": "Fricandó de ternera",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_032",
+    "imageUrl": null,
+    "name": "Escalope de pollo",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_033",
+    "imageUrl": null,
+    "name": "Ragú de ternera",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_034",
+    "imageUrl": null,
+    "name": "Pollo a la cerveza",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "carnes_035",
+    "imageUrl": null,
+    "name": "Flamenquines cordobeses",
+    "family": "carnes",
+    "type": "dish"
+  },
+  {
+    "combo_id": "guarniciones_001",
+    "imageUrl": null,
+    "name": "Arroz blanco",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_002",
+    "imageUrl": null,
+    "name": "Patatas cocidas con perejil",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_003",
+    "imageUrl": null,
+    "name": "Puré de patatas",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_004",
+    "imageUrl": null,
+    "name": "Patatas salteadas",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_005",
+    "imageUrl": null,
+    "name": "Pasta al aceite de oliva",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_006",
+    "imageUrl": null,
+    "name": "Cuscús al limón",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_007",
+    "imageUrl": null,
+    "name": "Quinoa al limón y hierbas",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_008",
+    "imageUrl": null,
+    "name": "Arroz integral",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_009",
+    "imageUrl": null,
+    "name": "Judías verdes al vapor con ajo",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_010",
+    "imageUrl": null,
+    "name": "Brócoli al ajo",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_011",
+    "imageUrl": null,
+    "name": "Zanahoria glaseada",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_012",
+    "imageUrl": null,
+    "name": "Espinacas salteadas con ajo",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_013",
+    "imageUrl": null,
+    "name": "Calabacín a la plancha",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_014",
+    "imageUrl": null,
+    "name": "Ensalada verde",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_015",
+    "imageUrl": null,
+    "name": "Ensalada de tomate con cebolla",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_016",
+    "imageUrl": null,
+    "name": "Pimientos del piquillo salteados",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_018",
+    "imageUrl": null,
+    "name": "Verduras salteadas",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_019",
+    "imageUrl": null,
+    "name": "Espárragos a la plancha",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_020",
+    "imageUrl": null,
+    "name": "Menestra de verduras",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_021",
+    "imageUrl": null,
+    "name": "Champiñones salteados",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "guarniciones_022",
+    "imageUrl": null,
+    "name": "Patatas fritas",
+    "family": "guarniciones",
+    "type": "garnish"
+  },
+  {
+    "combo_id": "huevos_002",
+    "imageUrl": null,
+    "name": "Tortilla francesa",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_004",
+    "imageUrl": null,
+    "name": "Revuelto de champiñones",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_005",
+    "imageUrl": null,
+    "name": "Revuelto de ajetes",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_006",
+    "imageUrl": null,
+    "name": "Tortilla de calabacín",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_007",
+    "imageUrl": null,
+    "name": "Huevos fritos con puntillas",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_008",
+    "imageUrl": null,
+    "name": "Revuelto de espárragos",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_009",
+    "imageUrl": null,
+    "name": "Huevos al plato",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_010",
+    "imageUrl": null,
+    "name": "Huevos rellenos",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_011",
+    "imageUrl": null,
+    "name": "Revuelto de gambas",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_012",
+    "imageUrl": null,
+    "name": "Tortilla de espinacas",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_014",
+    "imageUrl": null,
+    "name": "Huevos cocidos con ensalada",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "huevos_015",
+    "imageUrl": null,
+    "name": "Revuelto de setas",
+    "family": "huevos",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_001",
+    "imageUrl": null,
+    "name": "Merluza en salsa verde",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_003",
+    "imageUrl": null,
+    "name": "Bacalao con tomate",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_004",
+    "imageUrl": null,
+    "name": "Sardinas a la plancha",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_006",
+    "imageUrl": null,
+    "name": "Atún a la plancha",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_007",
+    "imageUrl": null,
+    "name": "Merluza rebozada",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_009",
+    "imageUrl": null,
+    "name": "Salmón a la plancha",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_010",
+    "imageUrl": null,
+    "name": "Bacalao al pil-pil",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_011",
+    "imageUrl": null,
+    "name": "Calamares a la romana",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_012",
+    "imageUrl": null,
+    "name": "Gambas al ajillo",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_014",
+    "imageUrl": null,
+    "name": "Bacalao rebozado",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_015",
+    "imageUrl": null,
+    "name": "Trucha a la navarra",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_016",
+    "imageUrl": null,
+    "name": "Rape en salsa marinera",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_017",
+    "imageUrl": null,
+    "name": "Palitos de merluza caseros",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_018",
+    "imageUrl": null,
+    "name": "Salmón en papillote",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_019",
+    "imageUrl": null,
+    "name": "Atún encebollado",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_020",
+    "imageUrl": null,
+    "name": "Emperador a la plancha",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_022",
+    "imageUrl": null,
+    "name": "Rosada al horno con limón",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_023",
+    "imageUrl": null,
+    "name": "Caballa a la plancha con limón",
+    "family": "pescados",
+    "type": "dish"
+  },
+  {
+    "combo_id": "pescados_025",
+    "imageUrl": null,
+    "name": "Calamares encebollados",
+    "family": "pescados",
+    "type": "dish"
   }
 ]

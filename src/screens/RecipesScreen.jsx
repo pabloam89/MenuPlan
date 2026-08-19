@@ -7,6 +7,7 @@ import { favoriteRecipeIds } from "../lib/recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
+import { filterOwnCreatedRecipes, isCatalogGarnishCombo } from "../lib/userRecipes.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -22,6 +23,7 @@ const HEADER_BAND = "#e9f4ed";
  *   Mis recetas: only the user's created recipes, with inline visibility
  */
 export function RecipesScreen({
+  user = null,
   userRecipes = [],
   recipeVotes = {},
   scopeGroups = [],
@@ -38,7 +40,7 @@ export function RecipesScreen({
   onChangeRecipeVisibility,
   onDeleteRecipe,
   onEditRecipe,
-  onCombineGarnish,
+  onBrowseGarnishCombo,
   onOpenRecipePrefs,
   // Optional demo hooks (first-run value-prop carousel): preset the visible tab
   // and optionally auto-cycle Catálogo → Favoritas → Mis recetas. Default to the
@@ -69,13 +71,23 @@ export function RecipesScreen({
     [recipeVotes],
   );
 
+  const ownRecipes = useMemo(
+    () => filterOwnCreatedRecipes(userRecipes, user),
+    [userRecipes, user],
+  );
+
+  const catalogExtraRecipes = useMemo(
+    () => ownRecipes.filter((r) => !isCatalogGarnishCombo(r)),
+    [ownRecipes],
+  );
+
   const discardedRecipes = useMemo(
     () => discardedIds.map((id) => recipeCatalogById[id]).filter(Boolean),
     [discardedIds],
   );
 
   const TABS = [
-    { id: "mine", label: "Mis recetas", count: userRecipes.length, Icon: NotebookPen },
+    { id: "mine", label: "Mis recetas", count: ownRecipes.length, Icon: NotebookPen },
     { id: "catalog", label: "Catálogo", Icon: BookOpen },
     { id: "favorites", label: "Favoritas", count: favoriteIds.size, Icon: Heart },
     { id: "discarded", label: "Descartados", count: discardedRecipes.length, Icon: Ban },
@@ -178,8 +190,8 @@ export function RecipesScreen({
             scopeGroups={scopeGroups}
             onSetFavoriteScope={onSetFavoriteScope}
             onOpenRecipe={onOpenRecipe}
-            extraRecipes={userRecipes}
-            onCombineGarnish={onCombineGarnish}
+            extraRecipes={catalogExtraRecipes}
+            onBrowseGarnishCombo={onBrowseGarnishCombo}
             initialCategory={catalogInitialCategory}
             discardedIds={new Set(discardedIds)}
             onDiscardRecipe={onDiscardRecipe}
@@ -196,7 +208,7 @@ export function RecipesScreen({
             scopeGroups={scopeGroups}
             onSetFavoriteScope={onSetFavoriteScope}
             onOpenRecipe={onOpenRecipe}
-            extraRecipes={userRecipes}
+            extraRecipes={catalogExtraRecipes}
             favoriteIds={favoriteIds}
             emptyImg="/avatares/cards/empty_favoritas.jpg"
             emptyLabel="Aún no tienes favoritas"
@@ -205,7 +217,7 @@ export function RecipesScreen({
         )}
 
         {tab === "mine" && (
-          userRecipes.length === 0 ? (
+          ownRecipes.length === 0 ? (
             <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
               <EmptyIllustration
                 img="/avatares/cards/empty_recetas_propias.jpg"
@@ -238,7 +250,7 @@ export function RecipesScreen({
               scopeGroups={scopeGroups}
               onSetFavoriteScope={onSetFavoriteScope}
               onOpenRecipe={onOpenRecipe}
-              sourceRecipes={userRecipes}
+              sourceRecipes={ownRecipes}
               onChangeVisibility={onChangeRecipeVisibility}
               onDeleteRecipe={onDeleteRecipe}
               onEditRecipe={onEditRecipe}

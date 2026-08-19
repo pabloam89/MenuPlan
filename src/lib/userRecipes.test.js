@@ -1,5 +1,9 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { generateUserRecipeDraft, patchUserRecipeClassification } from "./userRecipes.js";
+import {
+  generateUserRecipeDraft,
+  isOwnCreatedRecipe,
+  patchUserRecipeClassification,
+} from "./userRecipes.js";
 
 function mockAIResponse(payload) {
   vi.stubGlobal(
@@ -117,5 +121,36 @@ describe("patchUserRecipeClassification", () => {
     const next = patchUserRecipeClassification(base, { quickDinner: true, mealRole: ["segundo", "cena"] });
     expect(next.category).toBe("cenas_rapidas");
     expect(next.mealRole).toContain("cena");
+  });
+});
+
+describe("isOwnCreatedRecipe", () => {
+  const user = { id: "u1" };
+
+  it("accepts recipes saved via Crear receta (user_* + owner)", () => {
+    expect(isOwnCreatedRecipe({
+      id: "user_abc",
+      source: "user",
+      owner: { id: "u1", name: "Pablo" },
+    }, user)).toBe(true);
+  });
+
+  it("rejects ownerless rows (legacy catalog shortcuts)", () => {
+    expect(isOwnCreatedRecipe({
+      id: "user_abc",
+      source: "user",
+      type: "guarnicion",
+      name: "Ensalada César",
+    }, user)).toBe(false);
+  });
+
+  it("rejects catalog dish+garnish combo clones", () => {
+    expect(isOwnCreatedRecipe({
+      id: "user_abc",
+      source: "user",
+      owner: { id: "u1" },
+      linkedCatalogId: "carnes_003",
+      pinnedGarnishId: "guarniciones_001",
+    }, user)).toBe(false);
   });
 });

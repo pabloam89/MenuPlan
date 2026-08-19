@@ -73,6 +73,7 @@ import {
   generateUserRecipeDraft,
   generateDishPhotoWithAI,
   suggestRecipeIngredients,
+  filterOwnCreatedRecipes,
 } from "../lib/userRecipes.js";
 import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle, ingredientStem } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
@@ -1799,10 +1800,10 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
   // guarniciones.json plus any garnish the user created earlier (type/role
   // "guarnicion"), so the pool grows as the user adds their own.
   const userGarnishesOnly = useMemo(
-    () => (userRecipes ?? []).filter(
+    () => filterOwnCreatedRecipes(userRecipes, user).filter(
       (r) => r.type === "guarnicion" || r.mealRole?.includes?.("guarnicion"),
     ),
-    [userRecipes],
+    [userRecipes, user],
   );
 
   const baseDishPool = useMemo(

@@ -225,9 +225,9 @@ export function CatalogBrowserSheet({
   // card, and the "Tuya" badge hidden (redundant when all are yours).
   onEditRecipe = null,
   ownRecipesView = false,
-  // Reference/browse mode: lets the user pair a catalog dish with a garnish and
-  // save the combo to "Mis recetas" (called with the built combo recipe).
-  onCombineGarnish = null,
+  // Reference/browse mode: preview a catalog dish paired with a garnish (opens
+  // DishDetail in browse mode — does not save to Mis recetas).
+  onBrowseGarnishCombo = null,
   // Demo only: preselect a category so we land straight on its dish list (with
   // real thumbnails) instead of the category grid.
   initialCategory = null,
@@ -320,7 +320,7 @@ export function CatalogBrowserSheet({
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
   const [garnishFor, setGarnishFor] = useState(null);
-  const [combineFor, setCombineFor] = useState(null); // catalog dish being paired with a garnish to save as own recipe
+  const [combineFor, setCombineFor] = useState(null); // catalog dish → pick garnish to preview combined
   const [scopeFor, setScopeFor] = useState(null); // recipe being favorited via the group picker
 
   const { allCats, allProteins } = useMemo(() => {
@@ -810,7 +810,7 @@ export function CatalogBrowserSheet({
               onDelete={onDeleteRecipe && r.source === "user" ? () => onDeleteRecipe(r.id) : undefined}
               onEdit={onEditRecipe && r.source === "user" ? () => onEditRecipe(r) : undefined}
               ownView={ownRecipesView}
-              onCombine={onCombineGarnish && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
+              onCombine={onBrowseGarnishCombo && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
               animDelay={i < 12 ? i * 18 : 0}
               discarded={discardedIds ? discardedIds.has(r.id) : false}
               onDiscard={discardedIds && r.source !== "user" ? (discardedIds.has(r.id) ? () => onRecoverRecipe?.(r.id) : () => onDiscardRecipe?.(r.id)) : undefined}
@@ -895,11 +895,12 @@ export function CatalogBrowserSheet({
         <GarnishPickerSheet
           recipe={combineFor}
           currentGarnishId={null}
-          title="Guardar con guarnición"
-          subtitle={null}
+          title="Elige guarnición"
+          subtitle={`Ver ${combineFor.name} combinado`}
+          previewPrincipalId={combineFor.id}
           onSelect={(gid) => {
             const g = gid ? (GARNISH_BY_ID[gid] ?? garnishCatalog.find((x) => x.id === gid)) : null;
-            if (g) onCombineGarnish?.(combineFor, g);
+            if (g) onBrowseGarnishCombo?.(combineFor, g);
             setCombineFor(null);
           }}
           onClose={() => setCombineFor(null)}
@@ -1775,8 +1776,8 @@ function RecipeCard({
               <button
                 type="button"
                 onClick={(e) => { e.stopPropagation(); onCombine(); }}
-                aria-label={`Guardar ${recipe.name} con guarnición`}
-                title="Guardar con guarnición en Mis recetas"
+                aria-label={`Ver ${recipe.name} con guarnición`}
+                title="Ver con guarnición"
                 style={{
                   width: 34, height: 34, borderRadius: 10, flexShrink: 0, cursor: "pointer",
                   border: `1.5px dashed ${GREEN}`, background: "#fff", color: GREEN,
@@ -1925,6 +1926,7 @@ function RecipeCard({
 // to one specific group, in a single tap.
 export function GarnishPickerSheet({
   recipe, currentGarnishId, onSelect, onClose, title, subtitle,
+  previewPrincipalId = null,
   recipeVotes = {}, scopeGroups = [], onSetFavoriteScope, onOpenScopePicker,
   discardedIds = null, onDiscardRecipe, onRecoverRecipe,
 }) {
@@ -1982,6 +1984,7 @@ export function GarnishPickerSheet({
               <GarnishGridTile
                 key={g.id}
                 garnish={g}
+                principalId={previewPrincipalId}
                 label={label}
                 selected={g.id === currentGarnishId}
                 onSelect={() => onSelect(g.id === currentGarnishId ? null : g.id)}
@@ -2008,13 +2011,14 @@ function capitalizeGarnishLabel(text) {
 }
 
 function GarnishGridTile({
-  garnish, label, selected, onSelect,
+  garnish, principalId = null, label, selected, onSelect,
   favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker,
   discarded, onDiscard, onRecover,
 }) {
   const [failed, setFailed] = useState(false);
-  // Solo la foto de la guarnición (nunca el combo plato+guarnición).
-  const rawPhoto = dishImageUrl(garnish.id);
+  const rawPhoto = principalId
+    ? (dishImageUrl(principalId, garnish.id) ?? dishImageUrl(garnish.id))
+    : dishImageUrl(garnish.id);
   const photo = rawPhoto && !failed ? deckImg(rawPhoto, 280) : null;
 
   return (

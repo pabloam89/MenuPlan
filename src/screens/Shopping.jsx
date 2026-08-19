@@ -61,7 +61,7 @@ import {
   expandAbbreviations,
   toDisplayCase,
 } from "../lib/priceHistory.js";
-import { INGREDIENT_CATEGORIES, RECIPES_BY_ID } from "../data/recipes.js";
+import { RECIPES_BY_ID } from "../data/recipes.js";
 import { normalizeIngredientKey, isPerishableAisle, guessShoppingAisle, normalizeName } from "../lib/ingredientCategories.js";
 import { ingredientThumbSrc } from "../lib/ingredientImages.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -329,7 +329,6 @@ export function ShoppingScreen({
   );
   const [expandedId, setExpandedId] = useState(null);
   const [showIconCoach, setShowIconCoach] = useState(false);
-  const [showAdd, setShowAdd] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   // Unified spend capture: one money button → chooser (escanear / a mano).
   const [showCapture, setShowCapture] = useState(false);
@@ -555,21 +554,6 @@ export function ShoppingScreen({
         ),
       );
     }
-  };
-  const addItem = (newItem) => {
-    const target = selectedWeeks[0]?.weekStart ?? orderedAll[0]?.weekStart;
-    if (target == null) return;
-    updateWeek(target, (items) => [
-      ...items,
-      {
-        ...newItem,
-        id: `manual-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        have: false,
-        atHome: false,
-        manual: true,
-        sources: [],
-      },
-    ]);
   };
   const markPurchased = (ids, weekStart = null) => {
     for (const id of ids) {
@@ -1429,7 +1413,7 @@ export function ShoppingScreen({
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
-        {isEmpty && <EmptyList onAdd={() => setShowAdd(true)} />}
+        {isEmpty && <EmptyList />}
 
         {/* Flat list of aisle sections directly on the page background, styled
             like the recipe catalog's category list (soft tinted icons, thin
@@ -1451,7 +1435,6 @@ export function ShoppingScreen({
         })()}
       </div>
 
-      {showAdd && <AddItemModal onClose={() => setShowAdd(false)} onAdd={addItem} />}
 
       {showCapture && (
         <CaptureSheet
@@ -3700,84 +3683,17 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   );
 }
 
-function EmptyList({ onAdd }) {
+function EmptyList() {
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
         img="/avatares/cards/sin_compra.jpg"
         title="Nada pendiente"
-        subtitle="Añade lo que necesites o genera la lista desde el menú de esta semana."
+        subtitle="Genera la lista desde el menú de esta semana."
         maxWidth={240}
         imgAspect="1 / 1"
         imgPosition="center"
-      >
-        <button
-          type="button"
-          data-coach="shop-add"
-          onClick={onAdd}
-          style={{
-            marginTop: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
-            padding: "11px 20px", borderRadius: 13, border: "none",
-            background: "#2d5a3d", color: "#fff", fontSize: 14, fontWeight: 800,
-            cursor: "pointer", fontFamily: "inherit",
-          }}
-        >
-          <Plus size={15} strokeWidth={2.8} />
-          Añadir
-        </button>
-      </EmptyIllustration>
-    </div>
-  );
-}
-
-function AddItemModal({ onClose, onAdd }) {
-  const [name, setName] = useState("");
-  const disabled = !name.trim();
-  const submit = () => {
-    if (disabled) return;
-    onAdd({
-      name: name.trim(),
-      qty: 1,
-      unit: "ud",
-      category: INGREDIENT_CATEGORIES[0],
-      displayQty: "1 ud",
-    });
-    onClose();
-  };
-
-  return (
-    <div className="mp-overlay-in" style={overlayStyle} onClick={onClose}>
-      <div className="mp-sheet-up" onClick={(e) => e.stopPropagation()} style={sheetStyle}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <h3 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0 }}>
-            Añadir
-          </h3>
-          <button type="button" onClick={onClose} style={iconBtnStyle} aria-label="Cerrar">
-            <X size={20} />
-          </button>
-        </div>
-        <input
-          autoFocus
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Nombre"
-          style={{ ...inputStyle, marginTop: 16, padding: "12px" }}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-        />
-        <button
-          type="button"
-          disabled={disabled}
-          onClick={submit}
-          style={{
-            ...primaryBtnStyle,
-            width: "100%",
-            marginTop: 14,
-            opacity: disabled ? 0.5 : 1,
-          }}
-        >
-          Añadir
-        </button>
-      </div>
+      />
     </div>
   );
 }

@@ -228,7 +228,29 @@ export function deriveUsageTagsFromType(type) {
 /** Whether the logged-in user owns this user-created recipe. */
 export function isUserRecipeOwner(recipe, user) {
   if (!recipe || recipe.source !== "user" || !user?.id) return false;
-  return !recipe.owner?.id || recipe.owner.id === user.id;
+  return recipe.owner?.id === user.id;
+}
+
+/** User recipe cloned from a catalog dish + fixed garnish (browse-only combos). */
+export function isCatalogGarnishCombo(recipe) {
+  return Boolean(recipe?.linkedCatalogId && recipe?.pinnedGarnishId);
+}
+
+/**
+ * True only for recipes saved via Crear receta (RecipePlanner): user_* id,
+ * source user, stamped owner matching the logged-in user. Excludes catalog
+ * clones, garnish-combo shortcuts, and legacy rows without owner.
+ */
+export function isOwnCreatedRecipe(recipe, user) {
+  if (!recipe?.id?.startsWith?.("user_")) return false;
+  if (recipe.source !== "user") return false;
+  if (isCatalogGarnishCombo(recipe)) return false;
+  return isUserRecipeOwner(recipe, user);
+}
+
+/** @param {object[]} userRecipes @param {{ id?: string } | null} user */
+export function filterOwnCreatedRecipes(userRecipes, user) {
+  return (userRecipes ?? []).filter((r) => isOwnCreatedRecipe(r, user));
 }
 
 /**
