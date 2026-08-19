@@ -138,7 +138,7 @@ import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
-import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud } from "./lib/pantry.js";
+import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry } from "./lib/pantry.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
 import {
   normalizeDeltaBucketMap,
@@ -1106,6 +1106,7 @@ export default function App() {
     leave: leaveHouseholdMembership,
     renameHousehold,
     destroyHousehold,
+    advanceSetupStatus,
     refresh: refreshHouseholds,
     joinByToken: joinHouseholdByToken,
     removeMember: removeHouseholdMember,
@@ -1176,6 +1177,7 @@ export default function App() {
   // devices and a "smart reset". Everything no-ops without a signed-in session.
   const hydratedUserRef = useRef(null);
   const cloudReadyRef = useRef(false);
+  const householdJustEmptiedRef = useRef(false);
   // Kept live (not just captured once) so the one-time legacy backfill below
   // can tell whether a menú it's about to activate in the cloud is still
   // actually the active one locally — the user may generate a brand new menú
@@ -1209,6 +1211,8 @@ export default function App() {
 
     const menuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user.id;
     const householdId = activeHouseholdId;
+    const justEmptied = householdJustEmptiedRef.current;
+    if (justEmptied) householdJustEmptiedRef.current = false;
 
     // Capture local-only blobs before any await so a mid-hydration edit
     // isn't the source of truth for the union (same as before).
@@ -1227,7 +1231,9 @@ export default function App() {
     // Fold signed-out stock into the account first, then bump pantryEpoch so
     // any open En casa / Compra UI reloads after the merge (not mid-flight).
     (async () => {
-      await mergeLocalPantryIntoCloud(user.id, householdId);
+      if (!justEmptied) {
+        await mergeLocalPantryIntoCloud(user.id, householdId);
+      }
       if (cancelled) return;
       setPantryEpoch((n) => n + 1);
 
@@ -1261,11 +1267,13 @@ export default function App() {
       // profile (members, allergies, intolerances, healthProfiles) the user
       // just set up. See lib/profileMerge.js.
       const remoteData = remoteState?.state?.data;
-      const useRemote = shouldAdoptRemoteProfile({
-        localMemberCount: data.members?.length ?? 0,
-        remoteMemberCount: remoteData?.members?.length ?? 0,
-      });
-      if (useRemote) remoteData.groups = healAdhocGroupLabels(remoteData.groups);
+      const useRemote =
+        justEmptied
+        || shouldAdoptRemoteProfile({
+          localMemberCount: data.members?.length ?? 0,
+          remoteMemberCount: remoteData?.members?.length ?? 0,
+        });
+      if (useRemote && remoteData) remoteData.groups = healAdhocGroupLabels(remoteData.groups);
 
       // Forever discards union, cooldowns take the later expiry — see
       // recipeDiscardsSync.js's mergeDiscards for the reasoning. Also folds in
@@ -1273,10 +1281,12 @@ export default function App() {
       // for accounts whose only record of them predates user_recipe_discards —
       // otherwise that history would be silently orphaned the moment the blob
       // write stops carrying `discards` (see the debounced push below).
-      const mergedDiscards = mergeDiscards(
-        mergeDiscards(localDiscards, remoteDiscards),
-        remoteData?.discards ?? { forever: [], cooldownUntil: {} },
-      );
+      const mergedDiscards = justEmptied
+        ? mergeDiscards({ forever: [], cooldownUntil: {} }, remoteDiscards)
+        : mergeDiscards(
+            mergeDiscards(localDiscards, remoteDiscards),
+            remoteData?.discards ?? { forever: [], cooldownUntil: {} },
+          );
 
       // Union spend by id so neither side's tickets/observations are dropped by
       // the profile adoption (which otherwise picks one whole `data` blob).
@@ -1286,12 +1296,18 @@ export default function App() {
         for (const x of b) if (x && x.id != null) m.set(x.id, x);
         return Array.from(m.values());
       };
-      const mergedPriceObs = unionById(localPriceObs, remoteData?.priceObs);
-      const mergedReceipts = unionById(localReceipts, remoteData?.receipts);
-      const mergedAliases = { ...(remoteData?.priceAliases ?? {}), ...localAliases };
+      const mergedPriceObs = justEmptied
+        ? (remoteData?.priceObs ?? [])
+        : unionById(localPriceObs, remoteData?.priceObs);
+      const mergedReceipts = justEmptied
+        ? (remoteData?.receipts ?? [])
+        : unionById(localReceipts, remoteData?.receipts);
+      const mergedAliases = justEmptied
+        ? (remoteData?.priceAliases ?? {})
+        : { ...(remoteData?.priceAliases ?? {}), ...localAliases };
 
       setData((d) => ({
-        ...(useRemote ? { ...INITIAL_DATA, ...remoteData } : d),
+        ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
         // Merge against the current live recipes, not the stale snapshot, so a
         // recipe created mid-hydration survives (see mergeUserRecipesById).
         userRecipes: mergeUserRecipesById(d.userRecipes ?? [], remoteRecipes),
@@ -1302,11 +1318,14 @@ export default function App() {
         priceAliases: mergedAliases,
       }));
       if (useRemote) {
-        if (remoteState.state.menuPlan) setMenuPlan(remoteState.state.menuPlan);
-        if (remoteState.state.shopping) setShopping(remoteState.state.shopping);
-        if (Array.isArray(remoteState.state.aiRecipes)) {
-          registerRecipes(remoteState.state.aiRecipes);
-          setAiRecipes(remoteState.state.aiRecipes);
+        setMenuPlan(remoteState?.state?.menuPlan ?? {});
+        setShopping(remoteState?.state?.shopping ?? { items: [] });
+        const remoteAi = remoteState?.state?.aiRecipes;
+        if (Array.isArray(remoteAi) && remoteAi.length) {
+          registerRecipes(remoteAi);
+          setAiRecipes(remoteAi);
+        } else {
+          setAiRecipes([]);
         }
       }
       if (mergedRecipes.length) registerRecipes(mergedRecipes);
@@ -2501,6 +2520,50 @@ export default function App() {
       cloudReadyRef.current = false;
     }
   }, [switchHousehold]);
+
+  const handleDestroyHousehold = useCallback(async (householdId) => {
+    const result = await destroyHousehold(householdId);
+    if (!result?.ok) {
+      showToast("No se pudo vaciar el hogar. Inténtalo de nuevo.");
+      return false;
+    }
+
+    householdJustEmptiedRef.current = true;
+    hydratedUserRef.current = null;
+    cloudReadyRef.current = false;
+    clearLocalPantry();
+
+    const emptyProfile = ensureRosters({
+      ...INITIAL_DATA,
+      userRecipes: data.userRecipes ?? [],
+      recipeVotes: data.recipeVotes ?? {},
+    });
+    setData(emptyProfile);
+    setMenuPlan({});
+    setShopping({ items: [] });
+    setAiRecipes([]);
+    setSelectedSlot(null);
+    setMenuError(null);
+    setPantryEpoch((n) => n + 1);
+
+    if (result.householdId) {
+      const profile = { ...emptyProfile };
+      delete profile.userRecipes;
+      delete profile.recipeVotes;
+      delete profile.discards;
+      delete profile.menus;
+      await saveHouseholdState(result.householdId, {
+        data: profile,
+        menuPlan: {},
+        shopping: { items: [] },
+        aiRecipes: [],
+        onbStep: 0,
+      });
+    }
+
+    showToast("Hogar vaciado");
+    return true;
+  }, [destroyHousehold, data.userRecipes, data.recipeVotes, showToast]);
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);
@@ -4051,10 +4114,11 @@ export default function App() {
                 onRefresh={refreshHouseholds}
                 onSwitchHousehold={handleSwitchHousehold}
                 onLeaveHousehold={leaveHouseholdMembership}
-                onDestroyHousehold={destroyHousehold}
+                onDestroyHousehold={handleDestroyHousehold}
                 onJoinByToken={joinHouseholdByToken}
                 onRemoveMember={removeHouseholdMember}
                 onRenameHousehold={renameHousehold}
+                onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
               />
             </Suspense>
