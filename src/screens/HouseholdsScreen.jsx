@@ -12,7 +12,6 @@ import {
   Share2,
   Trash2,
   UserMinus,
-  Users,
 } from "lucide-react";
 import {
   Avatar,
@@ -31,7 +30,6 @@ import {
 import { HouseholdsCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 
 const GREEN = "#2d5a3d";
-const VIEWER_BLUE = "#4a6fd0";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
 const HEADER_BAND = "#e9f4ed";
@@ -43,37 +41,145 @@ const JOIN_ASPECT = "3/4";
 /** Visible height ≈92% of 4:5 illustration (~8% bottom crop). */
 const CARD_ASPECT = "32/37";
 
-function RoleIllustration({ roleLabel }) {
-  const isProp = roleLabel === "Propietario";
+function HouseholdAccessList({
+  householdId,
+  userId,
+  isOwner,
+  onRemoveMember,
+  coachHighlight = false,
+}) {
+  const [accounts, setAccounts] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [removingId, setRemovingId] = useState(null);
+  const [removeConfirm, setRemoveConfirm] = useState(null);
+
+  useEffect(() => {
+    if (!householdId || !userId) {
+      setAccounts([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    loadHouseholdMembers(householdId, userId).then((rows) => {
+      if (!cancelled) {
+        setAccounts(rows);
+        setLoading(false);
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [householdId, userId]);
+
+  if (!householdId) return null;
+
+  const confirmRemove = async () => {
+    if (!removeConfirm || !householdId || !onRemoveMember) return;
+    setRemovingId(removeConfirm.id);
+    const ok = await onRemoveMember(householdId, removeConfirm.id);
+    setRemovingId(null);
+    setRemoveConfirm(null);
+    if (ok) {
+      const rows = await loadHouseholdMembers(householdId, userId);
+      setAccounts(rows);
+    }
+  };
+
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        gap: 3,
-        width: 36,
-        flexShrink: 0,
-      }}
-    >
-      <img
-        src={isProp ? IMG_OWNER : IMG_VIEWER}
-        alt=""
+    <>
+      <div
+        {...(coachHighlight ? { "data-coach": "households-members" } : {})}
         style={{
-          width: 28,
-          height: 34,
-          borderRadius: 8,
-          objectFit: "cover",
-          objectPosition: "center top",
-          display: "block",
-          boxShadow: "0 2px 8px rgba(20,47,29,.12)",
-          border: "1px solid #e3ebe6",
+          width: "100%",
+          maxWidth: 280,
+          marginTop: 6,
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          alignItems: "stretch",
         }}
+      >
+        {loading ? (
+          <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: MUTED, textAlign: "center" }}>
+            Cargando…
+          </p>
+        ) : (
+          accounts.map((acc) => (
+            <div
+              key={acc.id}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                padding: "2px 0",
+              }}
+            >
+              <Avatar name={acc.name} photo={acc.photo} size={36} color={GREEN} />
+              <span
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  fontSize: 13.5,
+                  fontWeight: 800,
+                  color: INK,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                  textAlign: "left",
+                }}
+              >
+                {acc.name}
+                {acc.isYou ? (
+                  <span style={{ fontWeight: 600, color: MUTED }}> · tú</span>
+                ) : null}
+              </span>
+              {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember && (
+                <button
+                  type="button"
+                  aria-label={`Quitar a ${acc.name}`}
+                  disabled={removingId === acc.id}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setRemoveConfirm({ id: acc.id, name: acc.name });
+                  }}
+                  style={{
+                    width: 30,
+                    height: 30,
+                    borderRadius: 9,
+                    border: "1.5px solid #f0d4d4",
+                    background: "#fff5f5",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    cursor: removingId === acc.id ? "wait" : "pointer",
+                    padding: 0,
+                    flexShrink: 0,
+                  }}
+                >
+                  <UserMinus size={14} color="#b42318" strokeWidth={2.3} />
+                </button>
+              )}
+            </div>
+          ))
+        )}
+      </div>
+
+      <ConfirmSheet
+        open={Boolean(removeConfirm)}
+        title="¿Quitar acceso?"
+        message={
+          removeConfirm
+            ? `${removeConfirm.name} dejará de ver menú, compra y despensa de este hogar.`
+            : ""
+        }
+        confirmLabel="Quitar acceso"
+        cancelLabel="Cancelar"
+        danger
+        busy={Boolean(removingId)}
+        onConfirm={confirmRemove}
+        onClose={() => !removingId && setRemoveConfirm(null)}
       />
-      <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
-        {isProp ? "Prop" : "Vis"}
-      </span>
-    </div>
+    </>
   );
 }
 
@@ -467,277 +573,6 @@ export function HouseholdInviteBanner({ pendingInvite, accepting, onAccept, onDi
   );
 }
 
-function MembersSheet({
-  open,
-  onClose,
-  householdId,
-  householdName,
-  userId,
-  isOwner,
-  canShare,
-  inviteUrl,
-  onRemoveMember,
-}) {
-  const [accounts, setAccounts] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [shareCopied, setShareCopied] = useState(false);
-  const [removingId, setRemovingId] = useState(null);
-  const [removeConfirm, setRemoveConfirm] = useState(null);
-
-  useEffect(() => {
-    if (!open || !householdId) {
-      setAccounts([]);
-      return;
-    }
-    let cancelled = false;
-    setLoading(true);
-    loadHouseholdMembers(householdId, userId).then((rows) => {
-      if (!cancelled) {
-        setAccounts(rows);
-        setLoading(false);
-      }
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [open, householdId, userId]);
-
-  const refreshMembers = useCallback(async () => {
-    if (!householdId) return;
-    const rows = await loadHouseholdMembers(householdId, userId);
-    setAccounts(rows);
-  }, [householdId, userId]);
-
-  const handleShare = async () => {
-    if (!inviteUrl) return;
-    const text = `Únete a mi hogar en MenuPlan: ${inviteUrl}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "Invitación MenuPlan", text, url: inviteUrl });
-        return;
-      }
-    } catch {
-      /* fall through */
-    }
-    try {
-      await navigator.clipboard.writeText(inviteUrl);
-      setShareCopied(true);
-      setTimeout(() => setShareCopied(false), 2000);
-    } catch {
-      window.prompt("Copia este enlace:", inviteUrl);
-    }
-  };
-
-  const handleRemove = (memberId, memberName) => {
-    if (!householdId || !onRemoveMember) return;
-    setRemoveConfirm({ id: memberId, name: memberName });
-  };
-
-  const confirmRemove = async () => {
-    if (!removeConfirm || !householdId || !onRemoveMember) return;
-    setRemovingId(removeConfirm.id);
-    const ok = await onRemoveMember(householdId, removeConfirm.id);
-    setRemovingId(null);
-    setRemoveConfirm(null);
-    if (ok) await refreshMembers();
-  };
-
-  if (!open && !removeConfirm) return null;
-
-  const viewerCount = accounts.filter((a) => a.roleLabel === "Visitante").length;
-
-  const sheet = open
-    ? createPortal(
-    <div onClick={onClose} className="mp-overlay-in" style={sheetOverlayStyle()}>
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Miembros de ${householdName}`}
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: 320,
-          maxWidth: "calc(100vw - 40px)",
-          background: "#fff",
-          borderRadius: 22,
-          border: "1px solid #dce8e1",
-          boxShadow: "0 24px 48px rgba(20,47,29,.2)",
-          overflow: "hidden",
-          animation: "hogSheetIn .24s cubic-bezier(.4,0,.2,1) both",
-        }}
-      >
-        <div style={{ background: HEADER_BAND, padding: "18px 18px 16px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span
-              style={{
-                width: 36,
-                height: 36,
-                borderRadius: 11,
-                background: "#dce8ff",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flexShrink: 0,
-              }}
-            >
-              <Users size={18} color="#3b5bdb" strokeWidth={2.4} />
-            </span>
-            <h2
-              style={{
-                margin: 0,
-                flex: 1,
-                minWidth: 0,
-                fontSize: 17,
-                fontWeight: 900,
-                color: INK,
-                letterSpacing: "-.25px",
-                lineHeight: 1.25,
-                textAlign: "left",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Miembros de {householdName}
-            </h2>
-          </div>
-        </div>
-
-        <div
-          aria-hidden
-          style={{ height: 1, background: "linear-gradient(90deg, transparent, #c8d9ce 8%, #c8d9ce 92%, transparent)" }}
-        />
-
-        <div style={{ padding: "14px 18px 18px" }}>
-          {loading ? (
-            <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: MUTED, textAlign: "center", padding: "8px 0" }}>
-              Cargando…
-            </p>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {accounts.map((acc) => (
-                <div
-                  key={acc.id}
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "auto 1fr auto auto",
-                    alignItems: "center",
-                    gap: 10,
-                    padding: "2px 0",
-                  }}
-                >
-                  <Avatar name={acc.name} photo={acc.photo} size={42} color={GREEN} />
-                  <span
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 800,
-                      color: INK,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      textAlign: "left",
-                    }}
-                  >
-                    {acc.name}
-                  </span>
-                  <RoleIllustration roleLabel={acc.roleLabel} />
-                  {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember && (
-                    <button
-                      type="button"
-                      aria-label={`Quitar a ${acc.name}`}
-                      disabled={removingId === acc.id}
-                      onClick={() => handleRemove(acc.id, acc.name)}
-                      style={{
-                        width: 32,
-                        height: 32,
-                        borderRadius: 10,
-                        border: "1.5px solid #f0d4d4",
-                        background: "#fff5f5",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        cursor: removingId === acc.id ? "wait" : "pointer",
-                        padding: 0,
-                        flexShrink: 0,
-                      }}
-                    >
-                      <UserMinus size={15} color="#b42318" strokeWidth={2.3} />
-                    </button>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {isOwner && canShare && inviteUrl && (
-            <button
-              type="button"
-              onClick={handleShare}
-              style={{
-                width: "100%",
-                marginTop: 14,
-                padding: "11px 14px",
-                borderRadius: 12,
-                border: "none",
-                background: shareCopied ? "#eef6f0" : GREEN,
-                color: shareCopied ? GREEN : "#fff",
-                fontSize: 13,
-                fontWeight: 800,
-                cursor: "pointer",
-                fontFamily: "inherit",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 8,
-              }}
-            >
-              {shareCopied ? <Check size={16} /> : <Share2 size={16} />}
-              {shareCopied ? "Enlace copiado" : "Compartir enlace"}
-            </button>
-          )}
-
-          {isOwner && !loading && viewerCount === 0 && (
-            <p
-              style={{
-                margin: "14px 0 0",
-                fontSize: 11,
-                fontWeight: 600,
-                color: MUTED,
-                lineHeight: 1.45,
-                textAlign: "center",
-              }}
-            >
-              Cuando alguien acepte tu invitación, aparecerá aquí.
-            </p>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body,
-  )
-    : null;
-
-  return (
-    <>
-      {sheet}
-      <ConfirmSheet
-        open={Boolean(removeConfirm)}
-        title="¿Quitar acceso?"
-        message={
-          removeConfirm
-            ? `${removeConfirm.name} dejará de ver menú, compra y despensa de este hogar.`
-            : ""
-        }
-        confirmLabel="Quitar acceso"
-        cancelLabel="Cancelar"
-        danger
-        busy={Boolean(removingId)}
-        onConfirm={confirmRemove}
-        onClose={() => !removingId && setRemoveConfirm(null)}
-      />
-    </>
-  );
-}
-
 function CardOverflowMenu({ actions, coachSelector }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
@@ -865,7 +700,6 @@ function SlotCard({
   coachOwner = false,
   coachViewer = false,
 }) {
-  const [accountsOpen, setAccountsOpen] = useState(false);
   const [confirm, setConfirm] = useState(null);
   const h = slot.household;
   const empty = !h;
@@ -1050,6 +884,7 @@ function SlotCard({
         style={{
           position: "relative",
           width: "min(310px, 88vw)",
+          marginTop: 6,
           marginBottom: 0,
         }}
       >
@@ -1122,54 +957,16 @@ function SlotCard({
             />
           </div>
         </div>
-
-        {h && (
-          <button
-            type="button"
-            aria-label="Ver miembros con acceso"
-            onClick={(e) => {
-              e.stopPropagation();
-              setAccountsOpen(true);
-            }}
-            style={{
-              position: "absolute",
-              bottom: 10,
-              left: 10,
-              zIndex: 3,
-              width: 40,
-              height: 40,
-              borderRadius: 999,
-              border: "none",
-              background: "rgba(255,255,255,.94)",
-              boxShadow: "0 3px 14px rgba(20,47,29,.18)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-              padding: 0,
-            }}
-            {...(coachOwner ? { "data-coach": "households-members" } : {})}
-          >
-            <Users size={19} color={GREEN} strokeWidth={2.35} />
-          </button>
-        )}
       </div>
 
       {h && (
-        <span
-          style={{
-            padding: "3px 11px",
-            borderRadius: 999,
-            fontSize: 10,
-            fontWeight: 800,
-            background: slot.kind === "owner" ? GREEN : VIEWER_BLUE,
-            color: "#fff",
-            lineHeight: 1.3,
-            marginTop: 2,
-          }}
-        >
-          {slot.roleLabel}
-        </span>
+        <HouseholdAccessList
+          householdId={h.id}
+          userId={user?.id}
+          isOwner={Boolean(h.role === "owner" && h.isOwn && isGlobalActive)}
+          onRemoveMember={onRemoveMember}
+          coachHighlight={coachOwner}
+        />
       )}
 
       {needsSetup && (
@@ -1281,18 +1078,6 @@ function SlotCard({
         </button>
       )}
 
-      <MembersSheet
-        open={accountsOpen}
-        onClose={() => setAccountsOpen(false)}
-        householdId={h?.id}
-        householdName={displayName}
-        userId={user?.id}
-        isOwner={Boolean(h?.role === "owner" && h?.isOwn)}
-        canShare={slotCanShare}
-        inviteUrl={slotInviteUrl}
-        onRemoveMember={onRemoveMember}
-      />
-
       <ConfirmSheet
         open={Boolean(confirm)}
         title={confirm?.title ?? ""}
@@ -1355,6 +1140,40 @@ function HouseholdCarousel({
 
   return (
     <div style={{ width: "100%", paddingBottom: 4 }}>
+      {slots.length > 1 && (
+        <div
+          data-coach="households-dots"
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 6,
+            marginTop: 2,
+            marginBottom: 10,
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
+          {slots.map((slot, i) => (
+            <button
+              key={slot.kind + (slot.household?.id ?? slot.label)}
+              type="button"
+              aria-label={`Hogar ${i + 1}`}
+              onClick={() => onSlideChange(i)}
+              style={{
+                width: i === slideIndex ? 18 : 7,
+                height: 7,
+                borderRadius: 999,
+                border: "none",
+                padding: 0,
+                background: i === slideIndex ? GREEN : "#d4e0d8",
+                cursor: "pointer",
+                transition: "width 0.25s ease, background 0.25s ease",
+              }}
+            />
+          ))}
+        </div>
+      )}
+
       <div
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
@@ -1411,40 +1230,6 @@ function HouseholdCarousel({
           })}
         </div>
       </div>
-
-      {slots.length > 1 && (
-        <div
-          data-coach="households-dots"
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: 6,
-            marginTop: 6,
-            marginBottom: 28,
-            position: "relative",
-            zIndex: 2,
-          }}
-        >
-          {slots.map((slot, i) => (
-            <button
-              key={slot.kind + (slot.household?.id ?? slot.label)}
-              type="button"
-              aria-label={`Hogar ${i + 1}`}
-              onClick={() => onSlideChange(i)}
-              style={{
-                width: i === slideIndex ? 18 : 7,
-                height: 7,
-                borderRadius: 999,
-                border: "none",
-                padding: 0,
-                background: i === slideIndex ? GREEN : "#d4e0d8",
-                cursor: "pointer",
-                transition: "width 0.25s ease, background 0.25s ease",
-              }}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }
