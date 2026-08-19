@@ -79,43 +79,6 @@ function MemberRow({ name, role }) {
   );
 }
 
-function SelectionCheck({ active, disabled, onSelect }) {
-  return (
-    <button
-      type="button"
-      aria-label={active ? "Hogar seleccionado" : "Seleccionar hogar"}
-      aria-pressed={active}
-      disabled={disabled}
-      onClick={() => !active && onSelect?.()}
-      style={{
-        margin: 0,
-        padding: 0,
-        border: "none",
-        background: "transparent",
-        cursor: disabled ? "default" : active ? "default" : "pointer",
-        lineHeight: 0,
-        flexShrink: 0,
-      }}
-    >
-      <span
-        style={{
-          width: 26,
-          height: 26,
-          borderRadius: "50%",
-          display: "inline-flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: active ? "none" : "2px solid #cdd8d0",
-          background: active ? GREEN : "#fff",
-          boxShadow: active ? "0 2px 8px rgba(45,90,61,.28)" : "none",
-        }}
-      >
-        {active && <Check size={14} color="#fff" strokeWidth={3} />}
-      </span>
-    </button>
-  );
-}
-
 const ILLU_V_GAP = 6;
 
 function CardSection({ label, children }) {
@@ -135,26 +98,6 @@ function CardSection({ label, children }) {
         {label}
       </p>
       {children}
-    </div>
-  );
-}
-
-function StatBlock({ value, label }) {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "baseline",
-        gap: 8,
-        padding: "7px 10px",
-        borderRadius: 11,
-        background: "#f4f8f5",
-        width: "100%",
-        boxSizing: "border-box",
-      }}
-    >
-      <span style={{ fontSize: 22, fontWeight: 900, color: INK, lineHeight: 1 }}>{value}</span>
-      <span style={{ fontSize: 10.5, fontWeight: 700, color: "#7a9485", lineHeight: 1.2 }}>{label}</span>
     </div>
   );
 }
@@ -197,7 +140,6 @@ function SlotCard({
   userLoggedIn,
   householdLoading,
   familyMembers = [],
-  menuCount = 0,
   canShareInvite = false,
   inviteUrl = null,
   inviteCopied = false,
@@ -287,6 +229,15 @@ function SlotCard({
 
   return (
     <div
+      role={h && !active ? "button" : undefined}
+      tabIndex={h && !active ? 0 : undefined}
+      onClick={() => h && !active && onSwitch?.(h.id)}
+      onKeyDown={(e) => {
+        if (h && !active && (e.key === "Enter" || e.key === " ")) {
+          e.preventDefault();
+          onSwitch?.(h.id);
+        }
+      }}
       style={{
         background: "#fff",
         borderRadius: 18,
@@ -294,21 +245,65 @@ function SlotCard({
         padding: "10px 10px 8px",
         boxShadow: active ? "0 10px 22px -14px rgba(45,90,61,.38)" : "0 4px 14px -10px rgba(20,47,29,.08)",
         opacity: empty && !ownerPending ? 0.72 : 1,
+        cursor: h && !active ? "pointer" : "default",
       }}
     >
-      {/* Cabecera: título + check */}
+      {/* Cabecera: título + acciones */}
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: ILLU_V_GAP }}>
         <div style={{ width: "45%", flexShrink: 0, minWidth: 0, position: "relative", zIndex: 2 }}>
           {titleNode}
         </div>
-        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", minWidth: 0 }}>
-          {h ? (
-            <SelectionCheck
-              active={active}
-              disabled={active}
-              onSelect={() => onSwitch?.(h.id)}
-            />
-          ) : null}
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6, minWidth: 0 }}>
+          {showShare && (
+            <button
+              type="button"
+              aria-label={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
+              title={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
+              onClick={(e) => {
+                e.stopPropagation();
+                onCopyInvite?.();
+              }}
+              style={{
+                margin: 0,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                lineHeight: 0,
+                color: GREEN,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {inviteCopied ? <Check size={18} strokeWidth={2.5} /> : <Share2 size={18} strokeWidth={2.2} />}
+            </button>
+          )}
+          {h?.role === "viewer" && (
+            <button
+              type="button"
+              aria-label="Abandonar hogar"
+              title="Abandonar hogar"
+              onClick={(e) => {
+                e.stopPropagation();
+                onLeave?.(h.id);
+              }}
+              style={{
+                margin: 0,
+                padding: 0,
+                border: "none",
+                background: "transparent",
+                cursor: "pointer",
+                lineHeight: 0,
+                color: "#b42318",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <LogOut size={18} strokeWidth={2.2} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -466,12 +461,6 @@ function SlotCard({
           {h ? (
             <>
               <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, justifyContent: "space-between" }}>
-                {showOwnerPanel && (
-                  <CardSection label="Menús">
-                    <StatBlock value={menuCount} label="generados" />
-                  </CardSection>
-                )}
-
                 <CardSection label="Miembros">
                   <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                     {accessRows.map((row) => (
@@ -494,59 +483,6 @@ function SlotCard({
                   </CardSection>
                 )}
               </div>
-
-              {(showShare || h.role === "viewer") && (
-                <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 4, borderTop: "1px solid #eef4f0" }}>
-                  {showShare && (
-                    <button
-                      type="button"
-                      onClick={onCopyInvite}
-                      style={{
-                        margin: 0,
-                        padding: 0,
-                        border: "none",
-                        background: "transparent",
-                        font: "inherit",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 5,
-                        color: GREEN,
-                        fontWeight: 800,
-                        fontSize: 10.5,
-                        cursor: "pointer",
-                        alignSelf: "flex-start",
-                      }}
-                    >
-                      {inviteCopied ? <Check size={13} strokeWidth={2.5} /> : <Share2 size={13} strokeWidth={2.3} />}
-                      {inviteCopied ? "Enlace copiado" : "Compartir invitación"}
-                    </button>
-                  )}
-                  {h.role === "viewer" && (
-                    <button
-                      type="button"
-                      onClick={() => onLeave?.(h.id)}
-                      style={{
-                        margin: 0,
-                        padding: 0,
-                        border: "none",
-                        background: "transparent",
-                        font: "inherit",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 5,
-                        color: "#b42318",
-                        fontWeight: 700,
-                        fontSize: 10.5,
-                        cursor: "pointer",
-                        alignSelf: "flex-start",
-                      }}
-                    >
-                      <LogOut size={13} />
-                      Abandonar hogar
-                    </button>
-                  )}
-                </div>
-              )}
             </>
           ) : (
             emptyHint && (
@@ -567,7 +503,6 @@ export function HouseholdsScreen({
   householdLoading = false,
   householdError = null,
   members = [],
-  menuCount = 0,
   readOnly,
   canShareInvite,
   inviteUrl,
@@ -754,7 +689,6 @@ export function HouseholdsScreen({
                     userLoggedIn={Boolean(user)}
                     householdLoading={householdLoading}
                     familyMembers={members}
-                    menuCount={menuCount}
                     canShareInvite={Boolean(isActive && canShareInvite && inviteUrl && slot.kind === "owner")}
                     inviteUrl={inviteUrl}
                     inviteCopied={copied}

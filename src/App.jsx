@@ -4014,7 +4014,6 @@ export default function App() {
                 householdLoading={householdLoading}
                 householdError={householdError}
                 members={data.members ?? []}
-                menuCount={Object.keys(data.menus ?? {}).length}
                 readOnly={householdReadOnly}
                 canShareInvite={canShareInvite}
                 inviteUrl={inviteUrl}
