@@ -29,7 +29,8 @@ import recipesCardPhoto3 from "../assets/dashboard/recipes-card-3.jpg";
 import pantryCardPhoto2 from "../assets/dashboard/pantry-card-2.jpg";
 import pantryCardPhoto3 from "../assets/dashboard/pantry-card-3.jpg";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
-import { HouseholdSwitcher } from "./HouseholdsScreen.jsx";
+
+const HOGAR_ICON = "/avatares/hogares/hogar_propietario.jpg";
 
 const PAGE_BG = "#f4f8f5";
 const GREEN = "#2d5a3d";
@@ -323,9 +324,7 @@ export function DashboardScreen({
   user,
   data,
   menuPlan,
-  households,
   activeHousehold,
-  onSwitchHousehold,
   onOpenHouseholds,
   onNav,
   onViewMenu,
@@ -430,9 +429,25 @@ export function DashboardScreen({
             }}
           />
 
-          {/* El interruptor sencillo/avanzado se movió a la primera pantalla del
-              asistente: aquí pasaba desapercibido y la gente no sabía que
-              existía. */}
+          {onOpenHouseholds && (
+            <button
+              type="button"
+              onClick={onOpenHouseholds}
+              aria-label="Hogares"
+              title="Hogares"
+              style={{
+                position: "absolute", top: 14, left: 14, zIndex: 1,
+                width: 34, height: 34, borderRadius: "50%",
+                border: "2px solid rgba(255,255,255,.35)",
+                background: "rgba(255,255,255,.22)",
+                backdropFilter: "blur(6px)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                cursor: "pointer", padding: 0, overflow: "hidden",
+              }}
+            >
+              <img src={HOGAR_ICON} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            </button>
+          )}
 
           {/* "Perfil" lost its bottom-nav tab (see BottomNav in ui.jsx) —
               it's reached from here now, the "Inicio" it always stays under. */}
@@ -474,14 +489,15 @@ export function DashboardScreen({
           </p>
 
           {user && activeHousehold && (
-            <div style={{ position: "relative", zIndex: 1, marginTop: 10 }}>
-              <HouseholdSwitcher
-                households={households ?? []}
-                activeHousehold={activeHousehold}
-                onOpenHouseholds={onOpenHouseholds}
-                onSwitchHousehold={onSwitchHousehold}
-              />
-            </div>
+            <p
+              style={{
+                position: "relative", zIndex: 1, marginTop: 8,
+                fontSize: 12.5, fontWeight: 700, color: "rgba(255,255,255,.88)",
+                textShadow: "0 1px 4px rgba(0,0,0,.35)",
+              }}
+            >
+              {activeHousehold.name}
+            </p>
           )}
 
           {/* family avatars */}

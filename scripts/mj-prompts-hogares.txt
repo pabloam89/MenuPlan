@@ -1,0 +1,31 @@
+Esquema — Hogares compartidos · iconos app + tiles biblioteca.
+Estilo MenuPlan: Pixar / Disney 3D, familia española cotidiana (no genérico USA), cálido, app illustration.
+Fondo: blanco puro (#fff) para iconos 1:1; tiles biblioteca 4:5.
+Cola fija iconos: Pixar animation style, Disney warmth, Spanish family home vibe, soft natural colors, clean mobile app icon, centered subject, pure white background, shallow depth of field --no text, letters, watermark, logo --seed 2151241667 --v 7 --ar 1:1
+
+Destino iconos hogar: public/avatares/hogares/{slug}.jpg
+Destino tiles biblioteca: public/avatares/cards/{slug}.jpg
+
+--- Iconos de rol (slot hogar) ---
+
+[hogar_propietario]  Slot owner — tu hogar, tú mandas
+3D illustrated cartoon app icon, a charming Spanish townhouse with terracotta roof and green wooden door slightly open, a friendly parent holding a small golden house key with a proud warm smile, potted geraniums on the windowsill, Mediterranean afternoon light, feeling of ownership and family leadership, single centered composition on pure white background, Pixar animation style, Disney warmth, Spanish family home vibe, soft natural colors, clean mobile app icon, centered subject, pure white background, shallow depth of field --no text, letters, watermark, logo --seed 2151241667 --v 7 --ar 1:1
+
+[hogar_visitante]  Slot viewer — misma casita que propietario, invitado sin llave
+3D illustrated cartoon app icon, the same charming Spanish townhouse with terracotta roof and green wooden door slightly open, a friendly guest standing at the doorstep waving hello with a warm grateful smile and open empty hands no keys, potted geraniums on the windowsill, Mediterranean afternoon light, feeling of being warmly welcomed into someone else's home, single centered composition on pure white background, Pixar animation style, Disney warmth, Spanish family home vibe, soft natural colors, clean mobile app icon, centered subject, pure white background, shallow depth of field --no text, letters, watermark, logo --seed 2151241667 --v 7 --ar 1:1
+
+[hogar_apagado]  Slot vacío / dormant — aún no configurado
+3D illustrated cartoon app icon, a soft grey-blue outline of a small Spanish village house sleeping peacefully, a tiny moon and one dim window glow, gentle placeholder not sad, centered on pure white background, Pixar animation style, Disney warmth, Spanish family home vibe, soft natural colors, clean mobile app icon, centered subject, pure white background, shallow depth of field --no text, letters, watermark, logo --seed 2151241667 --v 7 --ar 1:1
+
+[hogar_compartir]  Botón compartir enlace / invite
+3D illustrated cartoon app icon, two Spanish family homes side by side connected by a glowing friendly link made of small hearts, suggestion of WhatsApp share without any logo, multigenerational warmth abuelos y nietos vibe, centered on pure white background, Pixar animation style, Disney warmth, soft natural colors, clean mobile app icon --no text, letters, watermark, logo --seed 2151241667 --v 7 --ar 1:1
+
+--- Tiles biblioteca (Dashboard Hogares) ---
+
+Cola fija tiles: Pixar animation style, Disney warmth, Spanish kitchen vibe, soft natural colors, clean app tile illustration, pure white background --no text, letters, watermark --seed 2151241667 --v 7 --ar 4:5
+
+[biblioteca_favoritas]  Tile → Favoritas personales
+3D illustrated cartoon scene, a Spanish kitchen counter with recipe cards and heart stickers, a plate of tortilla de patatas thumbnail on top card, warm afternoon light through window, personal cookbook collection vibe, centered composition on pure white background, Pixar animation style, Disney warmth, Spanish kitchen vibe, soft natural colors, clean app tile illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 4:5
+
+[biblioteca_mis_recetas]  Tile → Mis recetas creadas
+3D illustrated cartoon scene, a cheerful notebook on a rustic Spanish kitchen table with a pencil and tiny AI sparkle writing a recipe, olive oil bottle and garlic nearby, homemade creativity, centered on pure white background, Pixar animation style, Disney warmth, Spanish kitchen vibe, soft natural colors, clean app tile illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 4:5

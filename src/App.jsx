@@ -3891,9 +3891,7 @@ export default function App() {
                 user={user}
                 data={data}
                 menuPlan={menuPlan}
-                households={households}
                 activeHousehold={activeHousehold}
-                onSwitchHousehold={handleSwitchHousehold}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
@@ -3994,13 +3992,26 @@ export default function App() {
                 canShareInvite={canShareInvite}
                 inviteUrl={inviteUrl}
                 onNav={handleNav}
+                onBack={() => back(() => setScreen("dashboard"))}
                 onSwitchHousehold={handleSwitchHousehold}
                 onLeaveHousehold={leaveHouseholdMembership}
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
-                personalRecipes={ownUserRecipes}
-                personalFavoriteCount={Object.values(data.recipeVotes ?? {}).filter((v) => v?.isFavorite).length}
+                userRecipes={ownUserRecipes}
+                recipeVotes={data.recipeVotes}
+                scopeGroups={favoriteScopeGroups}
+                onSetFavoriteScope={handleSetFavoriteScope}
+                onOpenRecipe={handleOpenCatalogRecipe}
+                onOpenRecipePlanner={() => {
+                  recipePlannerOriginRef.current = "households";
+                  setEditingRecipe(null);
+                  fwd(() => setScreen("recipePlanner"));
+                }}
+                onBrowseGarnishCombo={(recipe, garnish) => {
+                  if (!garnish?.id) return;
+                  handleOpenCatalogRecipe(recipe, { garnishId: garnish.id, initialCourse: "combinado" });
+                }}
               />
             </Suspense>
           </div>
@@ -4023,7 +4034,8 @@ export default function App() {
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
                 onEditMembers={() => fwd(() => setScreen("members"))}
-                onOpenHouseholds={() => fwd(() => setScreen("households"))}
+                activeHousehold={activeHousehold}
+                householdReadOnly={householdReadOnly}
               />
             </Suspense>
           </div>
