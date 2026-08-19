@@ -23,6 +23,8 @@ const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 
 
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
+const SEG_MIEMBROS = "/avatares/hogares/segcontrol_miembros.png";
+const SEG_COMENSALES = "/avatares/hogares/segcontrol_comensales.png";
 
 function formatJoinedAt(iso) {
   if (!iso) return null;
@@ -47,27 +49,19 @@ function buildSlots(households, activeHousehold, user) {
   ];
 }
 
-function RoleIcon({ role, size = 22 }) {
-  const src = role === "owner" ? IMG_OWNER : IMG_VIEWER;
+function MemberRow({ name, status }) {
+  const isOwner = status === "Prop";
   return (
-    <img
-      src={src}
-      alt=""
+    <div
       style={{
-        width: size,
-        height: size,
-        borderRadius: 6,
-        objectFit: "cover",
-        flexShrink: 0,
+        display: "grid",
+        gridTemplateColumns: "1fr auto",
+        alignItems: "center",
+        gap: 8,
+        padding: "7px 0",
+        borderBottom: "1px solid #e3ebe6",
       }}
-    />
-  );
-}
-
-function MemberRow({ name, role }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-      <RoleIcon role={role} />
+    >
       <span
         style={{
           fontSize: 13,
@@ -76,9 +70,24 @@ function MemberRow({ name, role }) {
           overflow: "hidden",
           textOverflow: "ellipsis",
           whiteSpace: "nowrap",
+          minWidth: 0,
         }}
       >
         {name}
+      </span>
+      <span
+        style={{
+          padding: "2px 8px",
+          borderRadius: 999,
+          fontSize: 9,
+          fontWeight: 800,
+          background: isOwner ? GREEN : "#eef4f0",
+          color: isOwner ? "#fff" : GREEN,
+          lineHeight: 1.3,
+          flexShrink: 0,
+        }}
+      >
+        {status}
       </span>
     </div>
   );
@@ -112,10 +121,33 @@ function HeaderIconButton({ label, title, onClick, color = GREEN, children }) {
   );
 }
 
+function SegmentIcon({ src, Icon, active }) {
+  const [failed, setFailed] = useState(false);
+  if (src && !failed) {
+    return (
+      <img
+        src={src}
+        alt=""
+        onError={() => setFailed(true)}
+        style={{
+          width: 22,
+          height: 22,
+          objectFit: "contain",
+          display: "block",
+          filter: active
+            ? "brightness(0) invert(1)"
+            : "grayscale(.2) saturate(1.1)",
+        }}
+      />
+    );
+  }
+  return <Icon size={17} strokeWidth={2.3} />;
+}
+
 function PeopleSegment({ value, onChange }) {
   const segments = [
-    { id: "members", label: "Miembros", Icon: Users },
-    { id: "diners", label: "Comensales", Icon: UserRound },
+    { id: "members", label: "Miembros", Icon: Users, img: SEG_MIEMBROS },
+    { id: "diners", label: "Comensales", Icon: UserRound, img: SEG_COMENSALES },
   ];
   return (
     <div
@@ -123,14 +155,14 @@ function PeopleSegment({ value, onChange }) {
       aria-label="Miembros o comensales"
       style={{
         display: "flex",
-        gap: 2,
-        padding: 3,
-        borderRadius: 11,
-        background: "#eef4ef",
-        border: "1px solid #dce8e0",
+        gap: 4,
+        padding: 4,
+        borderRadius: 14,
+        background: "linear-gradient(180deg, #eef4f0 0%, #e5ece7 100%)",
+        boxShadow: "inset 0 1px 2px rgba(20,47,29,.07)",
       }}
     >
-      {segments.map(({ id, label, Icon }) => {
+      {segments.map(({ id, label, Icon, img }) => {
         const on = value === id;
         return (
           <button
@@ -143,20 +175,23 @@ function PeopleSegment({ value, onChange }) {
             style={{
               flex: 1,
               display: "inline-flex",
+              flexDirection: "column",
               alignItems: "center",
               justifyContent: "center",
-              padding: "7px 0",
-              borderRadius: 8,
-              border: "none",
+              gap: 3,
+              padding: "8px 4px 7px",
+              borderRadius: 11,
+              border: on ? "none" : "1px solid transparent",
               cursor: "pointer",
               fontFamily: "inherit",
-              background: on ? "#fff" : "transparent",
-              color: on ? GREEN : "#7a9082",
-              boxShadow: on ? "0 1px 3px rgba(20,47,29,.12)" : "none",
-              transition: "all .15s",
+              background: on ? GREEN : "transparent",
+              color: on ? "#fff" : "#6b8274",
+              boxShadow: on ? "0 3px 10px rgba(45,90,61,.28)" : "none",
+              transition: "all .18s ease",
             }}
           >
-            <Icon size={16} strokeWidth={2.2} />
+            <SegmentIcon src={img} Icon={Icon} active={on} />
+            <span style={{ fontSize: 9, fontWeight: 800, lineHeight: 1, letterSpacing: "-.1px" }}>{label}</span>
           </button>
         );
       })}
@@ -268,8 +303,8 @@ function SlotCard({
 
   const accessRows = useMemo(() => {
     if (!h || !userName) return [];
-    if (h.role === "owner") return [{ name: userName, role: "owner" }];
-    return [{ name: userName, role: "viewer" }];
+    const status = h.role === "owner" ? "Prop" : "Vis";
+    return [{ name: userName, role: h.role, status }];
   }, [h, userName]);
 
   let emptyHint = null;
@@ -295,7 +330,6 @@ function SlotCard({
       autoFocus
       style={{
         width: "100%",
-        maxWidth: 160,
         fontSize: 12,
         fontWeight: 800,
         border: "1.5px solid #c8ddd0",
@@ -322,7 +356,7 @@ function SlotCard({
         cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
         lineHeight: 1.15,
         letterSpacing: "-.3px",
-        maxWidth: "100%",
+        width: "100%",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
@@ -345,61 +379,46 @@ function SlotCard({
         opacity: empty && !ownerPending ? 0.72 : 1,
       }}
     >
-      {/* Cabecera: título centrado + acciones */}
+      {/* Cabecera: solo acciones */}
       <div
         style={{
-          position: "relative",
           display: "flex",
           alignItems: "center",
           justifyContent: "flex-end",
-          minHeight: 30,
-          marginBottom: ILLU_V_GAP,
+          gap: 8,
+          minHeight: 26,
+          marginBottom: 4,
         }}
       >
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            display: "flex",
-            justifyContent: "center",
-            pointerEvents: "none",
-            padding: "0 72px",
-          }}
-        >
-          <div style={{ pointerEvents: "auto", minWidth: 0, maxWidth: "100%" }}>{titleNode}</div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0, zIndex: 1 }}>
-          {showShare && (
-            <HeaderIconButton
-              label={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
-              onClick={(e) => {
-                e.stopPropagation();
-                onCopyInvite?.();
-              }}
-            >
-              {inviteCopied ? <Check size={18} strokeWidth={2.5} /> : <Share2 size={18} strokeWidth={2.2} />}
-            </HeaderIconButton>
-          )}
-          {h?.role === "viewer" && (
-            <HeaderIconButton
-              label="Abandonar hogar"
-              color="#b42318"
-              onClick={(e) => {
-                e.stopPropagation();
-                onLeave?.(h.id);
-              }}
-            >
-              <Trash2 size={18} strokeWidth={2.2} />
-            </HeaderIconButton>
-          )}
-          {h && (
-            <SelectionCheck
-              active={active}
-              onSelect={() => onSwitch?.(h.id)}
-            />
-          )}
-        </div>
+        {showShare && (
+          <HeaderIconButton
+            label={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
+            onClick={(e) => {
+              e.stopPropagation();
+              onCopyInvite?.();
+            }}
+          >
+            {inviteCopied ? <Check size={18} strokeWidth={2.5} /> : <Share2 size={18} strokeWidth={2.2} />}
+          </HeaderIconButton>
+        )}
+        {h?.role === "viewer" && (
+          <HeaderIconButton
+            label="Abandonar hogar"
+            color="#b42318"
+            onClick={(e) => {
+              e.stopPropagation();
+              onLeave?.(h.id);
+            }}
+          >
+            <Trash2 size={18} strokeWidth={2.2} />
+          </HeaderIconButton>
+        )}
+        {h && (
+          <SelectionCheck
+            active={active}
+            onSelect={() => onSwitch?.(h.id)}
+          />
+        )}
       </div>
 
       {/* Cuerpo: ilustración | panel info */}
@@ -414,6 +433,8 @@ function SlotCard({
             minWidth: 0,
           }}
         >
+          <div style={{ textAlign: "center", width: "100%" }}>{titleNode}</div>
+
           <div
             style={{
               display: "flex",
@@ -548,11 +569,11 @@ function SlotCard({
             minWidth: 0,
             background: h ? PANEL_BG : "transparent",
             borderRadius: 12,
-            padding: h ? "12px 10px" : 0,
+            padding: h ? "10px 8px 8px" : 0,
             display: "flex",
             flexDirection: "column",
-            gap: 12,
-            minHeight: showOwnerPanel ? 132 : undefined,
+            gap: 0,
+            minHeight: showOwnerPanel ? 140 : undefined,
           }}
         >
           {h ? (
@@ -561,19 +582,23 @@ function SlotCard({
                 <PeopleSegment value={peopleTab} onChange={setPeopleTab} />
               )}
 
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "4px 2px 8px" }}>
-                {(!showOwnerPanel || peopleTab === "members") && (
-                  <CardSection>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                      {accessRows.map((row) => (
-                        <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                      ))}
-                    </div>
-                  </CardSection>
-                )}
+              {(!showOwnerPanel || peopleTab === "members") && (
+                <CardSection>
+                  <div style={{ marginTop: showOwnerPanel ? 6 : 0 }}>
+                    {accessRows.map((row, i) => (
+                      <MemberRow
+                        key={row.role + row.name}
+                        name={row.name}
+                        status={row.status}
+                      />
+                    ))}
+                  </div>
+                </CardSection>
+              )}
 
-                {showOwnerPanel && peopleTab === "diners" && (
-                  <CardSection>
+              {showOwnerPanel && peopleTab === "diners" && (
+                <CardSection>
+                  <div style={{ marginTop: 8, padding: "4px 2px 6px" }}>
                     {familyMembers.length > 0 ? (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 12, justifyContent: "flex-start" }}>
                         {familyMembers.slice(0, 6).map((m) => (
@@ -581,13 +606,13 @@ function SlotCard({
                         ))}
                       </div>
                     ) : (
-                      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: MUTED, textAlign: "center", padding: "12px 0" }}>
+                      <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: MUTED, textAlign: "center", padding: "16px 0" }}>
                         Ninguno aún
                       </p>
                     )}
-                  </CardSection>
-                )}
-              </div>
+                  </div>
+                </CardSection>
+              )}
             </>
           ) : (
             emptyHint && (
