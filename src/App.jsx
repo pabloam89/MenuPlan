@@ -1101,13 +1101,16 @@ export default function App() {
     readOnly: householdReadOnly,
     canShareInvite,
     inviteUrl,
+    pendingInvite,
     switchHousehold,
     leave: leaveHouseholdMembership,
     renameHousehold,
-    advanceSetupStatus,
     destroyHousehold,
     refresh: refreshHouseholds,
     joinByToken: joinHouseholdByToken,
+    removeMember: removeHouseholdMember,
+    acceptPendingInvite,
+    dismissPendingInvite,
   } = useHousehold({ user, loading: authLoading });
 
   const syncMenuUserId = householdReadOnly ? activeHousehold?.ownerUserId : user?.id;
@@ -2072,8 +2075,22 @@ export default function App() {
   // When set, the recipe planner opens in "edit" mode for this user recipe.
   const [editingRecipe, setEditingRecipe] = useState(null);
   const [recipePrefsOpen, setRecipePrefsOpen] = useState(false);
+  const [acceptingInvite, setAcceptingInvite] = useState(false);
+  const pendingInviteNavRef = useRef(false);
   const fwd  = (fn) => { dirRef.current = "forward";  fn(); };
   const back = (fn) => { dirRef.current = "backward"; fn(); };
+
+  useEffect(() => {
+    if (!pendingInvite || !user?.id) {
+      pendingInviteNavRef.current = false;
+      return;
+    }
+    if (pendingInviteNavRef.current) return;
+    pendingInviteNavRef.current = true;
+    if (screen !== "households") {
+      fwd(() => setScreen("households"));
+    }
+  }, [pendingInvite, user?.id, screen]);
 
   const goToMenu = async () => {
     // Hard gate: no menu without at least one family member. The family step's
@@ -4016,18 +4033,28 @@ export default function App() {
                 householdError={householdError}
                 members={data.members ?? []}
                 readOnly={householdReadOnly}
-                canShareInvite={canShareInvite}
                 inviteUrl={inviteUrl}
+                pendingInvite={pendingInvite}
+                acceptingInvite={acceptingInvite}
+                onAcceptPendingInvite={async () => {
+                  setAcceptingInvite(true);
+                  await acceptPendingInvite();
+                  setAcceptingInvite(false);
+                }}
+                onDismissPendingInvite={dismissPendingInvite}
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("dashboard"))}
                 onOpenBiblioteca={() => fwd(() => setScreen("biblioteca"))}
+                onEditMembers={
+                  householdReadOnly ? undefined : () => fwd(() => setScreen("members"))
+                }
                 onRefresh={refreshHouseholds}
                 onSwitchHousehold={handleSwitchHousehold}
                 onLeaveHousehold={leaveHouseholdMembership}
                 onDestroyHousehold={destroyHousehold}
                 onJoinByToken={joinHouseholdByToken}
+                onRemoveMember={removeHouseholdMember}
                 onRenameHousehold={renameHousehold}
-                onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
               />
             </Suspense>
