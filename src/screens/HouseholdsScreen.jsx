@@ -8,6 +8,7 @@ import {
   LogOut,
   MoreHorizontal,
   RotateCw,
+  Settings,
   Share2,
   Trash2,
   UserMinus,
@@ -852,6 +853,7 @@ function SlotCard({
   onOpenJoinSheet,
   onRemoveMember,
   onEditMembers,
+  onAdvanceSetup,
   onRetry,
   renamingId,
   renameDraft,
@@ -867,6 +869,7 @@ function SlotCard({
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
   const slotInviteUrl = h?.inviteToken ? buildInviteUrl(h.inviteToken) : null;
   const slotCanShare = Boolean(h && h.role === "owner" && h.isOwn && canShareHouseholdInvite(h));
+  const needsSetup = Boolean(h && h.role === "owner" && h.isOwn && h.setupStatus === "dormant");
 
   let emptyHint = null;
   if (empty && !userLoggedIn) {
@@ -1156,6 +1159,49 @@ function SlotCard({
         </span>
       )}
 
+      {needsSetup && (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            marginTop: 2,
+            maxWidth: 280,
+          }}
+        >
+          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#6b8575", lineHeight: 1.35, textAlign: "center" }}>
+            Activa invitaciones para compartir el menú con tu familia.
+          </p>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onAdvanceSetup?.(h.id, "invite_ready");
+            }}
+            style={{
+              padding: "7px 16px",
+              borderRadius: 10,
+              border: "none",
+              background: GREEN,
+              color: "#fff",
+              fontSize: 12,
+              fontWeight: 800,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 6,
+              boxShadow: "0 2px 10px rgba(45,106,79,.22)",
+            }}
+          >
+            <Settings size={14} strokeWidth={2.4} />
+            Configurar hogar
+          </button>
+        </div>
+      )}
+
       {canActivate && (
         <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: GREEN, lineHeight: 1.3 }}>
           Toca para activar este hogar
@@ -1263,6 +1309,7 @@ function HouseholdCarousel({
   onOpenJoinSheet,
   onRemoveMember,
   onEditMembers,
+  onAdvanceSetup,
   onRetry,
   slideIndex,
   onSlideChange,
@@ -1336,6 +1383,7 @@ function HouseholdCarousel({
                   onOpenJoinSheet={onOpenJoinSheet}
                   onRemoveMember={onRemoveMember}
                   onEditMembers={onEditMembers}
+                  onAdvanceSetup={onAdvanceSetup}
                   onRetry={onRetry}
                   renamingId={renamingId}
                   renameDraft={renameDraft}
@@ -1403,6 +1451,7 @@ export function HouseholdsScreen({
   onBack,
   onOpenBiblioteca,
   onEditMembers,
+  onAdvanceSetup,
   onRefresh,
   onSwitchHousehold,
   onLeaveHousehold,
@@ -1630,6 +1679,7 @@ export function HouseholdsScreen({
               }}
               onRemoveMember={onRemoveMember}
               onEditMembers={onEditMembers}
+              onAdvanceSetup={onAdvanceSetup}
               onRetry={() => onRefresh?.()}
               slideIndex={slideIndex}
               onSlideChange={setSlideIndex}
