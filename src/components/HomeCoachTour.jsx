@@ -45,7 +45,7 @@ export const HOUSEHOLDS_COACH_STEPS = [
     selector: '[data-coach="households-members"]',
     Icon: Users,
     title: "Quién tiene acceso",
-    desc: "Cuentas Google con acceso al hogar, listadas debajo de la tarjeta. Las caritas de comensales del menú son otra cosa.",
+    desc: "Cuentas Google con acceso: foto, nombre e icono Prop/Vis. Las caritas de comensales del menú son otra cosa.",
     place: "below",
   },
   {
