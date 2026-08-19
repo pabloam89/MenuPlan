@@ -1034,7 +1034,8 @@ export function CatalogBrowserSheet({
         </div>
 
         {searchRow}
-        {countRow}
+        {selectedRow}
+        {!showCategoryGrid && countRow}
 
         <div
           style={{
@@ -1047,10 +1048,10 @@ export function CatalogBrowserSheet({
             gap: 8,
           }}
         >
-          {cards}
+          {showCategoryGrid ? categoryGrid : cards}
         </div>
 
-        {pager}
+        {!showCategoryGrid && pager}
       </div>
 
       {overlays}
