@@ -29,3 +29,14 @@ Cola fija tiles: Pixar animation style, Disney warmth, Spanish kitchen vibe, sof
 
 [biblioteca_mis_recetas]  Tile → Mis recetas creadas
 3D illustrated cartoon scene, a cheerful notebook on a rustic Spanish kitchen table with a pencil and tiny AI sparkle writing a recipe, olive oil bottle and garlic nearby, homemade creativity, centered on pure white background, Pixar animation style, Disney warmth, Spanish kitchen vibe, soft natural colors, clean app tile illustration --no text, letters, watermark --seed 2151241667 --v 7 --ar 4:5
+
+--- Iconos segmented control (Miembros / Comensales) ---
+
+Destino: public/avatares/hogares/segcontrol_miembros.png · segcontrol_comensales.png
+Estilo: flat 2D icon (NO 3D, NO personas), formas simples, legibles a ~22px, seed 2151241667, 1:1, fondo blanco puro o transparente
+
+[segment_miembros]  Tab Miembros — cuentas con acceso al hogar
+Flat 2D app icon, a simple golden house key beside a small green door keyhole circle, bold clean vector shapes, no people no faces no depth no shadows, symbol of household access, Mediterranean green and gold palette, single centered subject, modern iOS tab icon style, pure white background --no text, letters, watermark, logo, people, faces, 3D, realistic --seed 2151241667 --v 7 --ar 1:1
+
+[segment_comensales]  Tab Comensales — familia que come junta
+Flat 2D app icon, a simple round dinner plate with two small steam lines and a fork silhouette behind it, bold clean vector shapes, no people no faces no depth no shadows, cozy mealtime symbol, cream plate with soft tomato red and forest green accents, single centered subject, modern iOS tab icon style, pure white background --no text, letters, watermark, logo, people, faces, 3D, realistic --seed 2151241667 --v 7 --ar 1:1

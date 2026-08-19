@@ -14,7 +14,11 @@ FLOOD_THRESH = 28
 CARDS = [
     ("hogar_prop", "hogar_propietario"),
     ("hogar_viewer", "hogar_visitante"),
+    ("segcontrol_miembros", "segcontrol_miembros"),
+    ("segcontrol_comensales", "segcontrol_comensales"),
 ]
+
+SEG_WIDTH = 128
 
 
 def trim_white_border(img: Image.Image, threshold: int = FLOOD_THRESH) -> Image.Image:
@@ -81,8 +85,9 @@ def main():
             continue
         img = Image.open(src)
         img = trim_white_border(img)
-        ratio = WIDTH / img.width
-        img = img.resize((WIDTH, round(img.height * ratio)), Image.LANCZOS)
+        width = SEG_WIDTH if stem.startswith("segcontrol_") else WIDTH
+        ratio = width / img.width
+        img = img.resize((width, round(img.height * ratio)), Image.LANCZOS)
         dst = OUT / f"{name}.png"
         img.save(dst, "PNG", optimize=True)
         print(f"{name}.png  {img.size[0]}x{img.size[1]}  {dst.stat().st_size // 1024}KB")
