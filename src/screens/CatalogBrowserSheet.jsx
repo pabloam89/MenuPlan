@@ -384,6 +384,25 @@ export function CatalogBrowserSheet({
     }
 
     const q = norm(query);
+
+    // Mis recetas: mostrar TODAS las propias (incl. guarniciones), sin la lógica
+    // de catálogo que las oculta cuando no hay búsqueda activa.
+    if (sourceRecipes) {
+      const filtered = fullCatalog.filter((r) => {
+        if (q && !norm(r.name).includes(q)) return false;
+        if (cats.size) {
+          const catKey = isGuarnicionRecipe(r) ? "guarniciones" : r.category;
+          if (!catKey || !cats.has(catKey)) return false;
+        }
+        if (proteins.size && !proteins.has(r.mainProtein)) return false;
+        if (maxTime && (r.time ?? 999) > maxTime) return false;
+        if (difficulties.size && !difficulties.has(r.difficulty)) return false;
+        if (kidOnly && !r.kidFriendly) return false;
+        return true;
+      });
+      return sortByNameQuery(filtered, q);
+    }
+
     const onlyGuarniciones = cats.size === 1 && cats.has("guarniciones");
     const includeGuarniciones = onlyGuarniciones || (cats.size === 0 && Boolean(q)) || (cats.has("guarniciones") && cats.size > 1);
     const includePlatos = !onlyGuarniciones;
@@ -414,7 +433,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, sourceRecipes]);
 
   // Reset pagination whenever the result set or page size changes.
   useEffect(() => {
@@ -1910,7 +1929,6 @@ export function GarnishPickerSheet({
   discardedIds = null, onDiscardRecipe, onRecoverRecipe,
 }) {
   const hasScopeChoice = scopeGroups.length > 1 && onOpenScopePicker;
-  const mainId = recipe?.id ?? recipe?.baseRecipeId ?? null;
   return (
     <div
       onClick={(e) => { e.stopPropagation(); onClose(); }}
@@ -1947,16 +1965,16 @@ export function GarnishPickerSheet({
           </button>
         </div>
 
-        {/* Grid 2× — miniaturas con nombre y aire entre filas/columnas */}
+        {/* Grid 2× — miniatura entera de la guarnición + nombre debajo */}
         <div
           style={{
             flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
-            padding: "4px 16px calc(20px + env(safe-area-inset-bottom, 0px))",
-            display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12,
+            padding: "8px 16px calc(24px + env(safe-area-inset-bottom, 0px))",
+            display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16,
             alignContent: "start",
           }}
         >
-          {GARNISHES.map((g, i) => {
+          {GARNISHES.map((g) => {
             const enriched = recipeCatalogById[g.id] ?? g;
             const cardRecipe = { ...enriched, category: enriched.category ?? "guarniciones" };
             const label = capitalizeGarnishLabel(g.shortName ?? g.name);
@@ -1964,7 +1982,6 @@ export function GarnishPickerSheet({
               <GarnishGridTile
                 key={g.id}
                 garnish={g}
-                mainRecipeId={mainId}
                 label={label}
                 selected={g.id === currentGarnishId}
                 onSelect={() => onSelect(g.id === currentGarnishId ? null : g.id)}
@@ -1975,7 +1992,6 @@ export function GarnishPickerSheet({
                 discarded={discardedIds ? discardedIds.has(g.id) : false}
                 onDiscard={onDiscardRecipe ? () => onDiscardRecipe(g.id) : undefined}
                 onRecover={onRecoverRecipe ? () => onRecoverRecipe(g.id) : undefined}
-                animDelay={i < 12 ? i * 18 : 0}
               />
             );
           })}
@@ -1992,77 +2008,81 @@ function capitalizeGarnishLabel(text) {
 }
 
 function GarnishGridTile({
-  garnish, mainRecipeId, label, selected, onSelect,
+  garnish, label, selected, onSelect,
   favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker,
-  discarded, onDiscard, onRecover, animDelay = 0,
+  discarded, onDiscard, onRecover,
 }) {
   const [failed, setFailed] = useState(false);
-  const rawPhoto = mainRecipeId
-    ? (dishImageUrl(mainRecipeId, garnish.id) ?? dishImageUrl(garnish.id))
-    : dishImageUrl(garnish.id);
-  const photo = rawPhoto && !failed ? deckImg(rawPhoto, 200) : null;
+  // Solo la foto de la guarnición (nunca el combo plato+guarnición).
+  const rawPhoto = dishImageUrl(garnish.id);
+  const photo = rawPhoto && !failed ? deckImg(rawPhoto, 280) : null;
 
   return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className="catalog-card-enter"
-      aria-pressed={selected}
-      style={{
-        position: "relative", aspectRatio: "1 / 1", padding: 0, border: "none",
-        borderRadius: 14, overflow: "hidden", cursor: "pointer", fontFamily: "inherit",
-        background: "#eef4ef", animationDelay: `${animDelay}ms`,
-        boxShadow: selected ? `inset 0 0 0 2.5px ${GREEN}` : "none",
-        opacity: discarded ? 0.45 : 1,
-      }}
-    >
-      {photo ? (
-        <img
-          src={photo}
-          alt=""
-          loading="lazy"
-          onError={() => setFailed(true)}
-          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
-        />
-      ) : (
-        <span style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center" }}>
-          <Salad size={22} color="#3f9656" />
-        </span>
-      )}
-      {onSetFavoriteScope && (
-        <span
-          role="button"
-          tabIndex={0}
-          onClick={(e) => {
-            e.stopPropagation();
-            if (hasScopeChoice) onOpenScopePicker?.();
-            else onSetFavoriteScope(garnish.id, favorite ? null : "all");
-          }}
-          onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
-          aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
-          style={{
-            position: "absolute", top: 4, right: 4, width: 20, height: 20, borderRadius: "50%",
-            border: "1.5px solid #fff", background: favorite ? "#e0405a" : "rgba(255,255,255,.92)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
-          }}
-        >
-          <Heart size={10} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
-        </span>
-      )}
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
+        aria-label={label}
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: "1 / 1",
+          padding: 0,
+          border: "none",
+          borderRadius: 14,
+          overflow: "hidden",
+          cursor: "pointer",
+          fontFamily: "inherit",
+          background: "#eef4ef",
+          boxShadow: selected ? `inset 0 0 0 2.5px ${GREEN}` : "inset 0 0 0 1px #dce8e0",
+          opacity: discarded ? 0.45 : 1,
+        }}
+      >
+        {photo ? (
+          <img
+            src={photo}
+            alt=""
+            loading="lazy"
+            onError={() => setFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          <span style={{ display: "grid", placeItems: "center", width: "100%", height: "100%" }}>
+            <Salad size={28} color="#3f9656" />
+          </span>
+        )}
+        {onSetFavoriteScope && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (hasScopeChoice) onOpenScopePicker?.();
+              else onSetFavoriteScope(garnish.id, favorite ? null : "all");
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
+            aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+            style={{
+              position: "absolute", top: 6, right: 6, width: 22, height: 22, borderRadius: "50%",
+              border: "1.5px solid #fff", background: favorite ? "#e0405a" : "rgba(255,255,255,.92)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
+            }}
+          >
+            <Heart size={11} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+          </span>
+        )}
+      </button>
       <span
         style={{
-          position: "absolute", left: 0, right: 0, bottom: 0, zIndex: 1,
-          padding: "22px 8px 8px",
-          background: "linear-gradient(to top, rgba(20,47,29,.92) 0%, rgba(20,47,29,.55) 45%, transparent 100%)",
-          fontSize: 11.5, fontWeight: 800, color: "#fff", textAlign: "center", lineHeight: 1.25,
-          textShadow: "0 1px 3px rgba(0,0,0,.5)",
-          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          fontSize: 12, fontWeight: 800, color: "#142f1d", textAlign: "center",
+          lineHeight: 1.3, padding: "0 2px 4px",
         }}
       >
         {label}
       </span>
-    </button>
+    </div>
   );
 }
 
