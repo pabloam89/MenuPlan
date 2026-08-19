@@ -1965,12 +1965,12 @@ export function GarnishPickerSheet({
           </button>
         </div>
 
-        {/* Grid 2× — miniatura entera de la guarnición + nombre debajo */}
+        {/* Grid 3× — miniatura entera de la guarnición + nombre debajo */}
         <div
           style={{
             flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
             padding: "8px 16px calc(24px + env(safe-area-inset-bottom, 0px))",
-            display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 16,
+            display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12,
             alignContent: "start",
           }}
         >
@@ -2076,8 +2076,8 @@ function GarnishGridTile({
       </button>
       <span
         style={{
-          fontSize: 12, fontWeight: 800, color: "#142f1d", textAlign: "center",
-          lineHeight: 1.3, padding: "0 2px 4px",
+          fontSize: 11, fontWeight: 800, color: "#142f1d", textAlign: "center",
+          lineHeight: 1.25, padding: "0 1px 2px",
         }}
       >
         {label}
