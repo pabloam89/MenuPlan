@@ -138,7 +138,7 @@ import { FeedbackFAB } from "./components/FeedbackFAB.jsx";
 import { HomeCoachTour, RecipesCoachTour, MenuCoachTour } from "./components/HomeCoachTour.jsx";
 import { RecipePrefsWizard } from "./components/ModeSheets.jsx";
 import { trackEvent, upsertUserProfile, APP_VERSION } from "./lib/analytics.js";
-import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry } from "./lib/pantry.js";
+import { loadPantry, loadLocalPantry, mergeLocalPantryIntoCloud, clearLocalPantry, clearHouseholdPantry } from "./lib/pantry.js";
 import { applyConsumption, consumeFromPantry, restoreToPantry, pantryConsumeMode } from "./lib/cookPantry.js";
 import {
   normalizeDeltaBucketMap,
@@ -2522,6 +2522,11 @@ export default function App() {
   }, [switchHousehold]);
 
   const handleDestroyHousehold = useCallback(async (householdId) => {
+    if (user?.id) {
+      await clearHouseholdPantry(user.id, householdId);
+    }
+    clearLocalPantry();
+
     const result = await destroyHousehold(householdId);
     if (!result?.ok) {
       showToast("No se pudo vaciar el hogar. Inténtalo de nuevo.");
@@ -2531,7 +2536,6 @@ export default function App() {
     householdJustEmptiedRef.current = true;
     hydratedUserRef.current = null;
     cloudReadyRef.current = false;
-    clearLocalPantry();
 
     const emptyProfile = ensureRosters({
       ...INITIAL_DATA,
@@ -2563,7 +2567,7 @@ export default function App() {
 
     showToast("Hogar vaciado");
     return true;
-  }, [destroyHousehold, data.userRecipes, data.recipeVotes, showToast]);
+  }, [destroyHousehold, user?.id, data.userRecipes, data.recipeVotes, showToast]);
 
   const handleNav = useCallback((id) => {
     dirRef.current = navDirection(screen, id);

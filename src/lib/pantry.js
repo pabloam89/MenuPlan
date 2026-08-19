@@ -474,6 +474,28 @@ export async function clearPantry(userId) {
   return true;
 }
 
+/** Wipes pantry rows for a household vaciar — scoped rows + legacy null household_id. */
+export async function clearHouseholdPantry(userId, householdId) {
+  if (!supabase || !userId) return false;
+  if (householdId) {
+    const { error } = await supabase.from("user_pantry").delete().eq("household_id", householdId);
+    if (error) {
+      console.error("[pantry] clear household failed", error);
+      return false;
+    }
+  }
+  const { error: legacyError } = await supabase
+    .from("user_pantry")
+    .delete()
+    .eq("user_id", userId)
+    .is("household_id", null);
+  if (legacyError) {
+    console.error("[pantry] clear legacy household pantry failed", legacyError);
+    return false;
+  }
+  return true;
+}
+
 // ── Signed-out mirror (localStorage) ──────────────────────────────────────
 // Same row shape as mapRow() above so PantryScreen/PantryInput can treat
 // both sources identically and only branch on *which* function to call.
