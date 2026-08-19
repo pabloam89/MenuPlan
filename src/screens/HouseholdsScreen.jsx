@@ -170,66 +170,16 @@ function SlotCard({
         opacity: empty && !ownerPending ? 0.72 : 1,
       }}
     >
-      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
-        {/* Izquierda — miembros */}
+      <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
+        {/* Izquierda 45% — nombre, casa grande, rol, acciones */}
         <div
           style={{
-            flex: 1,
-            minWidth: 0,
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            gap: 8,
-          }}
-        >
-          {h ? (
-            <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {accessRows.map((row) => (
-                  <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                ))}
-              </div>
-              {h.role === "viewer" && (
-                <button
-                  type="button"
-                  onClick={() => onLeave?.(h.id)}
-                  style={{
-                    alignSelf: "flex-start",
-                    padding: "4px 8px",
-                    borderRadius: 8,
-                    border: "1.5px solid #f0d4d4",
-                    background: "#fff",
-                    color: "#b42318",
-                    fontWeight: 700,
-                    fontSize: 10,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <LogOut size={11} />
-                  Abandonar
-                </button>
-              )}
-            </>
-          ) : (
-            emptyHint && (
-              <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
-            )
-          )}
-        </div>
-
-        {/* Centro — nombre, casa grande, rol, acciones */}
-        <div
-          style={{
-            width: 108,
+            width: "45%",
             flexShrink: 0,
             display: "flex",
             flexDirection: "column",
-            alignItems: "center",
-            gap: 7,
+            alignItems: "stretch",
+            gap: 8,
             textAlign: "center",
           }}
         >
@@ -268,7 +218,7 @@ function SlotCard({
                 cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
                 lineHeight: 1.15,
                 letterSpacing: "-.25px",
-                maxWidth: "100%",
+                width: "100%",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
@@ -280,9 +230,9 @@ function SlotCard({
 
           <div
             style={{
-              width: 88,
-              height: 88,
-              borderRadius: 18,
+              width: "100%",
+              aspectRatio: "1",
+              borderRadius: 16,
               overflow: "hidden",
               background: "#eef4f0",
               filter: empty && !ownerPending ? "grayscale(.7)" : "none",
@@ -294,6 +244,7 @@ function SlotCard({
           {h && (
             <span
               style={{
+                alignSelf: "center",
                 padding: "3px 10px",
                 borderRadius: 999,
                 fontSize: 9.5,
@@ -381,54 +332,105 @@ function SlotCard({
           )}
         </div>
 
-        {/* Derecha — check, fecha, avatares */}
-        <div
-          style={{
-            width: 78,
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            justifyContent: "flex-start",
-            gap: 10,
-            paddingTop: 2,
-          }}
-        >
-          {h ? (
-            <SelectionCheck
-              active={active}
-              disabled={active}
-              onSelect={() => onSwitch?.(h.id)}
-            />
-          ) : (
-            <span style={{ width: 26, height: 26, flexShrink: 0 }} />
-          )}
-
-          {joinedLabel && (
-            <p
-              style={{
-                margin: 0,
-                fontSize: 10.5,
-                fontWeight: 700,
-                color: "#9ab0a1",
-                lineHeight: 1.2,
-                textAlign: "right",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Desde {joinedLabel}
-            </p>
-          )}
-
-          {showFamily && (
-            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 5, marginTop: "auto" }}>
-              {familyMembers.slice(0, 6).map((m) => (
-                <div key={m.id} style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
-                  <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={26} color={memberAvatarColor(m.id, familyMembers)} />
+        {/* Derecha 55% — miembros + meta */}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", gap: 8, alignItems: "stretch" }}>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 0,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              gap: 8,
+            }}
+          >
+            {h ? (
+              <>
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {accessRows.map((row) => (
+                    <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+                {h.role === "viewer" && (
+                  <button
+                    type="button"
+                    onClick={() => onLeave?.(h.id)}
+                    style={{
+                      alignSelf: "flex-start",
+                      padding: "4px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid #f0d4d4",
+                      background: "#fff",
+                      color: "#b42318",
+                      fontWeight: 700,
+                      fontSize: 10,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <LogOut size={11} />
+                    Abandonar
+                  </button>
+                )}
+              </>
+            ) : (
+              emptyHint && (
+                <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
+              )
+            )}
+          </div>
+
+          <div
+            style={{
+              width: 72,
+              flexShrink: 0,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "flex-end",
+              justifyContent: "flex-start",
+              gap: 10,
+              paddingTop: 2,
+            }}
+          >
+            {h ? (
+              <SelectionCheck
+                active={active}
+                disabled={active}
+                onSelect={() => onSwitch?.(h.id)}
+              />
+            ) : (
+              <span style={{ width: 26, height: 26, flexShrink: 0 }} />
+            )}
+
+            {joinedLabel && (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 10.5,
+                  fontWeight: 700,
+                  color: "#9ab0a1",
+                  lineHeight: 1.2,
+                  textAlign: "right",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Desde {joinedLabel}
+              </p>
+            )}
+
+            {showFamily && (
+              <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "flex-end", gap: 5, marginTop: "auto" }}>
+                {familyMembers.slice(0, 6).map((m) => (
+                  <div key={m.id} style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
+                    <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={26} color={memberAvatarColor(m.id, familyMembers)} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
