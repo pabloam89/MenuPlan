@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   Check,
-  LogOut,
   Share2,
+  Trash2,
   BookOpen,
   Link2,
   RotateCw,
@@ -80,6 +80,61 @@ function MemberRow({ name, role }) {
 }
 
 const ILLU_V_GAP = 6;
+
+function HeaderIconButton({ label, title, onClick, color = GREEN, children }) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      title={title ?? label}
+      onClick={onClick}
+      style={{
+        margin: 0,
+        padding: 0,
+        border: "none",
+        background: "transparent",
+        cursor: "pointer",
+        lineHeight: 0,
+        color,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SelectionCheck({ active, onSelect }) {
+  return (
+    <HeaderIconButton
+      label={active ? "Hogar seleccionado" : "Seleccionar hogar"}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!active) onSelect?.();
+      }}
+    >
+      <span
+        style={{
+          width: 26,
+          height: 26,
+          borderRadius: "50%",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          border: active ? "none" : "2px solid #cdd8d0",
+          background: active ? GREEN : "#fff",
+          boxShadow: active ? "0 2px 8px rgba(45,90,61,.28)" : "none",
+          cursor: active ? "default" : "pointer",
+        }}
+      >
+        {active && <Check size={14} color="#fff" strokeWidth={3} />}
+      </span>
+    </HeaderIconButton>
+  );
+}
 
 function CardSection({ label, children }) {
   return (
@@ -229,23 +284,13 @@ function SlotCard({
 
   return (
     <div
-      role={h && !active ? "button" : undefined}
-      tabIndex={h && !active ? 0 : undefined}
-      onClick={() => h && !active && onSwitch?.(h.id)}
-      onKeyDown={(e) => {
-        if (h && !active && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          onSwitch?.(h.id);
-        }
-      }}
       style={{
         background: "#fff",
         borderRadius: 18,
         border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-        padding: "10px 10px 8px",
+        padding: "10px 10px 8px 14px",
         boxShadow: active ? "0 10px 22px -14px rgba(45,90,61,.38)" : "0 4px 14px -10px rgba(20,47,29,.08)",
         opacity: empty && !ownerPending ? 0.72 : 1,
-        cursor: h && !active ? "pointer" : "default",
       }}
     >
       {/* Cabecera: título + acciones */}
@@ -253,56 +298,35 @@ function SlotCard({
         <div style={{ width: "45%", flexShrink: 0, minWidth: 0, position: "relative", zIndex: 2 }}>
           {titleNode}
         </div>
-        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 6, minWidth: 0 }}>
+        <div style={{ flex: 1, display: "flex", justifyContent: "flex-end", alignItems: "center", gap: 8, minWidth: 0 }}>
           {showShare && (
-            <button
-              type="button"
-              aria-label={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
-              title={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
+            <HeaderIconButton
+              label={inviteCopied ? "Enlace copiado" : "Compartir invitación"}
               onClick={(e) => {
                 e.stopPropagation();
                 onCopyInvite?.();
               }}
-              style={{
-                margin: 0,
-                padding: 0,
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                lineHeight: 0,
-                color: GREEN,
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
             >
               {inviteCopied ? <Check size={18} strokeWidth={2.5} /> : <Share2 size={18} strokeWidth={2.2} />}
-            </button>
+            </HeaderIconButton>
           )}
           {h?.role === "viewer" && (
-            <button
-              type="button"
-              aria-label="Abandonar hogar"
-              title="Abandonar hogar"
+            <HeaderIconButton
+              label="Abandonar hogar"
+              color="#b42318"
               onClick={(e) => {
                 e.stopPropagation();
                 onLeave?.(h.id);
               }}
-              style={{
-                margin: 0,
-                padding: 0,
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                lineHeight: 0,
-                color: "#b42318",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
             >
-              <LogOut size={18} strokeWidth={2.2} />
-            </button>
+              <Trash2 size={18} strokeWidth={2.2} />
+            </HeaderIconButton>
+          )}
+          {h && (
+            <SelectionCheck
+              active={active}
+              onSelect={() => onSwitch?.(h.id)}
+            />
           )}
         </div>
       </div>
@@ -453,36 +477,34 @@ function SlotCard({
             minWidth: 0,
             display: "flex",
             flexDirection: "column",
-            justifyContent: "space-between",
             gap: 8,
             paddingBottom: 2,
+            paddingLeft: 2,
           }}
         >
           {h ? (
             <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, flex: 1, justifyContent: "space-between" }}>
-                <CardSection label="Miembros">
-                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    {accessRows.map((row) => (
-                      <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                    ))}
-                  </div>
-                </CardSection>
+              <CardSection label="Miembros">
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {accessRows.map((row) => (
+                    <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
+                  ))}
+                </div>
+              </CardSection>
 
-                {showOwnerPanel && (
-                  <CardSection label="Comensales">
-                    {familyMembers.length > 0 ? (
-                      <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                        {familyMembers.slice(0, 6).map((m) => (
-                          <DinerTile key={m.id} member={m} allMembers={familyMembers} />
-                        ))}
-                      </div>
-                    ) : (
-                      <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#b8c9bd" }}>Ninguno aún</p>
-                    )}
-                  </CardSection>
-                )}
-              </div>
+              {showOwnerPanel && (
+                <CardSection label="Comensales">
+                  {familyMembers.length > 0 ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {familyMembers.slice(0, 6).map((m) => (
+                        <DinerTile key={m.id} member={m} allMembers={familyMembers} />
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#b8c9bd" }}>Ninguno aún</p>
+                  )}
+                </CardSection>
+              )}
             </>
           ) : (
             emptyHint && (
