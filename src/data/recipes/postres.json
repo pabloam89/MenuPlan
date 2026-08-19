@@ -869,7 +869,7 @@
   },
   {
     "id": "postres_013",
-    "name": "Yogur de frutas",
+    "name": "Yogur de sabores",
     "category": "postres",
     "mainProtein": "none",
     "mealRole": [
@@ -902,7 +902,7 @@
       "Abre los yogures",
       "Sirve fríos"
     ],
-    "description": "Yogur de sabores de nevera, el postre más rápido",
+    "description": "Yogur procesado de frutas de nevera (frambuesa/fresa), el postre más rápido",
     "productAliases": [
       "Yogur de fresa",
       "Yogur de frutas"

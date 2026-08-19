@@ -505,7 +505,10 @@ export function CatalogBrowserSheet({
   // favorites or "mis recetas"): land on a categories grid first instead of
   // dumping all recipes at once. Picking a category (or typing a search)
   // reveals the normal filtered list.
-  const isBrowseCatalog = (reference || browseCategories) && !gatePick && !favoriteIds && !sourceRecipes;
+  const isBrowseCatalog =
+    (reference || browseCategories || (gatePick && gatePickSourceTabs && sourceTab === "catalog"))
+    && !favoriteIds
+    && !sourceRecipes;
   const showCategoryGrid = isBrowseCatalog && cats.size === 0 && !query.trim();
   const categoryCounts = useMemo(() => {
     const counts = {};

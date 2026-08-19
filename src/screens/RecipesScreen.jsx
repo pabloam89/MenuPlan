@@ -16,8 +16,7 @@ const INK = "#142f1d";
 const HEADER_BAND = "#e9f4ed";
 
 /**
- * Recetas del hogar activo — favoritas, recetas del propietario y descartados
- * del menú. Catálogo y biblioteca personal viven en Biblioteca (desde Hogares).
+ * Recetas del hogar activo — favoritas, catálogo, recetas del propietario y descartados.
  */
 export function RecipesScreen({
   user = null,
@@ -55,7 +54,7 @@ export function RecipesScreen({
 
   useEffect(() => {
     if (!autoplay) return undefined;
-    const tabs = ["favorites", "mine", "discarded"];
+    const tabs = ["favorites", "catalog", "mine", "discarded"];
     let k = tabs.indexOf(initialTab ?? "mine");
     if (k < 0) k = 0;
     const id = setInterval(() => {
@@ -87,6 +86,7 @@ export function RecipesScreen({
 
   const TABS = [
     { id: "favorites", label: "Favoritas", count: favoriteIds.size, Icon: Heart },
+    { id: "catalog", label: "Catálogo", Icon: BookOpen },
     { id: "mine", label: "Mis recetas", count: ownRecipes.length, Icon: NotebookPen },
     { id: "discarded", label: "Descartados", count: discardedRecipes.length, Icon: Ban },
   ];
@@ -189,6 +189,24 @@ export function RecipesScreen({
             emptyImg="/avatares/cards/empty_favoritas.jpg"
             emptyLabel={readOnly ? "Sin favoritas en este hogar" : "Aún no tienes favoritas"}
             emptySubtitle={readOnly ? "El propietario aún no ha guardado favoritas aquí." : "Pulsa el corazón en cualquier receta del catálogo para guardarla aquí."}
+          />
+        )}
+
+        {tab === "catalog" && (
+          <CatalogBrowserSheet
+            inline
+            inlinePadding={18}
+            reference
+            browseCategories
+            recipeVotes={recipeVotes}
+            scopeGroups={scopeGroups}
+            onSetFavoriteScope={readOnly ? undefined : onSetFavoriteScope}
+            onOpenRecipe={onOpenRecipe}
+            extraRecipes={catalogExtraRecipes}
+            onBrowseGarnishCombo={onBrowseGarnishCombo}
+            discardedIds={readOnly ? null : new Set(discardedIds)}
+            onDiscardRecipe={readOnly ? undefined : onDiscardRecipe}
+            onRecoverRecipe={readOnly ? undefined : onRecoverRecipe}
           />
         )}
 
