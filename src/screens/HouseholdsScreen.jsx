@@ -117,6 +117,29 @@ function SelectionCheck({ active, disabled, onSelect }) {
   );
 }
 
+const ILLU_V_GAP = 4;
+
+function CardSection({ label, children }) {
+  return (
+    <div style={{ width: "100%", minWidth: 0 }}>
+      <p
+        style={{
+          margin: "0 0 3px",
+          fontSize: 9,
+          fontWeight: 800,
+          color: "#9ab0a1",
+          textTransform: "uppercase",
+          letterSpacing: ".35px",
+          lineHeight: 1.2,
+        }}
+      >
+        {label}
+      </p>
+      {children}
+    </div>
+  );
+}
+
 function SlotCard({
   slot,
   active,
@@ -124,6 +147,7 @@ function SlotCard({
   userLoggedIn,
   householdLoading,
   familyMembers = [],
+  menuCount = 0,
   onSwitch,
   onLeave,
   onJoin,
@@ -140,7 +164,7 @@ function SlotCard({
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
   const joinedLabel = h ? formatJoinedAt(h.joinedAt) : null;
   const ownerPending = slot.kind === "owner" && userLoggedIn && empty;
-  const showFamily = active && slot.kind === "owner" && familyMembers.length > 0;
+  const showOwnerStats = Boolean(h && active && slot.kind === "owner" && h.isOwn);
 
   const accessRows = useMemo(() => {
     if (!h || !userName) return [];
@@ -165,24 +189,22 @@ function SlotCard({
         background: "#fff",
         borderRadius: 18,
         border: active ? `2px solid ${GREEN}` : "1.5px solid #e3ebe6",
-        padding: "10px 10px",
+        padding: "8px 8px",
         boxShadow: active ? "0 10px 22px -14px rgba(45,90,61,.38)" : "0 4px 14px -10px rgba(20,47,29,.08)",
         opacity: empty && !ownerPending ? 0.72 : 1,
       }}
     >
-      <div style={{ display: "flex", gap: 8, alignItems: "stretch" }}>
-        {/* Col izq 45% — nombre, casa, rol + fecha */}
-        <div
-          style={{
-            width: "45%",
-            flexShrink: 0,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "stretch",
-            gap: 3,
-            textAlign: "center",
-          }}
-        >
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "45% 1fr",
+          columnGap: 8,
+          rowGap: ILLU_V_GAP,
+          alignItems: "stretch",
+        }}
+      >
+        {/* Fila 1: título | check */}
+        <div style={{ minWidth: 0, alignSelf: "end" }}>
           {h && renamingId === h.id ? (
             <input
               value={renameDraft}
@@ -196,11 +218,10 @@ function SlotCard({
                 fontWeight: 800,
                 border: "1.5px solid #c8ddd0",
                 borderRadius: 8,
-                padding: "4px 6px",
+                padding: "3px 6px",
                 fontFamily: "inherit",
                 boxSizing: "border-box",
                 textAlign: "center",
-                marginBottom: 2,
               }}
             />
           ) : (
@@ -217,40 +238,139 @@ function SlotCard({
                 fontWeight: 900,
                 color: empty && !ownerPending ? "#9ab0a1" : INK,
                 cursor: h?.role === "owner" && h.isOwn ? "pointer" : "default",
-                lineHeight: 1.1,
+                lineHeight: 1.05,
                 letterSpacing: "-.25px",
                 width: "100%",
                 overflow: "hidden",
                 textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
+                textAlign: "center",
+                display: "block",
               }}
             >
               {displayName}
             </button>
           )}
+        </div>
 
-          <div
+        <div style={{ display: "flex", justifyContent: "flex-end", alignItems: "flex-end", minHeight: 22 }}>
+          {h ? (
+            <SelectionCheck
+              active={active}
+              disabled={active}
+              onSelect={() => onSwitch?.(h.id)}
+            />
+          ) : null}
+        </div>
+
+        {/* Fila 2: ilustración | stats */}
+        <div
+          style={{
+            minWidth: 0,
+            display: "flex",
+            alignItems: "flex-end",
+            justifyContent: "center",
+            background: empty && !ownerPending ? "#eef4f0" : "transparent",
+            borderRadius: empty && !ownerPending ? 14 : 0,
+            filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+          }}
+        >
+          <img
+            src={img}
+            alt=""
             style={{
               width: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: empty && !ownerPending ? "#eef4f0" : "transparent",
-              borderRadius: empty && !ownerPending ? 14 : 0,
-              filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+              height: "auto",
+              display: "block",
+              transform: "scaleY(1.08)",
+              transformOrigin: "center bottom",
             }}
-          >
-            <img
-              src={img}
-              alt=""
-              style={{
-                width: "100%",
-                height: "auto",
-                display: "block",
-              }}
-            />
-          </div>
+          />
+        </div>
 
+        <div
+          style={{
+            minWidth: 0,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "space-between",
+            gap: 10,
+            padding: "2px 0 4px",
+          }}
+        >
+          {h ? (
+            showOwnerStats ? (
+              <>
+                <CardSection label="Menús generados">
+                  <p style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, lineHeight: 1 }}>
+                    {menuCount}
+                  </p>
+                </CardSection>
+                <CardSection label="Miembros">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {accessRows.map((row) => (
+                      <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
+                    ))}
+                  </div>
+                </CardSection>
+                <CardSection label="Comensales">
+                  {familyMembers.length > 0 ? (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                      {familyMembers.slice(0, 6).map((m) => (
+                        <div key={m.id} style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
+                          <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={24} color={memberAvatarColor(m.id, familyMembers)} />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#b8c9bd" }}>0</p>
+                  )}
+                </CardSection>
+              </>
+            ) : (
+              <>
+                <CardSection label="Miembros">
+                  <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                    {accessRows.map((row) => (
+                      <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
+                    ))}
+                  </div>
+                </CardSection>
+                {h.role === "viewer" && (
+                  <button
+                    type="button"
+                    onClick={() => onLeave?.(h.id)}
+                    style={{
+                      alignSelf: "flex-start",
+                      padding: "4px 8px",
+                      borderRadius: 8,
+                      border: "1.5px solid #f0d4d4",
+                      background: "#fff",
+                      color: "#b42318",
+                      fontWeight: 700,
+                      fontSize: 10,
+                      cursor: "pointer",
+                      fontFamily: "inherit",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 4,
+                    }}
+                  >
+                    <LogOut size={11} />
+                    Abandonar
+                  </button>
+                )}
+              </>
+            )
+          ) : (
+            emptyHint && (
+              <p style={{ margin: "auto 0", fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
+            )
+          )}
+        </div>
+
+        {/* Fila 3: rol + fecha | acciones */}
+        <div style={{ minWidth: 0 }}>
           {h && (
             <div
               style={{
@@ -259,7 +379,6 @@ function SlotCard({
                 justifyContent: "center",
                 flexWrap: "wrap",
                 gap: 5,
-                marginTop: 2,
               }}
             >
               <span
@@ -361,87 +480,7 @@ function SlotCard({
           )}
         </div>
 
-        {/* Col der 55% — check, miembros, avatares */}
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "flex-end", minHeight: 26 }}>
-            {h ? (
-              <SelectionCheck
-                active={active}
-                disabled={active}
-                onSelect={() => onSwitch?.(h.id)}
-              />
-            ) : null}
-          </div>
-
-          {h ? (
-            <>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: 9,
-                  fontWeight: 800,
-                  color: "#9ab0a1",
-                  textTransform: "uppercase",
-                  letterSpacing: ".35px",
-                  lineHeight: 1.2,
-                }}
-              >
-                Miembros
-              </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
-                {accessRows.map((row) => (
-                  <MemberRow key={row.role + row.name} name={row.name} role={row.role} />
-                ))}
-              </div>
-              {showFamily && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 2 }}>
-                  {familyMembers.slice(0, 6).map((m) => (
-                    <div key={m.id} style={{ lineHeight: 0, borderRadius: "50%", border: "1.5px solid #e3ebe6" }}>
-                      <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={24} color={memberAvatarColor(m.id, familyMembers)} />
-                    </div>
-                  ))}
-                </div>
-              )}
-              {h.role === "viewer" && (
-                <button
-                  type="button"
-                  onClick={() => onLeave?.(h.id)}
-                  style={{
-                    alignSelf: "flex-start",
-                    marginTop: 4,
-                    padding: "4px 8px",
-                    borderRadius: 8,
-                    border: "1.5px solid #f0d4d4",
-                    background: "#fff",
-                    color: "#b42318",
-                    fontWeight: 700,
-                    fontSize: 10,
-                    cursor: "pointer",
-                    fontFamily: "inherit",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                  }}
-                >
-                  <LogOut size={11} />
-                  Abandonar
-                </button>
-              )}
-            </>
-          ) : (
-            emptyHint && (
-              <p style={{ margin: "auto 0", fontSize: 11, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
-            )
-          )}
-        </div>
+        <div />
       </div>
     </div>
   );
@@ -455,6 +494,7 @@ export function HouseholdsScreen({
   householdLoading = false,
   householdError = null,
   members = [],
+  menuCount = 0,
   readOnly,
   canShareInvite,
   inviteUrl,
@@ -641,6 +681,7 @@ export function HouseholdsScreen({
                     userLoggedIn={Boolean(user)}
                     householdLoading={householdLoading}
                     familyMembers={members}
+                    menuCount={menuCount}
                     onSwitch={onSwitchHousehold}
                     onLeave={onLeaveHousehold}
                     onJoin={handleJoin}
