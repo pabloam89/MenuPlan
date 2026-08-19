@@ -25,10 +25,11 @@ const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
 const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
+const HEADER_BAND = "#e9f4ed";
 const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
 const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
-/** Visible height = 85% of 4:5 illustration (≈15% bottom crop). */
-const CARD_ASPECT = "16/17";
+/** Visible height ≈92% of 4:5 illustration (~8% bottom crop). */
+const CARD_ASPECT = "32/37";
 
 function RoleIllustration({ roleLabel }) {
   const isProp = roleLabel === "Propietario";
@@ -105,7 +106,7 @@ function buildAccessAccounts(h, user) {
   return [you];
 }
 
-function MembersSheet({ open, onClose, accounts, householdName, isOwner, headerImg = IMG_OWNER }) {
+function MembersSheet({ open, onClose, accounts, householdName, isOwner }) {
   if (!open) return null;
 
   return createPortal(
@@ -134,48 +135,66 @@ function MembersSheet({ open, onClose, accounts, householdName, isOwner, headerI
           width: 320,
           maxWidth: "calc(100vw - 40px)",
           background: "#fff",
-          borderRadius: 24,
-          border: `3px solid ${GREEN}`,
+          borderRadius: 22,
+          border: "1px solid #dce8e1",
           boxShadow: "0 24px 48px rgba(20,47,29,.2)",
           overflow: "hidden",
           animation: "hogSheetIn .24s cubic-bezier(.4,0,.2,1) both",
         }}
       >
-        <img
-          src={headerImg}
-          alt=""
-          style={{
-            width: "100%",
-            aspectRatio: "4/5",
-            objectFit: "cover",
-            objectPosition: "center top",
-            display: "block",
-          }}
+        <div style={{ background: HEADER_BAND, padding: "18px 18px 16px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: 11,
+                background: "#eef6f0",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flexShrink: 0,
+              }}
+            >
+              <Users size={18} color={GREEN} strokeWidth={2.4} />
+            </span>
+            <div style={{ minWidth: 0, textAlign: "left" }}>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: 17,
+                  fontWeight: 900,
+                  color: INK,
+                  letterSpacing: "-.25px",
+                  lineHeight: 1.2,
+                }}
+              >
+                Miembros de
+              </h2>
+              <p
+                style={{
+                  margin: "2px 0 0",
+                  fontSize: 14,
+                  fontWeight: 800,
+                  color: MUTED,
+                  lineHeight: 1.25,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {householdName}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div
+          aria-hidden
+          style={{ height: 1, background: "linear-gradient(90deg, transparent, #c8d9ce 8%, #c8d9ce 92%, transparent)" }}
         />
 
-        <div style={{ padding: "16px 18px 18px" }}>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: 16,
-              fontWeight: 900,
-              color: INK,
-              letterSpacing: "-.25px",
-              lineHeight: 1.25,
-            }}
-          >
-            Miembros de {householdName}
-          </h2>
-
-          <div
-            aria-hidden
-            style={{
-              height: 1,
-              margin: "14px 0 12px",
-              background: "linear-gradient(90deg, transparent, #c8d9ce 12%, #c8d9ce 88%, transparent)",
-            }}
-          />
-
+        <div style={{ padding: "14px 18px 18px" }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {accounts.map((acc) => (
               <div
@@ -697,7 +716,6 @@ function SlotCard({
         accounts={accessAccounts}
         householdName={displayName}
         isOwner={h?.role === "owner" && h?.isOwn}
-        headerImg={img}
       />
     </div>
   );
