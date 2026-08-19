@@ -1,17 +1,23 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BookOpen,
+  Check,
   Link2,
+  LogOut,
+  MoreHorizontal,
   RotateCw,
+  Share2,
+  Trash2,
 } from "lucide-react";
 import {
+  Avatar,
   BottomNav,
   GroupAvatarStack,
   bottomNavSpacer,
   GoogleButton,
   groupAvatarFaces,
 } from "../components/ui.jsx";
-
+import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
@@ -42,6 +48,163 @@ function buildSlots(households, activeHousehold, user) {
   ];
 }
 
+function CardOverflowMenu({ actions }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => {
+      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("pointerdown", close);
+    return () => document.removeEventListener("pointerdown", close);
+  }, [open]);
+
+  if (!actions.length) return null;
+
+  return (
+    <div
+      ref={rootRef}
+      style={{
+        position: "absolute",
+        top: 10,
+        right: 10,
+        zIndex: 4,
+        display: "flex",
+        flexDirection: "row-reverse",
+        alignItems: "center",
+        gap: 6,
+      }}
+      onClick={(e) => e.stopPropagation()}
+    >
+      <button
+        type="button"
+        aria-label={open ? "Cerrar acciones" : "Acciones del hogar"}
+        aria-expanded={open}
+        onClick={() => setOpen((v) => !v)}
+        style={{
+          width: 34,
+          height: 34,
+          borderRadius: 999,
+          border: "none",
+          background: "rgba(255,255,255,.92)",
+          boxShadow: "0 2px 10px rgba(20,47,29,.14)",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "center",
+          cursor: "pointer",
+          padding: 0,
+          flexShrink: 0,
+          transition: "transform 0.25s ease, background 0.25s ease",
+          transform: open ? "rotate(90deg)" : "rotate(0deg)",
+        }}
+      >
+        <MoreHorizontal size={18} color={GREEN} strokeWidth={2.4} />
+      </button>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          overflow: "hidden",
+          maxWidth: open ? actions.length * 44 : 0,
+          opacity: open ? 1 : 0,
+          transition:
+            "max-width 0.38s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.22s ease",
+        }}
+      >
+        {actions.map(({ id, icon: Icon, label, color = GREEN, onClick }, i) => (
+          <button
+            key={id}
+            type="button"
+            aria-label={label}
+            title={label}
+            onClick={() => {
+              onClick?.();
+              setOpen(false);
+            }}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: 999,
+              border: "none",
+              background: "#fff",
+              boxShadow: "0 2px 10px rgba(20,47,29,.12)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "pointer",
+              padding: 0,
+              flexShrink: 0,
+              transform: open ? "scale(1) translateX(0)" : "scale(0.6) translateX(8px)",
+              opacity: open ? 1 : 0,
+              transition: `transform 0.32s cubic-bezier(0.34, 1.25, 0.64, 1) ${i * 0.05}s, opacity 0.22s ease ${i * 0.04}s`,
+            }}
+          >
+            <Icon size={17} color={color} strokeWidth={2.3} />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ComensalesStrip({ members }) {
+  if (!members.length) return null;
+  return (
+    <div style={{ width: "100%", maxWidth: 340, marginTop: 2 }}>
+      <p
+        style={{
+          margin: "0 0 6px",
+          fontSize: 9,
+          fontWeight: 800,
+          color: MUTED,
+          letterSpacing: ".3px",
+          textTransform: "uppercase",
+          textAlign: "center",
+        }}
+      >
+        Comensales
+      </p>
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 6,
+        }}
+      >
+        {members.slice(0, 8).map((m) => (
+          <span
+            key={m.id}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 5,
+              padding: "3px 8px 3px 3px",
+              borderRadius: 999,
+              background: "#f4f8f5",
+              border: "1px solid #e3ebe6",
+            }}
+          >
+            <Avatar
+              name={m.name}
+              photo={memberAvatarThumbSrc(m)}
+              size={22}
+              color={memberAvatarColor(m.id, members)}
+            />
+            <span style={{ fontSize: 11, fontWeight: 700, color: INK, lineHeight: 1 }}>
+              {m.name?.trim().split(/\s+/)[0] ?? m.name}
+            </span>
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function SlotCard({
   slot,
   isGlobalActive,
@@ -49,6 +212,12 @@ function SlotCard({
   effectiveActiveId,
   userLoggedIn,
   householdLoading,
+  canShareInvite,
+  inviteUrl,
+  inviteCopied,
+  onCopyInvite,
+  onLeave,
+  onDestroy,
   onActivate,
   onJoin,
   onAdvanceSetup,
@@ -78,6 +247,56 @@ function SlotCard({
   const showMemberAvatars =
     Boolean(h && slot.kind === "owner" && h.id === effectiveActiveId && members.length > 0);
   const avatarFaces = showMemberAvatars ? groupAvatarFaces(members, members) : [];
+
+  const showComensales =
+    Boolean(h && slot.kind === "owner" && h.id === effectiveActiveId && isGlobalActive);
+
+  const menuActions = useMemo(() => {
+    if (!h) return [];
+    const items = [];
+    if (h.role === "owner" && h.isOwn && isGlobalActive && canShareInvite && inviteUrl) {
+      items.push({
+        id: "share",
+        icon: inviteCopied ? Check : Share2,
+        label: inviteCopied ? "Enlace copiado" : "Invitar",
+        onClick: onCopyInvite,
+      });
+    }
+    if (h.role === "owner" && h.isOwn && isGlobalActive) {
+      items.push({
+        id: "destroy",
+        icon: Trash2,
+        label: "Vaciar hogar",
+        color: "#b42318",
+        onClick: () => {
+          if (window.confirm("¿Vaciar este hogar? Se borrarán los datos compartidos.")) {
+            onDestroy?.(h.id);
+          }
+        },
+      });
+    }
+    if (h.role === "viewer") {
+      items.push({
+        id: "leave",
+        icon: LogOut,
+        label: "Abandonar",
+        color: "#b42318",
+        onClick: () => {
+          if (window.confirm("¿Abandonar este hogar?")) onLeave?.(h.id);
+        },
+      });
+    }
+    return items;
+  }, [
+    h,
+    isGlobalActive,
+    canShareInvite,
+    inviteUrl,
+    inviteCopied,
+    onCopyInvite,
+    onDestroy,
+    onLeave,
+  ]);
 
   const titleNode = h && renamingId === h.id ? (
     <input
@@ -146,7 +365,7 @@ function SlotCard({
         width: "100%",
         maxWidth: 380,
         margin: "0 auto",
-        padding: "0 4px 12px",
+        padding: "0 4px 4px",
         border: "none",
         background: "transparent",
         boxShadow: "none",
@@ -167,27 +386,47 @@ function SlotCard({
         style={{
           position: "relative",
           width: "min(340px, 94vw)",
-          borderRadius: 22,
-          overflow: "hidden",
-          filter: empty && !ownerPending ? "grayscale(.7)" : "none",
-          background: empty && !ownerPending ? "#e3ebe6" : "transparent",
         }}
       >
+        <div
+          style={{
+            borderRadius: 22,
+            overflow: "hidden",
+            filter: empty && !ownerPending ? "grayscale(.7)" : "none",
+            background: empty && !ownerPending ? "#e3ebe6" : "transparent",
+          }}
+        >
+          <img
+            src={img}
+            alt=""
+            style={{
+              width: "100%",
+              height: "auto",
+              display: "block",
+              verticalAlign: "top",
+            }}
+          />
+        </div>
+
         {showMemberAvatars && (
-          <div style={{ position: "absolute", top: 10, right: 10, zIndex: 2, lineHeight: 0 }}>
-            <GroupAvatarStack faces={avatarFaces} size={36} active max={4} />
+          <div
+            style={{
+              position: "absolute",
+              top: 10,
+              left: 10,
+              zIndex: 3,
+              lineHeight: 0,
+              padding: "2px 6px 2px 2px",
+              borderRadius: 999,
+              background: "rgba(255,255,255,.88)",
+              boxShadow: "0 2px 10px rgba(20,47,29,.1)",
+            }}
+          >
+            <GroupAvatarStack faces={avatarFaces} size={32} active max={3} />
           </div>
         )}
-        <img
-          src={img}
-          alt=""
-          style={{
-            width: "100%",
-            height: "auto",
-            display: "block",
-            verticalAlign: "top",
-          }}
-        />
+
+        <CardOverflowMenu actions={menuActions} />
       </div>
 
       {h && (
@@ -220,6 +459,8 @@ function SlotCard({
           )}
         </div>
       )}
+
+      {showComensales && <ComensalesStrip members={members} />}
 
       {canActivate && (
         <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: GREEN, lineHeight: 1.3 }}>
@@ -320,6 +561,12 @@ function HouseholdCarousel({
   members,
   userLoggedIn,
   householdLoading,
+  canShareInvite,
+  inviteUrl,
+  inviteCopied,
+  onCopyInvite,
+  onLeave,
+  onDestroy,
   onActivate,
   onJoin,
   onAdvanceSetup,
@@ -387,6 +634,12 @@ function HouseholdCarousel({
                   effectiveActiveId={effectiveActiveId}
                   userLoggedIn={userLoggedIn}
                   householdLoading={householdLoading}
+                  canShareInvite={canShareInvite}
+                  inviteUrl={inviteUrl}
+                  inviteCopied={inviteCopied}
+                  onCopyInvite={onCopyInvite}
+                  onLeave={onLeave}
+                  onDestroy={onDestroy}
                   onActivate={onActivate}
                   onJoin={onJoin}
                   onAdvanceSetup={onAdvanceSetup}
@@ -409,7 +662,9 @@ function HouseholdCarousel({
             display: "flex",
             justifyContent: "center",
             gap: 6,
-            marginTop: 14,
+            marginTop: -10,
+            position: "relative",
+            zIndex: 2,
           }}
         >
           {slots.map((slot, i) => (
@@ -445,16 +700,21 @@ export function HouseholdsScreen({
   householdError = null,
   members = [],
   readOnly,
+  canShareInvite,
+  inviteUrl,
   onNav,
   onBack,
   onOpenBiblioteca,
   onRefresh,
   onSwitchHousehold,
+  onLeaveHousehold,
+  onDestroyHousehold,
   onJoinByToken,
   onRenameHousehold,
   onAdvanceSetup,
   onSignIn,
 }) {
+  const [copied, setCopied] = useState(false);
   const [renamingId, setRenamingId] = useState(null);
   const [renameDraft, setRenameDraft] = useState("");
 
@@ -488,6 +748,17 @@ export function HouseholdsScreen({
   const viewedSlot = slots[slideIndex] ?? slots[0];
   const viewedHousehold = viewedSlot?.household;
   const navDissolved = !viewedHousehold || viewedHousehold.id !== effectiveActiveId;
+
+  const handleCopyInvite = async () => {
+    if (!inviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Copia este enlace:", inviteUrl);
+    }
+  };
 
   const handleJoin = async () => {
     const raw = window.prompt("Pega el enlace de invitación de otro hogar:");
@@ -628,6 +899,12 @@ export function HouseholdsScreen({
               members={members}
               userLoggedIn={Boolean(user)}
               householdLoading={householdLoading}
+              canShareInvite={canShareInvite}
+              inviteUrl={inviteUrl}
+              inviteCopied={copied}
+              onCopyInvite={handleCopyInvite}
+              onLeave={onLeaveHousehold}
+              onDestroy={onDestroyHousehold}
               onActivate={handleActivate}
               onJoin={handleJoin}
               onAdvanceSetup={onAdvanceSetup}
