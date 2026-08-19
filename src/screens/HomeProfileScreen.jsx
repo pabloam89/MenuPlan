@@ -8,7 +8,6 @@ import {
   Check,
   Info,
   ShieldCheck,
-  Home,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer, EmptyIllustration, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
@@ -297,7 +296,8 @@ export function HomeProfileScreen({
   onReset,
   onDeleteAccount,
   onEditMembers,
-  onOpenHouseholds,
+  activeHousehold,
+  householdReadOnly = false,
 }) {
   const g = googleInfo(user);
   const fileInputRef = useRef(null);
@@ -358,7 +358,23 @@ export function HomeProfileScreen({
           <h1 style={{ margin: 0, fontSize: 20, fontWeight: 900, color: INK, letterSpacing: "-.3px" }}>
             Mi perfil
           </h1>
+          {activeHousehold && (
+            <span style={{
+              marginLeft: "auto", padding: "4px 10px", borderRadius: 999,
+              fontSize: 10.5, fontWeight: 800, flexShrink: 0,
+              background: householdReadOnly ? "#fff7e6" : "rgba(45,90,61,.1)",
+              color: householdReadOnly ? "#9a6b00" : GREEN,
+            }}>
+              {householdReadOnly ? "Visitante" : "Propietario"}
+            </span>
+          )}
         </div>
+
+        {activeHousehold && (
+          <p style={{ margin: "0 0 16px", fontSize: 13, fontWeight: 700, color: "#7a9485" }}>
+            Hogar activo: {activeHousehold.name}
+          </p>
+        )}
 
         {/* ── 1. Perfil / cuenta ─────────────────────── */}
         {user ? (
@@ -408,32 +424,6 @@ export function HomeProfileScreen({
             </p>
             <GoogleButton onClick={onSignIn} />
           </Card>
-        )}
-
-        {user && onOpenHouseholds && (
-          <button
-            type="button"
-            onClick={onOpenHouseholds}
-            style={{
-              width: "100%", marginBottom: 14, padding: "14px 16px",
-              borderRadius: 16, border: "1.5px solid #e3ebe6", background: "#fff",
-              display: "flex", alignItems: "center", gap: 12, cursor: "pointer",
-              fontFamily: "inherit", textAlign: "left",
-              boxShadow: "0 4px 14px -10px rgba(20,47,29,.18)",
-            }}
-          >
-            <div style={{
-              width: 38, height: 38, borderRadius: 12, background: "#e6f3ea",
-              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-            }}>
-              <Home size={18} color={GREEN} />
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ margin: 0, fontSize: 15, fontWeight: 800, color: INK }}>Hogares compartidos</p>
-              <p style={{ margin: "2px 0 0", fontSize: 12.5, color: "#7a9485" }}>Invitar, cambiar de hogar, biblioteca personal</p>
-            </div>
-            <ChevronDown size={18} color="#7a9485" style={{ transform: "rotate(-90deg)" }} />
-          </button>
         )}
 
         {/* ── 2. Tu familia ─────────────────────────── */}
