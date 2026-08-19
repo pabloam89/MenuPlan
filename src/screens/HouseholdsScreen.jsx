@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   BookOpen,
   Check,
@@ -10,13 +11,14 @@ import {
   Trash2,
 } from "lucide-react";
 import {
+  Avatar,
   BottomNav,
   GroupAvatarStack,
   bottomNavSpacer,
   GoogleButton,
   groupAvatarFaces,
 } from "../components/ui.jsx";
-const GREEN = "#2d5a3d";
+import { googleInfo } from "./Settings.jsx";const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
 const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
@@ -44,6 +46,155 @@ function buildSlots(households, activeHousehold, user) {
     { kind: "viewer", household: viewers[0] ?? null, label: "Hogar visitante 1", roleLabel: "Visitante" },
     { kind: "viewer", household: viewers[1] ?? null, label: "Hogar visitante 2", roleLabel: "Visitante" },
   ];
+}
+
+function buildAccessAccounts(h, user) {
+  if (!h || !user) return [];
+  const g = googleInfo(user);
+  const you = {
+    id: user.id,
+    name: g.name,
+    photo: g.photo,
+    roleLabel: h.role === "owner" ? "Propietario" : "Visitante",
+    isYou: true,
+  };
+  if (h.role === "viewer") {
+    return [
+      {
+        id: "owner-slot",
+        name: "Propietario del hogar",
+        photo: null,
+        roleLabel: "Propietario",
+        isYou: false,
+        muted: true,
+      },
+      you,
+    ];
+  }
+  return [you];
+}
+
+function AccessAccountsSheet({ open, onClose, accounts, householdName, isOwner }) {
+  if (!open) return null;
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1000,
+        background: "rgba(15,30,20,.34)",
+        backdropFilter: "blur(2px)",
+        WebkitBackdropFilter: "blur(2px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+        animation: "hogGlassFade .18s ease both",
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Cuentas con acceso"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 340,
+          maxWidth: "calc(100vw - 40px)",
+          background: "rgba(247,251,248,.82)",
+          backdropFilter: "blur(26px) saturate(180%)",
+          WebkitBackdropFilter: "blur(26px) saturate(180%)",
+          borderRadius: 24,
+          border: "1px solid rgba(255,255,255,.7)",
+          boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
+          padding: "18px 18px 16px",
+          animation: "hogGlassIn .22s cubic-bezier(.4,0,.2,1) both",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10.5,
+            fontWeight: 800,
+            letterSpacing: ".6px",
+            textTransform: "uppercase",
+            color: "#5f7568",
+            marginBottom: 4,
+          }}
+        >
+          Cuentas con acceso
+        </div>
+        <p style={{ margin: "0 0 14px", fontSize: 12.5, fontWeight: 600, color: MUTED, lineHeight: 1.35 }}>
+          {householdName}
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {accounts.map((acc) => (
+            <div
+              key={acc.id}
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr auto",
+                alignItems: "center",
+                gap: 10,
+                padding: "8px 10px",
+                borderRadius: 14,
+                background: "rgba(255,255,255,.72)",
+                border: "1px solid rgba(212,230,218,.9)",
+              }}
+            >
+              <Avatar name={acc.name} photo={acc.photo} size={36} color={acc.isYou ? GREEN : "#9ab0a1"} />
+              <div style={{ minWidth: 0 }}>
+                <div
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 800,
+                    color: acc.muted ? MUTED : INK,
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {acc.name}
+                  {acc.isYou && (
+                    <span style={{ fontWeight: 700, color: MUTED }}> · tú</span>
+                  )}
+                </div>
+              </div>
+              <span
+                style={{
+                  padding: "2px 8px",
+                  borderRadius: 999,
+                  fontSize: 9,
+                  fontWeight: 800,
+                  background: acc.roleLabel === "Propietario" ? GREEN : "#eef4f0",
+                  color: acc.roleLabel === "Propietario" ? "#fff" : GREEN,
+                  lineHeight: 1.3,
+                  flexShrink: 0,
+                }}
+              >
+                {acc.roleLabel === "Propietario" ? "Prop" : "Vis"}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {isOwner && accounts.length <= 1 && (
+          <p style={{ margin: "12px 0 0", fontSize: 11, fontWeight: 600, color: MUTED, lineHeight: 1.4, textAlign: "center" }}>
+            Cuando alguien acepte tu invitación, aparecerá aquí.
+          </p>
+        )}
+      </div>
+      <style>{`
+        @keyframes hogGlassFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes hogGlassIn {
+          from { opacity: 0; transform: translateY(10px) scale(.98); }
+          to { opacity: 1; transform: none; }
+        }
+      `}</style>
+    </div>,
+    document.body,
+  );
 }
 
 function CardOverflowMenu({ actions }) {
@@ -152,6 +303,7 @@ function CardOverflowMenu({ actions }) {
 function SlotCard({
   slot,
   isGlobalActive,
+  user,
   members = [],
   effectiveActiveId,
   userLoggedIn,
@@ -172,6 +324,7 @@ function SlotCard({
   startRename,
   commitRename,
 }) {
+  const [accountsOpen, setAccountsOpen] = useState(false);
   const h = slot.household;
   const empty = !h;
   const img = slot.kind === "owner" ? IMG_OWNER : IMG_VIEWER;
@@ -191,6 +344,7 @@ function SlotCard({
   const showMemberAvatars =
     Boolean(h && slot.kind === "owner" && h.id === effectiveActiveId && members.length > 0);
   const avatarFaces = showMemberAvatars ? groupAvatarFaces(members, members) : [];
+  const accessAccounts = useMemo(() => buildAccessAccounts(h, user), [h, user]);
 
   const menuActions = useMemo(() => {
     if (!h) return [];
@@ -306,7 +460,7 @@ function SlotCard({
         width: "100%",
         maxWidth: 380,
         margin: "0 auto",
-        padding: "0 4px 4px",
+        padding: "0 4px 8px",
         border: "none",
         background: "transparent",
         boxShadow: "none",
@@ -318,7 +472,7 @@ function SlotCard({
         flexDirection: "column",
         alignItems: "center",
         textAlign: "center",
-        gap: 10,
+        gap: 12,
       }}
     >
       {titleNode}
@@ -327,6 +481,7 @@ function SlotCard({
         style={{
           position: "relative",
           width: "min(340px, 94vw)",
+          marginBottom: 2,
         }}
       >
         <div
@@ -366,9 +521,16 @@ function SlotCard({
             justifyContent: "center",
             flexWrap: "wrap",
             gap: 8,
+            marginTop: 4,
+            paddingBottom: 4,
           }}
         >
-          <span
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setAccountsOpen(true);
+            }}
             style={{
               padding: "3px 11px",
               borderRadius: 999,
@@ -377,10 +539,13 @@ function SlotCard({
               background: slot.kind === "owner" ? GREEN : "#eef4f0",
               color: slot.kind === "owner" ? "#fff" : GREEN,
               lineHeight: 1.3,
+              border: "none",
+              cursor: "pointer",
+              fontFamily: "inherit",
             }}
           >
             {slot.roleLabel}
-          </span>
+          </button>
           {joinedLabel && (
             <span style={{ fontSize: 11, fontWeight: 700, color: MUTED, lineHeight: 1.3, whiteSpace: "nowrap" }}>
               Desde {joinedLabel}
@@ -478,6 +643,14 @@ function SlotCard({
           Reintentar
         </button>
       )}
+
+      <AccessAccountsSheet
+        open={accountsOpen}
+        onClose={() => setAccountsOpen(false)}
+        accounts={accessAccounts}
+        householdName={displayName}
+        isOwner={h?.role === "owner" && h?.isOwn}
+      />
     </div>
   );
 }
@@ -485,6 +658,7 @@ function SlotCard({
 function HouseholdCarousel({
   slots,
   effectiveActiveId,
+  user,
   members,
   userLoggedIn,
   householdLoading,
@@ -528,7 +702,7 @@ function HouseholdCarousel({
   };
 
   return (
-    <div style={{ width: "100%" }}>
+    <div style={{ width: "100%", paddingBottom: 8 }}>
       <div
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
@@ -557,6 +731,7 @@ function HouseholdCarousel({
                 <SlotCard
                   slot={slot}
                   isGlobalActive={isGlobalActive}
+                  user={user}
                   members={members}
                   effectiveActiveId={effectiveActiveId}
                   userLoggedIn={userLoggedIn}
@@ -589,7 +764,8 @@ function HouseholdCarousel({
             display: "flex",
             justifyContent: "center",
             gap: 6,
-            marginTop: -10,
+            marginTop: 10,
+            marginBottom: 12,
             position: "relative",
             zIndex: 2,
           }}
@@ -725,7 +901,7 @@ export function HouseholdsScreen({
       <div
         style={{
           flex: 1,
-          padding: `0 12px calc(${bottomNavSpacer()} + 10px)`,
+          padding: `0 12px calc(${bottomNavSpacer()} + 20px)`,
           maxWidth: 420,
           margin: "0 auto",
           width: "100%",
@@ -823,6 +999,7 @@ export function HouseholdsScreen({
             <HouseholdCarousel
               slots={slots}
               effectiveActiveId={effectiveActiveId}
+              user={user}
               members={members}
               userLoggedIn={Boolean(user)}
               householdLoading={householdLoading}
