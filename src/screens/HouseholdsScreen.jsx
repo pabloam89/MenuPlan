@@ -149,43 +149,33 @@ function MembersSheet({ open, onClose, accounts, householdName, isOwner }) {
                 width: 36,
                 height: 36,
                 borderRadius: 11,
-                background: "#eef6f0",
+                background: "#dce8ff",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 flexShrink: 0,
               }}
             >
-              <Users size={18} color={GREEN} strokeWidth={2.4} />
+              <Users size={18} color="#3b5bdb" strokeWidth={2.4} />
             </span>
-            <div style={{ minWidth: 0, textAlign: "left" }}>
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: 17,
-                  fontWeight: 900,
-                  color: INK,
-                  letterSpacing: "-.25px",
-                  lineHeight: 1.2,
-                }}
-              >
-                Miembros de
-              </h2>
-              <p
-                style={{
-                  margin: "2px 0 0",
-                  fontSize: 14,
-                  fontWeight: 800,
-                  color: MUTED,
-                  lineHeight: 1.25,
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {householdName}
-              </p>
-            </div>
+            <h2
+              style={{
+                margin: 0,
+                flex: 1,
+                minWidth: 0,
+                fontSize: 17,
+                fontWeight: 900,
+                color: INK,
+                letterSpacing: "-.25px",
+                lineHeight: 1.25,
+                textAlign: "left",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Miembros de {householdName}
+            </h2>
           </div>
         </div>
 
