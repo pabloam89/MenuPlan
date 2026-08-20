@@ -189,7 +189,7 @@ function HouseholdAccessList({
                     >
                       {acc.name}
                     </span>
-                    {householdCreatedAt ? (
+                    {(acc.roleLabel === "Propietario" ? householdCreatedAt : acc.joinedAt) ? (
                       <span
                         style={{
                           fontSize: 12,
@@ -200,21 +200,9 @@ function HouseholdAccessList({
                           lineHeight: 1.2,
                         }}
                       >
-                        Creado {formatHouseholdCreatedAt(householdCreatedAt)}
-                      </span>
-                    ) : null}
-                    {acc.joinedAt ? (
-                      <span
-                        style={{
-                          fontSize: 12,
-                          fontWeight: 600,
-                          color: MUTED,
-                          whiteSpace: "nowrap",
-                          textAlign: "left",
-                          lineHeight: 1.2,
-                        }}
-                      >
-                        Unido {formatHouseholdCreatedAt(acc.joinedAt)}
+                        {formatHouseholdCreatedAt(
+                          acc.roleLabel === "Propietario" ? householdCreatedAt : acc.joinedAt,
+                        )}
                       </span>
                     ) : null}
                   </div>
@@ -980,9 +968,7 @@ function SlotCard({
             alt=""
             style={{
               width: "100%",
-              height: "100%",
-              objectFit: "contain",
-              objectPosition: "center bottom",
+              height: "auto",
               display: "block",
             }}
           />
