@@ -51,7 +51,9 @@ import {
   Pizza,
   Repeat,
   Salad,
+  ShoppingCart,
   SlidersHorizontal,
+  Store,
   Sparkles,
   Star,
   Tag,
@@ -87,6 +89,7 @@ import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
+import { StoreBadge } from "./SpendPanel.jsx";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
@@ -2590,12 +2593,15 @@ function RestrictionTabCard({
           {textOverlay && (
             <div style={{
               position: "absolute", inset: 0,
-              background: "linear-gradient(to top, rgba(0,0,0,.62) 0%, rgba(0,0,0,.18) 55%, transparent 100%)",
+              background: "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.22) 50%, transparent 100%)",
               display: "flex", flexDirection: "column", justifyContent: "flex-end",
-              padding: "0 8px 8px",
+              padding: compact ? "0 7px 8px" : "0 8px 8px",
               textAlign: "center",
             }}>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>{title}</div>
+              <div style={{ fontSize: compact ? 11.5 : 12, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>{title}</div>
+              {subtitle ? (
+                <div style={{ fontSize: compact ? 9 : 10, fontWeight: 600, color: "rgba(255,255,255,.88)", marginTop: 2, lineHeight: 1.25 }}>{subtitle}</div>
+              ) : null}
             </div>
           )}
           {pill ? (
@@ -3340,16 +3346,18 @@ export function IndividualMenuSheet({ member, reason, onConfirm, onCancel }) {
 // screens the user will actually see (e.g. "Menú del cole" is hidden when there
 // are no kids/babies in the house). MANTENER EN SINCRONÍA con el orden de
 // `onbScreens` en App.jsx: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
-// 5 Semana · 6 Horario · 7 Estilo · 8 Extras · 9 En casa · 10 Cocina · 11 Tiempos.
+// 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras ·
+// 11 En casa · 12 Cocina · 13 Tiempos.
 const AFINAR_WIZARD_STEPS = [
   { step: 0, Icon: SlidersHorizontal, label: "Modo", desc: "Sencillo o avanzado" },
   { step: 3, Icon: School, label: "Menú del cole", desc: "Sube el PDF o foto del comedor" },
   { step: 4, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
   { step: 5, Icon: CalendarDays, label: "Semana", desc: "Elige qué semana planificar" },
-  { step: 6, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
-  { step: 8, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
-  { step: 11, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
-  { step: 12, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
+  { step: 6, Icon: ShoppingCart, label: "Tu compra", desc: "Súper y presupuesto semanal" },
+  { step: 7, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
+  { step: 9, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
+  { step: 12, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
+  { step: 13, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
 ];
 
 export function AfinarWizardBubble({ onClose, visibleSteps }) {
@@ -8929,21 +8937,31 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
   return (
     <OnboardingShell
       title="¿Cómo quieres usar la app?"
-      subtitle="Elige una opción · puedes cambiarla siempre que quieras."
+      subtitle="Sencillo o avanzado · puedes cambiarlo cuando quieras."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          minHeight: "100%",
+          justifyContent: "center",
+          boxSizing: "border-box",
+          paddingBottom: "max(8px, env(safe-area-inset-bottom, 0px))",
+        }}
+      >
         {MODO_OPTS.map((t) => (
           <RestrictionTabCard
             key={t.id}
             img={t.img}
             title={t.label}
             subtitle={t.subtitle}
-            imgHeight={88}
+            imgHeight={76}
             compact
             accent={CARD_ACCENT_TEAL}
             active={current === t.id}
@@ -10182,77 +10200,598 @@ export function OnboardingWeek({ data, setData, onNext, onBack, onReset, onFinis
   );
 }
 
-export function OnboardingBudget({ data, setData, onBack, onFinish, onReset }) {
-  const supers = ["Mercadona", "Carrefour", "Lidl", "Dia", "Alcampo", "Otro"];
-  const toggle = (s) =>
+const ONBOARDING_STORES = [
+  "Mercadona",
+  "Carrefour",
+  "Lidl",
+  "Dia",
+  "Alcampo",
+  "Aldi",
+  "Eroski",
+  "Otro",
+];
+
+const BUDGET_HERO = {
+  free: {
+    copy: "Sin preocuparme del presupuesto",
+    track: "#0f766e",
+    frame: "#c8e6d4",
+    img: "/budget-cards/no-prices.png",
+  },
+  capped: {
+    copy: "Quiero fijar presupuesto",
+    track: "#1e3a8a",
+    frame: "#b8c5e8",
+    img: "/budget-cards/yes-prices.png",
+  },
+};
+
+function BudgetIllustrationToggle({ hasBudget, onChange }) {
+  const mode = hasBudget ? BUDGET_HERO.capped : BUDGET_HERO.free;
+  const trackW = 88;
+  const trackH = 28;
+  const thumb = 20;
+  const pad = 4;
+  const travel = trackW - thumb - pad * 2;
+  const fade = "opacity .38s cubic-bezier(.4,0,.2,1)";
+
+  return (
+    <div
+      style={{
+        width: "100%",
+        borderRadius: 16,
+        overflow: "hidden",
+        border: `1.5px solid ${mode.frame}`,
+        boxShadow: "0 8px 28px rgba(20,47,29,.08)",
+        transition: "border-color .38s cubic-bezier(.4,0,.2,1)",
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          width: "100%",
+          aspectRatio: "1 / 1",
+          overflow: "hidden",
+        }}
+      >
+        {[BUDGET_HERO.free, BUDGET_HERO.capped].map((cfg) => (
+          <img
+            key={cfg.img}
+            src={cfg.img}
+            alt=""
+            aria-hidden={cfg !== mode}
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              objectPosition: "center center",
+              pointerEvents: "none",
+              opacity: cfg === mode ? 1 : 0,
+              transition: fade,
+            }}
+          />
+        ))}
+
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: "54%",
+            transform: "translateY(-50%)",
+            zIndex: 2,
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
+          <button
+            type="button"
+            role="switch"
+            aria-checked={hasBudget}
+            aria-label={mode.copy}
+            onClick={() => onChange(!hasBudget)}
+            style={{
+              width: trackW,
+              height: trackH,
+              borderRadius: 999,
+              border: "none",
+              padding: pad,
+              background: mode.track,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              flexShrink: 0,
+              boxShadow: "0 4px 14px rgba(20,47,29,.18), inset 0 1px 0 rgba(255,255,255,.2)",
+              transition: "background .34s cubic-bezier(.4,0,.2,1)",
+            }}
+          >
+            <span
+              style={{
+                display: "block",
+                width: thumb,
+                height: thumb,
+                borderRadius: 999,
+                background: "#fff",
+                transform: hasBudget ? `translateX(${travel}px)` : "translateX(0)",
+                transition: "transform .34s cubic-bezier(.4,0,.2,1)",
+                boxShadow: "0 2px 8px rgba(0,0,0,.16)",
+              }}
+            />
+          </button>
+        </div>
+      </div>
+
+      <div
+        style={{
+          padding: "12px 14px",
+          borderTop: `1.5px solid ${mode.frame}`,
+          background: "#fff",
+          textAlign: "center",
+          transition: "border-color .38s cubic-bezier(.4,0,.2,1)",
+        }}
+      >
+        <p
+          style={{
+            margin: 0,
+            fontSize: 14,
+            fontWeight: 800,
+            color: mode.track,
+            lineHeight: 1.35,
+            transition: "color .34s cubic-bezier(.4,0,.2,1)",
+          }}
+        >
+          {mode.copy}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+const onbBudgetFieldLabel = {
+  fontSize: 11,
+  fontWeight: 800,
+  color: "#1a3a24",
+  textTransform: "uppercase",
+  letterSpacing: 0.8,
+  lineHeight: 1.35,
+  margin: "0 0 8px",
+  textAlign: "center",
+};
+
+const budgetEuroInputStyle = {
+  height: 44,
+  padding: "0 8px",
+  borderRadius: 10,
+  border: "1.5px solid #e0eae3",
+  fontSize: 16,
+  fontWeight: 700,
+  textAlign: "center",
+  color: "#1a3a24",
+  outline: "none",
+  boxSizing: "border-box",
+  fontFamily: "inherit",
+  background: "#fff",
+};
+
+function BudgetWeeklyInput({ value, min = 30, max = 200, onChange, compact = false }) {
+  const [draft, setDraft] = useState(String(value ?? ""));
+
+  useEffect(() => {
+    setDraft(String(value ?? ""));
+  }, [value]);
+
+  const commit = (raw) => {
+    const trimmed = raw.replace(/\D/g, "");
+    if (!trimmed) {
+      onChange(min);
+      setDraft(String(min));
+      return;
+    }
+    const clamped = Math.min(max, Math.max(min, parseInt(trimmed, 10)));
+    onChange(clamped);
+    setDraft(String(clamped));
+  };
+
+  const inputEl = (
+    <input
+      type="text"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      value={draft}
+      onChange={(e) => {
+        const digits = e.target.value.replace(/\D/g, "");
+        setDraft(digits);
+        if (digits) {
+          onChange(Math.min(max, Math.max(min, parseInt(digits, 10))));
+        }
+      }}
+      onBlur={() => commit(draft)}
+      aria-label="Gasto semanal en euros"
+      style={{
+        ...budgetEuroInputStyle,
+        width: compact ? 44 : "100%",
+        height: compact ? 40 : 44,
+        flexShrink: compact ? 0 : undefined,
+        fontSize: compact ? 15 : 16,
+      }}
+    />
+  );
+
+  if (compact) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", gap: 5, flexShrink: 0 }}>
+        {inputEl}
+        <span
+          style={{
+            fontSize: 11,
+            fontWeight: 800,
+            color: "#5f7568",
+            letterSpacing: 0.4,
+            whiteSpace: "nowrap",
+          }}
+        >
+          EUR
+        </span>
+      </div>
+    );
+  }
+
+  return inputEl;
+}
+
+const BUDGET_SLIDER_TEAL = "#0f766e";
+
+function FriedEggThumb({ size = 38 }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 40 40"
+      aria-hidden
+      style={{ display: "block", filter: "drop-shadow(0 2px 5px rgba(20,47,29,.18))" }}
+    >
+      <circle cx="20" cy="20" r="17" fill="#fffef8" stroke="#eadfce" strokeWidth="1.2" />
+      <circle cx="20" cy="20" r="8.5" fill="#f97316" />
+    </svg>
+  );
+}
+
+function BudgetSliderEuroRow({ value, min = 30, max = 200, step = 5, onChange }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  const thumb = 38;
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <style>{`
+        .sl-budget { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; outline: none; cursor: pointer; position: absolute; inset: 0; z-index: 3; margin: 0; }
+        .sl-budget::-webkit-slider-runnable-track { background: transparent; height: 44px; }
+        .sl-budget::-moz-range-track { background: transparent; height: 44px; border: none; }
+        .sl-budget::-webkit-slider-thumb { -webkit-appearance: none; width: ${thumb}px; height: ${thumb}px; border-radius: 50%; background: transparent; border: none; box-shadow: none; cursor: grab; margin-top: -20px; }
+        .sl-budget:active::-webkit-slider-thumb { cursor: grabbing; }
+        .sl-budget::-moz-range-thumb { width: ${thumb}px; height: ${thumb}px; border: none; border-radius: 50%; background: transparent; box-shadow: none; cursor: grab; }
+      `}</style>
+      <div style={{ flex: 1, minWidth: 0, position: "relative", height: 44 }}>
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            height: 5,
+            borderRadius: 999,
+            background: "#dceee8",
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            left: 0,
+            top: "50%",
+            transform: "translateY(-50%)",
+            height: 5,
+            borderRadius: 999,
+            background: BUDGET_SLIDER_TEAL,
+            width: `${pct}%`,
+            pointerEvents: "none",
+          }}
+        />
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            left: `${pct}%`,
+            top: "50%",
+            transform: "translate(-50%, -50%)",
+            pointerEvents: "none",
+            zIndex: 2,
+          }}
+        >
+          <FriedEggThumb size={thumb} />
+        </div>
+        <input
+          className="sl-budget"
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          onChange={(e) => onChange(+e.target.value)}
+          aria-label="Tope semanal en euros"
+        />
+      </div>
+      <BudgetWeeklyInput compact value={value} min={min} max={max} onChange={onChange} />
+    </div>
+  );
+}
+
+function StoreCarouselPicker({ selected, onPick }) {
+  const showHint = ONBOARDING_STORES.length > 3;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <div
+        style={{
+          display: "flex",
+          gap: 10,
+          overflowX: "auto",
+          padding: "4px 0",
+          scrollSnapType: "x proximity",
+          scrollbarWidth: "none",
+          WebkitOverflowScrolling: "touch",
+        }}
+      >
+        {ONBOARDING_STORES.map((name) => {
+          const isOn = selected === name;
+          return (
+            <button
+              key={name}
+              type="button"
+              onClick={() => onPick(name)}
+              aria-pressed={isOn}
+              aria-label={name}
+              title={name}
+              style={{
+                flex: "0 0 calc((100% - 20px) / 3)",
+                scrollSnapAlign: "start",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 72,
+                padding: "12px 8px",
+                borderRadius: 14,
+                border: `1.5px solid ${isOn ? "#2d5a3d" : "#e0eae3"}`,
+                background: isOn ? "#eef8f1" : "#fff",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                boxShadow: isOn ? "0 4px 14px rgba(45,90,61,.14)" : "0 1px 2px rgba(0,0,0,.04)",
+                transition: "border-color .16s ease, box-shadow .16s ease, background .16s ease",
+              }}
+            >
+              <StoreBadge name={name} size={52} maxWidth={96} />
+            </button>
+          );
+        })}
+      </div>
+      {showHint && (
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: 36,
+            pointerEvents: "none",
+            background: "linear-gradient(90deg, transparent, rgba(247,251,248,.96))",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            paddingRight: 2,
+          }}
+        >
+          <ChevronRight size={16} color="#9ab0a1" strokeWidth={2.5} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LiquidGlassStoreSheet({ open, selected, onClose, onPick }) {
+  if (!open) return null;
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 1200,
+        background: "rgba(15,30,20,.34)",
+        backdropFilter: "blur(2px)",
+        WebkitBackdropFilter: "blur(2px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+        animation: "onbStoreGlassFade .18s ease both",
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Elige supermercado"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 360,
+          maxWidth: "calc(100vw - 32px)",
+          background: "rgba(247,251,248,.82)",
+          backdropFilter: "blur(26px) saturate(180%)",
+          WebkitBackdropFilter: "blur(26px) saturate(180%)",
+          borderRadius: 24,
+          border: "1px solid rgba(255,255,255,.7)",
+          boxShadow: "0 30px 70px rgba(20,47,29,.30), inset 0 1px 0 rgba(255,255,255,.6)",
+          padding: "18px 18px 20px",
+          animation: "onbStoreGlassIn .22s cubic-bezier(.4,0,.2,1) both",
+        }}
+      >
+        <div
+          style={{
+            fontSize: 10.5,
+            fontWeight: 800,
+            letterSpacing: ".6px",
+            textTransform: "uppercase",
+            color: "#5f7568",
+            marginBottom: 14,
+          }}
+        >
+          ¿Dónde compras?
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+            gap: 10,
+          }}
+        >
+          {ONBOARDING_STORES.map((name) => {
+            const isOn = selected === name;
+            return (
+              <button
+                key={name}
+                type="button"
+                onClick={() => onPick(name)}
+                aria-pressed={isOn}
+                aria-label={name}
+                title={name}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  minHeight: 72,
+                  padding: "10px 8px",
+                  borderRadius: 14,
+                  border: `1.5px solid ${isOn ? "#2d5a3d" : "rgba(255,255,255,.55)"}`,
+                  background: isOn ? "rgba(238,248,241,.92)" : "rgba(255,255,255,.42)",
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                  opacity: isOn ? 1 : 0.72,
+                  transform: isOn ? "scale(1.02)" : "scale(1)",
+                  transition: "opacity .16s ease, transform .16s ease, border-color .16s ease, background .16s ease",
+                  boxShadow: isOn ? "0 4px 14px rgba(45,90,61,.12)" : "inset 0 1px 0 rgba(255,255,255,.5)",
+                }}
+              >
+                <StoreBadge name={name} size={40} maxWidth={96} />
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <style>{`
+        @keyframes onbStoreGlassFade { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes onbStoreGlassIn {
+          from { opacity: 0; transform: translateY(12px) scale(.96); }
+          to { opacity: 1; transform: none; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onReset }) {
+  const weekCount = useMemo(() => {
+    const raw =
+      Array.isArray(data.menuWeekOffsets) && data.menuWeekOffsets.length
+        ? data.menuWeekOffsets
+        : [data.menuWeek?.offset ?? 0];
+    return raw.length;
+  }, [data.menuWeekOffsets, data.menuWeek]);
+
+  const hasBudget = Boolean(data.hasBudget);
+  const primaryStore = data.supermarkets[0] ?? "";
+  const mercadonaOn = hasBudget && primaryStore === "Mercadona";
+  const totalBudget = hasBudget ? (Number(data.budget) || 0) * weekCount : null;
+
+  const setBudgetMode = (capped) => {
     setData((d) => ({
       ...d,
-      supermarkets: d.supermarkets.includes(s)
-        ? d.supermarkets.filter((v) => v !== s)
-        : [...d.supermarkets, s],
+      hasBudget: capped,
+      wantsPriceEstimates: capped,
+      ...(capped ? {} : { supermarkets: [] }),
     }));
+  };
+
+  const pickStore = (name) => {
+    setData((d) => ({ ...d, supermarkets: [name] }));
+  };
+
   return (
     <OnboardingShell
-      title="Presupuesto y supermercado"
-      subtitle="Último paso para afinar el menú"
+      title="Tu compra"
+      subtitle={
+        hasBudget
+          ? weekCount > 1
+            ? `${weekCount} semanas — tope y súper por semana de compra`
+            : "¿Cuánto quieres gastar y dónde compras?"
+          : "Activa el toggle si quieres fijar un tope semanal"
+      }
       onBack={onBack}
+      onNext={onNext}
       onReset={onReset}
       onFinish={onFinish}
     >
-      <div style={{ display: "flex", gap: 10, marginBottom: 20 }}>
-        <div
-          onClick={() => setData((d) => ({ ...d, hasBudget: false }))}
-          style={{
-            flex: 1,
-            padding: "14px",
-            borderRadius: 12,
-            textAlign: "center",
-            cursor: "pointer",
-            background: !data.hasBudget ? "rgba(45,90,61,.08)" : "#f8f8f8",
-            border: `2px solid ${!data.hasBudget ? "#2d5a3d" : "transparent"}`,
-            fontWeight: 600,
-            color: "#1a3a24",
-            fontSize: 14,
-          }}
-        >
-          Sin límite
+      <BudgetIllustrationToggle hasBudget={hasBudget} onChange={setBudgetMode} />
+
+      <div
+        style={{
+          overflow: "hidden",
+          maxHeight: hasBudget ? 640 : 0,
+          opacity: hasBudget ? 1 : 0,
+          marginTop: 0,
+          transition: "max-height .32s ease, opacity .24s ease",
+        }}
+      >
+        <div style={{ height: 1, background: "#dde8e1", margin: "20px 0 16px" }} />
+
+        <div>
+          <p style={onbBudgetFieldLabel}>¿Cuánto quieres gastar por semana?</p>
+          <BudgetSliderEuroRow
+            value={data.budget}
+            min={30}
+            max={200}
+            step={5}
+            onChange={(v) => setData((d) => ({ ...d, budget: v }))}
+          />
+          {weekCount > 1 && totalBudget != null && (
+            <p style={{ margin: "8px 0 0", fontSize: 10.5, color: "#5f7568", lineHeight: 1.4, textAlign: "center" }}>
+              ~{totalBudget} € total ({data.budget} € × {weekCount})
+            </p>
+          )}
         </div>
-        <div
-          onClick={() => setData((d) => ({ ...d, hasBudget: true }))}
-          style={{
-            flex: 1,
-            padding: "14px",
-            borderRadius: 12,
-            textAlign: "center",
-            cursor: "pointer",
-            background: data.hasBudget ? "rgba(45,90,61,.08)" : "#f8f8f8",
-            border: `2px solid ${data.hasBudget ? "#2d5a3d" : "transparent"}`,
-            fontWeight: 600,
-            color: "#1a3a24",
-            fontSize: 14,
-          }}
-        >
-          Con presupuesto
+
+        <div style={{ marginTop: 20 }}>
+          <p style={onbBudgetFieldLabel}>¿En qué supermercado compras?</p>
+          <StoreCarouselPicker selected={primaryStore} onPick={pickStore} />
         </div>
-      </div>
-      {data.hasBudget && (
-        <SliderInput
-          label="Presupuesto semanal"
-          value={data.budget}
-          min={30}
-          max={200}
-          step={5}
-          suffix=" €"
-          onChange={(v) => setData((d) => ({ ...d, budget: v }))}
-        />
-      )}
-      <p style={{ fontSize: 13, fontWeight: 700, color: "#555", marginBottom: 10 }}>
-        ¿Dónde compras?
-      </p>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
-        {supers.map((s) => (
-          <Chip key={s} label={s} selected={data.supermarkets.includes(s)} onClick={() => toggle(s)} />
-        ))}
+
+        {mercadonaOn && (
+          <p
+            style={{
+              fontSize: 12,
+              color: "#3a6b4a",
+              background: "#eef8f1",
+              border: "1px solid #c8e6d4",
+              borderRadius: 10,
+              padding: "10px 12px",
+              marginTop: 14,
+              lineHeight: 1.4,
+            }}
+          >
+            Con Mercadona verás precios estimados en tu lista (catálogo online, orientativo).
+          </p>
+        )}
       </div>
     </OnboardingShell>
   );
