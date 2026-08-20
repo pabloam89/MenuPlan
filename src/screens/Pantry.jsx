@@ -33,7 +33,7 @@ import {
 } from "lucide-react";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
-import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, HouseholdReadOnlyBanner, ToggleSwitch } from "../components/ui.jsx";
+import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
 import { PantryPrefsWizard } from "../components/ModeSheets.jsx";
 import { PantryCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import {
@@ -1930,7 +1930,6 @@ export function PantryScreen({
       <div style={{ background: HEADER_BAND, padding: "20px 16px 14px" }}>
         {header}
       </div>
-      {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} />}
       <div style={{ padding: `16px 16px calc(${bottomNavSpacer()} + 28px)` }}>
         {content}
       </div>

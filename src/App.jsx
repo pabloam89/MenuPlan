@@ -2703,7 +2703,7 @@ export default function App() {
       setOnbResumeOpen(true);
     } else {
       setQuickMenu(false);
-      _doGoToOnboardingStep(0);
+      _doGoToOnboardingStep(1);
     }
   }, [data.members, _doGoToOnboardingStep]);
 
@@ -2712,7 +2712,7 @@ export default function App() {
     setQuickMenu(true);
     setFirstRunOnboarding(false);
     dirRef.current = "forward";
-    setOnbStep(0); // arranca en el modo; Familia (1) está oculta en quick mode
+    setOnbStep(2); // quick: salta modo (0) y familia (1)
     setScreen("onboarding");
   }, []);
 
@@ -2755,7 +2755,7 @@ export default function App() {
     setShopping({ items: [] });
     setSelectedSlot(null);
     setQuickMenu(false);
-    _doGoToOnboardingStep(0);
+    _doGoToOnboardingStep(1);
   }, [_doGoToOnboardingStep]);
 
   // Switching back to a group also has to restore the menú it last generated:
@@ -3550,14 +3550,15 @@ export default function App() {
   const basicMode = !data.expertMode;
   const isStepHidden = useCallback(
     (i) =>
+      // Modo sencillo/avanzado: solo vía «Afinar menú», no al entrar por primera vez.
+      i === 0 ||
       (i === 2 && skipMenuModel) ||
       (i === 3 && skipSchoolMenu) ||
       (i === 7 && skipKidsDinner) ||
       (basicMode && (i === 8 || i === 9)) ||
       // "Mi familia habitual" only ever skips Familia (1) — it's the one
-      // thing already known. El modo (0) sí se pregunta siempre: es lo que
-      // decide qué pantallas vienen detrás y es justo lo que a la gente se le
-      // olvida que puede cambiar. Everything else (modelo de menú, semana,
+      // thing already known. El modo (0) no se pregunta al entrar; vive en
+      // el asistente de afinar. Everything else (modelo de menú, semana,
       // horario, estilo, restricciones, cocina) can change
       // from una generación a otra, so it's asked in full every time, same
       // as a brand-new family or "Otro grupo".
@@ -3791,7 +3792,7 @@ export default function App() {
                 // left over from a previous (abandoned) attempt.
                 setFirstRunOnboarding(true);
                 setHomeCoachSeen(false); // spotlight siempre al llegar al dashboard tras el tutorial
-                setOnbStep(0);
+                setOnbStep(1);
                 setScreen(!FORCE_VALUE_PROPS && valuePropsSeen ? "onboarding" : "valueProps");
               })
             }
@@ -4100,8 +4101,7 @@ export default function App() {
           <HomeCoachTour onClose={markHomeCoachSeen} />
         )}
 
-        {/* El selector básico/avanzado ya no vive aquí: es la primera pantalla
-            del asistente (OnboardingMode), donde nadie se lo salta. */}
+        {/* El selector básico/avanzado vive en el asistente de afinar (paso 0). */}
 
         {screen === "recipes" && (
           <div
@@ -4613,7 +4613,7 @@ export default function App() {
                     setSelectedSlot(null);
                     setAiRecipes([]);
                     setMenuError(null);
-                    setOnbStep(0);
+                    setOnbStep(1);
                     setData((d) =>
                       ensureRosters({
                         ...INITIAL_DATA,
@@ -4644,10 +4644,10 @@ export default function App() {
                     setMenuPlan({});
                     setShopping({ items: [] });
                     setSelectedSlot(null);
-                    setOnbStep(0);
+                    setOnbStep(1);
                     setAiRecipes([]);
                     setMenuError(null);
-                    _doGoToOnboardingStep(0);
+                    _doGoToOnboardingStep(1);
                   },
                 },
               ].map(({ key, Icon, iconColor, iconBg, img, primary, title, subtitle, onClick }) => (

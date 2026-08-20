@@ -41,6 +41,8 @@ const IMG_JOIN = "/avatares/cards/ninos_findesemana_juntos.jpg";
 const JOIN_ASPECT = "3/4";
 /** Visible height ≈92% of 4:5 illustration (~8% bottom crop). */
 const CARD_ASPECT = "32/37";
+/** Member list + hero illustration share the same width as the household card photo. */
+const CARD_CONTENT_WIDTH = "min(380px, 96vw)";
 
 function RoleIllustration({ roleLabel }) {
   const isProp = roleLabel === "Propietario";
@@ -50,8 +52,8 @@ function RoleIllustration({ roleLabel }) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 3,
-        width: 36,
+        gap: 5,
+        width: 58,
         flexShrink: 0,
       }}
     >
@@ -59,17 +61,15 @@ function RoleIllustration({ roleLabel }) {
         src={isProp ? IMG_OWNER : IMG_VIEWER}
         alt=""
         style={{
-          width: 28,
-          height: 34,
-          borderRadius: 8,
+          width: 54,
+          height: 66,
+          borderRadius: 12,
           objectFit: "cover",
           objectPosition: "center top",
           display: "block",
-          boxShadow: "0 2px 8px rgba(20,47,29,.12)",
-          border: "1px solid #e3ebe6",
         }}
       />
-      <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
+      <span style={{ fontSize: 12.5, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
         {isProp ? "Prop" : "Vis"}
       </span>
     </div>
@@ -137,7 +137,7 @@ function HouseholdAccessList({
       <div
         {...(coachHighlight ? { "data-coach": "households-members" } : {})}
         style={{
-          width: "min(310px, 88vw)",
+          width: CARD_CONTENT_WIDTH,
           maxWidth: "100%",
           marginTop: 8,
           boxSizing: "border-box",
@@ -164,37 +164,44 @@ function HouseholdAccessList({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "auto minmax(0, 1fr) auto auto auto",
+                    gridTemplateColumns: "48px 1fr auto 38px",
                     alignItems: "center",
-                    gap: 10,
-                    padding: "2px 0",
+                    columnGap: 10,
+                    padding: "4px 0",
+                    width: "100%",
                   }}
                 >
-                  <Avatar name={acc.name} photo={acc.photo} size={42} color={GREEN} />
-                  <span
-                    style={{
-                      fontSize: 14,
-                      fontWeight: 800,
-                      color: INK,
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      whiteSpace: "nowrap",
-                      textAlign: "left",
-                    }}
-                  >
-                    {acc.name}
-                  </span>
-                  <span
-                    style={{
-                      fontSize: 11.5,
-                      fontWeight: 600,
-                      color: MUTED,
-                      whiteSpace: "nowrap",
-                      textAlign: "right",
-                    }}
-                  >
-                    {acc.roleLabel === "Propietario" ? formatHouseholdCreatedAt(householdCreatedAt) : ""}
-                  </span>
+                  <Avatar name={acc.name} photo={acc.photo} size={48} color={GREEN} />
+                  <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
+                    <span
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 800,
+                        color: INK,
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        textAlign: "left",
+                        lineHeight: 1.2,
+                      }}
+                    >
+                      {acc.name}
+                    </span>
+                    {acc.roleLabel === "Propietario" && householdCreatedAt ? (
+                      <span
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 600,
+                          color: MUTED,
+                          whiteSpace: "nowrap",
+                          textAlign: "left",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        {formatHouseholdCreatedAt(householdCreatedAt)}
+                      </span>
+                    ) : null}
+                  </div>
                   <RoleIllustration roleLabel={acc.roleLabel} />
                   {isOwner && acc.roleLabel === "Visitante" && !acc.isYou && onRemoveMember ? (
                     <button
@@ -206,8 +213,8 @@ function HouseholdAccessList({
                         setRemoveConfirm({ id: acc.id, name: acc.name });
                       }}
                       style={{
-                        width: 32,
-                        height: 32,
+                        width: 38,
+                        height: 38,
                         borderRadius: 10,
                         border: "1.5px solid #f0d4d4",
                         background: "#fff5f5",
@@ -217,12 +224,13 @@ function HouseholdAccessList({
                         cursor: removingId === acc.id ? "wait" : "pointer",
                         padding: 0,
                         flexShrink: 0,
+                        justifySelf: "end",
                       }}
                     >
-                      <UserMinus size={15} color="#b42318" strokeWidth={2.3} />
+                      <UserMinus size={17} color="#b42318" strokeWidth={2.3} />
                     </button>
                   ) : (
-                    <span style={{ width: 32, flexShrink: 0 }} aria-hidden />
+                    <span style={{ width: 38, flexShrink: 0 }} aria-hidden />
                   )}
                 </div>
               </div>
@@ -753,7 +761,6 @@ function SlotCard({
   onCopyInvite,
   onLeave,
   onDestroy,
-  onActivate,
   onOpenJoinSheet,
   onRemoveMember,
   onEditMembers,
@@ -907,7 +914,6 @@ function SlotCard({
     </button>
   );
 
-  const canActivate = Boolean(h && !isGlobalActive);
   const coachCard =
     (coachOwner && slot.kind === "owner" && h && { "data-coach": "households-card" })
     || (coachViewer && slot.kind === "viewer" && { "data-coach": "households-viewer-card" })
@@ -916,28 +922,17 @@ function SlotCard({
   return (
     <div
       {...coachCard}
-      role={canActivate ? "button" : undefined}
-      tabIndex={canActivate ? 0 : undefined}
-      onClick={() => {
-        if (canActivate) onActivate?.(h.id);
-      }}
-      onKeyDown={(e) => {
-        if (canActivate && (e.key === "Enter" || e.key === " ")) {
-          e.preventDefault();
-          onActivate?.(h.id);
-        }
-      }}
       style={{
         position: "relative",
         width: "100%",
-        maxWidth: 380,
+        maxWidth: 400,
         margin: "0 auto",
-        padding: "0 4px 2px",
+        padding: "0 0 2px",
         border: "none",
         background: "transparent",
         boxShadow: "none",
         opacity: empty && !ownerPending ? 0.7 : 1,
-        cursor: canActivate ? "pointer" : "default",
+        cursor: "default",
         outline: "none",
         boxSizing: "border-box",
         display: "flex",
@@ -950,7 +945,7 @@ function SlotCard({
       <div
         style={{
           position: "relative",
-          width: "min(310px, 88vw)",
+          width: CARD_CONTENT_WIDTH,
           marginTop: 6,
           marginBottom: 0,
         }}
@@ -1045,10 +1040,10 @@ function SlotCard({
             alignItems: "center",
             gap: 6,
             marginTop: 2,
-            maxWidth: 280,
+            maxWidth: 320,
           }}
         >
-          <p style={{ margin: 0, fontSize: 11, fontWeight: 600, color: "#6b8575", lineHeight: 1.35, textAlign: "center" }}>
+          <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#6b8575", lineHeight: 1.35, textAlign: "center" }}>
             Activa invitaciones para compartir el menú con tu familia.
           </p>
           <button
@@ -1080,14 +1075,8 @@ function SlotCard({
         </div>
       )}
 
-      {canActivate && (
-        <p style={{ margin: 0, fontSize: 11, fontWeight: 700, color: GREEN, lineHeight: 1.3 }}>
-          Toca para activar este hogar
-        </p>
-      )}
-
       {emptyHint && (
-        <p style={{ margin: 0, fontSize: 12, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 600, color: "#9ab0a1", lineHeight: 1.35 }}>{emptyHint}</p>
       )}
 
       {empty && slot.kind === "viewer" && userLoggedIn && (
@@ -1171,7 +1160,6 @@ function HouseholdCarousel({
   onCopyInvite,
   onLeave,
   onDestroy,
-  onActivate,
   onOpenJoinSheet,
   onRemoveMember,
   onEditMembers,
@@ -1279,7 +1267,6 @@ function HouseholdCarousel({
                   onCopyInvite={onCopyInvite}
                   onLeave={onLeave}
                   onDestroy={onDestroy}
-                  onActivate={onActivate}
                   onOpenJoinSheet={onOpenJoinSheet}
                   onRemoveMember={onRemoveMember}
                   onEditMembers={onEditMembers}
@@ -1310,7 +1297,6 @@ export function HouseholdsScreen({
   householdLoading = false,
   householdError = null,
   members = [],
-  readOnly,
   inviteUrl,
   pendingInvite,
   acceptingInvite = false,
@@ -1369,8 +1355,22 @@ export function HouseholdsScreen({
   }, [activeSlideIndex]);
 
   const viewedSlot = slots[slideIndex] ?? slots[0];
-  const viewedHousehold = viewedSlot?.household;
-  const navDissolved = !viewedHousehold || viewedHousehold.id !== effectiveActiveId;
+  const showHouseholdNav = Boolean(viewedSlot?.household?.id);
+  const slideChangeFromUser = useRef(false);
+
+  const handleSlideChange = useCallback((next) => {
+    slideChangeFromUser.current = true;
+    setSlideIndex((prev) => (typeof next === "function" ? next(prev) : next));
+  }, []);
+
+  useEffect(() => {
+    if (!slideChangeFromUser.current) return;
+    slideChangeFromUser.current = false;
+    const h = slots[slideIndex]?.household;
+    if (h?.id && h.id !== effectiveActiveId) {
+      onSwitchHousehold?.(h.id);
+    }
+  }, [slideIndex, slots, effectiveActiveId, onSwitchHousehold]);
 
   const handleCopyInvite = async () => {
     if (!inviteUrl) return;
@@ -1413,23 +1413,19 @@ export function HouseholdsScreen({
     setRenamingId(null);
   };
 
-  const handleActivate = (id) => {
-    onSwitchHousehold?.(id);
-  };
-
   const handleCoachStep = useCallback((step) => {
     const sel = step?.selector;
     if (sel === '[data-coach="households-viewer-card"]') {
-      setSlideIndex(1);
+      handleSlideChange(1);
     } else if (
       sel === '[data-coach="households-card"]'
       || sel === '[data-coach="households-members"]'
       || sel === '[data-coach="households-menu"]'
       || sel === '[data-coach="households-dots"]'
     ) {
-      setSlideIndex(0);
+      handleSlideChange(0);
     }
-  }, []);
+  }, [handleSlideChange]);
 
   return (
     <div style={{ minHeight: "100dvh", background: "#fff", color: INK }}>
@@ -1437,7 +1433,7 @@ export function HouseholdsScreen({
         <div
           style={{
             padding: "20px 16px 14px",
-            maxWidth: 420,
+            maxWidth: 440,
             margin: "0 auto",
             width: "100%",
             boxSizing: "border-box",
@@ -1524,7 +1520,7 @@ export function HouseholdsScreen({
         style={{
           flex: 1,
           padding: `12px 12px calc(${bottomNavSpacer()} + 44px)`,
-          maxWidth: 420,
+          maxWidth: 440,
           margin: "0 auto",
           width: "100%",
           boxSizing: "border-box",
@@ -1567,7 +1563,6 @@ export function HouseholdsScreen({
               onCopyInvite={handleCopyInvite}
               onLeave={onLeaveHousehold}
               onDestroy={onDestroyHousehold}
-              onActivate={handleActivate}
               onOpenJoinSheet={() => {
                 setJoinError(null);
                 setJoinSheetOpen(true);
@@ -1577,7 +1572,7 @@ export function HouseholdsScreen({
               onAdvanceSetup={onAdvanceSetup}
               onRetry={() => onRefresh?.()}
               slideIndex={slideIndex}
-              onSlideChange={setSlideIndex}
+              onSlideChange={handleSlideChange}
               renamingId={renamingId}
               renameDraft={renameDraft}
               setRenameDraft={setRenameDraft}
@@ -1585,21 +1580,6 @@ export function HouseholdsScreen({
               commitRename={commitRename}
             />
 
-            {readOnly && activeHousehold && (
-              <div
-                style={{
-                  background: "#fffdf5",
-                  border: "1.5px solid #f5e6b8",
-                  borderRadius: 12,
-                  padding: "10px 12px",
-                  marginTop: 16,
-                }}
-              >
-                <p style={{ margin: 0, fontSize: 12, lineHeight: 1.4, color: "#7a5d00" }}>
-                  Visitante en <strong>{activeHousehold.name}</strong> (solo lectura).
-                </p>
-              </div>
-            )}
           </>
         )}
       </div>
@@ -1622,7 +1602,7 @@ export function HouseholdsScreen({
           }}
         />
       )}
-      <BottomNav active="dashboard" onNav={onNav} dissolved={navDissolved} />
+      {showHouseholdNav && <BottomNav active="dashboard" onNav={onNav} />}
     </div>
   );
 }

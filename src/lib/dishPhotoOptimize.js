@@ -27,6 +27,15 @@ function derivativesFor(url) {
   return derivativesManifest[url.split("?")[0]] ?? null;
 }
 
+/** Keep derivative cache-bust in sync with dishImages.json ?v= on the origin URL. */
+function withOriginVersion(derivativeUrl, originUrl) {
+  if (!derivativeUrl || !originUrl) return derivativeUrl;
+  const v = new URL(originUrl, "https://local").searchParams.get("v");
+  if (!v) return derivativeUrl;
+  const base = derivativeUrl.split("?")[0];
+  return `${base}?v=${v}`;
+}
+
 function wsrvImg(url, w) {
   return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&output=webp&q=72`;
 }
@@ -37,7 +46,7 @@ export function deckImg(url, w = 720) {
   const derivatives = derivativesFor(url);
   if (derivatives) {
     const bucket = pickBucket(w);
-    if (derivatives[bucket]) return derivatives[bucket];
+    if (derivatives[bucket]) return withOriginVersion(derivatives[bucket], url);
   }
   return wsrvImg(url, w);
 }

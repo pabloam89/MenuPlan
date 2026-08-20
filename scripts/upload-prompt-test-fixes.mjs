@@ -86,10 +86,11 @@ for (const { file, comboId } of FIXES) {
     const current = manifest[comboId] ?? blob.url;
     const nextUrl = bumpVersion(current);
     manifest[comboId] = nextUrl;
+    const version = new URL(nextUrl, "https://local").searchParams.get("v") ?? "1";
 
     const originKey = stripQuery(blob.url);
     derivativesManifest[originKey] = Object.fromEntries(
-      Object.entries(derivUrls).map(([w, u]) => [w, bumpVersion(u)]),
+      Object.entries(derivUrls).map(([w, u]) => [w, `${stripQuery(u)}?v=${version}`]),
     );
 
     const catEntry = catalog.find((e) => e.combo_id === comboId);

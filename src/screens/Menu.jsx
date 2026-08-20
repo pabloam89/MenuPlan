@@ -105,7 +105,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, HouseholdReadOnlyBanner, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -662,7 +662,8 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
             inset: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
+            objectPosition: "center",
             background: visual.surface,
           }}
         />
@@ -4271,8 +4272,6 @@ export const MenuScreen = memo(function MenuScreen({
           )}
         </div>
       </div>
-      {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} />}
-
       {/* ── Filter panel: collapsible con animación (solo modo clásico) ── */}
       {uiMode === "clasico" && (
         <div

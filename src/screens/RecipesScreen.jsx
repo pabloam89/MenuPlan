@@ -136,14 +136,6 @@ export function RecipesScreen({
         </div>
       </div>
 
-      {readOnly && readOnlyLabel && (
-        <div style={{ background: "#fff7e6", borderBottom: "1px solid #f5e6b8", padding: "10px 18px" }}>
-          <p style={{ margin: 0, fontSize: 12.5, fontWeight: 600, color: "#7a5d00", lineHeight: 1.4, textAlign: "center" }}>
-            Solo lectura — {readOnlyLabel}
-          </p>
-        </div>
-      )}
-
       {/* Tab switcher (white) */}
       <div
         style={{
