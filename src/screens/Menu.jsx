@@ -662,8 +662,7 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
             inset: 0,
             width: "100%",
             height: "100%",
-            objectFit: "contain",
-            objectPosition: "center",
+            objectFit: "cover",
             background: visual.surface,
           }}
         />
