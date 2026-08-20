@@ -2523,6 +2523,7 @@ function RestrictionTabCard({
   onClick,
   imgRatio = "1 / 1",
   imgHeight,
+  fillHeight = false,
   textOverlay = false,
   compact = false,
   accent = CARD_ACCENT,
@@ -2547,6 +2548,7 @@ function RestrictionTabCard({
           position: "relative",
           flex: 1,
           minWidth: 0,
+          minHeight: fillHeight ? 0 : undefined,
           display: "flex",
           flexDirection: "column",
           alignItems: "stretch",
@@ -2573,18 +2575,30 @@ function RestrictionTabCard({
             <Check size={12} color="#fff" strokeWidth={3} />
           </span>
         )}
-        <div style={{ position: "relative", width: "100%", ...(imgHeight ? { height: imgHeight } : { aspectRatio: imgRatio }), background: "#f4f7f5", overflow: "hidden" }}>
+        <div
+          style={{
+            position: "relative",
+            width: "100%",
+            ...(fillHeight
+              ? { flex: 1, minHeight: 0 }
+              : imgHeight
+                ? { height: imgHeight }
+                : { aspectRatio: imgRatio }),
+            background: "#f4f7f5",
+            overflow: "hidden",
+          }}
+        >
           {images && images.length > 1 ? (
             <RotatingCardImage images={images} alt={title} />
           ) : (
             <img
               src={img ?? images?.[0]}
               alt=""
-              loading={imgHeight ? "eager" : "lazy"}
+              loading={imgHeight || fillHeight ? "eager" : "lazy"}
               style={{
                 width: "100%",
                 height: "100%",
-                objectFit: imgHeight ? "cover" : imgRatio === "1 / 1" ? "contain" : "cover",
+                objectFit: fillHeight || imgHeight ? "cover" : imgRatio === "1 / 1" ? "contain" : "cover",
                 objectPosition: "center 28%",
                 display: "block",
               }}
@@ -2629,19 +2643,26 @@ function RestrictionTabCard({
         {!textOverlay && (
           <div
             style={{
-              flex: 1,
+              flex: fillHeight ? undefined : 1,
+              flexShrink: fillHeight ? 0 : undefined,
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              padding: compact ? "5px 6px 6px" : "8px 6px 9px",
+              padding: fillHeight
+                ? compact
+                  ? "8px 10px 10px"
+                  : "10px 12px 12px"
+                : compact
+                  ? "5px 6px 6px"
+                  : "8px 6px 9px",
               background: active ? selColor : "#fff",
               textAlign: "center",
               color: active ? "#fff" : "#142f1d",
             }}
           >
-            <div style={{ fontSize: compact ? 11.5 : 12, fontWeight: 800, lineHeight: 1.15 }}>{title}</div>
+            <div style={{ fontSize: fillHeight ? (compact ? 13 : 14) : compact ? 11.5 : 12, fontWeight: 800, lineHeight: 1.15 }}>{title}</div>
             {subtitle ? (
-              <div style={{ fontSize: compact ? 9.5 : 10, fontWeight: 600, marginTop: compact ? 0 : 1, opacity: 0.9, lineHeight: 1.2 }}>{subtitle}</div>
+              <div style={{ fontSize: fillHeight ? (compact ? 10.5 : 11) : compact ? 9.5 : 10, fontWeight: 600, marginTop: compact ? 2 : 1, opacity: 0.9, lineHeight: 1.25 }}>{subtitle}</div>
             ) : null}
           </div>
         )}
@@ -8937,31 +8958,21 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
   return (
     <OnboardingShell
       title="¿Cómo quieres usar la app?"
-      subtitle="Sencillo o avanzado · puedes cambiarlo cuando quieras."
+      subtitle="Elige una opción · puedes cambiarla siempre que quieras."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 8,
-          minHeight: "100%",
-          justifyContent: "center",
-          boxSizing: "border-box",
-          paddingBottom: "max(8px, env(safe-area-inset-bottom, 0px))",
-        }}
-      >
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, height: "100%", minHeight: 0 }}>
         {MODO_OPTS.map((t) => (
           <RestrictionTabCard
             key={t.id}
             img={t.img}
             title={t.label}
             subtitle={t.subtitle}
-            imgHeight={76}
+            fillHeight
             compact
             accent={CARD_ACCENT_TEAL}
             active={current === t.id}
