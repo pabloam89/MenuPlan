@@ -42,7 +42,7 @@ const JOIN_ASPECT = "3/4";
 /** Visible height ≈92% of 4:5 illustration (~8% bottom crop). */
 const CARD_ASPECT = "32/37";
 /** Member list + hero illustration share the same width as the household card photo. */
-const CARD_CONTENT_WIDTH = "min(380px, 96vw)";
+const CARD_CONTENT_WIDTH = "min(310px, 88vw)";
 
 function RoleIllustration({ roleLabel }) {
   const isProp = roleLabel === "Propietario";
@@ -52,8 +52,8 @@ function RoleIllustration({ roleLabel }) {
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 5,
-        width: 58,
+        gap: 3,
+        width: 36,
         flexShrink: 0,
       }}
     >
@@ -61,15 +61,17 @@ function RoleIllustration({ roleLabel }) {
         src={isProp ? IMG_OWNER : IMG_VIEWER}
         alt=""
         style={{
-          width: 54,
-          height: 66,
-          borderRadius: 12,
+          width: 28,
+          height: 34,
+          borderRadius: 8,
           objectFit: "cover",
           objectPosition: "center top",
           display: "block",
+          boxShadow: "0 2px 8px rgba(20,47,29,.12)",
+          border: "1px solid #e3ebe6",
         }}
       />
-      <span style={{ fontSize: 12.5, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
+      <span style={{ fontSize: 9, fontWeight: 800, color: isProp ? GREEN : VIEWER_BLUE, lineHeight: 1 }}>
         {isProp ? "Prop" : "Vis"}
       </span>
     </div>
@@ -164,18 +166,18 @@ function HouseholdAccessList({
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "48px 1fr auto 38px",
+                    gridTemplateColumns: "42px 1fr auto 32px",
                     alignItems: "center",
                     columnGap: 10,
                     padding: "4px 0",
                     width: "100%",
                   }}
                 >
-                  <Avatar name={acc.name} photo={acc.photo} size={48} color={GREEN} />
+                  <Avatar name={acc.name} photo={acc.photo} size={42} color={GREEN} />
                   <div style={{ minWidth: 0, display: "flex", flexDirection: "column", gap: 2 }}>
                     <span
                       style={{
-                        fontSize: 16,
+                        fontSize: 15,
                         fontWeight: 800,
                         color: INK,
                         overflow: "hidden",
@@ -187,10 +189,10 @@ function HouseholdAccessList({
                     >
                       {acc.name}
                     </span>
-                    {acc.roleLabel === "Propietario" && householdCreatedAt ? (
+                    {householdCreatedAt ? (
                       <span
                         style={{
-                          fontSize: 13,
+                          fontSize: 12,
                           fontWeight: 600,
                           color: MUTED,
                           whiteSpace: "nowrap",
@@ -198,7 +200,21 @@ function HouseholdAccessList({
                           lineHeight: 1.2,
                         }}
                       >
-                        {formatHouseholdCreatedAt(householdCreatedAt)}
+                        Creado {formatHouseholdCreatedAt(householdCreatedAt)}
+                      </span>
+                    ) : null}
+                    {acc.joinedAt ? (
+                      <span
+                        style={{
+                          fontSize: 12,
+                          fontWeight: 600,
+                          color: MUTED,
+                          whiteSpace: "nowrap",
+                          textAlign: "left",
+                          lineHeight: 1.2,
+                        }}
+                      >
+                        Unido {formatHouseholdCreatedAt(acc.joinedAt)}
                       </span>
                     ) : null}
                   </div>
@@ -213,8 +229,8 @@ function HouseholdAccessList({
                         setRemoveConfirm({ id: acc.id, name: acc.name });
                       }}
                       style={{
-                        width: 38,
-                        height: 38,
+                        width: 32,
+                        height: 32,
                         borderRadius: 10,
                         border: "1.5px solid #f0d4d4",
                         background: "#fff5f5",
@@ -227,10 +243,10 @@ function HouseholdAccessList({
                         justifySelf: "end",
                       }}
                     >
-                      <UserMinus size={17} color="#b42318" strokeWidth={2.3} />
+                      <UserMinus size={16} color="#b42318" strokeWidth={2.3} />
                     </button>
                   ) : (
-                    <span style={{ width: 38, flexShrink: 0 }} aria-hidden />
+                    <span style={{ width: 32, flexShrink: 0 }} aria-hidden />
                   )}
                 </div>
               </div>
@@ -925,9 +941,9 @@ function SlotCard({
       style={{
         position: "relative",
         width: "100%",
-        maxWidth: 400,
+        maxWidth: 380,
         margin: "0 auto",
-        padding: "0 0 2px",
+        padding: "0 4px 2px",
         border: "none",
         background: "transparent",
         boxShadow: "none",
@@ -964,7 +980,9 @@ function SlotCard({
             alt=""
             style={{
               width: "100%",
-              height: "auto",
+              height: "100%",
+              objectFit: "contain",
+              objectPosition: "center bottom",
               display: "block",
             }}
           />
