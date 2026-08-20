@@ -1329,6 +1329,7 @@ export function HouseholdsScreen({
   onRemoveMember,
   onRenameHousehold,
   onSignIn,
+  onToast,
   showCoach = false,
   onCoachClose,
 }) {
@@ -1376,6 +1377,7 @@ export function HouseholdsScreen({
     try {
       await navigator.clipboard.writeText(inviteUrl);
       setCopied(true);
+      onToast?.("Enlace copiado");
       setTimeout(() => setCopied(false), 2000);
     } catch {
       window.prompt("Copia este enlace:", inviteUrl);

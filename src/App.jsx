@@ -4199,6 +4199,7 @@ export default function App() {
                 onRenameHousehold={renameHousehold}
                 onAdvanceSetup={advanceSetupStatus}
                 onSignIn={signInWithGoogle}
+                onToast={showToast}
                 showCoach={Boolean(user) && !householdsCoachSeen}
                 onCoachClose={markHouseholdsCoachSeen}
               />

@@ -49,6 +49,16 @@ export function disambiguationClause(dishName) {
     );
   }
 
+  // Tarta de queso al horno (base galleta + queso crema), no albóndigas ni bolitas saladas.
+  if (/\btarta de queso\b/.test(d) && !/tarta de lim[oó]n/.test(d)) {
+    clauses.push(
+      `Es una tarta de queso CASERA al horno, redonda entera dentro del bol, con base de galleta ` +
+        `maría dorada visible en el borde y relleno cremoso blanco-amarillo de queso crema cuajado. ` +
+        `Presentación igual que una tarta redonda casera (como tarta de limón), NO porción triangular suelta. ` +
+        `PROHIBIDO albóndigas, PROHIBIDO bolitas de patata, PROHIBIDO comida salada, PROHIBIDO plato plano aparte. `,
+    );
+  }
+
   const conIdx = d.indexOf(" con ");
   const isCombo = conIdx !== -1;
   const garnishPart = isCombo ? d.slice(conIdx + 5).trim() : "";

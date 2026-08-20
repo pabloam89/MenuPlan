@@ -161,6 +161,8 @@ export function pairGarnishes(slotAssignments, poolById, pinnedByRecipeId = {}, 
     const recipe = poolById[recipeId];
 
     if (!recipe || recipe.type !== "principal") return slot;
+    const roles = recipe.mealRole ?? [];
+    if (roles.includes("plato_unico")) return slot;
 
     const parts = slotId.split("_");
     const daySlug = parts[0];
