@@ -105,7 +105,7 @@ import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups.js";
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
-import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, HouseholdReadOnlyBanner, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -123,6 +123,11 @@ import { DAYS, getMeals, getDayMeals, isLunchMeal, dayLabel } from "../lib/plann
 import { dishAvailabilityMap, formatDisplay } from "../lib/shoppingListUtils.js";
 import { initialsOf, AVATAR_PALETTE, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { deckImg, deckSrcSet, prefetchDeckHero } from "../lib/dishPhotoOptimize.js";
+import {
+  baseDishName,
+  formatDishWithGarnish,
+  isPlatoUnicoWithGarnish,
+} from "../lib/dishNaming.js";
 import {
   MEAL_STYLES,
   DEFAULT_MEAL_STYLE,
@@ -657,7 +662,8 @@ function DishVisual({ recipe, height = 220, imageUrl = null, eyebrow = "Receta d
             inset: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover",
+            objectFit: "contain",
+            objectPosition: "center",
             background: visual.surface,
           }}
         />
@@ -4266,8 +4272,6 @@ export const MenuScreen = memo(function MenuScreen({
           )}
         </div>
       </div>
-      {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} />}
-
       {/* ── Filter panel: collapsible con animación (solo modo clásico) ── */}
       {uiMode === "clasico" && (
         <div
@@ -5073,21 +5077,41 @@ export function DishDetail({
     [garnishRecipe],
   );
   const [activeCourse, setActiveCourse] = useState(initialCourse);
-  const showGarnishCourse = Boolean(garnishRecipe);
-  const onGarnishCourse = showGarnishCourse && activeCourse === "guarnicion";
-  const onCombinedCourse = showGarnishCourse && activeCourse === "combinado";
   const garnishShortName = garnishRecipe
     ? (GUARNICION_BY_ID[garnishRecipe.id]?.shortName ?? garnishRecipe.name)
     : null;
+  const catalogEntry = recipeCatalogById[catalogId];
+  const baseName = baseDishName(recipe, catalogId, recipeCatalogById);
+  const platoUnico = isPlatoUnicoWithGarnish(
+    recipe,
+    catalogEntry,
+    catalogId,
+    garnishRecipe,
+    garnishShortName,
+  );
+  const showGarnishCourse = Boolean(garnishRecipe) && !platoUnico;
   const displayName = useMemo(() => {
     if (!garnishRecipe) return recipe.name;
+    if (platoUnico || activeCourse === "combinado") {
+      return formatDishWithGarnish(baseName, {
+        shortName: garnishShortName,
+        name: garnishRecipe.name,
+      });
+    }
     if (activeCourse === "guarnicion") return garnishRecipe.name;
-    if (activeCourse === "combinado") return `${recipe.name} con ${garnishShortName}`;
-    return recipe.name;
-  }, [recipe.name, garnishRecipe, garnishShortName, activeCourse]);
-  // Solo el plato principal soporta el modo cocina (ticks "lo tengo" + descontar
-  // de la despensa); en guarnición/combinado se muestra solo la lista.
-  const cookCourse = !onGarnishCourse && !onCombinedCourse;
+    return baseName;
+  }, [
+    recipe.name,
+    garnishRecipe,
+    garnishShortName,
+    activeCourse,
+    platoUnico,
+    baseName,
+  ]);
+  const onGarnishCourse = showGarnishCourse && activeCourse === "guarnicion";
+  const onCombinedCourse =
+    (showGarnishCourse && activeCourse === "combinado") || (platoUnico && Boolean(garnishRecipe));
+  const cookCourse = platoUnico || (!onGarnishCourse && !onCombinedCourse);
   const courseIngredients = onGarnishCourse
     ? garnishIngredients
     : onCombinedCourse
@@ -5753,7 +5777,7 @@ export function DishDetail({
           {showGarnishCourse && (
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
               {[
-                { id: "principal", Icon: CookingPot, color: "#2d5a3d", copy: "Primer plato", sub: recipe.name },
+                { id: "principal", Icon: CookingPot, color: "#2d5a3d", copy: "Primer plato", sub: baseName },
                 { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe.name },
                 { id: "combinado", Icon: Layers2, color: "#2f6fb8", copy: "Combinado", sub: "Plato + guarnición" },
               ].map(({ id, Icon, color, copy, sub }) => {

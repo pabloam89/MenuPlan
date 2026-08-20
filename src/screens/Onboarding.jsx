@@ -3342,6 +3342,7 @@ export function IndividualMenuSheet({ member, reason, onConfirm, onCancel }) {
 // `onbScreens` en App.jsx: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
 // 5 Semana · 6 Horario · 7 Estilo · 8 Extras · 9 En casa · 10 Cocina · 11 Tiempos.
 const AFINAR_WIZARD_STEPS = [
+  { step: 0, Icon: SlidersHorizontal, label: "Modo", desc: "Sencillo o avanzado" },
   { step: 3, Icon: School, label: "Menú del cole", desc: "Sube el PDF o foto del comedor" },
   { step: 4, Icon: UtensilsCrossed, label: "Alergias y gustos", desc: "Lo que hay que evitar" },
   { step: 5, Icon: CalendarDays, label: "Semana", desc: "Elige qué semana planificar" },
@@ -3353,7 +3354,7 @@ const AFINAR_WIZARD_STEPS = [
 
 export function AfinarWizardBubble({ onClose, visibleSteps }) {
   const steps = visibleSteps
-    ? AFINAR_WIZARD_STEPS.filter((s) => visibleSteps.includes(s.step))
+    ? AFINAR_WIZARD_STEPS.filter((s) => s.step === 0 || visibleSteps.includes(s.step))
     : AFINAR_WIZARD_STEPS;
   return (
     <div
@@ -8935,16 +8936,15 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
       onNext={onNext}
       onFinish={onFinish}
     >
-      {/* Una sola columna y a lo ancho: es la única pregunta de la pantalla, así
-          que las dos opciones pueden respirar en vez de competir en media caja. */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 8 }}>
         {MODO_OPTS.map((t) => (
           <RestrictionTabCard
             key={t.id}
             img={t.img}
             title={t.label}
             subtitle={t.subtitle}
-            imgRatio="3 / 2"
+            imgHeight={88}
+            compact
             accent={CARD_ACCENT_TEAL}
             active={current === t.id}
             onClick={() =>

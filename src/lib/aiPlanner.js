@@ -1739,7 +1739,11 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   // Preserve garnishId so the photo lookup can build the combo key
   // "<dish>+<garnish>" that the image is stored under.
   fr.garnishId = garnish.id;
-  fr.name = `${fr.name} con ${garnish.shortName}`;
+  const suffix = ` con ${garnish.shortName}`;
+  const norm = (s) => s.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  if (!norm(fr.name).endsWith(norm(suffix))) {
+    fr.name = `${fr.name}${suffix}`;
+  }
 
   // Time: dishes are cooked in parallel, show the longest
   fr.time = Math.max(fr.time, garnish.time);

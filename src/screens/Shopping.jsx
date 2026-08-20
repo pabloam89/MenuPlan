@@ -45,7 +45,6 @@ import {
 import {
   BottomNav,
   EmptyIllustration,
-  HouseholdReadOnlyBanner,
   ProgressDots,
   SegmentedControl,
   WizardOptionCard,
@@ -1192,8 +1191,6 @@ export function ShoppingScreen({
           </div>
         </div>
       </div>
-      {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} />}
-
       <div style={{ padding: "16px 16px 0", position: "relative" }}>
         {!isEmpty && (
           <div

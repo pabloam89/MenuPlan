@@ -319,35 +319,37 @@ export function useHousehold({ user, loading: authLoading }) {
 
 
 
-      await refresh();
-
-
+      const bootResult = await refresh();
 
       const pending = urlToken || (await loadPendingInviteToken(user.id));
 
       if (!pending) return;
 
-
-
       const preview = await previewHouseholdInvite(pending);
 
-      if (preview) {
-
-        setPendingInvite({
-
-          token: pending,
-
-          householdId: preview.householdId,
-
-          householdName: preview.householdName,
-
-        });
-
-      } else if (user.id) {
-
-        await clearPendingInviteToken(user.id);
-
+      if (!preview) {
+        if (user.id) await clearPendingInviteToken(user.id);
+        return;
       }
+
+      const hhs = bootResult?.households ?? [];
+      const ownHousehold = hhs.find((h) => h.role === "owner" && h.isOwn);
+      const alreadyMember = hhs.some((h) => h.id === preview.householdId);
+      const isOwnInvite =
+        alreadyMember
+        || (ownHousehold
+          && (ownHousehold.inviteToken === pending || ownHousehold.id === preview.householdId));
+
+      if (isOwnInvite) {
+        if (user.id) await clearPendingInviteToken(user.id);
+        return;
+      }
+
+      setPendingInvite({
+        token: pending,
+        householdId: preview.householdId,
+        householdName: preview.householdName,
+      });
 
     })();
 

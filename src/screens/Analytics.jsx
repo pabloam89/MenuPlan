@@ -20,7 +20,6 @@ import {
   GroupScopePicker,
   WeekRangeBadge,
   bottomNavSpacer,
-  HouseholdReadOnlyBanner,
 } from "../components/ui.jsx";
 import { groupsFromModel } from "../lib/groups.js";
 import { getConsumptionInsights, mergeConsumptionGroups, filterConsumptionByMeal } from "../lib/consumptionInsights.js";
@@ -125,7 +124,6 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
           style={{ marginBottom: 10 }}
         />
         <TabDivider options={TAB_OPTIONS} value={tab} />
-        {readOnly && <HouseholdReadOnlyBanner label={readOnlyLabel} style={{ marginBottom: 10 }} />}
         <div
           key={tab}
           className={tabDirRef.current >= 0 ? "mp-tab-fwd" : "mp-tab-back"}
