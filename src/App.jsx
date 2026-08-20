@@ -15,6 +15,7 @@ import {
   OnboardingCooking,
   OnboardingCookTime,
   OnboardingWeek,
+  OnboardingBudget,
   AfinarWizardBubble,
   IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
@@ -35,6 +36,7 @@ const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m =>
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
+const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
 import { generateMenuWithAI, pickCatalogReplacement, pickGarnishReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
@@ -346,6 +348,7 @@ const INITIAL_DATA = {
   timeWeekend: 60,
   hasBudget: false,
   budget: 80,
+  wantsPriceEstimates: false,
   supermarkets: [],
   // menuWeek: { offset: 0=current/1=next/2=in2weeks, startDayIdx: 0-6 (Mon-Sun) }
   // — always mirrors the EARLIEST offset in menuWeekOffsets below.
@@ -2703,7 +2706,7 @@ export default function App() {
       setOnbResumeOpen(true);
     } else {
       setQuickMenu(false);
-      _doGoToOnboardingStep(1);
+      _doGoToOnboardingStep(0);
     }
   }, [data.members, _doGoToOnboardingStep]);
 
@@ -2712,7 +2715,7 @@ export default function App() {
     setQuickMenu(true);
     setFirstRunOnboarding(false);
     dirRef.current = "forward";
-    setOnbStep(2); // quick: salta modo (0) y familia (1)
+    setOnbStep(0); // quick: modo (0), salta familia (1)
     setScreen("onboarding");
   }, []);
 
@@ -2731,7 +2734,7 @@ export default function App() {
       setQuickMenu(true);
       setFirstRunOnboarding(false);
       dirRef.current = "forward";
-      setOnbStep(12); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
+      setOnbStep(13); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
       setScreen("onboarding");
       return;
     }
@@ -2755,7 +2758,7 @@ export default function App() {
     setShopping({ items: [] });
     setSelectedSlot(null);
     setQuickMenu(false);
-    _doGoToOnboardingStep(1);
+    _doGoToOnboardingStep(0);
   }, [_doGoToOnboardingStep]);
 
   // Switching back to a group also has to restore the menú it last generated:
@@ -3531,10 +3534,10 @@ export default function App() {
   // real choice: no kids to diverge from adults, nothing to upload if nobody
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
   // Orden de `onbScreens`: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
-  // 5 Semana · 6 Horario · 7 Niños · 8 Estilo · 9 Extras · 10 En casa ·
-  // 11 Cocina · 12 Tiempos. Los índices de abajo (y AFINAR_WIZARD_STEPS en
-  // Onboarding.jsx) dependen de ese orden.
-  const ONB_STEP_COUNT = 13;
+  // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras ·
+  // 11 En casa · 12 Cocina · 13 Tiempos. Los índices de abajo (y
+  // AFINAR_WIZARD_STEPS en Onboarding.jsx) dependen de ese orden.
+  const ONB_STEP_COUNT = 14;
   // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
   // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
   // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
@@ -3542,20 +3545,21 @@ export default function App() {
   const skipMenuModel = !canSplitMenus(data.members) || hasChildMember(data.members);
   // School cafeteria only applies to kids (Niños), not pure babies.
   const skipSchoolMenu = !hasChildMember(data.members);
-  // "¿Cómo comen los niños?" (7) solo si hay niños en casa.
+  // "¿Cómo comen los niños?" (8) solo si hay niños en casa.
   const skipKidsDinner = !hasChildMember(data.members);
-  // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (8, se asume
-  // equilibrado) y "¿Cómo completamos el menú?" (9, la estructura de plato se
+  // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (9, se asume
+  // equilibrado) y "¿Cómo completamos el menú?" (10, la estructura de plato se
   // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
   const isStepHidden = useCallback(
     (i) =>
-      // Modo sencillo/avanzado: solo vía «Afinar menú», no al entrar por primera vez.
-      i === 0 ||
+      // Modo sencillo/avanzado: en el asistente de afinar menú, no al entrar
+      // por primera vez (solo familia → Home).
+      (firstRunOnboarding && i === 0) ||
       (i === 2 && skipMenuModel) ||
       (i === 3 && skipSchoolMenu) ||
-      (i === 7 && skipKidsDinner) ||
-      (basicMode && (i === 8 || i === 9)) ||
+      (i === 8 && skipKidsDinner) ||
+      (basicMode && (i === 9 || i === 10)) ||
       // "Mi familia habitual" only ever skips Familia (1) — it's the one
       // thing already known. El modo (0) no se pregunta al entrar; vive en
       // el asistente de afinar. Everything else (modelo de menú, semana,
@@ -3563,7 +3567,7 @@ export default function App() {
       // from una generación a otra, so it's asked in full every time, same
       // as a brand-new family or "Otro grupo".
       (quickMenu && i === 1),
-    [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode]
+    [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -3683,7 +3687,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingSchedule
+    <OnboardingBudget
       data={data}
       setData={setData}
       onNext={nextOf(6)}
@@ -3691,7 +3695,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingKidsDinner
+    <OnboardingSchedule
       data={data}
       setData={setData}
       onNext={nextOf(7)}
@@ -3699,7 +3703,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMealStyle
+    <OnboardingKidsDinner
       data={data}
       setData={setData}
       onNext={nextOf(8)}
@@ -3707,7 +3711,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMealExtras
+    <OnboardingMealStyle
       data={data}
       setData={setData}
       onNext={nextOf(9)}
@@ -3715,7 +3719,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingPantry
+    <OnboardingMealExtras
       data={data}
       setData={setData}
       onNext={nextOf(10)}
@@ -3723,7 +3727,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCooking
+    <OnboardingPantry
       data={data}
       setData={setData}
       onNext={nextOf(11)}
@@ -3731,11 +3735,19 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCookTime
+    <OnboardingCooking
       data={data}
       setData={setData}
       onNext={nextOf(12)}
       onBack={backOf(12)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingCookTime
+      data={data}
+      setData={setData}
+      onNext={nextOf(13)}
+      onBack={backOf(13)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
@@ -3829,7 +3841,7 @@ export default function App() {
             >
               <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
             </div>
-            {!afinarBubbleSeen && safeOnbStep === visibleSteps[1] && (
+            {!afinarBubbleSeen && !firstRunOnboarding && safeOnbStep === visibleSteps[0] && (
               <AfinarWizardBubble
                 visibleSteps={visibleSteps}
                 onClose={dismissAfinarBubble}
@@ -4187,6 +4199,7 @@ export default function App() {
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("dashboard"))}
                 onOpenBiblioteca={() => fwd(() => setScreen("biblioteca"))}
+                onOpenUserStats={() => fwd(() => setScreen("userStats"))}
                 onEditMembers={
                   householdReadOnly ? undefined : () => fwd(() => setScreen("members"))
                 }
@@ -4202,6 +4215,27 @@ export default function App() {
                 onToast={showToast}
                 showCoach={Boolean(user) && !householdsCoachSeen}
                 onCoachClose={markHouseholdsCoachSeen}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "userStats" && (
+          <div
+            key="userStats"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <UserStatsScreen
+                user={user}
+                households={households}
+                menus={data.menus ?? {}}
+                userRecipes={ownUserRecipes}
+                recipeVotes={personalRecipeVotes}
+                onNav={handleNav}
+                onBack={() => back(() => setScreen("households"))}
+                onOpenBiblioteca={() => fwd(() => setScreen("biblioteca"))}
+                onSignIn={signInWithGoogle}
               />
             </Suspense>
           </div>
@@ -4647,7 +4681,7 @@ export default function App() {
                     setOnbStep(1);
                     setAiRecipes([]);
                     setMenuError(null);
-                    _doGoToOnboardingStep(1);
+                    _doGoToOnboardingStep(0);
                   },
                 },
               ].map(({ key, Icon, iconColor, iconBg, img, primary, title, subtitle, onClick }) => (
