@@ -598,10 +598,9 @@ const pantryQtyCellBase = {
 
 function pantryPill(text, kind) {
   const empty = text === "—" || !text;
-  const bg =
-    kind === "uds" ? "#e8f1ea" : kind === "peso" ? "#eef2f6" : "#dff0e4";
-  const color =
-    kind === "uds" ? "#2d5a3d" : kind === "peso" ? "#3f5568" : "#1a3d28";
+  const isPrice = kind === "precio";
+  const bg = isPrice ? "#d7eadc" : "#e8eef3";
+  const color = isPrice ? "#1a3d28" : "#3d5366";
   return (
     <span
       style={{
