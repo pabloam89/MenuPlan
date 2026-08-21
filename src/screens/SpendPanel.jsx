@@ -156,7 +156,7 @@ function storeLogoUrl(name) {
 // px tall. Instead we fix the height at `size` and let width be natural,
 // only capped by `maxWidth` (default a generous 2.8×size) so it stays
 // legible without blowing out tight layouts.
-function StoreBadge({ name, size = 24, maxWidth = size * 2.8 }) {
+export function StoreBadge({ name, size = 24, maxWidth = size * 2.8 }) {
   const url = storeLogoUrl(name);
   if (url) {
     return (
