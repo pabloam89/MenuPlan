@@ -3994,24 +3994,23 @@ const qtyCellBase = {
   textOverflow: "ellipsis",
 };
 
-// uds column — soft green tint.
+// uds + peso — cool slate so both quantity columns read as the same family.
 const udsCellStyle = {
   ...qtyCellBase,
-  background: "#e8f1ea",
-  color: "#2d5a3d",
+  background: "#e8eef3",
+  color: "#3d5366",
 };
 
-// peso column — soft slate tint (a visibly different column colour).
 const pesoCellStyle = {
   ...qtyCellBase,
-  background: "#eef2f6",
-  color: "#3f5568",
+  background: "#e8eef3",
+  color: "#3d5366",
 };
 
-// € column — soft mint, slightly stronger than uds so price reads at a glance.
+// € column — app green, distinct from the quantity pills.
 const priceCellStyle = {
   ...qtyCellBase,
-  background: "#dff0e4",
+  background: "#d7eadc",
   color: "#1a3d28",
   fontWeight: 800,
 };

@@ -22,12 +22,23 @@ describe("ingredientImageSrc", () => {
   it("resolves descriptive names to their base ingredient", () => {
     expect(ingredientImageSrc("Pechuga de pollo")).toBe("/ingredients/pechuga-de-pollo.png");
     expect(ingredientImageSrc("Dientes de ajo")).toBe("/ingredients/ajo.png");
-    expect(ingredientImageSrc("Aceite de oliva virgen extra")).toBe("/ingredients/aceite-oliva.png");
+    expect(ingredientImageSrc("Aceite de oliva virgen extra")).toBe("/ingredients/aceite-oliva-virgen.png");
   });
 
   it("prefers the narrower alias when two could match", () => {
     expect(ingredientImageSrc("Atún en lata")).toBe("/ingredients/atun-lata.png");
-    expect(ingredientImageSrc("Atún fresco")).toBe("/ingredients/atun.png");
+    expect(ingredientImageSrc("Atún en conserva")).toBe("/ingredients/atun-lata.png");
+    expect(ingredientImageSrc("Atún fresco")).toBe("/ingredients/atun-fresco.png");
+    expect(ingredientImageSrc("Salmón fresco")).toBe("/ingredients/salmon-fresco.png");
+    expect(ingredientImageSrc("Merluza en lomos")).toBe("/ingredients/merluza-lomos.png");
+    expect(ingredientImageSrc("Pescadilla en lomos")).toBe("/ingredients/pescadilla.png");
+    expect(ingredientImageSrc("Batata")).toBe("/ingredients/batata.png");
+    expect(ingredientImageSrc("Boniato")).toBe("/ingredients/boniato.png");
+    expect(ingredientImageSrc("Agua mineral")).toBe("/ingredients/agua-mineral.png");
+    expect(ingredientImageSrc("Guacamole")).toBe("/ingredients/guacamole.png");
+    expect(ingredientImageSrc("Alioli")).toBe("/ingredients/alioli.png");
+    expect(ingredientImageSrc("Judiones")).toBe("/ingredients/alubia-grande.png");
+    expect(ingredientImageSrc("Fideos n°2")).toBe("/ingredients/fideo-mediano.png");
     expect(ingredientImageSrc("Queso de cabra")).toBe("/ingredients/queso-cabra.png");
     expect(ingredientImageSrc("Rulo de cabra")).toBe("/ingredients/rulo-de-cabra.png");
     expect(ingredientImageSrc("Queso rallado")).toBe("/ingredients/queso.png");
@@ -58,10 +69,22 @@ describe("ingredientImageSrc", () => {
     expect(ingredientImageSrc("Salsa de soja")).toBe("/ingredients/salsa-soja.png");
   });
 
-  it("reads 'harina de X' as flour, not as X", () => {
-    expect(ingredientImageSrc("Harina de maíz")).toBe("/ingredients/harina.png");
-    expect(ingredientImageSrc("Harina de garbanzo")).toBe("/ingredients/harina.png");
-    expect(ingredientImageSrc("Maíz dulce")).toBe("/ingredients/maiz.png");
+  it("reads 'harina de X' as the matching flour subtype", () => {
+    expect(ingredientImageSrc("Harina de maíz")).toBe("/ingredients/harina-maiz.png");
+    expect(ingredientImageSrc("Harina de garbanzo")).toBe("/ingredients/harina-garbanzo.png");
+    expect(ingredientImageSrc("Harina de espelta")).toBe("/ingredients/harina-espelta.png");
+    expect(ingredientImageSrc("Maíz dulce")).toBe("/ingredients/maiz-dulce.png");
+  });
+
+  it("resolves Mercadona subtypes to their dedicated icons", () => {
+    expect(ingredientImageSrc("Vinagre de Módena")).toBe("/ingredients/vinagre-modena.png");
+    expect(ingredientImageSrc("Sal fina")).toBe("/ingredients/sal-fina.png");
+    expect(ingredientImageSrc("Leche de avena")).toBe("/ingredients/leche-avena.png");
+    expect(ingredientImageSrc("Hummus")).toBe("/ingredients/hummus.png");
+    expect(ingredientImageSrc("Gambón")).toBe("/ingredients/gambon.png");
+    expect(ingredientImageSrc("Queso feta")).toBe("/ingredients/queso-feta.png");
+    expect(ingredientImageSrc("Tempeh")).toBe("/ingredients/tempeh.png");
+    expect(ingredientImageSrc("Vino tinto")).toBe("/ingredients/vino-tinto.png");
   });
 
   it("falls back to a visual family for cuts we have no art for", () => {
