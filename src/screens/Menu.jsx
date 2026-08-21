@@ -3664,6 +3664,7 @@ export const MenuScreen = memo(function MenuScreen({
   activeMenu = null,
   activeFavorite = false,
   onToggleFavorite,
+  onActivateMenu = null,
   onSwitchWeek,
   onOpenMenus,
   onOpenAnalytics,
@@ -3878,6 +3879,9 @@ export const MenuScreen = memo(function MenuScreen({
   const hasVisibleMenu = useMemo(
     () => (activeDays ?? []).some((day) => getDeckDayTiles(day, data, menuPlan, visibleGroups).length > 0),
     [activeDays, data, menuPlan, visibleGroups],
+  );
+  const menuNeedsActivation = Boolean(
+    user && activeMenu && activeMenu.activatedAt === null && onActivateMenu,
   );
   const hasMenu = !isGenerating && !error && hasVisibleMenu;
   const menuWeeks = useMemo(() => orderedWeeks(activeMenu), [activeMenu]);
@@ -4135,6 +4139,21 @@ export const MenuScreen = memo(function MenuScreen({
             {/* Guardar como favorito solo tiene sentido con cuenta: sin ella no
                 hay histórico/favoritos persistentes donde recuperarlo, así que
                 no ofrecemos algo que no podemos cumplir. */}
+            {hasMenu && onActivateMenu && menuNeedsActivation && (
+              <button
+                type="button"
+                onClick={onActivateMenu}
+                aria-label="Activar menú"
+                title="Activar menú — En casa se moverá según tus preferencias"
+                style={{
+                  ...iconChipButtonStyle,
+                  background: "#fff6e0",
+                  borderColor: "#f0d48a",
+                }}
+              >
+                <Zap size={18} strokeWidth={2.5} color="#c9922a" fill="#f5d78a" />
+              </button>
+            )}
             {hasMenu && onToggleFavorite && user && (
               <button
                 type="button"

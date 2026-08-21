@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -52,7 +52,7 @@ import {
   bottomNavSpacer,
 } from "../components/ui.jsx";
 import { ShoppingCoachTour } from "../components/HomeCoachTour.jsx";
-import { ManualEntryModal, StorePicker, SUPERMARKETS, appendManualSpend, appendReceiptSpend } from "./SpendPanel.jsx";
+import { ManualEntryModal, StorePicker, StoreBadge, SUPERMARKETS, appendManualSpend, appendReceiptSpend } from "./SpendPanel.jsx";
 import {
   ingredientDictionary,
   matchReceiptLine,
@@ -95,6 +95,8 @@ import {
   getWeekDatesFromStartISO,
 } from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
+import { estimateShoppingList, priceMapForItems } from "../lib/listPricing.js";
+import { isMercadonaStore } from "../lib/storeCatalog.js";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
@@ -257,6 +259,27 @@ const AISLE_OPEN_BAND = "#2e7d75";
 const AISLE_DIVIDER = "1px solid rgba(45,110,70,.18)";
 const STRIP_DIVIDER = "1.5px solid rgba(45,110,70,.24)";
 
+function aisleMetaPillStyle(open, variant = "count") {
+  const isPrice = variant === "price";
+  return {
+    fontSize: 12,
+    fontWeight: 700,
+    padding: "2px 10px",
+    borderRadius: 999,
+    fontVariantNumeric: "tabular-nums",
+    flexShrink: 0,
+    lineHeight: 1.35,
+    background: open
+      ? isPrice
+        ? "rgba(255,255,255,.28)"
+        : "rgba(255,255,255,.18)"
+      : isPrice
+        ? "#e0ece6"
+        : "#eef4ef",
+    color: open ? "#fff" : isPrice ? "#1a3d28" : "#5a7066",
+  };
+}
+
 export function ShoppingScreen({
   shopping,
   setShopping,
@@ -330,7 +353,6 @@ export function ShoppingScreen({
   const [openSections, setOpenSections] = useState(
     initialOpenAisle ? { [initialOpenAisle]: true } : {},
   );
-  const [expandedId, setExpandedId] = useState(null);
   const [showIconCoach, setShowIconCoach] = useState(false);
   const [receiptBusy, setReceiptBusy] = useState(false);
   // Unified spend capture: one money button → chooser (escanear / a mano).
@@ -565,7 +587,9 @@ export function ShoppingScreen({
     }
   };
   const reloadStock = async () => {
-    setPantryStock(user ? await loadPantry(user.id) : loadLocalPantry());
+    setPantryStock(
+      user ? await loadPantry(user.id, pantryHouseholdId || null) : loadLocalPantry(),
+    );
   };
   // A shopping row → an "En casa" stock entry. Buying anything now tops up the
   // real pantry (single source of truth): the item shows up in "En casa" and,
@@ -573,42 +597,43 @@ export function ShoppingScreen({
   const rowToPantryItem = (row) => {
     if (!row) return null;
     const parsed = normalizePantryInput(row.name)[0];
-    if (!parsed) return null;
+    const normalized = parsed
+      ? parsed.ambiguous
+        ? parsed.candidates[0].normalized
+        : parsed.normalized
+      : normalizeName(row.name);
+    if (!normalized) return null;
     return {
-      name: parsed.raw,
-      normalized: parsed.ambiguous ? parsed.candidates[0].normalized : parsed.normalized,
+      name: parsed?.raw ?? row.name,
+      normalized,
       qty: Number(row.qty) > 0 ? Number(row.qty) : 1,
       unit: row.unit ?? "ud",
       source: "manual",
     };
   };
   // Single "Comprado" tap: mark it bought (vanishes from the pending list — no
-  // "Comprado" sub-view anymore), top up "En casa", and offer a brief Deshacer
-  // that reverses BOTH the flag and the stock in case it was a misclick.
+  // "Comprado" sub-view anymore) and top up "En casa".
   const markItemBought = async (id) => {
     const row = rowById.get(id);
     if (!row) return;
-    applyToSources(row, { have: true });
     const item = rowToPantryItem(row);
     if (item) {
-      await restoreToPantry([item], { user });
-      await reloadStock();
-    }
-    onToast?.(`«${row.name}» comprado`, {
-      label: "Deshacer",
-      onClick: async () => {
-        applyToSources(row, { have: false });
-        if (item) {
-          const stock = user ? await loadPantry(user.id) : loadLocalPantry();
-          await consumeFromPantry(
-            [{ name: item.name, qty: item.qty, unit: item.unit }],
-            stock,
-            { user },
-          );
-          await reloadStock();
+      try {
+        const saved = await restoreToPantry([item], {
+          user,
+          householdId: pantryHouseholdId || null,
+        });
+        if (user && saved < 1) {
+          console.error("[shopping] restoreToPantry wrote 0 rows");
+          return;
         }
-      },
-    });
+        await reloadStock();
+      } catch (err) {
+        console.error("[shopping] restoreToPantry failed", err);
+        return;
+      }
+    }
+    applyToSources(row, { have: true });
   };
   const saveItemQty = (id, rawValue) => {
     const parsed = parseFloat(String(rawValue).replace(",", "."));
@@ -675,6 +700,45 @@ export function ShoppingScreen({
   }));
 
   const isEmpty = sections.every((s) => s.items.length === 0);
+
+  const mercadonaSelected =
+    data?.wantsPriceEstimates !== false &&
+    (data?.supermarkets ?? []).some(isMercadonaStore);
+  const estimateKey = useMemo(
+    () => visibleItems.map((i) => `${i.id}|${i.qty}|${i.unit ?? "ud"}`).join(";"),
+    [visibleItems],
+  );
+  const [storeEstimate, setStoreEstimate] = useState(null);
+  const [linePrices, setLinePrices] = useState(() => new Map());
+  const [listView, setListView] = useState("uds");
+
+  useEffect(() => {
+    if (!mercadonaSelected || !visibleItems.length) {
+      setStoreEstimate(null);
+      setLinePrices(new Map());
+      return undefined;
+    }
+    let cancelled = false;
+    const obs = data?.priceObs ?? [];
+    Promise.all([
+      estimateShoppingList("Mercadona", visibleItems, obs),
+      priceMapForItems("Mercadona", visibleItems, obs),
+    ])
+      .then(([estimate, prices]) => {
+        if (cancelled) return;
+        setStoreEstimate(estimate);
+        setLinePrices(prices);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStoreEstimate(null);
+          setLinePrices(new Map());
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [mercadonaSelected, estimateKey, data?.priceObs]);
 
   // Tinte cromático del strip de días según la(s) semana(s) marcada(s) en S1–S4.
   const dayStripWeekTint =
@@ -939,14 +1003,14 @@ export function ShoppingScreen({
       ];
       if (items.length) {
         if (user) {
-          const results = await addPantryItems(user.id, items);
+          const results = await addPantryItems(user.id, items, pantryHouseholdId || null);
           pantried = results.length;
           // Only brand-new En casa rows get undone if this ticket is deleted —
           // a top-up on stock that already existed predates the ticket, so
           // wiping the whole row on undo would lose quantity the ticket never
           // created (see pantry.js addPantryItems).
           pantryIds = results.filter((r) => r.isNew).map((r) => r.id);
-          setPantryStock(await loadPantry(user.id));
+          setPantryStock(await loadPantry(user.id, pantryHouseholdId || null));
         } else {
           addLocalPantryItems(items);
           const next = loadLocalPantry();
@@ -989,7 +1053,7 @@ export function ShoppingScreen({
       patchItem(boughtRow.id, { have: true });
       const item = rowToPantryItem(boughtRow);
       if (item) {
-        await restoreToPantry([item], { user });
+        await restoreToPantry([item], { user, householdId: pantryHouseholdId || null });
         await reloadStock();
       }
     }
@@ -1010,9 +1074,21 @@ export function ShoppingScreen({
     });
   };
 
+  const toggleListView =
+    mercadonaSelected && storeEstimate?.matched > 0
+      ? () => setListView((v) => (v === "uds" ? "eur" : "uds"))
+      : null;
+
   const renderAisleSection = (section, idx, total) => {
     const open = Boolean(openSections[section.key]);
     const isLastSection = idx === total - 1;
+    const priceMode = listView === "eur" && mercadonaSelected;
+    const aisleTotal = mercadonaSelected
+      ? section.items.reduce((sum, item) => {
+          const p = linePrices.get(item.id)?.storePrice;
+          return p != null && p > 0 ? sum + p : sum;
+        }, 0)
+      : 0;
     return (
       <div key={section.key}>
         <button
@@ -1027,11 +1103,7 @@ export function ShoppingScreen({
             gap: 10,
             padding: "8px 12px",
             border: "none",
-            // The band marks the aisle you opened rather than decorating every
-            // heading: one filled row at a time reads as "you are here", where a
-            // band on all of them just tinted the whole list. Closed headings
-            // stay white and are told apart from their ingredients by the larger
-            // illustration and the divider.
+            position: "relative",
             background: open ? AISLE_OPEN_BAND : "#fff",
             borderRadius: open ? "12px 12px 0 0" : 0,
             borderBottom:
@@ -1046,8 +1118,6 @@ export function ShoppingScreen({
             style={{
               flex: 1,
               minWidth: 0,
-              // Match the recipe catalog category label exactly (13.5px) so the
-              // font size is consistent across the whole app.
               fontSize: 13.5,
               fontWeight: 800,
               color: open ? "#fff" : "#142f1d",
@@ -1058,17 +1128,13 @@ export function ShoppingScreen({
           >
             {section.title}
           </span>
-          <span
-            style={{
-              fontSize: 12,
-              fontWeight: 700,
-              color: open ? "rgba(255,255,255,.75)" : "#9ab0a1",
-              flexShrink: 0,
-              fontVariantNumeric: "tabular-nums",
-            }}
-          >
-            {section.items.length}
-          </span>
+          {priceMode && aisleTotal > 0 ? (
+            <span style={aisleMetaPillStyle(open, "price")}>
+              {Math.round(aisleTotal).toLocaleString("es-ES")} €
+            </span>
+          ) : !priceMode ? (
+            <span style={aisleMetaPillStyle(open, "count")}>{section.items.length}</span>
+          ) : null}
           {open ? (
             <ChevronDown size={16} color="rgba(255,255,255,.75)" style={{ flexShrink: 0 }} />
           ) : (
@@ -1077,26 +1143,37 @@ export function ShoppingScreen({
         </button>
         {open && (
           <div style={aisleItemsStyle}>
-            {/* No peso/uds toggle anymore — each row shows BOTH readings (uds and
-                peso) as two columns, like the "En casa" table. */}
-            {section.items.map((item, i) => (
-              <ShoppingRow
-                key={`${section.key}-${item.id}`}
-                item={item}
-                isLast={i === section.items.length - 1}
-                expanded={expandedId === item.id}
-                isEditingQty={!readOnly && editingQtyId === item.id}
-                readOnly={readOnly}
-                onToggleRecipes={() =>
-                  setExpandedId(expandedId === item.id ? null : item.id)
-                }
-                onEditQty={() => !readOnly && setEditingQtyId(item.id)}
-                onSaveQty={(val) => saveItemQty(item.id, val)}
-                onCancelQty={() => setEditingQtyId(null)}
-                onPurchased={() => (setData ? setPurchaseChoice(item) : markItemBought(item.id))}
-                onRemove={() => removeItem(item.id)}
-              />
-            ))}
+            {priceMode ? (
+              section.items.map((item, i) => (
+                <ShoppingPriceRow
+                  key={`${section.key}-${item.id}`}
+                  item={item}
+                  pricing={linePrices.get(item.id) ?? null}
+                  isLast={i === section.items.length - 1}
+                  onThumbTap={toggleListView}
+                  readOnly={readOnly}
+                  onPurchased={() => markItemBought(item.id)}
+                  onDelete={() => removeItem(item.id)}
+                />
+              ))
+            ) : (
+              section.items.map((item, i) => (
+                <ShoppingRow
+                  key={`${section.key}-${item.id}`}
+                  item={item}
+                  pricing={linePrices.get(item.id) ?? null}
+                  isLast={i === section.items.length - 1}
+                  onThumbTap={toggleListView}
+                  onSwipePurchased={() => markItemBought(item.id)}
+                  isEditingQty={!readOnly && editingQtyId === item.id}
+                  readOnly={readOnly}
+                  onEditQty={() => !readOnly && setEditingQtyId(item.id)}
+                  onSaveQty={(val) => saveItemQty(item.id, val)}
+                  onCancelQty={() => setEditingQtyId(null)}
+                  onRemove={() => removeItem(item.id)}
+                />
+              ))
+            )}
           </div>
         )}
       </div>
@@ -1419,6 +1496,46 @@ export function ShoppingScreen({
         }}
       >
         {isEmpty && <EmptyList />}
+
+        {mercadonaSelected && storeEstimate && storeEstimate.matched > 0 && !isEmpty && (
+          <>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                paddingTop: 4,
+                paddingBottom: 12,
+              }}
+            >
+              <StoreBadge name="Mercadona" size={22} maxWidth={88} />
+              <span
+                style={{
+                  flex: 1,
+                  minWidth: 0,
+                  fontSize: 11,
+                  fontWeight: 800,
+                  fontFamily: "inherit",
+                  color: "#142f1d",
+                  fontVariantNumeric: "tabular-nums",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {formatEuro(storeEstimate.total)}
+              </span>
+              <SegmentedControl
+                compact
+                options={[
+                  { id: "uds", label: "Unidades" },
+                  { id: "eur", label: "Precio" },
+                ]}
+                value={listView}
+                onChange={setListView}
+              />
+            </div>
+            <div style={{ borderBottom: STRIP_DIVIDER, marginBottom: 4 }} />
+          </>
+        )}
 
         {/* Flat list of aisle sections directly on the page background, styled
             like the recipe catalog's category list (soft tinted icons, thin
@@ -1954,14 +2071,190 @@ function QtyInput({ item, onSave, onCancel }) {
   );
 }
 
-// A single quantity column cell. Shows a muted "—" when empty; renders as a
-// tappable button (to edit the amount) when it holds the item's real quantity.
-function QtyCell({ text, cellStyle, editable, onEdit, wrap = false }) {
+const PRICE_NAME_MAX_W = 96;
+const QTY_COL_W = 58;
+const QTY_GAP = 6;
+const ROW_COL_GAP = 3;
+const SWIPE_MIN_PX = 180;
+
+function formatEuro(n) {
+  const v = Math.round(Number(n) * 10) / 10;
+  return `${v.toLocaleString("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 })} €`;
+}
+
+/** Swipe right → green (comprado). Swipe left → red (borrar). */
+export function SwipePurchaseShell({
+  children,
+  onComplete,
+  onDelete,
+  readOnly = false,
+  disabled = false,
+  isLast = false,
+}) {
+  const shellRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [mode, setMode] = useState(null);
+  const dragRef = useRef({ active: false, startX: 0, pointerId: null, dir: null });
+  const progressRef = useRef(0);
+  progressRef.current = progress;
+
+  const swipeThreshold = () =>
+    Math.max(SWIPE_MIN_PX, (shellRef.current?.offsetWidth ?? 320) * 0.62);
+
+  const resetDrag = () => {
+    dragRef.current = { active: false, startX: 0, pointerId: null, dir: null };
+  };
+
+  const onPointerDown = (e) => {
+    if (readOnly || disabled || completing) return;
+    if (e.target.closest("button, input, textarea, a, [data-no-swipe]")) return;
+    dragRef.current = { active: true, startX: e.clientX, pointerId: e.pointerId, dir: null };
+    setDragging(true);
+    shellRef.current?.setPointerCapture(e.pointerId);
+  };
+
+  const onPointerMove = (e) => {
+    if (!dragRef.current.active || e.pointerId !== dragRef.current.pointerId) return;
+    const dx = e.clientX - dragRef.current.startX;
+    if (!dragRef.current.dir) {
+      if (Math.abs(dx) < 14) {
+        setProgress(0);
+        return;
+      }
+      dragRef.current.dir = dx > 0 ? "right" : "left";
+    }
+    const thresh = swipeThreshold();
+    if (dragRef.current.dir === "right") {
+      setProgress(onComplete ? Math.min(1, Math.max(0, dx / thresh)) : 0);
+    } else {
+      setProgress(onDelete ? -Math.min(1, Math.max(0, -dx / thresh)) : 0);
+    }
+  };
+
+  const onPointerEnd = (e) => {
+    if (!dragRef.current.active || e.pointerId !== dragRef.current.pointerId) return;
+    shellRef.current?.releasePointerCapture(e.pointerId);
+    resetDrag();
+    setDragging(false);
+    const p = progressRef.current;
+    if (p >= 0.94 && onComplete) {
+      setMode("ok");
+      setCompleting(true);
+      setProgress(1);
+      onComplete();
+      window.setTimeout(() => {
+        setCompleting(false);
+        setMode(null);
+        setProgress(0);
+      }, 420);
+    } else if (p <= -0.94 && onDelete) {
+      setMode("del");
+      setCompleting(true);
+      setProgress(-1);
+      window.setTimeout(() => {
+        onDelete();
+        setCompleting(false);
+        setMode(null);
+        setProgress(0);
+      }, 280);
+    } else {
+      setProgress(0);
+    }
+  };
+
+  const mag = Math.abs(progress);
+  const fillPct = `${Math.round(mag * 1000) / 10}%`;
+  const deleting = progress < 0 || mode === "del";
+
+  return (
+    <div
+      ref={shellRef}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerEnd}
+      onPointerCancel={onPointerEnd}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        touchAction: "pan-y",
+        borderBottom: isLast ? "none" : "1px solid #dde8e1",
+        cursor: readOnly || disabled ? "default" : completing ? "default" : "grab",
+      }}
+    >
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          top: 0,
+          bottom: 0,
+          ...(deleting ? { right: 0 } : { left: 0 }),
+          width: fillPct,
+          background: deleting
+            ? completing
+              ? "linear-gradient(270deg, #f5b4ae 0%, #e5736b 100%)"
+              : "linear-gradient(270deg, #fde8e6 0%, #f5c4bf 100%)"
+            : completing
+              ? "linear-gradient(90deg, #b8e6c8 0%, #7fd99a 100%)"
+              : "linear-gradient(90deg, #d4edda 0%, #b8e6c8 100%)",
+          opacity: completing ? 0.8 : 0.28 + mag * 0.42,
+          transition: dragging ? "none" : "width .28s ease, opacity .28s ease",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          bottom: 0,
+          ...(deleting ? { right: 0 } : { left: 0 }),
+          height: completing ? 4 : 3,
+          width: fillPct,
+          background: deleting
+            ? completing || mag >= 0.94
+              ? "#c0392b"
+              : "#e5736b"
+            : completing || mag >= 0.94
+              ? "#2f9e52"
+              : "#4cba6e",
+          transition: dragging ? "none" : "width .28s ease, height .15s ease",
+          pointerEvents: "none",
+          zIndex: 1,
+        }}
+      />
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          transform: completing
+            ? deleting
+              ? "translateX(-10px)"
+              : "translateX(6px)"
+            : "none",
+          opacity: completing ? 0.45 : 1,
+          transition: completing ? "transform .28s ease, opacity .28s ease" : "none",
+        }}
+      >
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function QtyCell({ text, cellStyle, editable, onEdit }) {
   const isEmpty = text === "—";
   const style = {
     ...cellStyle,
-    ...(wrap ? { whiteSpace: "normal", maxWidth: 68 } : null),
-    ...(isEmpty ? { color: "#c2cfc7", background: "transparent", minWidth: 22 } : null),
+    width: QTY_COL_W,
+    minWidth: QTY_COL_W,
+    maxWidth: QTY_COL_W,
+    boxSizing: "border-box",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    ...(isEmpty ? { color: "#c2cfc7", background: "#f0f4f1" } : null),
   };
   if (editable && !isEmpty) {
     return (
@@ -1981,150 +2274,204 @@ function QtyCell({ text, cellStyle, editable, onEdit, wrap = false }) {
 // Cartoon thumbnail for a shopping row, resolved by name through the
 // ingredient -> family -> aisle cascade. Renders an empty slot when nothing
 // matches so the grid column collapses instead of leaving a gap.
-function IngredientThumb({ name, dimmed = false, size = 30 }) {
+function IngredientThumb({ name, dimmed = false, size = 34, onTap = null }) {
   const src = ingredientThumbSrc(name);
   const [failed, setFailed] = useState(false);
+  const clickable = typeof onTap === "function" && !dimmed;
   if (!src || failed) return <span style={{ width: 0 }} />;
+
+  const shellStyle = {
+    width: size,
+    height: size,
+    borderRadius: 8,
+    flexShrink: 0,
+    overflow: "hidden",
+    background: "#f2f7f4",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    opacity: dimmed ? 0.45 : 1,
+    padding: 0,
+    border: "none",
+    cursor: clickable ? "pointer" : "default",
+    fontFamily: "inherit",
+  };
+
+  const img = (
+    <img
+      src={src}
+      alt=""
+      onError={() => setFailed(true)}
+      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
+    />
+  );
+
+  if (clickable) {
+    return (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          onTap();
+        }}
+        title="Cambiar entre unidades y precio"
+        aria-label="Cambiar vista unidades / precio"
+        style={shellStyle}
+      >
+        {img}
+      </button>
+    );
+  }
+
+  return <span style={shellStyle}>{img}</span>;
+}
+
+function ShoppingPriceRow({
+  item,
+  pricing = null,
+  isLast = false,
+  onThumbTap = null,
+  readOnly = false,
+  onPurchased,
+  onDelete,
+}) {
+  const dimmed = item.have || item.atHome;
+  const hasPrice = pricing?.storePrice != null && pricing.storePrice > 0;
+  const productName = hasPrice ? (pricing.storeProductName ?? item.name) : item.name;
+  const envaseText = hasPrice ? pricing.storePackLabel ?? "—" : "—";
+  const cantText = hasPrice ? pricing.storeTotalQty ?? pricing.storeUnitSize ?? "—" : "—";
+  const priceText = hasPrice ? formatEuro(pricing.storePrice) : "—";
+
   return (
-    <span
-      style={{
-        width: size, height: size, borderRadius: 8, flexShrink: 0,
-        overflow: "hidden", background: "#f2f7f4",
-        display: "inline-flex", alignItems: "center", justifyContent: "center",
-        opacity: dimmed ? 0.45 : 1,
-      }}
+    <SwipePurchaseShell
+      isLast={isLast}
+      readOnly={readOnly}
+      disabled={dimmed}
+      onComplete={onPurchased}
+      onDelete={onDelete}
     >
-      <img
-        src={src}
-        alt=""
-        onError={() => setFailed(true)}
-        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-      />
-    </span>
+      <div
+        style={{
+          opacity: dimmed ? 0.45 : 1,
+          padding: "10px 2px",
+        }}
+      >
+        <div style={listRowStyle}>
+          <IngredientThumb name={item.name} dimmed={dimmed} onTap={onThumbTap} />
+          <div style={nameColStyle}>
+            <span style={productNameStyle(hasPrice, dimmed)}>{productName}</span>
+          </div>
+          <div style={pillsBlockStyle} data-no-swipe>
+            <QtyCell text={envaseText} cellStyle={udsCellStyle} editable={false} />
+            <QtyCell text={cantText} cellStyle={pesoCellStyle} editable={false} />
+            <QtyCell text={priceText} cellStyle={priceCellStyle} editable={false} />
+          </div>
+        </div>
+      </div>
+    </SwipePurchaseShell>
   );
 }
 
 function ShoppingRow({
   item,
+  pricing = null,
   isLast = false,
-  expanded,
+  onThumbTap = null,
+  onSwipePurchased,
   isEditingQty,
   readOnly = false,
-  onToggleRecipes,
   onEditQty,
   onSaveQty,
   onCancelQty,
-  onPurchased,
   onRemove,
 }) {
-  // Two fixed columns like the "En casa" table: LEFT = uds (counts), RIGHT =
-  // peso (weight/volume). An item lives in exactly one of them depending on its
-  // stored unit, so a "ud" reading never lands in the weight column and vice
-  // versa. The other column shows "—".
   const unit = item.unit ?? "ud";
   const displayVal = item.displayQty ?? formatDisplay(item.qty ?? 0, unit);
   const isUdUnit = unit === "ud";
-  // For weight-stored pieces (e.g. pechugas in g) the uds column shows the
-  // generic derived count ("11 ud"), same label as En casa. No "tazas".
   const pieceCount = pantryPieceCountLabel(item.name, item.qty, item.unit);
-  const udsText = isUdUnit ? displayVal : pieceCount || "—";
-  const pesoText = isUdUnit ? "—" : displayVal;
-  // The editable value follows the real quantity: the uds cell for ud-stored
-  // items, the peso cell otherwise.
-  const udsEditable = isUdUnit;
-  const pesoEditable = !isUdUnit;
-  // The buy list only shows pending items now, so a row is only briefly "dimmed"
-  // in the instant between tapping Comprado and it filtering out of the list.
   const dimmed = item.have || item.atHome;
-  // Merged Despensa lines spanning several weeks have no single editable qty.
   const canEditQty = !readOnly && !dimmed && !item.__qtyLocked;
 
-  // Swipe-style actions: the row shows name + quantities by default and a single
-  // trailing button. Tapping it slides the quantities out and reveals the
-  // coloured action buttons (Comprado / Recetas / Quitar). One extra tap, but a
-  // much calmer row.
-  const [actionsOpen, setActionsOpen] = useState(false);
+  // When Mercadona matched a SKU, show the same buy quantities as the € view
+  // (packs + total weight), not raw recipe totals (e.g. 32 dientes → 2 bolsas).
+  const hasStoreBuyLine =
+    pricing?.storePrice != null &&
+    pricing.storePrice > 0 &&
+    pricing?.storePackLabel;
+
+  const udsText = hasStoreBuyLine
+    ? pricing.storePackLabel ?? "—"
+    : isUdUnit
+      ? displayVal
+      : pieceCount || "—";
+  const pesoText = hasStoreBuyLine
+    ? pricing.storeTotalQty ?? pricing.storeUnitSize ?? "—"
+    : isUdUnit
+      ? "—"
+      : displayVal;
+  const udsEditable = !hasStoreBuyLine && isUdUnit;
+  const pesoEditable = !hasStoreBuyLine && !isUdUnit;
+  const storePrice = pricing?.storePrice;
+  const priceText =
+    storePrice != null && storePrice > 0 ? formatEuro(storePrice) : "—";
 
   return (
-    <div
-      style={{
-        // Drop the divider under the last item of the aisle — matches the
-        // "En casa" table where the final row has no bottom rule.
-        borderBottom: isLast ? "none" : "1px solid #dde8e1",
-        opacity: dimmed ? 0.45 : 1,
-        padding: "10px 4px 10px 4px",
-        position: "relative",
-        zIndex: actionsOpen ? 3 : "auto",
-      }}
+    <SwipePurchaseShell
+      isLast={isLast}
+      readOnly={readOnly}
+      disabled={dimmed || isEditingQty}
+      onComplete={onSwipePurchased}
+      onDelete={onRemove}
     >
-      {/* Row wrapper: keeps the coloured actions overlay anchored to the row
-          itself, not the (taller) container when the recipes list is expanded —
-          otherwise the buttons drift down/centre over the expanded recipes. */}
-      <div style={{ position: "relative" }}>
-      <div style={rowGridStyle}>
-        <IngredientThumb name={item.name} dimmed={dimmed} />
-        <div style={{ minWidth: 0 }}>
-          <span
-            style={{
-              display: "block",
-              // Matches the "En casa" table's ingredient-name size (12px).
-              fontSize: 12,
-              fontWeight: 700,
-              color: "#142f1d",
-              textDecoration: dimmed ? "line-through" : "none",
-              lineHeight: 1.25,
-              // Read the full name — wrap to as many lines as needed rather than
-              // truncating (the name is the most important part of the row).
-              whiteSpace: "normal",
-              overflowWrap: "anywhere",
-            }}
-          >
-            {item.name}
-          </span>
-          {item.__weekLabel && (
-            <span
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                fontSize: 10,
-                fontWeight: 800,
-                color: "#2d5a3d",
-                background: "#eef4ef",
-                border: "1px solid #d7e6dc",
-                borderRadius: 999,
-                padding: "1px 7px",
-                marginTop: 2,
-              }}
-            >
-              {item.__weekLabel}
+      <div
+        style={{
+          opacity: dimmed ? 0.45 : 1,
+          padding: "10px 2px",
+        }}
+      >
+        <div style={listRowStyle}>
+          <IngredientThumb name={item.name} dimmed={dimmed} onTap={onThumbTap} />
+          <div style={nameColStyle}>
+            <span style={productNameStyle(true, dimmed)}>
+              {item.name}
             </span>
-          )}
-          {item.adapted && (
-            <span
-              title="Adaptado por una intolerancia — asegúrate de comprar este producto y no el habitual"
-              style={{
-                display: "flex", alignItems: "center", gap: 3,
-                fontSize: 10, fontWeight: 800, color: "#2f9e52",
-                marginTop: 1,
-              }}
-            >
-              <Leaf size={11} strokeWidth={2.6} />
-              Adaptado
-            </span>
-          )}
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          {/* Quantities fade out while the coloured actions are showing. */}
-          <div
-            style={{
-              ...valueGroupStyle,
-              transition: "opacity .18s ease",
-              opacity: actionsOpen ? 0 : 1,
-              pointerEvents: actionsOpen ? "none" : "auto",
-            }}
-          >
+            {item.__weekLabel && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  fontSize: 10,
+                  fontWeight: 800,
+                  color: "#2d5a3d",
+                  background: "#eef4ef",
+                  border: "1px solid #d7e6dc",
+                  borderRadius: 999,
+                  padding: "1px 7px",
+                  marginTop: 2,
+                }}
+              >
+                {item.__weekLabel}
+              </span>
+            )}
+            {item.adapted && (
+              <span
+                title="Adaptado por una intolerancia — asegúrate de comprar este producto y no el habitual"
+                style={{
+                  display: "flex", alignItems: "center", gap: 3,
+                  fontSize: 10, fontWeight: 800, color: "#2f9e52",
+                  marginTop: 1,
+                }}
+              >
+                <Leaf size={11} strokeWidth={2.6} />
+                Adaptado
+              </span>
+            )}
+          </div>
+          <div style={pillsBlockStyle} data-no-swipe>
             {isEditingQty ? (
-              <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
+              <div style={{ gridColumn: "1 / -1" }}>
+                <QtyInput item={item} onSave={onSaveQty} onCancel={onCancelQty} />
+              </div>
             ) : (
               <>
                 <QtyCell
@@ -2132,7 +2479,6 @@ function ShoppingRow({
                   cellStyle={udsCellStyle}
                   editable={udsEditable && canEditQty}
                   onEdit={onEditQty}
-                  wrap
                 />
                 <QtyCell
                   text={pesoText}
@@ -2140,144 +2486,13 @@ function ShoppingRow({
                   editable={pesoEditable && canEditQty}
                   onEdit={onEditQty}
                 />
+                <QtyCell text={priceText} cellStyle={priceCellStyle} editable={false} />
               </>
             )}
           </div>
-
-          {!isEditingQty && !readOnly && (
-            <button
-              type="button"
-              onClick={() => setActionsOpen((o) => !o)}
-              aria-label={actionsOpen ? "Cerrar acciones" : "Acciones"}
-              aria-expanded={actionsOpen}
-              title={actionsOpen ? "Cerrar" : "Acciones"}
-              style={{
-                width: 30,
-                height: 30,
-                borderRadius: 999,
-                flexShrink: 0,
-                position: "relative",
-                zIndex: 4,
-                border: "1px solid #e3ede6",
-                background: actionsOpen ? "#e8f1ea" : "#f6faf7",
-                color: "#3d5245",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                fontFamily: "inherit",
-                padding: 0,
-                transition: "background .15s ease, transform .2s ease",
-              }}
-            >
-              <ChevronLeft
-                size={16}
-                strokeWidth={2.5}
-                style={{
-                  transition: "transform .26s cubic-bezier(.4,0,.2,1)",
-                  transform: actionsOpen ? "rotate(180deg)" : "none",
-                }}
-              />
-            </button>
-          )}
         </div>
       </div>
-
-      {/* Coloured actions overlay — slides in from the right, big enough for
-          single-line labels even if it covers part of the ingredient name. */}
-      {!isEditingQty && !readOnly && (
-        <div
-          aria-hidden={!actionsOpen}
-          style={{
-            position: "absolute",
-            top: 4,
-            bottom: 4,
-            right: 40,
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            zIndex: 3,
-            transition: "transform .28s cubic-bezier(.4,0,.2,1), opacity .2s ease",
-            transform: actionsOpen ? "translateX(0)" : "translateX(18px)",
-            opacity: actionsOpen ? 1 : 0,
-            pointerEvents: actionsOpen ? "auto" : "none",
-          }}
-        >
-          <SwipeActionBtn
-            icon={Check}
-            label="Comprado"
-            color="#2f9e52"
-            onClick={() => { onPurchased(); setActionsOpen(false); }}
-            coach="shop-purchased"
-          />
-          <SwipeActionBtn
-            icon={BookOpen}
-            label="Recetas"
-            color="#2f6fb0"
-            disabled={!(item.recipeCount > 0)}
-            onClick={() => { onToggleRecipes(); setActionsOpen(false); }}
-            coach="shop-recipes"
-          />
-          <SwipeActionBtn
-            icon={Trash2}
-            label="Quitar"
-            color="#e5534b"
-            onClick={() => { onRemove(); setActionsOpen(false); }}
-            coach="shop-remove"
-          />
-        </div>
-      )}
-      </div>
-
-      {/* Tap anywhere outside to close. */}
-      {actionsOpen && (
-        <div
-          onClick={() => setActionsOpen(false)}
-          style={{ position: "fixed", inset: 0, zIndex: 2 }}
-          aria-hidden="true"
-        />
-      )}
-
-      {expanded && item.recipeUsage?.length > 0 && (
-        <div style={{ paddingTop: 8 }}>
-          {item.recipeUsage
-            .flatMap((recipe) =>
-              recipe.slots.map((slot) => ({ ...slot, recipeName: recipe.recipeName }))
-            )
-            .sort((a, b) => a.sort - b.sort)
-            .map((slot, idx) => (
-              <div
-                key={`${slot.day}-${slot.meal}-${slot.recipeName}-${idx}`}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "7px 0",
-                  borderTop: idx === 0 ? "none" : "1px solid #eef2ef",
-                  minHeight: 32,
-                }}
-              >
-                <DayBadge day={slot.day} />
-                <MealBadge meal={slot.meal} />
-                <span
-                  style={{
-                    flex: 1,
-                    minWidth: 0,
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: "#142f1d",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {slot.recipeName}
-                </span>
-              </div>
-            ))}
-        </div>
-      )}
-    </div>
+    </SwipePurchaseShell>
   );
 }
 
@@ -2387,44 +2602,6 @@ function MacroHeader({ icon: Icon, title, subtitle, count, first }) {
         </span>
       )}
     </div>
-  );
-}
-
-// Coloured action revealed by sliding the row's trailing button. Solid colour
-// fill, white icon + caption ("Comprado" / "Recetas" / "Quitar").
-function SwipeActionBtn({ icon: Icon, label, color, onClick, disabled = false, coach }) {
-  return (
-    <button
-      type="button"
-      onClick={disabled ? undefined : onClick}
-      disabled={disabled}
-      aria-label={label}
-      title={label}
-      data-coach={coach}
-      style={{
-        width: 60,
-        height: 48,
-        flexShrink: 0,
-        borderRadius: 13,
-        border: "none",
-        background: disabled ? "#dfe7e1" : color,
-        color: disabled ? "#a7b3ab" : "#fff",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 4,
-        cursor: disabled ? "default" : "pointer",
-        fontFamily: "inherit",
-        padding: 0,
-        boxShadow: disabled ? "none" : `0 4px 12px ${color}55`,
-      }}
-    >
-      <Icon size={17} strokeWidth={2.4} />
-      <span style={{ fontSize: 9.5, fontWeight: 800, lineHeight: 1, whiteSpace: "nowrap" }}>
-        {label}
-      </span>
-    </button>
   );
 }
 
@@ -3756,6 +3933,46 @@ const rowGridStyle = {
   minHeight: 36,
 };
 
+const PILL_BLOCK_W = QTY_COL_W * 3 + QTY_GAP * 2;
+
+const listRowStyle = {
+  display: "grid",
+  gridTemplateColumns: `auto ${PRICE_NAME_MAX_W}px ${PILL_BLOCK_W}px`,
+  alignItems: "center",
+  gap: ROW_COL_GAP,
+  minHeight: 36,
+};
+
+const nameColStyle = {
+  width: PRICE_NAME_MAX_W,
+  maxWidth: PRICE_NAME_MAX_W,
+  minWidth: PRICE_NAME_MAX_W,
+  flexShrink: 0,
+};
+
+const pillsBlockStyle = {
+  display: "grid",
+  gridTemplateColumns: `repeat(3, ${QTY_COL_W}px)`,
+  gap: QTY_GAP,
+  justifyItems: "stretch",
+};
+
+function productNameStyle(hasPrice, dimmed) {
+  return {
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
+    fontSize: 13,
+    fontWeight: 700,
+    color: hasPrice ? "#142f1d" : "#9ab0a1",
+    textDecoration: dimmed ? "line-through" : "none",
+    lineHeight: 1.25,
+    overflowWrap: "break-word",
+    wordBreak: "break-word",
+  };
+}
+
 // Two-column quantity readout (uds + peso). Instead of a bordered white pill,
 // each reading is a filled cell in its own distinct colour so the two columns
 // read as columns against the white ingredient row.
@@ -3767,16 +3984,17 @@ const valueGroupStyle = {
 };
 
 const qtyCellBase = {
-  minWidth: 40,
   textAlign: "center",
-  padding: "4px 7px",
+  padding: "4px 3px",
   borderRadius: 7,
   border: "none",
-  fontSize: 11.5,
+  fontSize: 12,
   fontWeight: 700,
   fontVariantNumeric: "tabular-nums",
   whiteSpace: "nowrap",
   lineHeight: 1.2,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
 };
 
 // uds column — soft green tint.
@@ -3791,6 +4009,14 @@ const pesoCellStyle = {
   ...qtyCellBase,
   background: "#eef2f6",
   color: "#3f5568",
+};
+
+// € column — soft mint, slightly stronger than uds so price reads at a glance.
+const priceCellStyle = {
+  ...qtyCellBase,
+  background: "#dff0e4",
+  color: "#1a3d28",
+  fontWeight: 800,
 };
 
 // Day stripe — mirrors Tu menú's DaySectionHeader (Menu.jsx).

@@ -118,6 +118,7 @@ const STORE_BADGE = {
   Froiz: { bg: "#009640", fg: "#fff", short: "Fr" },
   Deza: { bg: "#E41819", fg: "#fff", short: "De" },
   Alimerka: { bg: "#FECF07", fg: "#142f1d", short: "Ali" },
+  Otro: { bg: "#64748b", fg: "#fff", short: "···" },
 };
 
 // Real logos are licensed assets we can't bundle, but any square image dropped
@@ -142,11 +143,21 @@ function storeSlug(name) {
 
 function storeLogoUrl(name) {
   const slug = storeSlug(name);
-  const key = Object.keys(STORE_LOGOS).find((k) => {
+  const matches = Object.keys(STORE_LOGOS).filter((k) => {
     const file = k.slice(k.lastIndexOf("/") + 1);
-    return file.slice(0, file.lastIndexOf(".")) === slug;
+    const stem = file.slice(0, file.lastIndexOf(".")).toLowerCase();
+    return stem === slug;
   });
-  return key ? STORE_LOGOS[key] : null;
+  if (!matches.length) return null;
+  const extRank = (k) => {
+    const ext = k.slice(k.lastIndexOf(".")).toLowerCase();
+    if (ext === ".svg") return 0;
+    if (ext === ".png") return 1;
+    if (ext === ".webp") return 2;
+    return 3;
+  };
+  matches.sort((a, b) => extRank(a) - extRank(b));
+  return STORE_LOGOS[matches[0]];
 }
 
 // `maxWidth` caps how wide a real (often wordmark-shaped, e.g. Mercadona's is
