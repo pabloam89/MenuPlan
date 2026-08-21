@@ -3537,7 +3537,8 @@ export default function App() {
   const isStepHidden = useCallback(
     (i) =>
       // Modo sencillo/avanzado: en el asistente de afinar menú, no al entrar
-      // por primera vez (solo familia → Home).
+      // por primera vez (solo familia → Home). En quickMenu el paso 0 siempre
+      // cuenta como visible aunque builds viejos lo ocultaran a ciegas.
       (firstRunOnboarding && i === 0) ||
       (i === 2 && skipMenuModel) ||
       (i === 3 && skipSchoolMenu) ||
@@ -3587,12 +3588,17 @@ export default function App() {
       setOnbStep(ONB_STEP_COUNT - 1);
       return;
     }
+    // El paso 0 (modo) nunca se auto-salta en el asistente de afinar menú: en
+    // builds viejos i===0 podía estar oculto y stepNeighbor mandaba al cole.
+    if (screen === "onboarding" && quickMenu && !firstRunOnboarding && onbStep === 0) {
+      return;
+    }
     // Data changed mid-flow (e.g. the last child was removed) and left us on
     // a step that should now be hidden — hop to the next visible one.
     if (isStepHidden(onbStep)) {
       setOnbStep((s) => stepNeighbor(s, s >= ONB_STEP_COUNT - 1 ? -1 : 1));
     }
-  }, [onbStep, isStepHidden, stepNeighbor]);
+  }, [onbStep, isStepHidden, stepNeighbor, screen, quickMenu, firstRunOnboarding]);
 
   // The last visible step shows a single "Generar" button (no "Siguiente"); the
   // first visible step hides the back button. This makes both the full flow and
@@ -4630,7 +4636,6 @@ export default function App() {
                     setSelectedSlot(null);
                     setAiRecipes([]);
                     setMenuError(null);
-                    setOnbStep(1);
                     setData((d) =>
                       ensureRosters({
                         ...INITIAL_DATA,
@@ -4638,7 +4643,7 @@ export default function App() {
                         rosters: d.rosters ?? rosters,
                         activeRosterId: d.activeRosterId ?? activeRosterId,
                         expertMode: d.expertMode,
-                        modePrompted: true,
+                        modePrompted: false,
                       }),
                     );
                     startQuickMenu();
@@ -4661,9 +4666,9 @@ export default function App() {
                     setMenuPlan({});
                     setShopping({ items: [] });
                     setSelectedSlot(null);
-                    setOnbStep(1);
                     setAiRecipes([]);
                     setMenuError(null);
+                    setQuickMenu(false);
                     _doGoToOnboardingStep(0);
                   },
                 },
