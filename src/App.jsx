@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Soup, Utensils, Play, Eraser, X } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
@@ -2698,27 +2698,33 @@ export default function App() {
   // → straight to Home, instead of the full 9-step wizard. Any other entry
   // into onboarding (edit shortcuts, "Otro grupo", quick menu…) resets this.
   const [firstRunOnboarding, setFirstRunOnboarding] = useState(false);
-  const handleGenerateMenu = useCallback(() => {
-    if (householdReadOnly) {
-      showToast("Solo lectura: no puedes generar menú aquí");
-      return;
-    }
-    if ((data.members ?? []).length > 0) {
-      startQuickMenu();
-    } else {
-      setQuickMenu(false);
-      _doGoToOnboardingStep(0);
-    }
-  }, [data.members, _doGoToOnboardingStep, startQuickMenu, householdReadOnly, showToast]);
+  // Pin the wizard to Sencillo/Avanzado on the first paint after "Generar menú"
+  // / "Empezar de cero". A later effect used to hop off hidden step 0 and land
+  // on Menú del cole before the user ever saw the mode cards.
+  const forceModeStepRef = useRef(false);
 
   // "Mi familia habitual" → shortened assistant (not skipped entirely).
   const startQuickMenu = useCallback(() => {
+    forceModeStepRef.current = true;
     setQuickMenu(true);
     setFirstRunOnboarding(false);
     dirRef.current = "forward";
     setOnbStep(0); // quick: modo (0), salta familia (1)
     setScreen("onboarding");
   }, []);
+
+  const handleGenerateMenu = useCallback(() => {
+    if (householdReadOnly) {
+      showToast("Solo lectura: no puedes generar menú aquí");
+      return;
+    }
+    if ((data.members ?? []).length > 0) {
+      setOnbResumeOpen(true);
+    } else {
+      setQuickMenu(false);
+      _doGoToOnboardingStep(0);
+    }
+  }, [data.members, _doGoToOnboardingStep, householdReadOnly, showToast]);
 
   // "Continuar donde lo dejé": if they already generated a menu, land on the
   // last wizard step (CookTime, step 10) in quick mode so the user can review
@@ -3536,20 +3542,14 @@ export default function App() {
   const basicMode = !data.expertMode;
   const isStepHidden = useCallback(
     (i) =>
-      // Modo sencillo/avanzado: en el asistente de afinar menú, no al entrar
-      // por primera vez (solo familia → Home). En quickMenu el paso 0 siempre
-      // cuenta como visible aunque builds viejos lo ocultaran a ciegas.
-      (firstRunOnboarding && i === 0) ||
+      // Sencillo/Avanzado: solo se oculta en el primer acceso (familia → Home).
+      // Si además estamos en quickMenu (Generar / Empezar de cero), el paso 0
+      // SIEMPRE se muestra — nunca se combina firstRun+quickMenu para saltarlo.
+      (i === 0 && firstRunOnboarding && !quickMenu) ||
       (i === 2 && skipMenuModel) ||
       (i === 3 && skipSchoolMenu) ||
       (i === 8 && skipKidsDinner) ||
       (basicMode && (i === 9 || i === 10)) ||
-      // "Mi familia habitual" only ever skips Familia (1) — it's the one
-      // thing already known. El modo (0) no se pregunta al entrar; vive en
-      // el asistente de afinar. Everything else (modelo de menú, semana,
-      // horario, estilo, restricciones, cocina) can change
-      // from una generación a otra, so it's asked in full every time, same
-      // as a brand-new family or "Otro grupo".
       (quickMenu && i === 1),
     [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding]
   );
@@ -3583,22 +3583,29 @@ export default function App() {
     [firstRunOnboarding, progressIndex, visibleSteps]
   );
 
+  useLayoutEffect(() => {
+    if (screen !== "onboarding" || !forceModeStepRef.current) return;
+    forceModeStepRef.current = false;
+    setFirstRunOnboarding(false);
+    setQuickMenu(true);
+    setOnbStep(0);
+  }, [screen]);
+
   useEffect(() => {
     if (onbStep >= ONB_STEP_COUNT) {
       setOnbStep(ONB_STEP_COUNT - 1);
       return;
     }
-    // El paso 0 (modo) nunca se auto-salta en el asistente de afinar menú: en
-    // builds viejos i===0 podía estar oculto y stepNeighbor mandaba al cole.
-    if (screen === "onboarding" && quickMenu && !firstRunOnboarding && onbStep === 0) {
-      return;
-    }
+    // Nunca auto-saltar Sencillo/Avanzado en el asistente (antes stepNeighbor
+    // mandaba al Menú del cole cuando el paso 0 se consideraba oculto).
+    if (onbStep === 0 && !firstRunOnboarding) return;
+    if (onbStep === 0 && quickMenu) return;
     // Data changed mid-flow (e.g. the last child was removed) and left us on
     // a step that should now be hidden — hop to the next visible one.
     if (isStepHidden(onbStep)) {
       setOnbStep((s) => stepNeighbor(s, s >= ONB_STEP_COUNT - 1 ? -1 : 1));
     }
-  }, [onbStep, isStepHidden, stepNeighbor, screen, quickMenu, firstRunOnboarding]);
+  }, [onbStep, isStepHidden, stepNeighbor, firstRunOnboarding, quickMenu]);
 
   // The last visible step shows a single "Generar" button (no "Siguiente"); the
   // first visible step hides the back button. This makes both the full flow and
