@@ -2072,7 +2072,7 @@ const PRICE_NAME_MAX_W = 96;
 const QTY_COL_W = 58;
 const QTY_GAP = 6;
 const ROW_COL_GAP = 3;
-const SWIPE_MIN_PX = 180;
+const SWIPE_MIN_PX = 140;
 
 function formatEuro(n) {
   const v = Math.round(Number(n) * 10) / 10;
@@ -2095,10 +2095,11 @@ export function SwipePurchaseShell({
   const [mode, setMode] = useState(null);
   const dragRef = useRef({ active: false, startX: 0, pointerId: null, dir: null });
   const progressRef = useRef(0);
+  const suppressClickRef = useRef(false);
   progressRef.current = progress;
 
   const swipeThreshold = () =>
-    Math.max(SWIPE_MIN_PX, (shellRef.current?.offsetWidth ?? 320) * 0.62);
+    Math.max(SWIPE_MIN_PX, (shellRef.current?.offsetWidth ?? 320) * 0.5);
 
   const resetDrag = () => {
     dragRef.current = { active: false, startX: 0, pointerId: null, dir: null };
@@ -2106,10 +2107,18 @@ export function SwipePurchaseShell({
 
   const onPointerDown = (e) => {
     if (readOnly || disabled || completing) return;
-    if (e.target.closest("button, input, textarea, a, [data-no-swipe]")) return;
+    const el = e.target instanceof Element ? e.target : e.target?.parentElement;
+    // Keep typing/links; allow swipe from the photo and the pills (those used
+    // to be skipped as button/[data-no-swipe] and ate the whole row).
+    if (el?.closest("input, textarea, select, a")) return;
+    suppressClickRef.current = false;
     dragRef.current = { active: true, startX: e.clientX, pointerId: e.pointerId, dir: null };
     setDragging(true);
-    shellRef.current?.setPointerCapture(e.pointerId);
+    try {
+      shellRef.current?.setPointerCapture(e.pointerId);
+    } catch {
+      /* capture is optional — move/up still bubble */
+    }
   };
 
   const onPointerMove = (e) => {
@@ -2120,6 +2129,7 @@ export function SwipePurchaseShell({
         setProgress(0);
         return;
       }
+      suppressClickRef.current = true;
       dragRef.current.dir = dx > 0 ? "right" : "left";
     }
     const thresh = swipeThreshold();
@@ -2132,11 +2142,15 @@ export function SwipePurchaseShell({
 
   const onPointerEnd = (e) => {
     if (!dragRef.current.active || e.pointerId !== dragRef.current.pointerId) return;
-    shellRef.current?.releasePointerCapture(e.pointerId);
+    try {
+      shellRef.current?.releasePointerCapture(e.pointerId);
+    } catch {
+      /* already released */
+    }
     resetDrag();
     setDragging(false);
     const p = progressRef.current;
-    if (p >= 0.94 && onComplete) {
+    if (p >= 0.88 && onComplete) {
       setMode("ok");
       setCompleting(true);
       setProgress(1);
@@ -2146,7 +2160,7 @@ export function SwipePurchaseShell({
         setMode(null);
         setProgress(0);
       }, 420);
-    } else if (p <= -0.94 && onDelete) {
+    } else if (p <= -0.88 && onDelete) {
       setMode("del");
       setCompleting(true);
       setProgress(-1);
@@ -2159,6 +2173,15 @@ export function SwipePurchaseShell({
     } else {
       setProgress(0);
     }
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 80);
+  };
+
+  const onClickCapture = (e) => {
+    if (!suppressClickRef.current) return;
+    e.preventDefault();
+    e.stopPropagation();
   };
 
   const mag = Math.abs(progress);
@@ -2172,6 +2195,8 @@ export function SwipePurchaseShell({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerEnd}
       onPointerCancel={onPointerEnd}
+      onLostPointerCapture={onPointerEnd}
+      onClickCapture={onClickCapture}
       style={{
         position: "relative",
         overflow: "hidden",
@@ -2210,10 +2235,10 @@ export function SwipePurchaseShell({
           height: completing ? 4 : 3,
           width: fillPct,
           background: deleting
-            ? completing || mag >= 0.94
+            ? completing || mag >= 0.88
               ? "#c0392b"
               : "#e5736b"
-            : completing || mag >= 0.94
+            : completing || mag >= 0.88
               ? "#2f9e52"
               : "#4cba6e",
           transition: dragging ? "none" : "width .28s ease, height .15s ease",
