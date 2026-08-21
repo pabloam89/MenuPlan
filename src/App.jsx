@@ -2659,6 +2659,7 @@ export default function App() {
   const _doGoToOnboardingStep = useCallback((step) => {
     dirRef.current = "forward";
     setFirstRunOnboarding(false);
+    setQuickMenu(false);
     setOnbStep(step);
     setScreen("onboarding");
   }, []);
@@ -2703,12 +2704,12 @@ export default function App() {
       return;
     }
     if ((data.members ?? []).length > 0) {
-      setOnbResumeOpen(true);
+      startQuickMenu();
     } else {
       setQuickMenu(false);
       _doGoToOnboardingStep(0);
     }
-  }, [data.members, _doGoToOnboardingStep]);
+  }, [data.members, _doGoToOnboardingStep, startQuickMenu, householdReadOnly, showToast]);
 
   // "Mi familia habitual" → shortened assistant (not skipped entirely).
   const startQuickMenu = useCallback(() => {
@@ -2727,26 +2728,8 @@ export default function App() {
   // finished the first-run family screen, pick up the rest of the assistant.
   const resumeOnboardingOrGenerate = useCallback(() => {
     setOnbResumeOpen(false);
-    const hasMenu =
-      Object.keys(menuPlan ?? {}).length > 0 ||
-      Object.keys(data.menus ?? {}).length > 0;
-    if (hasMenu) {
-      setQuickMenu(true);
-      setFirstRunOnboarding(false);
-      dirRef.current = "forward";
-      setOnbStep(13); // last step (OnboardingCookTime) — ONB_STEP_COUNT - 1
-      setScreen("onboarding");
-      return;
-    }
-    if (onbStep > 0) {
-      setFirstRunOnboarding(false);
-      setQuickMenu(false);
-      dirRef.current = "forward";
-      setScreen("onboarding");
-      return;
-    }
     startQuickMenu();
-  }, [menuPlan, data.menus, onbStep, startQuickMenu]);
+  }, [startQuickMenu]);
 
   // "Otro grupo" → park the current household and start an empty roster, so
   // whoever gets added next belongs to that group alone. Before rosters existed
