@@ -33,6 +33,10 @@ function mapRow(row) {
     cookedAt: row.cooked_at ?? null,
     // Ubicación fijada a mano (0015). null → se deriva en la UI (frozen/aisle).
     location: row.location ?? null,
+    packCount: row.pack_count != null ? Number(row.pack_count) : null,
+    packKind: row.pack_kind ?? null,
+    packSize: row.pack_size != null ? Number(row.pack_size) : null,
+    packSizeUnit: row.pack_size_unit ?? null,
     // Proxy for "fecha de compra" (see 0009_user_pantry_updated_at.sql):
     // bumped by a DB trigger on every qty change, so it's naturally "last
     // time this stock was touched" — new tickets, top-ups, manual edits.
@@ -43,9 +47,21 @@ function mapRow(row) {
 // Postgres "undefined_column" — a DB that hasn't run a given migration yet is
 // missing one of its columns; we degrade gracefully instead of hard-failing.
 const UNDEFINED_COLUMN = "42703";
+const POSTGREST_MISSING_COLUMN = "PGRST204";
 
 function isMissingColumn(error) {
-  return error?.code === UNDEFINED_COLUMN;
+  if (!error) return false;
+  if (error.code === UNDEFINED_COLUMN || error.code === POSTGREST_MISSING_COLUMN) return true;
+  const msg = String(error.message ?? error.details ?? "").toLowerCase();
+  return /column .* does not exist|could not find the ['"].+['"] column/.test(msg);
+}
+
+function missingColumnHint(error) {
+  const msg = String(error?.message ?? error?.details ?? "").toLowerCase();
+  if (/pack_/.test(msg)) return "pack";
+  if (/\blocation\b/.test(msg)) return "location";
+  if (/garnish/.test(msg)) return "garnish";
+  return null;
 }
 
 /** Drop `location` from insert payloads when the DB hasn't run 0015 yet. */
@@ -55,6 +71,27 @@ function omitLocationFromRows(rows) {
 
 function omitGarnishRefFromRows(rows) {
   return rows.map(({ garnish_ref: _g, ...rest }) => rest);
+}
+
+function omitPackFromRows(rows) {
+  return rows.map(({ pack_count: _c, pack_kind: _k, pack_size: _s, pack_size_unit: _u, ...rest }) => rest);
+}
+
+function packDbFields(pack) {
+  if (!pack?.kind || !(Number(pack.sizeQty) > 0)) {
+    return {
+      pack_count: null,
+      pack_kind: null,
+      pack_size: null,
+      pack_size_unit: null,
+    };
+  }
+  return {
+    pack_count: Number(pack.count) > 0 ? Number(pack.count) : 1,
+    pack_kind: pack.kind,
+    pack_size: Number(pack.sizeQty),
+    pack_size_unit: pack.sizeUnit ?? "g",
+  };
 }
 
 /**
@@ -69,31 +106,37 @@ async function insertPantryRows(userId, toInsert, itemsForLegacy) {
   if (!toInsert.length) return [];
 
   let payload = toInsert;
-  let { data, error } = await supabase.from("user_pantry").insert(payload).select(RETURN_COLS);
+  let lastError = null;
 
-  if (isMissingColumn(error) && payload.some((r) => "location" in r)) {
-    console.warn("[pantry] insert: `location` column missing (run migration 0015) — retrying without it");
-    payload = omitLocationFromRows(payload);
-    ({ data, error } = await supabase.from("user_pantry").insert(payload).select(RETURN_COLS));
+  for (const selectCols of RETURN_SELECT_TIERS) {
+    let { data, error } = await supabase.from("user_pantry").insert(payload).select(selectCols);
+
+    while (isMissingColumn(error)) {
+      const hint = missingColumnHint(error);
+      if (hint === "pack" && payload.some((r) => "pack_kind" in r)) {
+        payload = omitPackFromRows(payload);
+      } else if (hint === "location" && payload.some((r) => "location" in r)) {
+        payload = omitLocationFromRows(payload);
+      } else if (hint === "garnish" && payload.some((r) => "garnish_ref" in r)) {
+        payload = omitGarnishRefFromRows(payload);
+      } else {
+        break;
+      }
+      ({ data, error } = await supabase.from("user_pantry").insert(payload).select(selectCols));
+    }
+
+    if (!error) return (data ?? []).map((r) => ({ ...mapRow(r), isNew: true }));
+    lastError = error;
+    if (!isMissingColumn(error)) break;
   }
 
-  if (isMissingColumn(error) && payload.some((r) => "garnish_ref" in r)) {
-    console.warn("[pantry] insert: `garnish_ref` column missing (run migration 0016) — retrying without it");
-    payload = omitGarnishRefFromRows(payload);
-    ({ data, error } = await supabase.from("user_pantry").insert(payload).select(RETURN_COLS));
-  }
-
-  if (isMissingColumn(error)) {
+  if (isMissingColumn(lastError)) {
     console.warn("[pantry] insert: freezer columns missing (run migration 0014) — using legacy path");
     return addPantryItemsLegacy(userId, itemsForLegacy);
   }
 
-  if (error) {
-    console.error("[pantry] insert failed", error);
-    return [];
-  }
-
-  return (data ?? []).map((r) => ({ ...mapRow(r), isNew: true }));
+  console.error("[pantry] insert failed", lastError);
+  return [];
 }
 
 /** Applies a top-up patch, degrading when optional columns aren't migrated yet. */
@@ -109,6 +152,15 @@ async function patchPantryRow(userId, id, patch) {
     .eq("user_id", userId)
     .eq("id", id)
     .select(RETURN_COLS);
+
+  if (isMissingColumn(result.error)) {
+    result = await supabase
+      .from("user_pantry")
+      .update(withLoc)
+      .eq("user_id", userId)
+      .eq("id", id)
+      .select(`${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`);
+  }
 
   if (isMissingColumn(result.error) && location != null) {
     result = await supabase
@@ -137,11 +189,20 @@ const GARNISH_COL = "garnish_ref";
 // 0015 — kept in its own group so a DB with 0014 but not 0015 still loads the
 // freezer columns (lumping them would drop frozen/item_type on the fallback).
 const LOCATION_COLS = "location";
+const PACK_COLS = "pack_count, pack_kind, pack_size, pack_size_unit";
 const UPDATED_AT_COL = "updated_at";
 // Must mirror the fullest loadPantry tier so insert/update `.select()` returns
 // location + timestamps — otherwise mapRow() zeroes them and Inventario briefly
 // (or permanently, if the caller skips reload) shows Nevera / Hoy / 1 ud.
-const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`;
+const RETURN_COLS = `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}, ${PACK_COLS}`;
+const RETURN_SELECT_TIERS = [
+  RETURN_COLS,
+  `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`,
+  `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}, ${GARNISH_COL}`,
+  `${BASE_COLS}, ${UPDATED_AT_COL}, ${FREEZER_COLS}`,
+  `${BASE_COLS}, ${UPDATED_AT_COL}`,
+  BASE_COLS,
+];
 
 /** @returns {Promise<{ id: string, ingredientName: string, ingredientNormalized: string, qty: number, unit: string, source: string, updatedAt: string|null }[]>} */
 export async function loadPantry(userId, householdId = null) {
@@ -159,6 +220,7 @@ export async function loadPantry(userId, householdId = null) {
   // Newest schema first, then fall back tier by tier so the pantry still loads
   // on a DB missing 0015 (location), 0014 (freezer) or 0009 (updated_at).
   const tiers = [
+    `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}, ${PACK_COLS}`,
     `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${GARNISH_COL}, ${LOCATION_COLS}`,
     `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${LOCATION_COLS}`,
     `${BASE_COLS}, updated_at, ${FREEZER_COLS}, ${GARNISH_COL}`,
@@ -244,6 +306,7 @@ export async function addPantryItems(userId, items, householdId = null) {
           location: it.location ?? null,
           item_type: "ingredient",
           source: it.source ?? "manual",
+          ...packDbFields(it.pack),
         });
       }
     }
@@ -579,6 +642,10 @@ export function addLocalPantryItems(items) {
         frozen,
         location: it.location ?? null,
         itemType: "ingredient",
+        packCount: it.pack?.count ?? null,
+        packKind: it.pack?.kind ?? null,
+        packSize: it.pack?.sizeQty ?? null,
+        packSizeUnit: it.pack?.sizeUnit ?? null,
         updatedAt: now,
       };
       ingredientByKey.set(keyOf(it.normalized, frozen), row);

@@ -70,14 +70,19 @@ export function ProgressDots({ current, total, onJump, compact = false }) {
 export const APP_SHELL_MAX_WIDTH = 420;
 export const BOTTOM_NAV_HEIGHT = 80;
 
-export function SegmentedControl({ options, value, onChange, style, activeDark }) {
+export function SegmentedControl({ options, value, onChange, style, activeDark, compact = false }) {
+  const fontSize = compact ? 11 : 13;
+  const btnPad = compact ? "5px 10px" : "7px 0";
   return (
     <div
       style={{
-        display: "flex",
+        display: compact ? "inline-flex" : "flex",
+        width: compact ? undefined : "100%",
+        boxSizing: "border-box",
         background: "#f0f4f1",
-        borderRadius: 12,
-        padding: 3,
+        borderRadius: compact ? 10 : 12,
+        padding: compact ? 2 : 3,
+        flexShrink: 0,
         ...style,
       }}
     >
@@ -89,25 +94,29 @@ export function SegmentedControl({ options, value, onChange, style, activeDark }
             type="button"
             onClick={() => onChange(id)}
             style={{
-              flex: 1,
+              flex: compact ? "0 0 auto" : 1,
+              minWidth: compact ? undefined : 0,
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
-              gap: 6,
-              padding: "7px 0",
-              borderRadius: 9,
+              gap: compact ? 4 : 6,
+              padding: btnPad,
+              borderRadius: compact ? 8 : 9,
               border: "none",
               background: sel ? (activeDark ? "#2d5a3d" : "#fff") : "transparent",
               color: sel ? (activeDark ? "#fff" : "#142f1d") : "#7a8a7f",
-              fontSize: 13,
+              fontSize,
               fontWeight: 800,
               cursor: "pointer",
               fontFamily: "inherit",
               boxShadow: sel && !activeDark ? "0 1px 4px rgba(0,0,0,.1)" : "none",
               transition: "all .15s",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
             }}
           >
-            {Icon && <Icon size={15} strokeWidth={2.4} />}
+            {Icon && <Icon size={compact ? 13 : 15} strokeWidth={2.4} />}
             {label}
           </button>
         );

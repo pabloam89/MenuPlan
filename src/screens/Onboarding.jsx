@@ -32,6 +32,7 @@ import {
   Refrigerator,
   Layers2,
   Loader2,
+  Lock,
   Minus,
   Plus,
   School,
@@ -90,6 +91,7 @@ import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from 
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { OnboardingProgressContext } from "./onboardingProgressContext.js";
 import { StoreBadge } from "./SpendPanel.jsx";
+import { isMercadonaStore } from "../lib/storeCatalog.js";
 import { HOUSEHOLD_ROLES, stageForAge, suggestHomeRole, migrateHomeRole, AVATAR_PALETTE, AVATAR_FOLDER, memberAvatarColor, memberAvatarSrc, memberAvatarThumbSrc, avatarThumbSrcByKey } from "../lib/stages.js";
 import { migrateFixedDishes, normalizeFixedDish, catalogMatchesForFixedDish } from "../lib/fixedDishes.js";
 import { EU_ALLERGENS, normalizeAllergenId } from "../lib/allergens.js";
@@ -10538,6 +10540,50 @@ function BudgetSliderEuroRow({ value, min = 30, max = 200, step = 5, onChange })
   );
 }
 
+function OnbBudgetStoreHint({ children }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 10,
+        marginTop: 14,
+        padding: "11px 12px",
+        borderRadius: 12,
+        background: "#f4f9f5",
+        border: "1.5px solid #d4e8db",
+      }}
+    >
+      <span
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 10,
+          flexShrink: 0,
+          background: "linear-gradient(135deg, #2d5a3d, #4cba6e)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          boxShadow: "0 4px 12px rgba(45,90,61,.22)",
+        }}
+      >
+        <Sparkles size={16} color="#fff" />
+      </span>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 12.5,
+          fontWeight: 600,
+          color: "#5a7262",
+          lineHeight: 1.45,
+        }}
+      >
+        {children}
+      </p>
+    </div>
+  );
+}
+
 function StoreCarouselPicker({ selected, onPick }) {
   const showHint = ONBOARDING_STORES.length > 3;
 
@@ -10555,33 +10601,65 @@ function StoreCarouselPicker({ selected, onPick }) {
         }}
       >
         {ONBOARDING_STORES.map((name) => {
-          const isOn = selected === name;
+          const storeActive = isMercadonaStore(name);
+          const isOn = storeActive && selected === name;
           return (
             <button
               key={name}
               type="button"
-              onClick={() => onPick(name)}
+              disabled={!storeActive}
+              onClick={() => storeActive && onPick(name)}
               aria-pressed={isOn}
-              aria-label={name}
-              title={name}
+              aria-disabled={!storeActive}
+              aria-label={storeActive ? name : `${name}, próximamente`}
+              title={storeActive ? name : `${name} — próximamente`}
               style={{
+                position: "relative",
                 flex: "0 0 calc((100% - 20px) / 3)",
                 scrollSnapAlign: "start",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 minHeight: 72,
-                padding: "12px 8px",
+                padding: "12px 8px 22px",
                 borderRadius: 14,
                 border: `1.5px solid ${isOn ? "#2d5a3d" : "#e0eae3"}`,
                 background: isOn ? "#eef8f1" : "#fff",
-                cursor: "pointer",
+                cursor: storeActive ? "pointer" : "not-allowed",
                 fontFamily: "inherit",
+                opacity: storeActive ? 1 : 0.58,
+                filter: storeActive ? "none" : "grayscale(.4)",
                 boxShadow: isOn ? "0 4px 14px rgba(45,90,61,.14)" : "0 1px 2px rgba(0,0,0,.04)",
-                transition: "border-color .16s ease, box-shadow .16s ease, background .16s ease",
+                transition: "border-color .16s ease, box-shadow .16s ease, background .16s ease, opacity .16s ease",
               }}
             >
               <StoreBadge name={name} size={52} maxWidth={96} />
+              {!storeActive && (
+                <span
+                  style={{
+                    position: "absolute",
+                    bottom: 6,
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: 3,
+                    fontSize: 8.5,
+                    fontWeight: 800,
+                    letterSpacing: ".35px",
+                    textTransform: "uppercase",
+                    color: "#6b8476",
+                    background: "rgba(255,255,255,.94)",
+                    border: "1px solid #dde8e1",
+                    borderRadius: 999,
+                    padding: "2px 7px",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  <Lock size={9} strokeWidth={2.5} />
+                  Pronto
+                </span>
+              )}
             </button>
           );
         })}
@@ -10788,20 +10866,9 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
         </div>
 
         {mercadonaOn && (
-          <p
-            style={{
-              fontSize: 12,
-              color: "#3a6b4a",
-              background: "#eef8f1",
-              border: "1px solid #c8e6d4",
-              borderRadius: 10,
-              padding: "10px 12px",
-              marginTop: 14,
-              lineHeight: 1.4,
-            }}
-          >
+          <OnbBudgetStoreHint>
             Con Mercadona verás precios estimados en tu lista (catálogo online, orientativo).
-          </p>
+          </OnbBudgetStoreHint>
         )}
       </div>
     </OnboardingShell>

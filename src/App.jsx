@@ -1560,13 +1560,16 @@ export default function App() {
       }
       return;
     }
-    // Primera vez que se activa: se marca desde HOY y no se toca nada hacia
-    // atrás (ese menú ya se descontó al generarse o al cocinarlo).
+    // Primera vez que se activa el modo: se marca desde HOY (solo con menú activado).
     if (!data.pantryEndOfDaySince) {
+      const activeMenuEntry = data.menus?.[data.activeMenuId];
+      if (!activeMenuEntry?.activatedAt) return;
       const todayISO = isoLocalDate(new Date());
       setData((d) => (d.pantryEndOfDaySince ? d : { ...d, pantryEndOfDaySince: todayISO }));
       return;
     }
+    const activeMenuEntry = data.menus?.[data.activeMenuId];
+    if (!activeMenuEntry?.activatedAt) return;
     if (endOfDaySweepRef.current) return;
     const pending = pendingEndOfDaySweep(data, data.pantryEndOfDaySince);
     if (!pending.length) return;
@@ -1851,7 +1854,8 @@ export default function App() {
       // consumo (F1) antes de construir el objeto menú más abajo.
       const newMenuId = createMenuId();
       const genDeltasPatch = {};
-      if (consumeMode === "onGenerate") {
+      // Logged-in users activate explicitly from Tu menú (see activateActiveMenu).
+      if (consumeMode === "onGenerate" && !user) {
         for (const res of weekResults) {
           const used = (res.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
           if (!used.length) continue;
@@ -1914,6 +1918,7 @@ export default function App() {
         createdAt: Date.now(),
         isFavorite: false,
         isActive: true,
+        activatedAt: user ? null : Date.now(),
         varietyPref,
         weeks,
       };
@@ -2002,7 +2007,13 @@ export default function App() {
       // we no longer surface their raw internal text as a toast — it read as a
       // confusing "toast rarísimo" on success. Always show the plain success
       // message; the warnings remain on the plan for anyone who needs them.
-      showToast(weekCount > 1 ? `Menú generado con IA (${weekCount} semanas)` : "Menú generado con IA");
+      showToast(
+        user
+          ? "Menú generado · actívalo con ⚡ cuando lo vayas a usar"
+          : weekCount > 1
+            ? `Menú generado con IA (${weekCount} semanas)`
+            : "Menú generado con IA",
+      );
     } catch (err) {
       if (err?.name === "AbortError" || ctrl.signal.aborted) return;
       console.error("Error generating menu", err);
@@ -2392,6 +2403,67 @@ export default function App() {
     }
   }, [data.activeMenuId, data.menus, data.menuWeek?.offset, menuPlan, user, showToast]);
 
+  const ACTIVATE_MENU_TOAST = {
+    onGenerate: "Menú activo · En casa actualizado",
+    onCook: "Menú activo · En casa bajará al cocinar",
+    endOfDay: "Menú activo · En casa se ajusta al fin del día",
+  };
+
+  const activateActiveMenu = useCallback(async () => {
+    if (householdReadOnly) return;
+    const menuId = data.activeMenuId;
+    const menu = data.menus?.[menuId];
+    if (!user || !menu || menu.activatedAt != null) return;
+
+    const otherActivatedIds = Object.values(data.menus ?? {})
+      .filter((m) => m.id !== menuId && m.activatedAt)
+      .map((m) => m.id);
+    const recon = reconcileMenusRemoval(data, otherActivatedIds);
+    if (recon.deltas.length) {
+      await restoreToPantry(recon.deltas, { user });
+    }
+
+    const consumeMode = pantryConsumeMode(data);
+    const groups = data.groups?.length ? data.groups : groupsFromModel(data.members, data.menuModel);
+    const genDeltasPatch = {};
+    if (consumeMode === "onGenerate") {
+      const weekEntries = Object.values(menu.weeks ?? {}).sort((a, b) =>
+        String(a.startISO ?? "").localeCompare(String(b.startISO ?? "")),
+      );
+      for (const week of weekEntries) {
+        if (!week?.plan || !week.startISO) continue;
+        const weekData = {
+          ...data,
+          schedule: week.schedule ?? data.schedule,
+          menuWeek: { offset: week.offset ?? 0, startDayIdx: week.startDayIdx ?? 0 },
+        };
+        const freshStock = user ? await loadPantry(user.id) : loadLocalPantry();
+        const sh = buildShoppingList(week.plan, groups, getDayMeals(weekData), freshStock);
+        const used = (sh.pantryItems ?? []).map((it) => ({ name: it.name, qty: it.qty, unit: it.unit }));
+        if (!used.length) continue;
+        const { deltas } = await consumeFromPantry(used, freshStock, { user });
+        if (deltas.length) genDeltasPatch[week.startISO] = makeDeltaBucket(menuId, deltas);
+      }
+    }
+
+    const activatedAt = Date.now();
+    setData((d) => ({
+      ...d,
+      menus: {
+        ...d.menus,
+        [menuId]: { ...d.menus[menuId], activatedAt },
+      },
+      pantryGenDeltas: { ...recon.genOut, ...genDeltasPatch },
+      pantryDayDeltas: recon.dayOut,
+      cookedDeltas: recon.cookedOut,
+      ...(consumeMode === "endOfDay" && !d.pantryEndOfDaySince
+        ? { pantryEndOfDaySince: isoLocalDate(new Date()) }
+        : null),
+    }));
+    setPantryEpoch((n) => n + 1);
+    showToast(ACTIVATE_MENU_TOAST[consumeMode] ?? "Menú activado");
+  }, [data, householdReadOnly, user, showToast]);
+
   // Deletes a non-active menú from the histórico. Unlike deleteActiveMenu,
   // never touches menuPlan/shopping — those mirror the active menú's current
   // week and have nothing to do with a history entry.
@@ -2475,6 +2547,7 @@ export default function App() {
       }
       const newMenu = {
         id: createMenuId(), createdAt: Date.now(), isFavorite: false, isActive: true,
+        activatedAt: user ? null : Date.now(),
         varietyPref: old.varietyPref ?? "strict", weeks,
       };
       const firstKey = Object.keys(weeks)[0];
@@ -3540,9 +3613,8 @@ export default function App() {
   // equilibrado) y "¿Cómo completamos el menú?" (10, la estructura de plato se
   // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
-  // Presupuesto semanal / Tu compra (paso 6): visible en local; oculto en prod
-  // hasta cablear toggle, /budget-cards/ y listPricing. Poner en false al activarlo.
-  const skipBudgetStep = import.meta.env.PROD;
+  // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
+  const skipBudgetStep = false;
   const isStepHidden = useCallback(
     (i) =>
       // Sencillo/Avanzado: solo se oculta en el primer acceso (familia → Home).
@@ -3884,6 +3956,7 @@ export default function App() {
               activeMenu={data.menus?.[data.activeMenuId] ?? null}
               activeFavorite={Boolean(data.menus?.[data.activeMenuId]?.isFavorite)}
               onToggleFavorite={householdReadOnly ? undefined : toggleActiveFavorite}
+              onActivateMenu={householdReadOnly || !user ? undefined : activateActiveMenu}
               onSwitchWeek={switchActiveWeek}
               onOpenMenus={openMenusScreen}
               onOpenAnalytics={() => {

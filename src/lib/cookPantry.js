@@ -97,7 +97,7 @@ export async function consumeFromPantry(ingredients, pantryStock, { user }) {
  * recreates rows that had hit 0).
  * @returns {Promise<number>} how many rows were restored
  */
-export async function restoreToPantry(deltas, { user }) {
+export async function restoreToPantry(deltas, { user, householdId = null }) {
   if (!deltas?.length) return 0;
   const items = deltas.map((d) => ({
     name: d.name,
@@ -106,7 +106,10 @@ export async function restoreToPantry(deltas, { user }) {
     unit: d.unit,
     source: "manual",
   }));
-  if (user) await addPantryItems(user.id, items);
-  else addLocalPantryItems(items);
+  if (user) {
+    const saved = await addPantryItems(user.id, items, householdId);
+    return saved.length;
+  }
+  addLocalPantryItems(items);
   return items.length;
 }

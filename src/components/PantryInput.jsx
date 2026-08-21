@@ -1,11 +1,17 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { CalendarDays, Camera, ChevronDown, ChevronLeft, Clock, Layers, Loader2, Package, Plus, Receipt, Refrigerator, Salad, Search, Snowflake, Soup, Utensils, UtensilsCrossed, X } from "lucide-react";
+import { CalendarDays, Camera, Check, ChevronDown, ChevronLeft, ChevronUp, Clock, Layers, Loader2, Package, Plus, Receipt, Refrigerator, Salad, Search, Snowflake, Soup, Utensils, UtensilsCrossed, X } from "lucide-react";
 import { useAuth } from "../lib/useAuth.js";
 import { normalizePantryInput } from "../utils/normalizePantryInput.js";
 import { addPantryItems, addLocalPantryItems } from "../lib/pantry.js";
 import { extractPantryPhoto } from "../lib/receiptParser.js";
 import { toCanonicalStockQty } from "../lib/kitchenUnits.js";
+import {
+  wantsPackFields,
+  defaultPackFor,
+  stockFromPack,
+  PACK_KINDS,
+} from "../lib/packUnits.js";
 import { guessShoppingAisle, isPerishableAisle, normalizeName } from "../lib/ingredientCategories.js";
 import { IngredientPicker } from "../screens/RecipePlanner.jsx";
 import { GarnishPickerSheet } from "../screens/CatalogBrowserSheet.jsx";
@@ -20,6 +26,22 @@ const INK = "#142f1d";
 const FIELD_BG = "#fff";
 
 const PANTRY_UNITS = ["ud", "g", "kg", "ml", "l"];
+
+function chipPackDefaults(name) {
+  if (!wantsPackFields(name)) return { usePack: false };
+  const d = defaultPackFor(name);
+  return {
+    usePack: true,
+    packKind: d.kind,
+    packSizeQty: d.sizeQty,
+    packSizeUnit: d.sizeUnit,
+  };
+}
+
+function packSizeUnitOptions(name) {
+  const d = defaultPackFor(name);
+  return d.sizeUnit === "l" || d.sizeUnit === "ml" ? ["ml", "l"] : ["g", "kg"];
+}
 
 // Soft mint card + white fields so inputs don't dissolve into the card.
 const editInputBase = {
@@ -158,6 +180,161 @@ function cookedAtFromKey(key) {
 }
 
 const qLabelStyle = { fontSize: 11.5, fontWeight: 800, color: "#5a7066", marginBottom: 5 };
+
+// Portaled picker — same language as RecipePlanner UnitPicker / CualDropdown.
+function StyledPickerMenu({ value, options, anchorRef, onSelect, onClose }) {
+  const menuRef = useRef(null);
+  const [pos, setPos] = useState(null);
+
+  useLayoutEffect(() => {
+    const reposition = () => {
+      const el = anchorRef.current;
+      if (!el) return;
+      const r = el.getBoundingClientRect();
+      const vh = window.innerHeight;
+      const width = Math.max(r.width, 124);
+      const spaceBelow = vh - r.bottom;
+      const openUp = spaceBelow < 220 && r.top > spaceBelow;
+      setPos({
+        left: Math.min(r.left, window.innerWidth - width - 12),
+        width,
+        top: openUp ? null : r.bottom + 6,
+        bottom: openUp ? vh - r.top + 6 : null,
+        maxHeight: Math.max(160, (openUp ? r.top : spaceBelow) - 18),
+      });
+    };
+    reposition();
+    window.addEventListener("resize", reposition);
+    window.addEventListener("scroll", reposition, true);
+    return () => {
+      window.removeEventListener("resize", reposition);
+      window.removeEventListener("scroll", reposition, true);
+    };
+  }, [anchorRef]);
+
+  useEffect(() => {
+    const onPointerDown = (e) => {
+      if (menuRef.current?.contains(e.target) || anchorRef.current?.contains(e.target)) return;
+      onClose();
+    };
+    const onKeyDown = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("pointerdown", onPointerDown, true);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown, true);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [anchorRef, onClose]);
+
+  if (!pos) return null;
+
+  return createPortal(
+    <div
+      ref={menuRef}
+      role="listbox"
+      style={{
+        position: "fixed",
+        left: pos.left,
+        width: pos.width,
+        top: pos.top ?? undefined,
+        bottom: pos.bottom ?? undefined,
+        maxHeight: pos.maxHeight,
+        overflowY: "auto",
+        background: "#fff",
+        borderRadius: 14,
+        border: "1.5px solid #d7e6dc",
+        boxShadow: "0 16px 40px -12px rgba(20,47,29,.28)",
+        zIndex: 400,
+        padding: 4,
+      }}
+    >
+      {options.map((opt, i) => {
+        const selected = value === opt.value;
+        return (
+          <div key={opt.value}>
+            {i > 0 && <div style={{ height: 1, margin: "2px 8px", background: "#cfe0d6" }} />}
+            <button
+              type="button"
+              role="option"
+              aria-selected={selected}
+              onClick={() => onSelect(opt.value)}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: 10,
+                padding: "9px 11px",
+                border: "none",
+                borderRadius: 10,
+                background: selected ? "#eaf3ec" : "transparent",
+                color: selected ? GREEN : INK,
+                fontWeight: selected ? 800 : 600,
+                fontSize: 13,
+                textAlign: "left",
+                cursor: "pointer",
+                fontFamily: "inherit",
+              }}
+            >
+              <span>{opt.label}</span>
+              {selected && <Check size={15} strokeWidth={2.8} color={GREEN} style={{ flexShrink: 0 }} />}
+            </button>
+          </div>
+        );
+      })}
+    </div>,
+    document.body,
+  );
+}
+
+function StyledPicker({ value, onChange, options, width, ariaLabel }) {
+  const [open, setOpen] = useState(false);
+  const btnRef = useRef(null);
+  const label = options.find((o) => o.value === value)?.label ?? value;
+
+  return (
+    <>
+      <button
+        ref={btnRef}
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-label={ariaLabel}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        style={{
+          ...editInputBase,
+          flexShrink: 0,
+          width,
+          height: 34,
+          padding: "0 8px",
+          display: "inline-flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 4,
+          background: FIELD_BG,
+          cursor: "pointer",
+          fontSize: 13,
+          fontWeight: 800,
+          color: INK,
+        }}
+      >
+        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{label}</span>
+        {open
+          ? <ChevronUp size={14} color="#9ab0a1" style={{ flexShrink: 0 }} />
+          : <ChevronDown size={14} color="#9ab0a1" style={{ flexShrink: 0 }} />}
+      </button>
+      {open && (
+        <StyledPickerMenu
+          value={value}
+          options={options}
+          anchorRef={btnRef}
+          onSelect={(v) => { onChange(v); setOpen(false); }}
+          onClose={() => setOpen(false)}
+        />
+      )}
+    </>
+  );
+}
 
 // Dropdown de fecha cualitativa reutilizando el picker portalizado (CualDropdown)
 // para que herede los estilos de MenuPlan (bordes redondeados, divisores verdes).
@@ -826,6 +1003,9 @@ function PantryEditList({
   chips,
   onUpdateQty,
   onUpdateUnit,
+  onUpdatePackKind,
+  onUpdatePackSizeQty,
+  onUpdatePackSizeUnit,
   onUpdateName,
   onUpdateLocation,
   onResolve,
@@ -849,6 +1029,8 @@ function PantryEditList({
     <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 10 }}>
       {chips.map((chip, idx) => {
         const rowDisabled = Boolean(chip.ambiguous) || confirming;
+        const usePack = Boolean(chip.usePack);
+        const sizeUnits = packSizeUnitOptions(chip.raw);
         return (
           <div
             key={idx}
@@ -900,7 +1082,7 @@ function PantryEditList({
               />
             ) : (
               <>
-                <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 12 }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: usePack ? 8 : 12 }}>
                   <div style={{ flexShrink: 0 }}>
                     <div style={qLabelStyle}>Cantidad</div>
                     <input
@@ -915,21 +1097,29 @@ function PantryEditList({
                       style={{ ...editInputBase, background: FIELD_BG, width: 54, height: 34, padding: "0 6px", textAlign: "center", fontSize: 14, fontWeight: 800 }}
                     />
                   </div>
-                  <div style={{ flexShrink: 0 }}>
-                    <div style={qLabelStyle}>Unidad</div>
-                    <select
-                      value={chip.entryUnit}
-                      onChange={(e) => onUpdateUnit(idx, e.target.value)}
-                      aria-label={`Unidad de ${chip.raw}`}
-                      style={{ ...editInputBase, background: FIELD_BG, width: 62, height: 34, padding: "0 6px", fontSize: 13, fontWeight: 800 }}
-                    >
-                      {PANTRY_UNITS.map((u) => (
-                        <option key={u} value={u}>
-                          {u === "l" ? "L" : u}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {usePack ? (
+                    <div style={{ flexShrink: 0 }}>
+                      <div style={qLabelStyle}>Envase</div>
+                      <StyledPicker
+                        value={chip.packKind ?? "bote"}
+                        onChange={(v) => onUpdatePackKind(idx, v)}
+                        options={PACK_KINDS}
+                        width={88}
+                        ariaLabel={`Envase de ${chip.raw}`}
+                      />
+                    </div>
+                  ) : (
+                    <div style={{ flexShrink: 0 }}>
+                      <div style={qLabelStyle}>Unidad</div>
+                      <StyledPicker
+                        value={chip.entryUnit}
+                        onChange={(v) => onUpdateUnit(idx, v)}
+                        options={PANTRY_UNITS.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+                        width={62}
+                        ariaLabel={`Unidad de ${chip.raw}`}
+                      />
+                    </div>
+                  )}
                   <div style={{ flexShrink: 0 }}>
                     <div style={qLabelStyle}>¿Dónde?</div>
                     <ChipLocationRow
@@ -938,6 +1128,32 @@ function PantryEditList({
                     />
                   </div>
                 </div>
+
+                {usePack && (
+                  <div style={{ display: "flex", gap: 10, alignItems: "flex-end", marginBottom: 12 }}>
+                    <div style={{ flexShrink: 0 }}>
+                      <div style={qLabelStyle}>Contenido</div>
+                      <input
+                        value={chip.packSizeQty ?? ""}
+                        onChange={(e) => onUpdatePackSizeQty(idx, e.target.value)}
+                        inputMode="decimal"
+                        placeholder="500"
+                        aria-label={`Tamaño del envase de ${chip.raw}`}
+                        style={{ ...editInputBase, background: FIELD_BG, width: 72, height: 34, padding: "0 6px", textAlign: "center", fontSize: 14, fontWeight: 800 }}
+                      />
+                    </div>
+                    <div style={{ flexShrink: 0 }}>
+                      <div style={qLabelStyle}>Ud</div>
+                      <StyledPicker
+                        value={chip.packSizeUnit ?? sizeUnits[0]}
+                        onChange={(v) => onUpdatePackSizeUnit(idx, v)}
+                        options={sizeUnits.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+                        width={62}
+                        ariaLabel={`Unidad del contenido de ${chip.raw}`}
+                      />
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="button"
@@ -1031,6 +1247,7 @@ export function PantryInput({
   tab: tabProp,
   onTabChange,
   hideTabs = false,
+  householdId = null,
 }) {
   const { user: authUser } = useAuth();
   const user = userProp ?? authUser;
@@ -1063,6 +1280,7 @@ export function PantryInput({
           entryUnit: guess.unit,
           source,
           location: defaultLocationForName(item.raw ?? item.normalized),
+          ...chipPackDefaults(item.raw ?? item.normalized),
         });
       }
       return next;
@@ -1122,6 +1340,15 @@ export function PantryInput({
   const updateChipUnit = (idx, unit) =>
     setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, entryUnit: unit } : c)));
 
+  const updateChipPackKind = (idx, packKind) =>
+    setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, packKind } : c)));
+
+  const updateChipPackSizeQty = (idx, packSizeQty) =>
+    setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, packSizeQty } : c)));
+
+  const updateChipPackSizeUnit = (idx, packSizeUnit) =>
+    setChips((prev) => prev.map((c, i) => (i === idx ? { ...c, packSizeUnit } : c)));
+
   // Ubicación por fila: el usuario elige nevera / despensa / congelador con el
   // control "¿Dónde?" que va bajo cada fila (modelo del plato cocinado).
   const updateChipLocation = (idx, loc) =>
@@ -1148,6 +1375,7 @@ export function PantryInput({
             entryUnit: c.entryUnit,
             source: c.source,
             location: c.location ?? defaultLocationForName(name),
+            ...chipPackDefaults(name),
           };
         }),
       );
@@ -1167,6 +1395,7 @@ export function PantryInput({
               entryUnit: c.entryUnit,
               source: c.source,
               location: c.location ?? defaultLocationForName(candidate.label),
+              ...chipPackDefaults(candidate.label),
             }
           : c,
       ),
@@ -1195,6 +1424,7 @@ export function PantryInput({
         entryUnit: "ud",
         source: "manual",
         location: defaultLocationForName(parsed.raw ?? parsed.normalized),
+        ...chipPackDefaults(parsed.raw ?? parsed.normalized),
       },
     ]);
     setFocusQtyIndex(chips.length);
@@ -1224,10 +1454,38 @@ export function PantryInput({
     const chip = chips[idx];
     if (!chip || chip.ambiguous || saving) return;
     setSaving(true);
-    const { qty, unit } = toCanonicalStockQty(chip.entryQty, chip.entryUnit);
+    let qty;
+    let unit;
+    let pack = null;
+    if (chip.usePack) {
+      const converted = stockFromPack({
+        count: chip.entryQty,
+        kind: chip.packKind,
+        sizeQty: chip.packSizeQty,
+        sizeUnit: chip.packSizeUnit,
+      });
+      if (converted) {
+        qty = converted.qty;
+        unit = converted.unit;
+        pack = converted.pack;
+      } else {
+        ({ qty, unit } = toCanonicalStockQty(chip.entryQty, chip.entryUnit));
+      }
+    } else {
+      ({ qty, unit } = toCanonicalStockQty(chip.entryQty, chip.entryUnit));
+    }
     const location = chip.location ?? defaultLocationForName(chip.raw);
-    const items = [{ name: chip.raw, normalized: chip.normalized, qty, unit, source: chip.source ?? "manual", location, frozen: location === "congelador" }];
-    const saved = user ? await addPantryItems(user.id, items) : addLocalPantryItems(items);
+    const items = [{
+      name: chip.raw,
+      normalized: chip.normalized,
+      qty,
+      unit,
+      pack,
+      source: chip.source ?? "manual",
+      location,
+      frozen: location === "congelador",
+    }];
+    const saved = user ? await addPantryItems(user.id, items, householdId) : addLocalPantryItems(items);
     setSaving(false);
     setChips((prev) => prev.filter((_, i) => i !== idx));
     setFocusQtyIndex(null);
@@ -1265,7 +1523,7 @@ export function PantryInput({
       dishRole,
       source: "manual",
     }];
-    const saved = user ? await addPantryItems(user.id, items) : addLocalPantryItems(items);
+    const saved = user ? await addPantryItems(user.id, items, householdId) : addLocalPantryItems(items);
     setSaving(false);
     onSaved?.(saved);
   };
@@ -1422,6 +1680,9 @@ export function PantryInput({
           chips={chips}
           onUpdateQty={updateChipQty}
           onUpdateUnit={updateChipUnit}
+          onUpdatePackKind={updateChipPackKind}
+          onUpdatePackSizeQty={updateChipPackSizeQty}
+          onUpdatePackSizeUnit={updateChipPackSizeUnit}
           onUpdateName={updateChipName}
           onUpdateLocation={updateChipLocation}
           onResolve={resolveAmbiguous}

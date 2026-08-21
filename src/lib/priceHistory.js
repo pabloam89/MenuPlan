@@ -186,6 +186,21 @@ const SUPPLEMENTAL_INGREDIENTS = [
   "Salsa barbacoa",
   "Kétchup",
   "Alioli",
+  "Guacamole",
+  // Broths and fresh-fish cuts: ticket/Mercadona wording that recipe names
+  // alone miss ("Caldo casero sin sal" used to match pan sin sal).
+  "Caldo de pollo",
+  "Caldo de verduras",
+  "Salmón fresco",
+  "Atún fresco",
+  "Merluza en lomos",
+  "Pescadilla",
+  "Fideo mediano",
+  "Alubia grande",
+  "Levadura química",
+  "Cous cous",
+  "Spaghetti",
+  "Gamba",
   // Fresh/specialty pasta: still a raw, home-cooked staple (you boil it
   // yourself, so `kind` is correctly "food" not "prefab"), but a
   // manufactured, flavoured/coloured product in its own right — matching it

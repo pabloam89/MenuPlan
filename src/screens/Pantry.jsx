@@ -21,7 +21,7 @@ import {
   Sprout,
   Store,
   Tag,
-  Trash2,
+  Pencil,
   Wheat,
   X,
   Receipt,
@@ -34,6 +34,7 @@ import {
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
 import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
+import { SwipePurchaseShell } from "./Shopping.jsx";
 import { PantryPrefsWizard } from "../components/ModeSheets.jsx";
 import { PantryCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import {
@@ -53,7 +54,7 @@ import {
 import { guessShoppingAisle, isPerishableAisle } from "../lib/ingredientCategories.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
-import { DATE_BUCKET_OPTIONS, estimateListCost, formatEuro, matchesDateBucket } from "../lib/priceHistory.js";
+import { DATE_BUCKET_OPTIONS, estimateListCost, matchesDateBucket } from "../lib/priceHistory.js";
 
 // Las 3 ubicaciones que el usuario ve como filtros. La única que el usuario
 // elige al guardar es "congelador" (frozen); nevera vs despensa se deriva del
@@ -178,7 +179,9 @@ function stockPriceLabel(item, priceObs) {
     [{ name: item.ingredientName, qty: item.qty, unit: item.unit }],
     priceObs,
   );
-  return matched > 0 ? formatEuro(total) : "—";
+  if (!(matched > 0) || !(total > 0)) return "—";
+  const v = Math.round(total * 10) / 10;
+  return `${v.toLocaleString("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 })} €`;
 }
 
 // Compact "12 jul" — never a full sentence, per the "sin copy muy grande"
@@ -565,13 +568,53 @@ const fieldStyle = {
   background: "#fff",
 };
 
-// icon | name (wraps) | spacer | valor (toggled) | precio | trash
+// icon | name (compact) | pills | edit
 const ROW_GRID = {
   display: "grid",
-  gridTemplateColumns: "40px minmax(0,1fr) 72px 56px 28px",
-  gap: 8,
+  gridTemplateColumns: "34px 96px auto 26px",
+  gap: 3,
   alignItems: "center",
 };
+
+const pantryQtyCellBase = {
+  width: 58,
+  minWidth: 58,
+  maxWidth: 58,
+  boxSizing: "border-box",
+  textAlign: "center",
+  padding: "4px 3px",
+  borderRadius: 7,
+  fontSize: 12,
+  fontWeight: 700,
+  fontVariantNumeric: "tabular-nums",
+  whiteSpace: "nowrap",
+  lineHeight: 1.2,
+  overflow: "hidden",
+  textOverflow: "ellipsis",
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+};
+
+function pantryPill(text, kind) {
+  const empty = text === "—" || !text;
+  const bg =
+    kind === "uds" ? "#e8f1ea" : kind === "peso" ? "#eef2f6" : "#dff0e4";
+  const color =
+    kind === "uds" ? "#2d5a3d" : kind === "peso" ? "#3f5568" : "#1a3d28";
+  return (
+    <span
+      style={{
+        ...pantryQtyCellBase,
+        background: empty ? "#f0f4f1" : bg,
+        color: empty ? "#c2cfc7" : color,
+        fontWeight: kind === "precio" && !empty ? 800 : 700,
+      }}
+    >
+      {empty ? "—" : text}
+    </span>
+  );
+}
 
 // Precio used to be a 3rd toggle option here, but it's meaningful for nearly
 // every ticket-sourced item — burying it behind a click hid it more often
@@ -1364,7 +1407,7 @@ export function PantryScreen({
   };
 
   const handleSaved = async () => {
-    const next = user ? await loadPantry(user.id) : loadLocalPantry();
+    const next = user ? await loadPantry(user.id, pantryHouseholdId || null) : loadLocalPantry();
     setItems(next);
     const focus = [...next].sort((a, b) => String(b.updatedAt ?? "").localeCompare(String(a.updatedAt ?? "")))[0];
     if (!focus?.id) return;
@@ -1714,17 +1757,22 @@ export function PantryScreen({
                       : stockView === "peso" ? peso : cantidad;
                     const lastUpdated = formatShortDay(item.updatedAt);
                     return (
-                      <div
+                      <SwipePurchaseShell
                         key={item.id}
+                        isLast={i === inventoryItems.length - 1}
+                        readOnly={readOnly || editing}
+                        disabled={editing}
+                        onDelete={() => handleRemove(item.id)}
+                      >
+                      <div
                         ref={(el) => { rowRefs.current[item.id] = el; }}
                         style={{
                           ...ROW_GRID,
-                          padding: "14px 12px",
-                          borderBottom: i === inventoryItems.length - 1 ? "none" : "1px solid rgba(45,110,70,.16)",
+                          padding: "10px 4px",
                         }}
                       >
                         {editing ? (
-                          <span style={{ gridColumn: "1 / 5", display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
+                          <span style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
                             <span style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
                               <input
                                 type="text"
@@ -1783,10 +1831,6 @@ export function PantryScreen({
                               </span>
                             )}
                             {lastUpdated && (
-                              // The "when did I buy this" answer lives here instead of on every
-                              // row: it's one tap away (the row is already tappable-to-edit) and
-                              // shown right where you're already looking at this item's detail,
-                              // rather than adding a caption under every single name in the list.
                               <span style={{ fontSize: 10, fontWeight: 600, color: "#9ab0a1" }}>
                                 Última actualización: {lastUpdated}
                               </span>
@@ -1795,16 +1839,19 @@ export function PantryScreen({
                         ) : (
                           <>
                             <RowThumb item={item} cooked={cooked} aisle={aisle} />
-                            <span style={{ minWidth: 0 }}>
+                            <span style={{ minWidth: 0, maxWidth: 96 }}>
                               <span
                                 style={{
-                                  display: "block",
-                                  fontSize: 14,
-                                  fontWeight: 800,
+                                  display: "-webkit-box",
+                                  WebkitLineClamp: 3,
+                                  WebkitBoxOrient: "vertical",
+                                  overflow: "hidden",
+                                  fontSize: 13,
+                                  fontWeight: 700,
                                   color: INK,
-                                  lineHeight: 1.3,
-                                  whiteSpace: "normal",
-                                  overflowWrap: "anywhere",
+                                  lineHeight: 1.25,
+                                  overflowWrap: "break-word",
+                                  wordBreak: "break-word",
                                 }}
                               >
                                 {item.ingredientName}
@@ -1830,67 +1877,41 @@ export function PantryScreen({
                                 ) : null;
                               })()}
                             </span>
+                            <span
+                              style={{ display: "grid", gridTemplateColumns: "repeat(3, 58px)", gap: 6 }}
+                              data-no-swipe
+                            >
+                              {pantryPill(cooked ? valueText : cantidad, "uds")}
+                              {pantryPill(cooked ? "—" : peso, "peso")}
+                              {pantryPill(priceLabel, "precio")}
+                            </span>
+                            {!readOnly && (
                             <button
                               type="button"
-                              onClick={() => !readOnly && startEdit(item)}
-                              disabled={readOnly}
-                              aria-label={`Editar ${viewLabel.toLowerCase()} de ${item.ingredientName}`}
-                              title={readOnly ? undefined : "Tocar para editar la cantidad"}
+                              onClick={() => startEdit(item)}
+                              aria-label={`Editar ${item.ingredientName}`}
+                              title="Editar"
                               style={{
-                                // Plain text, same treatment as the Precio column
-                                // (no pill) — just the number, tappable to edit.
-                                justifySelf: "center",
-                                padding: 0,
-                                border: "none",
-                                background: "none",
-                                color: valueText === "—" ? MUTED : INK,
-                                fontSize: 13,
-                                fontWeight: 800,
-                                fontFamily: "inherit",
-                                cursor: readOnly ? "default" : "pointer",
-                                lineHeight: 1.2,
-                                textAlign: "center",
+                                width: 26,
+                                height: 26,
+                                borderRadius: 999,
+                                border: "1px solid #e3ede6",
+                                justifySelf: "end",
+                                background: "#f6faf7",
+                                color: "#3d5245",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
                               }}
                             >
-                              {valueText}
+                              <Pencil size={13} strokeWidth={2.4} />
                             </button>
-                            <span
-                              style={{
-                                justifySelf: "center",
-                                fontSize: 13,
-                                fontWeight: 800,
-                                color: priceLabel === "—" ? MUTED : INK,
-                                textAlign: "center",
-                              }}
-                              title={priceLabel === "—" ? "Sin precio en tus tickets" : "Estimado con tus compras"}
-                            >
-                              {priceLabel}
-                            </span>
+                            )}
                           </>
                         )}
-                        {!readOnly && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemove(item.id)}
-                          aria-label={`Quitar ${item.ingredientName}`}
-                          style={{
-                            width: 26,
-                            height: 26,
-                            borderRadius: 8,
-                            border: "none",
-                            justifySelf: "end",
-                            background: "#fdf1ef",
-                            color: "#c0392b",
-                            cursor: "pointer",
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                          }}
-                        >
-                          <Trash2 size={13} />
-                        </button>
-                        )}
                       </div>
+                      </SwipePurchaseShell>
                     );
                   })
                   )}
@@ -1909,6 +1930,7 @@ export function PantryScreen({
               <PantryModePicker tab={addTab} setTab={setAddTab} canUploadReceipt={canUploadReceipt} />
               <PantryInput
                 user={user}
+                householdId={pantryHouseholdId || null}
                 hideTabs
                 tab={addTab}
                 onTabChange={setAddTab}
