@@ -95,7 +95,7 @@ import {
   getWeekDatesFromStartISO,
 } from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
-import { estimateShoppingList, priceMapForItems } from "../lib/listPricing.js";
+import { priceShoppingList } from "../lib/listPricing.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
@@ -720,14 +720,11 @@ export function ShoppingScreen({
     }
     let cancelled = false;
     const obs = data?.priceObs ?? [];
-    Promise.all([
-      estimateShoppingList("Mercadona", visibleItems, obs),
-      priceMapForItems("Mercadona", visibleItems, obs),
-    ])
-      .then(([estimate, prices]) => {
+    priceShoppingList("Mercadona", visibleItems, obs)
+      .then(({ estimate, map }) => {
         if (cancelled) return;
         setStoreEstimate(estimate);
-        setLinePrices(prices);
+        setLinePrices(map);
       })
       .catch(() => {
         if (!cancelled) {

@@ -3,7 +3,7 @@
  */
 
 import { estimateListCost } from "./priceHistory.js";
-import { matchProductForIngredient, MATCH_HIGH } from "./productMatcher.js";
+import { MATCH_HIGH, matchProductForIngredient, productIndexFor } from "./productMatcher.js";
 import { isMercadonaStore, loadStoreCatalog } from "./storeCatalog.js";
 import { PACK_KIND_LABEL, wantsPackFields } from "./packUnits.js";
 import { guessShoppingAisle } from "./ingredientCategories.js";
@@ -252,51 +252,27 @@ export function buyLineFromProduct(item, product) {
   };
 }
 
-/**
- * @param {string} storeName e.g. "Mercadona"
- * @param {object[]} items shopping list rows
- * @param {object[]} [priceObs] user-recorded prices
- */
-export async function estimateShoppingList(storeName, items = [], priceObs = []) {
-  if (!isMercadonaStore(storeName)) {
-    const obs = estimateListCost(items, priceObs);
-    return {
-      store: storeName,
-      total: obs.total,
-      matched: obs.matched,
-      count: obs.count,
-      source: "obs",
-      catalogFetchedAt: null,
-    };
-  }
+function emptyEstimate(storeName, items, obs, extra = {}) {
+  return {
+    store: storeName,
+    total: obs.total,
+    matched: obs.matched,
+    count: extra.count ?? items.length,
+    source: extra.source ?? "obs",
+    catalogFetchedAt: extra.catalogFetchedAt ?? null,
+    lines: extra.lines,
+  };
+}
 
-  let catalog;
-  try {
-    catalog = await loadStoreCatalog("mercadona");
-  } catch {
-    const obs = estimateListCost(items, priceObs);
-    return {
-      store: "Mercadona",
-      total: obs.total,
-      matched: obs.matched,
-      count: obs.count,
-      source: "obs",
-      catalogFetchedAt: null,
-    };
-  }
-
-  let total = 0;
-  let matched = 0;
-  const lines = [];
-
-  for (const item of items) {
-    const match = matchProductForIngredient(item.name, catalog.products);
-    if (match && match.confidence >= MATCH_HIGH) {
-      const buy = buyLineFromProduct(item, match.product);
-      if (buy) {
-        total += buy.linePrice;
-        matched++;
-        lines.push({
+function priceOneItem(item, catalogProducts, priceObs) {
+  const key = item.id ?? `${item.name}|${item.unit ?? "ud"}`;
+  const match = matchProductForIngredient(item.name, catalogProducts);
+  if (match && match.confidence >= MATCH_HIGH) {
+    const buy = buyLineFromProduct(item, match.product);
+    if (buy) {
+      return {
+        key,
+        line: {
           name: item.name,
           productName: buy.productName,
           price: buy.linePrice,
@@ -304,56 +280,8 @@ export async function estimateShoppingList(storeName, items = [], priceObs = [])
           packs: buy.packs,
           confidence: match.confidence,
           source: "mercadona",
-        });
-        continue;
-      }
-    }
-
-    const obsLine = estimateListCost([item], priceObs);
-    if (obsLine.matched > 0) {
-      total += obsLine.total;
-      matched++;
-      lines.push({ name: item.name, price: obsLine.total, source: "obs", confidence: 1 });
-    } else {
-      lines.push({ name: item.name, price: null, source: "none", confidence: 0 });
-    }
-  }
-
-  return {
-    store: "Mercadona",
-    total: Math.round(total * 100) / 100,
-    matched,
-    count: items.length,
-    source: "mercadona",
-    catalogFetchedAt: catalog.fetchedAt,
-    lines,
-  };
-}
-
-/**
- * @param {string} storeName
- * @param {object[]} items
- * @param {object[]} [priceObs]
- * @returns {Promise<Map<string, { storePrice: number|null, storeProductName?: string, storeConfidence?: number, storePriceSource: string }>>}
- */
-export async function priceMapForItems(storeName, items = [], priceObs = []) {
-  const map = new Map();
-  if (!isMercadonaStore(storeName)) return map;
-
-  let catalog;
-  try {
-    catalog = await loadStoreCatalog("mercadona");
-  } catch {
-    return map;
-  }
-
-  for (const item of items) {
-    const key = item.id ?? `${item.name}|${item.unit ?? "ud"}`;
-    const match = matchProductForIngredient(item.name, catalog.products);
-    if (match && match.confidence >= MATCH_HIGH) {
-      const buy = buyLineFromProduct(item, match.product);
-      if (buy) {
-        map.set(key, {
+        },
+        mapEntry: {
           storePrice: buy.linePrice,
           storeProductName: buy.productName,
           storeBuyDisplay: buy.buyDisplay,
@@ -363,19 +291,103 @@ export async function priceMapForItems(storeName, items = [], priceObs = []) {
           storePacks: buy.packs,
           storeConfidence: match.confidence,
           storePriceSource: "mercadona",
-        });
-        continue;
-      }
+        },
+      };
     }
-    const obsLine = estimateListCost([item], priceObs);
-    if (obsLine.matched > 0) {
-      map.set(key, {
+  }
+  const obsLine = estimateListCost([item], priceObs);
+  if (obsLine.matched > 0) {
+    return {
+      key,
+      line: { name: item.name, price: obsLine.total, source: "obs", confidence: 1 },
+      mapEntry: {
         storePrice: obsLine.total,
         storePriceSource: "obs",
         storeConfidence: 1,
-      });
+      },
+    };
+  }
+  return {
+    key,
+    line: { name: item.name, price: null, source: "none", confidence: 0 },
+    mapEntry: null,
+  };
+}
+
+/**
+ * One catalog pass for Compra: aisle totals + per-line packs/prices.
+ * @returns {Promise<{ estimate: object, map: Map<string, object> }>}
+ */
+export async function priceShoppingList(storeName, items = [], priceObs = []) {
+  const map = new Map();
+  if (!isMercadonaStore(storeName)) {
+    const obs = estimateListCost(items, priceObs);
+    return { estimate: emptyEstimate(storeName, items, obs), map };
+  }
+
+  let catalog;
+  try {
+    catalog = await loadStoreCatalog("mercadona");
+  } catch {
+    const obs = estimateListCost(items, priceObs);
+    return { estimate: emptyEstimate("Mercadona", items, obs), map };
+  }
+
+  // Build the token index once, then match every list line against candidates
+  // (not the full 3k SKU list). Yield between chunks so Compra stays interactive.
+  productIndexFor(catalog.products);
+
+  let total = 0;
+  let matched = 0;
+  const lines = [];
+  const CHUNK = 8;
+
+  for (let i = 0; i < items.length; i++) {
+    if (i > 0 && i % CHUNK === 0) {
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    const priced = priceOneItem(items[i], catalog.products, priceObs);
+    lines.push(priced.line);
+    if (priced.mapEntry) {
+      map.set(priced.key, priced.mapEntry);
+      if (priced.line.price != null) {
+        total += priced.line.price;
+        matched++;
+      }
     }
   }
 
+  return {
+    estimate: {
+      store: "Mercadona",
+      total: Math.round(total * 100) / 100,
+      matched,
+      count: items.length,
+      source: "mercadona",
+      catalogFetchedAt: catalog.fetchedAt,
+      lines,
+    },
+    map,
+  };
+}
+
+/**
+ * @param {string} storeName e.g. "Mercadona"
+ * @param {object[]} items shopping list rows
+ * @param {object[]} [priceObs] user-recorded prices
+ */
+export async function estimateShoppingList(storeName, items = [], priceObs = []) {
+  const { estimate } = await priceShoppingList(storeName, items, priceObs);
+  return estimate;
+}
+
+/**
+ * @param {string} storeName
+ * @param {object[]} items
+ * @param {object[]} [priceObs]
+ * @returns {Promise<Map<string, { storePrice: number|null, storeProductName?: string, storeConfidence?: number, storePriceSource: string }>>}
+ */
+export async function priceMapForItems(storeName, items = [], priceObs = []) {
+  const { map } = await priceShoppingList(storeName, items, priceObs);
   return map;
 }

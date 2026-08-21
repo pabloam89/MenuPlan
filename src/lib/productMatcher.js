@@ -43,31 +43,50 @@ function tokenize(s) {
   );
 }
 
-function levenshtein(a, b) {
+const TOKEN_CACHE = new Map();
+function cachedTokens(s) {
+  let t = TOKEN_CACHE.get(s);
+  if (!t) {
+    t = tokenize(s);
+    TOKEN_CACHE.set(s, t);
+  }
+  return t;
+}
+
+/** Cheap bounded edit distance; returns max+1 as soon as it cannot beat `max`. */
+function levenshteinAtMost(a, b, max) {
   const m = a.length;
   const n = b.length;
-  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
-  for (let i = 0; i <= m; i++) dp[i][0] = i;
-  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  if (Math.abs(m - n) > max) return max + 1;
+  let prev = new Array(n + 1);
+  let curr = new Array(n + 1);
+  for (let j = 0; j <= n; j++) prev[j] = j;
   for (let i = 1; i <= m; i++) {
+    curr[0] = i;
+    let rowMin = curr[0];
+    const ca = a.charCodeAt(i - 1);
     for (let j = 1; j <= n; j++) {
-      dp[i][j] =
-        a[i - 1] === b[j - 1]
-          ? dp[i - 1][j - 1]
-          : 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+      const cost = ca === b.charCodeAt(j - 1) ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+      if (curr[j] < rowMin) rowMin = curr[j];
     }
+    if (rowMin > max) return max + 1;
+    const tmp = prev;
+    prev = curr;
+    curr = tmp;
   }
-  return dp[m][n];
+  return prev[n];
 }
 
 function tokensNear(a, b) {
   if (a === b) return true;
+  if (a.charCodeAt(0) !== b.charCodeAt(0)) return false;
   const maxLen = Math.max(a.length, b.length);
   const lenDiff = Math.abs(a.length - b.length);
   if (maxLen < 4) return false;
-  if (maxLen < 7) return lenDiff === 0 && levenshtein(a, b) <= 1;
+  if (maxLen < 7) return lenDiff === 0 && levenshteinAtMost(a, b, 1) <= 1;
   if (lenDiff > 1) return false;
-  return levenshtein(a, b) <= 2;
+  return levenshteinAtMost(a, b, 2) <= 2;
 }
 
 function tokenOverlap(a, b) {
@@ -99,13 +118,62 @@ function containsWholePhrase(haystack, needle) {
  */
 export function scoreProductName(productName, probeId) {
   const norm = normalizeName(productName);
-  const probeTokens = tokenize(probeId);
+  const probeTokens = cachedTokens(probeId);
   if (!norm || probeTokens.size === 0) return 0;
-  let score = tokenOverlap(probeTokens, tokenize(norm));
+  let score = tokenOverlap(probeTokens, cachedTokens(norm));
   if (containsWholePhrase(norm, probeId) || containsWholePhrase(probeId, norm)) {
     score = Math.max(score, 0.75);
   }
   return Math.min(0.95, score);
+}
+
+const INDEX_CACHE = new WeakMap();
+
+function pushIndex(map, key, product) {
+  let arr = map.get(key);
+  if (!arr) map.set(key, (arr = []));
+  arr.push(product);
+}
+
+/** Token + 3-char prefix index so we don't score 3k SKUs per ingredient. */
+export function productIndexFor(products) {
+  if (!products?.length) return null;
+  let idx = INDEX_CACHE.get(products);
+  if (idx) return idx;
+  const byToken = new Map();
+  const byPrefix = new Map();
+  for (const product of products) {
+    const tokens = cachedTokens(normalizeName(product?.name ?? ""));
+    for (const tok of tokens) {
+      pushIndex(byToken, tok, product);
+      if (tok.length >= 3) pushIndex(byPrefix, tok.slice(0, 3), product);
+    }
+  }
+  idx = { byToken, byPrefix };
+  INDEX_CACHE.set(products, idx);
+  return idx;
+}
+
+function candidateProducts(products, terms) {
+  const idx = productIndexFor(products);
+  if (!idx) return products;
+  const seen = new Set();
+  const out = [];
+  const add = (arr) => {
+    if (!arr) return;
+    for (const p of arr) {
+      if (seen.has(p)) continue;
+      seen.add(p);
+      out.push(p);
+    }
+  };
+  for (const term of terms) {
+    for (const tok of cachedTokens(term)) {
+      add(idx.byToken.get(tok));
+      if (tok.length >= 3) add(idx.byPrefix.get(tok.slice(0, 3)));
+    }
+  }
+  return out.length ? out : products;
 }
 
 /**
@@ -204,11 +272,13 @@ export function matchProductForIngredient(ingredientName, products = [], { minCo
   const ingredientId = normalizeName(ingredientName);
   if (!ingredientId || !products.length) return null;
 
+  const terms = searchTermsForIngredient(ingredientName);
+  const pool = candidateProducts(products, terms);
   const hits = [];
   const seen = new Set();
 
-  for (const term of searchTermsForIngredient(ingredientName)) {
-    for (const product of products) {
+  for (const term of terms) {
+    for (const product of pool) {
       if (seen.has(product.id)) continue;
       if (shouldSkipProduct(ingredientId, product)) continue;
       const confidence = scoreProductName(product.name, term);
@@ -238,11 +308,13 @@ export function matchProductForIngredient(ingredientName, products = [], { minCo
 export function matchProductsForIngredient(ingredientName, products = [], opts = {}) {
   const { limit = 3, minConfidence = MATCH_MIN } = opts;
   const ingredientId = normalizeName(ingredientName);
+  const terms = searchTermsForIngredient(ingredientName);
+  const pool = candidateProducts(products, terms);
   const hits = [];
   const seen = new Set();
 
-  for (const term of searchTermsForIngredient(ingredientName)) {
-    for (const product of products) {
+  for (const term of terms) {
+    for (const product of pool) {
       if (seen.has(product.id)) continue;
       if (shouldSkipProduct(ingredientId, product)) continue;
       const confidence = scoreProductName(product.name, term);
