@@ -3540,9 +3540,9 @@ export default function App() {
   // equilibrado) y "¿Cómo completamos el menú?" (10, la estructura de plato se
   // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
-  // Presupuesto semanal / Tu compra (paso 6): oculto hasta tener el flujo cableado
-  // (toggle, imágenes /budget-cards/, listPricing…). Quitar esta línea al activarlo.
-  const skipBudgetStep = true;
+  // Presupuesto semanal / Tu compra (paso 6): visible en local; oculto en prod
+  // hasta cablear toggle, /budget-cards/ y listPricing. Poner en false al activarlo.
+  const skipBudgetStep = import.meta.env.PROD;
   const isStepHidden = useCallback(
     (i) =>
       // Sencillo/Avanzado: solo se oculta en el primer acceso (familia → Home).
