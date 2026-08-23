@@ -575,7 +575,7 @@ export function DashboardScreen({
             subtitle={
               householdReadOnly && activeHousehold
                 ? `Menú de ${activeHousehold.name}`
-                : "Tu menú de la (o las) semanas, en segundos"
+                : "Tu menú de la semana, en segundos"
             }
             Icon={householdReadOnly ? Eye : RotateCw}
           />
