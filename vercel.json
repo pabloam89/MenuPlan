@@ -2,6 +2,10 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
+  "rewrites": [
+    { "source": "/admin/expenses", "destination": "/admin/expenses/index.html" },
+    { "source": "/admin/expenses/(.*)", "destination": "/admin/expenses/index.html" }
+  ],
   "headers": [
     {
       "source": "/",

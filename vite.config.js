@@ -120,11 +120,54 @@ function devDishPhotoApi(env) {
   }
 }
 
+// Same idea as devRecipeStepsApi, for the expense tracker's invoice extraction
+// (apps/expense-tracker, served at /admin/expenses in production). That app is
+// its own Vite project with its own node_modules (no @upstash/redis etc.), so
+// its dev server proxies /api to this one instead of importing the handler
+// itself — see apps/expense-tracker/vite.config.ts.
+function devExpenseExtractApi(env) {
+  return {
+    name: 'dev-expense-extract-api',
+    configureServer(server) {
+      process.env.ANTHROPIC_API_KEY =
+        process.env.ANTHROPIC_API_KEY || env.ANTHROPIC_API_KEY || env.VITE_ANTHROPIC_API_KEY || ''
+      if (!process.env.ADMIN_EXPENSES_TOKEN && env.ADMIN_EXPENSES_TOKEN) {
+        process.env.ADMIN_EXPENSES_TOKEN = env.ADMIN_EXPENSES_TOKEN
+      }
+
+      server.middlewares.use(async (req, res, next) => {
+        if (!req.url || !req.url.startsWith('/api/expense-extract')) return next()
+        if (req.method !== 'POST') return next()
+        try {
+          const { default: handler } = await import('./api/expense-extract.js')
+          req.body = await readJsonBody(req)
+          res.status = (code) => { res.statusCode = code; return res }
+          res.json = (obj) => {
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify(obj))
+          }
+          await handler(req, res)
+        } catch (err) {
+          res.statusCode = 500
+          res.setHeader('Content-Type', 'application/json')
+          res.end(JSON.stringify({ error: err?.message || 'dev handler error' }))
+        }
+      })
+    },
+  }
+}
+
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [react(), devGenerateApi(env), devRecipeStepsApi(env), devDishPhotoApi(env)],
+    plugins: [
+      react(),
+      devGenerateApi(env),
+      devRecipeStepsApi(env),
+      devDishPhotoApi(env),
+      devExpenseExtractApi(env),
+    ],
     server: {
       port: 5175,
       // Falla en vez de saltar a otro puerto: así la URL local es siempre
