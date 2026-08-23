@@ -116,7 +116,7 @@ export function RecipesScreen({
             </h1>
             <CoachHelpButton active={showIconCoach} onClick={() => setShowIconCoach((v) => !v)} />
           </div>
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexShrink: 0 }}>
             {onOpenRecipePrefs && !readOnly && (
               <button
                 type="button"
@@ -130,6 +130,28 @@ export function RecipesScreen({
                 }}
               >
                 <SlidersHorizontal size={16} strokeWidth={2.3} />
+              </button>
+            )}
+            {onOpenRecipePlanner && !readOnly && (
+              <button
+                type="button"
+                onClick={onOpenRecipePlanner}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "8px 13px",
+                  borderRadius: 12,
+                  border: "none",
+                  background: GREEN,
+                  color: "#fff",
+                  fontSize: 13,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                <Plus size={14} strokeWidth={2.8} /> Crear
               </button>
             )}
           </div>
@@ -213,7 +235,7 @@ export function RecipesScreen({
                 imgAspect="1 / 1"
                 imgPosition="center"
               >
-                {!readOnly && (
+                {!readOnly && onOpenRecipePlanner && (
                 <button
                   type="button"
                   onClick={onOpenRecipePlanner}
