@@ -34,8 +34,8 @@ const VIEWER_BLUE = "#4a6fd0";
 const INK = "#142f1d";
 const MUTED = "#5a7262";
 const HEADER_BAND = "#e9f4ed";
-const IMG_OWNER = "/avatares/hogares/hogar_propietario.png";
-const IMG_VIEWER = "/avatares/hogares/hogar_visitante.png";
+const IMG_OWNER = "/avatares/hogares/hogar_propietario.jpg";
+const IMG_VIEWER = "/avatares/hogares/hogar_visitante.jpg";
 /** Ilustración join / invitación — vertical y alegre (distinta del carrusel). */
 const IMG_JOIN = "/avatares/cards/ninos_findesemana_juntos.jpg";
 const JOIN_ASPECT = "3/4";
