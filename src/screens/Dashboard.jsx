@@ -31,7 +31,7 @@ import pantryCardPhoto2 from "../assets/dashboard/pantry-card-2.jpg";
 import pantryCardPhoto3 from "../assets/dashboard/pantry-card-3.jpg";
 import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 
-const HOGAR_ICON = "/avatares/hogares/hogar_propietario.png";
+const HOGAR_ICON = "/avatares/hogares/hogar_propietario.jpg";
 
 const PAGE_BG = "#f4f8f5";
 const GREEN = "#2d5a3d";

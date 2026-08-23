@@ -10229,13 +10229,13 @@ const BUDGET_HERO = {
     copy: "Sin preocuparme del presupuesto",
     track: "#0f766e",
     frame: "#c8e6d4",
-    img: "/budget-cards/no-prices.png",
+    img: "/budget-cards/no-prices.jpg",
   },
   capped: {
     copy: "Quiero fijar presupuesto",
     track: "#1e3a8a",
     frame: "#b8c5e8",
-    img: "/budget-cards/yes-prices.png",
+    img: "/budget-cards/yes-prices.jpg",
   },
 };
 
