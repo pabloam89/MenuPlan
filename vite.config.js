@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import { VitePWA } from 'vite-plugin-pwa'
 
 function readJsonBody(req) {
   return new Promise((resolve) => {
@@ -124,7 +125,45 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
 
   return {
-    plugins: [react(), devGenerateApi(env), devRecipeStepsApi(env), devDishPhotoApi(env)],
+    plugins: [
+      react(),
+      devGenerateApi(env),
+      devRecipeStepsApi(env),
+      devDishPhotoApi(env),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['favicon.svg', 'pwa-icons/apple-touch-icon.png'],
+        manifest: {
+          name: 'MenúPlan',
+          short_name: 'MenúPlan',
+          description: 'El menú familiar de la semana, resuelto con IA.',
+          theme_color: '#7e14ff',
+          background_color: '#ffffff',
+          display: 'standalone',
+          orientation: 'portrait',
+          start_url: '/',
+          scope: '/',
+          lang: 'es',
+          icons: [
+            { src: '/pwa-icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+            { src: '/pwa-icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+            { src: '/pwa-icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          ],
+        },
+        workbox: {
+          // Solo precachea el app shell (JS/CSS/imágenes estáticas). Las
+          // llamadas a /api/* (IA, listas, etc.) y a Supabase nunca pasan
+          // por el service worker: sin runtimeCaching para ellas, van
+          // siempre directas a red, así nunca se sirve un menú o una
+          // respuesta de IA cacheada y obsoleta.
+          navigateFallbackDenylist: [/^\/api\//],
+          cleanupOutdatedCaches: true,
+        },
+        devOptions: {
+          enabled: false,
+        },
+      }),
+    ],
     server: {
       port: 5175,
       // Falla en vez de saltar a otro puerto: así la URL local es siempre
