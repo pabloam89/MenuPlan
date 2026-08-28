@@ -6562,6 +6562,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 210,
+        "difficulty": "elaborada",
+        "prepSummary": "Tras sellar la carne y pochar las verduras en una cazuela apta, desglasa con el vino, añade el caldo y especias. Tapa y cocina en el horno precalentado a 150-160°C durante 2.5 a 3 horas, hasta que las carrilleras estén muy tiernas. Finaliza reduciendo la salsa en la encimera."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 180,
+        "difficulty": "elaborada",
+        "prepSummary": "Sella las carrilleras en la Thermomix y reserva. Pocha las verduras, luego incorpora la carne, el vino, caldo y especias. Cocina a temperatura Varoma o 98-100°C con giro inverso y velocidad cuchara durante 2.5 a 3 horas, hasta que la carne se deshaga. La salsa se puede triturar y"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Sella las carrilleras en la olla express y retira. Pocha las verduras, reincorpora la carne, vierte el vino, caldo y especias. Cierra y cocina a presión alta durante 60-75 minutos. Una vez despresurizada, retira la carne y reduce la salsa a fuego vivo para espesar y concentrar sa"
+      }
     ]
   },
   {
@@ -6818,7 +6838,15 @@
     "sugar_g": 2,
     "saturated_fat_g": 18,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "elaborada",
+        "prepSummary": "Sella el solomillo previamente, envuélvelo con la duxelles de champiñones y jamón, y el hojaldre, pintándolo con huevo. Hornea a 200-220°C durante 30-50 minutos, hasta que el hojaldre esté dorado y crujiente y la carne en su punto deseado."
+      }
+    ]
   },
   {
     "id": "carnes_039",
@@ -7045,6 +7073,20 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 260,
+        "difficulty": "elaborada",
+        "prepSummary": "Marinar las costillas y cocinarlas lentamente en el horno a baja temperatura (aprox. 130-140°C) durante unas 4 horas para que queden extremadamente tiernas. Finalmente, subir la temperatura o usar el grill para glasear y caramelizar la superficie con la salsa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Cocinar las costillas en la olla express con parte de la salsa durante unos 45-60 minutos para ablandarlas rápidamente. Después, transferir al horno o airfryer a alta temperatura (200-220°C) durante 20-30 minutos, pincelando con la salsa restante para un glaseado perfecto."
+      }
     ]
   },
   {
@@ -7227,7 +7269,21 @@
     "sugar_g": 18,
     "saturated_fat_g": 10,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Sella la pechuga de pato en una sartén apta para horno hasta dorar la piel, luego termina la cocción en el horno a 180-200°C para una carne jugosa. Prepara la salsa de naranja y Cointreau en la misma sartén sobre el fuego, aprovechando los jugos del pato."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la pechuga de pato en la airfryer a 180-200°C durante 20-25 minutos, volteándola a mitad, para lograr una piel muy crujiente. La reducción de Cointreau y naranja se elabora simultáneamente en una sartén aparte."
+      }
+    ]
   },
   {
     "id": "carnes_041",
@@ -7417,7 +7473,15 @@
     "sugar_g": 16,
     "saturated_fat_g": 10,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sella el magret en una sartén apta para horno por el lado de la piel hasta dorar y renderizar la grasa. Luego, termina la cocción en el horno precalentado a 180°C durante 10-15 minutos para el punto deseado. La salsa de frutos rojos se prepara simultáneamente en la encimera, redu"
+      }
+    ]
   },
   {
     "id": "carnes_042",
@@ -7737,6 +7801,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 240,
+        "difficulty": "elaborada",
+        "prepSummary": "Tras sellar el rabo y pochar las verduras en una cazuela apta, añade el resto de ingredientes y brasea a fuego lento en el horno a 150-160°C durante 3-4 horas hasta que la carne se desprenda del hueso."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 210,
+        "difficulty": "elaborada",
+        "prepSummary": "Sofríe las verduras y sella el rabo por tandas en el vaso. Incorpora el resto de líquidos y cocina a 95°C, giro inverso, velocidad cuchara, durante 3-3.5 horas, asegurando una cocción uniforme y tierna."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Sella el rabo y sofríe las verduras en la olla. Añade el vino, tomate y caldo, cierra la olla y cocina a presión alta durante 60-90 minutos. Despresuriza y deja reposar para una carne melosa."
+      }
     ]
   },
   {
@@ -7955,6 +8039,14 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 320,
+        "difficulty": "elaborada",
+        "prepSummary": "Cocina el cochinillo sumergido en manteca a baja temperatura (aprox. 130-150°C) durante varias horas hasta que esté muy tierno. Para la piel crujiente, sube la temperatura del horno a 200-220°C durante los últimos 20-30 minutos."
+      }
     ]
   },
   {
@@ -8170,7 +8262,21 @@
     "sugar_g": 5,
     "saturated_fat_g": 15,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Para el solomillo, séllalo a 200°C por 15-20 min, volteando a mitad, para un exterior dorado. Las patatas panadera se cortan finas con cebolla, se rocían con aceite y se cocinan a 180°C por 25-30 min, removiendo hasta que estén tiernas y doradas. La salsa de whisky se prepara apa"
+      },
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Las patatas panadera se hornean a 180°C con cebolla, aceite y un poco de caldo por 40-50 min. El solomillo se sella en una fuente de horno muy caliente a 220°C por 10 min, luego se baja a 180°C para terminar la cocción. La salsa de whisky se prepara aparte en un cazo."
+      }
+    ]
   },
   {
     "id": "carnes_045",
@@ -8334,7 +8440,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 9,
     "sodium_mg": 580,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Cocina la entraña salpimentada durante 20-25 minutos, volteándola a mitad, hasta que esté dorada y jugosa. Un truco clave es no sobrecargar la cesta para asegurar un buen sellado y dorado uniforme."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 220°C con función grill si es posible. Cocina la entraña en una bandeja caliente durante 10-15 minutos por cada lado, hasta conseguir un buen dorado. El truco es sellarla primero a alta temperatura para mantenerla jugosa."
+      }
+    ]
   },
   {
     "id": "carnes_046",
@@ -8506,7 +8626,15 @@
     "sugar_g": 3,
     "saturated_fat_g": 6,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es ideal para picar finamente el solomillo de ternera y el resto de ingredientes (alcaparras, pepinillos, cebolla morada) en pocos segundos, usando golpes de turbo o velocidad 5-7. Luego, mezcla todos los componentes a velocidad cuchara para integrar la preparación d"
+      }
+    ]
   },
   {
     "id": "carnes_047",
@@ -8684,7 +8812,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 11,
     "sodium_mg": 580,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Cocina la presa ibérica durante 15-18 minutos, dándole la vuelta a mitad, para un exterior sellado y un interior jugoso. El mojo se prepara aparte triturando los ingredientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 220-230°C con función grill. Cocina la presa ibérica directamente en la rejilla o en una fuente apta para grill durante 15-20 minutos, volteándola, para lograr un exterior dorado y un interior jugoso. El mojo se prepara aparte."
+      }
+    ]
   },
   {
     "id": "carnes_048",
@@ -8981,6 +9123,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 210,
+        "difficulty": "elaborada",
+        "prepSummary": "Tras sellar la carne y sofreír las verduras en una olla apta para horno, se cocina tapado a 160-170°C durante 2.5-3 horas hasta que la carne esté muy tierna. El calor envolvente del horno asegura una cocción uniforme y un estofado perfecto."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 180,
+        "difficulty": "normal",
+        "prepSummary": "Pica las verduras y sofríelas en el vaso. Tras sellar el ossobuco (en sartén aparte para un mejor dorado), añade el resto de ingredientes y cocina en función 'cocción lenta' o 'estofado' a 90-95°C durante 2-2.5 horas, logrando una carne tierna y una salsa ligada. La gremolata y e"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Sella el ossobuco y sofríe las verduras en la propia olla. Añade el resto de ingredientes líquidos, cierra y cocina a presión alta durante 45-60 minutos. La olla express reduce drásticamente el tiempo de cocción, obteniendo una carne muy tierna y una salsa concentrada."
+      }
     ]
   },
   {
@@ -9174,7 +9336,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 11,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "carnes_050",
@@ -9394,6 +9557,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Dorar las codornices y sofreír las verduras en una olla apta para horno. Añadir el resto de ingredientes y cocinar tapado en el horno a fuego lento (aprox. 160-170°C) durante unos 60-75 minutos hasta que las codornices estén tiernas y los sabores integrados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Dorar las codornices en el vaso (en dos tandas si es necesario). Retirar y sofreír las verduras. Añadir las codornices, líquidos y especias, y programar cocción lenta (unos 60-70 min a 90-100°C, giro inverso, velocidad cuchara) hasta que estén tiernas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Dorar las codornices y sofreír las verduras en la olla abierta. Añadir el resto de ingredientes, cerrar y cocinar a presión durante unos 15-20 minutos. Dejar despresurizar naturalmente para una carne más tierna y jugosa."
+      }
     ]
   },
   {
@@ -9592,6 +9775,26 @@
         "text": "Servir de inmediato, comprobando que el centro de la carne está bien caliente antes de emplatar.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 125,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las costillas y hornear a 150°C durante 90-100 minutos cubiertas con papel de aluminio. Luego, destapar, subir la temperatura a 190°C y glasear con la salsa cada 10-15 minutos durante 20-30 minutos más, hasta que estén tiernas y caramelizadas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Corta las costillas en porciones individuales y marínalas. Cocínalas en la airfryer a 170°C durante 35-40 minutos, dándoles la vuelta. Luego, pincela con la salsa glaseada y cocina a 190°C por 10-15 minutos más hasta que estén doradas y caramelizadas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las costillas marinadas en la olla express con un poco de líquido durante 35-40 minutos a alta presión para ablandarlas. Luego, pásalas a una bandeja de horno o airfryer, píntalas con la salsa y hornea/fríe a 200°C durante 15-20 minutos hasta que estén bien glaseadas y car"
       }
     ]
   },
@@ -9830,6 +10033,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la masa de las albóndigas en el vaso. Sofríe la cebolla y los boletus, añade los líquidos y espesa la salsa. Cocina las albóndigas al vapor en el Varoma mientras la salsa se elabora en el vaso, logrando una cocción homogénea y una salsa integrada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Dora las albóndigas en la olla a presión. En el mismo recipiente, sofríe la cebolla y los boletus, desglasa con vino y añade el resto de ingredientes para la salsa. Incorpora las albóndigas y cocina a presión para una cocción rápida y sabores intensos."
+      }
     ]
   },
   {
@@ -10021,7 +10238,27 @@
     "sugar_g": 18,
     "saturated_fat_g": 10,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina la pechuga de pato con la piel hacia arriba unos 15-20 minutos, girándola a mitad para dorar ambos lados. Asa el boniato en trozos hasta que esté tierno para el puré."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Asa el boniato entero o en trozos en el horno a 200°C hasta que esté muy tierno. Sella la pechuga de pato en una sartén y termina su cocción en el horno durante 10-15 minutos para un punto perfecto."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el puré de boniato y naranja cociendo el boniato al vapor en el Varoma y luego triturándolo en el vaso con el resto de ingredientes. La pechuga de pato se sellaría aparte en una sartén para lograr la piel crujiente."
+      }
+    ]
   },
   {
     "id": "carnes_054",
@@ -10135,7 +10372,21 @@
     "sugar_g": 0,
     "saturated_fat_g": 18,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Sella el chuletón durante 8-10 minutos por cada lado, dependiendo del punto deseado. Un truco clave es dejarlo reposar unos minutos antes de cortar para que los jugos se redistribuyan."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 220°C. Asa el chuletón directamente en una bandeja durante 25-30 minutos, volteándolo a mitad, para un punto medio. Para un mejor sellado, puedes usar la función grill del horno los últimos minutos y es fundamental dejar reposar la pieza 10 minutos antes de"
+      }
+    ]
   },
   {
     "id": "carnes_055",
@@ -10362,6 +10613,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 180,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carrillada y sofríe las verduras en una olla apta para horno. Incorpora el resto de ingredientes, tapa y brasea a 160°C durante 2.5-3 horas hasta que la carne esté muy tierna. La clave es la cocción lenta y constante para una textura melosa y una salsa profunda."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 200,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras y sella la carrillada (si es posible en la máquina o fuera). Añade el resto de ingredientes y cocina a 90-100°C, velocidad cuchara y giro inverso durante 3-3.5 horas. El control de temperatura y el movimiento suave garantizan una carne tierna y una salsa emuls"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carrillada y sofríe las verduras en la olla express. Incorpora el resto de ingredientes, cierra la olla y cocina a presión durante 45-60 minutos. La cocción a alta presión reduce drásticamente el tiempo, logrando una carne extremadamente tierna y una salsa concentrada."
+      }
     ]
   },
   {
@@ -10526,7 +10797,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Marinar el solomillo, cubrir con sésamo y cocinar en la airfryer precalentada a 200°C durante 6-8 minutos, volteando a mitad, para un exterior sellado y un interior poco hecho."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Tras marinar y cubrir con sésamo, sella el solomillo en un horno muy caliente (220-250°C, preferiblemente con función grill o convección) durante 8-10 minutos, volteando a mitad, para un sellado rápido y un interior jugoso."
+      }
+    ]
   },
   {
     "id": "carnes_057",
@@ -10660,7 +10945,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Sazona el filete, úntalo ligeramente con aceite y cocínalo durante 8-12 minutos, volteándolo a mitad, para un punto medio-jugoso. La gremolata se prepara aparte picando perejil, ajo y ralladura de limón."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 200-220°C. Sella el filete en una sartén muy caliente con un poco de aceite durante 2 minutos por cada lado para crear una costra, luego termina de cocinarlo en el horno durante 8-12 minutos hasta el punto deseado. La gremolata se elabora por separado."
+      }
+    ]
   },
   {
     "id": "carnes_058",
@@ -10808,7 +11107,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Para el pollo, sazona y cocina en la airfryer a 190°C durante 15-18 minutos, volteando a mitad para un dorado uniforme. La salsa se prepara mezclando el yogur, zumo de limón, ajo picado y eneldo."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Sazona la pechuga y ásala en el horno precalentado a 200°C durante 20-25 minutos hasta que esté dorada y cocida. La salsa se elabora mezclando el resto de ingredientes mientras el pollo se cocina."
+      }
+    ]
   },
   {
     "id": "carnes_059",
@@ -10947,7 +11260,15 @@
     "sugar_g": 6,
     "saturated_fat_g": 5,
     "sodium_mg": 580,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Cocina los filetes de lomo sazonados durante 12-15 minutos, dándoles la vuelta a mitad de cocción, para un resultado dorado y jugoso, similar a la plancha."
+      }
+    ]
   },
   {
     "id": "carnes_060",
@@ -11055,7 +11376,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Rocía los filetes con aceite de oliva, salpimenta y cocina durante 12-15 minutos, dándoles la vuelta a mitad para un dorado uniforme. La salsa se mezcla rápidamente aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C (con función grill si es posible). Coloca los filetes de pavo salpimentados y ligeramente aceitados en una bandeja y hornea durante 15-20 minutos, volteándolos una vez, hasta que estén dorados y cocidos. La salsa se prepara aparte."
+      }
+    ]
   },
   {
     "id": "carnes_061",
@@ -11198,7 +11533,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 5,
     "sodium_mg": 580,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina el solomillo sazonado por 15-20 minutos, volteándolo a mitad, para un exterior dorado y jugoso. Prepara el chimichurri mientras tanto."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Asa el solomillo sazonado por 20-25 minutos hasta el punto deseado. Para una costra perfecta, séllalo previamente en una sartén antes de hornear."
+      }
+    ]
   },
   {
     "id": "carnes_062",
@@ -11394,7 +11743,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 18,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas en la airfryer a 190°C por 20-25 min hasta que estén doradas y crujientes. Después, el entrecot a 200°C por 12-15 min, volteándolo a mitad para un sellado perfecto, mientras la salsa se prepara en un cazo aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 200°C y hornea las patatas con un poco de aceite durante 30-35 min, volteándolas a mitad. Mientras, sella el entrecot en una sartén y termínalo en el horno a 180°C por 10-15 min, preparando la salsa en un cazo aparte."
+      }
+    ]
   },
   {
     "id": "carnes_063",
@@ -11618,7 +11981,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 14,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las patatas en la airfryer a 190°C durante 20-25 minutos, agitándolas. Luego, cocina el entrecot sazonado a 200°C por 10-15 minutos, volteándolo a mitad, para un resultado jugoso y con menos grasa."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Hornea las patatas cortadas en bastones con un poco de aceite a 200°C durante 35-40 minutos, dándoles la vuelta. El entrecot se puede sellar en sartén y terminar en el horno a 200°C por 10-15 minutos para un punto perfecto."
+      }
+    ]
   },
   {
     "id": "carnes_064",
@@ -11825,7 +12202,21 @@
     "sugar_g": 8,
     "saturated_fat_g": 18,
     "sodium_mg": 980,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el bacon a 180°C durante 8-10 min hasta que esté crujiente. Luego, las hamburguesas a 190°C por 12-15 min, añadiendo el queso los últimos 2 min para que se funda, y tuesta el pan brevemente."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Cocina el bacon en una rejilla y las hamburguesas en una bandeja durante 15-20 min, añadiendo el queso sobre las hamburguesas los últimos 5 min para que se gratine y funda, y tuesta el pan."
+      }
+    ]
   },
   {
     "id": "carnes_065",
@@ -12001,7 +12392,21 @@
     "sugar_g": 14,
     "saturated_fat_g": 5,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el pollo empanado y rocíalo ligeramente con aceite. Cocina en la airfryer a 190-200°C durante 20-25 minutos, volteando a mitad, hasta que esté dorado y crujiente. La salsa de miel picante se prepara aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Empana el pollo y colócalo en una rejilla sobre una bandeja de horno. Hornea a 200-220°C durante 30-35 minutos, volteando una vez, hasta que esté bien dorado y crujiente. Prepara la salsa mientras el pollo se hornea."
+      }
+    ]
   },
   {
     "id": "carnes_066",
@@ -12234,6 +12639,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 145,
+        "difficulty": "normal",
+        "prepSummary": "Sazonar las costillas y hornear cubiertas a 130-150°C por 2 horas para tiernizar. Luego, destapar, subir a 180-200°C, untar con la salsa casera y hornear 20-30 min más hasta caramelizar."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Cortar las costillas en porciones, sazonar y cocinar en la airfryer a 160°C durante 40-50 minutos, volteando a mitad. Luego, untar con la salsa casera y cocinar a 180°C por 10-15 minutos más hasta dorar y caramelizar."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cocinar las costillas sazonadas en la olla express con un poco de líquido durante 25-30 minutos a presión para tiernizarlas. Finalizar en el horno o airfryer a 200°C, untando con la salsa casera, por 15-20 minutos hasta dorar y caramelizar."
+      }
     ]
   },
   {
@@ -12443,7 +12868,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 7,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las patatas con un poco de aceite y sal, cocínalas en la airfryer a 190°C durante 20-25 minutos, agitándolas a mitad. Luego, las milanesas, rociadas con aceite, a 190°C durante 15-18 minutos, volteándolas para un dorado uniforme y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Dispón las patatas y las milanesas (ligeramente rociadas con aceite) en bandejas separadas. Hornea las patatas por 30-40 minutos y las milanesas por 20-25 minutos, volteando ambos a mitad de cocción para un resultado dorado y crujiente con menos gras"
+      }
+    ]
   },
   {
     "id": "carnes_068",
@@ -12609,7 +13048,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 16,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "carnes_069",
@@ -12740,7 +13180,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 6,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Sella el solomillo entero en la airfryer a 200°C durante 6-8 minutos, girándolo a mitad, para crear una fina costra exterior. Enfríalo rápidamente en el congelador (15-20 min) para facilitar el laminado muy fino y luego monta el carpaccio."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a máxima potencia con la función grill. Sella el solomillo 3-4 minutos por cada lado hasta dorar ligeramente la superficie. Refrigera en el congelador (15-20 min) para un corte más fácil, luego lamina muy fino y emplata el carpaccio."
+      }
+    ]
   },
   {
     "id": "carnes_070",
@@ -12900,7 +13354,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 7,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "carnes_071",
@@ -13126,6 +13581,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Las albóndigas se hornean primero a 200°C durante 15-20 minutos para dorarlas. Luego, se prepara la salsa en una cazuela apta para horno, se incorporan las albóndigas y se cocina a fuego lento en el horno a 180°C hasta que la salsa espese y los sabores se integren."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix mezcla los ingredientes de las albóndigas y prepara la salsa sofriendo la cebolla y cociendo a la perfección con las almendras y el azafrán. Las albóndigas se pueden cocinar en el Varoma al vapor mientras se hace la salsa o añadir directamente al vaso para el cocinad"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Dora las albóndigas y sofríe la cebolla en la olla express. Luego, añade el resto de ingredientes de la salsa, incorpora las albóndigas y cocina a presión durante 10-15 minutos desde que sube la válvula para una cocción rápida y profunda de todos los sabores."
+      }
     ]
   },
   {
@@ -13312,6 +13787,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 90,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Unta el pollo con la mezcla de mantequilla, hierbas, sal y pimienta, rellena con limón y ajo, y asa durante 90 minutos, regando ocasionalmente para una piel dorada y crujiente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Unta el pollo y cocina durante 45-55 minutos, volteándolo a mitad de cocción y subiendo a 200°C los últimos 10 minutos para una piel extra crujiente y jugosidad interior."
+      }
     ]
   },
   {
@@ -13486,6 +13975,20 @@
         "text": "Servir los muslos de pollo recién calientes con el jugo de la bandeja.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190-200°C. Hornea los muslos marinados durante 45-50 minutos, dándoles la vuelta a mitad de cocción para un dorado uniforme y una salsa caramelizada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Cocina los muslos marinados durante 25-30 minutos, volteándolos a mitad de cocción y pincelando con más salsa para asegurar un exterior crujiente y jugoso."
       }
     ]
   },
@@ -13682,7 +14185,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 11,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el secreto y las patatas en la airfryer a 190°C. Las patatas tardarán unos 20-25 min y el secreto 15-20 min, dándoles la vuelta a mitad para un dorado uniforme. El mojo se prepara aparte en batidora."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Hornea las patatas en una bandeja con un poco de aceite durante 30-40 min. Añade el secreto a la misma bandeja o en otra para los últimos 20-25 min, hasta que esté dorado y jugoso. El mojo se prepara aparte."
+      }
+    ]
   },
   {
     "id": "carnes_075",
@@ -13870,7 +14387,15 @@
     "sugar_g": 2,
     "saturated_fat_g": 18,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el solomillo sazonado y cocínalo en la airfryer a 190°C unos 12-15 minutos, volteando a mitad, para un punto jugoso. Las patatas paja se cortan muy finas, se rocían con poco aceite y se hacen en la airfryer a 180°C en tandas, removiendo frecuentemente, hasta que estén cru"
+      }
+    ]
   },
   {
     "id": "carnes_076",
@@ -14072,7 +14597,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 6,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Sella el redondo en una sartén y luego pásalo a una cazuela de horno con las verduras, el vino y el caldo. Cocina a 160-180°C durante 90-120 minutos hasta que esté muy tierno, logrando una carne jugosa y una salsa rica."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Sella el redondo directamente en la olla express. Añade las verduras, el vino y el caldo, y cocina a alta presión durante 30-40 minutos. Obtendrás una carne extremadamente tierna y una salsa concentrada en mucho menos tiempo."
+      }
+    ]
   },
   {
     "id": "carnes_077",
@@ -14337,6 +14876,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 150,
+        "difficulty": "normal",
+        "prepSummary": "Sellaremos la carne y sofreiremos las verduras en una olla apta para horno en la encimera. Luego, añadiremos los líquidos y cocinaremos tapado en el horno a 160°C durante unas 2.5 horas hasta que la carne esté muy tierna. El puré se hará aparte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 160,
+        "difficulty": "normal",
+        "prepSummary": "Dorar la carne en una sartén aparte. En la Thermomix, sofreír las verduras, añadir la carne y los líquidos, y cocinar a baja velocidad y temperatura (aprox. 100°C, giro inverso) durante 90-120 minutos hasta que la carne esté tierna. La salsa se triturará y el puré se preparará en"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Dorar la carne y sofreír las verduras en la olla a presión abierta. Añadir los líquidos, cerrar y cocinar a presión durante 40-50 minutos. Tras liberar la presión, la carne estará muy tierna y la salsa lista, pudiendo reducirse si se desea. El puré se hará aparte."
+      }
     ]
   },
   {
@@ -14574,6 +15133,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 180,
+        "difficulty": "normal",
+        "prepSummary": "Sella las carrilleras en una olla apta para horno, sofríe las verduras, añade el resto de ingredientes y cocina tapado en el horno precalentado a 160°C durante 2.5-3 horas hasta que la carne se deshaga."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Dora la carne en la Thermomix, sofríe las verduras, incorpora el resto de ingredientes y programa 90-100 minutos a 100°C o Varoma, giro inverso y velocidad cuchara, hasta obtener una carne muy tierna."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Sella las carrilleras y sofríe las verduras en la olla a presión. Añade los líquidos y el resto de ingredientes, cierra la olla y cocina durante 45-50 minutos desde que sube la válvula para una carne increíblemente tierna."
+      }
     ]
   },
   {
@@ -14752,7 +15331,21 @@
     "sugar_g": 18,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Empaniza el pollo y rocíalo con un poco de aceite. Cocínalo en la airfryer a 190°C durante 15-20 minutos, volteando a mitad, hasta que esté dorado y crujiente. La salsa se prepara en un cazo aparte y se mezcla con el pollo al final para mantener la textura."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Hornea el pollo empanizado a 200°C durante 20-25 minutos, volteándolo a mitad de cocción, para que quede dorado. Un truco es usar una rejilla sobre una bandeja para que el aire circule y el pollo quede más crujiente. La salsa se elabora en un cazo aparte y se añade al servir."
+      }
+    ]
   },
   {
     "id": "carnes_080",
@@ -14932,6 +15525,20 @@
         "text": "Servir de inmediato.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las alitas y hornear a 190-200°C durante 40-45 minutos. Voltéalas a mitad de cocción y pincela con la salsa en los últimos 15 minutos para un glaseado uniforme y dorado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Marinar las alitas. Cocinar en la airfryer a 190°C durante 25-30 minutos, volteando cada 8-10 minutos. Pincela con la salsa en las últimas pasadas para un glaseado crujiente y delicioso."
       }
     ]
   },
@@ -15151,6 +15758,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Se doran la carne y las verduras en una olla apta para horno, se añade el resto de ingredientes y se cocina tapado en el horno a 170-180°C durante 60-70 minutos, logrando una cocción uniforme y una carne muy tierna."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Pica y sofríe las verduras, dora la carne (en dos tandas si es necesario) y luego guisa todos los ingredientes a 95-100°C, velocidad cuchara y giro inverso, durante 60-70 minutos hasta que la carne esté tierna y la salsa ligada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Dora la carne y sofríe las verduras en la olla, añade el resto de ingredientes y cocina a presión durante 25-30 minutos desde que sube la válvula, logrando una carne muy tierna y un guiso con todo el sabor en mucho menos tiempo."
+      }
     ]
   },
   {
@@ -15364,7 +15991,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 8,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Los pinchos se cocinan a 190°C durante 18-20 minutos, volteándolos a mitad para un dorado uniforme. Las patatas se hacen a 180°C durante 20-25 minutos, rociadas con un poco de aceite y removiendo varias veces."
+      },
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Cocina los pinchos con función grill durante 20-25 minutos, dándoles la vuelta. Las patatas, cortadas en bastones y con poco aceite, se asan a 200°C durante 30-40 minutos hasta que estén tiernas y doradas."
+      }
+    ]
   },
   {
     "id": "carnes_083",
@@ -15488,7 +16129,21 @@
     "sugar_g": 0,
     "saturated_fat_g": 14,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 16,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las chuletillas con el romero, ajo, aceite, sal y pimienta. Precalienta la airfryer a 200°C y cocina las chuletillas durante 16 minutos, dándoles la vuelta a mitad para un dorado uniforme y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Marina las chuletillas con los ingredientes. Precalienta el horno a 220°C (con función grill si es posible) y hornea durante 22 minutos, dándoles la vuelta a mitad para un buen sellado y que queden tiernas por dentro."
+      }
+    ]
   },
   {
     "id": "carnes_084",
@@ -15699,6 +16354,14 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 180°C. Sazona la paletilla y colócala sobre una cama de patatas y cebolla laminadas con ajo y laurel. Riega con vino blanco y aceite, y asa durante 100 minutos, dando la vuelta a la carne a mitad de cocción para un dorado uniforme."
+      }
     ]
   },
   {
@@ -15886,6 +16549,26 @@
         "text": "Servir las rodajas con la salsa por encima, comprobando que el centro esté bien caliente antes de emplatar.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Rellena y ata el lomo, séllalo en una sartén y luego ásalo en el horno a 180°C, regándolo con el vino y el caldo para una carne jugosa y una salsa deliciosa."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Sella el lomo relleno y luego cocínalo en la airfryer a 170°C durante unos 50-60 minutos, girándolo a mitad y añadiendo un poco de líquido para evitar que se seque."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Dora el lomo relleno en la olla a presión, luego añade el vino y el caldo y cocina a fuego medio durante 30-35 minutos desde que sube la válvula para una carne muy tierna y una salsa concentrada."
       }
     ]
   },
@@ -16090,6 +16773,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el pollo relleno y empanado. Cocina en la airfryer a 190°C durante 20-25 minutos, volteando a mitad, hasta que esté dorado y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Empana el pollo relleno y hornéalo a 200°C durante 30-35 minutos, girando a mitad, hasta que esté bien dorado y el queso fundido."
+      }
     ]
   },
   {
@@ -16259,7 +16956,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 6,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Prepara los filetes empanados y las patatas cortadas en bastones. Cocina las patatas en la airfryer a 190°C durante 20-25 minutos, agitándolas, y luego los filetes a 190°C por 12-15 minutos, dándoles la vuelta a mitad, para un resultado crujiente y menos graso."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Prepara los filetes empanados y las patatas cortadas en bastones. Hornea ambos en una bandeja con un poco de aceite a 200°C durante 25-30 minutos, volteando a mitad, hasta que estén dorados y crujientes."
+      }
+    ]
   },
   {
     "id": "carnes_088",
@@ -16475,6 +17186,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Se doran la carne y las verduras en una olla apta para horno, se añaden el resto de ingredientes y se cocina tapado en el horno precalentado a 160°C durante unos 75-80 minutos, hasta que la carne esté muy tierna. Permite una cocción uniforme y un guiso con sabores bien integrados"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 70,
+        "difficulty": "facil",
+        "prepSummary": "Se sofríen las verduras y se dora ligeramente la carne en el vaso. Luego se añaden los líquidos y el resto de ingredientes y se cocina a 100°C, giro inverso, velocidad cuchara, durante unos 55-60 minutos, logrando una carne tierna y una salsa perfectamente ligada."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Se doran la carne y las verduras en la olla. Se incorporan el resto de ingredientes, se cierra la olla y se cocina a presión durante unos 30-35 minutos desde que sube la válvula. La carne quedará extremadamente tierna en mucho menos tiempo."
+      }
     ]
   },
   {
@@ -16624,7 +17355,21 @@
     "sugar_g": 9,
     "saturated_fat_g": 16,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta la airfryer a 200°C y cocina el solomillo unos 15-18 minutos, volteándolo a mitad para un dorado perfecto. La salsa se prepara aparte en un cazo, calentando suavemente el queso de cabra, nata y miel hasta obtener una crema homogénea."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en una sartén apta para horno a fuego fuerte y termina de cocinarlo en el horno precalentado a 190°C durante 10-15 minutos. Mientras, prepara la salsa en un cazo a fuego suave con el queso de cabra, nata y miel hasta que espese ligeramente."
+      }
+    ]
   },
   {
     "id": "carnes_090",
@@ -16772,7 +17517,15 @@
     "sugar_g": 3,
     "saturated_fat_g": 13,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Dora los escalopines en la Thermomix (modo alta temperatura), retira y reserva. Luego, sofríe los champiñones, añade el cava y la nata, e incorpora la carne para que la salsa espese y se integren los sabores."
+      }
+    ]
   },
   {
     "id": "carnes_091",
@@ -16959,6 +17712,14 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 200,
+        "difficulty": "normal",
+        "prepSummary": "Para confitar, sumerge las costillas con el aceite y aromáticos en una fuente apta para horno y cocina a 120°C durante 3 horas. Escurre, glasea con la miel y mostaza, y hornea a 200°C unos 15-20 minutos hasta caramelizar."
+      }
     ]
   },
   {
@@ -17087,7 +17848,21 @@
     "sugar_g": 5,
     "saturated_fat_g": 7,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Marinar la carne y los pimientos con aceite y especias. Precalentar la airfryer a 190-200°C. Cocinar las brochetas durante 18-22 minutos, girándolas a mitad del tiempo, hasta que la carne esté dorada y las verduras tiernas."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Marinar la carne y los pimientos con aceite y especias. Precalentar el horno a 200°C con calor arriba y abajo. Colocar las brochetas en una bandeja y hornear durante 25-30 minutos, dándoles la vuelta una vez, hasta que estén doradas y cocidas."
+      }
+    ]
   },
   {
     "id": "carnes_093",
@@ -17308,7 +18083,21 @@
     "sugar_g": 18,
     "saturated_fat_g": 4,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Para el pollo crujiente, reboza las pechugas y rocíalas con un poco de aceite. Cocínalas en la airfryer a 190°C durante 18-20 minutos, volteando a mitad, hasta que estén doradas. La salsa se prepara aparte en una sartén."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Reboza el pollo y colócalo en una bandeja con rejilla para que circule el aire. Hornea a 200°C (con función ventilador si es posible) durante 25-30 minutos, dándole la vuelta una vez, hasta que esté bien dorado y crujiente. La salsa se elabora en paralelo en una cacerola."
+      }
+    ]
   },
   {
     "id": "carnes_094",
@@ -17498,6 +18287,20 @@
         "text": "Servir bien caliente, espolvoreado con perejil fresco picado si se desea.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix permite picar y sofreír la cebolla y los champiñones, dorar la ternera en porciones y luego cocinar la salsa a temperatura controlada, espesándola a la perfección. El resultado es un Stroganoff completo y homogéneo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Utiliza la función de saltear o dora la ternera y sofríe las verduras en la propia olla. Luego, añade el resto de ingredientes para la salsa y cocina a fuego lento hasta que espese, o si prefieres, cocina a presión por un breve tiempo y luego reduce la salsa sin tapa."
       }
     ]
   },
@@ -17771,6 +18574,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 210,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carrillada y sofríe las verduras en una cazuela apta para horno. Añade el resto de ingredientes líquidos y aromáticos, cubre y guisa en el horno a 150-160°C durante 2.5-3 horas hasta que esté muy tierna. Termina la salsa reduciendo en el fuego y prepara el puré aparte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 180,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras y sella la carrillada en el vaso. Añade el resto de ingredientes y programa 120-150 minutos a 90-100°C, velocidad cuchara, giro inverso. Retira la carne, tritura la salsa y prepara el puré en el mismo vaso para un resultado cremoso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Sella la carrillada y sofríe las verduras en la olla. Añade el vino, caldo y el resto de ingredientes. Cierra y cocina a presión alta durante 45-60 minutos. Tras despresurizar, retira la carne, tritura y reduce la salsa al fuego, y prepara el puré de patata aparte."
+      }
     ]
   },
   {
@@ -18028,6 +18851,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 95,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito y la carne en una sartén. Hierve las patatas para el puré. Monta el pastel en un recipiente apto para horno y gratina a 180-200°C durante 25-30 minutos hasta dorar."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Pica y sofríe las verduras y la carne en el vaso. Cocina las patatas al vapor en el Varoma y tritúralas para el puré. Monta el pastel en un molde y gratina en el horno a 190°C unos 20-25 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras y dora la carne en la olla, luego cocina a presión con el resto de ingredientes unos 15-20 minutos. Cuece las patatas a presión y haz el puré. Monta el pastel y gratina en el horno a 190°C durante 20-25 minutos."
+      }
     ]
   },
   {
@@ -18153,7 +18996,21 @@
     "sugar_g": 14,
     "saturated_fat_g": 4,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Marinar los filetes de lomo en la mezcla de miel, mostazas, ajo, aceite y vinagre. Cocinar en la airfryer precalentada a 190°C durante 15-18 minutos, dándoles la vuelta a mitad, para un exterior dorado y un interior jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Tras marinar los filetes, colocarlos en una fuente de horno. Hornear a 200°C durante 20-25 minutos, volteándolos una vez y rociando con la salsa para asegurar que queden tiernos y con un buen glaseado."
+      }
+    ]
   },
   {
     "id": "carnes_098",
@@ -18401,6 +19258,20 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 200,
+        "difficulty": "normal",
+        "prepSummary": "Sella el jarrete, sofríe las verduras y desglasa con vino. Añade el caldo, tomate y hierbas, y hornea cubierto a 160-170°C durante 3 horas y 20 minutos hasta que la carne esté muy tierna."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Tras sellar la carne y sofreír las verduras, incorpora los líquidos y hierbas. Cocina en olla express a presión alta durante 60-75 minutos. Deja despresurizar y si es necesario, reduce la salsa."
+      }
     ]
   },
   {
@@ -18581,7 +19452,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 22,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Para el solomillo, precalienta la airfryer a 190-200°C y cocina el solomillo unos 15-20 minutos, dándole la vuelta a mitad, hasta el punto deseado. La mantequilla Café de París se prepara aparte mezclando todos los ingredientes picados y se sirve sobre el solomillo caliente."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sella el solomillo en una sartén muy caliente con aceite por 2-3 minutos por cada lado. Luego, trasládalo a una bandeja y hornea a 190°C durante 10-15 minutos para terminar la cocción. La mantequilla Café de París se elabora mezclando los ingredientes picados y se añade al solomi"
+      }
+    ]
   },
   {
     "id": "carnes_100",
@@ -18813,7 +19698,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 7,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "La airfryer es ideal para las patatas fritas, ofreciendo una versión crujiente y más saludable. Corta las patatas en bastones, rocía con un poco de aceite y cocina a 190-200°C durante 20-25 minutos, agitándolas a mitad de cocción. El tartar se prepara aparte, mezclando a mano tod"
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "El horno permite preparar unas patatas fritas más ligeras y doradas. Corta las patatas en bastones, mézclalas con un hilo de aceite y sal, y hornea a 200-220°C durante 30-40 minutos, volteándolas ocasionalmente hasta que estén crujientes. El filete tártaro se elabora mezclando ma"
+      }
+    ]
   },
   {
     "id": "carnes_101",
@@ -19037,7 +19936,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 11,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "carnes_102",
@@ -19254,7 +20154,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 18,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Cocina el entrecot unos 12-15 minutos (dando la vuelta) y las patatas (con un poco de aceite) a 180°C durante 20-25 minutos, agitando. La salsa Café de París se prepara aparte mezclando los ingredientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 220°C. Hornea las patatas (con aceite y sal) durante 30-40 minutos, volteando a mitad. El entrecot se puede sellar en sartén y terminar en el horno a 200°C unos 8-10 minutos. La salsa Café de París se prepara aparte."
+      }
+    ]
   },
   {
     "id": "carnes_103",
@@ -19497,6 +20411,14 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Las costillas se cocinan a baja temperatura (150°C) durante 90-100 minutos para ablandarlas, luego se glasean con la salsa barbacoa y se hornean a 180-200°C por 20-30 minutos hasta caramelizar. El boniato se asa en el mismo horno hasta estar tierno y se tritura para el puré."
+      }
     ]
   },
   {
@@ -19706,7 +20628,21 @@
     "sugar_g": 6,
     "saturated_fat_g": 12,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 200°C. Hornea las patatas Hasselback durante 50-60 min y el secreto ibérico los últimos 15-20 min. Asa los ingredientes del romesco junto a las patatas y tritura para la salsa."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas Hasselback en la airfryer a 190°C durante 35-40 min, luego el secreto ibérico a 200°C por 15 min. Asa los ingredientes del romesco en la misma airfryer antes de triturar para la salsa."
+      }
+    ]
   },
   {
     "id": "carnes_105",
@@ -19874,7 +20810,21 @@
     "sugar_g": 22,
     "saturated_fat_g": 11,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Para el magret, márcalo por el lado de la piel en una sartén y luego cocínalo en la airfryer a 180°C por 15-20 min. El boniato se puede asar en la misma airfryer hasta que esté tierno, facilitando el puré."
+      },
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Sella el magret por el lado de la piel en una sartén y termina su cocción en el horno a 180°C durante 10-15 min. Aprovecha el horno para asar el boniato hasta que esté muy tierno para el puré."
+      }
+    ]
   },
   {
     "id": "carnes_106",
@@ -20081,7 +21031,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 18,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "El airfryer es ideal para las patatas fritas y el ajo asado. Para el chuletón, precalienta a 200°C y cocina unos 15-20 minutos, volteando a mitad, para un exterior crujiente y un interior jugoso. Las patatas quedan doradas y el ajo tierno para el alioli."
+      },
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "El horno es excelente para asar el ajo y las patatas (horneadas). Para el chuletón, precalienta a 220°C y cocina unos 20-25 minutos, volteando, para un buen sellado y cocción uniforme. Las patatas se dorarán y el ajo quedará tierno y dulce."
+      }
+    ]
   },
   {
     "id": "carnes_107",
@@ -20310,6 +21274,20 @@
         "text": "Servir el costillar sobre el puré caliente.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 120,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el costillar lentamente a baja temperatura (aprox. 150-160°C) durante 90-100 minutos para que quede tierno, glaseando con la salsa BBQ en los últimos 20-30 minutos para caramelizar. Prepara el puré y la salsa en paralelo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el costillar en la olla express con un poco de líquido durante 35-45 minutos para una ternura excepcional. Luego, termina en el horno a 200°C durante 15-20 minutos, glaseando con la salsa BBQ para dorar y caramelizar. El puré se puede hacer también en la olla express."
       }
     ]
   },
@@ -20544,6 +21522,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "facil",
+        "prepSummary": "Asa el pollo y las patatas panadera en una bandeja de horno, permitiendo que los jugos del pollo impregnen las patatas. Al final, usa los jugos concentrados para ligar la salsa."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el pollo en la airfryer a 190°C hasta que esté dorado y crujiente, volteándolo a mitad. Las patatas y cebolla se asan por separado en la misma airfryer, y la salsa se prepara en un cazo con los mínimos jugos que se puedan recoger o con caldo adicional."
+      }
     ]
   },
   {
@@ -20740,7 +21732,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 18,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "La presa se cocina a 190°C por 15-20 min, volteando a mitad para un sellado uniforme. Las patatas se hacen a 180°C por 20-25 min con poco aceite, agitándolas ocasionalmente. La salsa se prepara aparte en una sartén mientras se cocinan los otros elementos."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Las patatas se hornean a 200°C por 30-40 min con un chorrito de aceite, volteándolas para que doren parejo. La presa se sella primero en sartén y se termina en el horno a 200°C por 10-15 min. La salsa se elabora en una sartén aparte."
+      }
+    ]
   },
   {
     "id": "carnes_110",
@@ -20936,7 +21942,21 @@
     "sugar_g": 5,
     "saturated_fat_g": 18,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara las patatas con un poco de aceite y cocínalas en la airfryer a 190°C durante 20-25 minutos. Luego, cocina las hamburguesas a 180°C por 12-15 minutos, dándoles la vuelta a mitad, para un exterior crujiente y un interior jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Dispón las patatas y las hamburguesas en bandejas separadas con un poco de aceite. Hornea a 200°C durante 30-40 minutos para las patatas y 15-20 minutos para las hamburguesas, asegurando un cocinado uniforme."
+      }
+    ]
   },
   {
     "id": "carnes_111",
@@ -21139,7 +22159,21 @@
     "sugar_g": 12,
     "saturated_fat_g": 14,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las chuletillas a 190-200°C por 12-15 min, volteando a mitad, para un exterior crujiente. Asa el boniato en cubos a 180°C por 15-20 min hasta que esté tierno para el puré."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Asa el boniato en trozos y las chuletillas de cordero en el horno precalentado a 200-220°C. El boniato tardará unos 30-40 min y las chuletillas 15-20 min, volteándolas para un dorado uniforme."
+      }
+    ]
   },
   {
     "id": "carnes_112",
@@ -21326,6 +22360,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sella las pechugas en una sartén y luego pásalas a una fuente apta para horno. Vierte la salsa con el resto de ingredientes (excepto albahaca) sobre el pollo y hornea a 190°C durante 20-25 minutos, hasta que el pollo esté cocido y la salsa burbujeante. Un truco es cubrir la fuent"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el ajo y sofríelo. Añade las pechugas troceadas y sofríe hasta que doren. Incorpora el resto de ingredientes (excepto albahaca y parte del parmesano), programa 18-20 min a 90°C, giro inverso, velocidad cuchara. El truco es añadir el parmesano y la albahaca al final para ma"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sella las pechugas de pollo en la olla. Añade el tomate seco, ajo, nata, caldo y pimentón. Cierra la olla y cocina a presión alta durante 5-7 minutos. Despresuriza, retira el pollo, y si la salsa está líquida, reduce a fuego alto unos minutos. El truco es no sobrecocer el pollo p"
+      }
     ]
   },
   {
@@ -21496,6 +22550,20 @@
         "text": "Servir las alitas recién salidas del horno, espolvoreadas con sésamo tostado y cebolleta picada frescos si se dispone de ellos.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Marinar las alitas con la mezcla de gochujang. Cocinar en la airfryer a 190°C durante 20-25 minutos, volteándolas a mitad de cocción para asegurar un dorado uniforme y una piel crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Tras marinar las alitas, hornear a 200°C (con ventilador si es posible) durante 45-50 minutos. Voltear las alitas una o dos veces y pincelar con la salsa durante los últimos minutos para un glaseado perfecto."
       }
     ]
   },
@@ -21696,6 +22764,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 150,
+        "difficulty": "normal",
+        "prepSummary": "Marinar las costillas al menos 4 horas. Hornear a 160°C durante 120 minutos, luego subir a 180-200°C los últimos 30 minutos, pintando con la marinada reducida para un glaseado perfecto y tierno."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Marinar bien las costillas. Cocinar en la airfryer a 180°C durante 35-45 minutos, volteando cada 10-15 minutos y pincelando con la marinada para lograr un glaseado crujiente y tierno."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Marinar las costillas. Cocer en la olla express con parte de la marinada durante 30-35 minutos a presión para ablandar. Luego, terminar en el horno o airfryer a alta temperatura (200°C) durante 15-20 minutos para caramelizar el glaseado."
+      }
     ]
   },
   {
@@ -21886,7 +22974,21 @@
     "sugar_g": 6,
     "saturated_fat_g": 22,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Para las smash burgers, precalienta la airfryer a 200°C. Aplasta bien la carne y cocina cada patty 4-5 minutos, dándole la vuelta y añadiendo el queso al final para que se funda. Tuesta los panes brevemente."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 230°C con una bandeja de hierro fundido o una bandeja de hornear boca abajo dentro. Coloca las patties aplastadas en la bandeja muy caliente y cocina 3-4 minutos por lado, añadiendo el queso al final. Tuesta los panes aparte."
+      }
+    ]
   },
   {
     "id": "carnes_116",
@@ -22136,6 +23238,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 270,
+        "difficulty": "normal",
+        "prepSummary": "Tras un sofrito inicial en la cazuela, se añaden todos los ingredientes y se cocinan cubiertos en el horno precalentado a 150-160°C durante 3.5-4 horas, logrando una cocción lenta y uniforme que ablanda los callos y la pata."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Se realiza un sofrito en la propia olla, se incorporan el resto de ingredientes con el vino y se cocinan a presión alta durante 45-60 minutos. Luego se despresuriza y se deja reducir a fuego lento unos minutos para espesar la salsa."
+      }
     ]
   },
   {
@@ -22303,7 +23419,21 @@
     "sugar_g": 7,
     "saturated_fat_g": 5,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Pica el ajo y perejil. Sofríe la cebolla picada con aceite a 120°C/Varoma, velocidad cuchara, durante 15-20 minutos hasta que esté muy tierna. Añade el hígado enharinado, el vino y el ajo, y cocina a 100°C, giro inverso, velocidad cuchara, 5-7 minutos. Sirve con perejil fresco."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta hasta que estén tiernos. Dora el hígado enharinado rápidamente, añade el vino y cierra la olla. Cocina 1-2 minutos desde que sube la presión. Libera la presión, rectifica la salsa y termina con perejil."
+      }
+    ]
   },
   {
     "id": "carnes_118",
@@ -22529,6 +23659,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 210,
+        "difficulty": "normal",
+        "prepSummary": "Sella las manitas y sofríe las verduras en una cazuela apta para horno. Añade el resto de ingredientes y cocina tapado a 160-170°C durante 3-3.5 horas, removiendo ocasionalmente para una cocción uniforme y tierna."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 180,
+        "difficulty": "normal",
+        "prepSummary": "Pica y sofríe las verduras en el vaso. Incorpora las manitas selladas, el resto de ingredientes y cocina a 95°C, giro inverso, velocidad cuchara durante 180 minutos para una cocción controlada y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Sella las manitas y sofríe las verduras en la olla. Añade el resto de ingredientes y cocina a presión durante 45-60 minutos desde que sube la válvula, logrando una ternura perfecta en una fracción del tiempo."
+      }
     ]
   },
   {
@@ -22727,7 +23877,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 7,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Para el pollo crujiente, precalienta la airfryer a 190-200°C. Rocía el pollo empanado con un poco de aceite y cocina durante 15-20 minutos, dándole la vuelta a mitad, hasta que esté dorado y crujiente. Prepara la salsa mezclando el resto de ingredientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Para el pollo crujiente, precalienta el horno a 200-220°C con calor arriba y abajo. Coloca el pollo empanado en una bandeja con papel de horno, rocía con un poco de aceite y hornea durante 20-25 minutos, volteando a mitad, hasta que esté dorado y crujiente. La salsa se prepara me"
+      }
+    ]
   },
   {
     "id": "carnes_120",
@@ -22902,7 +24066,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 13,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rellena las tortillas, dóblalas y cocina de 6 a 8 minutos por tanda, dándoles la vuelta a mitad, hasta que estén doradas y el queso fundido. Quedarán crujientes y deliciosas."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca las quesadillas rellenas en una bandeja con papel de horno y hornea durante 8-10 minutos, hasta que el queso se derrita y las tortillas estén doradas y crujientes."
+      }
+    ]
   },
   {
     "id": "carnes_121",
@@ -23097,7 +24275,39 @@
     "sugar_g": 6,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la pechuga de pollo a 190°C durante 15-18 minutos, volteándola a mitad para un dorado uniforme. La quinoa se puede cocer en un recipiente apto con agua en la misma airfryer o de forma tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Hornea la pechuga de pollo a 190°C durante 20-25 minutos hasta que esté bien cocida. La quinoa se puede preparar en una olla apta para horno con agua o en una olla convencional."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la quinoa en el cestillo (15-20 min/Varoma/vel 1) y el pollo troceado al vapor en el Varoma simultáneamente para una cocción eficiente y jugosa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la quinoa y la pechuga de pollo (entera o troceada) al vapor simultáneamente durante 15-20 minutos. El pollo quedará muy jugoso y saludable."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la quinoa y el pollo troceado en la olla express con un poco de agua durante 5-7 minutos a partir de que suba la válvula para una cocción ultrarrápida."
+      }
+    ]
   },
   {
     "id": "carnes_122",
@@ -23283,7 +24493,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 9,
     "sodium_mg": 980,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las lonchas de pollo y el bacon en la airfryer a 190°C hasta que estén dorados y crujientes. Tuesta el pan y cocina los huevos en un ramekin apto para airfryer a 180°C para un resultado tipo frito."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C y hornea el pollo y el bacon en una bandeja hasta que estén cocidos y crujientes. Tuesta el pan y hornea los huevos en la misma bandeja o en ramequines para un efecto de huevo frito."
+      }
+    ]
   },
   {
     "id": "carnes_123",
@@ -23433,7 +24657,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 7,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Para los picatostes, corta el pan en dados, rocía con aceite y cocínalos en la airfryer a 180°C durante 5-7 minutos. Añade el pollo de bolsa troceado los últimos 3-5 minutos para calentarlo y dorarlo ligeramente."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Corta el pan en dados, rocía con aceite y hornea 8-10 minutos hasta dorar. El pollo troceado se puede calentar o dorar ligeramente junto a los picatostes durante los últimos 5-7 minutos."
+      }
+    ]
   },
   {
     "id": "carnes_124",
@@ -23609,7 +24847,39 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las pechugas de pollo sazonadas con las especias en la airfryer a 190°C durante 15-18 minutos, dándoles la vuelta a mitad para un dorado uniforme y un interior jugoso. Calienta las tortillas brevemente."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Asa las pechugas de pollo sazonadas en el horno precalentado a 200°C durante 20-22 minutos, hasta que estén bien cocidas y ligeramente doradas. Las tortillas se pueden calentar en el mismo horno al final."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el pico de gallo picando los ingredientes en el vaso. Luego, cocina las pechugas de pollo sazonadas al vapor en el Varoma durante 15-18 minutos, para obtener un pollo tierno y fácil de desmenuzar."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las pechugas de pollo sazonadas en la vaporera durante unos 20 minutos hasta que estén tiernas y cocidas, ideales para desmenuzar. Mientras, prepara el pico de gallo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las pechugas de pollo sazonadas en la olla express con un poco de agua o caldo durante 5-7 minutos desde que sube la presión, para un pollo muy tierno y rápido de desmenuzar."
+      }
+    ]
   },
   {
     "id": "carnes_125",
@@ -23703,7 +24973,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 12,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Coloca el pan con la sobrasada y el queso en la airfryer precalentada a 190°C. Cocina durante 6-8 minutos, o hasta que el pan esté crujiente y el queso fundido y burbujeante. Añade la miel al servir."
+      },
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Dispón las tostas con la sobrasada y el queso en una bandeja y hornea durante 8-10 minutos, hasta que el pan dore y el queso se funda. Termina con un chorrito de miel."
+      }
+    ]
   },
   {
     "id": "carnes_126",
@@ -23815,7 +25099,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 8,
     "sodium_mg": 1350,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Unta el pan con mantequilla, monta el sándwich y cocínalo en la airfryer precalentada a 180-190°C durante 6-8 minutos, dándole la vuelta a mitad, hasta que esté dorado y el pastrami caliente."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C (o usa la función grill). Unta el pan con mantequilla, monta el sándwich y hornea durante 8-12 minutos, vigilando que el pan quede crujiente y el pastrami bien caliente."
+      }
+    ]
   },
   {
     "id": "carnes_127",
@@ -23941,7 +25239,21 @@
     "sugar_g": 5,
     "saturated_fat_g": 6,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Para darle un toque crujiente y templado al pollo asado, caliéntalo en la airfryer a 180°C durante 5-7 minutos. Desmenúzalo y mézclalo con los demás ingredientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Si buscas un pollo más crujiente y templado, hornéalo a 180°C durante 10-12 minutos. Luego, desmenúzalo y úsalo en la ensalada para un contraste de texturas."
+      }
+    ]
   },
   {
     "id": "carnes_128",
@@ -24046,7 +25358,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 7,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "Para tostar el pan, precalienta la airfryer a 190°C y cocina las rebanadas durante 4-6 minutos, volteándolas a mitad, hasta que estén crujientes. Luego, unta el paté y decora con higos y rúcula."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Tuesta las rebanadas de pan rústico directamente sobre la rejilla durante 5-7 minutos hasta que estén doradas. Monta la tosta con el paté, los higos y la rúcula."
+      }
+    ]
   },
   {
     "id": "carnes_129",
@@ -24214,7 +25540,21 @@
     "sugar_g": 5,
     "saturated_fat_g": 18,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la bechamel en un cazo. Monta los sándwiches con jamón, queso y bechamel, y hornea a 180-200°C durante 15-20 minutos hasta que estén dorados y el queso fundido."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la bechamel por separado. Monta los sándwiches y cocínalos en la airfryer a 180°C durante 10-12 minutos, dándoles la vuelta a mitad, hasta que estén crujientes y el queso derretido."
+      }
+    ]
   },
   {
     "id": "carnes_130",
@@ -24361,7 +25701,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 10,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para la tortilla, bate los huevos con el pavo y el queso rallado. Vierte la mezcla en un molde apto para airfryer y cocina a 180°C durante 10-12 minutos hasta que esté cuajada y ligeramente dorada. La ensalada se prepara aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Bate los huevos con el pavo y el queso rallado, vierte la mezcla en un molde apto para horno y hornea durante 12-15 minutos hasta que esté cuajada y ligeramente dorada. La ensalada se prepara aparte."
+      }
+    ]
   },
   {
     "id": "carnes_131",
@@ -24649,7 +26003,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 9,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina los filetes de lomo sazonados y ligeramente aceitados durante 10-12 minutos, volteándolos a mitad para un dorado uniforme y un interior jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C (preferiblemente con función grill o ventilador). Coloca los filetes de lomo sazonados y aceitados en una bandeja y hornea durante 15-20 minutos, volteándolos una vez, hasta que estén dorados y cocidos."
+      }
+    ]
   },
   {
     "id": "carnes_133",
@@ -24819,7 +26187,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Marinar el pollo con las especias y aceite. Cocinar en la airfryer precalentada a 190°C durante 15-18 minutos, volteando a mitad, para un exterior dorado y un interior jugoso. La ensalada se prepara aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Marinar el pollo con las especias y aceite. Hornear en el horno precalentado a 200°C durante 20-25 minutos, hasta que esté bien cocido y ligeramente dorado. La ensalada se prepara en frío."
+      }
+    ]
   },
   {
     "id": "carnes_134",
@@ -24947,7 +26329,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Cocina el filete de pavo durante 12-15 minutos, dándole la vuelta a mitad, hasta que esté dorado y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200-220°C, preferiblemente con función grill. Coloca el filete en una bandeja y cocina 15-20 minutos, volteándolo una vez, hasta que esté hecho y ligeramente dorado."
+      }
+    ]
   },
   {
     "id": "carnes_135",
@@ -25121,7 +26517,39 @@
     "sugar_g": 5,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta el pollo en dados, sazona y cocina en la airfryer a 190°C durante 15-18 minutos, volteando a mitad, hasta que esté dorado y cocido."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Hornea la pechuga de pollo sazonada a 200°C durante 20-25 minutos hasta que esté bien cocida y ligeramente dorada."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el arroz en el vaso y el pollo en el Varoma (o sofríe en el vaso) para integrar todos los ingredientes de forma eficiente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz y la pechuga de pollo troceada al vapor durante 20-25 minutos hasta que estén tiernos y jugosos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz y la pechuga de pollo en la olla express por separado durante unos 5-7 minutos desde que sube la presión para una cocción rápida."
+      }
+    ]
   },
   {
     "id": "carnes_136",
@@ -25289,7 +26717,27 @@
     "sugar_g": 3,
     "saturated_fat_g": 18,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara el sofrito de cebolla y setas en una sartén. Sella el foie y desglasa con vino, luego añade la nata. Rellena los vol-au-vents y hornea a 180°C durante 15-20 minutos hasta que estén dorados y el relleno caliente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el relleno de setas, foie y nata en una sartén. Calienta los vol-au-vents vacíos en la airfryer a 180°C durante 5-7 minutos hasta que estén crujientes. Rellénalos y calienta todo junto 3-5 minutos más para servir."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y las setas en el vaso. Añade el vino, la nata y el foie mi-cuit (o fresco sellado aparte), cocina a 90°C, velocidad cuchara hasta obtener una crema. Rellena los vol-au-vents previamente horneados para mantener su textura crujiente."
+      }
+    ]
   },
   {
     "id": "carnes_137",
@@ -25512,6 +26960,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la bechamel de forma tradicional. Una vez formadas y empanadas las croquetas, rocíalas ligeramente con aceite y cocínalas en la airfryer a 190-200°C durante 12-15 minutos, dándoles la vuelta a mitad, hasta que estén doradas y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Tras preparar la bechamel y empanar las croquetas, colócalas en una bandeja de horno con papel y rocía con un poco de aceite. Hornea a 200°C (con ventilador si es posible) durante 20-25 minutos, volteándolas a mitad, hasta que estén doradas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Utiliza la Thermomix para preparar la bechamel: pica la cebolla, sofríela con la mantequilla y luego añade la harina, leche, pollo y especias, cocinando a temperatura y velocidad controladas hasta obtener una masa perfecta. Luego, forma y fríe las croquetas de manera tradicional."
+      }
     ]
   },
   {
@@ -25729,6 +27197,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es ideal para la masa de las croquetas. Sofríe la mantequilla y harina, añade líquidos y carne, y cocina a 90°C, velocidad 4, durante 8-10 minutos, obteniendo una bechamel perfecta y sin grumos. El resto del proceso (enfriar, formar y freír) se mantiene igual."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Para un acabado crujiente y más saludable, precalienta la airfryer a 190°C. Rocía ligeramente las croquetas ya empanadas con aceite y cocina durante 12-15 minutos, dándoles la vuelta a mitad, hasta que estén doradas y crujientes. La masa se prepara de forma tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 85,
+        "difficulty": "normal",
+        "prepSummary": "Para una versión horneada, precalienta el horno a 200°C. Coloca las croquetas empanadas en una bandeja con papel de horno y un chorrito de aceite. Hornea durante 20-25 minutos, volteando a mitad, hasta que estén doradas y cocidas por dentro. La masa se prepara de forma tradiciona"
+      }
     ]
   },
   {
@@ -25902,6 +27390,20 @@
         "text": "Escurrir sobre papel absorbente y servir de inmediato.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el relleno sofriendo la cebolla y la morcilla, luego rellena las obleas. Cocina las empanadillas en la airfryer a 190°C durante 12-15 minutos, volteándolas a mitad, hasta que estén doradas y crujientes con muy poco aceite."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Elabora el relleno sofriendo la cebolla y la morcilla. Rellena las obleas, séllalas y hornea a 200°C durante 15-20 minutos, pincelándolas con huevo batido o un poco de aceite para un acabado dorado y crujiente."
       }
     ]
   },
@@ -26119,6 +27621,20 @@
         "text": "Retirar del horno y servir en caliente.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el relleno salteando puerros y bacon, luego mézclalo con los huevos, nata y queso. Vierte sobre la masa quebrada en un molde y hornea a 180-200°C durante 40-50 minutos hasta que esté dorada y cuajada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Saltea los puerros y el bacon por separado. Monta la tarta en un molde apto para airfryer. Cocina a 160-170°C durante 35-45 minutos, vigilando que no se dore demasiado rápido, hasta que el relleno esté cuajado y la masa dorada."
       }
     ]
   },
@@ -26388,6 +27904,32 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el puré de patata y el sofrito de carne en la encimera. Monta el pastel en una fuente apta para horno y hornea a 180-200°C durante 25-30 minutos, hasta que el puré esté dorado y burbujeante."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 65,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la Thermomix para cocinar las patatas al vapor y hacer el puré, así como para preparar el sofrito de carne. Luego, monta el pastel en una fuente y gratina en el horno a 200°C durante 15-20 minutos para un acabado perfecto."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Acelera la cocción de las patatas y el sofrito de carne usando la olla express. Una vez listos, monta el pastel en una fuente y gratina en el horno a 200°C durante 15-20 minutos para obtener el gratinado característico."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el puré de patata y el sofrito de carne por separado en la encimera. Monta el pastel en un recipiente apto para airfryer y cocina a 180°C durante 20-25 minutos, hasta que el puré esté dorado y burbujeante."
+      }
     ]
   },
   {
@@ -26573,6 +28115,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 200°C. Rellena la masa, sella bien los bordes y hornea durante 25-30 minutos, o hasta que esté dorado y el queso burbujee. Para un acabado más crujiente, pincela con aceite de oliva antes de hornear."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Divide la masa en porciones más pequeñas para formar mini calzones individuales. Precalienta la airfryer a 180°C. Cocina cada calzone durante 15-20 minutos, dándoles la vuelta a mitad de cocción, hasta que estén dorados y crujientes."
+      }
     ]
   },
   {
@@ -26717,7 +28273,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 9,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la masa de los buñuelos. Forma las porciones, rocíalas ligeramente con aceite y cocínalas en la airfryer precalentada a 190°C durante 15-20 minutos, dándoles la vuelta a mitad de cocción hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Una vez hecha la masa, forma los buñuelos y pincélalos con un poco de aceite de oliva. Hornéalos en el horno precalentado a 200°C durante 20-25 minutos, o hasta que estén bien dorados y cocidos por dentro."
+      }
+    ]
   },
   {
     "id": "carnes_144",
@@ -26927,6 +28497,26 @@
         "text": "Servir de inmediato para conservar el rebozado crujiente.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la bechamel en la Thermomix: funde la mantequilla, añade la harina y cocina unos minutos, luego incorpora la leche gradualmente a velocidad 4-5 a 90-100°C hasta espesar. Esto asegura una bechamel perfecta y sin grumos, el paso más crítico de la receta."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Una vez formadas y empanadas, cocina las croquetas en la airfryer precalentada a 190-200°C durante 12-15 minutos, rociándolas ligeramente con aceite. Gíralas a mitad de cocción para un dorado uniforme y una textura crujiente sin apenas aceite."
+      },
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Para una versión más ligera, hornea las croquetas ya empanadas en una bandeja con papel de horno, rociadas con un poco de aceite, a 200°C (con ventilador si es posible) durante 15-20 minutos. Voltéalas a mitad de cocción para que se doren por todos lados."
       }
     ]
   },
@@ -27149,6 +28739,32 @@
         "text": "Servir las gyozas calientes con la salsa de soja y sésamo aparte.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Para un acabado crujiente y con menos aceite, rocía ligeramente las gyozas con aceite y cocínalas en la airfryer a 190°C durante 15-18 minutos, volteándolas a mitad de cocción hasta que estén doradas."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Hornea las gyozas para una versión más saludable y crujiente. Pincélalas con un poco de aceite y cuécelas a 200°C durante 20-25 minutos, hasta que estén bien doradas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Usa la Thermomix para picar y mezclar el relleno de forma rápida y homogénea. Luego, cocina las gyozas al vapor en el recipiente Varoma durante 18-20 minutos para una textura tierna y jugosa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "La vaporera es ideal para cocinar las gyozas de manera tradicional, obteniendo una masa suave y un relleno jugoso. Cocínalas al vapor durante 12-15 minutos hasta que estén bien cocidas."
       }
     ]
   }

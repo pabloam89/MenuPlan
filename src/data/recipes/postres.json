@@ -1744,16 +1744,96 @@
     "steps": [
       "Precalentar el horno a 220 °C con calor arriba y abajo.",
       "Forrar un molde desmontable de 22 cm con papel de horno, dejando que sobresalga por los bordes.",
-      "Batir el queso crema con la azúcar y la sal hasta lograr una crema lisa sin grumos.",
-      "Añadir los huevos de uno en uno, batiendo bien después de cada uno.",
-      "Incorporar la nata poco a poco sin dejar de batir hasta integrarla por completo.",
-      "Tamizar la harina sobre la mezcla y batir a velocidad baja solo hasta que desaparezca.",
+      "Batir queso crema con azúcar y sal hasta obtener una crema lisa sin grumos.",
+      "Añadir huevo de uno en uno, batiendo bien después de cada uno.",
+      "Incorporar nata para montar poco a poco sin dejar de batir hasta integrarla por completo.",
+      "Tamizar harina sobre la mezcla y batir a velocidad baja solo hasta que desaparezca.",
       "Verter la mezcla en el molde forrado.",
-      "Hornear 45-50 min, hasta que la superficie esté muy oscura y el centro tiemble ligeramente al mover el molde.",
-      "Dejar enfriar dentro del molde a temperatura ambiente al menos 1 h antes de desmoldar.",
-      "Refrigerar un mínimo de 3 h antes de cortar en porciones."
+      "Hornear 50 min, hasta que la superficie esté muy oscura y el centro tiemble ligeramente al mover el molde.",
+      "Dejar enfriar dentro del molde a temperatura ambiente hasta que se atempere por completo.",
+      "Refrigerar un mínimo de 3 h antes de desmoldar y cortar en porciones.",
+      "Desmoldar, cortar en porciones y servir fría."
     ],
-    "description": "Tarta de queso cremosa y quemada por fuera al estilo vasco, sin base de galleta."
+    "description": "Tarta de queso cremosa y quemada por fuera al estilo vasco, sin base de galleta.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 220 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Forrar un molde desmontable de 22 cm con papel de horno, dejando que sobresalga por los bordes.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Queso crema}} con {{Azúcar}} y {{Sal}} hasta obtener una crema lisa sin grumos.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Huevo}} de uno en uno, batiendo bien después de cada uno.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Nata para montar}} poco a poco sin dejar de batir hasta integrarla por completo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Tamizar {{Harina}} sobre la mezcla y batir a velocidad baja solo hasta que desaparezca.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la mezcla en el molde forrado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear 50 min, hasta que la superficie esté muy oscura y el centro tiemble ligeramente al mover el molde.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar enfriar dentro del molde a temperatura ambiente hasta que se atempere por completo.",
+        "minutes": 60,
+        "kind": "espera"
+      },
+      {
+        "text": "Refrigerar un mínimo de 3 h antes de desmoldar y cortar en porciones.",
+        "minutes": 180,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar, cortar en porciones y servir fría.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 24,
+    "saturated_fat_g": 28,
+    "sodium_mg": 210,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la porción del congelador a la nevera y dejar descongelar durante toda la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Comprobar que el centro está completamente descongelado antes de servir; si no, dejar 1 h más en nevera.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir fría directamente de la nevera, sin calentar, para preservar la textura cremosa.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_020",
@@ -1809,17 +1889,138 @@
     ],
     "steps": [
       "Precalentar el horno a 190 °C con calor arriba y abajo.",
-      "Pelar las manzanas, descorazonarlas y cortarlas por la mitad.",
-      "Fundir la mantequilla en una sartén apta para horno de 24 cm y añadir la azúcar, sin remover, hasta lograr un caramelo dorado.",
-      "Retirar del fuego y colocar las mitades de manzana bien apretadas sobre el caramelo, con la parte redondeada hacia abajo. Espolvorear con la canela.",
-      "Volver a poner la sartén a fuego medio-bajo 8-10 min, hasta que las manzanas empiecen a ablandarse por la base.",
-      "Extender la lámina de hojaldre sobre la sartén cubriendo las manzanas y remeter los bordes hacia dentro con una cuchara.",
-      "Pinchar el hojaldre con un tenedor y hornear 25-30 min, hasta que esté dorado y crujiente.",
-      "Dejar templar 5 min fuera del horno.",
-      "Colocar un plato grande boca abajo sobre la sartén y volcar con cuidado (usar guantes, el caramelo quema) para desmoldar con las manzanas arriba.",
+      "Pelar manzana reineta, descorazonarlas y cortarlas por la mitad.",
+      "Fundir mantequilla en una sartén apta para horno de 24 cm a fuego medio.",
+      "Añadir azúcar a la sartén sin remover hasta que se forme un caramelo dorado.",
+      "Retirar la sartén del fuego.",
+      "Colocar las mitades de manzana bien apretadas sobre el caramelo, con la parte redondeada hacia abajo.",
+      "Espolvorear canela en polvo de manera uniforme sobre las manzanas.",
+      "Volver a poner la sartén a fuego medio-suave hasta que las manzanas empiecen a ablandarse por la base.",
+      "Extender hojaldre sobre la sartén cubriendo las manzanas completamente.",
+      "Remeter los bordes del hojaldre hacia dentro con una cuchara para sellar.",
+      "Pinchar el hojaldre por toda la superficie con un tenedor.",
+      "Hornear a 190 °C hasta que el hojaldre esté dorado y crujiente.",
+      "Retirar la sartén del horno y dejar templar fuera del fuego.",
+      "Colocar un plato grande boca abajo sobre la sartén.",
+      "Volcar la sartén con cuidado usando guantes para desmoldar la tarta con las manzanas arriba.",
       "Servir templada, cortada en porciones."
     ],
-    "description": "Tarta de manzana caramelizada que se vuelca al servir, con el caramelo brillante quedando por encima."
+    "description": "Tarta de manzana caramelizada que se vuelca al servir, con el caramelo brillante quedando por encima.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Manzana reineta}}, descorazonarlas y cortarlas por la mitad.",
+        "minutes": 10,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en una sartén apta para horno de 24 cm a fuego medio.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Azúcar}} a la sartén sin remover hasta que se forme un caramelo dorado.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la sartén del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar las mitades de manzana bien apretadas sobre el caramelo, con la parte redondeada hacia abajo.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Espolvorear {{Canela en polvo|pizca}} de manera uniforme sobre las manzanas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Volver a poner la sartén a fuego medio-suave hasta que las manzanas empiecen a ablandarse por la base.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Extender {{Hojaldre}} sobre la sartén cubriendo las manzanas completamente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Remeter los bordes del hojaldre hacia dentro con una cuchara para sellar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Pinchar el hojaldre por toda la superficie con un tenedor.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 190 °C hasta que el hojaldre esté dorado y crujiente.",
+        "minutes": 27,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la sartén del horno y dejar templar fuera del fuego.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Colocar un plato grande boca abajo sobre la sartén.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Volcar la sartén con cuidado usando guantes para desmoldar la tarta con las manzanas arriba.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir templada, cortada en porciones.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 42,
+    "saturated_fat_g": 11,
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Descongelar la tarta Tatin en la nevera durante una noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 170 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar la tarta en una bandeja y calentar en el horno hasta que el hojaldre recupere el crujiente.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y dejar reposar 3 min antes de servir para que el caramelo no queme.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir en porciones templadas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_021",
@@ -1891,17 +2092,127 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 180 °C. Forrar un molde rectangular de 20x20 cm con papel de horno.",
-      "Trocear el chocolate y fundirlo con la mantequilla al baño maría o en el microondas en tandas de 30 s.",
-      "Dejar templar el chocolate fundido 5 min.",
-      "Batir los huevos con la azúcar hasta que blanqueen ligeramente.",
-      "Incorporar el chocolate fundido templado y mezclar bien.",
-      "Tamizar la harina, el cacao y la sal sobre la mezcla y remover con espátula solo hasta que no queden restos de harina.",
-      "Añadir las nueces troceadas y repartir la masa en el molde.",
-      "Hornear 22-25 min, hasta que la superficie esté cuarteada pero el centro siga húmedo.",
-      "Dejar enfriar por completo en el molde antes de cortar en cuadrados."
+      "Precalentar el horno a 180 °C.",
+      "Forrar un molde rectangular de 20x20 cm con papel de horno.",
+      "Trocear chocolate negro en trozos pequeños.",
+      "Fundir el chocolate troceado con mantequilla al baño maría, removiendo hasta que la mezcla esté lisa.",
+      "Retirar del calor y dejar templar la mezcla de chocolate y mantequilla.",
+      "Trocear nueces en trozos gruesos y reservar.",
+      "Batir huevo con azúcar en un bol hasta que la mezcla blanquee ligeramente.",
+      "Añadir la mezcla de chocolate templada al bol con los huevos y remover hasta integrar.",
+      "Tamizar harina, cacao en polvo y sal sobre la mezcla.",
+      "Remover con espátula hasta que no queden restos de harina, sin trabajar la masa en exceso.",
+      "Añadir las nueces troceadas y mezclar suavemente para repartirlas por toda la masa.",
+      "Verter la masa en el molde forrado y extender de manera uniforme con la espátula.",
+      "Hornear a 180 °C durante 23 min, hasta que la superficie esté cuarteada y el centro siga húmedo.",
+      "Dejar enfriar el brownie por completo dentro del molde antes de desmoldar.",
+      "Cortar el brownie en 8 cuadrados iguales y servir."
     ],
-    "description": "Brownie denso y húmedo con corteza crujiente y trozos de nuez."
+    "description": "Brownie denso y húmedo con corteza crujiente y trozos de nuez.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 180 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Forrar un molde rectangular de 20x20 cm con papel de horno.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Trocear {{Chocolate negro}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir el chocolate troceado con {{Mantequilla}} al baño maría, removiendo hasta que la mezcla esté lisa.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del calor y dejar templar la mezcla de chocolate y mantequilla.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Trocear {{Nueces}} en trozos gruesos y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} con {{Azúcar}} en un bol hasta que la mezcla blanquee ligeramente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la mezcla de chocolate templada al bol con los huevos y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tamizar {{Harina}}, {{Cacao en polvo}} y {{Sal|gusto}} sobre la mezcla.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Remover con espátula hasta que no queden restos de harina, sin trabajar la masa en exceso.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las nueces troceadas y mezclar suavemente para repartirlas por toda la masa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la masa en el molde forrado y extender de manera uniforme con la espátula.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 180 °C durante 23 min, hasta que la superficie esté cuarteada y el centro siga húmedo.",
+        "minutes": 23,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Dejar enfriar el brownie por completo dentro del molde antes de desmoldar.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar el brownie en 8 cuadrados iguales y servir.",
+        "minutes": 2,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 34,
+    "saturated_fat_g": 15,
+    "sodium_mg": 95,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Descongelar los cuadrados de brownie en la nevera durante toda la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Retirar el brownie de la nevera y dejar atemperar a temperatura ambiente.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en el horno a 150 °C durante 8 min para recuperar la textura húmeda del interior.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir en cuanto salga del horno, antes de que se enfríe y pierda la textura.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_022",
@@ -1987,18 +2298,186 @@
       }
     ],
     "steps": [
-      "Mezclar la harina con 100 g de mantequilla fría en dados y una pizca de sal con las manos hasta lograr una textura arenosa.",
-      "Añadir el huevo y el agua fría y amasar lo justo para formar una bola. Envolver en film y refrigerar 30 min.",
-      "Precalentar el horno a 180 °C. Estirar la masa, forrar un molde de tarta de 24 cm, pinchar la base y hornear con peso 15 min. Retirar el peso y hornear 8-10 min más hasta que esté dorada. Dejar enfriar.",
-      "Disolver la maicena en el agua en un cazo. Añadir el zumo y la ralladura de limón y 180 g de azúcar. Calentar a fuego medio removiendo hasta que espese.",
-      "Retirar del fuego, añadir las yemas una a una removiendo rápido, y volver a calentar 1-2 min más. Incorporar los 40 g de mantequilla restantes.",
-      "Verter el relleno de limón caliente sobre la base horneada y alisar la superficie. Dejar enfriar a temperatura ambiente.",
-      "Montar las claras a punto de nieve, añadiendo los 180 g de azúcar restantes poco a poco hasta lograr un merengue firme y brillante.",
-      "Cubrir el relleno de limón con el merengue, formando picos con una espátula.",
-      "Tostar el merengue con un soplete de cocina o bajo el grill del horno unos segundos, vigilando que no se queme.",
-      "Refrigerar al menos 2 h antes de cortar."
+      "Cortar mantequilla fría en dados pequeños.",
+      "Mezclar harina con los dados de mantequilla fría con las yemas de los dedos hasta obtener una textura arenosa.",
+      "Añadir huevo y agua fría a la mezcla arenosa.",
+      "Amasar lo justo hasta formar una bola homogénea, sin trabajar en exceso la masa.",
+      "Envolver la bola en film transparente y refrigerar hasta que esté firme.",
+      "Precalentar el horno a 180 °C.",
+      "Estirar la masa sobre una superficie enharinada hasta formar un disco de unos 28 cm de diámetro.",
+      "Forrar un molde de 24 cm con la masa estirada, presionando bien los bordes.",
+      "Pinchar la base con un tenedor por toda la superficie para evitar que suba al hornear.",
+      "Cubrir la masa con papel de horno y peso (legumbres o bolas de cerámica) y hornear a 180 °C.",
+      "Retirar el peso y el papel, y hornear a 180 °C hasta que la base esté dorada.",
+      "Retirar la base del horno y dejar enfriar completamente sobre una rejilla.",
+      "Disolver maicena en agua dentro de un cazo, removiendo hasta que no queden grumos.",
+      "Añadir zumo de limón, ralladura de limón y 180 g de azúcar al cazo.",
+      "Calentar a fuego medio, removiendo sin parar, hasta que la mezcla espese y se despegue del fondo.",
+      "Retirar el cazo del fuego.",
+      "Añadir yema de huevo una a una, removiendo con rapidez tras cada incorporación.",
+      "Volver a calentar a fuego suave, removiendo, hasta que la crema esté bien ligada y brillante.",
+      "Retirar del fuego y añadir 40 g de mantequilla, removiendo hasta que se funda por completo.",
+      "Verter el relleno de limón caliente sobre la base horneada y alisar la superficie con una espátula.",
+      "Dejar enfriar el relleno a temperatura ambiente hasta que esté templado.",
+      "Montar clara de huevo con unas varillas a punto de nieve firme.",
+      "Añadir los 180 g de azúcar restantes poco a poco, sin dejar de batir, hasta lograr un merengue brillante y firme.",
+      "Cubrir el relleno de limón con el merengue, distribuyéndolo por toda la superficie.",
+      "Formar picos en el merengue con ayuda de una espátula o el dorso de una cuchara.",
+      "Tostar el merengue con un soplete de cocina o bajo el grill del horno hasta que se dore ligeramente, vigilando que no se queme.",
+      "Refrigerar la tarta hasta que esté bien fría y el relleno firme antes de cortar.",
+      "Servir en porciones, cortando con un cuchillo limpio y pasado por agua caliente entre corte y corte."
     ],
-    "description": "Tarta de limón ácida bajo un merengue tostado con soplete, dulce y cítrica a la vez."
+    "description": "Tarta de limón ácida bajo un merengue tostado con soplete, dulce y cítrica a la vez.",
+    "stepsRich": [
+      {
+        "text": "Cortar {{Mantequilla}} fría en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar {{Harina}} con los dados de mantequilla fría con las yemas de los dedos hasta obtener una textura arenosa.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Huevo}} y {{Agua fría}} a la mezcla arenosa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Amasar lo justo hasta formar una bola homogénea, sin trabajar en exceso la masa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Envolver la bola en film transparente y refrigerar hasta que esté firme.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Estirar la masa sobre una superficie enharinada hasta formar un disco de unos 28 cm de diámetro.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "during": 5
+      },
+      {
+        "text": "Forrar un molde de 24 cm con la masa estirada, presionando bien los bordes.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 5
+      },
+      {
+        "text": "Pinchar la base con un tenedor por toda la superficie para evitar que suba al hornear.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 5
+      },
+      {
+        "text": "Cubrir la masa con papel de horno y peso (legumbres o bolas de cerámica) y hornear a 180 °C.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el peso y el papel, y hornear a 180 °C hasta que la base esté dorada.",
+        "minutes": 9,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la base del horno y dejar enfriar completamente sobre una rejilla.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Disolver {{Maicena}} en {{Agua}} dentro de un cazo, removiendo hasta que no queden grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Zumo de limón}}, {{Ralladura de limón}} y 180 g de {{Azúcar}} al cazo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego medio, removiendo sin parar, hasta que la mezcla espese y se despegue del fondo.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Yema de huevo}} una a una, removiendo con rapidez tras cada incorporación.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Volver a calentar a fuego suave, removiendo, hasta que la crema esté bien ligada y brillante.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y añadir 40 g de mantequilla, removiendo hasta que se funda por completo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el relleno de limón caliente sobre la base horneada y alisar la superficie con una espátula.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar enfriar el relleno a temperatura ambiente hasta que esté templado.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Montar {{Clara de huevo}} con unas varillas a punto de nieve firme.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir los 180 g de azúcar restantes poco a poco, sin dejar de batir, hasta lograr un merengue brillante y firme.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir el relleno de limón con el merengue, distribuyéndolo por toda la superficie.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Formar picos en el merengue con ayuda de una espátula o el dorso de una cuchara.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tostar el merengue con un soplete de cocina o bajo el grill del horno hasta que se dore ligeramente, vigilando que no se queme.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar la tarta hasta que esté bien fría y el relleno firme antes de cortar.",
+        "minutes": 120,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir en porciones, cortando con un cuchillo limpio y pasado por agua caliente entre corte y corte.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 52,
+    "saturated_fat_g": 9,
+    "sodium_mg": 80,
+    "freezable": false
   },
   {
     "id": "postres_023",
@@ -2068,18 +2547,99 @@
       }
     ],
     "steps": [
-      "Preparar el café espresso y dejarlo enfriar. Mezclarlo con el licor de café en un plato hondo.",
-      "Batir las yemas con la mitad de la azúcar hasta que blanqueen y dupliquen su volumen.",
-      "Incorporar el mascarpone a las yemas y mezclar con suavidad hasta lograr una crema homogénea.",
-      "Montar las claras a punto de nieve, añadiendo la azúcar restante poco a poco.",
-      "Incorporar las claras montadas a la crema de mascarpone con movimientos envolventes, sin bajar el aire.",
-      "Mojar rápido los bizcochos en el café (1-2 segundos por lado, sin empaparlos) y colocar una capa en el fondo de una fuente.",
-      "Cubrir con la mitad de la crema de mascarpone y alisar.",
-      "Repetir con otra capa de bizcochos mojados y el resto de la crema.",
-      "Tapar y refrigerar al menos 4 h, mejor de un día para otro.",
-      "Espolvorear con cacao en polvo justo antes de servir."
+      "Preparar café espresso y dejar enfriar a temperatura ambiente.",
+      "Verter el café frío en un plato hondo y añadir licor de café. Mezclar y reservar.",
+      "Batir yema de huevo con la mitad de azúcar en un bol hasta que blanqueen y doblen su volumen.",
+      "Añadir mascarpone a las yemas y mezclar con suavidad hasta obtener una crema homogénea. Reservar.",
+      "Montar clara de huevo en un bol limpio a velocidad media hasta que empiecen a espumar.",
+      "Añadir el resto del azúcar poco a poco y seguir batiendo hasta lograr picos firmes.",
+      "Incorporar las claras montadas a la crema de mascarpone en 3 tandas, con movimientos envolventes.",
+      "Mojar bizcochos de soletilla en la mezcla de café, 1 segundo por cada lado, sin empaparlos.",
+      "Colocar una capa de bizcochos en el fondo de una fuente, cubriendo toda la base.",
+      "Extender la mitad de la crema de mascarpone sobre los bizcochos y alisar la superficie.",
+      "Mojar el resto de los bizcochos de soletilla en el café y formar una segunda capa sobre la crema.",
+      "Cubrir con el resto de la crema de mascarpone y alisar bien la superficie.",
+      "Tapar la fuente con film transparente y refrigerar un mínimo de 4 h, mejor toda la noche.",
+      "Espolvorear cacao en polvo por toda la superficie justo antes de servir."
     ],
-    "description": "Tiramisú clásico en capas de café y mascarpone, con cacao espolvoreado por encima."
+    "description": "Tiramisú clásico en capas de café y mascarpone, con cacao espolvoreado por encima.",
+    "stepsRich": [
+      {
+        "text": "Preparar {{Café espresso}} y dejar enfriar a temperatura ambiente.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter el café frío en un plato hondo y añadir {{Licor de café}}. Mezclar y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Yema de huevo}} con la mitad de {{Azúcar}} en un bol hasta que blanqueen y doblen su volumen.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Mascarpone}} a las yemas y mezclar con suavidad hasta obtener una crema homogénea. Reservar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Montar {{Clara de huevo}} en un bol limpio a velocidad media hasta que empiecen a espumar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el resto del azúcar poco a poco y seguir batiendo hasta lograr picos firmes.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar las claras montadas a la crema de mascarpone en 3 tandas, con movimientos envolventes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Mojar {{Bizcochos de soletilla}} en la mezcla de café, 1 segundo por cada lado, sin empaparlos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar una capa de bizcochos en el fondo de una fuente, cubriendo toda la base.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender la mitad de la crema de mascarpone sobre los bizcochos y alisar la superficie.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mojar el resto de los bizcochos de soletilla en el café y formar una segunda capa sobre la crema.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir con el resto de la crema de mascarpone y alisar bien la superficie.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la fuente con film transparente y refrigerar un mínimo de 4 h, mejor toda la noche.",
+        "minutes": 480,
+        "kind": "espera"
+      },
+      {
+        "text": "Espolvorear {{Cacao en polvo}} por toda la superficie justo antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 32,
+    "saturated_fat_g": 24,
+    "sodium_mg": 95,
+    "freezable": false
   },
   {
     "id": "postres_024",
@@ -2122,16 +2682,75 @@
       }
     ],
     "steps": [
-      "Trocear el chocolate y fundirlo al baño maría o en el microondas en tandas de 30 s. Dejar templar.",
-      "Separar las claras de las yemas en dos boles grandes.",
-      "Añadir las yemas al chocolate templado, una a una, removiendo bien tras cada una.",
-      "Montar las claras a punto de nieve firme con la pizca de sal.",
-      "Incorporar un tercio de las claras montadas al chocolate y remover con energía para aligerar la mezcla.",
-      "Añadir el resto de las claras con movimientos envolventes, de abajo hacia arriba, hasta que no queden restos blancos.",
+      "Trocear chocolate negro en piezas pequeñas y colocarlas en un bol apto para microondas.",
+      "Fundir el chocolate en el microondas en tandas de 30 s, removiendo entre cada tanda, hasta que esté liso.",
+      "Dejar templar el chocolate fundido hasta que esté tibio al tacto.",
+      "Separar huevo: yemas en un bol grande y claras en otro bol grande y limpio.",
+      "Añadir las yemas al chocolate templado de una en una, removiendo bien tras cada adición.",
+      "Montar las claras con sal con unas varillas a velocidad alta hasta que estén a punto de nieve firme.",
+      "Añadir un tercio de las claras montadas al chocolate y remover con energía hasta integrar.",
+      "Incorporar el resto de las claras montadas con movimientos envolventes hasta que no queden restos blancos.",
       "Repartir la mousse en 4 copas o vasitos individuales.",
-      "Refrigerar al menos 2 h, hasta que esté cuajada."
+      "Refrigerar las copas al menos 120 min, hasta que la mousse esté cuajada y firme."
     ],
-    "description": "Mousse de chocolate aireada y sedosa, hecha solo con chocolate y huevo."
+    "description": "Mousse de chocolate aireada y sedosa, hecha solo con chocolate y huevo.",
+    "stepsRich": [
+      {
+        "text": "Trocear {{Chocolate negro}} en piezas pequeñas y colocarlas en un bol apto para microondas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir el chocolate en el microondas en tandas de 30 s, removiendo entre cada tanda, hasta que esté liso.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar el chocolate fundido hasta que esté tibio al tacto.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Separar {{Huevo}}: yemas en un bol grande y claras en otro bol grande y limpio.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir las yemas al chocolate templado de una en una, removiendo bien tras cada adición.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Montar las claras con {{Sal|pizca}} con unas varillas a velocidad alta hasta que estén a punto de nieve firme.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un tercio de las claras montadas al chocolate y remover con energía hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el resto de las claras montadas con movimientos envolventes hasta que no queden restos blancos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la mousse en 4 copas o vasitos individuales.",
+        "minutes": 2,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Refrigerar las copas al menos 120 min, hasta que la mousse esté cuajada y firme.",
+        "minutes": 120,
+        "kind": "espera"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 12,
+    "saturated_fat_g": 12,
+    "sodium_mg": 95,
+    "freezable": false
   },
   {
     "id": "postres_025",
@@ -2202,15 +2821,118 @@
     ],
     "steps": [
       "Precalentar el horno a 190 °C con calor arriba y abajo.",
-      "Pelar las manzanas, descorazonarlas y cortarlas en dados de 2 cm.",
-      "Mezclar las manzanas con la azúcar y la mitad de la canela en una fuente de horno. Repartir en la base.",
-      "Mezclar la harina, la azúcar moreno, la avena, el resto de la canela y la sal en un bol.",
-      "Añadir la mantequilla fría cortada en dados y desmigar con las yemas de los dedos hasta lograr migas gruesas.",
-      "Repartir las migas sobre la manzana, cubriendo toda la superficie sin apretar.",
-      "Hornear 35-40 min, hasta que la manzana burbujee por los bordes y las migas estén doradas y crujientes.",
-      "Dejar templar 10 min antes de servir."
+      "Pelar manzana y descorazonarlas.",
+      "Cortar las manzanas peladas en dados de 2 cm.",
+      "Cortar mantequilla fría en dados pequeños y reservar en frío.",
+      "Mezclar los dados de manzana con azúcar y la mitad de canela en polvo en una fuente de horno.",
+      "Repartir la mezcla de manzana en la base de la fuente formando una capa uniforme.",
+      "Mezclar harina, azúcar moreno, copos de avena, el resto de la canela en polvo y sal en un bol.",
+      "Añadir los dados de mantequilla fría al bol y desmigar con las yemas de los dedos hasta obtener migas gruesas.",
+      "Repartir las migas sobre la manzana cubriendo toda la superficie sin apretar.",
+      "Hornear a 190 °C durante 38 min, hasta que la manzana burbujee por los bordes y las migas estén doradas.",
+      "Retirar del horno y dejar templar 10 min antes de servir.",
+      "Servir el crumble templado directamente de la fuente."
     ],
-    "description": "Crumble de manzana blanda bajo una capa de migas doradas y crujientes con canela."
+    "description": "Crumble de manzana blanda bajo una capa de migas doradas y crujientes con canela.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 190 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Pelar {{Manzana}} y descorazonarlas.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar las manzanas peladas en dados de 2 cm.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Mantequilla}} fría en dados pequeños y reservar en frío.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar los dados de manzana con {{Azúcar}} y la mitad de {{Canela en polvo}} en una fuente de horno.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la mezcla de manzana en la base de la fuente formando una capa uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar {{Harina}}, {{Azúcar moreno}}, {{Copos de avena}}, el resto de la canela en polvo y {{Sal|gusto}} en un bol.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir los dados de mantequilla fría al bol y desmigar con las yemas de los dedos hasta obtener migas gruesas.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir las migas sobre la manzana cubriendo toda la superficie sin apretar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 190 °C durante 38 min, hasta que la manzana burbujee por los bordes y las migas estén doradas.",
+        "minutes": 38,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar del horno y dejar templar 10 min antes de servir.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el crumble templado directamente de la fuente.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 38,
+    "saturated_fat_g": 12,
+    "sodium_mg": 95,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar el crumble del congelador a la nevera la noche anterior y dejar descongelar.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 170 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cubrir la fuente con papel de aluminio para que la manzana no se seque durante el calentado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear tapado 15 min, hasta que el interior esté caliente.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el papel de aluminio y hornear 5 min más hasta que las migas recuperen el crujiente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el crumble recién salido del horno, templado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_026",
@@ -2281,18 +3003,135 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 200 °C. Forrar dos bandejas con papel de horno.",
-      "Calentar el agua con la mantequilla y la sal en un cazo hasta que rompa a hervir.",
-      "Retirar del fuego, añadir la harina de golpe y remover con fuerza hasta formar una bola de masa que se despegue del cazo.",
-      "Volver a poner el cazo a fuego bajo 1-2 min removiendo, para secar un poco la masa.",
-      "Pasar la masa a un bol y dejar templar 5 min. Añadir los huevos de uno en uno, batiendo bien tras cada uno hasta que la masa quede lisa y brillante.",
-      "Formar bolitas de unos 3 cm con dos cucharas o una manga pastelera y repartirlas separadas en las bandejas.",
-      "Hornear 25-30 min sin abrir el horno, hasta que estén doradas e infladas. Dejar enfriar sobre una rejilla.",
-      "Montar 400 ml de la nata con la azúcar hasta que esté firme. Rellenar los profiteroles con una manga pastelera, inyectando la nata por la base.",
-      "Fundir el chocolate con los 100 ml de nata restantes al baño maría hasta lograr una salsa lisa y brillante.",
-      "Servir los profiteroles apilados y bañados con el chocolate caliente justo antes de comer."
+      "Precalentar el horno a 200 °C con calor arriba y abajo.",
+      "Forrar dos bandejas de horno con papel de horno.",
+      "Calentar agua, mantequilla y sal en un cazo a fuego medio hasta que rompa a hervir.",
+      "Retirar el cazo del fuego y añadir harina de golpe.",
+      "Remover con fuerza hasta que la masa forme una bola y se despegue de las paredes del cazo.",
+      "Volver a poner el cazo a fuego suave y remover 2 min hasta que la masa quede ligeramente seca.",
+      "Pasar la masa a un bol y dejar templar.",
+      "Añadir huevo de uno en uno a la masa, batiendo bien tras cada uno hasta que quede lisa y brillante.",
+      "Introducir la masa en una manga pastelera con boquilla redonda.",
+      "Formar bolitas de unos 3 cm sobre las bandejas, separadas entre sí al menos 3 cm.",
+      "Hornear 28 min sin abrir el horno, hasta que los profiteroles estén dorados e inflados.",
+      "Retirar las bandejas del horno y dejar enfriar los profiteroles sobre una rejilla.",
+      "Verter nata para montar en un bol frío, reservando 100 ml aparte para la salsa de chocolate.",
+      "Añadir azúcar a los 400 ml de nata y montar con varillas a velocidad alta hasta que esté firme.",
+      "Introducir la nata montada en una manga pastelera con boquilla fina.",
+      "Rellenar cada profiterol inyectando nata montada por la base hasta notar que se hincha ligeramente.",
+      "Trocear chocolate negro y colocarlo en un bol resistente al calor sobre un cazo con agua caliente.",
+      "Calentar el cazo a fuego suave y añadir los 100 ml de nata reservados al chocolate.",
+      "Remover sin parar hasta que el chocolate y la nata formen una salsa lisa y brillante.",
+      "Apilar los profiteroles rellenos en platos o fuente y bañar con la salsa de chocolate caliente."
     ],
-    "description": "Bolitas de pasta choux rellenas de nata, bañadas en chocolate caliente al momento."
+    "description": "Bolitas de pasta choux rellenas de nata, bañadas en chocolate caliente al momento.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Forrar dos bandejas de horno con papel de horno.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Agua}}, {{Mantequilla}} y {{Sal}} en un cazo a fuego medio hasta que rompa a hervir.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y añadir {{Harina}} de golpe.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con fuerza hasta que la masa forme una bola y se despegue de las paredes del cazo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Volver a poner el cazo a fuego suave y remover 2 min hasta que la masa quede ligeramente seca.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Pasar la masa a un bol y dejar templar.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Añadir {{Huevo}} de uno en uno a la masa, batiendo bien tras cada uno hasta que quede lisa y brillante.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Introducir la masa en una manga pastelera con boquilla redonda.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Formar bolitas de unos 3 cm sobre las bandejas, separadas entre sí al menos 3 cm.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear 28 min sin abrir el horno, hasta que los profiteroles estén dorados e inflados.",
+        "minutes": 28,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar las bandejas del horno y dejar enfriar los profiteroles sobre una rejilla.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter {{Nata para montar}} en un bol frío, reservando 100 ml aparte para la salsa de chocolate.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Azúcar}} a los 400 ml de nata y montar con varillas a velocidad alta hasta que esté firme.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Introducir la nata montada en una manga pastelera con boquilla fina.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Rellenar cada profiterol inyectando nata montada por la base hasta notar que se hincha ligeramente.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Trocear {{Chocolate negro}} y colocarlo en un bol resistente al calor sobre un cazo con agua caliente.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar el cazo a fuego suave y añadir los 100 ml de nata reservados al chocolate.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover sin parar hasta que el chocolate y la nata formen una salsa lisa y brillante.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Apilar los profiteroles rellenos en platos o fuente y bañar con la salsa de chocolate caliente.",
+        "minutes": 3,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 18,
+    "saturated_fat_g": 34,
+    "sodium_mg": 130,
+    "freezable": false
   },
   {
     "id": "postres_027",
@@ -2368,17 +3207,139 @@
       }
     ],
     "steps": [
-      "Batir la mantequilla en pomada con el azúcar moreno y el azúcar blanca hasta lograr una crema esponjosa.",
-      "Añadir el huevo y el extracto de vainilla y batir hasta integrar.",
-      "Mezclar la harina con el bicarbonato y la sal aparte, y añadirla a la mezcla anterior removiendo lo justo hasta formar una masa.",
-      "Tapar la masa y refrigerar 30 min para que sea más fácil de manejar.",
-      "Precalentar el horno a 180 °C. Forrar una bandeja con papel de horno.",
-      "Dividir la masa en 12 porciones. Aplanar cada una, colocar un trozo de chocolate en el centro y cerrar la masa envolviendo el chocolate por completo.",
-      "Colocar las bolas en la bandeja separadas entre sí y hornear 10-12 min, hasta que los bordes estén dorados pero el centro siga pálido.",
-      "Dejar reposar 5 min en la bandeja antes de pasarlas a una rejilla.",
-      "Servir templadas, para que el centro de chocolate esté fundido."
+      "Templar mantequilla hasta que esté en pomada (blanda pero sin fundir).",
+      "Batir la mantequilla en pomada con azúcar moreno y azúcar hasta obtener una crema pálida y esponjosa.",
+      "Añadir huevo y extracto de vainilla a la crema y batir hasta que estén completamente integrados.",
+      "Mezclar harina, bicarbonato y sal en un bol aparte hasta que estén bien combinados.",
+      "Añadir la mezcla de harina a la crema de mantequilla y remover lo justo hasta que se forme una masa homogénea.",
+      "Tapar la masa con film y refrigerar hasta que esté firme y manejable.",
+      "Precalentar el horno a 180 °C y forrar una bandeja con papel de horno.",
+      "Cortar chocolate negro en 12 trozos iguales para usar como relleno.",
+      "Dividir la masa fría en 12 porciones del mismo tamaño.",
+      "Aplanar cada porción en la palma de la mano hasta formar un disco.",
+      "Colocar un trozo de chocolate negro en el centro de cada disco.",
+      "Cerrar la masa alrededor del chocolate, sellando bien los bordes para que no se escape al hornear.",
+      "Disponer las bolas en la bandeja separadas al menos 5 cm entre sí.",
+      "Hornear a 180 °C hasta que los bordes estén dorados y el centro siga pálido.",
+      "Reposar las cookies en la bandeja fuera del horno para que se asienten sin romperse.",
+      "Servir templadas para que el chocolate del interior esté fundido."
     ],
-    "description": "Cookies con el centro relleno de chocolate fundente que se derrama al partirlas."
+    "description": "Cookies con el centro relleno de chocolate fundente que se derrama al partirlas.",
+    "stepsRich": [
+      {
+        "text": "Templar {{Mantequilla}} hasta que esté en pomada (blanda pero sin fundir).",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir la mantequilla en pomada con {{Azúcar moreno}} y {{Azúcar}} hasta obtener una crema pálida y esponjosa.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Huevo}} y {{Extracto de vainilla}} a la crema y batir hasta que estén completamente integrados.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar {{Harina}}, {{Bicarbonato}} y {{Sal|gusto}} en un bol aparte hasta que estén bien combinados.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la mezcla de harina a la crema de mantequilla y remover lo justo hasta que se forme una masa homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar la masa con film y refrigerar hasta que esté firme y manejable.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 180 °C y forrar una bandeja con papel de horno.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Chocolate negro}} en 12 trozos iguales para usar como relleno.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 6
+      },
+      {
+        "text": "Dividir la masa fría en 12 porciones del mismo tamaño.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Aplanar cada porción en la palma de la mano hasta formar un disco.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Colocar un trozo de chocolate negro en el centro de cada disco.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cerrar la masa alrededor del chocolate, sellando bien los bordes para que no se escape al hornear.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Disponer las bolas en la bandeja separadas al menos 5 cm entre sí.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear a 180 °C hasta que los bordes estén dorados y el centro siga pálido.",
+        "minutes": 11,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Reposar las cookies en la bandeja fuera del horno para que se asienten sin romperse.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir templadas para que el chocolate del interior esté fundido.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 38,
+    "saturated_fat_g": 17,
+    "sodium_mg": 160,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Descongelar las cookies en la nevera durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar el horno a 160 °C.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar las cookies en una bandeja y hornear hasta que el interior esté caliente y el chocolate vuelva a fundirse.",
+        "minutes": 5,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Reposar 2 min fuera del horno antes de servir para que el chocolate no queme.",
+        "minutes": 2,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir templadas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_028",
@@ -2474,18 +3435,145 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 175 °C. Engrasar y forrar dos moldes redondos de 18 cm.",
-      "Tamizar la harina con el cacao, el bicarbonato y la sal en un bol.",
-      "Batir 120 g de la mantequilla con la azúcar hasta que quede esponjosa. Añadir los huevos de uno en uno.",
-      "Mezclar el colorante rojo, el vinagre y el extracto de vainilla con el suero de leche.",
-      "Añadir a la mezcla de mantequilla los ingredientes secos y el suero de leche alternando en tres tandas, empezando y terminando por los secos.",
-      "Repartir la masa entre los dos moldes y hornear 28-32 min, hasta que al pinchar con un palillo salga limpio.",
-      "Dejar enfriar 10 min en los moldes y luego desmoldar sobre una rejilla hasta que estén fríos del todo.",
-      "Batir el queso crema con los 80 g de mantequilla restantes y la azúcar glas hasta lograr una crema lisa.",
-      "Cubrir un bizcocho con parte del glaseado, colocar el segundo bizcocho encima y cubrir toda la tarta con el resto del glaseado.",
-      "Refrigerar 30 min antes de cortar para que el glaseado asiente."
+      "Precalentar el horno a 175 °C.",
+      "Engrasar dos moldes redondos de 18 cm y forrar la base con papel de horno.",
+      "Tamizar harina, cacao en polvo, bicarbonato y sal juntos en un bol grande.",
+      "Mezclar en un bol pequeño suero de leche, colorante rojo alimentario, vinagre y extracto de vainilla.",
+      "Batir mantequilla con azúcar en un bol grande a velocidad alta hasta obtener una mezcla pálida y esponjosa.",
+      "Añadir huevo de uno en uno, batiendo bien tras cada incorporación hasta que quede integrado.",
+      "Añadir un tercio de la mezcla de harina a la masa y mezclar a velocidad baja hasta que se integre.",
+      "Añadir la mitad de la mezcla de suero de leche y mezclar a velocidad baja hasta que se integre.",
+      "Repetir alternando: un tercio de harina, el resto del suero de leche y, por último, el tercer tercio de harina.",
+      "Repartir la masa a partes iguales entre los dos moldes preparados y alisar la superficie con una espátula.",
+      "Hornear los dos moldes a 175 °C durante 30 min, hasta que al pinchar el centro con un palillo salga limpio.",
+      "Sacar los moldes del horno y dejar reposar los bizcochos dentro 10 min.",
+      "Batir queso crema con la mantequilla restante en un bol hasta obtener una mezcla lisa y sin grumos.",
+      "Añadir azúcar glas tamizado en 2 tandas, batiendo a velocidad baja hasta lograr un glaseado liso y cremoso.",
+      "Desmoldar los bizcochos sobre una rejilla y dejar enfriar por completo.",
+      "Colocar un bizcocho sobre el plato de servir y extender una capa generosa de glaseado sobre la superficie.",
+      "Colocar el segundo bizcocho encima y cubrir toda la tarta con el resto del glaseado.",
+      "Refrigerar la tarta 30 min hasta que el glaseado asiente antes de cortar y servir."
     ],
-    "description": "Bizcocho rojo intenso de cacao con un cremoso glaseado blanco de queso."
+    "description": "Bizcocho rojo intenso de cacao con un cremoso glaseado blanco de queso.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 175 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Engrasar dos moldes redondos de 18 cm y forrar la base con papel de horno.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Tamizar {{Harina}}, {{Cacao en polvo}}, {{Bicarbonato}} y {{Sal}} juntos en un bol grande.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol pequeño {{Suero de leche}}, {{Colorante rojo alimentario}}, {{Vinagre}} y {{Extracto de vainilla}}.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Mantequilla}} con {{Azúcar}} en un bol grande a velocidad alta hasta obtener una mezcla pálida y esponjosa.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Huevo}} de uno en uno, batiendo bien tras cada incorporación hasta que quede integrado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un tercio de la mezcla de harina a la masa y mezclar a velocidad baja hasta que se integre.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la mitad de la mezcla de suero de leche y mezclar a velocidad baja hasta que se integre.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repetir alternando: un tercio de harina, el resto del suero de leche y, por último, el tercer tercio de harina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la masa a partes iguales entre los dos moldes preparados y alisar la superficie con una espátula.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear los dos moldes a 175 °C durante 30 min, hasta que al pinchar el centro con un palillo salga limpio.",
+        "minutes": 30,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Sacar los moldes del horno y dejar reposar los bizcochos dentro 10 min.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir {{Queso crema}} con la mantequilla restante en un bol hasta obtener una mezcla lisa y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Azúcar glas}} tamizado en 2 tandas, batiendo a velocidad baja hasta lograr un glaseado liso y cremoso.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Desmoldar los bizcochos sobre una rejilla y dejar enfriar por completo.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Colocar un bizcocho sobre el plato de servir y extender una capa generosa de glaseado sobre la superficie.",
+        "minutes": 2,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Colocar el segundo bizcocho encima y cubrir toda la tarta con el resto del glaseado.",
+        "minutes": 3,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Refrigerar la tarta 30 min hasta que el glaseado asiente antes de cortar y servir.",
+        "minutes": 30,
+        "kind": "espera"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 62,
+    "saturated_fat_g": 19,
+    "sodium_mg": 280,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Pasar la tarta del congelador a la nevera y dejar descongelar toda la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Sacar la tarta de la nevera y dejar atemperar a temperatura ambiente para que el glaseado recupere su textura cremosa.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Alisar el glaseado con una espátula si ha perdido uniformidad durante el proceso de descongelación.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar en porciones y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_029",
@@ -2587,17 +3675,139 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 175 °C. Engrasar y forrar un molde redondo de 22 cm.",
-      "Mezclar la harina, el bicarbonato, la levadura, la canela, la nuez moscada y la sal en un bol.",
-      "Batir los huevos con la azúcar moreno hasta que blanqueen. Añadir el aceite en hilo sin dejar de batir.",
-      "Incorporar los ingredientes secos a la mezcla de huevos con movimientos envolventes, hasta que no queden restos de harina.",
-      "Añadir la zanahoria rallada y las nueces picadas y mezclar con espátula.",
-      "Verter la masa en el molde y hornear 45-50 min, hasta que al pinchar con un palillo salga limpio.",
-      "Dejar enfriar por completo sobre una rejilla antes de desmoldar.",
-      "Batir el queso crema con la mantequilla y la azúcar glas hasta lograr un glaseado liso.",
-      "Cubrir la tarta fría con el glaseado, extendiéndolo con una espátula."
+      "Precalentar el horno a 175 °C.",
+      "Rallar zanahoria con un rallador fino y reservar.",
+      "Picar nueces en trozos pequeños y reservar.",
+      "Engrasar un molde redondo de 22 cm y forrar la base con papel de horno.",
+      "Mezclar harina, bicarbonato, levadura química, canela en polvo, nuez moscada y sal en un bol hasta integrar.",
+      "Batir huevo con azúcar moreno en un bol grande hasta que la mezcla blanquee y doble su volumen.",
+      "Añadir aceite de girasol en hilo fino sin dejar de batir hasta que quede integrado.",
+      "Incorporar la mezcla de harina en 3 tandas con movimientos envolventes hasta que no queden restos de harina.",
+      "Añadir la zanahoria rallada y las nueces picadas y mezclar con espátula hasta distribuirlas de forma homogénea.",
+      "Verter la masa en el molde preparado y alisar la superficie con una espátula.",
+      "Hornear a 175 °C durante 50 min, hasta que al pinchar el centro con un palillo salga limpio.",
+      "Retirar el molde del horno y dejar enfriar sobre una rejilla hasta que esté a temperatura ambiente.",
+      "Sacar queso crema y mantequilla de la nevera 20 min antes para que estén a temperatura ambiente.",
+      "Batir el queso crema con la mantequilla a velocidad media hasta obtener una crema lisa y sin grumos.",
+      "Añadir azúcar glas tamizado poco a poco sin dejar de batir hasta lograr un glaseado liso y firme.",
+      "Desmoldar la tarta fría con cuidado sobre una rejilla o plato de servir.",
+      "Cubrir la superficie y los laterales de la tarta con el glaseado, extendiéndolo con una espátula."
     ],
-    "description": "Bizcocho húmedo y especiado de zanahoria cubierto con un glaseado cremoso de queso."
+    "description": "Bizcocho húmedo y especiado de zanahoria cubierto con un glaseado cremoso de queso.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 175 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Rallar {{Zanahoria}} con un rallador fino y reservar.",
+        "minutes": 5,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Nueces}} en trozos pequeños y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Engrasar un molde redondo de 22 cm y forrar la base con papel de horno.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar {{Harina}}, {{Bicarbonato}}, {{Levadura química}}, {{Canela en polvo}}, {{Nuez moscada|pizca}} y {{Sal|gusto}} en un bol hasta integrar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} con {{Azúcar moreno}} en un bol grande hasta que la mezcla blanquee y doble su volumen.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de girasol}} en hilo fino sin dejar de batir hasta que quede integrado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar la mezcla de harina en 3 tandas con movimientos envolventes hasta que no queden restos de harina.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la zanahoria rallada y las nueces picadas y mezclar con espátula hasta distribuirlas de forma homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la masa en el molde preparado y alisar la superficie con una espátula.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 175 °C durante 50 min, hasta que al pinchar el centro con un palillo salga limpio.",
+        "minutes": 50,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el molde del horno y dejar enfriar sobre una rejilla hasta que esté a temperatura ambiente.",
+        "minutes": 60,
+        "kind": "espera"
+      },
+      {
+        "text": "Sacar {{Queso crema}} y {{Mantequilla}} de la nevera 20 min antes para que estén a temperatura ambiente.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir el queso crema con la mantequilla a velocidad media hasta obtener una crema lisa y sin grumos.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Azúcar glas}} tamizado poco a poco sin dejar de batir hasta lograr un glaseado liso y firme.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Desmoldar la tarta fría con cuidado sobre una rejilla o plato de servir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cubrir la superficie y los laterales de la tarta con el glaseado, extendiéndolo con una espátula.",
+        "minutes": 5,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 38,
+    "saturated_fat_g": 10,
+    "sodium_mg": 280,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Trasladar la tarta del congelador a la nevera y dejar descongelar lentamente.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Sacar la tarta de la nevera y dejar atemperar a temperatura ambiente antes de servir.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Comprobar el glaseado: si ha perdido brillo o se ha agrietado, alisar con una espátula ligeramente humedecida.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en porciones directamente, sin recalentar, para conservar la textura del glaseado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_030",
@@ -2660,16 +3870,95 @@
       }
     ],
     "steps": [
-      "Poner las hojas de gelatina en un bol con agua fría durante 5 min hasta que se ablanden.",
-      "Calentar la nata, la leche, 60 g de azúcar y el extracto de vainilla en un cazo a fuego medio, sin dejar que hierva.",
-      "Retirar del fuego, escurrir la gelatina y disolverla en la nata caliente removiendo bien.",
+      "Sumergir hojas de gelatina en un bol con agua fría hasta que estén blandas.",
+      "Calentar nata para montar, leche, azúcar y extracto de vainilla en un cazo a fuego medio hasta que esté caliente sin que llegue a hervir.",
+      "Escurrir las hojas de gelatina y añadirlas al cazo fuera del fuego.",
+      "Remover hasta que la gelatina se disuelva por completo en la mezcla de nata.",
       "Repartir la mezcla en 4 moldes o vasos individuales.",
-      "Refrigerar al menos 4 h, hasta que cuaje por completo.",
-      "Calentar los frutos rojos con los 30 g de azúcar restantes y el agua en un cazo 5-6 min, hasta que suelten su jugo y espesen ligeramente.",
-      "Triturar la mitad de la salsa y dejar el resto con los frutos enteros. Dejar enfriar.",
-      "Desmoldar la panna cotta pasando un cuchillo fino por el borde (o servir directamente en el vaso) y cubrir con la salsa de frutos rojos."
+      "Refrigerar los moldes hasta que la panna cotta cuaje por completo.",
+      "Calentar frutos rojos, el azúcar restante y agua en un cazo a fuego medio.",
+      "Cocer a fuego medio hasta que los frutos rojos suelten su jugo y la salsa espese ligeramente.",
+      "Retirar el cazo del fuego y triturar la mitad de la salsa, dejando el resto con los frutos enteros.",
+      "Dejar enfriar la salsa de frutos rojos a temperatura ambiente.",
+      "Desmoldar cada panna cotta pasando un cuchillo fino por el borde o servir directamente en el vaso.",
+      "Cubrir cada panna cotta con la salsa de frutos rojos y servir."
     ],
-    "description": "Panna cotta cremosa de vainilla que tiembla al moverla, con una salsa brillante de frutos rojos."
+    "description": "Panna cotta cremosa de vainilla que tiembla al moverla, con una salsa brillante de frutos rojos.",
+    "stepsRich": [
+      {
+        "text": "Sumergir {{Hojas de gelatina}} en un bol con agua fría hasta que estén blandas.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar {{Nata para montar}}, {{Leche}}, {{Azúcar}} y {{Extracto de vainilla}} en un cazo a fuego medio hasta que esté caliente sin que llegue a hervir.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Escurrir las hojas de gelatina y añadirlas al cazo fuera del fuego.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover hasta que la gelatina se disuelva por completo en la mezcla de nata.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la mezcla en 4 moldes o vasos individuales.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Refrigerar los moldes hasta que la panna cotta cuaje por completo.",
+        "minutes": 240,
+        "kind": "espera",
+        "part": "principal"
+      },
+      {
+        "text": "Calentar {{Frutos rojos}}, el azúcar restante y {{Agua}} en un cazo a fuego medio.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Cocer a fuego medio hasta que los frutos rojos suelten su jugo y la salsa espese ligeramente.",
+        "minutes": 6,
+        "kind": "pasivo",
+        "part": "salsa"
+      },
+      {
+        "text": "Retirar el cazo del fuego y triturar la mitad de la salsa, dejando el resto con los frutos enteros.",
+        "minutes": 2,
+        "kind": "activo",
+        "part": "salsa"
+      },
+      {
+        "text": "Dejar enfriar la salsa de frutos rojos a temperatura ambiente.",
+        "minutes": 15,
+        "kind": "espera",
+        "part": "salsa"
+      },
+      {
+        "text": "Desmoldar cada panna cotta pasando un cuchillo fino por el borde o servir directamente en el vaso.",
+        "minutes": 2,
+        "kind": "emplatado",
+        "part": "combinado"
+      },
+      {
+        "text": "Cubrir cada panna cotta con la salsa de frutos rojos y servir.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 28,
+    "saturated_fat_g": 22,
+    "sodium_mg": 45,
+    "freezable": false
   },
   {
     "id": "postres_031",
@@ -2717,15 +4006,81 @@
       }
     ],
     "steps": [
-      "Enfriar bien el bol y las varillas en el congelador 10 min antes de empezar.",
-      "Montar la nata a punto de nieve firme, que forme picos al levantar las varillas.",
-      "Mezclar la leche condensada con el extracto de vainilla y la sal en un bol grande.",
-      "Incorporar la nata montada a la leche condensada con movimientos envolventes, de abajo hacia arriba, sin bajar el aire.",
-      "Verter la mezcla en un recipiente hermético apto para congelador y alisar la superficie.",
-      "Tapar y congelar al menos 6 h, mejor de un día para otro.",
-      "Sacar del congelador 5-10 min antes de servir para que sea más fácil de servir con la cuchara."
+      "Introducir el bol y las varillas en el congelador para enfriarlos.",
+      "Verter nata para montar en el bol frío y montar con las varillas hasta que forme picos firmes al levantar.",
+      "Mezclar leche condensada, extracto de vainilla y sal en un bol grande hasta integrar.",
+      "Añadir la nata montada sobre la mezcla de leche condensada en 3 tandas, con movimientos envolventes de abajo hacia arriba.",
+      "Verter la mezcla en un recipiente hermético apto para congelador.",
+      "Alisar la superficie con una espátula o el dorso de una cuchara.",
+      "Tapar el recipiente y congelar hasta que el helado esté completamente firme.",
+      "Sacar el helado del congelador y dejar atemperar hasta que sea posible bolear con facilidad.",
+      "Servir en boles o copas con una cuchara de helado."
     ],
-    "description": "Helado cremoso de vainilla sin necesitar heladora, solo nata, leche condensada y paciencia."
+    "description": "Helado cremoso de vainilla sin necesitar heladora, solo nata, leche condensada y paciencia.",
+    "stepsRich": [
+      {
+        "text": "Introducir el bol y las varillas en el congelador para enfriarlos.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Verter {{Nata para montar}} en el bol frío y montar con las varillas hasta que forme picos firmes al levantar.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar {{Leche condensada}}, {{Extracto de vainilla}} y {{Sal}} en un bol grande hasta integrar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la nata montada sobre la mezcla de leche condensada en 3 tandas, con movimientos envolventes de abajo hacia arriba.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la mezcla en un recipiente hermético apto para congelador.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Alisar la superficie con una espátula o el dorso de una cuchara.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el recipiente y congelar hasta que el helado esté completamente firme.",
+        "minutes": 480,
+        "kind": "espera"
+      },
+      {
+        "text": "Sacar el helado del congelador y dejar atemperar hasta que sea posible bolear con facilidad.",
+        "minutes": 8,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir en boles o copas con una cuchara de helado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 36,
+    "saturated_fat_g": 22,
+    "sodium_mg": 65,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Sacar el helado del congelador y dejar reposar a temperatura ambiente hasta que ablande lo suficiente para bolear.",
+        "minutes": 8,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir en boles o copas con una cuchara de helado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_032",
@@ -2771,15 +4126,98 @@
       }
     ],
     "steps": [
-      "Calentar el agua con la azúcar en un cazo a fuego medio hasta que la azúcar se disuelva por completo, formando un almíbar ligero.",
-      "Retirar del fuego, añadir la ralladura de limón y dejar enfriar por completo.",
-      "Mezclar el almíbar frío con el zumo de limón.",
+      "Calentar agua con azúcar en un cazo a fuego medio hasta que el azúcar se disuelva por completo.",
+      "Retirar el cazo del fuego y añadir ralladura de limón. Remover para integrar.",
+      "Dejar enfriar el almíbar por completo a temperatura ambiente.",
+      "Añadir zumo de limón al almíbar frío. Mezclar hasta obtener una mezcla homogénea.",
       "Verter la mezcla en un recipiente bajo y ancho apto para congelador.",
-      "Congelar 1 h y remover con un tenedor raspando los bordes para romper los cristales de hielo.",
-      "Repetir el raspado cada 30-40 min durante 3-4 h más, hasta lograr una textura granizada y suelta.",
-      "Servir directamente del congelador en copas frías."
+      "Congelar la mezcla durante 60 min.",
+      "Raspar la mezcla con un tenedor, rompiendo los cristales de hielo de los bordes hacia el centro.",
+      "Congelar de nuevo durante 35 min.",
+      "Raspar de nuevo con el tenedor, removiendo toda la superficie para airear la textura.",
+      "Repetir el ciclo de congelado 35 min y raspado 3 veces más hasta lograr una textura granizada y suelta.",
+      "Servir el sorbete directamente del congelador en copas frías."
     ],
-    "description": "Sorbete de limón refrescante y ácido, con esa textura granizada tan característica."
+    "description": "Sorbete de limón refrescante y ácido, con esa textura granizada tan característica.",
+    "stepsRich": [
+      {
+        "text": "Calentar {{Agua}} con {{Azúcar}} en un cazo a fuego medio hasta que el azúcar se disuelva por completo.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y añadir {{Ralladura de limón}}. Remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar enfriar el almíbar por completo a temperatura ambiente.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Añadir {{Zumo de limón}} al almíbar frío. Mezclar hasta obtener una mezcla homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la mezcla en un recipiente bajo y ancho apto para congelador.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Congelar la mezcla durante 60 min.",
+        "minutes": 60,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Raspar la mezcla con un tenedor, rompiendo los cristales de hielo de los bordes hacia el centro.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Congelar de nuevo durante 35 min.",
+        "minutes": 35,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Raspar de nuevo con el tenedor, removiendo toda la superficie para airear la textura.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repetir el ciclo de congelado 35 min y raspado 3 veces más hasta lograr una textura granizada y suelta.",
+        "minutes": 115,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir el sorbete directamente del congelador en copas frías.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 45,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Sacar el recipiente del congelador y dejar reposar a temperatura ambiente durante 5 min.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Raspar con un tenedor para soltar la textura granizada y airear el sorbete antes de servir.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato en copas frías. No dejar que el sorbete se derrita antes de emplatar.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_033",
@@ -2840,17 +4278,114 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 200 °C. Engrasar y enharinar 4 moldes individuales.",
-      "Trocear el chocolate y fundirlo con la mantequilla al baño maría o en el microondas en tandas de 30 s.",
-      "Batir los huevos enteros y las yemas con la azúcar hasta que blanqueen ligeramente.",
-      "Incorporar el chocolate fundido templado a la mezcla de huevos y remover hasta integrar.",
-      "Añadir la harina tamizada y mezclar con espátula hasta que no queden grumos.",
-      "Repartir la masa entre los moldes preparados.",
-      "Hornear 9-11 min, hasta que la superficie esté cuajada pero el centro siga líquido.",
-      "Dejar reposar 1 min fuera del horno y desmoldar inmediatamente volcando sobre el plato.",
-      "Servir al momento, mientras el centro todavía está líquido."
+      "Precalentar el horno a 200 °C.",
+      "Engrasar 4 moldes individuales con mantequilla y enharinar con harina, sacudiendo el exceso.",
+      "Trocear chocolate negro en trozos pequeños y colocar en un bol resistente al calor.",
+      "Fundir el chocolate troceado con el resto de la mantequilla al baño maría hasta que esté liso y homogéneo.",
+      "Retirar el bol del calor y dejar templar hasta que esté tibio al tacto.",
+      "Batir huevo y yema de huevo con azúcar en un bol grande hasta que la mezcla blanquee ligeramente.",
+      "Añadir el chocolate fundido templado a la mezcla de huevos y remover hasta integrar completamente.",
+      "Incorporar el resto de la harina a la mezcla y remover con espátula hasta que no queden grumos.",
+      "Repartir la masa entre los 4 moldes preparados llenando hasta ¾ de su capacidad.",
+      "Hornear a 200 °C durante 10 min, hasta que la superficie esté cuajada pero el centro siga líquido.",
+      "Retirar los moldes del horno y dejar reposar 1 min sin desmoldar.",
+      "Desmoldar cada coulant volcando con cuidado sobre el plato de servicio y servir de inmediato."
     ],
-    "description": "Bizcocho de chocolate que se abre al partirlo, dejando salir un centro líquido y caliente."
+    "description": "Bizcocho de chocolate que se abre al partirlo, dejando salir un centro líquido y caliente.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Engrasar 4 moldes individuales con {{Mantequilla}} y enharinar con {{Harina}}, sacudiendo el exceso.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Trocear {{Chocolate negro}} en trozos pequeños y colocar en un bol resistente al calor.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir el chocolate troceado con el resto de la mantequilla al baño maría hasta que esté liso y homogéneo.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el bol del calor y dejar templar hasta que esté tibio al tacto.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir {{Huevo}} y {{Yema de huevo}} con {{Azúcar}} en un bol grande hasta que la mezcla blanquee ligeramente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el chocolate fundido templado a la mezcla de huevos y remover hasta integrar completamente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el resto de la harina a la mezcla y remover con espátula hasta que no queden grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la masa entre los 4 moldes preparados llenando hasta ¾ de su capacidad.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 200 °C durante 10 min, hasta que la superficie esté cuajada pero el centro siga líquido.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar los moldes del horno y dejar reposar 1 min sin desmoldar.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar cada coulant volcando con cuidado sobre el plato de servicio y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 32,
+    "saturated_fat_g": 28,
+    "sodium_mg": 95,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Descongelar los coulants (sin desmoldar) en la nevera durante la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 200 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Hornear los coulants directamente desde la nevera a 200 °C durante 12 min, hasta que la superficie esté cuajada.",
+        "minutes": 12,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Reposar 1 min fuera del horno sin desmoldar para que el centro se estabilice.",
+        "minutes": 1,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar volcando con cuidado sobre el plato y servir de inmediato mientras el centro sigue líquido.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_034",
@@ -2926,17 +4461,133 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 175 °C. Engrasar y enharinar un molde de 22 cm.",
-      "Fundir la mantequilla y dejar templar.",
-      "Batir los huevos con 150 g de la azúcar hasta que blanqueen y dupliquen su volumen.",
-      "Añadir la leche y la mantequilla fundida y mezclar.",
-      "Incorporar la harina tamizada con la levadura, con movimientos envolventes, hasta que no queden grumos.",
-      "Verter la masa en el molde y hornear 35-40 min, hasta que al pinchar con un palillo salga limpio.",
-      "Mientras se hornea, calentar el agua con los 150 g de azúcar restantes y la ralladura de limón hasta que hierva y la azúcar se disuelva. Retirar del fuego, templar y añadir el ron.",
-      "Con el bizcocho aún caliente y en el molde, pinchar toda la superficie con un palillo y verter el almíbar despacio, en varias veces, dejando que lo absorba.",
-      "Dejar reposar al menos 30 min para que el bizcocho quede bien empapado antes de desmoldar y servir."
+      "Precalentar el horno a 175 °C.",
+      "Engrasar y enharinar un molde de 22 cm.",
+      "Fundir mantequilla en un cazo a fuego suave hasta que esté líquida. Reservar y dejar templar.",
+      "Batir huevo con 150 g de azúcar en un bol hasta que la mezcla blanquee y duplique su volumen.",
+      "Añadir leche y la mantequilla fundida al bol y mezclar hasta integrar.",
+      "Tamizar harina junto con levadura química directamente sobre el bol.",
+      "Incorporar la harina tamizada con movimientos envolventes hasta que no queden grumos.",
+      "Verter la masa en el molde y hornear 38 min, hasta que al pinchar con un palillo salga limpio.",
+      "Calentar agua con los 150 g de azúcar restantes y ralladura de limón en un cazo a fuego medio.",
+      "Remover hasta que la azúcar se disuelva y el almíbar rompa a hervir. Retirar del fuego.",
+      "Dejar templar el almíbar 5 min y añadir ron. Remover y reservar.",
+      "Retirar el bizcocho del horno cuando el palillo salga limpio. Dejar en el molde.",
+      "Pinchar toda la superficie del bizcocho con un palillo, haciendo agujeros uniformes.",
+      "Verter el almíbar despacio sobre el bizcocho, en varias veces, dejando que lo absorba entre cada adición.",
+      "Dejar reposar el bizcocho en el molde al menos 30 min hasta que quede bien empapado.",
+      "Desmoldar y servir."
     ],
-    "description": "Bizcocho jugoso empapado en almíbar de ron, muy húmedo y aromático."
+    "description": "Bizcocho jugoso empapado en almíbar de ron, muy húmedo y aromático.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 175 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Engrasar y enharinar un molde de 22 cm.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego suave hasta que esté líquida. Reservar y dejar templar.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Batir {{Huevo}} con 150 g de {{Azúcar}} en un bol hasta que la mezcla blanquee y duplique su volumen.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Leche}} y la mantequilla fundida al bol y mezclar hasta integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tamizar {{Harina}} junto con {{Levadura química}} directamente sobre el bol.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Incorporar la harina tamizada con movimientos envolventes hasta que no queden grumos.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la masa en el molde y hornear 38 min, hasta que al pinchar con un palillo salga limpio.",
+        "minutes": 38,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Calentar {{Agua}} con los 150 g de azúcar restantes y {{Ralladura de limón}} en un cazo a fuego medio.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover hasta que la azúcar se disuelva y el almíbar rompa a hervir. Retirar del fuego.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar templar el almíbar 5 min y añadir {{Ron}}. Remover y reservar.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Retirar el bizcocho del horno cuando el palillo salga limpio. Dejar en el molde.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Pinchar toda la superficie del bizcocho con un palillo, haciendo agujeros uniformes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter el almíbar despacio sobre el bizcocho, en varias veces, dejando que lo absorba entre cada adición.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar reposar el bizcocho en el molde al menos 30 min hasta que quede bien empapado.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 45,
+    "saturated_fat_g": 7,
+    "sodium_mg": 95,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Descongelar la tarta en la nevera durante toda la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Retirar la tarta de la nevera y dejar atemperar a temperatura ambiente.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Cubrir la tarta con film para que no se seque y calentar en el horno a 150 °C durante 10 min.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el film y servir en porciones.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   },
   {
     "id": "postres_035",
@@ -3007,17 +4658,99 @@
       }
     ],
     "steps": [
-      "Batir la mantequilla en pomada con 120 g de la azúcar glas hasta lograr una crema lisa.",
-      "Añadir el huevo y el extracto de vainilla y mezclar bien.",
-      "Incorporar la harina tamizada con la sal y mezclar lo justo hasta formar una masa que no se pegue a las manos.",
-      "Formar un disco, envolver en film y refrigerar al menos 1 h.",
-      "Precalentar el horno a 170 °C. Estirar la masa sobre una superficie enharinada hasta unos 4 mm de grosor y cortar formas con cortapastas.",
-      "Colocar las galletas en una bandeja con papel de horno, separadas entre sí, y hornear 9-11 min, hasta que los bordes empiecen a dorarse.",
-      "Dejar enfriar por completo sobre una rejilla antes de decorar.",
-      "Batir la clara de huevo con los 150 g de azúcar glas restantes y el zumo de limón hasta lograr una glasa espesa y brillante.",
-      "Decorar las galletas frías con la glasa y dejar secar al menos 1 h antes de servir o guardar."
+      "Templar mantequilla hasta que esté en pomada, blanda pero sin derretir.",
+      "Batir la mantequilla en pomada con azúcar glas (120 g) hasta obtener una crema lisa y homogénea.",
+      "Añadir huevo y extracto de vainilla a la crema y mezclar hasta integrar.",
+      "Tamizar harina junto con sal sobre la crema.",
+      "Mezclar lo justo hasta que la masa se despegue de las manos y sea uniforme; no amasar en exceso.",
+      "Formar un disco con la masa, envolverlo en film transparente y refrigerar hasta que esté firme.",
+      "Precalentar el horno a 170 °C.",
+      "Estirar la masa sobre una superficie enharinada hasta un grosor de 4 mm.",
+      "Cortar formas con cortapastas y colocarlas en una bandeja con papel de horno, separadas entre sí.",
+      "Hornear las galletas a 170 °C hasta que los bordes empiecen a dorarse.",
+      "Retirar la bandeja del horno y dejar enfriar las galletas por completo sobre una rejilla.",
+      "Batir clara de huevo con los 150 g restantes de azúcar glas y zumo de limón hasta obtener una glasa espesa y brillante.",
+      "Decorar las galletas frías con la glasa y dejar secar hasta que esté completamente sólida.",
+      "Servir las galletas una vez la glasa esté seca y firme."
     ],
-    "description": "Galletas de mantequilla doradas por los bordes, perfectas para decorar en familia."
+    "description": "Galletas de mantequilla doradas por los bordes, perfectas para decorar en familia.",
+    "stepsRich": [
+      {
+        "text": "Templar {{Mantequilla}} hasta que esté en pomada, blanda pero sin derretir.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir la mantequilla en pomada con {{Azúcar glas}} (120 g) hasta obtener una crema lisa y homogénea.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Huevo}} y {{Extracto de vainilla}} a la crema y mezclar hasta integrar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tamizar {{Harina}} junto con {{Sal|pizca}} sobre la crema.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar lo justo hasta que la masa se despegue de las manos y sea uniforme; no amasar en exceso.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Formar un disco con la masa, envolverlo en film transparente y refrigerar hasta que esté firme.",
+        "minutes": 60,
+        "kind": "espera"
+      },
+      {
+        "text": "Precalentar el horno a 170 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Estirar la masa sobre una superficie enharinada hasta un grosor de 4 mm.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cortar formas con cortapastas y colocarlas en una bandeja con papel de horno, separadas entre sí.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Hornear las galletas a 170 °C hasta que los bordes empiecen a dorarse.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la bandeja del horno y dejar enfriar las galletas por completo sobre una rejilla.",
+        "minutes": 20,
+        "kind": "espera"
+      },
+      {
+        "text": "Batir {{Clara de huevo}} con los 150 g restantes de azúcar glas y {{Zumo de limón}} hasta obtener una glasa espesa y brillante.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Decorar las galletas frías con la glasa y dejar secar hasta que esté completamente sólida.",
+        "minutes": 60,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir las galletas una vez la glasa esté seca y firme.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 45,
+    "saturated_fat_g": 17,
+    "sodium_mg": 110,
+    "freezable": false
   },
   {
     "id": "postres_036",
@@ -3088,15 +4821,126 @@
       }
     ],
     "steps": [
-      "Precalentar el horno a 180 °C. Engrasar y enharinar un molde de plumcake o redondo de 22 cm.",
-      "Batir el yogur con la azúcar y la ralladura de limón en un bol grande.",
-      "Añadir los huevos de uno en uno, batiendo bien tras cada uno.",
-      "Incorporar el aceite en hilo sin dejar de batir hasta emulsionar.",
-      "Tamizar la harina con la levadura y la sal sobre la mezcla y remover con espátula hasta que no queden grumos.",
-      "Verter la masa en el molde y hornear 40-45 min, hasta que al pinchar con un palillo salga limpio.",
-      "Dejar templar 10 min en el molde antes de desmoldar sobre una rejilla.",
-      "Dejar enfriar por completo antes de cortar."
+      "Precalentar el horno a 180 °C.",
+      "Engrasar un molde de 22 cm con aceite de girasol y espolvorear harina hasta cubrir toda la superficie.",
+      "Rallar ralladura de limón hasta obtener la cantidad necesaria y reservar.",
+      "Verter yogur natural en un bol grande junto con azúcar y la ralladura de limón.",
+      "Batir la mezcla de yogur, azúcar y ralladura hasta obtener una crema homogénea.",
+      "Añadir huevo de uno en uno, batiendo bien tras cada incorporación antes de añadir el siguiente.",
+      "Incorporar el aceite de girasol en hilo fino sin dejar de batir hasta que la mezcla emulsione.",
+      "Tamizar la harina restante junto con levadura química y sal sobre un bol aparte.",
+      "Añadir los ingredientes secos tamizados sobre la mezcla húmeda en dos tandas.",
+      "Remover con espátula con movimientos envolventes hasta que no queden grumos, sin batir en exceso.",
+      "Verter la masa en el molde preparado y alisar la superficie con la espátula.",
+      "Hornear a 180 °C durante 42 min, hasta que al pinchar con un palillo en el centro salga limpio.",
+      "Retirar el molde del horno y dejar templar 10 min dentro del molde antes de desmoldar.",
+      "Desmoldar el bizcocho sobre una rejilla y dejar enfriar por completo antes de cortar.",
+      "Cortar en porciones y servir."
     ],
-    "description": "Bizcocho esponjoso de yogur y limón, el clásico sencillo de toda la vida."
+    "description": "Bizcocho esponjoso de yogur y limón, el clásico sencillo de toda la vida.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 180 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Engrasar un molde de 22 cm con {{Aceite de girasol|chorrito}} y espolvorear {{Harina}} hasta cubrir toda la superficie.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Ralladura de limón}} hasta obtener la cantidad necesaria y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Yogur natural}} en un bol grande junto con {{Azúcar}} y la ralladura de limón.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir la mezcla de yogur, azúcar y ralladura hasta obtener una crema homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Huevo}} de uno en uno, batiendo bien tras cada incorporación antes de añadir el siguiente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el aceite de girasol en hilo fino sin dejar de batir hasta que la mezcla emulsione.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Tamizar la harina restante junto con {{Levadura química}} y {{Sal|gusto}} sobre un bol aparte.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir los ingredientes secos tamizados sobre la mezcla húmeda en dos tandas.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover con espátula con movimientos envolventes hasta que no queden grumos, sin batir en exceso.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter la masa en el molde preparado y alisar la superficie con la espátula.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Hornear a 180 °C durante 42 min, hasta que al pinchar con un palillo en el centro salga limpio.",
+        "minutes": 42,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar el molde del horno y dejar templar 10 min dentro del molde antes de desmoldar.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Desmoldar el bizcocho sobre una rejilla y dejar enfriar por completo antes de cortar.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Cortar en porciones y servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 28,
+    "saturated_fat_g": 3,
+    "sodium_mg": 180,
+    "freezable": true,
+    "thawSteps": [
+      {
+        "text": "Sacar las porciones del congelador y dejar descongelar en la nevera toda la noche.",
+        "minutes": 720,
+        "kind": "espera"
+      },
+      {
+        "text": "Retirar de la nevera y dejar atemperar a temperatura ambiente hasta que pierda el frío.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Calentar en el horno a 150 °C durante 8 min para recuperar la esponjosidad, cubierto con papel de aluminio.",
+        "minutes": 8,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Servir en plato una vez atemperado.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ]
   }
 ]

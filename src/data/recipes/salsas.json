@@ -54,15 +54,46 @@
       }
     ],
     "steps": [
-      "Mezclar el vinagre, la mostaza y la sal en un bol",
-      "Añadir el aceite en hilo fino batiendo sin parar hasta emulsionar",
-      "Rectificar de sal y pimienta",
-      "Servir en salsera o verter directamente sobre la ensalada"
+      "Añadir vinagre de jerez, mostaza de dijon y sal en un bol pequeño.",
+      "Mezclar con unas varillas hasta que la sal se disuelva y la mostaza quede integrada.",
+      "Verter aceite de oliva virgen extra en hilo muy fino mientras se bate sin parar hasta emulsionar.",
+      "Añadir pimienta negra y rectificar de sal al gusto.",
+      "Servir en salsera o verter directamente sobre la ensalada."
     ],
     "description": "Vinagreta clásica de mostaza y vinagre de Jerez, para aliñar ensaladas y verduras.",
     "productAliases": [
       "Vinagreta"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Añadir {{Vinagre de Jerez}}, {{Mostaza de Dijon}} y {{Sal|gusto}} en un bol pequeño.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar con unas varillas hasta que la sal se disuelva y la mostaza quede integrada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Aceite de oliva virgen extra}} en hilo muy fino mientras se bate sin parar hasta emulsionar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimienta negra|pizca}} y rectificar de sal al gusto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en salsera o verter directamente sobre la ensalada.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 220
   },
   {
     "id": "salsas_002",
@@ -115,15 +146,46 @@
       }
     ],
     "steps": [
-      "Machacar el ajo con una pizca de sal hasta hacer una pasta",
-      "Añadir el aceite en hilo muy fino sin dejar de batir hasta que emulsione",
-      "Terminar con unas gotas de limón",
-      "Reservar en frío hasta el momento de servir"
+      "Pelar ajo y retirar el germen interior.",
+      "Machacar el ajo pelado en un mortero con sal hasta obtener una pasta fina y homogénea.",
+      "Añadir aceite de oliva suave en hilo muy fino, sin parar de remover con el mortero, hasta que emulsione.",
+      "Añadir zumo de limón y remover hasta integrar.",
+      "Reservar el alioli en frío hasta el momento de servir."
     ],
     "description": "Alioli tradicional de ajo y aceite, sin huevo, para carnes, pescados y marisco a la plancha.",
     "productAliases": [
       "Alioli"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar {{Ajo}} y retirar el germen interior.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Machacar el ajo pelado en un mortero con {{Sal|gusto}} hasta obtener una pasta fina y homogénea.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva suave}} en hilo muy fino, sin parar de remover con el mortero, hasta que emulsione.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Zumo de limón}} y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reservar el alioli en frío hasta el momento de servir.",
+        "kind": "espera"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 3,
+    "sodium_mg": 120
   },
   {
     "id": "salsas_003",
@@ -183,16 +245,78 @@
       }
     ],
     "steps": [
-      "Sofreír la cebolla y el ajo picados en el aceite a fuego suave",
-      "Añadir el tomate triturado y el azúcar",
-      "Cocer 20 min a fuego bajo removiendo de vez en cuando",
-      "Salpimentar y triturar si se quiere una textura fina"
+      "Pelar y picar cebolla en trozos muy finos.",
+      "Pelar y picar ajo en trozos muy finos.",
+      "Calentar aceite de oliva en un cazo a fuego suave.",
+      "Sofreír la cebolla picada en el cazo hasta que esté transparente.",
+      "Añadir el ajo picado y sofreír hasta que se dore ligeramente.",
+      "Añadir tomate triturado y azúcar. Remover para mezclar bien.",
+      "Cocer a fuego suave durante 20 min, removiendo de vez en cuando.",
+      "Añadir sal y remover para integrar.",
+      "Triturar la salsa con un batidor hasta obtener una textura fina.",
+      "Servir la salsa de tomate caliente o reservar en un tarro hermético."
     ],
     "description": "El clásico tomate frito casero: para arroz blanco, huevos o cualquier plato sencillo.",
     "productAliases": [
       "Tomate frito",
       "Salsa de tomate"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Pelar y picar {{Cebolla}} en trozos muy finos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar y picar {{Ajo}} en trozos muy finos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en un cazo a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada en el cazo hasta que esté transparente.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y sofreír hasta que se dore ligeramente.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Tomate triturado}} y {{Azúcar}}. Remover para mezclar bien.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave durante 20 min, removiendo de vez en cuando.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar la salsa con un batidor hasta obtener una textura fina.",
+        "minutes": 1,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la salsa de tomate caliente o reservar en un tarro hermético.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 5,
+    "saturated_fat_g": 1,
+    "sodium_mg": 290
   },
   {
     "id": "salsas_004",
@@ -255,12 +379,81 @@
       }
     ],
     "steps": [
-      "Rehogar la cebolla y la zanahoria picadas en la mantequilla",
-      "Añadir el vino tinto y dejar reducir 5 min",
-      "Incorporar el caldo de carne y cocer a fuego bajo 20 min hasta reducir a la mitad",
-      "Colar y ligar con un poco de harina disuelta en agua fría si se quiere más espesa"
+      "Picar cebolla en trozos pequeños.",
+      "Picar zanahoria en trozos pequeños.",
+      "Calentar mantequilla en un cazo a fuego medio hasta que se derrita.",
+      "Sofreír la cebolla picada y la zanahoria picada en la mantequilla fundida a fuego medio hasta que estén tiernas.",
+      "Añadir vino tinto y remover hasta que se evapore el alcohol.",
+      "Añadir caldo de carne y llevar a ebullición a fuego fuerte.",
+      "Cocer a fuego suave hasta que el caldo reduzca a la mitad.",
+      "Mezclar harina con un poco de agua fría en un bol pequeño hasta obtener una pasta sin grumos.",
+      "Colar la salsa a través de un colador fino sobre un cazo limpio.",
+      "Añadir la pasta de harina a la salsa colada y remover a fuego medio hasta que esté ligada y sin grumos.",
+      "Servir la salsa caliente sobre el plato principal."
     ],
-    "description": "Jugo de asado clásico, reducido aparte: para carnes al horno o a la plancha."
+    "description": "Jugo de asado clásico, reducido aparte: para carnes al horno o a la plancha.",
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebolla}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Zanahoria}} en trozos pequeños.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Mantequilla}} en un cazo a fuego medio hasta que se derrita.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la cebolla picada y la zanahoria picada en la mantequilla fundida a fuego medio hasta que estén tiernas.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vino tinto}} y remover hasta que se evapore el alcohol.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Caldo de carne}} y llevar a ebullición a fuego fuerte.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave hasta que el caldo reduzca a la mitad.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Mezclar {{Harina}} con un poco de agua fría en un bol pequeño hasta obtener una pasta sin grumos.",
+        "minutes": 1,
+        "kind": "paralelo",
+        "during": 6
+      },
+      {
+        "text": "Colar la salsa a través de un colador fino sobre un cazo limpio.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la pasta de harina a la salsa colada y remover a fuego medio hasta que esté ligada y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir la salsa caliente sobre el plato principal.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 2,
+    "saturated_fat_g": 4,
+    "sodium_mg": 320
   },
   {
     "id": "salsas_005",
@@ -321,12 +514,62 @@
       }
     ],
     "steps": [
-      "Picar muy fino el perejil, el ajo y las alcaparras",
-      "Mezclar con el aceite y el zumo de limón",
-      "Salar al gusto",
-      "Dejar reposar 10 min antes de servir"
+      "Picar perejil fresco muy fino con un cuchillo hasta obtener una textura menuda y uniforme.",
+      "Picar ajo muy fino.",
+      "Picar alcaparras muy fino.",
+      "Mezclar el perejil picado, el ajo picado y las alcaparras picadas en un bol.",
+      "Añadir aceite de oliva y zumo de limón, y remover hasta integrar.",
+      "Añadir sal y remover.",
+      "Dejar reposar la salsa 10 min para que los sabores se asienten.",
+      "Servir la salsa verde."
     ],
-    "description": "Salsa verde en crudo de perejil y alcaparras, para pescado blanco, azul o carnes blancas."
+    "description": "Salsa verde en crudo de perejil y alcaparras, para pescado blanco, azul o carnes blancas.",
+    "stepsRich": [
+      {
+        "text": "Picar {{Perejil fresco}} muy fino con un cuchillo hasta obtener una textura menuda y uniforme.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Alcaparras}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el perejil picado, el ajo picado y las alcaparras picadas en un bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y {{Zumo de limón}}, y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dejar reposar la salsa 10 min para que los sabores se asienten.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la salsa verde.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 290
   },
   {
     "id": "salsas_006",
@@ -388,12 +631,62 @@
       }
     ],
     "steps": [
-      "Triturar el cilantro, el ajo y el comino",
-      "Añadir el vinagre y triturar de nuevo",
-      "Incorporar el aceite en hilo mientras se tritura hasta emulsionar",
-      "Rectificar de sal"
+      "Pelar ajo.",
+      "Lavar cilantro fresco y escurrir bien.",
+      "Introducir el cilantro fresco y el ajo en el vaso de la batidora o picadora.",
+      "Añadir comino y triturar hasta obtener una pasta fina.",
+      "Añadir vinagre y triturar de nuevo hasta integrar.",
+      "Incorporar aceite de oliva en hilo fino mientras se tritura hasta emulsionar la salsa.",
+      "Añadir sal y triturar 10 segundos más para integrar. Rectificar de sal si fuera necesario.",
+      "Servir el mojo verde en un bol o salsera."
     ],
-    "description": "Mojo verde canario de cilantro y comino, para carnes blancas, pescado, marisco o verduras."
+    "description": "Mojo verde canario de cilantro y comino, para carnes blancas, pescado, marisco o verduras.",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Lavar {{Cilantro fresco}} y escurrir bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Introducir el cilantro fresco y el ajo en el vaso de la batidora o picadora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Comino}} y triturar hasta obtener una pasta fina.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vinagre}} y triturar de nuevo hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Aceite de oliva}} en hilo fino mientras se tritura hasta emulsionar la salsa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y triturar 10 segundos más para integrar. Rectificar de sal si fuera necesario.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el mojo verde en un bol o salsera.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 290
   },
   {
     "id": "salsas_007",
@@ -462,12 +755,62 @@
       }
     ],
     "steps": [
-      "Rehidratar la ñora en agua caliente 15 min y retirar la pulpa",
-      "Triturar la pulpa con el ajo, el pimentón, el comino y el vinagre",
-      "Añadir el aceite en hilo hasta emulsionar",
-      "Rectificar de sal"
+      "Cubrir pimiento choricero (ñora) con agua muy caliente en un bol pequeño.",
+      "Dejar en remojo hasta que la ñora esté blanda y rehidratada.",
+      "Retirar la ñora del agua y raspar la pulpa interior con una cuchara.",
+      "Añadir la pulpa de ñora al vaso de la batidora junto con ajo.",
+      "Añadir pimentón picante, comino y vinagre al vaso.",
+      "Triturar todo hasta obtener una pasta homogénea y fina.",
+      "Añadir aceite de oliva en hilo fino mientras se sigue triturando hasta emulsionar.",
+      "Rectificar con sal y triturar 10 segundos más para integrar."
     ],
-    "description": "Mojo picón canario, picante, de pimentón y ñora: para carnes y verduras asadas."
+    "description": "Mojo picón canario, picante, de pimentón y ñora: para carnes y verduras asadas.",
+    "stepsRich": [
+      {
+        "text": "Cubrir {{Pimiento choricero (ñora)}} con agua muy caliente en un bol pequeño.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Dejar en remojo hasta que la ñora esté blanda y rehidratada.",
+        "minutes": 15,
+        "kind": "espera"
+      },
+      {
+        "text": "Retirar la ñora del agua y raspar la pulpa interior con una cuchara.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la pulpa de ñora al vaso de la batidora junto con {{Ajo}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Pimentón picante}}, {{Comino}} y {{Vinagre}} al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar todo hasta obtener una pasta homogénea y fina.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} en hilo fino mientras se sigue triturando hasta emulsionar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Rectificar con {{Sal|gusto}} y triturar 10 segundos más para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 2,
+    "sodium_mg": 290
   },
   {
     "id": "salsas_008",
@@ -532,15 +875,59 @@
       }
     ],
     "steps": [
-      "Picar muy fino el perejil y el ajo",
-      "Mezclar con el orégano, la guindilla y la sal",
-      "Añadir el vinagre y el aceite",
-      "Dejar reposar al menos 30 min antes de servir para que se integren los sabores"
+      "Picar ajo muy fino sobre la tabla.",
+      "Picar perejil fresco muy fino hasta obtener trozos menudos.",
+      "Mezclar en un bol el perejil picado, el ajo picado, orégano seco, guindilla y sal.",
+      "Añadir vinagre de vino y remover hasta integrar.",
+      "Añadir aceite de oliva en hilo fino mientras se remueve para emulsionar.",
+      "Reposar el chimichurri tapado a temperatura ambiente hasta que los sabores se integren.",
+      "Servir el chimichurri en un cuenco o directamente sobre el plato."
     ],
     "description": "Chimichurri argentino de perejil y orégano, el clásico para carnes a la parrilla.",
     "productAliases": [
       "Chimichurri"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino sobre la tabla.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil fresco}} muy fino hasta obtener trozos menudos.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol el perejil picado, el ajo picado, {{Orégano seco}}, {{Guindilla}} y {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vinagre de vino}} y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} en hilo fino mientras se remueve para emulsionar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reposar el chimichurri tapado a temperatura ambiente hasta que los sabores se integren.",
+        "minutes": 30,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir el chimichurri en un cuenco o directamente sobre el plato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "salsas_009",
@@ -597,12 +984,38 @@
       }
     ],
     "steps": [
-      "Mezclar la mostaza y la miel hasta integrar",
-      "Añadir el aceite en hilo fino batiendo",
-      "Terminar con el zumo de limón",
-      "Rectificar de sal"
+      "Mezclar mostaza de dijon y miel en un bol hasta obtener una mezcla homogénea.",
+      "Añadir aceite de oliva en hilo fino mientras se bate sin parar hasta emulsionar.",
+      "Incorporar zumo de limón y mezclar hasta integrar.",
+      "Añadir sal y remover. Rectificar el punto de acidez o dulzor si es necesario."
     ],
-    "description": "Salsa agridulce de mostaza y miel, clásica para pollo, pavo o carnes a la plancha."
+    "description": "Salsa agridulce de mostaza y miel, clásica para pollo, pavo o carnes a la plancha.",
+    "stepsRich": [
+      {
+        "text": "Mezclar {{Mostaza de Dijon}} y {{Miel}} en un bol hasta obtener una mezcla homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva}} en hilo fino mientras se bate sin parar hasta emulsionar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Zumo de limón}} y mezclar hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover. Rectificar el punto de acidez o dulzor si es necesario.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 7,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "salsas_010",
@@ -681,12 +1094,68 @@
       }
     ],
     "steps": [
-      "Asar el tomate y el ajo 20 min al horno",
-      "Rehidratar la ñora en agua caliente y retirar la pulpa",
-      "Triturar todos los ingredientes con el aceite y el vinagre hasta obtener una crema",
-      "Rectificar de sal"
+      "Precalentar el horno a 200 °C.",
+      "Sumergir pimiento choricero (ñora) en agua muy caliente hasta que se hidrate.",
+      "Colocar tomate maduro y ajo en una bandeja y hornear hasta que estén asados.",
+      "Retirar la ñora hidratada del agua y extraer la pulpa raspando con una cuchara.",
+      "Añadir el tomate asado, el ajo asado, la pulpa de ñora, almendra tostada, avellana tostada y pan frito al vaso de la batidora.",
+      "Incorporar aceite de oliva y vinagre al vaso.",
+      "Triturar todo hasta obtener una crema homogénea.",
+      "Añadir sal y triturar de nuevo hasta integrar.",
+      "Servir el romesco en un cuenco o directamente como acompañamiento."
     ],
-    "description": "Romesco catalán de almendra, avellana y ñora: para pescado o verduras asadas."
+    "description": "Romesco catalán de almendra, avellana y ñora: para pescado o verduras asadas.",
+    "stepsRich": [
+      {
+        "text": "Precalentar el horno a 200 °C.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Sumergir {{Pimiento choricero (ñora)}} en agua muy caliente hasta que se hidrate.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Colocar {{Tomate maduro}} y {{Ajo}} en una bandeja y hornear hasta que estén asados.",
+        "minutes": 20,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Retirar la ñora hidratada del agua y extraer la pulpa raspando con una cuchara.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el tomate asado, el ajo asado, la pulpa de ñora, {{Almendra tostada}}, {{Avellana tostada}} y {{Pan frito}} al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Incorporar {{Aceite de oliva|chorrito}} y {{Vinagre}} al vaso.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar todo hasta obtener una crema homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y triturar de nuevo hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el romesco en un cuenco o directamente como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 3,
+    "saturated_fat_g": 2,
+    "sodium_mg": 290
   },
   {
     "id": "salsas_011",
@@ -744,12 +1213,48 @@
       }
     ],
     "steps": [
-      "Mezclar el tahini con el zumo de limón hasta que espese",
-      "Añadir agua poco a poco batiendo hasta obtener una crema fluida",
-      "Añadir el ajo picado muy fino y la sal",
-      "Rectificar de textura con más agua si hace falta"
+      "Picar ajo muy fino hasta obtener una pasta casi homogénea.",
+      "Verter tahini en un bol y añadir zumo de limón. Mezclar con unas varillas hasta que espese y se integre.",
+      "Añadir agua poco a poco sin dejar de remover hasta que la salsa tenga textura fluida y homogénea.",
+      "Añadir el ajo picado y sal. Mezclar bien hasta integrar.",
+      "Añadir un poco más de agua si la salsa ha quedado demasiado espesa y remover hasta conseguir la textura deseada.",
+      "Servir en un bol o salsera lista para acompañar."
     ],
-    "description": "Crema de tahini y limón, para ensaladas, verduras asadas o carnes blancas."
+    "description": "Crema de tahini y limón, para ensaladas, verduras asadas o carnes blancas.",
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino hasta obtener una pasta casi homogénea.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Tahini}} en un bol y añadir {{Zumo de limón}}. Mezclar con unas varillas hasta que espese y se integre.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Agua}} poco a poco sin dejar de remover hasta que la salsa tenga textura fluida y homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y {{Sal|gusto}}. Mezclar bien hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un poco más de agua si la salsa ha quedado demasiado espesa y remover hasta conseguir la textura deseada.",
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir en un bol o salsera lista para acompañar.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 1,
+    "sodium_mg": 180
   },
   {
     "id": "salsas_012",
@@ -812,12 +1317,62 @@
       }
     ],
     "steps": [
-      "Rallar el pepino y escurrir el exceso de agua",
-      "Mezclar con el yogur, el eneldo picado y el ajo",
-      "Añadir el aceite y la sal",
-      "Enfriar antes de servir"
+      "Rallar pepino con un rallador fino sobre un bol.",
+      "Escurrir el pepino rallado apretándolo con las manos hasta eliminar el exceso de agua.",
+      "Picar eneldo fresco fino con un cuchillo.",
+      "Rallar ajo o picarlo muy fino.",
+      "Mezclar yogur griego con el pepino escurrido, el eneldo picado y el ajo en un bol.",
+      "Añadir aceite de oliva y sal; remover hasta integrar.",
+      "Refrigerar la salsa tapada hasta que esté bien fría.",
+      "Servir la salsa fría como acompañamiento."
     ],
-    "description": "Salsa fresca de yogur, pepino y eneldo, tipo tzatziki: para carnes blancas, pescado o ensaladas."
+    "description": "Salsa fresca de yogur, pepino y eneldo, tipo tzatziki: para carnes blancas, pescado o ensaladas.",
+    "stepsRich": [
+      {
+        "text": "Rallar {{Pepino}} con un rallador fino sobre un bol.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Escurrir el pepino rallado apretándolo con las manos hasta eliminar el exceso de agua.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Eneldo fresco}} fino con un cuchillo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Rallar {{Ajo}} o picarlo muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar {{Yogur griego}} con el pepino escurrido, el eneldo picado y el ajo en un bol.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} y {{Sal|gusto}}; remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar la salsa tapada hasta que esté bien fría.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la salsa fría como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 2,
+    "saturated_fat_g": 1,
+    "sodium_mg": 200
   },
   {
     "id": "salsas_013",
@@ -871,12 +1426,38 @@
       }
     ],
     "steps": [
-      "Derretir la mantequilla a fuego suave",
-      "Añadir el miso y disolver removiendo",
-      "Incorporar el mirin y el agua hasta ligar",
-      "Retirar del fuego y reservar templada"
+      "Calentar mantequilla en un cazo pequeño a fuego suave hasta que se funda por completo.",
+      "Añadir miso blanco y remover con una espátula hasta que se disuelva sin grumos.",
+      "Incorporar mirin y agua y remover a fuego suave hasta que la salsa ligue y quede homogénea.",
+      "Retirar el cazo del fuego y reservar la salsa templada hasta el momento de servir."
     ],
-    "description": "Glaseado de miso y mantequilla, untuoso y umami, para pescado o verduras asadas."
+    "description": "Glaseado de miso y mantequilla, untuoso y umami, para pescado o verduras asadas.",
+    "stepsRich": [
+      {
+        "text": "Calentar {{Mantequilla}} en un cazo pequeño a fuego suave hasta que se funda por completo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miso blanco}} y remover con una espátula hasta que se disuelva sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Mirin}} y {{Agua}} y remover a fuego suave hasta que la salsa ligue y quede homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y reservar la salsa templada hasta el momento de servir.",
+        "minutes": 2,
+        "kind": "espera"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 3,
+    "saturated_fat_g": 8,
+    "sodium_mg": 480
   },
   {
     "id": "salsas_014",
@@ -923,11 +1504,38 @@
       }
     ],
     "steps": [
-      "Picar muy fino el perejil y el ajo",
-      "Mezclar con la ralladura de limón",
-      "Reservar y espolvorear justo antes de servir"
+      "Picar perejil fresco muy fino con un cuchillo.",
+      "Picar ajo muy fino.",
+      "Mezclar el perejil picado, el ajo picado y ralladura de limón en un bol hasta integrar.",
+      "Reservar la gremolata y espolvorear sobre el plato justo antes de servir."
     ],
-    "description": "Gremolata italiana de perejil, limón y ajo: un toque fresco final para carnes, pescado o verduras."
+    "description": "Gremolata italiana de perejil, limón y ajo: un toque fresco final para carnes, pescado o verduras.",
+    "stepsRich": [
+      {
+        "text": "Picar {{Perejil fresco}} muy fino con un cuchillo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar el perejil picado, el ajo picado y {{Ralladura de limón}} en un bol hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reservar la gremolata y espolvorear sobre el plato justo antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 0,
+    "saturated_fat_g": 0,
+    "sodium_mg": 5
   },
   {
     "id": "salsas_015",
@@ -985,15 +1593,53 @@
       }
     ],
     "steps": [
-      "Machacar las anchoas con el ajo hasta hacer una pasta",
-      "Añadir el aceite en hilo mientras se bate",
-      "Terminar con el zumo de limón y el perejil picado",
-      "Rectificar de sal (las anchoas ya aportan)"
+      "Picar ajo muy fino hasta obtener una pasta.",
+      "Picar perejil fresco fino y reservar.",
+      "Machacar filetes de anchoa en aceite junto con el ajo picado en un mortero hasta obtener una pasta homogénea.",
+      "Añadir aceite de oliva muy despacio sobre la pasta de anchoa y ajo, removiendo sin parar hasta emulsionar.",
+      "Añadir zumo de limón y remover hasta integrar por completo.",
+      "Añadir el perejil picado y remover. Probar antes de salar, ya que las anchoas aportan sal."
     ],
     "description": "Salsa untuosa de anchoas, ajo y limón, con mucho carácter: para pescado blanco o verduras.",
     "extraProteins": [
       "pescado_azul"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino hasta obtener una pasta.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Perejil fresco}} fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Machacar {{Filetes de anchoa en aceite}} junto con el ajo picado en un mortero hasta obtener una pasta homogénea.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} muy despacio sobre la pasta de anchoa y ajo, removiendo sin parar hasta emulsionar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Zumo de limón}} y remover hasta integrar por completo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el perejil picado y remover. Probar antes de salar, ya que las anchoas aportan sal.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 280
   },
   {
     "id": "salsas_016",
@@ -1049,12 +1695,44 @@
       }
     ],
     "steps": [
-      "Mezclar el yogur con la harissa hasta integrar",
-      "Añadir el zumo de limón",
-      "Rectificar de sal",
-      "Enfriar antes de servir"
+      "Mezclar yogur griego con harissa en un bol hasta integrar por completo.",
+      "Añadir zumo de limón y remover hasta homogeneizar.",
+      "Añadir sal y remover.",
+      "Refrigerar la salsa hasta el momento de servir.",
+      "Servir la salsa fría como acompañamiento."
     ],
-    "description": "Yogur picante con harissa, para carnes a la plancha o verduras asadas."
+    "description": "Yogur picante con harissa, para carnes a la plancha o verduras asadas.",
+    "stepsRich": [
+      {
+        "text": "Mezclar {{Yogur griego}} con {{Harissa}} en un bol hasta integrar por completo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Zumo de limón}} y remover hasta homogeneizar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar la salsa hasta el momento de servir.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la salsa fría como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 3,
+    "saturated_fat_g": 2,
+    "sodium_mg": 120
   },
   {
     "id": "salsas_017",
@@ -1113,12 +1791,50 @@
       }
     ],
     "steps": [
-      "Triturar el pistacho, la albahaca y el ajo",
-      "Añadir el aceite en hilo mientras se tritura",
-      "Incorporar el parmesano rallado",
-      "Rectificar de sal"
+      "Rallar queso parmesano y reservar.",
+      "Introducir pistacho pelado, albahaca fresca y ajo en el vaso de la batidora.",
+      "Triturar los ingredientes del vaso hasta obtener una pasta homogénea.",
+      "Añadir aceite de oliva en hilo fino mientras se tritura, hasta emulsionar la salsa.",
+      "Incorporar el queso parmesano rallado y triturar hasta integrarlo por completo.",
+      "Rectificar de sal al gusto y remover para homogeneizar la salsa antes de servir."
     ],
-    "description": "Pesto de pistacho y albahaca, para ensaladas, pescado blanco o carnes blancas."
+    "description": "Pesto de pistacho y albahaca, para ensaladas, pescado blanco o carnes blancas.",
+    "stepsRich": [
+      {
+        "text": "Rallar {{Queso parmesano}} y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Introducir {{Pistacho pelado}}, {{Albahaca fresca}} y {{Ajo}} en el vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar los ingredientes del vaso hasta obtener una pasta homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva}} en hilo fino mientras se tritura, hasta emulsionar la salsa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el queso parmesano rallado y triturar hasta integrarlo por completo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Rectificar de sal al gusto y remover para homogeneizar la salsa antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 1,
+    "saturated_fat_g": 3,
+    "sodium_mg": 95
   },
   {
     "id": "salsas_019",
@@ -1165,12 +1881,50 @@
       }
     ],
     "steps": [
-      "Fundir la mantequilla a fuego medio hasta que tome color avellana y huela a frutos secos",
-      "Añadir las hojas de salvia y freírlas 30 segundos",
-      "Retirar del fuego y añadir el zumo de limón",
-      "Servir templada"
+      "Separar las hojas de salvia fresca de los tallos y reservar.",
+      "Calentar mantequilla en un cazo a fuego medio hasta que se funda por completo.",
+      "Continuar calentando hasta que la mantequilla tome color avellana y desprenda aroma a frutos secos.",
+      "Añadir las hojas de salvia reservadas y freír hasta que crujan, sin apartar la vista.",
+      "Retirar el cazo del fuego y añadir zumo de limón para detener la cocción.",
+      "Servir templada sobre el plato elegido."
     ],
-    "description": "Mantequilla avellanada con salvia crujiente, clásico italiano para pescado blanco o verduras."
+    "description": "Mantequilla avellanada con salvia crujiente, clásico italiano para pescado blanco o verduras.",
+    "stepsRich": [
+      {
+        "text": "Separar las hojas de {{Salvia fresca}} de los tallos y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Mantequilla}} en un cazo a fuego medio hasta que se funda por completo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Continuar calentando hasta que la mantequilla tome color avellana y desprenda aroma a frutos secos.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir las hojas de salvia reservadas y freír hasta que crujan, sin apartar la vista.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y añadir {{Zumo de limón}} para detener la cocción.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir templada sobre el plato elegido.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 10,
+    "sodium_mg": 85
   },
   {
     "id": "salsas_020",
@@ -1227,12 +1981,50 @@
       }
     ],
     "steps": [
-      "Calentar el zumo de naranja con el jengibre rallado",
-      "Añadir la miel y la soja",
-      "Cocer 5 min a fuego medio",
-      "Ligar con la maicena disuelta en un poco de agua fría hasta espesar"
+      "Disolver maicena en 1 cucharada de agua fría hasta obtener una mezcla sin grumos. Reservar.",
+      "Verter zumo de naranja en un cazo pequeño y añadir jengibre fresco rallado.",
+      "Añadir miel y salsa de soja. Remover hasta integrar.",
+      "Llevar a ebullición a fuego medio, luego bajar a fuego suave y cocer 5 min hasta que reduzca ligeramente.",
+      "Añadir la mezcla de maicena reservada sin dejar de remover hasta que la salsa espese.",
+      "Retirar del fuego y servir caliente como acompañamiento."
     ],
-    "description": "Glaseado de naranja y jengibre, agridulce, para pollo, pavo o pescado azul."
+    "description": "Glaseado de naranja y jengibre, agridulce, para pollo, pavo o pescado azul.",
+    "stepsRich": [
+      {
+        "text": "Disolver {{Maicena}} en 1 cucharada de agua fría hasta obtener una mezcla sin grumos. Reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Zumo de naranja}} en un cazo pequeño y añadir {{Jengibre fresco rallado}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel}} y {{Salsa de soja}}. Remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Llevar a ebullición a fuego medio, luego bajar a fuego suave y cocer 5 min hasta que reduzca ligeramente.",
+        "minutes": 6,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir la mezcla de maicena reservada sin dejar de remover hasta que la salsa espese.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y servir caliente como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 10,
+    "saturated_fat_g": 0,
+    "sodium_mg": 180
   },
   {
     "id": "salsas_021",
@@ -1288,12 +2080,62 @@
       }
     ],
     "steps": [
-      "Infusionar el azafrán en una cucharada de agua caliente unos minutos",
-      "Machacar el ajo con la sal",
-      "Añadir el aceite en hilo fino batiendo hasta emulsionar",
-      "Incorporar el azafrán infusionado y el limón"
+      "Calentar un poco de agua hasta que esté muy caliente, sin llegar a hervir.",
+      "Infusionar azafrán en hebras en el agua caliente durante 5 min hasta que suelte el color.",
+      "Pelar ajo y colocarlo en un mortero.",
+      "Añadir sal al mortero y machacar el ajo con la sal hasta obtener una pasta fina.",
+      "Incorporar aceite de oliva suave en hilo muy fino sobre la pasta de ajo, removiendo sin parar con el mortero.",
+      "Añadir el azafrán infusionado con su agua y zumo de limón a la emulsión mientras se remueve.",
+      "Remover hasta que la salsa esté homogénea y con un color dorado uniforme.",
+      "Servir el alioli en un bol o directamente como acompañamiento."
     ],
-    "description": "Alioli con un toque de azafrán, para pescado blanco, marisco o arroz."
+    "description": "Alioli con un toque de azafrán, para pescado blanco, marisco o arroz.",
+    "stepsRich": [
+      {
+        "text": "Calentar un poco de agua hasta que esté muy caliente, sin llegar a hervir.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Infusionar {{Azafrán en hebras}} en el agua caliente durante 5 min hasta que suelte el color.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Pelar {{Ajo}} y colocarlo en un mortero.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} al mortero y machacar el ajo con la sal hasta obtener una pasta fina.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Aceite de oliva suave}} en hilo muy fino sobre la pasta de ajo, removiendo sin parar con el mortero.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el azafrán infusionado con su agua y {{Zumo de limón}} a la emulsión mientras se remueve.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover hasta que la salsa esté homogénea y con un color dorado uniforme.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir el alioli en un bol o directamente como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 3,
+    "sodium_mg": 120
   },
   {
     "id": "salsas_023",
@@ -1357,12 +2199,56 @@
       }
     ],
     "steps": [
-      "Mezclar la soja, la miel y el aceite de sésamo",
-      "Añadir el ajo y el jengibre rallados",
-      "Calentar 2 min a fuego suave hasta que espese ligeramente",
-      "Terminar con las semillas de sésamo"
+      "Rallar jengibre fresco rallado con un rallador fino hasta obtener 5 g.",
+      "Picar ajo muy fino.",
+      "Verter salsa de soja en un cazo pequeño a fuego suave.",
+      "Añadir miel y aceite de sésamo al cazo y remover hasta integrar.",
+      "Añadir el ajo picado y el jengibre rallado al cazo y remover.",
+      "Calentar a fuego suave hasta que la salsa espese ligeramente, sin dejar de remover.",
+      "Retirar del fuego y añadir semillas de sésamo removiendo para distribuirlas."
     ],
-    "description": "Aliño agridulce de sésamo, soja y miel, para ensaladas, pollo o pescado azul."
+    "description": "Aliño agridulce de sésamo, soja y miel, para ensaladas, pollo o pescado azul.",
+    "stepsRich": [
+      {
+        "text": "Rallar {{Jengibre fresco rallado}} con un rallador fino hasta obtener 5 g.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Salsa de soja}} en un cazo pequeño a fuego suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel}} y {{Aceite de sésamo}} al cazo y remover hasta integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir el ajo picado y el jengibre rallado al cazo y remover.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar a fuego suave hasta que la salsa espese ligeramente, sin dejar de remover.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar del fuego y añadir {{Semillas de sésamo|gusto}} removiendo para distribuirlas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 6,
+    "saturated_fat_g": 1,
+    "sodium_mg": 620
   },
   {
     "id": "salsas_024",
@@ -1414,12 +2300,56 @@
       }
     ],
     "steps": [
-      "Desmenuzar el roquefort y machacarlo con un tenedor",
-      "Mezclar con el yogur y la leche hasta obtener una crema fluida",
-      "Añadir pimienta al gusto",
-      "Enfriar antes de servir"
+      "Desmenuzar queso roquefort con un tenedor hasta obtener migas finas.",
+      "Machacar las migas de roquefort con el tenedor hasta conseguir una pasta lo más homogénea posible.",
+      "Añadir yogur griego y leche a la pasta de roquefort.",
+      "Mezclar con el tenedor o una varilla hasta obtener una crema fluida y sin grumos.",
+      "Añadir pimienta negra y remover para integrar.",
+      "Refrigerar la salsa al menos 10 min antes de servir para que asiente el sabor.",
+      "Servir la salsa fría como acompañamiento."
     ],
-    "description": "Crema ligera de roquefort, para carne roja a la plancha o ensaladas con fruta."
+    "description": "Crema ligera de roquefort, para carne roja a la plancha o ensaladas con fruta.",
+    "stepsRich": [
+      {
+        "text": "Desmenuzar {{Queso roquefort}} con un tenedor hasta obtener migas finas.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Machacar las migas de roquefort con el tenedor hasta conseguir una pasta lo más homogénea posible.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Yogur griego}} y {{Leche}} a la pasta de roquefort.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Mezclar con el tenedor o una varilla hasta obtener una crema fluida y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimienta negra|pizca}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Refrigerar la salsa al menos 10 min antes de servir para que asiente el sabor.",
+        "minutes": 10,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la salsa fría como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 2,
+    "saturated_fat_g": 4,
+    "sodium_mg": 290
   },
   {
     "id": "salsas_025",
@@ -1473,15 +2403,71 @@
       }
     ],
     "steps": [
-      "Batir el huevo entero con la sal",
-      "Añadir el aceite en hilo muy fino sin dejar de batir hasta que emulsione y espese",
-      "Terminar con el zumo de limón",
-      "Reservar en frío"
+      "Colocar huevo en el vaso de la batidora sin romper la yema.",
+      "Añadir sal y zumo de limón sobre el huevo.",
+      "Introducir el brazo de la batidora hasta el fondo del vaso sin moverlo.",
+      "Verter aceite de girasol despacio sobre el huevo, cubriéndolo por completo.",
+      "Batir a velocidad máxima sin mover el brazo hasta que emulsione la base.",
+      "Subir el brazo de la batidora muy despacio hasta que el aceite quede integrado.",
+      "Comprobar la textura: debe ser espesa y homogénea; batir 10 segundos más si no ha ligado.",
+      "Tapar el vaso y reservar en el frigorífico hasta el momento de servir.",
+      "Servir la mayonesa fría en un bol o directamente como acompañamiento."
     ],
     "description": "Mayonesa casera clásica, para pescado, marisco, ensaladas o huevos.",
     "productAliases": [
       "Mayonesa"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Colocar {{Huevo}} en el vaso de la batidora sin romper la yema.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y {{Zumo de limón}} sobre el huevo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Introducir el brazo de la batidora hasta el fondo del vaso sin moverlo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Aceite de girasol}} despacio sobre el huevo, cubriéndolo por completo.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir a velocidad máxima sin mover el brazo hasta que emulsione la base.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Subir el brazo de la batidora muy despacio hasta que el aceite quede integrado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Comprobar la textura: debe ser espesa y homogénea; batir 10 segundos más si no ha ligado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar el vaso y reservar en el frigorífico hasta el momento de servir.",
+        "minutes": 5,
+        "kind": "espera"
+      },
+      {
+        "text": "Servir la mayonesa fría en un bol o directamente como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 2,
+    "sodium_mg": 180
   },
   {
     "id": "salsas_026",
@@ -1551,15 +2537,71 @@
       }
     ],
     "steps": [
-      "Sofreír el ajo en el aceite",
-      "Añadir la harina y tostarla 1 min",
-      "Incorporar el tomate y el pimentón",
-      "Cocer 10 min a fuego bajo removiendo, añadiendo agua si espesa demasiado"
+      "Picar ajo muy fino.",
+      "Calentar aceite de oliva en una sartén a fuego medio.",
+      "Sofreír el ajo picado hasta que esté dorado sin quemarse.",
+      "Añadir harina y remover sin parar hasta que se tueste ligeramente.",
+      "Añadir pimentón picante, pimentón dulce y cayena, removiendo para integrar con la harina.",
+      "Incorporar tomate triturado y mezclar bien hasta obtener una salsa homogénea.",
+      "Cocer a fuego suave removiendo con frecuencia hasta que la salsa espese y los sabores se integren.",
+      "Triturar la salsa con una batidora hasta obtener una textura fina y sin grumos.",
+      "Servir caliente como acompañamiento."
     ],
     "description": "La clásica salsa brava española, picante, para patatas, huevos o verduras.",
     "productAliases": [
       "Salsa brava"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Picar {{Ajo}} muy fino.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en una sartén a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír el ajo picado hasta que esté dorado sin quemarse.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Harina}} y remover sin parar hasta que se tueste ligeramente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Pimentón picante}}, {{Pimentón dulce}} y {{Cayena}}, removiendo para integrar con la harina.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar {{Tomate triturado}} y mezclar bien hasta obtener una salsa homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave removiendo con frecuencia hasta que la salsa espese y los sabores se integren.",
+        "minutes": 10,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Triturar la salsa con una batidora hasta obtener una textura fina y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir caliente como acompañamiento.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 3,
+    "saturated_fat_g": 0,
+    "sodium_mg": 180
   },
   {
     "id": "salsas_027",
@@ -1618,15 +2660,53 @@
       }
     ],
     "steps": [
-      "Triturar la albahaca, los piñones y el ajo",
-      "Añadir el aceite en hilo mientras se tritura",
-      "Incorporar el parmesano rallado a mano al final",
-      "Rectificar de sal"
+      "Rallar queso parmesano con un rallador fino y reservar.",
+      "Pelar ajo y retirar el germen interior si lo tiene.",
+      "Introducir albahaca fresca, piñones y el ajo pelado en el vaso de la batidora o mortero.",
+      "Triturar los ingredientes del vaso hasta obtener una pasta gruesa.",
+      "Añadir aceite de oliva en hilo fino mientras se sigue triturando, hasta emulsionar.",
+      "Incorporar el queso parmesano rallado y mezclar a mano con una espátula, sin triturar."
     ],
     "description": "Pesto genovés clásico, para ensaladas, pollo a la plancha o pescado blanco.",
     "productAliases": [
       "Pesto"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Rallar {{Queso parmesano}} con un rallador fino y reservar.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Ajo}} y retirar el germen interior si lo tiene.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Introducir {{Albahaca fresca}}, {{Piñones}} y el ajo pelado en el vaso de la batidora o mortero.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar los ingredientes del vaso hasta obtener una pasta gruesa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Aceite de oliva|chorrito}} en hilo fino mientras se sigue triturando, hasta emulsionar.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Incorporar el queso parmesano rallado y mezclar a mano con una espátula, sin triturar.",
+        "minutes": 1,
+        "kind": "activo"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 3,
+    "sodium_mg": 120
   },
   {
     "id": "salsas_028",
@@ -1684,12 +2764,68 @@
       }
     ],
     "steps": [
-      "Fundir la mantequilla y reservarla templada",
-      "Batir las yemas con el agua al baño maría hasta que espesen",
-      "Añadir la mantequilla en hilo fino sin dejar de batir hasta emulsionar",
-      "Terminar con el zumo de limón y sal"
+      "Fundir mantequilla en un cazo a fuego suave hasta que esté completamente líquida, sin que llegue a dorarse.",
+      "Retirar la mantequilla fundida del fuego y reservar templada.",
+      "Llenar un cazo amplio con agua hasta la mitad y llevar a ebullición; bajar a fuego suave para mantener el vapor.",
+      "Colocar un bol resistente al calor sobre el cazo sin que toque el agua; verter yema de huevo y agua.",
+      "Batir las yemas con el agua al baño maría de forma continua hasta que la mezcla espese y deje trazo al levantar las varillas.",
+      "Retirar el bol del baño maría y colocarlo sobre una superficie estable.",
+      "Añadir la mantequilla templada en hilo muy fino sin dejar de batir hasta que la salsa emulsione y quede cremosa.",
+      "Añadir zumo de limón y sal; remover para integrar.",
+      "Servir de inmediato o mantener templada al baño maría tapada, sin superar 60 °C para que no se corte."
     ],
-    "description": "Salsa holandesa clásica, para espárragos, verduras al vapor o pescado blanco."
+    "description": "Salsa holandesa clásica, para espárragos, verduras al vapor o pescado blanco.",
+    "stepsRich": [
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego suave hasta que esté completamente líquida, sin que llegue a dorarse.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar la mantequilla fundida del fuego y reservar templada.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Llenar un cazo amplio con agua hasta la mitad y llevar a ebullición; bajar a fuego suave para mantener el vapor.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Colocar un bol resistente al calor sobre el cazo sin que toque el agua; verter {{Yema de huevo}} y {{Agua}}.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir las yemas con el agua al baño maría de forma continua hasta que la mezcla espese y deje trazo al levantar las varillas.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el bol del baño maría y colocarlo sobre una superficie estable.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la mantequilla templada en hilo muy fino sin dejar de batir hasta que la salsa emulsione y quede cremosa.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Zumo de limón}} y {{Sal|gusto}}; remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir de inmediato o mantener templada al baño maría tapada, sin superar 60 °C para que no se corte.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 0,
+    "saturated_fat_g": 14,
+    "sodium_mg": 120
   },
   {
     "id": "salsas_029",
@@ -1747,15 +2883,53 @@
       }
     ],
     "steps": [
-      "Fundir la mantequilla y añadir la harina, tostando 1-2 min sin que coja color",
-      "Verter la leche poco a poco sin dejar de remover para evitar grumos",
-      "Cocer 8-10 min a fuego bajo hasta espesar",
-      "Sazonar con sal y nuez moscada"
+      "Medir harina y reservar en un cuenco pequeño.",
+      "Fundir mantequilla en un cazo a fuego medio hasta que esté completamente líquida.",
+      "Añadir la harina reservada de golpe y remover sin parar con una varilla durante 2 min hasta que la mezcla esté seca y sin color.",
+      "Verter leche poco a poco, en 3 o 4 tandas, removiendo sin parar con la varilla después de cada adición.",
+      "Cocer a fuego suave, removiendo con frecuencia, hasta que la bechamel espese y cubra el dorso de una cuchara.",
+      "Añadir sal y nuez moscada, remover y retirar del fuego."
     ],
     "description": "Bechamel clásica, para gratinar verduras o napar huevos y croquetas.",
     "productAliases": [
       "Bechamel"
-    ]
+    ],
+    "stepsRich": [
+      {
+        "text": "Medir {{Harina}} y reservar en un cuenco pequeño.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego medio hasta que esté completamente líquida.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir la harina reservada de golpe y remover sin parar con una varilla durante 2 min hasta que la mezcla esté seca y sin color.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter {{Leche}} poco a poco, en 3 o 4 tandas, removiendo sin parar con la varilla después de cada adición.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave, removiendo con frecuencia, hasta que la bechamel espese y cubra el dorso de una cuchara.",
+        "minutes": 8,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y {{Nuez moscada|pizca}}, remover y retirar del fuego.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 280
   },
   {
     "id": "salsas_030",
@@ -1808,11 +2982,61 @@
       }
     ],
     "steps": [
-      "Picar la chalota muy fina y pochar en la mantequilla a fuego suave",
-      "Añadir el vino Pedro Ximénez",
-      "Reducir a fuego medio 15-20 min hasta que espese y tenga textura de jarabe",
-      "Colar si se quiere una textura más fina y salpimentar"
+      "Picar chalota muy fina.",
+      "Calentar mantequilla en un cazo a fuego suave hasta que se funda.",
+      "Sofreír la chalota picada en la mantequilla fundida a fuego suave hasta que esté transparente y blanda.",
+      "Añadir vino pedro ximénez y subir a fuego medio.",
+      "Reducir a fuego medio hasta que la salsa espese y tenga textura de jarabe.",
+      "Añadir sal y remover para integrar.",
+      "Colar la salsa por un colador fino para obtener una textura más lisa.",
+      "Servir la salsa caliente sobre el plato elegido."
     ],
-    "description": "Reducción de vino Pedro Ximénez, dulce y untuosa: la clásica salsa de solomillo."
+    "description": "Reducción de vino Pedro Ximénez, dulce y untuosa: la clásica salsa de solomillo.",
+    "stepsRich": [
+      {
+        "text": "Picar {{Chalota}} muy fina.",
+        "minutes": 3,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Mantequilla}} en un cazo a fuego suave hasta que se funda.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Sofreír la chalota picada en la mantequilla fundida a fuego suave hasta que esté transparente y blanda.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Vino Pedro Ximénez}} y subir a fuego medio.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Reducir a fuego medio hasta que la salsa espese y tenga textura de jarabe.",
+        "minutes": 15,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} y remover para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Colar la salsa por un colador fino para obtener una textura más lisa.",
+        "minutes": 2,
+        "kind": "opcional"
+      },
+      {
+        "text": "Servir la salsa caliente sobre el plato elegido.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 16,
+    "saturated_fat_g": 3,
+    "sodium_mg": 120
   }
 ]
