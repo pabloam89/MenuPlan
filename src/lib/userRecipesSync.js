@@ -46,6 +46,15 @@ function recipeToRow(recipe, userId) {
     // Paso a paso estructurado (ver 0013_user_recipes_steps_rich.sql). Opcional:
     // `steps` sigue siendo el fallback para las recetas que no lo tengan.
     steps_rich: recipe.stepsRich ?? null,
+    // Ejes separados (ver 0023_recipe_axes.sql). `?? null` en vez de Boolean()
+    // porque "sin clasificar" y "clasificado como false" no son lo mismo: el
+    // primero deja que isMontaje() caiga al fallback de category, el segundo es
+    // un juicio explícito del usuario que debe ganar.
+    montaje: recipe.montaje ?? null,
+    apetecible: recipe.apetecible ?? null,
+    can_be_garnish: recipe.canBeGarnish ?? null,
+    main_ingredients: recipe.mainIngredients ?? null,
+    sauce_id: recipe.sauceId ?? null,
     description: recipe.description ?? null,
     methods: recipe.methods ?? null,
     photo: recipe.photo ?? null,
@@ -85,6 +94,13 @@ export function rowToRecipe(row) {
     ingredients: row.ingredients ?? [],
     steps: row.steps ?? [],
     stepsRich: row.steps_rich ?? undefined,
+    // Ejes separados: se omiten (undefined) cuando la columna viene null, para
+    // que isMontaje() distinga "sin clasificar" de un false explícito.
+    montaje: row.montaje ?? undefined,
+    apetecible: row.apetecible ?? undefined,
+    canBeGarnish: row.can_be_garnish ?? undefined,
+    mainIngredients: row.main_ingredients ?? undefined,
+    sauceId: row.sauce_id ?? undefined,
     description: row.description ?? "",
     methods: row.methods ?? [],
     photo: row.photo ?? null,

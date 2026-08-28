@@ -68,13 +68,13 @@ import {
   ALLERGEN_OPTIONS,
   INGREDIENT_CATALOG,
   INGREDIENT_CATALOG_BY_AISLE,
-  CURATED_INGREDIENTS_BY_AISLE,
   COOKING_METHODS,
   generateUserRecipeDraft,
   generateDishPhotoWithAI,
   suggestRecipeIngredients,
   filterOwnCreatedRecipes,
 } from "../lib/userRecipes.js";
+import { isMontaje } from "../data/recipeSchema.js";
 import { SHOPPING_AISLES, isQualitativeUnit, guessShoppingAisle, ingredientStem } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
 import { STEP_KIND_META, removeRichStep, richToPlainSteps } from "../lib/recipeSteps.js";
@@ -598,8 +598,8 @@ function makeIngredient(name) {
 // ── Browsable ingredient picker: search-first (autocomplete over the full
 // catalog), with an optional "Filtros" panel — same pattern as the catalog
 // browser's search bar — to browse by aisle instead of typing from scratch.
-// Tapping an aisle shows only its short curated list first (never the whole,
-// very long, derived catalog) with a "Ver todos" to expand on demand.
+// Tapping an aisle shows its full derived catalog right away (2026-08-28: no
+// more curated-short-list + "Ver todos" expand step).
 
 function AisleTile({ label, icon: Icon, color, active, onClick }) {
     return (
@@ -836,29 +836,24 @@ export function IngredientPicker({
   uploadLoading = false,
 }) {
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [showAll, setShowAll] = useState(false);
   const catBtnRef = useRef(null);
   const q = normText(query);
 
   const setAisle = (a) => {
     onAisleChange(a);
-    setShowAll(false);
     setFiltersOpen(false);
   };
 
-  const curated = useMemo(() => (aisle ? CURATED_INGREDIENTS_BY_AISLE[aisle] ?? [] : []), [aisle]);
   const full = useMemo(() => (aisle ? INGREDIENT_CATALOG_BY_AISLE[aisle] ?? [] : []), [aisle]);
-  const browsing = !q && aisle;
   const results = useMemo(() => {
     if (q) {
       const qStem = ingredientStem(q);
       return INGREDIENT_CATALOG.filter((n) => normText(n).includes(q) || ingredientStem(n).includes(qStem)).slice(0, 40);
     }
     if (!aisle) return [];
-    return showAll ? full : curated;
-  }, [q, aisle, showAll, curated, full]);
+    return full;
+  }, [q, aisle, full]);
   const exactExists = q.length > 0 && INGREDIENT_CATALOG.some((n) => normText(n) === q);
-  const hiddenCount = browsing && !showAll ? full.length - curated.length : 0;
 
   // Compact mode: illustrated category grid → ingredient grid
   if (compact) {
@@ -990,7 +985,7 @@ export function IngredientPicker({
         {!q && aisle && (
           <>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0,1fr))", gap: 9 }}>
-              {(showAll ? full : curated).map((name) => (
+              {full.map((name) => (
                 <IngredientThumbCard
                   key={name}
                   name={name}
@@ -999,21 +994,6 @@ export function IngredientPicker({
                 />
               ))}
             </div>
-            {hiddenCount > 0 && (
-              <button
-                type="button"
-                onClick={() => setShowAll(true)}
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
-                  marginTop: 9, padding: "9px 12px", borderRadius: 11,
-                  border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN, cursor: "pointer",
-                  fontFamily: "inherit", fontSize: 12, fontWeight: 800,
-                }}
-              >
-                Ver todos ({hiddenCount} mas)
-                <ChevronDown size={13} />
-              </button>
-            )}
           </>
         )}
       </div>
@@ -1097,22 +1077,6 @@ export function IngredientPicker({
             />
           ))}
         </div>
-      )}
-
-      {hiddenCount > 0 && (
-        <button
-          type="button"
-          onClick={() => setShowAll(true)}
-          style={{
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 6, width: "100%",
-            marginTop: 10, padding: "10px 12px", borderRadius: 11,
-            border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN, cursor: "pointer",
-            fontFamily: "inherit", fontSize: 12.5, fontWeight: 800,
-          }}
-        >
-          Ver todos ({hiddenCount} mas)
-          <ChevronDown size={14} />
-        </button>
       )}
 
       {q && !exactExists && (
@@ -1760,9 +1724,9 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
           ingredients: editRecipe.ingredients ?? [],
           category: editRecipe.category ?? "",
           mealRole: editRecipe.mealRole ?? [],
-          // Proxy "cena rápida" = quick + easy dinner. Persisted as category
-          // "cenas_rapidas" so it joins that pool (and the deck picker).
-          quickDinner: editRecipe.category === "cenas_rapidas",
+          // "Cena rápida" = plato de montaje. Persistido en `montaje`;
+          // isMontaje cae a la categoría deprecada para recetas anteriores.
+          quickDinner: isMontaje(editRecipe),
           mainProtein: editRecipe.mainProtein ?? "",
           usageTags: editRecipe.usageTags ?? [],
           baseDishId: editRecipe.baseDishId ?? null,
@@ -2228,13 +2192,11 @@ export function RecipePlannerScreen({ userRecipes = [], user = null, kitchenTool
       id: editRecipe?.id ?? draft.id,
       usageTags,
       type,
-      // Cena rápida proxy: pin it to the cenas_rapidas pool and make sure it
-      // carries the "cena" role so it's eligible for dinner slots + the picker.
-      category: isGarnishOnly
-        ? "guarniciones"
-        : form.quickDinner
-          ? "cenas_rapidas"
-          : form.category || draft.category,
+      // Cena rápida: viaja en su propio eje (`montaje`), no secuestrando
+      // `category` — que ahora solo responde "qué lleva el plato". El rol
+      // "cena" se sigue añadiendo abajo para que sea elegible en cenas.
+      montaje: isGarnishOnly ? undefined : form.quickDinner,
+      category: isGarnishOnly ? "guarniciones" : form.category || draft.category,
       mainProtein: isGarnishOnly ? "none" : form.mainProtein || draft.mainProtein,
       mealRole: isGarnishOnly
         ? ["guarnicion"]

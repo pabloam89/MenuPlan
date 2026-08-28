@@ -48,7 +48,17 @@ export function normalizeFixedDish(raw) {
       ? raw.garnishId.trim()
       : undefined;
 
-  const extra = { ...(catalogId ? { catalogId } : {}), ...(garnishId ? { garnishId } : {}) };
+  // Same idea for una salsa fijada a mano — ver pinnedSalsaMap.
+  const sauceId =
+    catalogId && typeof raw.sauceId === "string" && raw.sauceId.trim()
+      ? raw.sauceId.trim()
+      : undefined;
+
+  const extra = {
+    ...(catalogId ? { catalogId } : {}),
+    ...(garnishId ? { garnishId } : {}),
+    ...(sauceId ? { sauceId } : {}),
+  };
 
   if (typeof raw.timesPerWeek === "number") {
     const rawMeals =
@@ -78,6 +88,15 @@ export function pinnedGarnishMap(list) {
   const map = {};
   for (const fd of migrateFixedDishes(list)) {
     if (fd.catalogId && fd.garnishId) map[fd.catalogId] = fd.garnishId;
+  }
+  return map;
+}
+
+/** Build a { [catalogRecipeId]: sauceId } map from the user's pinned combos. */
+export function pinnedSalsaMap(list) {
+  const map = {};
+  for (const fd of migrateFixedDishes(list)) {
+    if (fd.catalogId && fd.sauceId) map[fd.catalogId] = fd.sauceId;
   }
   return map;
 }

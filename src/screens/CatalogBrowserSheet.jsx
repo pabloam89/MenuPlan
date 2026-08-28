@@ -36,9 +36,13 @@ import {
   RotateCcw,
   BookOpen,
   NotebookPen,
+  Droplets,
+  Sun,
+  Snowflake,
 } from "lucide-react";
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
+import salsasData from "../data/recipes/salsas.json";
 import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { favoriteRecipeIds, getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
@@ -49,6 +53,8 @@ import { EmptyIllustration, SegmentedTabBar, SegmentedTabButton } from "../compo
 
 const GARNISHES = guarnicionesData;
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
+const SALSAS = salsasData;
+const SALSA_BY_ID = Object.fromEntries(salsasData.map((s) => [s.id, s]));
 
 const GREEN = "#2d5a3d";
 
@@ -67,6 +73,22 @@ const CATEGORY_META = {
   meriendas:          { label: "Meriendas",       icon: Apple,          color: "#4a9d6b", img: "/categories/meriendas.png" },
   postres:            { label: "Postres",         icon: IceCream,       color: "#c463a0", img: "/categories/postres.png" },
   guarniciones:       { label: "Guarnición",      icon: Salad,          color: "#3f9656", img: "/categories/guarniciones.png" },
+  salsas:             { label: "Salsas",          icon: Droplets,       color: "#c2703d", img: "/categories/salsas.png" },
+};
+
+// Estante horizontal de facetas (eje secundario) sobre la barra de búsqueda.
+// A diferencia de CATEGORY_META (qué es el plato), esto es cómo se usa —
+// no son categorías nuevas, son lentes sobre el mismo catálogo. "wired"
+// marca cuáles ya tienen filtro real detrás (kidOnly, maxTime+difficulties);
+// gourmet/verano/invierno son de momento solo visuales — les falta el campo
+// `apetecible` y un filtro de `season` reales, aún no wireados.
+const FACET_META = {
+  ninos:    { label: "Para peques", img: "/categories/faceta_ninos.png", wired: true, color: "#d56b9a", Icon: Baby },
+  // "rapido" (Cena rápida) quitada del grid (2026-08-27): duplicaba la
+  // categoría real "Cenas rápidas" y confundía al mostrarse dos veces.
+  gourmet:  { label: "Con estrella", img: "/categories/faceta_gourmet.png", wired: false, color: "#a97e21", Icon: Sparkles },
+  verano:   { label: "De verano", img: "/categories/faceta_verano.png", wired: false, color: "#e0a83a", Icon: Sun },
+  invierno: { label: "De invierno", img: "/categories/faceta_invierno.png", wired: false, color: "#4f5c78", Icon: Snowflake },
 };
 
 const DEFAULT_COLOR = "#5a7066";
@@ -82,10 +104,7 @@ export function isKnownCategory(cat) {
   return Boolean(cat) && Object.prototype.hasOwnProperty.call(CATEGORY_META, cat);
 }
 
-const PAGE_SIZES = [10, 20, 50];
-const DEFAULT_PAGE_SIZE = 20;
-
-const DIFFICULTY_LABEL = { facil: "Fácil", media: "Media", dificil: "Difícil" };
+const DIFFICULTY_LABEL = { facil: "Fácil", normal: "Media", elaborada: "Difícil" };
 const TIME_OPTIONS = [
   { value: 0, label: "Cualquiera" },
   { value: 20, label: "≤ 20 min" },
@@ -113,6 +132,10 @@ function isRealProtein(p) {
 
 function isGuarnicionRecipe(r) {
   return r?.type === "guarnicion" || r?.mealRole?.includes?.("guarnicion");
+}
+
+function isSalsaRecipe(r) {
+  return r?.type === "salsa" || r?.mealRole?.includes?.("salsa");
 }
 
 const MAIN_MEAL_ROLES = new Set(["primero", "segundo", "plato_unico", "cena"]);
@@ -164,6 +187,7 @@ function CategoryIcon({ category, size = 22 }) {
  */
 export function CatalogBrowserSheet({
   inline = false, onClose, addedIds = new Set(), garnishByCatalogId = {},
+  salsaByCatalogId = {}, onSetSalsa,
   onAdd, onRemove, onSetGarnish, extraRecipes = [],
   // Horizontal padding applied in inline mode (non-inline always uses 18px).
   inlinePadding = 0,
@@ -245,25 +269,49 @@ export function CatalogBrowserSheet({
     [favoriteIds, gatePickSourceTabs, recipeVotes],
   );
 
+  // "Mis recetas" = lo que el usuario ha hecho suyo, ya sea creándolo o
+  // marcándolo favorito en el catálogo (2026-08-27: "Favoritas" se fusionó
+  // aquí — es una sola lista de la que decides qué entra en tu menú, no dos
+  // pestañas separadas).
+  const mineRecipes = useMemo(() => {
+    // Ojo: NO usa `resolvedFavoriteIds` — esa variable colapsa a partir de la
+    // prop `favoriteIds`, que en otro sitio del componente (isBrowseCatalog)
+    // significa "restringe TODO el catálogo a solo favoritas". Aquí solo
+    // queremos la lista de favoritas para construir "Mis recetas", sin tocar
+    // ese comportamiento — se calcula aparte, directo de `recipeVotes`.
+    const favIds = new Set(favoriteRecipeIds(recipeVotes));
+    if (favIds.size === 0) return extraRecipes;
+    const seen = new Set(extraRecipes.map((r) => r.id));
+    const favorited = recipeCatalog.filter((r) => favIds.has(r.id) && !seen.has(r.id));
+    return [...extraRecipes, ...favorited];
+  }, [extraRecipes, recipeVotes]);
+
+  // Set version of the same "tuyas + favoritas" pool, para la tile "Mis
+  // recetas" del grid de categorías (filtro por id, no por categoría).
+  const mineIds = useMemo(() => new Set(mineRecipes.map((r) => r.id)), [mineRecipes]);
+
   const fullCatalog = useMemo(
     () => {
       if (gatePickSourceTabs && gatePick) {
-        if (sourceTab === "mine") return extraRecipes;
-        const pool = extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog;
-        if (sourceTab === "favorites") {
-          return resolvedFavoriteIds
-            ? pool.filter((r) => resolvedFavoriteIds.has(r.id))
-            : [];
-        }
-        return pool;
+        if (sourceTab === "mine") return mineRecipes;
+        return extraRecipes.length > 0 ? [...recipeCatalog, ...extraRecipes] : recipeCatalog;
       }
-      return sourceRecipes
+      const base = sourceRecipes
         ? sourceRecipes
         : extraRecipes.length > 0
           ? [...recipeCatalog, ...extraRecipes]
           : recipeCatalog;
+      // Catálogo (Recetas): el Recetario Estrella es ahora el catálogo
+      // principal — los platos "antiguos" (sin foto propia, ver
+      // dishImages.json) se quedan como fondo de armario para el generador
+      // de menús, pero ya no se navegan aquí. Las recetas propias del
+      // usuario siempre se ven, tengan foto o no.
+      if (reference && browseCategories) {
+        return base.filter((r) => r.source === "user" || Boolean(dishImageUrl(r.id)));
+      }
+      return base;
     },
-    [gatePickSourceTabs, gatePick, sourceTab, sourceRecipes, extraRecipes, resolvedFavoriteIds],
+    [gatePickSourceTabs, gatePick, sourceTab, sourceRecipes, extraRecipes, mineRecipes, reference, browseCategories],
   );
   const platoCatalog = useMemo(
     () => fullCatalog.filter((r) => (gatePick ? isGatePickPlato(r) : !isGuarnicionRecipe(r))),
@@ -297,6 +345,24 @@ export function CatalogBrowserSheet({
     }
     return merged;
   }, [garnishCatalog, fullCatalog]);
+  // salsas.json vive fuera de recipeCatalog (mismo motivo que guarniciones —
+  // ver recipeCatalog.js): se mezcla aquí solo para navegar/buscar en el
+  // catálogo de referencia, nunca es un hueco de menú por sí misma.
+  const catalogSalsaBrowseList = useMemo(() => {
+    const seen = new Set(SALSAS.map((s) => s.id));
+    const merged = [...SALSAS];
+    for (const r of fullCatalog) {
+      if (isSalsaRecipe(r) && r.id && !seen.has(r.id)) {
+        seen.add(r.id);
+        merged.push(r);
+      }
+    }
+    // Mismo criterio que fullCatalog: en Catálogo, solo salsas con foto real.
+    if (reference && browseCategories) {
+      return merged.filter((s) => Boolean(dishImageUrl(s.id)));
+    }
+    return merged;
+  }, [fullCatalog, reference, browseCategories]);
   // all | plato | guarnicion — locked to gatePickType when provided.
   const [typeFilter, setTypeFilter] = useState(gatePickType ?? "all");
   useEffect(() => {
@@ -312,14 +378,21 @@ export function CatalogBrowserSheet({
     setKidOnly(false);
   }, [sourceTab, gatePickSourceTabs, gatePick]);
   const [showFilters, setShowFilters] = useState(false);
+  // La tile "Mis recetas" del grid de categorías filtra al vuelo por tuyas +
+  // favoritas, mismo mecanismo que una categoría pero sin tocar `cats`.
+  const [viewingMine, setViewingMine] = useState(false);
   const [cats, setCats] = useState(() => (initialCategory ? new Set([initialCategory]) : new Set()));
   const [proteins, setProteins] = useState(() => new Set());
   const [maxTime, setMaxTime] = useState(0);
   const [difficulties, setDifficulties] = useState(() => new Set());
   const [kidOnly, setKidOnly] = useState(false);
-  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
-  const [limit, setLimit] = useState(DEFAULT_PAGE_SIZE);
+  // Facetas sin filtro real todavia (gourmet/verano/invierno) — estado
+  // puramente visual para previsualizar el estante, no filtra resultados.
+  const [previewFacets, setPreviewFacets] = useState(() => new Set());
+  // Ilustraciones de faceta que aun no existen (404) — fallback a icono.
+  const [brokenFacetImgs, setBrokenFacetImgs] = useState(() => new Set());
   const [garnishFor, setGarnishFor] = useState(null);
+  const [salsaFor, setSalsaFor] = useState(null);
   const [combineFor, setCombineFor] = useState(null); // catalog dish → pick garnish to preview combined
   const [scopeFor, setScopeFor] = useState(null); // recipe being favorited via the group picker
 
@@ -332,11 +405,12 @@ export function CatalogBrowserSheet({
       if (isRealProtein(r.mainProtein)) p.add(r.mainProtein);
     }
     if (!gatePick && catalogGarnishBrowseList.length > 0) c.add("guarniciones");
+    if (!gatePick && catalogSalsaBrowseList.length > 0) c.add("salsas");
     return {
       allCats: [...c].sort((a, b) => categoryLabel(a).localeCompare(categoryLabel(b))),
       allProteins: [...p].sort((a, b) => titleCase(a).localeCompare(titleCase(b))),
     };
-  }, [fullCatalog, gatePick, platoCatalog, catalogGarnishBrowseList.length]);
+  }, [fullCatalog, gatePick, platoCatalog, catalogGarnishBrowseList.length, catalogSalsaBrowseList.length]);
 
   const activeFilterCount =
     cats.size +
@@ -349,6 +423,7 @@ export function CatalogBrowserSheet({
     const q = norm(query);
     const filtered = platoCatalog.filter((r) => {
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
+      if (viewingMine && !mineIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
       if (cats.size && !cats.has(r.category)) return false;
       if (proteins.size && !proteins.has(r.mainProtein)) return false;
@@ -358,7 +433,7 @@ export function CatalogBrowserSheet({
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, platoCatalog, restrictToIds]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, platoCatalog, restrictToIds, viewingMine, mineIds]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -404,8 +479,10 @@ export function CatalogBrowserSheet({
     }
 
     const onlyGuarniciones = cats.size === 1 && cats.has("guarniciones");
+    const onlySalsas = cats.size === 1 && cats.has("salsas");
     const includeGuarniciones = onlyGuarniciones || (cats.size === 0 && Boolean(q)) || (cats.has("guarniciones") && cats.size > 1);
-    const includePlatos = !onlyGuarniciones;
+    const includeSalsas = onlySalsas || (cats.size === 0 && Boolean(q)) || (cats.has("salsas") && cats.size > 1);
+    const includePlatos = !onlyGuarniciones && !onlySalsas;
 
     const matchesCommon = (r) => {
       if (favoriteIds && !favoriteIds.has(r.id)) return false;
@@ -432,49 +509,45 @@ export function CatalogBrowserSheet({
         if (matchesCommon(g)) out.push(g);
       }
     }
+    if (includeSalsas) {
+      for (const s of catalogSalsaBrowseList) {
+        if (cats.size && !cats.has("salsas")) continue;
+        if (matchesCommon(s)) out.push(s);
+      }
+    }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, sourceRecipes]);
-
-  // Reset pagination whenever the result set or page size changes.
-  useEffect(() => {
-    setLimit(pageSize);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, pageSize, typeFilter, gatePick, sourceTab]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes]);
 
   const gatePickMinePlatoCount = useMemo(
-    () => extraRecipes.filter(isGatePickPlato).length,
-    [extraRecipes],
+    () => mineRecipes.filter(isGatePickPlato).length,
+    [mineRecipes],
   );
 
   const gatePickTabEmpty = useMemo(() => {
     if (!gatePickSourceTabs || !gatePick) return null;
     if (sourceTab === "mine") {
-      if (extraRecipes.length === 0) {
+      if (mineRecipes.length === 0) {
         return {
           img: "/avatares/cards/empty_recetas_propias.jpg",
-          title: "Aún no tienes recetas propias",
-          subtitle: "Prueba en Catálogo o Favoritas para elegir otro plato.",
+          title: "Aún no tienes recetas propias ni favoritas",
+          subtitle: "Prueba en Catálogo — el corazón en cualquier receta la guarda aquí.",
         };
       }
       if (gatePickMinePlatoCount === 0) {
         return {
           img: "/avatares/cards/empty_recetas_propias.jpg",
-          title: "Ninguna receta propia encaja como plato",
-          subtitle: "Las que tienes son solo guarnición. Elige un plato en Catálogo o Favoritas.",
+          title: "Ninguna encaja como plato",
+          subtitle: "Las que tienes son solo guarnición. Elige un plato en Catálogo.",
         };
       }
     }
-    if (sourceTab === "favorites" && (resolvedFavoriteIds?.size ?? 0) === 0) {
-      return {
-        img: "/avatares/cards/empty_favoritas.jpg",
-        title: "Aún no tienes favoritas",
-        subtitle: "Pulsa el corazón en cualquier receta del catálogo para guardarla aquí.",
-      };
-    }
     return null;
-  }, [gatePickSourceTabs, gatePick, sourceTab, extraRecipes.length, gatePickMinePlatoCount, resolvedFavoriteIds]);
+  }, [gatePickSourceTabs, gatePick, sourceTab, mineRecipes.length, gatePickMinePlatoCount]);
 
-  const visible = results.slice(0, limit);
-  const hasMore = results.length > visible.length;
+  // Sin paginado ni scroll infinito: cada catálogo se pinta entero de una vez
+  // y el scroll nativo llega hasta el final (2026-08-28) — el tope 10/20/50
+  // no aportaba nada salvo un clic extra.
+  const visible = results;
 
   const selectedPlato = selectedPlatoId
     ? platoCatalog.find((r) => r.id === selectedPlatoId) ?? null
@@ -487,6 +560,7 @@ export function CatalogBrowserSheet({
 
   const clearFilters = () => {
     setCats(new Set());
+    setViewingMine(false);
     setProteins(new Set());
     setMaxTime(0);
     setDifficulties(new Set());
@@ -509,7 +583,11 @@ export function CatalogBrowserSheet({
     (reference || browseCategories || (gatePick && gatePickSourceTabs && sourceTab === "catalog"))
     && !favoriteIds
     && !sourceRecipes;
-  const showCategoryGrid = isBrowseCatalog && cats.size === 0 && !query.trim();
+  const showCategoryGrid = isBrowseCatalog && cats.size === 0 && !viewingMine && !query.trim();
+  // En la rejilla de inicio (fuera de gatePick) el estante de facetas ya
+  // cubre "explorar" — la barra de busqueda/filtros solo aparece al entrar
+  // en una categoria o al buscar, no compitiendo con el estante arriba.
+  const hideSearchOnGrid = !gatePick && showCategoryGrid;
   const categoryCounts = useMemo(() => {
     const counts = {};
     for (const r of fullCatalog) {
@@ -520,8 +598,11 @@ export function CatalogBrowserSheet({
     if (catalogGarnishBrowseList.length > 0) {
       counts.guarniciones = catalogGarnishBrowseList.length;
     }
+    if (catalogSalsaBrowseList.length > 0) {
+      counts.salsas = catalogSalsaBrowseList.length;
+    }
     return counts;
-  }, [fullCatalog, catalogGarnishBrowseList.length]);
+  }, [fullCatalog, catalogGarnishBrowseList.length, catalogSalsaBrowseList.length]);
 
   const styleBlock = (
     <style>{`
@@ -544,6 +625,39 @@ export function CatalogBrowserSheet({
     `}</style>
   );
 
+  const isRapidoActive = maxTime === 20 && difficulties.size === 1 && difficulties.has("facil");
+
+  function toggleFacet(id) {
+    const meta = FACET_META[id];
+    if (!meta.wired) {
+      setPreviewFacets((prev) => {
+        const next = new Set(prev);
+        next.has(id) ? next.delete(id) : next.add(id);
+        return next;
+      });
+      return;
+    }
+    if (id === "ninos") {
+      setKidOnly((v) => !v);
+    } else if (id === "rapido") {
+      if (isRapidoActive) {
+        setMaxTime(0);
+        setDifficulties(new Set());
+      } else {
+        setMaxTime(20);
+        setDifficulties(new Set(["facil"]));
+      }
+    }
+  }
+
+  const facetActive = {
+    ninos: kidOnly,
+    rapido: isRapidoActive,
+    gourmet: previewFacets.has("gourmet"),
+    verano: previewFacets.has("verano"),
+    invierno: previewFacets.has("invierno"),
+  };
+
   const searchRow = (
     <>
       {gatePickSourceTabs && gatePick && (
@@ -551,7 +665,6 @@ export function CatalogBrowserSheet({
           <SegmentedTabBar>
             {[
               { id: "mine", label: "Mis recetas", count: gatePickMinePlatoCount, Icon: NotebookPen },
-              { id: "favorites", label: "Favoritas", count: resolvedFavoriteIds?.size ?? 0, Icon: Heart },
               { id: "catalog", label: "Catálogo", Icon: BookOpen },
             ].map((opt) => (
               <SegmentedTabButton
@@ -677,75 +790,115 @@ export function CatalogBrowserSheet({
           ? `${results.length} ${results.length === 1 ? "resultado" : "resultados"}`
           : `${results.length} ${results.length === 1 ? "plato" : "platos"}`}
       </p>
-      {results.length > PAGE_SIZES[0] && (
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 2, background: "#f0f4f1", borderRadius: 9, padding: 2, flexShrink: 0 }}>
-          {PAGE_SIZES.map((size) => {
-            const active = pageSize === size;
-            return (
-              <button
-                key={size}
-                type="button"
-                onClick={() => setPageSize(size)}
-                style={{
-                  border: "none", cursor: "pointer", fontFamily: "inherit",
-                  borderRadius: 7, padding: "4px 9px", fontSize: 11.5, fontWeight: 800,
-                  background: active ? "#fff" : "transparent",
-                  color: active ? GREEN : "#8aa093",
-                  boxShadow: active ? "0 1px 2px rgba(0,0,0,.08)" : "none",
-                  transition: "color .15s ease, background .15s ease",
-                }}
-              >
-                {size}
-              </button>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 
   const categoryBackRow = null; // now integrated into the search row
 
+  // Categorías (eje "qué es") y facetas (eje "cómo se usa") ya no viven en
+  // dos sitios separados (lista + estante horizontal aparte) — se fusionan
+  // en un único grid de 3 columnas. Cada tile conserva su propio gesto: una
+  // categoría navega al listado filtrado, una faceta se enciende/apaga en
+  // el sitio (mismo toggleFacet de siempre).
+  const gridTiles = [
+    { kind: "mine", id: "__mine__" },
+    ...allCats.map((catId) => ({ kind: "category", id: catId })),
+    ...Object.keys(FACET_META).map((id) => ({ kind: "facet", id })),
+  ];
+
   const categoryGrid = (
-    <div style={{ padding: `2px ${px}px 4px` }}>
-      {allCats.map((catId, i) => {
-        const meta = CATEGORY_META[catId];
-        const Icon = meta?.icon ?? Utensils;
-        const color = categoryColor(catId);
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(3, 1fr)",
+        gap: 10,
+        padding: `2px ${px}px 4px`,
+      }}
+    >
+      {gridTiles.map((tile, i) => {
+        const isFacet = tile.kind === "facet";
+        const isMine = tile.kind === "mine";
+        const meta = isFacet
+          ? FACET_META[tile.id]
+          : isMine
+            ? { img: "/avatares/cards/empty_recetas_propias.jpg" }
+            : CATEGORY_META[tile.id];
+        const Icon = isMine ? NotebookPen : isFacet ? meta.Icon : (meta?.icon ?? Utensils);
+        const color = isMine ? GREEN : isFacet ? meta.color : categoryColor(tile.id);
+        const active = isMine ? viewingMine : isFacet ? facetActive[tile.id] : false;
+        const broken = isFacet && brokenFacetImgs.has(tile.id);
+        const label = isMine ? "Mis recetas" : isFacet ? meta.label : categoryLabel(tile.id);
+        const count = isMine ? mineIds.size : isFacet ? null : categoryCounts[tile.id] ?? 0;
+        const onTileClick = () => {
+          if (isMine) {
+            setViewingMine(true);
+            setCats(new Set());
+          } else if (isFacet) {
+            toggleFacet(tile.id);
+          } else {
+            setViewingMine(false);
+            setCats(new Set([tile.id]));
+          }
+        };
+        const hasImg = isFacet ? !broken : Boolean(meta?.img);
         return (
           <button
-            key={catId}
+            key={`${tile.kind}-${tile.id}`}
             type="button"
-            onClick={() => setCats(new Set([catId]))}
-            className="filter-opt-row catalog-card-enter"
+            onClick={onTileClick}
+            className="catalog-card-enter"
             style={{
-              width: "100%", display: "flex", alignItems: "center", gap: 10,
-              padding: "8px 4px", border: "none", background: "transparent",
-              cursor: "pointer", fontFamily: "inherit", textAlign: "left",
-              borderBottom: i === allCats.length - 1 ? "none" : "1px solid rgba(45,110,70,.2)",
-              animationDelay: `${i < 14 ? i * 16 : 0}ms`,
+              display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+              padding: 0, border: "none", background: "transparent",
+              cursor: "pointer", fontFamily: "inherit", textAlign: "center",
+              animationDelay: `${i < 18 ? i * 14 : 0}ms`,
             }}
           >
-            <span
+            <div
               style={{
-                width: 44, height: 44, borderRadius: 10, flexShrink: 0,
-                overflow: "hidden", background: `${color}18`,
-                display: "flex", alignItems: "center", justifyContent: "center",
+                position: "relative", width: "100%", aspectRatio: "1 / 1",
+                borderRadius: 14, overflow: "hidden", background: "#f4f7f5",
+                boxShadow: active ? "0 0 0 3px rgba(45,90,61,.35)" : "none",
               }}
             >
-              {meta?.img ? (
-                <img src={meta.img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              {hasImg ? (
+                <img
+                  src={meta.img}
+                  alt=""
+                  style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+                  onError={isFacet ? () => setBrokenFacetImgs((prev) => new Set(prev).add(tile.id)) : undefined}
+                />
               ) : (
-                <Icon size={14} color={color} strokeWidth={2} />
+                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `${color}18` }}>
+                  <Icon size={26} color={color} strokeWidth={2} />
+                </div>
               )}
+
+              {count !== null && (
+                <span
+                  style={{
+                    position: "absolute", top: 6, right: 6,
+                    minWidth: 22, height: 22, padding: "0 5px", borderRadius: "50%",
+                    background: "rgba(255,255,255,.92)", color: "#142f1d",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 10.5, fontWeight: 800,
+                    boxShadow: "0 1px 4px rgba(20,47,29,.16)",
+                  }}
+                >
+                  {count}
+                </span>
+              )}
+            </div>
+
+            <span
+              style={{
+                fontSize: 12, fontWeight: 800, lineHeight: 1.2,
+                color: active ? GREEN : "#142f1d",
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%",
+              }}
+            >
+              {label}
             </span>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 800, color: "#142f1d", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {categoryLabel(catId)}
-            </span>
-            <span style={{ fontSize: 12, fontWeight: 700, color: "#9ab0a1", flexShrink: 0 }}>
-              {categoryCounts[catId] ?? 0}
-            </span>
-            <ChevronRight size={16} color="#c2cfc7" style={{ flexShrink: 0 }} />
           </button>
         );
       })}
@@ -794,31 +947,46 @@ export function CatalogBrowserSheet({
               animDelay={i < 12 ? i * 18 : 0}
             />
           ))
-        : visible.map((r, i) => (
-            <RecipeCard
-              key={r.id}
-              recipe={r}
-              reference={reference}
-              added={addedIds.has(r.id)}
-              garnishId={garnishByCatalogId[r.id] ?? null}
-              onAdd={() => onAdd?.(r)}
-              onRemove={() => onRemove?.(r.id)}
-              onOpenGarnish={() => setGarnishFor(r)}
-              onOpenRecipe={onOpenRecipe}
-              favorite={isRecipeFavorite(recipeVotes, r.id)}
-              onSetFavoriteScope={onSetFavoriteScope}
-              scopeGroups={scopeGroups}
-              onOpenScopePicker={() => setScopeFor(r)}
-              onChangeVisibility={onChangeVisibility}
-              onDelete={onDeleteRecipe && r.source === "user" ? () => onDeleteRecipe(r.id) : undefined}
-              onEdit={onEditRecipe && r.source === "user" ? () => onEditRecipe(r) : undefined}
-              ownView={ownRecipesView}
-              onCombine={onBrowseGarnishCombo && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
-              animDelay={i < 12 ? i * 18 : 0}
-              discarded={discardedIds ? discardedIds.has(r.id) : false}
-              onDiscard={discardedIds && r.source !== "user" ? (discardedIds.has(r.id) ? () => onRecoverRecipe?.(r.id) : () => onDiscardRecipe?.(r.id)) : undefined}
-            />
-          ))}
+        : reference && browseCategories
+          ? visible.map((r, i) => (
+              <RecipeGridCard
+                key={r.id}
+                recipe={r}
+                favorite={isRecipeFavorite(recipeVotes, r.id)}
+                onSetFavoriteScope={onSetFavoriteScope}
+                hasScopeChoice={scopeGroups.length > 1}
+                onOpenScopePicker={() => setScopeFor(r)}
+                onOpenRecipe={onOpenRecipe}
+                animDelay={i < 12 ? i * 18 : 0}
+              />
+            ))
+          : visible.map((r, i) => (
+              <RecipeCard
+                key={r.id}
+                recipe={r}
+                reference={reference}
+                added={addedIds.has(r.id)}
+                garnishId={garnishByCatalogId[r.id] ?? null}
+                salsaId={salsaByCatalogId[r.id] ?? null}
+                onAdd={() => onAdd?.(r)}
+                onRemove={() => onRemove?.(r.id)}
+                onOpenGarnish={() => setGarnishFor(r)}
+                onOpenSalsa={() => setSalsaFor(r)}
+                onOpenRecipe={onOpenRecipe}
+                favorite={isRecipeFavorite(recipeVotes, r.id)}
+                onSetFavoriteScope={onSetFavoriteScope}
+                scopeGroups={scopeGroups}
+                onOpenScopePicker={() => setScopeFor(r)}
+                onChangeVisibility={onChangeVisibility}
+                onDelete={onDeleteRecipe && r.source === "user" ? () => onDeleteRecipe(r.id) : undefined}
+                onEdit={onEditRecipe && r.source === "user" ? () => onEditRecipe(r) : undefined}
+                ownView={ownRecipesView || viewingMine}
+                onCombine={onBrowseGarnishCombo && r.type === "principal" && r.source !== "user" ? () => setCombineFor(r) : undefined}
+                animDelay={i < 12 ? i * 18 : 0}
+                discarded={discardedIds ? discardedIds.has(r.id) : false}
+                onDiscard={discardedIds && r.source !== "user" ? (discardedIds.has(r.id) ? () => onRecoverRecipe?.(r.id) : () => onDiscardRecipe?.(r.id)) : undefined}
+              />
+            ))}
       {results.length === 0 && (
         emptyImg || gatePickTabEmpty?.img ? (
           <div style={{ padding: "16px 20px" }}>
@@ -861,21 +1029,6 @@ export function CatalogBrowserSheet({
     </>
   );
 
-  const pager = hasMore ? (
-    <div style={{ padding: `8px ${px}px calc(10px + env(safe-area-inset-bottom, 0px))`, borderTop: inline ? "none" : "1px solid #eef3f0", flexShrink: 0 }}>
-      <button
-        type="button"
-        onClick={() => setLimit((n) => n + pageSize)}
-        style={{
-          width: "100%", height: 44, borderRadius: 12,
-          border: "1.5px solid #e3ebe6", background: "#f4f7f5", color: GREEN,
-          fontSize: 13, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-        }}
-      >
-        Ver más
-      </button>
-    </div>
-  ) : null;
 
   const overlays = (
     <>
@@ -894,23 +1047,25 @@ export function CatalogBrowserSheet({
           onRecoverRecipe={onRecoverRecipe}
         />
       )}
+      {salsaFor && (
+        <SalsaPickerSheet
+          recipe={salsaFor}
+          currentSalsaId={salsaByCatalogId[salsaFor.id] ?? null}
+          onSelect={(sid) => { onSetSalsa?.(salsaFor, sid); setSalsaFor(null); }}
+          onClose={() => setSalsaFor(null)}
+        />
+      )}
       {combineFor && (
-        <GarnishPickerSheet
+        <AddonPickerSheet
           recipe={combineFor}
-          currentGarnishId={null}
-          title="Elige guarnición"
-          subtitle={`Ver ${combineFor.name} combinado`}
-          previewPrincipalId={combineFor.id}
-          onSelect={(gid) => {
-            const g = gid ? (GARNISH_BY_ID[gid] ?? garnishCatalog.find((x) => x.id === gid)) : null;
-            if (g) onBrowseGarnishCombo?.(combineFor, g);
+          garnishCatalog={garnishCatalog}
+          onConfirm={({ garnishId, sauceId }) => {
+            const g = garnishId ? (GARNISH_BY_ID[garnishId] ?? garnishCatalog.find((x) => x.id === garnishId)) : null;
+            const s = sauceId ? SALSA_BY_ID[sauceId] : null;
+            if (g || s) onBrowseGarnishCombo?.(combineFor, { garnishId: g?.id, sauceId: s?.id });
             setCombineFor(null);
           }}
           onClose={() => setCombineFor(null)}
-          recipeVotes={recipeVotes}
-          scopeGroups={scopeGroups}
-          onSetFavoriteScope={onSetFavoriteScope}
-          onOpenScopePicker={setScopeFor}
           discardedIds={discardedIds}
           onDiscardRecipe={onDiscardRecipe}
           onRecoverRecipe={onRecoverRecipe}
@@ -958,19 +1113,22 @@ export function CatalogBrowserSheet({
       <div>
         {styleBlock}
         <div style={{ position: "sticky", top: 0, zIndex: 5, background: "#fff", paddingTop: 12 }}>
-          {searchRow}
+          {!hideSearchOnGrid && searchRow}
           {selectedRow}
           {categoryBackRow}
           {!showCategoryGrid && countRow}
         </div>
         {showCategoryGrid ? (
           categoryGrid
+        ) : reference && browseCategories ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, padding: `2px ${px}px 0` }}>
+            {cards}
+          </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8, padding: `2px ${px}px 0` }}>
             {cards}
           </div>
         )}
-        {!showCategoryGrid && pager}
         {overlays}
       </div>
     );
@@ -1033,25 +1191,19 @@ export function CatalogBrowserSheet({
           </div>
         </div>
 
-        {searchRow}
+        {!hideSearchOnGrid && searchRow}
         {selectedRow}
         {!showCategoryGrid && countRow}
 
         <div
-          style={{
-            flex: 1,
-            overflowY: "auto",
-            WebkitOverflowScrolling: "touch",
-            padding: "2px 18px 12px",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
+          style={
+            !showCategoryGrid && reference && browseCategories
+              ? { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "2px 18px 12px", display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12 }
+              : { flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "2px 18px 12px", display: "flex", flexDirection: "column", gap: 8 }
+          }
         >
           {showCategoryGrid ? categoryGrid : cards}
         </div>
-
-        {!showCategoryGrid && pager}
       </div>
 
       {overlays}
@@ -1610,7 +1762,7 @@ function VisibilityMiniPill({ visibility = "private", onChange }) {
 }
 
 function RecipeCard({
-  recipe, reference = false, added, garnishId, onAdd, onRemove, onOpenGarnish,
+  recipe, reference = false, added, garnishId, salsaId, onAdd, onRemove, onOpenGarnish, onOpenSalsa,
   onOpenRecipe, favorite, onSetFavoriteScope, scopeGroups = [], onOpenScopePicker, onChangeVisibility, onDelete, onEdit, onCombine, ownView = false, animDelay = 0,
   discarded = false, onDiscard,
 }) {
@@ -1619,9 +1771,105 @@ function RecipeCard({
   const color = categoryColor(recipe.category);
   const isPrincipal = recipe.type === "principal";
   const garnish = garnishId ? GARNISH_BY_ID[garnishId] : null;
+  const salsa = salsaId ? SALSA_BY_ID[salsaId] : null;
   const photo = dishImageForRecipe(recipe, garnishId ?? undefined);
 
-  const card = (
+  // "Mis recetas" gets its own full-bleed card: photo fills the whole tile,
+  // el nombre va superpuesto sobre un degradado (mismo lenguaje que "Hoy
+  // toca" en Dashboard), y el tiempo de preparación va en un círculo arriba
+  // a la derecha en vez de en texto suelto — la fila compacta de siempre
+  // sigue viva para Favoritas/Catálogo/Descartados.
+  const card = ownView ? (
+    <div
+      className="catalog-card-enter"
+      style={{
+        position: "relative",
+        aspectRatio: "4 / 3",
+        borderRadius: 14,
+        overflow: "hidden",
+        background: "#eef4f0",
+        border: `1.5px solid ${added ? "#bfe6cb" : "#eef3f0"}`,
+        animationDelay: `${animDelay}ms`,
+      }}
+    >
+      <button
+        type="button"
+        onClick={reference && onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
+        disabled={!reference || !onOpenRecipe}
+        aria-label={`Ver ${recipe.name}`}
+        style={{
+          position: "absolute", inset: 0, padding: 0, border: "none", background: "transparent",
+          cursor: reference && onOpenRecipe ? "pointer" : "default",
+        }}
+      >
+        {photo ? (
+          <img src={deckImg(photo, 320)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : (
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <CategoryIcon category={recipe.category} size={30} />
+          </div>
+        )}
+      </button>
+
+      <div
+        aria-hidden
+        style={{
+          position: "absolute", left: 0, right: 0, bottom: 0, height: "58%",
+          background: "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.16) 65%, transparent 100%)",
+          pointerEvents: "none",
+        }}
+      />
+      <p
+        style={{
+          position: "absolute", left: 10, right: 10, bottom: 9, margin: 0,
+          fontSize: 13.5, fontWeight: 800, color: "#fff", lineHeight: 1.25,
+          textShadow: "0 1px 3px rgba(0,0,0,.4)",
+          display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          pointerEvents: "none",
+        }}
+      >
+        {recipe.name}
+      </p>
+
+      {recipe.time != null && (
+        <span
+          style={{
+            position: "absolute", top: 8, right: 8,
+            width: 30, height: 30, borderRadius: "50%",
+            background: "rgba(255,255,255,.92)", color: "#142f1d",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 11.5, fontWeight: 800,
+            boxShadow: "0 1px 4px rgba(20,47,29,.16)",
+          }}
+        >
+          {recipe.time}
+        </span>
+      )}
+
+      {reference && onSetFavoriteScope && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            if (hasScopeChoice) onOpenScopePicker();
+            else onSetFavoriteScope(recipe.id, favorite ? null : "all");
+          }}
+          aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+          title={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+          style={{
+            position: "absolute", top: 8, left: 8,
+            width: 26, height: 26, borderRadius: "50%", flexShrink: 0,
+            border: "none", cursor: "pointer",
+            background: favorite ? "#e0405a" : "rgba(255,255,255,.92)",
+            boxShadow: "0 1px 4px rgba(0,0,0,.2)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Heart size={12} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+        </button>
+      )}
+    </div>
+  ) : (
     <div
       className="catalog-card-enter"
       style={{
@@ -1770,6 +2018,14 @@ function RecipeCard({
               </span>
             </div>
           )}
+          {isPrincipal && added && salsa && (
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 5, fontSize: 11, fontWeight: 700, color: "#c2703d" }}>
+              <Droplets size={12} />
+              <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 170 }}>
+                {salsa.name}
+              </span>
+            </div>
+          )}
         </button>
 
         {/* Reference mode: owner + votes column (+ optional garnish combo).
@@ -1821,6 +2077,28 @@ function RecipeCard({
                 }}
               >
                 <Salad size={17} />
+              </button>
+            )}
+
+            {/* salsa icon button — solo en platos verificados como aptos
+                (canReceiveSauce), evita ofrecer salsa a un "Merluza en salsa
+                verde" que ya lleva la suya integrada — ver recipeSchema.js */}
+            {isPrincipal && added && recipe.canReceiveSauce && (
+              <button
+                type="button"
+                onClick={onOpenSalsa}
+                aria-label={salsa ? `Cambiar salsa de ${recipe.name}` : `Añadir salsa a ${recipe.name}`}
+                title={salsa ? "Cambiar salsa" : "Añadir salsa"}
+                style={{
+                  width: 36, height: 36, borderRadius: 10, flexShrink: 0, cursor: "pointer",
+                  border: salsa ? "none" : "1.5px dashed #c2703d",
+                  background: salsa ? "#c2703d" : "#fff",
+                  color: salsa ? "#fff" : "#c2703d",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  transition: "all .12s ease",
+                }}
+              >
+                <Droplets size={17} />
               </button>
             )}
 
@@ -1925,6 +2203,106 @@ function RecipeCard({
   );
 }
 
+const DIFFICULTY_BADGE_COLOR = { facil: "#2d5a3d", normal: "#a97a1f", elaborada: "#c0392b" };
+
+// "45 min" por debajo de 60; a partir de ahí "1h", "1h15", "1h30"... sin
+// minutos si son 0 en punto.
+function formatDishTime(totalMin) {
+  if (totalMin < 60) return `${totalMin} min`;
+  const hours = Math.floor(totalMin / 60);
+  const mins = totalMin % 60;
+  return mins ? `${hours}h${mins}` : `${hours}h`;
+}
+
+// Tile de foto a página completa para el grid de 2 columnas del Catálogo
+// (reference + browseCategories, ver RecipesScreen). El Recetario Estrella es
+// el único catálogo que se navega aquí, así que toda receta que llega ya
+// tiene foto propia — sin guarnición, sin salsa, sin descarte: eso vivía en
+// la lista antigua y ya no aplica a este pool.
+function RecipeGridCard({
+  recipe, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker, onOpenRecipe, animDelay = 0,
+}) {
+  const color = categoryColor(recipe.category);
+  const photo = dishImageForRecipe(recipe);
+  const diffLabel = DIFFICULTY_LABEL[recipe.difficulty];
+  const diffColor = DIFFICULTY_BADGE_COLOR[recipe.difficulty] ?? GREEN;
+
+  return (
+    <div className="catalog-card-enter" style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0, animationDelay: `${animDelay}ms` }}>
+      <button
+        type="button"
+        onClick={onOpenRecipe ? () => onOpenRecipe(recipe) : undefined}
+        disabled={!onOpenRecipe}
+        aria-label={`Ver ${recipe.name}`}
+        style={{
+          position: "relative", width: "100%", aspectRatio: "1 / 1",
+          padding: 0, border: "none", borderRadius: 14, overflow: "hidden",
+          cursor: onOpenRecipe ? "pointer" : "default", fontFamily: "inherit",
+          background: `${color}14`,
+          boxShadow: "inset 0 0 0 1px #dce8e0",
+        }}
+      >
+        {photo ? (
+          <img src={deckImg(photo, 280)} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+        ) : (
+          <span style={{ display: "grid", placeItems: "center", width: "100%", height: "100%" }}>
+            <CategoryIcon category={recipe.category} size={28} />
+          </span>
+        )}
+        {diffLabel && (
+          <span
+            style={{
+              position: "absolute", top: 6, left: 6,
+              fontSize: 10, fontWeight: 800, letterSpacing: ".2px",
+              padding: "2.5px 7px", borderRadius: 999,
+              background: "rgba(255,255,255,.92)", color: diffColor,
+              boxShadow: "0 1px 3px rgba(0,0,0,.15)",
+            }}
+          >
+            {diffLabel}
+          </span>
+        )}
+        {onSetFavoriteScope && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (hasScopeChoice) onOpenScopePicker?.();
+              else onSetFavoriteScope(recipe.id, favorite ? null : "all");
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
+            aria-label={favorite ? "Quitar de favoritas" : "Añadir a favoritas"}
+            style={{
+              position: "absolute", top: 6, right: 6, width: 24, height: 24, borderRadius: "50%",
+              border: "1.5px solid #fff", background: favorite ? "#e0405a" : "rgba(255,255,255,.92)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
+            }}
+          >
+            <Heart size={12} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+          </span>
+        )}
+      </button>
+      <div>
+        <p
+          style={{
+            margin: 0, fontSize: 12.5, fontWeight: 800, color: "#142f1d", lineHeight: 1.25,
+            display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+          }}
+        >
+          {recipe.name}
+        </p>
+        {recipe.time != null && (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 3, marginTop: 3, fontSize: 10.5, color: "#7a9485" }}>
+            <Clock size={10} /> {formatDishTime(recipe.time)}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Small centered popup shown when tapping the heart on a recipe card in a
 // multi-group household: picks whether the favorite applies to everyone or
 // to one specific group, in a single tap.
@@ -2008,6 +2386,245 @@ export function GarnishPickerSheet({
   );
 }
 
+// Mismo patrón que GarnishPickerSheet, simplificado: una salsa no tiene combo
+// de foto con el plato (solo su propia foto) ni favoritos/descartes propios.
+export function SalsaPickerSheet({ recipe, currentSalsaId, onSelect, onClose, title, subtitle }) {
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); onClose(); }}
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 220,
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="catalog-sheet-inner"
+        style={{
+          background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420,
+          maxHeight: "82dvh", display: "flex", flexDirection: "column", overflow: "hidden",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 8, flexShrink: 0 }}>
+          <span style={{ width: 38, height: 4, borderRadius: 999, background: "#dde7e0" }} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px 12px", flexShrink: 0 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>{title ?? "Elige salsa"}</h3>
+            {subtitle !== null && (
+              <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                {subtitle ?? `para ${recipe.name}`}
+              </p>
+            )}
+          </div>
+          <button type="button" onClick={onClose} aria-label="Cerrar" style={iconBtnStyle}>
+            <X size={18} />
+          </button>
+        </div>
+        <div
+          style={{
+            flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
+            padding: "8px 16px calc(24px + env(safe-area-inset-bottom, 0px))",
+            display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12,
+            alignContent: "start",
+          }}
+        >
+          {SALSAS.map((s) => (
+            <SalsaGridTile
+              key={s.id}
+              salsa={s}
+              selected={s.id === currentSalsaId}
+              onSelect={() => onSelect(s.id === currentSalsaId ? null : s.id)}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SalsaGridTile({ salsa, selected, onSelect }) {
+  const [failed, setFailed] = useState(false);
+  const rawPhoto = dishImageUrl(salsa.id);
+  const photo = rawPhoto && !failed ? deckImg(rawPhoto, 280) : null;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
+        aria-label={salsa.name}
+        style={{
+          position: "relative", width: "100%", aspectRatio: "1 / 1", padding: 0,
+          border: "none", borderRadius: 14, overflow: "hidden", cursor: "pointer",
+          fontFamily: "inherit", background: "#fbf1ea",
+          boxShadow: selected ? "inset 0 0 0 3px #0f766e, 0 0 0 3px rgba(15,118,110,.25)" : "inset 0 0 0 1px #ecd9cb",
+        }}
+      >
+        {photo ? (
+          <img
+            src={photo}
+            alt=""
+            loading="lazy"
+            onError={() => setFailed(true)}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          <span style={{ display: "grid", placeItems: "center", width: "100%", height: "100%" }}>
+            <Droplets size={28} color="#c2703d" />
+          </span>
+        )}
+        {selected && (
+          <span
+            aria-hidden
+            style={{
+              position: "absolute", top: 6, left: 6, width: 22, height: 22, borderRadius: "50%",
+              border: "1.5px solid #fff", background: "#0f766e",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
+            }}
+          >
+            <Check size={13} color="#fff" strokeWidth={3} />
+          </span>
+        )}
+      </button>
+      <span style={{ fontSize: 11, fontWeight: 800, color: "#142f1d", textAlign: "center", lineHeight: 1.25, padding: "0 1px 2px" }}>
+        {salsa.name}
+      </span>
+    </div>
+  );
+}
+
+// "Ver combinado": elegir guarnición y/o salsa para previsualizar un plato
+// combinado, con control segmentado (Guarnición / Salsa / Ambas) y un CTA
+// "Elegir" fijo al fondo — a diferencia de GarnishPickerSheet, tocar una
+// tarjeta la marca como seleccionada pero NO cierra el sheet; hay que
+// confirmar con el botón.
+function AddonPickerSheet({
+  recipe, garnishCatalog, onConfirm, onClose,
+  discardedIds = null, onDiscardRecipe, onRecoverRecipe,
+}) {
+  const canSalsa = Boolean(recipe.canReceiveSauce);
+  const [tab, setTab] = useState("guarnicion");
+  const [garnishId, setGarnishId] = useState(null);
+  const [sauceId, setSauceId] = useState(null);
+
+  const showGarnishGrid = tab === "guarnicion" || tab === "ambas";
+  const showSalsaGrid = canSalsa && (tab === "salsa" || tab === "ambas");
+
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); onClose(); }}
+      style={{
+        position: "fixed", inset: 0, background: "rgba(0,0,0,.45)", zIndex: 220,
+        display: "flex", alignItems: "flex-end", justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="catalog-sheet-inner"
+        style={{
+          background: "#fff", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 420,
+          maxHeight: "82dvh", display: "flex", flexDirection: "column", overflow: "hidden",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", paddingTop: 8, flexShrink: 0 }}>
+          <span style={{ width: 38, height: 4, borderRadius: 999, background: "#dde7e0" }} />
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 16px 12px", flexShrink: 0 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3 style={{ margin: 0, fontSize: 17, fontWeight: 900, color: "#142f1d" }}>Combinar plato</h3>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              Ver {recipe.name} combinado
+            </p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Cerrar" style={iconBtnStyle}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {canSalsa && (
+          <div style={{ padding: "0 16px 12px", flexShrink: 0 }}>
+            <SegmentedTabBar>
+              <SegmentedTabButton selected={tab === "guarnicion"} onClick={() => setTab("guarnicion")} label="Guarnición" accent={GREEN} />
+              <SegmentedTabButton selected={tab === "salsa"} onClick={() => setTab("salsa")} label="Salsa" accent="#c2703d" />
+              <SegmentedTabButton selected={tab === "ambas"} onClick={() => setTab("ambas")} label="Ambas" accent="#0f766e" />
+            </SegmentedTabBar>
+          </div>
+        )}
+
+        <div
+          style={{
+            flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch",
+            padding: "0 16px 20px",
+          }}
+        >
+          {showGarnishGrid && (
+            <>
+              {tab === "ambas" && (
+                <p style={{ margin: "4px 0 8px", fontSize: 11.5, fontWeight: 800, color: GREEN, letterSpacing: ".2px" }}>
+                  GUARNICIÓN
+                </p>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12, marginBottom: tab === "ambas" ? 18 : 0 }}>
+                {garnishCatalog.map((g) => {
+                  const label = capitalizeGarnishLabel(g.shortName ?? g.name);
+                  return (
+                    <GarnishGridTile
+                      key={g.id}
+                      garnish={g}
+                      label={label}
+                      selected={g.id === garnishId}
+                      onSelect={() => setGarnishId(g.id === garnishId ? null : g.id)}
+                      discarded={discardedIds ? discardedIds.has(g.id) : false}
+                      onDiscard={onDiscardRecipe ? () => onDiscardRecipe(g.id) : undefined}
+                      onRecover={onRecoverRecipe ? () => onRecoverRecipe(g.id) : undefined}
+                    />
+                  );
+                })}
+              </div>
+            </>
+          )}
+          {showSalsaGrid && (
+            <>
+              {tab === "ambas" && (
+                <p style={{ margin: "4px 0 8px", fontSize: 11.5, fontWeight: 800, color: "#c2703d", letterSpacing: ".2px" }}>
+                  SALSA
+                </p>
+              )}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 12 }}>
+                {SALSAS.map((s) => (
+                  <SalsaGridTile
+                    key={s.id}
+                    salsa={s}
+                    selected={s.id === sauceId}
+                    onSelect={() => setSauceId(s.id === sauceId ? null : s.id)}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* CTA fijo al fondo — nunca se desplaza con el scroll de la cuadrícula. */}
+        <div style={{ padding: "12px 16px calc(14px + env(safe-area-inset-bottom, 0px))", borderTop: "1px solid #eef3f0", flexShrink: 0 }}>
+          <button
+            type="button"
+            onClick={() => onConfirm({ garnishId, sauceId })}
+            style={{
+              width: "100%", padding: "13px 16px", borderRadius: 13, border: "none",
+              background: "#0f766e", color: "#fff", fontSize: 14.5, fontWeight: 800,
+              cursor: "pointer", fontFamily: "inherit",
+            }}
+          >
+            Elegir
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function capitalizeGarnishLabel(text) {
   const s = String(text ?? "").trim();
   if (!s) return s;
@@ -2043,7 +2660,7 @@ function GarnishGridTile({
           cursor: "pointer",
           fontFamily: "inherit",
           background: "#eef4ef",
-          boxShadow: selected ? `inset 0 0 0 2.5px ${GREEN}` : "inset 0 0 0 1px #dce8e0",
+          boxShadow: selected ? "inset 0 0 0 3px #0f766e, 0 0 0 3px rgba(15,118,110,.25)" : "inset 0 0 0 1px #dce8e0",
           opacity: discarded ? 0.45 : 1,
         }}
       >
@@ -2058,6 +2675,19 @@ function GarnishGridTile({
         ) : (
           <span style={{ display: "grid", placeItems: "center", width: "100%", height: "100%" }}>
             <Salad size={28} color="#3f9656" />
+          </span>
+        )}
+        {selected && (
+          <span
+            aria-hidden
+            style={{
+              position: "absolute", top: 6, left: 6, width: 22, height: 22, borderRadius: "50%",
+              border: "1.5px solid #fff", background: "#0f766e",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
+            }}
+          >
+            <Check size={13} color="#fff" strokeWidth={3} />
           </span>
         )}
         {onSetFavoriteScope && (

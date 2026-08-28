@@ -1,13 +1,12 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import {
-  Refrigerator,
   CalendarDays,
   Zap,
   ChefHat,
-  ChevronLeft,
   Check,
   BookOpen,
   Globe,
+  Refrigerator,
 } from "lucide-react";
 import { WizardSheet } from "./ui.jsx";
 
@@ -16,7 +15,7 @@ const PANTRY_PREF_IMG = (slug) => `/avatares/cards/pantry_prefs/${slug}.png`;
 // ── Ajustes «En casa» ──
 // Una sola pregunta ilustrada: cuándo se da por gastado lo de casa. El usuario
 // elige y pulsa Guardar (no avanza al primer toque).
-function PantryPrefOptionCard({
+export function PantryPrefOptionCard({
   img, Icon, iconColor, iconBg, title, subtitle, selected, onSelect,
 }) {
   const [imgFailed, setImgFailed] = useState(false);
@@ -94,73 +93,60 @@ function PantryPrefOptionCard({
   );
 }
 
-const PANTRY_QUESTIONS = [
-  {
-    key: "consume",
-    title: "¿Cuándo damos por gastado lo de casa?",
-    subtitle: "Cuando el menú usa algo que ya tienes.",
-    options: [
-      {
-        id: "onGenerate",
-        img: PANTRY_PREF_IMG("onGenerate"),
-        Icon: Zap,
-        iconColor: "#2d5a3d",
-        iconBg: "#e7f3ec",
-        title: "Al crear el menú",
-        subtitle: "Se descuenta todo de una vez al generarlo.",
-      },
-      {
-        id: "endOfDay",
-        img: PANTRY_PREF_IMG("endOfDay"),
-        Icon: CalendarDays,
-        iconColor: "#2f6d8a",
-        iconBg: "#e0eef5",
-        title: "Al final del día",
-        subtitle: "Damos por comido lo de cada día cuando pasa.",
-      },
-      {
-        id: "onCook",
-        img: PANTRY_PREF_IMG("onCook"),
-        Icon: ChefHat,
-        iconColor: "#8a5a00",
-        iconBg: "#fbeecd",
-        title: "Al marcarlo cocinado",
-        subtitle: "Solo cuando marcas el plato como hecho.",
-      },
-    ],
-  },
-];
+// La pregunta de "cuándo se da por gastado lo de casa" pasó por dos sitios
+// antes de este (2026-08-26): un sheet modal aquí mismo, y luego un paso
+// condicional del wizard de onboarding — ambos retirados, porque la pregunta
+// se entiende mejor mirando la despensa real que en abstracto. Ahora vive
+// como sheet contextual en Compra → En casa (PantryPrefsSheet más abajo):
+// aparece sola la primera vez que entras ahí tras tener un menú activo, y el
+// icono de ajustes de esa pestaña la reabre cuando quieras.
+export const PANTRY_CONSUME_QUESTION = {
+  title: "¿Cuándo damos por gastado lo de casa?",
+  subtitle: "Cuando el menú usa algo que acabas de añadir.",
+  options: [
+    {
+      id: "onGenerate",
+      img: PANTRY_PREF_IMG("onGenerate"),
+      Icon: Zap,
+      iconColor: "#2d5a3d",
+      iconBg: "#e7f3ec",
+      title: "Al crear el menú",
+      subtitle: "Se descuenta todo de una vez al generarlo.",
+    },
+    {
+      id: "endOfDay",
+      img: PANTRY_PREF_IMG("endOfDay"),
+      Icon: CalendarDays,
+      iconColor: "#2f6d8a",
+      iconBg: "#e0eef5",
+      title: "Al final del día",
+      subtitle: "Damos por comido lo de cada día cuando pasa.",
+    },
+    {
+      id: "onCook",
+      img: PANTRY_PREF_IMG("onCook"),
+      Icon: ChefHat,
+      iconColor: "#8a5a00",
+      iconBg: "#fbeecd",
+      title: "Al marcarlo cocinado",
+      subtitle: "Solo cuando marcas el plato como hecho.",
+    },
+  ],
+};
 
-export function PantryPrefsWizard({ initial, onComplete, onLater }) {
-  const [step, setStep] = useState(0);
-  const [answers, setAnswers] = useState(() => ({ ...(initial ?? {}) }));
-  const [pending, setPending] = useState(null);
-
-  const q = PANTRY_QUESTIONS[step];
-  const isLast = step === PANTRY_QUESTIONS.length - 1;
-
-  useEffect(() => {
-    setPending(answers[q.key] ?? null);
-  }, [step, q.key, answers]);
-
-  const confirm = () => {
-    if (!pending) return;
-    const next = { ...answers, [q.key]: pending };
-    setAnswers(next);
-    if (isLast) onComplete(next);
-    else setStep((s) => s + 1);
-  };
+export function PantryPrefsSheet({ initial, onComplete, onClose }) {
+  const [selected, setSelected] = useState(initial ?? "onCook");
 
   return (
     <WizardSheet
       icon={Refrigerator}
-      title={q.title}
-      subtitle={q.subtitle}
-      onClose={onLater}
+      title={PANTRY_CONSUME_QUESTION.title}
+      subtitle={PANTRY_CONSUME_QUESTION.subtitle}
+      onClose={onClose}
       maxWidth={360}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {q.options.map((opt) => (
+        {PANTRY_CONSUME_QUESTION.options.map((opt) => (
           <PantryPrefOptionCard
             key={opt.id}
             img={opt.img}
@@ -169,16 +155,15 @@ export function PantryPrefsWizard({ initial, onComplete, onLater }) {
             iconBg={opt.iconBg}
             title={opt.title}
             subtitle={opt.subtitle}
-            selected={pending === opt.id}
-            onSelect={() => setPending(opt.id)}
+            selected={selected === opt.id}
+            onSelect={() => setSelected(opt.id)}
           />
         ))}
       </div>
 
       <button
         type="button"
-        disabled={!pending}
-        onClick={confirm}
+        onClick={() => onComplete(selected)}
         style={{
           display: "block",
           width: "100%",
@@ -186,73 +171,24 @@ export function PantryPrefsWizard({ initial, onComplete, onLater }) {
           padding: "12px 16px",
           borderRadius: 14,
           border: "none",
-          background: pending ? "#2d5a3d" : "#cfe0d6",
-          color: pending ? "#fff" : "#8aa396",
+          background: "#2d5a3d",
+          color: "#fff",
           fontSize: 14,
           fontWeight: 800,
-          cursor: pending ? "pointer" : "default",
+          cursor: "pointer",
           fontFamily: "inherit",
-          transition: "background .15s ease, color .15s ease",
         }}
       >
-        {isLast ? "Guardar preferencias" : "Continuar"}
+        Guardar
       </button>
 
-      {/* Con una sola pregunta el punto de progreso y el "Atrás" sobran; el
-          bloque se mantiene por si vuelven a haber varias. */}
-      {PANTRY_QUESTIONS.length > 1 && (
-        <>
-          <div style={{ height: 1, background: "#dce9e1", margin: "16px 0 12px" }} />
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: 28 }}>
-            <div style={{ display: "flex", gap: 5 }}>
-              {PANTRY_QUESTIONS.map((_, i) => (
-                <span
-                  key={i}
-                  style={{
-                    width: i === step ? 18 : 6,
-                    height: 6,
-                    borderRadius: 999,
-                    background: i === step ? "#2d5a3d" : i < step ? "#7ab896" : "#cfe0d6",
-                    transition: "width .2s ease, background .2s ease",
-                  }}
-                />
-              ))}
-            </div>
-            {step > 0 ? (
-              <button
-                type="button"
-                onClick={() => setStep((s) => Math.max(0, s - 1))}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 3,
-                  border: "none",
-                  background: "transparent",
-                  color: "#4f6a5a",
-                  fontSize: 12.5,
-                  fontWeight: 800,
-                  cursor: "pointer",
-                  fontFamily: "inherit",
-                  padding: "6px 2px",
-                }}
-              >
-                <ChevronLeft size={15} strokeWidth={2.4} />
-                Atrás
-              </button>
-            ) : (
-              <span style={{ width: 1 }} />
-            )}
-          </div>
-        </>
-      )}
       <button
         type="button"
-        onClick={onLater}
+        onClick={onClose}
         style={{
           display: "block",
           width: "100%",
-          // Sin la fila de progreso hace falta algo de aire propio.
-          marginTop: PANTRY_QUESTIONS.length > 1 ? 8 : 14,
+          marginTop: 8,
           border: "none",
           background: "transparent",
           color: "#7a9080",
@@ -264,7 +200,7 @@ export function PantryPrefsWizard({ initial, onComplete, onLater }) {
           textAlign: "center",
         }}
       >
-        Responder más tarde
+        Cerrar
       </button>
     </WizardSheet>
   );

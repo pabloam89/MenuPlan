@@ -156,11 +156,12 @@ describe("filterRecipes intolerances & dietary states", () => {
   });
 
   it("no longer excludes a plain 'Vinagre de Jerez' dish for embarazo (jerez false-positive fix)", () => {
-    // Chickpea salad: tomato, cucumber, olives, olive oil, sherry vinegar — no
-    // other embarazo-restricted ingredient, so the "jerez" false positive was
-    // the ONLY thing excluding it before this fix.
+    // Turkey/cheese French omelette salad: no raw/cured/soft-cheese/mercury-
+    // fish keyword from the embarazo list, so the "jerez" false positive was
+    // the ONLY thing excluding it before this fix. Season "all" + no
+    // requiredAppliance, so it's stable regardless of when/how the suite runs.
     const { recipes: all } = filterRecipes(baseOpts);
-    const dish = all.find((r) => (r.ingredients ?? []).some((ing) => ing.name === "Vinagre de Jerez") && r.category === "legumbres");
+    const dish = all.find((r) => r.id === "carnes_130");
     expect(dish).toBeTruthy();
 
     const { recipes: preg } = filterRecipes({
@@ -218,7 +219,7 @@ describe("decisionCatalog sends the fields the SYSTEM_PROMPT tells the model to 
   const byId = Object.fromEntries(catalog.map((e) => [e.id, e]));
 
   it("sends mainBase for dishes that declare one", () => {
-    expect(byId["pasta_arroces_003"]?.mainBase).toBe("arroz"); // Arroz blanco con tomate
+    expect(byId["pasta_arroces_031"]?.mainBase).toBe("arroz"); // Arroz negro con alioli
     expect(catalog.filter((e) => e.mainBase).length).toBeGreaterThan(30);
   });
 
@@ -226,8 +227,8 @@ describe("decisionCatalog sends the fields the SYSTEM_PROMPT tells the model to 
     // Both season "all", so they survive the pool's seasonal filter whatever
     // time of year the suite runs (Cocido madrileño is winter-only and would
     // make this test pass or fail depending on the month).
-    expect(byId["huevos_011"]?.extraProteins).toContain("marisco"); // Revuelto de gambas
-    expect(byId["ensaladas_verduras_010"]?.extraProteins).toContain("cerdo"); // Judías verdes con jamón
+    expect(byId["legumbres_029"]?.extraProteins).toContain("marisco"); // Fabes con almejas y azafrán
+    expect(byId["legumbres_025"]?.extraProteins).toContain("cerdo"); // Lentejas guisadas con chorizo y huevo poché
     expect(catalog.filter((e) => e.extraProteins).length).toBeGreaterThan(15);
   });
 
@@ -372,27 +373,28 @@ describe("filterGarnishes", () => {
   });
 
   it("keeps a lactose-containing garnish (adaptable) instead of excluding it", () => {
-    // guarniciones_003 "Puré de patatas" has "Leche" among its ingredients —
-    // adaptable, not a hard exclusion: dropping it would be an unnecessary
-    // wall when a lactose-free version of the same product exists.
+    // guarniciones_024 "Puré de patata con mantequilla y nuez moscada" has
+    // "Leche entera" among its ingredients — adaptable, not a hard exclusion:
+    // dropping it would be an unnecessary wall when a lactose-free version of
+    // the same product exists.
     const all = filterGarnishes({});
-    const withDairy = all.find((g) => g.id === "guarniciones_003");
+    const withDairy = all.find((g) => g.id === "guarniciones_024");
     expect(withDairy).toBeTruthy(); // sanity: fixture data still has it
 
     const safe = filterGarnishes({ intolerances: ["lactosa_fina"] });
-    expect(safe.some((g) => g.id === "guarniciones_003")).toBe(true);
+    expect(safe.some((g) => g.id === "guarniciones_024")).toBe(true);
   });
 
   it("still hard-excludes a non-adaptable intolerance (fructosa)", () => {
-    // guarniciones_011 "Zanahoria glaseada" has "Miel" — fructosa has no
-    // supermarket swap, so it must still be a hard exclusion.
+    // guarniciones_029 "Zanahorias glaseadas con miel y comino" has "Miel" —
+    // fructosa has no supermarket swap, so it must still be a hard exclusion.
     const all = filterGarnishes({});
-    const withHoney = all.find((g) => g.id === "guarniciones_011");
+    const withHoney = all.find((g) => g.id === "guarniciones_029");
     expect(withHoney).toBeTruthy(); // sanity: fixture data still has it
     expect(recipeHitsIntolerances(withHoney, ["fructosa"])).toBe(true);
 
     const safe = filterGarnishes({ intolerances: ["fructosa"] });
-    expect(safe.some((g) => g.id === "guarniciones_011")).toBe(false);
+    expect(safe.some((g) => g.id === "guarniciones_029")).toBe(false);
   });
 
   it("excludes alcoholic garnishes when hasKids, via an injected fixture (the real catalog has none today)", () => {

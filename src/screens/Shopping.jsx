@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { Suspense, lazy, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
   AlertTriangle,
@@ -29,6 +29,7 @@ import {
   Plus,
   Receipt,
   Scale,
+  Settings,
   Share2,
   ShoppingBasket,
   ShoppingCart,
@@ -60,6 +61,7 @@ import {
   stripQtyNoise,
   expandAbbreviations,
   toDisplayCase,
+  formatEuro0,
 } from "../lib/priceHistory.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { normalizeIngredientKey, isPerishableAisle, guessShoppingAisle, normalizeName } from "../lib/ingredientCategories.js";
@@ -80,6 +82,7 @@ import {
   formatDisplay,
   filterItemsByDays,
   isActiveItem,
+  isDoneItem,
   itemsByAisle,
   itemsByDayMeal,
   mergeShoppingItems,
@@ -92,11 +95,19 @@ import {
   formatWeekRangeLabel,
   getWeekDates,
   getWeekDatesByMenuWeek,
-  getWeekDatesFromStartISO,
 } from "../lib/weekCalendar.js";
 import { shareShoppingList } from "../lib/menuExport.js";
 import { priceShoppingList } from "../lib/listPricing.js";
 import { isMercadonaStore } from "../lib/storeCatalog.js";
+import { PantryPrefsSheet } from "../components/ModeSheets.jsx";
+
+// Lazy (not a top-level import): Pantry.jsx already imports SwipePurchaseShell
+// from this very file, so a plain top-level import here would be circular.
+// Deferring it to render time (same pattern Onboarding.jsx uses to embed the
+// same screen) sidesteps that entirely.
+const PantryScreen = lazy(() =>
+  import("./Pantry.jsx").then((m) => ({ default: m.PantryScreen }))
+);
 
 const DAY_LETTERS = { Lun: "L", Mar: "M", Mié: "X", Jue: "J", Vie: "V", Sáb: "S", Dom: "D" };
 
@@ -118,34 +129,13 @@ const WEEK_CHIP_THEMES = [
     activeGradient: "linear-gradient(180deg, #55c8d8 0%, #2e9faf 100%)",
     activeShadow: "#2e9faf55",
   },
-  {
-    idleBg: "#eef2fa",
-    idleLetter: "#5a7fd0",
-    idleNum: "#3d5fb0",
-    activeGradient: "linear-gradient(180deg, #7898ee 0%, #4a6fd0 100%)",
-    activeShadow: "#5b7fd455",
-  },
-  {
-    idleBg: "#f3eef9",
-    idleLetter: "#8b6fd0",
-    idleNum: "#6b4fb0",
-    activeGradient: "linear-gradient(180deg, #a888e8 0%, #8060d0 100%)",
-    activeShadow: "#8b6fd455",
-  },
-  {
-    idleBg: "#faf2ee",
-    idleLetter: "#c9785a",
-    idleNum: "#a8583a",
-    activeGradient: "linear-gradient(180deg, #e89878 0%, #d07050 100%)",
-    activeShadow: "#d47a5b55",
-  },
 ];
 
-/** Tamaño compartido del strip L–D + S1–S4 (caso extremo: 7+4 en una fila). */
-const STRIP_CHIP_W = 30;
-const STRIP_CHIP_H = 44;
-const STRIP_CHIP_GAP = 2;
-const STRIP_GROUPS_GAP = 6;
+/** Tamaño del selector de semanas (S1–S4) — sin la tira de días al lado
+ * (2026-08-27, compra siempre por semana completa), puede ir más holgado. */
+const WEEK_CHIP_W = 36;
+const WEEK_CHIP_H = 52;
+const STRIP_CHIP_GAP = 4;
 
 const MEAL_BADGE = {
   Desayuno: { Icon: Coffee, color: "#a16207" },
@@ -255,11 +245,14 @@ const HEADER_BAND = "#e9f4ed";
 // Fill for the aisle you have open. Teal rather than the app green so it reads
 // as a state, not as another piece of chrome; only one shows at a time, which
 // is what lets it be this saturated without weighing the list down.
-const AISLE_OPEN_BAND = "#2e7d75";
-const AISLE_DIVIDER = "1px solid rgba(45,110,70,.18)";
+// Exported (2026-08-25) so Pantry.jsx's "Por pasillo" grouping in En casa can
+// reuse the exact same collapsible-section chrome as Pendiente here, instead
+// of a plainer look-alike.
+export const AISLE_OPEN_BAND = "#2e7d75";
+export const AISLE_DIVIDER = "1px solid rgba(45,110,70,.18)";
 const STRIP_DIVIDER = "1.5px solid rgba(45,110,70,.24)";
 
-function aisleMetaPillStyle(open, variant = "count") {
+export function aisleMetaPillStyle(open, variant = "count") {
   const isPrice = variant === "price";
   return {
     fontSize: 12,
@@ -321,11 +314,35 @@ export function ShoppingScreen({
   autoDemo = false,
   // Bumps after login merge so stock reloads once local→cloud fold finishes.
   pantryEpoch = 0,
+  // One-shot: land on the "En casa" tab instead of "Por comprar" — used by
+  // the deep link from Análisis → Gasto ("Ir a En casa"), which used to
+  // navigate to a whole separate screen (retired 2026-08-25 now that En casa
+  // is a tab here, not its own destination).
+  initialTab = null,
+  onInitialTabHandled = null,
 }) {
   // Stock powers three things here: discounting the buy list against what you
   // already have (applyPantryCoverage), filing ticket/manual purchases into En
   // casa, and the undo of a "Comprado". Guests use the localStorage mirror.
   const { user } = useAuth();
+  // Swipe-right-comprar / swipe-left-borrar no es obvio a la primera — se
+  // explica una vez, con una mini animación del gesto, la primera vez que se
+  // entra en Tu compra. Recordado en local para no repetirse.
+  const [showSwipeTutorial, setShowSwipeTutorial] = useState(() => {
+    try {
+      return !localStorage.getItem("mp_shop_swipe_tutorial_seen");
+    } catch {
+      return false;
+    }
+  });
+  const dismissSwipeTutorial = () => {
+    try {
+      localStorage.setItem("mp_shop_swipe_tutorial_seen", "1");
+    } catch {
+      // ignore storage failures (private mode, etc.)
+    }
+    setShowSwipeTutorial(false);
+  };
   const [pantryStock, setPantryStock] = useState(() => (user ? [] : loadLocalPantry()));
   useEffect(() => {
     let active = true;
@@ -340,6 +357,17 @@ export function ShoppingScreen({
       active = false;
     };
   }, [user, pantryEpoch, pantryHouseholdId]);
+  // The embedded PantryScreen ("En casa" tab) loads its OWN `items` state
+  // independently, keyed off the `pantryEpoch` prop — which only bumps after
+  // a login merge, never after a purchase here. Buying something updates
+  // THIS screen's `pantryStock` (reloadStock) but gave the embed no signal to
+  // refetch, so it kept showing stale stock (2026-08-25 bug). Bumping a local
+  // counter whenever `pantryStock` changes and folding it into the epoch we
+  // pass down forces that embed to reload in step with this screen.
+  const [pantryStockVersion, setPantryStockVersion] = useState(0);
+  useEffect(() => {
+    setPantryStockVersion((v) => v + 1);
+  }, [pantryStock]);
 
   // "Subir ticket" from En casa: open the capture chooser as soon as we land.
   useEffect(() => {
@@ -373,9 +401,33 @@ export function ShoppingScreen({
   // (see handleReceiptConfirm) — shown as a small celebratory follow-up.
   const [unlockedDishes, setUnlockedDishes] = useState(null);
   const [editingQtyId, setEditingQtyId] = useState(null);
-  /** Empty set = full week; non-empty = union of selected days. */
-  const [selectedDays, setSelectedDays] = useState(() => new Set());
   const fileRef = useRef(null);
+  // Triple segmented control (2026-08-25, experimento): Por comprar / Comprado
+  // / En casa, las tres piezas de la tríada compra↔despensa en un solo sitio.
+  // "En casa" no es una lista derivada de `shopping.items` — es directamente
+  // la despensa (embed de PantryScreen, misma pantalla de siempre), así que
+  // no comparte el filtro de aisle/día de las otras dos pestañas.
+  const [buyTab, setBuyTab] = useState(initialTab === "home" ? "home" : "pending");
+  useEffect(() => {
+    if (initialTab === "home") {
+      setBuyTab("home");
+      onInitialTabHandled?.();
+    }
+  }, [initialTab, onInitialTabHandled]);
+
+  // "¿Cuándo se da por gastado?" (2026-08-26): ya no es un paso del wizard —
+  // aparece sola la primera vez que entras en "En casa" con un menú activo
+  // (antes de eso la pregunta es abstracta, no hay nada que descontar), y el
+  // icono de ajustes de esa pestaña la reabre cuando quieras. Editable solo
+  // si hay setData (no en hogares de solo lectura).
+  const canEditPantryPrefs = Boolean(setData);
+  const [showPantryPrefs, setShowPantryPrefs] = useState(false);
+  useEffect(() => {
+    if (buyTab === "home" && canEditPantryPrefs && data?.activeMenuId && !data?.pantryPrefsSeen) {
+      setShowPantryPrefs(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [buyTab]);
 
   const menuMode = Array.isArray(menuWeeks) && menuWeeks.length > 0;
 
@@ -528,7 +580,16 @@ export function ShoppingScreen({
   // already have something of in stock as fromPantry → the "Ya en casa" section.
   applyPantryCoverage(allRows, pantryStock);
 
-  const enrichedItems = allRows.filter((r) => !r.fromPantry);
+  // A row bought just now (swipe/tap "Comprado") gets folded into pantry
+  // stock immediately (markItemBought → restoreToPantry), so on the very next
+  // render applyPantryCoverage above stamps it fromPantry=true too — without
+  // the `|| r.have` guard it would vanish from `enrichedItems` entirely and
+  // never reach the "Comprado" tab's isDoneItem filter below (2026-08-25 bug:
+  // it kept updating En casa but silently dropped out of Comprado). Rows that
+  // were ALREADY covered before you touched anything (have=false) still get
+  // excluded here exactly as before — that's the intentional "ya en casa,
+  // nunca aparece en la lista" auto-detection.
+  const enrichedItems = allRows.filter((r) => !r.fromPantry || r.have);
   // Matched rows form the "Ya en casa" section. Merge per-week perishable rows
   // back into one line per ingredient so the section reads one row per stocked
   // ingredient, not one per week. The `qty` here stays the recipe need (cook
@@ -635,6 +696,23 @@ export function ShoppingScreen({
     }
     applyToSources(row, { have: true });
   };
+  // Swipe-left on a "Comprado" row: inverse of markItemBought — takes back
+  // out of "En casa" the exact stock that buying it just topped up (same
+  // consume/restore symmetry cooking uses), then returns it to "Por comprar".
+  const unmarkItemBought = async (id) => {
+    const row = rowById.get(id);
+    if (!row) return;
+    const item = rowToPantryItem(row);
+    if (item) {
+      try {
+        await consumeFromPantry([item], pantryStock, { user });
+        await reloadStock();
+      } catch (err) {
+        console.error("[shopping] consumeFromPantry failed", err);
+      }
+    }
+    applyToSources(row, { have: false });
+  };
   const saveItemQty = (id, rawValue) => {
     const parsed = parseFloat(String(rawValue).replace(",", "."));
     const row = rowById.get(id);
@@ -647,52 +725,19 @@ export function ShoppingScreen({
     setEditingQtyId(null);
   };
 
-  // Calendar for the day strip — anchor on the first selected week.
-  const stripAnchor = selectedWeeks[0];
-  const { dates: stripDates, activeDays: stripActiveDays } = stripAnchor?.startISO
-    ? getWeekDatesFromStartISO(stripAnchor.startISO, stripAnchor.startDayIdx ?? 0)
-    : menuWeek
-      ? getWeekDatesByMenuWeek(menuWeek)
-      : { dates: getWeekDates(), activeDays: DAYS };
-
-  const stripDays = DAYS;
-  const activeDaySet = new Set(multiWeek ? DAYS : stripActiveDays);
-
-  const dayHasPending = (day) =>
-    activeDaySet.has(day) &&
-    enrichedItems.some(
-      (it) =>
-        isActiveItem(it) &&
-        (it.sources ?? []).some((s) => s.day === day),
-    );
-
-  const activeDayKey = [...activeDaySet].join(",");
-  useEffect(() => {
-    setSelectedDays((cur) => {
-      if (!cur.size) return cur;
-      const next = new Set([...cur].filter((d) => activeDaySet.has(d)));
-      if (next.size === cur.size && [...next].every((d) => cur.has(d))) return cur;
-      return next;
-    });
-  }, [activeDayKey]);
-
-  const toggleDayFilter = (day) => {
-    if (!activeDaySet.has(day)) return;
-    setSelectedDays((cur) => {
-      const next = new Set(cur);
-      if (next.has(day)) next.delete(day);
-      else next.add(day);
-      return next;
-    });
-  };
-
-  // The buy list only ever shows what's still pending. Cooking (ingredient
-  // ticks + "Marcar cocinado", which discounts stock) moved to each dish's
-  // detail in "Menú", so this screen no longer builds a day→meal cook tree.
-  const visibleItems = filterItemsByDays(
-    enrichedItems,
-    selectedDays.size ? selectedDays : SHOPPING_DAY_WEEK,
-  ).filter(isActiveItem);
+  // Cooking (ingredient ticks + "Marcar cocinado", which discounts stock)
+  // moved to each dish's detail in "Menú", so this screen no longer builds a
+  // day→meal cook tree. Comprado volvió como pestaña propia (2026-08-26): es
+  // un registro fijo de esta compra (no se resta con el consumo, a
+  // diferencia de En casa), así que sigue siendo la misma lista leída con el
+  // filtro opuesto — isActiveItem/isDoneItem son complementarios exactos.
+  // La compra es siempre por semana, no por día (2026-08-27) — se quitó el
+  // selector de días; ahora se filtra siempre por la semana completa y el
+  // único selector es el de semanas (selectedOffsets / toggleWeek), cuando
+  // hay más de una semana planificada.
+  const visibleItems = filterItemsByDays(enrichedItems, SHOPPING_DAY_WEEK).filter(
+    buyTab === "bought" ? isDoneItem : isActiveItem,
+  );
   const sections = itemsByAisle(visibleItems).map((g) => ({
     key: g.aisle,
     title: g.aisle,
@@ -710,8 +755,6 @@ export function ShoppingScreen({
   );
   const [storeEstimate, setStoreEstimate] = useState(null);
   const [linePrices, setLinePrices] = useState(() => new Map());
-  const [listView, setListView] = useState("uds");
-
   useEffect(() => {
     if (!mercadonaSelected || !visibleItems.length) {
       setStoreEstimate(null);
@@ -736,17 +779,6 @@ export function ShoppingScreen({
       cancelled = true;
     };
   }, [mercadonaSelected, estimateKey, data?.priceObs]);
-
-  // Tinte cromático del strip de días según la(s) semana(s) marcada(s) en S1–S4.
-  const dayStripWeekTint =
-    orderedAll.length > 1
-      ? WEEK_CHIP_THEMES[
-          Math.max(
-            0,
-            orderedAll.findIndex((w) => selectedOffsets?.has(w.offset)),
-          ) % WEEK_CHIP_THEMES.length
-        ]
-      : null;
 
   // Date label for the current selection: real span of the selected weeks in
   // menú mode; the single-week label otherwise.
@@ -1071,21 +1103,9 @@ export function ShoppingScreen({
     });
   };
 
-  const toggleListView =
-    mercadonaSelected && storeEstimate?.matched > 0
-      ? () => setListView((v) => (v === "uds" ? "eur" : "uds"))
-      : null;
-
   const renderAisleSection = (section, idx, total) => {
     const open = Boolean(openSections[section.key]);
     const isLastSection = idx === total - 1;
-    const priceMode = listView === "eur" && mercadonaSelected;
-    const aisleTotal = mercadonaSelected
-      ? section.items.reduce((sum, item) => {
-          const p = linePrices.get(item.id)?.storePrice;
-          return p != null && p > 0 ? sum + p : sum;
-        }, 0)
-      : 0;
     return (
       <div key={section.key}>
         <button
@@ -1125,13 +1145,11 @@ export function ShoppingScreen({
           >
             {section.title}
           </span>
-          {priceMode && aisleTotal > 0 ? (
-            <span style={aisleMetaPillStyle(open, "price")}>
-              {Math.round(aisleTotal).toLocaleString("es-ES")} €
-            </span>
-          ) : !priceMode ? (
-            <span style={aisleMetaPillStyle(open, "count")}>{section.items.length}</span>
-          ) : null}
+          {/* Siempre nº de items, nunca € (2026-08-26) — así Por comprar +
+              Comprado suman la compra completa que se pensó, en vez de que
+              el redondel cambie de significado según la vista (uds/€). El
+              total en € ya se ve arriba, en la franja de Mercadona. */}
+          <span style={aisleMetaPillStyle(open, "count")}>{section.items.length}</span>
           {open ? (
             <ChevronDown size={16} color="rgba(255,255,255,.75)" style={{ flexShrink: 0 }} />
           ) : (
@@ -1140,42 +1158,105 @@ export function ShoppingScreen({
         </button>
         {open && (
           <div style={aisleItemsStyle}>
-            {priceMode ? (
-              section.items.map((item, i) => (
-                <ShoppingPriceRow
-                  key={`${section.key}-${item.id}`}
-                  item={item}
-                  pricing={linePrices.get(item.id) ?? null}
-                  isLast={i === section.items.length - 1}
-                  onThumbTap={toggleListView}
-                  readOnly={readOnly}
-                  onPurchased={() => markItemBought(item.id)}
-                  onDelete={() => removeItem(item.id)}
-                />
-              ))
-            ) : (
-              section.items.map((item, i) => (
-                <ShoppingRow
-                  key={`${section.key}-${item.id}`}
-                  item={item}
-                  pricing={linePrices.get(item.id) ?? null}
-                  isLast={i === section.items.length - 1}
-                  onThumbTap={toggleListView}
-                  onSwipePurchased={() => markItemBought(item.id)}
-                  isEditingQty={!readOnly && editingQtyId === item.id}
-                  readOnly={readOnly}
-                  onEditQty={() => !readOnly && setEditingQtyId(item.id)}
-                  onSaveQty={(val) => saveItemQty(item.id, val)}
-                  onCancelQty={() => setEditingQtyId(null)}
-                  onRemove={() => removeItem(item.id)}
-                />
-              ))
-            )}
+            {section.items.map((item, i) => (
+              <ShoppingRow
+                key={`${section.key}-${item.id}`}
+                item={item}
+                pricing={linePrices.get(item.id) ?? null}
+                isLast={i === section.items.length - 1}
+                onSwipePurchased={() => markItemBought(item.id)}
+                onSwipeReturn={() => unmarkItemBought(item.id)}
+                isEditingQty={!readOnly && editingQtyId === item.id}
+                readOnly={readOnly}
+                onEditQty={() => !readOnly && setEditingQtyId(item.id)}
+                onSaveQty={(val) => saveItemQty(item.id, val)}
+                onCancelQty={() => setEditingQtyId(null)}
+                onRemove={() => removeItem(item.id)}
+                suppressStrike={buyTab === "bought"}
+                boughtTab={buyTab === "bought"}
+              />
+            ))}
           </div>
         )}
       </div>
     );
   };
+
+  // La compra ya no se filtra por día — el único selector que queda es el de
+  // semanas (cuando hay más de una planificada). Vive a la derecha: junto a
+  // la franja de Mercadona si esta se pinta, o solo debajo de Por comprar/
+  // Comprado si no hay súper seleccionado.
+  const showMercadonaStrip =
+    mercadonaSelected && storeEstimate && storeEstimate.matched > 0 && !isEmpty;
+  const weekSelectorEl = orderedAll.length > 1 && !isEmpty && (
+    <div
+      role="group"
+      aria-label="Semanas incluidas en la compra — marca varias para combinar"
+      style={{ flexShrink: 0, display: "flex", alignItems: "stretch", gap: STRIP_CHIP_GAP }}
+    >
+      {orderedAll.map((w, i) => {
+        const sel = selectedOffsets?.has(w.offset);
+        const theme = WEEK_CHIP_THEMES[0];
+        return (
+          <button
+            key={w.weekStart}
+            type="button"
+            onClick={() => toggleWeek(w.offset)}
+            aria-pressed={sel}
+            aria-label={`Semana ${i + 1}`}
+            title={
+              sel
+                ? `Quitar semana ${i + 1} de la lista combinada`
+                : `Incluir semana ${i + 1} en la lista combinada`
+            }
+            style={{
+              flex: "0 0 auto",
+              width: WEEK_CHIP_W,
+              minHeight: WEEK_CHIP_H,
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 2,
+              padding: sel ? "7px 0 6px" : "6px 0",
+              borderRadius: 9,
+              border: "none",
+              background: sel ? theme.activeGradient : theme.idleBg,
+              color: sel ? "#fff" : theme.idleNum,
+              cursor: "pointer",
+              fontFamily: "inherit",
+              boxShadow: sel ? `0 2px 8px ${theme.activeShadow}` : "none",
+              transition: "all .15s ease",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 9,
+                fontWeight: 800,
+                letterSpacing: 0.2,
+                textTransform: "uppercase",
+                lineHeight: 1,
+                color: sel ? "rgba(255,255,255,.88)" : theme.idleLetter,
+              }}
+            >
+              Sem
+            </span>
+            <span style={{ fontSize: sel ? 14 : 13, fontWeight: 900, lineHeight: 1 }}>
+              {i + 1}
+            </span>
+            <span
+              style={{
+                width: 3.5,
+                height: 3.5,
+                borderRadius: 999,
+                background: sel ? "rgba(255,255,255,.65)" : "transparent",
+              }}
+            />
+          </button>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div style={{ background: "#fff", minHeight: "100dvh" }}>
@@ -1229,9 +1310,6 @@ export function ShoppingScreen({
             </button>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
-            {/* The "En casa" quick-access icon lived here, but the pantry now has
-                its own permanent bottom-nav tab — a second entry point in this
-                header was just redundant, so it's gone. */}
             <button
               type="button"
               data-coach="shop-share"
@@ -1245,233 +1323,108 @@ export function ShoppingScreen({
             >
               <Share2 size={17} strokeWidth={2.2} />
             </button>
-            {!readOnly && (
-            <button
-              type="button"
-              data-coach="shop-receipt"
-              onClick={() => (setData ? setShowCapture(true) : openScan())}
-              disabled={receiptBusy}
-              style={moneyBtnStyle}
-              aria-label="Registrar gasto"
-              title="Registrar gasto (ticket o a mano)"
-            >
-              {receiptBusy ? (
-                <Loader2 size={18} className="rotating" color="#fff" />
-              ) : (
-                <Wallet size={17} strokeWidth={2.4} color="#fff" />
-              )}
-            </button>
+            {buyTab !== "home" && (
+              <button
+                type="button"
+                onClick={() => setBuyTab("home")}
+                aria-label="Ver En casa"
+                title="En casa"
+                style={iconBtnStyle}
+              >
+                <Refrigerator size={17} strokeWidth={2.2} />
+              </button>
+            )}
+            {buyTab === "home" && canEditPantryPrefs && (
+              <button
+                type="button"
+                onClick={() => setShowPantryPrefs(true)}
+                aria-label="Ajustes de En casa: cuándo se da por gastado"
+                title="Ajustes de En casa"
+                style={iconBtnStyle}
+              >
+                <Settings size={17} strokeWidth={2.2} />
+              </button>
             )}
           </div>
         </div>
       </div>
+      {/* "En casa" salió del selector (2026-08-27) y vive como botón propio
+          en la cabecera: es un inventario persistente, no un tercer estado
+          de la lista de la compra — Comprado sigue siendo un registro fijo
+          de ESTA compra (un recibo), distinto del stock vivo de En casa que
+          se descuenta con el consumo del menú (pantryPrefs.consume). Comprado
+          muestra precio/envase (misma UI que Pendiente en modo €) cuando hay
+          Mercadona activado; si no, la lista plana de siempre. */}
+      {buyTab === "home" ? (
+        <div style={{ padding: "14px 16px 0" }}>
+          <button
+            type="button"
+            onClick={() => setBuyTab("pending")}
+            style={{
+              display: "flex", alignItems: "center", gap: 4,
+              border: "none", background: "transparent", cursor: "pointer",
+              padding: "4px 2px", fontFamily: "inherit",
+              fontSize: 13.5, fontWeight: 700, color: "#2d5a3d",
+            }}
+          >
+            <ChevronLeft size={16} strokeWidth={2.4} /> Tu compra
+          </button>
+        </div>
+      ) : (
+        <div style={{ padding: "14px 16px 0" }}>
+          <SegmentedControl
+            options={[
+              { id: "pending", label: "Por comprar" },
+              { id: "bought", label: "Comprado" },
+            ]}
+            value={buyTab}
+            onChange={setBuyTab}
+          />
+        </div>
+      )}
+
+      {buyTab === "home" ? (
+        <div style={{ padding: "16px 16px 0", paddingBottom: `calc(${bottomNavSpacer()} + 12px)` }}>
+          <Suspense
+            fallback={
+              <p style={{ margin: 0, padding: "12px 2px", fontSize: 13, color: "#9ab0a1" }}>
+                Cargando…
+              </p>
+            }
+          >
+            <PantryScreen
+              embedded
+              tabs
+              readOnly
+              compactEmptyState
+              user={user}
+              pantryHouseholdId={pantryHouseholdId}
+              // `data` (read-only, no setData — readOnly keeps every write
+              // path off) so mercadonaSelected/SKU matching below can see
+              // data.supermarkets/wantsPriceEstimates. Missed this originally
+              // and only passed priceObs, which silently left the SKU toggle
+              // dead (2026-08-26 bug).
+              data={data}
+              priceObs={data?.priceObs ?? []}
+              pantryEpoch={pantryEpoch + pantryStockVersion}
+              onToast={onToast}
+            />
+          </Suspense>
+        </div>
+      ) : (
+      <>
       <div style={{ padding: "16px 16px 0", position: "relative" }}>
-        {!isEmpty && (
+        {!showMercadonaStrip && weekSelectorEl && (
           <div
             style={{
               marginBottom: 12,
               paddingBottom: 12,
               borderBottom: STRIP_DIVIDER,
+              display: "flex",
+              justifyContent: "flex-end",
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "stretch",
-                gap: orderedAll.length >= 4 ? 28 : STRIP_GROUPS_GAP,
-              }}
-            >
-              <div
-                role="group"
-                aria-label="Días incluidos en la lista"
-                style={{
-                  flex: 1,
-                  minWidth: 0,
-                  display: "flex",
-                  alignItems: "stretch",
-                  gap: STRIP_CHIP_GAP,
-                }}
-              >
-              {stripDays.map((day) => {
-                const sel = selectedDays.has(day);
-                const inactive = !activeDaySet.has(day);
-                const isWeekend = day === "Sáb" || day === "Dom";
-                const dayNum = calendarDayNumber(day, stripDates);
-                const tint = dayStripWeekTint;
-                return (
-                  <button
-                    key={day}
-                    type="button"
-                    onClick={() => toggleDayFilter(day)}
-                    disabled={inactive}
-                    aria-pressed={sel}
-                    aria-label={DAY_FULL[day] ?? day}
-                    aria-disabled={inactive}
-                    style={{
-                      flex: "1 1 0",
-                      minWidth: 0,
-                      maxWidth: STRIP_CHIP_W,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 2,
-                      minHeight: STRIP_CHIP_H,
-                      padding: sel ? "6px 0 5px" : "5px 0",
-                      borderRadius: 8,
-                      border: "none",
-                      background: inactive
-                        ? "#f7f9f8"
-                        : sel
-                          ? tint
-                            ? tint.activeGradient
-                            : "#4cba6e"
-                          : tint
-                            ? tint.idleBg
-                            : isWeekend
-                              ? "#f0f8f3"
-                              : "#f0f4f1",
-                      color: inactive
-                        ? "#c5d0ca"
-                        : sel
-                          ? "#fff"
-                          : tint
-                            ? tint.idleNum
-                            : isWeekend
-                              ? "#4cba6e"
-                              : "#5a7066",
-                      cursor: inactive ? "default" : "pointer",
-                      fontFamily: "inherit",
-                      opacity: inactive ? 0.55 : 1,
-                      boxShadow:
-                        sel && !inactive
-                          ? tint
-                            ? `0 2px 8px ${tint.activeShadow}`
-                            : "0 1px 5px #4cba6e44"
-                          : "none",
-                      transition: "all .15s ease",
-                    }}
-                  >
-                    <span
-                      style={{
-                        fontSize: 8,
-                        fontWeight: 800,
-                        letterSpacing: 0.2,
-                        textTransform: "uppercase",
-                        lineHeight: 1,
-                        color: inactive
-                          ? "#c5d0ca"
-                          : sel
-                            ? "rgba(255,255,255,.88)"
-                            : tint
-                              ? tint.idleLetter
-                              : isWeekend
-                                ? "#4cba6e"
-                                : "#9ab0a1",
-                      }}
-                    >
-                      {DAY_LETTERS[day]}
-                    </span>
-                    {dayNum != null && (
-                      <span style={{ fontSize: sel ? 12 : 11, fontWeight: 900, lineHeight: 1 }}>
-                        {dayNum}
-                      </span>
-                    )}
-                    <span
-                      style={{
-                        width: 3,
-                        height: 3,
-                        borderRadius: 999,
-                        background: inactive
-                          ? "transparent"
-                          : sel
-                            ? "rgba(255,255,255,.65)"
-                            : dayHasPending(day)
-                              ? tint
-                                ? tint.idleLetter
-                                : "#4cba6e"
-                              : "transparent",
-                      }}
-                    />
-                  </button>
-                );
-              })}
-              </div>
-            {orderedAll.length > 1 && (
-              <div
-                role="group"
-                aria-label="Semanas incluidas en la compra — marca varias para combinar"
-                style={{
-                  flexShrink: 0,
-                  display: "flex",
-                  alignItems: "stretch",
-                  gap: STRIP_CHIP_GAP,
-                }}
-              >
-                {orderedAll.map((w, i) => {
-                  const sel = selectedOffsets?.has(w.offset);
-                  const theme = WEEK_CHIP_THEMES[i % WEEK_CHIP_THEMES.length];
-                  return (
-                    <button
-                      key={w.weekStart}
-                      type="button"
-                      onClick={() => toggleWeek(w.offset)}
-                      aria-pressed={sel}
-                      aria-label={`Semana ${i + 1}`}
-                      title={
-                        sel
-                          ? `Quitar semana ${i + 1} de la lista combinada`
-                          : `Incluir semana ${i + 1} en la lista combinada`
-                      }
-                      style={{
-                        flex: "0 0 auto",
-                        width: STRIP_CHIP_W,
-                        minHeight: STRIP_CHIP_H,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        gap: 2,
-                        padding: sel ? "6px 0 5px" : "5px 0",
-                        borderRadius: 8,
-                        border: "none",
-                        background: sel ? theme.activeGradient : theme.idleBg,
-                        color: sel ? "#fff" : theme.idleNum,
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                        boxShadow: sel ? `0 2px 8px ${theme.activeShadow}` : "none",
-                        transition: "all .15s ease",
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 8,
-                          fontWeight: 800,
-                          letterSpacing: 0.2,
-                          textTransform: "uppercase",
-                          lineHeight: 1,
-                          color: sel ? "rgba(255,255,255,.88)" : theme.idleLetter,
-                        }}
-                      >
-                        S
-                      </span>
-                      <span style={{ fontSize: sel ? 12 : 11, fontWeight: 900, lineHeight: 1 }}>
-                        {i + 1}
-                      </span>
-                      <span
-                        style={{
-                          width: 3,
-                          height: 3,
-                          borderRadius: 999,
-                          background: sel ? "rgba(255,255,255,.65)" : "transparent",
-                        }}
-                      />
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            </div>
+            {weekSelectorEl}
           </div>
         )}
 
@@ -1492,9 +1445,9 @@ export function ShoppingScreen({
           paddingBottom: `calc(${bottomNavSpacer()} + 12px)`,
         }}
       >
-        {isEmpty && <EmptyList />}
+        {isEmpty && <EmptyList tab={buyTab} />}
 
-        {mercadonaSelected && storeEstimate && storeEstimate.matched > 0 && !isEmpty && (
+        {showMercadonaStrip && (
           <>
             <div
               style={{
@@ -1505,30 +1458,27 @@ export function ShoppingScreen({
                 paddingBottom: 12,
               }}
             >
-              <StoreBadge name="Mercadona" size={22} maxWidth={88} />
-              <span
+              <div
                 style={{
                   flex: 1,
                   minWidth: 0,
-                  fontSize: 11,
-                  fontWeight: 800,
-                  fontFamily: "inherit",
-                  color: "#142f1d",
-                  fontVariantNumeric: "tabular-nums",
-                  whiteSpace: "nowrap",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 3,
                 }}
               >
-                {formatEuro(storeEstimate.total)}
-              </span>
-              <SegmentedControl
-                compact
-                options={[
-                  { id: "uds", label: "Unidades" },
-                  { id: "eur", label: "Precio" },
-                ]}
-                value={listView}
-                onChange={setListView}
-              />
+                <StoreBadge name="Mercadona" size={30} maxWidth={90} />
+                <span
+                  style={{
+                    ...aisleMetaPillStyle(true, "count"),
+                    background: AISLE_OPEN_BAND,
+                    color: "#fff",
+                  }}
+                >
+                  {formatEuro0(storeEstimate.total)}
+                </span>
+              </div>
+              {weekSelectorEl}
             </div>
             <div style={{ borderBottom: STRIP_DIVIDER, marginBottom: 4 }} />
           </>
@@ -1553,7 +1503,8 @@ export function ShoppingScreen({
           );
         })()}
       </div>
-
+      </>
+      )}
 
       {showCapture && (
         <CaptureSheet
@@ -1565,6 +1516,26 @@ export function ShoppingScreen({
           onManual={() => {
             setShowCapture(false);
             setShowManualSpend(true);
+          }}
+        />
+      )}
+
+      {showPantryPrefs && canEditPantryPrefs && (
+        <PantryPrefsSheet
+          initial={data?.pantryPrefs?.consume}
+          onComplete={(consume) => {
+            setData((d) => ({
+              ...d,
+              pantryPrefs: { ...(d.pantryPrefs ?? {}), consume },
+              pantryPrefsSet: true,
+              pantryPrefsSeen: true,
+            }));
+            setShowPantryPrefs(false);
+            onToast?.("Preferencia guardada");
+          }}
+          onClose={() => {
+            setData((d) => (d.pantryPrefsSeen ? d : { ...d, pantryPrefsSeen: true }));
+            setShowPantryPrefs(false);
           }}
         />
       )}
@@ -1634,7 +1605,125 @@ export function ShoppingScreen({
         />
       )}
 
+      {showSwipeTutorial && <SwipeTutorialModal onClose={dismissSwipeTutorial} />}
+
       <BottomNav active="shopping" onNav={onNav} />
+    </div>
+  );
+}
+
+// Dynamic first-visit explainer for the swipe gesture on each item row: a
+// mock card animates the real gesture (right → verde/comprado, left →
+// rojo/borrar) on a loop instead of relying on static arrows/text alone.
+function SwipeTutorialModal({ onClose }) {
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 300,
+        background: "rgba(0,0,0,.5)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: "0 24px",
+      }}
+    >
+      <style>{`
+        @keyframes swipeTutorialDemo {
+          0%, 8%   { transform: translateX(0); }
+          28%, 40% { transform: translateX(64px); }
+          48%      { transform: translateX(0); }
+          68%, 80% { transform: translateX(-64px); }
+          92%, 100%{ transform: translateX(0); }
+        }
+        @keyframes swipeTutorialRight {
+          0%, 8%, 48%, 100% { opacity: 0; }
+          28%, 40%          { opacity: 1; }
+        }
+        @keyframes swipeTutorialLeft {
+          0%, 48%, 92%, 100% { opacity: 0; }
+          68%, 80%           { opacity: 1; }
+        }
+        .swipe-demo-card { animation: swipeTutorialDemo 4.5s ease-in-out infinite; }
+        .swipe-demo-right { animation: swipeTutorialRight 4.5s ease-in-out infinite; }
+        .swipe-demo-left { animation: swipeTutorialLeft 4.5s ease-in-out infinite; }
+      `}</style>
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "relative", background: "#fff", borderRadius: 24,
+          padding: "24px 18px 20px", width: "100%", maxWidth: 300, boxSizing: "border-box",
+          boxShadow: "0 24px 60px rgba(0,0,0,.25)", textAlign: "center",
+        }}
+      >
+        <h3 style={{ margin: "0 0 6px", fontSize: 18, fontWeight: 900, color: "#142f1d" }}>
+          Así se usa cada fila
+        </h3>
+        <p style={{ margin: "0 0 18px", fontSize: 13, color: "#7a9485", lineHeight: 1.45 }}>
+          Desliza cualquier producto de la lista para marcarlo o quitarlo, sin abrir nada.
+        </p>
+
+        {/* Demo stage: track with green (left, revealed on swipe-right) and
+            red (right, revealed on swipe-left) beds, and a mock card sliding
+            over them in a loop. */}
+        <div
+          style={{
+            position: "relative", height: 64, borderRadius: 14, overflow: "hidden",
+            background: "#f4f7f5", marginBottom: 20,
+          }}
+        >
+          <div
+            className="swipe-demo-right"
+            style={{
+              position: "absolute", inset: 0, display: "flex", alignItems: "center",
+              justifyContent: "flex-start", padding: "0 14px",
+              background: "#2d5a3d", color: "#fff", fontWeight: 800, fontSize: 12.5,
+              gap: 5, whiteSpace: "nowrap",
+            }}
+          >
+            <Check size={15} strokeWidth={3} /> Comprado
+          </div>
+          <div
+            className="swipe-demo-left"
+            style={{
+              position: "absolute", inset: 0, display: "flex", alignItems: "center",
+              justifyContent: "flex-end", padding: "0 14px",
+              background: "#c0392b", color: "#fff", fontWeight: 800, fontSize: 12.5,
+              gap: 5, whiteSpace: "nowrap",
+            }}
+          >
+            Borrar <Trash2 size={15} />
+          </div>
+          {/* Card más estrecho que el track (margen lateral fijo) para que,
+              incluso a mitad del gesto, se lea "Comprado"/"Borrar" entero en
+              vez de quedar tapado por el propio mock. */}
+          <div
+            className="swipe-demo-card"
+            style={{
+              position: "absolute", top: 0, bottom: 0, left: 78, right: 78,
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "0 8px", background: "#fff", borderRadius: 12,
+              border: "1.5px solid #eef3f0",
+            }}
+          >
+            <IngredientThumb name="Tomates" size={26} />
+            <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#142f1d", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>Tomates</div>
+              <div style={{ fontSize: 9.5, color: "#9ab0a1" }}>500 g</div>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            width: "100%", padding: "12px 20px", borderRadius: 14, border: "none",
+            background: "#2d5a3d", color: "#fff", fontSize: 14.5, fontWeight: 800,
+            cursor: "pointer", fontFamily: "inherit",
+          }}
+        >
+          Entendido
+        </button>
+      </div>
     </div>
   );
 }
@@ -1996,7 +2085,7 @@ function CookIngredientRow({ ing, unitView, onToggleHome, onTogglePurchased }) {
   );
 }
 
-function AisleIcon({ aisle, size = 36, soft = false }) {
+export function AisleIcon({ aisle, size = 36, soft = false }) {
   const meta = AISLE_UI[aisle] ?? { Icon: Package, color: "#64748b" };
   const Icon = meta.Icon;
   return (
@@ -2296,10 +2385,9 @@ function QtyCell({ text, cellStyle, editable, onEdit }) {
 // Cartoon thumbnail for a shopping row, resolved by name through the
 // ingredient -> family -> aisle cascade. Renders an empty slot when nothing
 // matches so the grid column collapses instead of leaving a gap.
-function IngredientThumb({ name, dimmed = false, size = 34, onTap = null }) {
+function IngredientThumb({ name, dimmed = false, size = 34 }) {
   const src = ingredientThumbSrc(name);
   const [failed, setFailed] = useState(false);
-  const clickable = typeof onTap === "function" && !dimmed;
   if (!src || failed) return <span style={{ width: 0 }} />;
 
   const shellStyle = {
@@ -2313,84 +2401,17 @@ function IngredientThumb({ name, dimmed = false, size = 34, onTap = null }) {
     alignItems: "center",
     justifyContent: "center",
     opacity: dimmed ? 0.45 : 1,
-    padding: 0,
-    border: "none",
-    cursor: clickable ? "pointer" : "default",
-    fontFamily: "inherit",
   };
 
-  const img = (
-    <img
-      src={src}
-      alt=""
-      onError={() => setFailed(true)}
-      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
-    />
-  );
-
-  if (clickable) {
-    return (
-      <button
-        type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          onTap();
-        }}
-        title="Cambiar entre unidades y precio"
-        aria-label="Cambiar vista unidades / precio"
-        style={shellStyle}
-      >
-        {img}
-      </button>
-    );
-  }
-
-  return <span style={shellStyle}>{img}</span>;
-}
-
-function ShoppingPriceRow({
-  item,
-  pricing = null,
-  isLast = false,
-  onThumbTap = null,
-  readOnly = false,
-  onPurchased,
-  onDelete,
-}) {
-  const dimmed = item.have || item.atHome;
-  const hasPrice = pricing?.storePrice != null && pricing.storePrice > 0;
-  const productName = hasPrice ? (pricing.storeProductName ?? item.name) : item.name;
-  const envaseText = hasPrice ? pricing.storePackLabel ?? "—" : "—";
-  const cantText = hasPrice ? pricing.storeTotalQty ?? pricing.storeUnitSize ?? "—" : "—";
-  const priceText = hasPrice ? formatEuro(pricing.storePrice) : "—";
-
   return (
-    <SwipePurchaseShell
-      isLast={isLast}
-      readOnly={readOnly}
-      disabled={dimmed}
-      onComplete={onPurchased}
-      onDelete={onDelete}
-    >
-      <div
-        style={{
-          opacity: dimmed ? 0.45 : 1,
-          padding: "10px 2px",
-        }}
-      >
-        <div style={listRowStyle}>
-          <IngredientThumb name={item.name} dimmed={dimmed} onTap={onThumbTap} />
-          <div style={nameColStyle}>
-            <span style={productNameStyle(hasPrice, dimmed)}>{productName}</span>
-          </div>
-          <div style={pillsBlockStyle} data-no-swipe>
-            <QtyCell text={envaseText} cellStyle={udsCellStyle} editable={false} />
-            <QtyCell text={cantText} cellStyle={pesoCellStyle} editable={false} />
-            <QtyCell text={priceText} cellStyle={priceCellStyle} editable={false} />
-          </div>
-        </div>
-      </div>
-    </SwipePurchaseShell>
+    <span style={shellStyle}>
+      <img
+        src={src}
+        alt=""
+        onError={() => setFailed(true)}
+        style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }}
+      />
+    </span>
   );
 }
 
@@ -2398,14 +2419,25 @@ function ShoppingRow({
   item,
   pricing = null,
   isLast = false,
-  onThumbTap = null,
   onSwipePurchased,
+  onSwipeReturn,
   isEditingQty,
   readOnly = false,
   onEditQty,
   onSaveQty,
   onCancelQty,
   onRemove,
+  // "Comprado" tab: every row here is have/atHome by definition, so the
+  // usual "tachado" that marks a done item inside the mixed Pendiente list
+  // would strike through the whole tab — noise, not signal, when the whole
+  // point of being here is that it's done. Only the text decoration is
+  // suppressed; the row still dims/disables the same as always.
+  suppressStrike = false,
+  // Also drives the swipe gesture: rows here are always dimmed (bought), so
+  // the usual dimmed→disabled swipe rule is skipped, and swipe-left returns
+  // the item to "Por comprar" instead of deleting it (swipe-right is off —
+  // nothing to "complete" on an already-bought row).
+  boughtTab = false,
 }) {
   const unit = item.unit ?? "ud";
   const displayVal = item.displayQty ?? formatDisplay(item.qty ?? 0, unit);
@@ -2441,9 +2473,9 @@ function ShoppingRow({
     <SwipePurchaseShell
       isLast={isLast}
       readOnly={readOnly}
-      disabled={dimmed || isEditingQty}
-      onComplete={onSwipePurchased}
-      onDelete={onRemove}
+      disabled={(dimmed && !boughtTab) || isEditingQty}
+      onComplete={boughtTab ? undefined : onSwipePurchased}
+      onDelete={boughtTab ? onSwipeReturn : onRemove}
     >
       <div
         style={{
@@ -2452,9 +2484,9 @@ function ShoppingRow({
         }}
       >
         <div style={listRowStyle}>
-          <IngredientThumb name={item.name} dimmed={dimmed} onTap={onThumbTap} />
+          <IngredientThumb name={item.name} dimmed={dimmed} />
           <div style={nameColStyle}>
-            <span style={productNameStyle(true, dimmed)}>
+            <span style={productNameStyle(true, dimmed && !suppressStrike)}>
               {item.name}
             </span>
             {item.__weekLabel && (
@@ -3888,13 +3920,17 @@ export function ReceiptWizard({ detail, initialLines, weekRange, listItems, onCa
   );
 }
 
-function EmptyList() {
+function EmptyList({ tab = "pending" }) {
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
         img="/avatares/cards/sin_compra.jpg"
-        title="Nada pendiente"
-        subtitle="Genera la lista desde el menú de esta semana."
+        title={tab === "bought" ? "Nada comprado todavía" : "Nada pendiente"}
+        subtitle={
+          tab === "bought"
+            ? "Ve a «Por comprar» y marca algo como comprado — aparecerá aquí."
+            : "Genera la lista desde el menú de esta semana."
+        }
         maxWidth={240}
         imgAspect="1 / 1"
         imgPosition="center"
@@ -3924,15 +3960,6 @@ const iconBtnStyle = {
   cursor: "pointer",
   fontFamily: "inherit",
   flexShrink: 0,
-};
-
-// Filled green "money" button — the prominent entry point to spend capture.
-const moneyBtnStyle = {
-  ...iconBtnStyle,
-  border: "none",
-  background: "#2d5a3d",
-  color: "#fff",
-  boxShadow: "0 2px 6px rgba(45, 90, 61, 0.28)",
 };
 
 const primaryBtnStyle = {
@@ -4205,7 +4232,7 @@ const cookIngQtyUdsStyle = {
 // background (SHOPPING_BG below), same flat feel as the recipe catalog's
 // category list. The quantity cells and action icons carry their own tint/
 // colour, so they still pop without a white card behind the whole row.
-const aisleItemsStyle = {
+export const aisleItemsStyle = {
   background: "transparent",
   padding: "2px 12px 8px",
 };

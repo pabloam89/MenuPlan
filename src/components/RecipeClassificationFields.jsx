@@ -9,6 +9,7 @@ import {
   Zap,
 } from "lucide-react";
 import { deriveUsageTagsFromType, USAGE_TAGS } from "../lib/userRecipes.js";
+import { isMontaje } from "../data/recipeSchema.js";
 import { mealTimeColor } from "../lib/mealTimes.js";
 
 const GREEN = "#2d5a3d";
@@ -72,7 +73,9 @@ function ToggleChip({ icon: Icon, color, label, checked, onToggle, last = false 
 export function RecipeClassificationFields({ value, onChange }) {
   const usageTags = value.usageTags?.length ? value.usageTags : deriveUsageTagsFromType(value.type);
   const mealRole = value.mealRole ?? [];
-  const quickDinner = value.category === "cenas_rapidas";
+  // "Cena rápida" vive ahora en `montaje`; isMontaje cae a la categoría
+  // deprecada para las recetas que se crearon antes del cambio de eje.
+  const quickDinner = isMontaje(value);
   const comidaChecked = mealRole.some((r) => COMIDA_POSITIONS.includes(r));
   const selectedUsage = usageTags[0] ?? null;
 

@@ -1,23 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ChevronRight,
-  ClipboardList,
-  RotateCw,
   CalendarDays,
   UtensilsCrossed,
-  Sparkles,
-  User,
-  Users,
-  PersonStanding,
-  Baby,
-  CookingPot,
-  Refrigerator,
   Settings,
-  Eye,
+  Sparkles,
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
-import { planHasDishes, menuHasContent } from "../lib/menuArchive.js";
+import { planHasDishes } from "../lib/menuArchive.js";
 import { DAYS, getDayMeals } from "../lib/planner.js";
 import { adhocReasonLabel } from "../lib/groups.js";
 import { RECIPES_BY_ID } from "../data/recipes.js";
@@ -25,115 +16,127 @@ import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import menuCardPhoto2 from "../assets/dashboard/menu-card-2.jpg";
 import menuCardPhoto3 from "../assets/dashboard/menu-card-3.jpg";
-import recipesCardPhoto2 from "../assets/dashboard/recipes-card-2.jpg";
-import recipesCardPhoto3 from "../assets/dashboard/recipes-card-3.jpg";
-import pantryCardPhoto2 from "../assets/dashboard/pantry-card-2.jpg";
-import pantryCardPhoto3 from "../assets/dashboard/pantry-card-3.jpg";
-import heroProducePhoto from "../assets/dashboard/hero-produce.jpg";
 
-const HOGAR_ICON = "/avatares/hogares/hogar_propietario.jpg";
-
-const PAGE_BG = "#f4f8f5";
+// Degradado de fondo de toda Inicio (2026-08-28): sustituye la card verde
+// sólida del perfil, que se sentía como una caja vacía sin contenido real
+// dentro. Se aplica a TODA la pantalla salvo la card de "Generar menú" y las
+// de "Hoy toca" (TodayDishCard), que llevan su propia foto. PAGE_BG es el
+// tono aproximado en el punto donde se usa como color sólido de apoyo (el
+// fundido del borde del carrusel de "Hoy toca") — el degradado es suave así
+// que un tono intermedio pasa desapercibido.
+const PAGE_GRADIENT = "linear-gradient(165deg, #e3f5e9 0%, #fbf3d9 50%, #fde3d3 100%)";
+const PAGE_BG = "#fbf3d9";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
-const MENU_GRADIENT = "linear-gradient(150deg, #1c4a2e 0%, #2d5a3d 46%, #47a066 100%)";
 
-const GROUP_ICONS = { Familia: Users, Adultos: User, Niños: PersonStanding, Bebé: Baby };
 
 const todayShort = () => DAYS[(new Date().getDay() + 6) % 7];
 
 // ── Today's dish row ────────────────────────────────────────────────────────
 
-function TodayDishRow({ meal, recipe, photo, onClick }) {
+function TodayDishCard({ meal, recipe, photo, basis, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
       style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 13,
-        width: "100%",
-        padding: 10,
+        position: "relative",
+        flex: `0 0 ${basis}`,
+        minWidth: 0,
+        height: 132,
+        scrollSnapAlign: "start",
+        padding: 0,
+        overflow: "hidden",
         borderRadius: 16,
         border: "1.5px solid #e3ebe6",
-        background: "#fff",
+        background: "#eef4f0",
         cursor: "pointer",
         fontFamily: "inherit",
         textAlign: "left",
         boxShadow: "0 6px 16px -12px rgba(20,47,29,.3)",
       }}
     >
+      {photo ? (
+        <img
+          src={photo}
+          alt=""
+          loading="lazy"
+          style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }}
+        />
+      ) : (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <UtensilsCrossed size={26} color="#9ab0a1" />
+        </div>
+      )}
+
+      {/* Scrim solo en la franja inferior, para que el nombre del plato se
+          lea encima de cualquier foto sin tapar las pills de arriba. */}
       <div
         style={{
-          width: 58,
-          height: 58,
-          borderRadius: 14,
+          position: "absolute",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: "58%",
+          background: "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.18) 65%, transparent 100%)",
+        }}
+      />
+
+      <span style={{ ...todayPillStyle, top: 6, left: 6, color: GREEN }}>{meal}</span>
+      {recipe.time ? (
+        <span style={{ ...todayPillStyle, top: 6, right: 6, color: "#5a7262" }}>{recipe.time} min</span>
+      ) : null}
+      <p
+        style={{
+          position: "absolute",
+          left: 8,
+          right: 8,
+          bottom: 8,
+          margin: 0,
+          fontSize: 13,
+          fontWeight: 800,
+          color: "#fff",
+          lineHeight: 1.25,
+          textShadow: "0 1px 3px rgba(0,0,0,.4)",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
           overflow: "hidden",
-          flexShrink: 0,
-          background: "#eef4f0",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          border: "1.5px solid #e3ebe6",
         }}
       >
-        {photo ? (
-          <img src={photo} alt="" loading="lazy" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        ) : (
-          <UtensilsCrossed size={22} color="#9ab0a1" />
-        )}
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <span
-          style={{
-            display: "inline-block",
-            fontSize: 10,
-            fontWeight: 800,
-            color: GREEN,
-            background: "#e6f3ea",
-            padding: "2px 8px",
-            borderRadius: 999,
-            letterSpacing: ".3px",
-            textTransform: "uppercase",
-          }}
-        >
-          {meal}
-        </span>
-        <p
-          style={{
-            margin: "5px 0 0",
-            fontSize: 14.5,
-            fontWeight: 800,
-            color: INK,
-            lineHeight: 1.25,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {recipe.name}
-        </p>
-      </div>
-      <ChevronRight size={17} color="#b7c7bd" style={{ flexShrink: 0 }} />
+        {recipe.name}
+      </p>
     </button>
   );
 }
 
+const todayPillStyle = {
+  position: "absolute",
+  fontSize: 9.5,
+  fontWeight: 800,
+  background: "rgba(255,255,255,.92)",
+  padding: "2px 7px",
+  borderRadius: 999,
+  letterSpacing: ".3px",
+  whiteSpace: "nowrap",
+  boxShadow: "0 1px 4px rgba(20,47,29,.16)",
+};
+
 // ── Discreet, icon-only switch between the family's separate menus ─────────
 
-function GroupSegmentedControl({ groups, activeId, onChange }) {
+// Antes iconos genéricos (adulto/niño/bebé) — ahora los avatares reales de
+// cada miembro del grupo, así se reconoce a quién pertenece cada menú de un
+// vistazo en vez de leer un símbolo abstracto (2026-08-28).
+function GroupSegmentedControl({ groups, members, activeId, onChange }) {
   return (
-    <div
-      style={{
-        display: "flex", gap: 2, padding: 3, borderRadius: 999,
-        background: "#eaf1ec", flexShrink: 0,
-      }}
-    >
+    <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
       {groups.map((group) => {
-        const Icon = group.adHoc ? CookingPot : GROUP_ICONS[group.label] ?? Users;
         const label = group.adHoc ? adhocReasonLabel(group.reason) : group.label;
         const active = group.id === activeId;
+        const groupMembers = group.memberIds
+          .map((id) => members.find((m) => m.id === id))
+          .filter(Boolean)
+          .slice(0, 2);
         return (
           <button
             key={group.id}
@@ -141,13 +144,33 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
             title={label}
             onClick={() => onChange(group.id)}
             style={{
-              width: 26, height: 26, borderRadius: "50%", border: "none", cursor: "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: active ? GREEN : "transparent",
-              transition: "background .15s ease",
+              display: "flex", border: "none", cursor: "pointer", background: "transparent",
+              padding: 0, opacity: active ? 1 : 0.4, transition: "opacity .15s ease",
             }}
           >
-            <Icon size={13.5} color={active ? "#fff" : "#7a9485"} strokeWidth={2.3} />
+            {groupMembers.length > 0 ? (
+              groupMembers.map((m, i) => (
+                <div
+                  key={m.id}
+                  style={{
+                    marginLeft: i === 0 ? 0 : -10,
+                    borderRadius: "50%",
+                    border: `2px solid ${active ? GREEN : "transparent"}`,
+                    zIndex: groupMembers.length - i,
+                    lineHeight: 0,
+                  }}
+                >
+                  <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={24} color={memberAvatarColor(m.id, members)} />
+                </div>
+              ))
+            ) : (
+              <div
+                style={{
+                  width: 24, height: 24, borderRadius: "50%", background: "#eaf1ec",
+                  border: `2px solid ${active ? GREEN : "transparent"}`,
+                }}
+              />
+            )}
           </button>
         );
       })}
@@ -155,72 +178,8 @@ function GroupSegmentedControl({ groups, activeId, onChange }) {
   );
 }
 
-// ── Menu hero: the app is about generating menus, so this is the single, big,
-// full-width action that owns the home. Horizontal banner, left-anchored copy,
-// action arrow on the right over the photo. ────────────────────────────────
-function MenuHeroCard({ photos, onClick, id, title = "Generar menú", subtitle = "Tu menú de la (o las) semanas, en segundos", Icon = RotateCw }) {
-  const HeroIcon = Icon;
-  return (
-    <button
-      type="button"
-      id={id}
-      onClick={onClick}
-      style={{
-        position: "relative",
-        width: "100%",
-        aspectRatio: "16 / 7",
-        borderRadius: 22,
-        overflow: "hidden",
-        border: "none",
-        cursor: "pointer",
-        padding: 0,
-        fontFamily: "inherit",
-        display: "block",
-        boxShadow: "0 16px 30px -14px rgba(20,47,29,.5)",
-      }}
-    >
-      <RotatingPhoto photos={photos} objectPosition="center 45%" interval={5000} />
-      {/* Darken only the top band (behind the copy) and let the rest of the
-          photo show whole, so the dish stays the centre of attention. */}
-      <div
-        style={{
-          position: "absolute", inset: 0,
-          background: "linear-gradient(180deg, rgba(10,26,16,.8) 0%, rgba(10,26,16,.46) 34%, rgba(10,26,16,.08) 62%, rgba(10,26,16,0) 100%)",
-        }}
-      />
-      <div
-        style={{
-          position: "absolute", left: 0, right: 0, top: 0, padding: "14px 18px 0", textAlign: "left",
-          display: "flex", alignItems: "center", gap: 11,
-        }}
-      >
-        <div
-          style={{
-            width: 40, height: 40, borderRadius: 13, flexShrink: 0,
-            background: "rgba(255,255,255,.22)", backdropFilter: "blur(6px)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <HeroIcon size={20} color="#fff" strokeWidth={2.4} />
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <p style={{ margin: 0, fontSize: 22, fontWeight: 900, color: "#fff", letterSpacing: "-.4px", lineHeight: 1.05 }}>
-            {title}
-          </p>
-          <p style={{ margin: "4px 0 0", fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,.9)", lineHeight: 1.3 }}>
-            {subtitle}
-          </p>
-        </div>
-      </div>
-    </button>
-  );
-}
-
-// ── Quick action: full-bleed photo card with the title embedded ────────────
-
 /**
- * Cycles through a list of photos with a slide-in + crossfade transition,
- * same animation pattern as RotatingCardImage in Onboarding.
+ * Cycles through a list of photos with a slide-in + crossfade transition.
  * Respects prefers-reduced-motion (stays on the first image if set).
  */
 function RotatingPhoto({ photos, objectPosition = "center", interval = 2000 }) {
@@ -256,62 +215,55 @@ function RotatingPhoto({ photos, objectPosition = "center", interval = 2000 }) {
   );
 }
 
-function QuickActionTile({ icon: Icon, title, subtitle, photo, photos, objectPosition = "center", aspectRatio = "4 / 5", onClick, id }) {
-  // photos[] takes priority; photo is kept for backward compat (single image)
-  const photoList = photos?.length ? photos : [photo].filter(Boolean);
+// ── Menu hero: full-width illustrated banner, left-anchored copy, icon over
+// the photo. "Generar menú nuevo" is the one CTA Inicio still has (2026-08-25)
+// — every other action moved out from under it (En casa → wizard, Recetas/
+// Compra → their own tabs), so this is the single front door to a new menú.
+function MenuHeroCard({ photos, onClick, title, subtitle, Icon = Sparkles }) {
   return (
     <button
       type="button"
-      id={id}
+      data-coach="dashboard-generate"
       onClick={onClick}
       style={{
-        flex: 1,
-        position: "relative",
-        aspectRatio,
-        borderRadius: 20,
-        overflow: "hidden",
-        border: "none",
-        cursor: "pointer",
-        padding: 0,
-        fontFamily: "inherit",
-        boxShadow: "0 14px 26px -14px rgba(20,47,29,.45)",
+        position: "relative", width: "100%", aspectRatio: "3 / 2",
+        borderRadius: 22, overflow: "hidden", border: "none", cursor: "pointer",
+        padding: 0, fontFamily: "inherit", display: "block", marginBottom: 16,
+        boxShadow: "0 16px 30px -14px rgba(20,47,29,.5)",
       }}
     >
-      <RotatingPhoto photos={photoList} objectPosition={objectPosition} interval={5000} />
+      <RotatingPhoto photos={photos} objectPosition="center 45%" interval={5000} />
       <div
         style={{
           position: "absolute", inset: 0,
-          background: "linear-gradient(190deg, rgba(15,35,22,0) 38%, rgba(13,32,20,.55) 72%, rgba(10,26,16,.86) 100%)",
+          background: "linear-gradient(180deg, rgba(10,26,16,.8) 0%, rgba(10,26,16,.46) 34%, rgba(10,26,16,.08) 62%, rgba(10,26,16,0) 100%)",
         }}
       />
-      {/* Fixed-height + top-anchored (not bottom-flow): the 3 titles/subtitles
-          wrap to a different number of lines ("Actualizar despensa" wraps,
-          "Generar menú" doesn't), so letting the block just hug its own
-          content while pinned to `bottom` made the icon sit at a different
-          height on each card. Reserving a constant height and starting the
-          flex column from its top means the icon lands at the exact same Y
-          on all 3 regardless of how many lines the copy below it takes. */}
       <div
         style={{
-          position: "absolute", left: 12, right: 12, bottom: 12, textAlign: "left",
-          minHeight: 112, display: "flex", flexDirection: "column", justifyContent: "flex-start",
+          position: "absolute", left: 0, right: 0, top: 0, padding: "18px 20px 0", textAlign: "left",
+          display: "flex", alignItems: "center", gap: 13,
         }}
       >
         <div
           style={{
-            width: 32, height: 32, borderRadius: 10, marginBottom: 8, flexShrink: 0,
+            width: 48, height: 48, borderRadius: 15, flexShrink: 0,
             background: "rgba(255,255,255,.22)", backdropFilter: "blur(6px)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}
         >
-          <Icon size={16} color="#fff" strokeWidth={2.3} />
+          <Icon size={24} color="#fff" strokeWidth={2.4} />
         </div>
-        <p style={{ margin: 0, fontSize: 14.5, fontWeight: 900, color: "#fff", letterSpacing: "-.2px", lineHeight: 1.15 }}>
-          {title}
-        </p>
-        {subtitle && (
-          <p style={{ margin: "3px 0 0", fontSize: 10.5, fontWeight: 600, color: "rgba(255,255,255,.8)", lineHeight: 1.3 }}>{subtitle}</p>
-        )}
+        <div style={{ minWidth: 0 }}>
+          <p style={{ margin: 0, fontSize: 26, fontWeight: 900, color: "#fff", letterSpacing: "-.4px", lineHeight: 1.05 }}>
+            {title}
+          </p>
+          {subtitle && (
+            <p style={{ margin: "5px 0 0", fontSize: 13.5, fontWeight: 600, color: "rgba(255,255,255,.9)", lineHeight: 1.3 }}>
+              {subtitle}
+            </p>
+          )}
+        </div>
       </div>
     </button>
   );
@@ -327,15 +279,11 @@ export function DashboardScreen({
   data,
   menuPlan,
   activeHousehold,
-  householdReadOnly = false,
-  onOpenHouseholds,
+  householdReadOnly,
   onNav,
   onViewMenu,
-  onGenerateNewMenu,
-  onOpenRecipePlanner,
-  onOpenRecipes,
-  onOpenStreak,
   onOpenAccount,
+  onGenerateMenu,
 }) {
   const g = googleInfo(user);
   // Real dishes, not just key count: a plan always carries `_warnings`, so an
@@ -347,15 +295,6 @@ export function DashboardScreen({
 
   const [activeGroupId, setActiveGroupId] = useState(null);
   const selectedGroup = groups.find((gr) => gr.id === activeGroupId) ?? groups[0] ?? null;
-
-  // The badge links to the "Menús" history screen, so it must count the menús
-  // actually kept there — the current one plus any past ones with content — not
-  // raw generation events (data.menuHistory), which counts every regeneration
-  // and would show far more than the history ever lists.
-  const savedMenuCount = useMemo(
-    () => Object.values(data.menus ?? {}).filter(menuHasContent).length,
-    [data.menus],
-  );
 
   // Today's planned dishes for the selected group (home shows only HOY).
   // With several menus (Adultos/Niños/Bebé) a discreet control lets you flip
@@ -388,7 +327,7 @@ export function DashboardScreen({
       : [members];
 
   return (
-    <div style={{ minHeight: "100dvh", background: PAGE_BG, display: "flex", flexDirection: "column" }}>
+    <div style={{ minHeight: "100dvh", background: PAGE_GRADIENT, display: "flex", flexDirection: "column" }}>
       <div
         style={{
           flex: 1,
@@ -400,60 +339,19 @@ export function DashboardScreen({
         }}
       >
         {/* ── Profile hero ─────────────────────────────── */}
+        {/* Sin card propia (2026-08-28): el fondo ya es el degradado de toda
+            la pantalla (PAGE_GRADIENT) — meter esto en una caja verde aparte
+            era una caja grande casi vacía. Familia + usuario flotan directo
+            encima, texto oscuro porque el fondo ahora es claro. */}
         <div
           style={{
             position: "relative",
-            background: MENU_GRADIENT,
-            borderRadius: 26,
-            padding: "26px 18px 22px",
-            marginBottom: 16,
-            overflow: "hidden",
-            boxShadow: "0 18px 34px -16px rgba(20,47,29,.6)",
+            padding: "4px 0 20px",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
           }}
         >
-          <img
-            src={heroProducePhoto}
-            alt=""
-            style={{
-              position: "absolute", inset: 0, width: "100%", height: "100%",
-              objectFit: "cover", objectPosition: "top", pointerEvents: "none",
-              // Zoom from a bottom-anchored origin so the busy produce arc
-              // (near the top of the source photo) gets pushed further up
-              // and out of frame, leaving mostly the calmer plain backdrop.
-              transform: "scale(1.4)", transformOrigin: "50% 82%",
-            }}
-          />
-          <div
-            style={{
-              position: "absolute", inset: 0, pointerEvents: "none",
-              background: "linear-gradient(180deg, rgba(12,34,21,.5) 0%, rgba(12,34,21,.32) 32%, rgba(10,28,18,.68) 100%)",
-            }}
-          />
-
-          {onOpenHouseholds && (
-            <button
-              type="button"
-              data-coach="dashboard-households"
-              onClick={onOpenHouseholds}
-              aria-label="Hogares"
-              title="Hogares"
-              style={{
-                position: "absolute", top: 14, left: 14, zIndex: 1,
-                width: 34, height: 34, borderRadius: "50%",
-                border: "2px solid rgba(255,255,255,.35)",
-                background: "rgba(255,255,255,.22)",
-                backdropFilter: "blur(6px)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", padding: 0, overflow: "hidden",
-              }}
-            >
-              <img src={HOGAR_ICON} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            </button>
-          )}
-
           {/* "Perfil" lost its bottom-nav tab (see BottomNav in ui.jsx) —
               it's reached from here now, the "Inicio" it always stays under. */}
           {onOpenAccount && (
@@ -464,29 +362,68 @@ export function DashboardScreen({
               aria-label="Tu perfil"
               title="Tu perfil"
               style={{
-                position: "absolute", top: 14, right: 14, zIndex: 1,
-                width: 34, height: 34, borderRadius: "50%",
-                border: "none", background: "rgba(255,255,255,.22)",
+                position: "absolute", top: 0, right: 0, zIndex: 1,
+                width: 30, height: 30, borderRadius: "50%",
+                border: "none", background: "rgba(255,255,255,.6)",
                 backdropFilter: "blur(6px)",
                 display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer",
+                cursor: "pointer", boxShadow: "0 2px 8px rgba(20,47,29,.1)",
               }}
             >
-              <Settings size={16} color="#fff" strokeWidth={2.3} />
+              <Settings size={14} color={GREEN} strokeWidth={2.3} />
             </button>
           )}
 
-          {/* avatar circle */}
-          <div style={{ padding: 3, borderRadius: "50%", background: "rgba(255,255,255,.3)", position: "relative" }}>
-            <Avatar name={g.name} photo={g.photo} size={84} color="#1f4a30" />
+          {/* Familia como hero: el usuario es el primer avatar del racimo
+              (aro dorado lo distingue de "tú"), no una foto grande aparte. */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 18, position: "relative" }}>
+            {familyRows.map((row, r) => (
+              <div
+                key={r}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  // Half a step right and biting into the row above, so the
+                  // two halves interlock rather than sit in a grid.
+                  marginLeft: r === 0 ? 0 : 14,
+                  marginTop: r === 0 ? 0 : -14,
+                  zIndex: r,
+                }}
+              >
+                {r === 0 && (
+                  <div
+                    style={{
+                      borderRadius: "50%", border: "2.5px solid #f5b642",
+                      zIndex: row.length + 2, lineHeight: 0,
+                    }}
+                  >
+                    <Avatar name={g.name} photo={g.photo} size={52} color="#1f4a30" />
+                  </div>
+                )}
+                {row.map((m, i) => (
+                  <div
+                    key={m.id}
+                    style={{
+                      marginLeft: i === 0 && r === 0 ? -8 : i === 0 ? 0 : -12,
+                      borderRadius: "50%",
+                      border: "2px solid #fff9ef",
+                      boxShadow: "0 0 0 2px #2d5a3d33",
+                      zIndex: row.length - i,
+                      lineHeight: 0,
+                    }}
+                  >
+                    <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={40} color={memberAvatarColor(m.id, members)} />
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
 
           {/* name */}
           <p
             style={{
-              margin: "12px 0 0", fontSize: 24, fontWeight: 900, color: "#fff",
-              letterSpacing: "-.4px", position: "relative", textAlign: "center",
-              textShadow: "0 1px 5px rgba(0,0,0,.4)",
+              margin: "12px 0 0", fontSize: 15.5, fontWeight: 900, color: INK,
+              letterSpacing: "-.2px", position: "relative", textAlign: "center",
               overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%",
             }}
           >
@@ -496,114 +433,25 @@ export function DashboardScreen({
           {user && activeHousehold && (
             <p
               style={{
-                position: "relative", zIndex: 1, marginTop: 8,
-                fontSize: 12.5, fontWeight: 700, color: "rgba(255,255,255,.88)",
-                textShadow: "0 1px 4px rgba(0,0,0,.35)",
+                position: "relative", zIndex: 1, marginTop: 3,
+                fontSize: 11, fontWeight: 700, color: "#5c7568",
               }}
             >
               {activeHousehold.name}
             </p>
           )}
-
-          {/* family avatars */}
-          {members.length > 0 && (
-            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 12, position: "relative" }}>
-              {familyRows.map((row, r) => (
-                <div
-                  key={r}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    // Half a step right and biting into the row above, so the
-                    // two halves interlock rather than sit in a grid.
-                    marginLeft: r === 0 ? 0 : 12,
-                    marginTop: r === 0 ? 0 : -12,
-                    zIndex: r,
-                  }}
-                >
-                  {row.map((m, i) => (
-                    <div
-                      key={m.id}
-                      style={{
-                        marginLeft: i === 0 ? 0 : -10,
-                        borderRadius: "50%",
-                        border: "2px solid #2d5a3d",
-                        zIndex: row.length - i,
-                        lineHeight: 0,
-                      }}
-                    >
-                      <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={34} color={memberAvatarColor(m.id, members)} />
-                    </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Acceso al histórico de menús: muestra cuántos menús guardados hay
-              (los mismos que lista la pantalla "Menús"), no cuántas veces se
-              ha regenerado. */}
-          {savedMenuCount > 0 && onOpenStreak && (
-            <button
-              type="button"
-              onClick={onOpenStreak}
-              aria-label="Tu racha de menús"
-              style={{
-                position: "relative", marginTop: 14,
-                display: "inline-flex", alignItems: "center", gap: 7,
-                height: 30, padding: "0 13px", borderRadius: 999,
-                border: "none", background: "rgba(255,255,255,.2)",
-                backdropFilter: "blur(6px)", cursor: "pointer",
-                color: "#fff", fontFamily: "inherit",
-              }}
-            >
-              <ClipboardList size={14} color="#fff" strokeWidth={2.4} />
-              <span style={{ fontSize: 12.5, fontWeight: 800 }}>
-                {savedMenuCount} {savedMenuCount === 1 ? "menú guardado" : "menús guardados"}
-              </span>
-            </button>
-          )}
         </div>
 
-        {/* ── Acción principal: generar menú (el corazón de la app) ─────── */}
-        <div style={{ marginBottom: 12 }}>
+        {/* Único CTA que le queda a Inicio (2026-08-25): generar un menú
+            nuevo. Todo lo demás (En casa, Recetas, Compra, favoritos e
+            históricos) tiene ya su propia puerta fuera de aquí. */}
+        {!householdReadOnly && onGenerateMenu && (
           <MenuHeroCard
-            id="coach-generate-menu"
             photos={[menuCardPhoto2, menuCardPhoto3]}
-            onClick={householdReadOnly ? onViewMenu : onGenerateNewMenu}
-            title={householdReadOnly ? "Ver menú" : "Generar menú"}
-            subtitle={
-              householdReadOnly && activeHousehold
-                ? `Menú de ${activeHousehold.name}`
-                : "Tu menú de la semana, en segundos"
-            }
-            Icon={householdReadOnly ? Eye : RotateCw}
+            onClick={onGenerateMenu}
+            title="Generar menú"
           />
-        </div>
-
-        {/* ── Acciones secundarias: despensa + recetas ──────────────────── */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-          <QuickActionTile
-            id="coach-update-pantry"
-            icon={Refrigerator}
-            title={householdReadOnly ? "Ver despensa" : "Actualizar despensa"}
-            subtitle={householdReadOnly ? "Lo que hay en casa" : "Foto, ticket o a mano"}
-            photos={[pantryCardPhoto2, pantryCardPhoto3]}
-            objectPosition="center 40%"
-            aspectRatio="4 / 5"
-            onClick={() => onNav("pantry")}
-          />
-          <QuickActionTile
-            id="coach-generate-recipes"
-            icon={householdReadOnly ? Eye : Sparkles}
-            title={householdReadOnly ? "Ver recetas" : "Generar recetas"}
-            subtitle={householdReadOnly ? "Recetas del hogar" : "Con lo que hay en casa"}
-            photos={[recipesCardPhoto2, recipesCardPhoto3]}
-            objectPosition="center 62%"
-            aspectRatio="4 / 5"
-            onClick={householdReadOnly ? onOpenRecipes : onOpenRecipePlanner}
-          />
-        </div>
+        )}
 
         {/* ── Hoy toca (solo renderiza platos; vacío si no hay menú) ── */}
         {showTodaySection && (
@@ -616,15 +464,57 @@ export function DashboardScreen({
               {multiGroup && (
                 <>
                   <div style={{ flex: 1, borderTop: "2px dashed #d7e4dc" }} />
-                  <GroupSegmentedControl groups={groups} activeId={selectedGroup?.id} onChange={setActiveGroupId} />
+                  <GroupSegmentedControl groups={groups} members={members} activeId={selectedGroup?.id} onChange={setActiveGroupId} />
                 </>
               )}
             </div>
             {todayMeals.length > 0 ? (
-              <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-                {todayMeals.map(({ meal, recipe, photo }) => (
-                  <TodayDishRow key={meal} meal={meal} recipe={recipe} photo={photo} onClick={onViewMenu} />
-                ))}
+              <div style={{ position: "relative" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    overflowX: "auto",
+                    scrollSnapType: "x proximity",
+                    scrollbarWidth: "none",
+                    WebkitOverflowScrolling: "touch",
+                    padding: "2px 2px 4px",
+                  }}
+                >
+                  {todayMeals.map(({ meal, recipe, photo }) => (
+                    <TodayDishCard
+                      key={meal}
+                      meal={meal}
+                      recipe={recipe}
+                      photo={photo}
+                      // Con más de 2 platos, las cards se quedan un pelín por
+                      // debajo del 50% para que el siguiente asome por el
+                      // borde derecho — así se percibe que hay más y que el
+                      // carrusel gira hacia la derecha, sin necesitar flechas.
+                      basis={todayMeals.length > 2 ? "calc(50% - 14px)" : "calc(50% - 5px)"}
+                      onClick={onViewMenu}
+                    />
+                  ))}
+                </div>
+                {todayMeals.length > 2 && (
+                  <div
+                    aria-hidden
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      right: 0,
+                      bottom: 4,
+                      width: 32,
+                      pointerEvents: "none",
+                      background: `linear-gradient(90deg, transparent, ${PAGE_BG})`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "flex-end",
+                    }}
+                  >
+                    <ChevronRight size={15} color="#9ab0a1" strokeWidth={2.5} />
+                  </div>
+                )}
               </div>
             ) : (
               <p style={{ margin: "2px 2px 0", fontSize: 12.5, color: "#9aa8a0", fontStyle: "italic" }}>

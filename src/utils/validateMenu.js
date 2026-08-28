@@ -6,6 +6,7 @@
  */
 
 import { HEALTH_PROFILE_BADGE } from "../lib/healthProfileMatch.js";
+import { isMontaje } from "../data/recipeSchema.js";
 
 // Health profiles that trigger a correctable violation below. `anemia` is a
 // presence-based profile ("must contain iron-rich flag") rather than
@@ -333,16 +334,18 @@ export function validateMenu(
     }
   }
 
-  // 2b. "cenas_rapidas" only allowed in slots the user explicitly marked cena_rapida
+  // 2b. A montaje dish (sándwich, tostas, tabla…) is only allowed in slots the
+  // user explicitly marked cena_rapida. Matched by isMontaje, which also covers
+  // the recipes still carrying the deprecated category (see recipeSchema.js).
   for (const { slotId, recipeId } of slotAssignments) {
     const recipe = poolById[recipeId];
-    if (!recipe || recipe.category !== "cenas_rapidas") continue;
+    if (!recipe || !isMontaje(recipe)) continue;
     const ctx = contextBySlot[slotId];
     if (ctx?.preferType === "cena_rapida") continue;
     violations.push({
       rule: "cena_rapida_no_solicitada",
       slotId,
-      message: `"${recipe.name}" es de category "cenas_rapidas" pero el slot no fue marcado como cena rápida`,
+      message: `"${recipe.name}" es un plato de montaje pero el slot no fue marcado como cena rápida`,
     });
   }
 
@@ -858,7 +861,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // one, so relax these progressively instead of giving up.
     const carbOk = (r) => { const c = getCarbType(r); return !(c && dayCarbsUsed.has(c)); };
     const cucharaOk = (r) => !(dayHasCuchara && isPlatoCuchara(r));
-    const typeOk = (r) => ctx.preferType === "cena_rapida" || r.category !== "cenas_rapidas";
+    const typeOk = (r) => ctx.preferType === "cena_rapida" || !isMontaje(r);
 
     const tiers = [
       (r) => carbOk(r) && cucharaOk(r) && typeOk(r), // ideal
@@ -1064,7 +1067,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         !(adjacentCenaGroups && [...proteinGroupsOf(r)].some((g) => adjacentCenaGroups.has(g))),
       frito: (r) => !(neighborFrito && isFrito(r)),
       cuchara: (r) => !(dayHasCuchara && isPlatoCuchara(r)),
-      cenaRapida: (r) => ctx?.preferType === "cena_rapida" || r.category !== "cenas_rapidas",
+      cenaRapida: (r) => ctx?.preferType === "cena_rapida" || !isMontaje(r),
       weight: (r) => siblingKcal === null || (r.kcal ?? 0) + siblingKcal <= COMIDA_KCAL_SOFT_CAP,
     };
 

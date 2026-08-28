@@ -12,6 +12,7 @@ import desayunos from "./recipes/desayunos.json";
 import meriendas from "./recipes/meriendas.json";
 import postres from "./recipes/postres.json";
 import guarniciones from "./recipes/guarniciones.json";
+import salsas from "./recipes/salsas.json";
 import { validateRecipes } from "./recipeSchema.js";
 import { deriveHealthFlags } from "../lib/healthFlags.js";
 import { supabase } from "../lib/supabase.js";
@@ -39,14 +40,19 @@ const JSON_RECIPES = [
   ...postres,
 ];
 
-function validateCatalog(recipes, guarnicionesData) {
+// guarniciones.json and salsas.json each live outside the main comida/cena
+// catalog (never occupy a menu slot themselves — see MEAL_ROLES "guarnicion"/
+// "salsa" in recipeSchema.js), so they're validated alongside `recipes` but
+// not folded into it. Every consumer that needs them imports the JSON file
+// directly (pairGarnishes.js, Menu.jsx, etc).
+function validateCatalog(recipes, sideCatalogs) {
   const seen = new Set();
   const errors = [];
   for (const r of recipes) {
     if (seen.has(r.id)) errors.push(`Duplicate recipe id: ${r.id}`);
     seen.add(r.id);
   }
-  errors.push(...validateRecipes([...recipes, ...guarnicionesData]));
+  errors.push(...validateRecipes([...recipes, ...sideCatalogs.flat()]));
   for (const r of recipes) {
     if (r.baseDishId && !seen.has(r.baseDishId)) {
       errors.push(`[${r.id}] baseDishId "${r.baseDishId}" no existe en el catálogo`);
@@ -58,7 +64,7 @@ function validateCatalog(recipes, guarnicionesData) {
 // JSON is validated unconditionally at import time — it's bundled with the
 // app, so a broken JSON catalog must fail loudly regardless of whether
 // Supabase is reachable.
-const jsonErrors = validateCatalog(JSON_RECIPES, guarniciones);
+const jsonErrors = validateCatalog(JSON_RECIPES, [guarniciones, salsas]);
 if (jsonErrors.length > 0) {
   throw new Error(
     `Catálogo de recetas inválido (${jsonErrors.length} error/es):\n` +
@@ -77,6 +83,15 @@ function rowToRecipe(row) {
     category: row.category,
     mainProtein: row.main_protein,
     ...(row.main_base ? { mainBase: row.main_base } : {}),
+    // Ejes separados (migración 0023_recipe_axes.sql). Los booleanos se
+    // distinguen de "la columna no existe todavía" igual que freezable: un
+    // `montaje: false` es un juicio ya tomado y debe sobrevivir el viaje.
+    ...(row.montaje != null ? { montaje: row.montaje } : {}),
+    ...(row.apetecible != null ? { apetecible: row.apetecible } : {}),
+    ...(row.can_be_garnish != null ? { canBeGarnish: row.can_be_garnish } : {}),
+    ...(row.main_ingredients?.length ? { mainIngredients: row.main_ingredients } : {}),
+    ...(row.sauce_id ? { sauceId: row.sauce_id } : {}),
+    ...(row.sauce_compat?.length ? { sauceCompat: row.sauce_compat } : {}),
     mealRole: row.meal_roles,
     type: row.type,
     ...(row.base_dish_id ? { baseDishId: row.base_dish_id } : {}),
@@ -163,7 +178,8 @@ async function loadRecipes() {
 
     const remoteRecipes = data.map(rowToRecipe);
     const remoteGuarniciones = remoteRecipes.filter((r) => r.type === "guarnicion");
-    const errors = validateCatalog(remoteRecipes, remoteGuarniciones);
+    const remoteSalsas = remoteRecipes.filter((r) => r.type === "salsa");
+    const errors = validateCatalog(remoteRecipes, [remoteGuarniciones, remoteSalsas]);
     if (errors.length > 0) throw new Error(`invalid data:\n${errors.join("\n")}`);
 
     return remoteRecipes;

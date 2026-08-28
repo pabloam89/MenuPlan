@@ -3257,5 +3257,4971 @@
         "kind": "emplatado"
       }
     ]
+  },
+  {
+    "id": "sopas_cremas_021",
+    "name": "Gazpacho de bote mejorado con toppings",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 185,
+    "protein_g": 7,
+    "carbs_g": 15,
+    "fat_g": 11,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo",
+      "gluten",
+      "sulfitos"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Gazpacho de bote",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Pan",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Sacar el gazpacho de bote de la nevera y verterlo en una jarra o bol grande.",
+      "Cocer el huevo en agua hirviendo 10 min, enfriar en agua fría, pelar y picar.",
+      "Cortar el pan en dados pequeños y freír en una sartén con un poco de aceite hasta dorar; escurrir sobre papel absorbente.",
+      "Picar el jamón serrano en taquitos finos.",
+      "Picar el pepino en dados pequeños para el topping.",
+      "Probar el gazpacho y ajustar de sal o un chorrito de aceite si hace falta.",
+      "Servir el gazpacho bien frío en boles individuales.",
+      "Repartir por encima el huevo picado, el jamón, los picatostes y el pepino.",
+      "Terminar con un hilo de aceite de oliva virgen extra y servir enseguida."
+    ],
+    "description": "Gazpacho de bote con un remate casero de huevo duro, jamón y picatostes que lo convierte en plato completo.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "sopas_cremas_022",
+    "name": "Crema de boletus con perejil frito",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "normal",
+    "kcal": 212,
+    "protein_g": 5,
+    "carbs_g": 16,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Boletus",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 15,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar los boletus con un paño húmedo (sin lavar bajo el grifo) y cortar en láminas, reservando unas pocas para el crujiente.",
+      "Pelar y picar el puerro y la cebolla finamente.",
+      "Pelar la patata y cortar en dados pequeños.",
+      "Derretir la mantequilla con el aceite en una olla y sofreír el puerro y la cebolla a fuego medio 6 min.",
+      "Añadir los boletus y sofreír 5 min más hasta que suelten el agua y se doren ligeramente.",
+      "Incorporar la patata y el caldo de verduras, llevar a ebullición y cocer a fuego medio 15 min hasta que la patata esté tierna.",
+      "Triturar con la batidora hasta obtener una crema fina, añadir la nata y triturar de nuevo. Ajustar de sal y pimienta.",
+      "Freír las hojas de perejil reservadas en aceite muy caliente unos segundos hasta que estén crujientes y escurrir sobre papel absorbente.",
+      "Servir la crema caliente en boles y coronar con el perejil frito."
+    ],
+    "description": "Crema aterciopelada de boletus con un crujiente de perejil frito que corona cada bol."
+  },
+  {
+    "id": "sopas_cremas_023",
+    "name": "Bisque de marisco",
+    "category": "sopas_cremas",
+    "mainProtein": "marisco",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 75,
+    "difficulty": "elaborada",
+    "kcal": 265,
+    "protein_g": 15,
+    "carbs_g": 12,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "lactosa",
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Cáscaras y cabezas de langostinos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Langostinos pelados",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Brandy",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Arroz",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 800,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar los langostinos reservando las cáscaras y cabezas; guardar la carne en la nevera.",
+      "Picar la cebolla, la zanahoria, el puerro y el ajo en trozos pequeños.",
+      "Calentar la mitad del aceite en una olla grande y saltear las cáscaras y cabezas a fuego fuerte 5 min, aplastándolas con una cuchara para que suelten sabor.",
+      "Flambear con el brandy con cuidado y dejar que se evapore el alcohol.",
+      "Añadir la verdura picada a la olla y sofreír 8 min a fuego medio.",
+      "Incorporar el tomate triturado y el pimentón, cocinar 2 min, y regar con el vino blanco.",
+      "Añadir el arroz y el agua, llevar a ebullición y cocer a fuego medio 25 min.",
+      "Triturar todo el conjunto (incluidas las cáscaras) muy bien y colar apretando con una cuchara para extraer todo el sabor.",
+      "Devolver la crema colada a la olla, añadir la nata y calentar sin que hierva.",
+      "En el resto del aceite, saltear los langostinos pelados 2 min por lado, salpimentar y repartir sobre la bisque al servir."
+    ],
+    "description": "Bisque cremosa de marisco, con todo el sabor extraído de las cáscaras y langostinos salteados de guarnición."
+  },
+  {
+    "id": "sopas_cremas_024",
+    "name": "Crema de calabaza y jengibre",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 165,
+    "protein_g": 3,
+    "carbs_g": 20,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Calabaza",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 50,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar la calabaza y cortar en dados de unos 3 cm.",
+      "Pelar la patata y cortar en dados similares.",
+      "Picar la cebolla finamente y rallar el jengibre.",
+      "Calentar el aceite en una olla y sofreír la cebolla y el jengibre rallado a fuego medio 4 min.",
+      "Añadir la calabaza y la patata, remover y cubrir con el caldo de verduras.",
+      "Llevar a ebullición y cocer a fuego medio 18 min hasta que las verduras estén tiernas.",
+      "Triturar con la batidora hasta obtener una crema fina, añadir la nata y triturar de nuevo.",
+      "Ajustar de sal y servir bien caliente."
+    ],
+    "description": "Crema de calabaza con un punto picante de jengibre que la despierta."
+  },
+  {
+    "id": "sopas_cremas_025",
+    "name": "Gazpacho de sandía",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 112,
+    "protein_g": 2,
+    "carbs_g": 17,
+    "fat_g": 5,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Sandía",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la sandía en trozos, retirando las pepitas si las tuviera, y quitar la corteza.",
+      "Pelar el pepino y trocear junto con el tomate y el pimiento verde.",
+      "Pelar el diente de ajo y quitar el germen central para que no repita.",
+      "Triturar la sandía, el tomate, el pepino, el pimiento y el ajo con la batidora hasta obtener una crema fina.",
+      "Añadir el vinagre de jerez, el aceite de oliva y la sal, y triturar de nuevo unos segundos.",
+      "Colar si se prefiere una textura más fina.",
+      "Enfriar en la nevera al menos 1 hora antes de servir.",
+      "Servir bien frío, con un chorrito de aceite de oliva por encima."
+    ],
+    "description": "Gazpacho rosado y refrescante que sorprende con el dulzor de la sandía."
+  },
+  {
+    "id": "sopas_cremas_026",
+    "name": "Salmorejo con jamón y huevo duro",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "extraProteins": [
+      "cerdo",
+      "huevo"
+    ],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 232,
+    "protein_g": 9,
+    "carbs_g": 22,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "sulfitos"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pan del día anterior",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Lavar y trocear los tomates maduros, retirando el pedúnculo.",
+      "Remojar el pan troceado en un poco de agua o en el jugo de los tomates 10 min.",
+      "Cocer el huevo en agua hirviendo 10 min, enfriar en agua fría y pelar.",
+      "Triturar los tomates, el pan escurrido y el ajo con la batidora hasta obtener una crema fina.",
+      "Añadir el aceite de oliva en hilo mientras se sigue triturando, hasta que la textura sea homogénea y untuosa.",
+      "Incorporar el vinagre y la sal, triturar de nuevo y ajustar el punto.",
+      "Enfriar en la nevera al menos 1 hora.",
+      "Picar el jamón serrano y el huevo cocido en taquitos pequeños.",
+      "Servir el salmorejo bien frío con el jamón y el huevo picado repartidos por encima."
+    ],
+    "description": "Salmorejo cordobés espeso, rematado con jamón y huevo duro picados."
+  },
+  {
+    "id": "sopas_cremas_027",
+    "name": "Crema de puerros y patata con beicon crujiente",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "facil",
+    "kcal": 232,
+    "protein_g": 6,
+    "carbs_g": 20,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Puerro",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Beicon en lonchas",
+        "amount": 60,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar bien los puerros y cortar en rodajas finas, usando la parte blanca y algo de la verde clara.",
+      "Pelar la patata y la cebolla y cortar en dados.",
+      "Calentar el aceite en una olla y sofreír la cebolla y el puerro a fuego medio 8 min hasta que estén blandos.",
+      "Añadir la patata y el caldo, llevar a ebullición y cocer a fuego medio 20 min hasta que la patata esté tierna.",
+      "Mientras tanto, dorar el beicon en una sartén sin aceite a fuego medio-alto hasta que quede crujiente, y escurrir sobre papel absorbente.",
+      "Triturar la sopa con la batidora hasta obtener una crema fina.",
+      "Añadir la nata, triturar de nuevo y ajustar de sal y pimienta.",
+      "Servir la crema caliente con el beicon crujiente troceado por encima."
+    ],
+    "description": "Crema suave de puerro y patata con el contraste crujiente del beicon dorado."
+  },
+  {
+    "id": "sopas_cremas_028",
+    "name": "Crema de guisantes con menta",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 175,
+    "protein_g": 7,
+    "carbs_g": 16,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Guisantes congelados",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla finamente y pelar y cortar la patata en dados pequeños.",
+      "Calentar el aceite en una olla y sofreír la cebolla a fuego medio 5 min hasta que esté transparente.",
+      "Añadir la patata y el caldo de verduras, llevar a ebullición y cocer 10 min.",
+      "Incorporar los guisantes congelados y cocer 5 min más hasta que estén tiernos y mantengan el color verde vivo.",
+      "Retirar del fuego, añadir la mitad de las hojas de menta y triturar todo con la batidora hasta obtener una crema fina.",
+      "Añadir la nata y triturar de nuevo, ajustando de sal.",
+      "Picar el resto de la menta fina.",
+      "Servir la crema caliente o templada, espolvoreada con la menta picada."
+    ],
+    "description": "Crema de guisantes de un verde vivo, refrescada con menta fresca."
+  },
+  {
+    "id": "sopas_cremas_029",
+    "name": "Velouté de champiñones",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "normal",
+    "kcal": 215,
+    "protein_g": 5,
+    "carbs_g": 14,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Champiñones",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Limpiar los champiñones con un paño húmedo y laminar finamente.",
+      "Picar la cebolla en trozos pequeños.",
+      "Derretir la mantequilla en una olla y sofreír la cebolla a fuego medio 5 min.",
+      "Añadir los champiñones y saltear a fuego medio-alto hasta que suelten el agua y se doren, unos 8 min, rociando con el zumo de limón para que no oscurezcan.",
+      "Espolvorear la harina sobre los champiñones y cocinar removiendo 2 min para tostar el roux.",
+      "Verter el caldo poco a poco sin dejar de remover, para que no se formen grumos.",
+      "Llevar a ebullición y cocer a fuego medio 10 min, removiendo de vez en cuando.",
+      "Triturar con la batidora hasta obtener una crema fina y sedosa.",
+      "Añadir la nata, calentar sin que hierva y ajustar de sal y pimienta antes de servir."
+    ],
+    "description": "Velouté sedoso de champiñones, con el aroma tostado del sofrito envolviendo cada cucharada."
+  },
+  {
+    "id": "sopas_cremas_030",
+    "name": "Sopa de cebolla gratinada",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 55,
+    "difficulty": "normal",
+    "kcal": 310,
+    "protein_g": 12,
+    "carbs_g": 26,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "sulfitos"
+    ],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Cebolla",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Pan tostado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso gruyère rallado",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Tomillo",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar las cebollas y cortar en juliana fina.",
+      "Derretir la mantequilla con el aceite en una olla amplia y añadir la cebolla con una pizca de azúcar.",
+      "Pochar la cebolla a fuego muy suave, removiendo de vez en cuando, unos 30 min, hasta que quede muy dorada y caramelizada.",
+      "Regar con el vino blanco y dejar que reduzca 2 min.",
+      "Añadir el caldo de carne y el tomillo, llevar a ebullición y cocer a fuego medio 15 min.",
+      "Repartir la sopa en cazuelitas individuales aptas para horno.",
+      "Colocar una rebanada de pan tostado sobre cada cazuelita y cubrir generosamente con el queso gruyère rallado.",
+      "Gratinar en el horno con el grill activado hasta que el queso esté fundido y dorado, unos 5 min.",
+      "Servir muy caliente, con cuidado de no quemarse con la cazuela."
+    ],
+    "description": "Sopa de cebolla lentamente caramelizada, coronada de pan y queso fundido gratinado."
+  },
+  {
+    "id": "sopas_cremas_031",
+    "name": "Crema de coliflor asada",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 45,
+    "difficulty": "facil",
+    "kcal": 160,
+    "protein_g": 5,
+    "carbs_g": 14,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Coliflor",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Separar la coliflor en arbolitos y colocar en una bandeja con la cebolla en trozos y el ajo entero con piel.",
+      "Regar con la mitad del aceite de oliva, salpimentar y asar 25 min, hasta que la coliflor esté dorada en los bordes.",
+      "Pelar el ajo asado una vez tibio.",
+      "Poner la coliflor asada, la cebolla y el ajo pelado en una olla junto con el caldo de verduras.",
+      "Llevar a ebullición y cocer a fuego medio 10 min.",
+      "Triturar con la batidora hasta obtener una crema fina, añadir la nata y triturar de nuevo.",
+      "Ajustar de sal y servir con un hilo de aceite de oliva y una pizca de pimentón por encima."
+    ],
+    "description": "Crema de coliflor con el fondo tostado que deja el horno, más profunda que la versión hervida."
+  },
+  {
+    "id": "sopas_cremas_032",
+    "name": "Crema de espárragos con langostinos",
+    "category": "sopas_cremas",
+    "mainProtein": "marisco",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "normal",
+    "kcal": 200,
+    "protein_g": 12,
+    "carbs_g": 12,
+    "fat_g": 11,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Espárragos verdes",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Langostinos pelados",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 50,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Lavar los espárragos, retirar la parte final más leñosa del tallo y cortar en trozos, reservando algunas puntas para decorar.",
+      "Picar el puerro finamente y pelar y cortar la patata en dados.",
+      "Calentar la mitad del aceite en una olla y sofreír el puerro a fuego medio 5 min.",
+      "Añadir los espárragos troceados y la patata, sofreír 3 min más y cubrir con el caldo.",
+      "Llevar a ebullición y cocer a fuego medio 15 min hasta que las verduras estén tiernas.",
+      "Mientras tanto, saltear las puntas de espárrago reservadas y los langostinos pelados en el resto del aceite 2-3 min, salpimentar.",
+      "Triturar la sopa con la batidora hasta obtener una crema fina, añadir la nata y triturar de nuevo.",
+      "Servir la crema caliente con los langostinos y las puntas de espárrago salteadas por encima."
+    ],
+    "description": "Crema fina de espárragos verdes coronada con langostinos salteados."
+  },
+  {
+    "id": "sopas_cremas_033",
+    "name": "Gazpacho de remolacha",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 132,
+    "protein_g": 3,
+    "carbs_g": 17,
+    "fat_g": 6,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sulfitos"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Remolacha cocida",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Pan del día anterior",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar la remolacha cocida y trocear.",
+      "Trocear el tomate, el pepino pelado y el pimiento verde.",
+      "Remojar el pan en un poco de agua unos minutos.",
+      "Triturar la remolacha, el tomate, el pepino, el pimiento, el ajo y el pan escurrido hasta obtener una crema fina.",
+      "Añadir el vinagre, el aceite de oliva y la sal, y triturar de nuevo hasta homogeneizar.",
+      "Colar si se busca una textura más fina y ajustar de sal.",
+      "Enfriar en la nevera al menos 1 hora.",
+      "Servir bien frío, con un chorrito de aceite de oliva por encima."
+    ],
+    "description": "Gazpacho de un magenta intenso, la vuelta de tuerca de la remolacha al clásico veraniego."
+  },
+  {
+    "id": "sopas_cremas_034",
+    "name": "Crema fría de pepino y yogur",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 120,
+    "protein_g": 6,
+    "carbs_g": 8,
+    "fat_g": 7,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Pepino",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur griego natural",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar los pepinos, retirar las semillas si son muy gruesas y trocear.",
+      "Pelar el diente de ajo y quitar el germen central.",
+      "Triturar el pepino, el yogur, el ajo, la mitad de la menta y el zumo de limón hasta obtener una crema fina.",
+      "Añadir el aceite de oliva en hilo mientras se sigue triturando, y la sal al gusto.",
+      "Colar si se prefiere una textura más sedosa.",
+      "Enfriar en la nevera al menos 1 hora, o servir con hielo si hay prisa.",
+      "Picar el resto de la menta fina.",
+      "Servir bien fría, con un chorrito de aceite y la menta picada por encima."
+    ],
+    "description": "Crema fría de pepino y yogur, ligera y refrescante para los días de más calor."
+  },
+  {
+    "id": "sopas_cremas_035",
+    "name": "Crema de castañas",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "normal",
+    "kcal": 230,
+    "protein_g": 5,
+    "carbs_g": 28,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Castañas cocidas y peladas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Picar el puerro y la cebolla finamente.",
+      "Derretir la mantequilla con el aceite en una olla y sofreír el puerro y la cebolla a fuego medio 6 min.",
+      "Añadir las castañas y el caldo, llevar a ebullición y cocer a fuego medio 20 min hasta que las castañas estén muy tiernas.",
+      "Triturar con la batidora hasta obtener una crema fina y untuosa.",
+      "Añadir la nata, triturar de nuevo y ajustar de sal y una pizca de pimienta.",
+      "Servir caliente, con un hilo de aceite de oliva o un poco de nata por encima."
+    ],
+    "description": "Crema de castañas con dulzor de otoño y un fondo suave de nata."
+  },
+  {
+    "id": "sopas_cremas_036",
+    "name": "Sopa fría de aguacate y lima",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 202,
+    "protein_g": 4,
+    "carbs_g": 10,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Aguacate",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Lima (zumo)",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y deshuesar los aguacates.",
+      "Pelar el pepino y trocear.",
+      "Triturar el aguacate, el pepino, el caldo de verduras frío, el zumo de lima y el cilantro hasta obtener una crema fina y homogénea.",
+      "Añadir el aceite de oliva y la sal, triturar unos segundos más.",
+      "Probar y ajustar de sal, lima o cilantro al gusto.",
+      "Enfriar en la nevera al menos 30 min si no está ya fría.",
+      "Servir bien fría, con unas hojas de cilantro y un chorrito de aceite por encima."
+    ],
+    "description": "Sopa fría cremosa de aguacate y lima, sin necesidad de nata para conseguir esa textura untuosa."
+  },
+  {
+    "id": "sopas_cremas_037",
+    "name": "Crema de zanahoria y jengibre",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 150,
+    "protein_g": 3,
+    "carbs_g": 20,
+    "fat_g": 6,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Zanahoria",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 450,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de naranja",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar la zanahoria, la patata y la cebolla en trozos.",
+      "Rallar el jengibre fresco.",
+      "Calentar el aceite en una olla y sofreír la cebolla y el jengibre a fuego medio 5 min.",
+      "Añadir la zanahoria y la patata, remover y cubrir con el caldo de verduras.",
+      "Llevar a ebullición y cocer a fuego medio 20 min hasta que las verduras estén tiernas.",
+      "Añadir el zumo de naranja y triturar todo con la batidora hasta obtener una crema fina.",
+      "Ajustar de sal y servir caliente."
+    ],
+    "description": "Crema de zanahoria de un naranja brillante, con un punto picante de jengibre muy suave."
+  },
+  {
+    "id": "sopas_cremas_038",
+    "name": "Crema de brócoli y queso azul",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 245,
+    "protein_g": 9,
+    "carbs_g": 12,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Brócoli",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso azul",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Separar el brócoli en arbolitos y pelar y trocear la patata y la cebolla.",
+      "Calentar el aceite en una olla y sofreír la cebolla a fuego medio 5 min.",
+      "Añadir la patata y el caldo de verduras, llevar a ebullición y cocer 10 min.",
+      "Incorporar el brócoli y cocer 8 min más hasta que esté tierno pero conserve el color verde vivo.",
+      "Retirar del fuego, añadir el queso azul desmenuzado y la nata.",
+      "Triturar todo con la batidora hasta obtener una crema fina con vetas del queso fundiéndose.",
+      "Ajustar de sal con cuidado (el queso azul ya aporta bastante) y servir caliente."
+    ],
+    "description": "Crema de brócoli con vetas de queso azul fundiéndose en cada cucharada."
+  },
+  {
+    "id": "sopas_cremas_039",
+    "name": "Caldo gallego",
+    "category": "sopas_cremas",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "primero",
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 75,
+    "difficulty": "normal",
+    "kcal": 320,
+    "protein_g": 18,
+    "carbs_g": 30,
+    "fat_g": 14,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Grelos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Judías blancas cocidas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Lacón",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Unto",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 1500,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Poner en una olla grande el lacón, el unto y el chorizo junto con el agua fría.",
+      "Llevar a ebullición a fuego fuerte, espumando las impurezas que suban a la superficie.",
+      "Bajar a fuego medio y cocer 30 min para que las carnes suelten su sabor al caldo.",
+      "Pelar la patata y cortar en trozos medianos; añadir a la olla.",
+      "Lavar bien los grelos, trocear y añadir también a la olla.",
+      "Cocer 20 min más hasta que la patata y los grelos estén tiernos.",
+      "Añadir las judías blancas cocidas y cocer 10 min más para que se integren los sabores.",
+      "Retirar el chorizo y el lacón, cortarlos en trozos y devolverlos a la olla.",
+      "Ajustar de sal (el unto y el chorizo ya aportan bastante) y servir muy caliente."
+    ],
+    "description": "Caldo gallego contundente, con grelos, patata y todo el sabor del compango de cerdo."
+  },
+  {
+    "id": "sopas_cremas_040",
+    "name": "Crema de calabacín con menta",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 25,
+    "difficulty": "facil",
+    "kcal": 140,
+    "protein_g": 4,
+    "carbs_g": 10,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso en porciones",
+        "amount": 30,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar el calabacín y cortar en rodajas sin pelar.",
+      "Pelar la patata y la cebolla y cortar en trozos pequeños.",
+      "Calentar el aceite en una olla y sofreír la cebolla a fuego medio 4 min hasta que esté transparente.",
+      "Añadir el calabacín y la patata, remover y cubrir con el caldo de verduras.",
+      "Llevar a ebullición y cocer a fuego medio 15 min hasta que las verduras estén tiernas.",
+      "Retirar del fuego, añadir el queso en porciones y la mitad de las hojas de menta.",
+      "Triturar todo con la batidora hasta obtener una crema fina y ligera.",
+      "Picar el resto de la menta y usarla para decorar al servir."
+    ],
+    "description": "Crema muy ligera de calabacín, aromatizada con menta fresca."
+  },
+  {
+    "id": "sopas_cremas_041",
+    "name": "Sopa de marisco",
+    "category": "sopas_cremas",
+    "mainProtein": "marisco",
+    "extraProteins": [
+      "pescado_blanco"
+    ],
+    "mealRole": [
+      "primero",
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 60,
+    "difficulty": "elaborada",
+    "kcal": 280,
+    "protein_g": 22,
+    "carbs_g": 14,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "moluscos",
+      "pescado",
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Mejillones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Langostinos",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Rape",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Fumet de pescado",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar los mejillones raspando las conchas y retirando las barbas.",
+      "Pelar la mitad de los langostinos, dejando el resto con cáscara para decorar; cortar el rape en trozos.",
+      "Picar la cebolla, el ajo y el pimiento verde finamente.",
+      "Calentar el aceite en una olla grande y sofreír la cebolla, el ajo y el pimiento a fuego medio 8 min.",
+      "Añadir el tomate triturado y el pimentón, cocinar 2 min, y regar con el vino blanco dejando que reduzca.",
+      "Verter el fumet de pescado, llevar a ebullición y cocer 10 min.",
+      "Añadir los mejillones y cocer tapado hasta que se abran, unos 5 min, retirando los que no se abran.",
+      "Incorporar el rape y los langostinos, cocer 4-5 min más hasta que estén hechos sin pasarse.",
+      "Ajustar de sal, espolvorear con perejil picado y servir muy caliente con todas las piezas de marisco repartidas."
+    ],
+    "description": "Sopa de marisco con un caldo rojizo intenso y piezas enteras de mejillón, pescado y langostino."
+  },
+  {
+    "id": "sopas_cremas_042",
+    "name": "Crema de tomate asado",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 50,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 250,
+    "protein_g": 4,
+    "carbs_g": 18,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "amount": 800,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Cortar los tomates por la mitad y colocarlos en una bandeja de horno junto con la cebolla en cuartos y el ajo con piel.",
+      "Rociar con el aceite de oliva, sal y pimienta, y asar 30 min hasta que estén blandos y ligeramente tostados por los bordes.",
+      "Dejar templar y pelar el ajo asado apretando el diente para que salga la pulpa.",
+      "Triturar los tomates, la cebolla y el ajo asados junto con el caldo de verduras hasta obtener una crema fina.",
+      "Colar por un chino si se busca una textura más sedosa, sin pieles ni semillas.",
+      "Calentar la crema en un cazo, rectificar de sal y añadir el azúcar si el tomate resulta muy ácido.",
+      "Servir con hojas de albahaca fresca y un chorrito de aceite de oliva por encima."
+    ],
+    "description": "Crema de tomate asado al horno hasta caramelizar, de color rojo intenso y dulzor natural."
+  },
+  {
+    "id": "sopas_cremas_043",
+    "name": "Crema de tres quesos",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "mainBase": "patatas",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 485,
+    "protein_g": 18,
+    "carbs_g": 22,
+    "fat_g": 36,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso Emmental",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Queso Gruyère",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Queso crema",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y picar el puerro, lavándolo bien para eliminar la tierra entre las capas.",
+      "Pelar la patata y cortarla en dados pequeños.",
+      "Derretir la mantequilla en una olla y rehogar el puerro a fuego medio hasta que esté blando.",
+      "Añadir la patata y el caldo de verduras, llevar a ebullición y cocer 15 min hasta que la patata esté tierna.",
+      "Triturar con la batidora hasta obtener una crema fina.",
+      "Volver a poner al fuego suave y añadir la nata, el queso Emmental, el Gruyère y el queso crema.",
+      "Remover hasta que los quesos se fundan por completo y la crema quede untuosa.",
+      "Sazonar con sal, pimienta y una pizca de nuez moscada.",
+      "Servir bien caliente, con virutas de queso por encima si se desea."
+    ],
+    "description": "Crema untuosa y dorada de patata y puerro fundida con tres quesos, para los días de capricho."
+  },
+  {
+    "id": "sopas_cremas_044",
+    "name": "Sopa de pescado y marisco",
+    "category": "sopas_cremas",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "primero",
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "mainBase": "patatas",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 370,
+    "protein_g": 34,
+    "carbs_g": 22,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado",
+      "marisco",
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Merluza",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Mejillones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Fumet de pescado",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar los mejillones raspando las valvas y retirando las barbas, y pelar las gambas reservando las cáscaras.",
+      "Picar la cebolla, el ajo y el pimiento verde en trozos pequeños.",
+      "Calentar el aceite de oliva en una olla y sofreír las cáscaras de gamba 2 min para dar sabor; retirarlas después.",
+      "En el mismo aceite, pochar la cebolla, el ajo y el pimiento verde hasta que estén blandos.",
+      "Añadir el tomate triturado y cocinar 5 min a fuego medio.",
+      "Verter el vino blanco y dejar reducir 2 min.",
+      "Incorporar la patata en dados, el fumet de pescado y el azafrán; llevar a ebullición y cocer 15 min hasta que la patata esté tierna.",
+      "Añadir la merluza en trozos y los mejillones, cocer 5 min más.",
+      "Incorporar las gambas peladas y cocer 2 min hasta que estén rosadas y los mejillones abiertos.",
+      "Rectificar de sal, espolvorear con perejil picado y servir bien caliente."
+    ],
+    "description": "Sopa de pescado y marisco en caldo dorado de azafrán, con trocitos de merluza, gambas y mejillones.",
+    "extraProteins": [
+      "marisco"
+    ]
+  },
+  {
+    "id": "sopas_cremas_045",
+    "name": "Crema de tomate y albahaca",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 225,
+    "protein_g": 3,
+    "carbs_g": 15,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y picar la cebolla y la zanahoria en trozos pequeños.",
+      "Escaldar los tomates 30 segundos en agua hirviendo, pelarlos y trocearlos.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y la zanahoria hasta que estén blandas.",
+      "Añadir el tomate troceado y cocinar 5 min a fuego medio, removiendo.",
+      "Verter el caldo de verduras, añadir el azúcar y llevar a ebullición.",
+      "Cocer a fuego medio 15 min hasta que las verduras estén muy tiernas.",
+      "Retirar del fuego, añadir la mayoría de las hojas de albahaca fresca y triturar hasta obtener una crema fina.",
+      "Incorporar la nata, remover y calentar de nuevo sin que llegue a hervir.",
+      "Rectificar de sal y servir decorada con hojas de albahaca fresca picada."
+    ],
+    "description": "Crema fina de tomate maduro con nata y un toque fresco de albahaca."
+  },
+  {
+    "id": "sopas_cremas_046",
+    "name": "Gazpacho de fresas",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 275,
+    "protein_g": 3,
+    "carbs_g": 23,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Fresas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Pan",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar y quitar el pedúnculo a las fresas, cortarlas en trozos.",
+      "Lavar el tomate y el pepino, pelar este último parcialmente, y trocear ambos.",
+      "Trocear el pimiento rojo y el ajo, retirando las semillas y el germen del ajo.",
+      "Remojar el pan en un poco de agua durante 5 min y escurrir.",
+      "Triturar las fresas, el tomate, el pepino, el pimiento, el ajo y el pan hasta obtener una mezcla fina.",
+      "Añadir el aceite de oliva y el vinagre de Jerez, y triturar de nuevo hasta emulsionar.",
+      "Colar por un chino para eliminar pieles y semillas si se busca una textura más sedosa.",
+      "Rectificar de sal y ajustar de vinagre según el punto de acidez de las fresas.",
+      "Enfriar en la nevera al menos 1 hora antes de servir bien frío."
+    ],
+    "description": "Gazpacho rosado de fresas y tomate, dulce y ácido a la vez, para servir bien frío."
+  },
+  {
+    "id": "sopas_cremas_047",
+    "name": "Crema de alcachofas",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 271,
+    "protein_g": 5,
+    "carbs_g": 20,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Corazones de alcachofa",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta blanca",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Trocear los corazones de alcachofa y rociarlos con el zumo de limón para que no se oxiden.",
+      "Picar el puerro y la cebolla finamente, pelar y cortar la patata en dados.",
+      "Calentar el aceite de oliva en una olla y pochar el puerro y la cebolla a fuego medio-bajo hasta que estén tiernos.",
+      "Añadir las alcachofas troceadas y la patata, y rehogar 3 min.",
+      "Cubrir con el caldo de verduras y llevar a ebullición.",
+      "Cocer a fuego medio 20 min hasta que las alcachofas y la patata estén muy tiernas.",
+      "Triturar todo con la batidora hasta conseguir una crema fina y homogénea.",
+      "Volver a calentar a fuego suave, añadir la nata y remover sin dejar hervir.",
+      "Sazonar con sal y pimienta blanca, y servir bien caliente."
+    ],
+    "description": "Crema suave y elegante de alcachofas con patata y un toque de nata."
+  },
+  {
+    "id": "sopas_cremas_048",
+    "name": "Sopa de miso con verduras",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 123,
+    "protein_g": 7,
+    "carbs_g": 8,
+    "fat_g": 7,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "soja",
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Miso",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Alga wakame",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Tofu firme",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de sésamo",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Hidratar el alga wakame en agua fría durante 5 min y escurrir.",
+      "Cortar el tofu en dados pequeños y los champiñones en láminas finas.",
+      "Picar la cebolleta en aros finos, separando la parte blanca de la verde.",
+      "Calentar el agua en una olla hasta que esté a punto de hervir, sin que llegue a borbotón fuerte.",
+      "Añadir los champiñones laminados y la parte blanca de la cebolleta, y cocer 3 min.",
+      "Retirar un cazo de caldo caliente, disolver en él el miso y volver a incorporarlo a la olla, para que no hierva directamente y no pierda aroma.",
+      "Añadir el tofu en dados y el alga wakame hidratada, y calentar 2 min sin que hierva.",
+      "Incorporar un chorrito de salsa de soja y unas gotas de aceite de sésamo.",
+      "Servir caliente, decorado con la parte verde de la cebolleta."
+    ],
+    "description": "Sopa de miso japonesa con tofu, champiñones y algas, ligera y reconfortante."
+  },
+  {
+    "id": "sopas_cremas_049",
+    "name": "Crema de garbanzos especiada",
+    "category": "sopas_cremas",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 388,
+    "protein_g": 16,
+    "carbs_g": 45,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla, el ajo y la zanahoria en trozos pequeños.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir la zanahoria y rehogar 3 min más.",
+      "Incorporar el comino molido, la cúrcuma y el pimentón dulce, y remover 1 min para tostar las especias.",
+      "Añadir los garbanzos cocidos y el caldo de verduras, y llevar a ebullición.",
+      "Cocer a fuego medio 15 min hasta que la zanahoria esté tierna.",
+      "Triturar todo con la batidora hasta obtener una crema fina, colando si se quiere una textura más sedosa.",
+      "Rectificar el punto de sal y de especias.",
+      "Servir caliente con un chorrito de aceite de oliva y un toque de comino por encima."
+    ],
+    "description": "Crema especiada de garbanzos con comino y cúrcuma, cálida y reconfortante."
+  },
+  {
+    "id": "sopas_cremas_050",
+    "name": "Sopa juliana con jamón",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 157,
+    "protein_g": 8,
+    "carbs_g": 11,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Judía verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nabo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar y cortar la zanahoria, el puerro, la judía verde y el nabo en juliana fina, en tiras alargadas.",
+      "Cortar el jamón serrano en tiras finas o taquitos pequeños.",
+      "Calentar el aceite de oliva en una olla y rehogar las verduras en juliana 5 min a fuego medio.",
+      "Añadir el jamón y rehogar 2 min más para que suelte su sabor.",
+      "Verter el caldo de pollo y llevar a ebullición.",
+      "Cocer a fuego medio 15 min hasta que las verduras estén tiernas pero mantengan un poco de textura.",
+      "Rectificar de sal, teniendo en cuenta que el jamón ya aporta salinidad.",
+      "Servir bien caliente en boles individuales."
+    ],
+    "description": "Sopa juliana de verduras finas cortadas en tiras con jamón serrano.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "sopas_cremas_051",
+    "name": "Crema de espinacas con nata",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 223,
+    "protein_g": 6,
+    "carbs_g": 16,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espinacas frescas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar bien las espinacas frescas para eliminar restos de tierra.",
+      "Pelar y picar la cebolla, y pelar la patata y cortarla en dados pequeños.",
+      "Calentar el aceite de oliva en una olla y pochar la cebolla hasta que esté transparente.",
+      "Añadir la patata y rehogar 2 min.",
+      "Verter el caldo de verduras y cocer a fuego medio 12 min hasta que la patata esté tierna.",
+      "Incorporar las espinacas y cocer 3 min más, hasta que reduzcan de volumen.",
+      "Triturar todo con la batidora hasta obtener una crema fina y homogénea.",
+      "Volver al fuego suave, añadir la nata y una pizca de nuez moscada, removiendo sin dejar hervir.",
+      "Rectificar de sal y servir bien caliente."
+    ],
+    "description": "Crema de espinacas frescas con nata, verde intenso y muy suave."
+  },
+  {
+    "id": "sopas_cremas_052",
+    "name": "Sopa de tomate con albahaca fresca",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 222,
+    "protein_g": 4,
+    "carbs_g": 20,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pan tostado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escaldar los tomates 30 segundos en agua hirviendo, pelarlos y trocearlos en dados.",
+      "Picar la cebolla y el ajo finamente.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y el ajo hasta que estén blandos, sin que se doren.",
+      "Añadir el tomate troceado y cocinar 5 min a fuego medio, removiendo.",
+      "Verter el caldo de verduras, añadir el azúcar y llevar a ebullición.",
+      "Cocer a fuego medio-bajo 15 min, aplastando ligeramente el tomate con una cuchara para que se deshaga sin triturarlo del todo.",
+      "Rectificar de sal y retirar del fuego.",
+      "Añadir la mayoría de las hojas de albahaca fresca troceadas a mano justo antes de servir.",
+      "Servir con picatostes de pan tostado y unas hojas de albahaca entera por encima."
+    ],
+    "description": "Sopa ligera de tomate con hojas de albahaca fresca y picatostes."
+  },
+  {
+    "id": "sopas_cremas_053",
+    "name": "Crema de setas variadas",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 240,
+    "protein_g": 6,
+    "carbs_g": 18,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Setas variadas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 350,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomillo fresco",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar las setas con un paño húmedo, sin lavarlas bajo el grifo, y cortarlas en láminas.",
+      "Picar la cebolla y el ajo finamente, y pelar la patata y cortarla en dados.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir las setas laminadas y saltear a fuego fuerte 5 min hasta que suelten su agua y se doren ligeramente.",
+      "Reservar un puñado de setas salteadas para decorar.",
+      "Añadir la patata y el caldo de verduras al resto de setas, y llevar a ebullición.",
+      "Cocer a fuego medio 15 min hasta que la patata esté tierna.",
+      "Triturar con la batidora junto con el tomillo fresco hasta obtener una crema fina.",
+      "Volver al fuego suave, añadir la nata y sazonar con sal y pimienta.",
+      "Servir caliente decorada con las setas salteadas reservadas."
+    ],
+    "description": "Crema de setas variadas con aroma a bosque y un fondo de nata."
+  },
+  {
+    "id": "sopas_cremas_054",
+    "name": "Vichyssoise de puerro y manzana",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "mainBase": "patatas",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "verano",
+    "kcal": 326,
+    "protein_g": 4,
+    "carbs_g": 28,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Puerro",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Manzana Golden",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Cebollino",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta blanca",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar los puerros retirando la parte verde más dura, lavarlos bien y cortarlos en rodajas.",
+      "Pelar la patata y cortarla en dados. Pelar la manzana, descorazonarla y trocearla.",
+      "Derretir la mantequilla en una olla y rehogar el puerro a fuego bajo 8 min, sin que llegue a dorarse.",
+      "Añadir la patata y la manzana troceadas, y rehogar 2 min más.",
+      "Verter el caldo de verduras y llevar a ebullición.",
+      "Cocer a fuego medio 20 min hasta que la patata esté muy tierna.",
+      "Triturar todo con la batidora hasta obtener una crema muy fina, colando si se busca una textura más sedosa.",
+      "Añadir la nata, remover y dejar enfriar a temperatura ambiente.",
+      "Refrigerar al menos 2 horas hasta que esté bien fría.",
+      "Servir fría en boles o vasos, decorada con cebollino picado."
+    ],
+    "description": "Vichyssoise fría de puerro y patata con un toque dulce de manzana."
+  },
+  {
+    "id": "sopas_cremas_055",
+    "name": "Crema de calabaza con castañas",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 334,
+    "protein_g": 5,
+    "carbs_g": 38,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Calabaza",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Castañas cocidas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar la calabaza y cortarla en dados de 2-3 cm.",
+      "Picar la cebolla y el puerro finamente.",
+      "Calentar el aceite de oliva en una olla y pochar la cebolla y el puerro hasta que estén blandos.",
+      "Añadir la calabaza en dados y rehogar 5 min, removiendo.",
+      "Incorporar las castañas cocidas, reservando algunas para decorar.",
+      "Cubrir con el caldo de verduras y llevar a ebullición.",
+      "Cocer a fuego medio 20 min hasta que la calabaza esté muy tierna.",
+      "Triturar todo con la batidora hasta obtener una crema fina y untuosa.",
+      "Volver al fuego suave, añadir la nata y una pizca de nuez moscada.",
+      "Servir caliente decorada con las castañas reservadas troceadas."
+    ],
+    "description": "Crema de calabaza asada con castañas, muy de otoño."
+  },
+  {
+    "id": "sopas_cremas_056",
+    "name": "Sopa fría de melón y jamón",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 221,
+    "protein_g": 9,
+    "carbs_g": 17,
+    "fat_g": 13,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Melón",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur griego",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar el melón, retirar las semillas y cortar la pulpa en trozos.",
+      "Triturar el melón junto con el yogur griego, el aceite de oliva y una pizca de sal hasta obtener una crema fina y homogénea.",
+      "Rectificar de sal y añadir un poco de pimienta negra recién molida.",
+      "Refrigerar al menos 1 hora hasta que esté bien fría.",
+      "Cortar el jamón serrano en virutas finas.",
+      "Repartir la sopa fría en boles o vasos individuales.",
+      "Decorar cada ración con virutas de jamón serrano y hojas de menta fresca.",
+      "Servir de inmediato bien frío."
+    ],
+    "description": "Sopa fría de melón con virutas de jamón serrano, perfecta para el verano.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "sopas_cremas_057",
+    "name": "Crema de pimientos asados",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 50,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 258,
+    "protein_g": 4,
+    "carbs_g": 20,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Pimiento rojo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento amarillo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Colocar los pimientos rojo y amarillo enteros en una bandeja con la cebolla cortada en cuartos y el tomate.",
+      "Rociar con un poco de aceite de oliva y asar 35-40 min, hasta que la piel de los pimientos esté arrugada y tostada.",
+      "Dejar templar dentro de una bolsa cerrada o tapados con film para que suden y sea más fácil pelarlos.",
+      "Pelar los pimientos y retirar las semillas, reservando la pulpa.",
+      "Triturar los pimientos asados, la cebolla y el tomate junto con el caldo de verduras hasta obtener una crema fina.",
+      "Colar si se desea una textura más sedosa.",
+      "Calentar en un cazo, añadir el resto del aceite de oliva, el vinagre de Jerez y el azúcar.",
+      "Rectificar de sal y servir caliente o templada."
+    ],
+    "description": "Crema de pimientos asados, dulce y con un intenso color rojo."
+  },
+  {
+    "id": "sopas_cremas_058",
+    "name": "Consomé con jerez",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 170,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 55,
+    "protein_g": 6,
+    "carbs_g": 3,
+    "fat_g": 2,
+    "baseServings": 6,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo",
+      "sulfitos",
+      "apio"
+    ],
+    "ingredients": [
+      {
+        "name": "Hueso de ternera",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Morcillo de ternera",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Hueso de jamón",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 2000,
+        "unit": "ml"
+      },
+      {
+        "name": "Jerez seco",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Clara de huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Colocar el hueso de ternera, el morcillo y el hueso de jamón en una olla grande con el agua fría.",
+      "Llevar a ebullición a fuego fuerte y retirar la espuma que se forma en la superficie con una espumadera.",
+      "Añadir la zanahoria, el puerro, la cebolla y el apio troceados en trozos grandes.",
+      "Bajar el fuego y cocer a fuego muy suave, sin que hierva con fuerza, durante 2 horas y media, espumando de vez en cuando.",
+      "Colar el caldo con un colador fino o un paño, desechando los huesos y las verduras.",
+      "Para clarificar, batir ligeramente la clara de huevo e incorporarla al caldo templado; llevar a ebullición suave sin remover hasta que la clara forme una costra que atrape las impurezas.",
+      "Colar de nuevo con cuidado a través de un paño fino.",
+      "Rectificar de sal, añadir el jerez seco y calentar a fuego suave sin que hierva.",
+      "Servir bien caliente en tazas de consomé."
+    ],
+    "description": "Consomé de ternera clarificado, aromatizado con un toque de jerez seco.",
+    "extraProteins": [
+      "ternera",
+      "cerdo"
+    ]
+  },
+  {
+    "id": "sopas_cremas_059",
+    "name": "Crema de langostinos",
+    "category": "sopas_cremas",
+    "mainProtein": "marisco",
+    "mealRole": [
+      "primero",
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 60,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 30,
+    "carbs_g": 12,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "pescado",
+      "lactosa",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Langostinos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Brandy",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Fumet de pescado",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar los langostinos, reservando las cáscaras y las cabezas por separado y guardando la carne en la nevera.",
+      "Picar la cebolla, la zanahoria y el puerro en trozos pequeños.",
+      "Calentar el aceite de oliva en una olla y sofreír las cáscaras y cabezas de langostino a fuego fuerte 5 min, presionándolas para que suelten su jugo.",
+      "Añadir la cebolla, la zanahoria y el puerro, y rehogar 8 min hasta que estén blandos.",
+      "Incorporar el tomate triturado y el pimentón dulce, y cocinar 3 min.",
+      "Flambear con el brandy, dejando que el alcohol se evapore por completo.",
+      "Añadir el fumet de pescado, llevar a ebullición y cocer a fuego medio 20 min.",
+      "Triturar todo el conjunto, incluidas las cáscaras bien cocidas, y colar por un chino fino, presionando bien para extraer todo el sabor.",
+      "Volver la crema colada al fuego, añadir la nata y calentar sin que hierva.",
+      "Saltear la carne de los langostinos reservada en una sartén con un poco de aceite 2 min y servir la crema caliente con los langostinos salteados por encima."
+    ],
+    "description": "Crema untuosa de langostinos, todo el sabor del marisco en cada cucharada."
+  },
+  {
+    "id": "sopas_cremas_060",
+    "name": "Sopa de ajo con huevo escalfado",
+    "category": "sopas_cremas",
+    "mainProtein": "huevo",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "invierno",
+    "kcal": 358,
+    "protein_g": 14,
+    "carbs_g": 26,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Pan duro",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar el pan duro en rebanadas finas o taquitos.",
+      "Pelar y laminar los ajos.",
+      "Calentar el aceite de oliva en una cazuela de barro u olla y dorar los ajos laminados a fuego medio, sin que se quemen.",
+      "Añadir el pan y saltear 2 min hasta que absorba el aceite y se dore ligeramente.",
+      "Retirar del fuego un momento y añadir el pimentón dulce, removiendo rápido para que no se queme.",
+      "Verter el caldo de pollo caliente y llevar a ebullición.",
+      "Cocer a fuego medio 10 min hasta que el pan se deshaga parcialmente y espese el caldo.",
+      "Hacer un hueco en el centro de la sopa por cada ración y cascar un huevo en cada uno.",
+      "Cocer 3-4 min a fuego suave hasta que la clara cuaje y la yema quede líquida.",
+      "Servir de inmediato en cazuela individual, muy caliente."
+    ],
+    "description": "Sopa castellana de ajo con pimentón y un huevo escalfado en el centro."
+  },
+  {
+    "id": "sopas_cremas_061",
+    "name": "Sopa de tomate con grilled cheese",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "cena",
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 517,
+    "protein_g": 17,
+    "carbs_g": 38,
+    "fat_g": 33,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Tomate triturado",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pan de molde",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso cheddar en lonchas",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla y el ajo finamente.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir el tomate triturado y el azúcar, y cocinar a fuego medio 10 min removiendo de vez en cuando.",
+      "Verter el caldo de verduras y llevar a ebullición, cociendo 10 min más.",
+      "Triturar hasta obtener una crema fina, añadir la nata y calentar sin que hierva. Rectificar de sal.",
+      "Mientras tanto, untar una cara de cada rebanada de pan de molde con mantequilla.",
+      "Colocar queso cheddar entre dos rebanadas, con la mantequilla hacia afuera.",
+      "Tostar los sándwiches en una sartén a fuego medio hasta que estén dorados por ambos lados y el queso fundido.",
+      "Cortar los sándwiches en tiras para mojar y servir junto a la sopa de tomate bien caliente."
+    ],
+    "description": "Sopa de tomate casera para mojar tiras de sándwich de queso fundido."
+  },
+  {
+    "id": "sopas_cremas_062",
+    "name": "Crema de calabacín y queso azul",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 298,
+    "protein_g": 9,
+    "carbs_g": 16,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Calabacín",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 350,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso azul",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y picar la cebolla, y pelar la patata y cortarla en dados pequeños.",
+      "Lavar el calabacín y cortarlo en rodajas, sin necesidad de pelarlo.",
+      "Calentar el aceite de oliva en una olla y pochar la cebolla hasta que esté transparente.",
+      "Añadir la patata y el calabacín, y rehogar 3 min.",
+      "Cubrir con el caldo de verduras y llevar a ebullición.",
+      "Cocer a fuego medio 15 min hasta que las verduras estén tiernas.",
+      "Retirar del fuego y añadir la mitad del queso azul desmenuzado.",
+      "Triturar todo con la batidora hasta obtener una crema fina.",
+      "Volver al fuego suave, añadir la nata y remover hasta integrar.",
+      "Servir con el resto del queso azul desmenuzado por encima y un toque de pimienta negra."
+    ],
+    "description": "Crema de calabacín con vetas de queso azul fundiéndose por encima."
+  },
+  {
+    "id": "sopas_cremas_063",
+    "name": "Vichyssoise de coliflor",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "normal",
+    "kcal": 150,
+    "protein_g": 5,
+    "carbs_g": 14,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Coliflor",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar el puerro en rodajas finas, desechando la parte verde más oscura.",
+      "Pelar y picar la cebolla en trozos pequeños.",
+      "Separar la coliflor en ramilletes pequeños y lavarla bien.",
+      "Pelar la patata y cortarla en dados de 2 cm.",
+      "Calentar el aceite de oliva en una olla y sofreír el puerro y la cebolla a fuego medio hasta que estén blandos, unos 5 min.",
+      "Añadir la coliflor y la patata, cubrir con agua fría hasta superar los ingredientes 2 cm y llevar a ebullición.",
+      "Cocer a fuego medio hasta que la coliflor y la patata estén muy tiernas, unos 18 min.",
+      "Retirar del fuego y triturar con la batidora hasta obtener una crema completamente fina.",
+      "Añadir la nata y remover hasta integrar; salpimentar al gusto.",
+      "Dejar enfriar y refrigerar al menos 2 horas antes de servir bien fría."
+    ],
+    "description": "Vichyssoise blanca y sedosa de coliflor y puerro, más ligera que la clásica de patata"
+  },
+  {
+    "id": "sopas_cremas_064",
+    "name": "Crema de boniato y coco",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 230,
+    "protein_g": 4,
+    "carbs_g": 30,
+    "fat_g": 11,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Boniato",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Leche de coco",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar el boniato y cortarlo en dados de 2 cm.",
+      "Pelar y picar la cebolla y el ajo finamente.",
+      "Pelar y rallar el jengibre fresco.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla, el ajo y el jengibre 3-4 min hasta que estén fragantes.",
+      "Añadir el boniato y remover un minuto para integrarlo con el sofrito.",
+      "Cubrir con el caldo de verduras, llevar a ebullición y cocer a fuego medio hasta que el boniato esté muy tierno, unos 15 min.",
+      "Añadir la leche de coco y cocer 2 min más.",
+      "Triturar todo con la batidora hasta obtener una crema fina y untuosa.",
+      "Ajustar de sal y servir bien caliente, con un chorrito de leche de coco por encima si se desea."
+    ],
+    "description": "Crema naranja suave de boniato asado con leche de coco, cremosa sin necesitar nata"
+  },
+  {
+    "id": "sopas_cremas_065",
+    "name": "Gazpacho de pepino y aguacate",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 190,
+    "protein_g": 5,
+    "carbs_g": 9,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "sulfitos"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Pepino",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de lima",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua fría",
+        "amount": 100,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar el pepino y cortarlo en trozos grandes.",
+      "Cortar el aguacate por la mitad, deshuesarlo y sacar la pulpa con una cuchara.",
+      "Retirar las semillas del pimiento verde y trocearlo; picar la cebolleta y pelar el ajo.",
+      "Introducir el pepino, el aguacate, el pimiento, la cebolleta y el ajo en el vaso de la batidora.",
+      "Añadir el yogur natural, el zumo de lima, el vinagre de Jerez y el agua fría.",
+      "Triturar todo a máxima potencia hasta obtener una crema fina y homogénea.",
+      "Añadir el aceite de oliva en un hilo mientras se tritura para que emulsione.",
+      "Probar y ajustar de sal.",
+      "Refrigerar al menos 30 min y servir bien frío, recién batido para que no oscurezca."
+    ],
+    "description": "Gazpacho verde intenso de pepino y aguacate, muy refrescante en días de calor"
+  },
+  {
+    "id": "sopas_cremas_066",
+    "name": "Crema de guisantes y jamón crujiente",
+    "category": "sopas_cremas",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 25,
+    "difficulty": "facil",
+    "kcal": 210,
+    "protein_g": 12,
+    "carbs_g": 18,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Guisantes congelados",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Jamón serrano en lonchas finas",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y picar la cebolla y el puerro en trozos pequeños.",
+      "Pelar la patata y cortarla en dados pequeños.",
+      "Calentar la mitad del aceite de oliva en una olla y sofreír la cebolla y el puerro hasta que estén transparentes.",
+      "Añadir la patata y el caldo de pollo; llevar a ebullición y cocer 10 min.",
+      "Añadir los guisantes y cocer 5 min más, hasta que estén tiernos pero mantengan el verde vivo.",
+      "Mientras tanto, calentar el aceite de oliva restante en una sartén y dorar las lonchas de jamón serrano hasta que queden crujientes; retirar sobre papel absorbente y trocear.",
+      "Triturar la crema con la batidora hasta que quede fina y homogénea.",
+      "Servir la crema caliente en boles, con el jamón crujiente y unas hojas de menta por encima."
+    ],
+    "description": "Crema de guisantes verde vivo, coronada con virutas doradas de jamón crujiente"
+  },
+  {
+    "id": "sopas_cremas_067",
+    "name": "Sopa de tomate y pan (pappa al pomodoro)",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "mainBase": "pan",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 260,
+    "protein_g": 6,
+    "carbs_g": 32,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Pan payés del día anterior",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar el pan payés del día anterior en trozos irregulares.",
+      "Pelar y laminar el ajo.",
+      "Calentar la mitad del aceite de oliva en una olla y dorar el ajo laminado a fuego suave hasta que esté fragante, sin que se queme.",
+      "Añadir el tomate triturado y cocer a fuego medio 10 min, removiendo de vez en cuando.",
+      "Verter el caldo de verduras y llevar a ebullición.",
+      "Añadir el pan troceado y remover para que se empape bien del caldo de tomate.",
+      "Cocer a fuego suave 8-10 min, aplastando el pan con una cuchara de madera hasta conseguir una textura espesa y rústica.",
+      "Retirar del fuego, añadir la albahaca fresca troceada y el resto del aceite de oliva.",
+      "Dejar reposar 5 min antes de servir, tibia o a temperatura ambiente."
+    ],
+    "description": "Sopa rústica y espesa de tomate y pan al estilo italiano, con aceite de oliva por encima"
+  },
+  {
+    "id": "sopas_cremas_068",
+    "name": "Crema de puerros con almendra",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 210,
+    "protein_g": 5,
+    "carbs_g": 18,
+    "fat_g": 13,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "frutos_secos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Puerro",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Almendras tostadas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar el puerro en rodajas finas, desechando la parte verde más dura.",
+      "Pelar y picar la cebolla.",
+      "Pelar la patata y cortarla en dados de 2 cm.",
+      "Calentar el aceite de oliva en una olla y sofreír el puerro y la cebolla a fuego medio hasta que estén blandos, unos 6 min.",
+      "Añadir la patata y cubrir con agua fría hasta superar los ingredientes 2 cm.",
+      "Llevar a ebullición y cocer a fuego medio hasta que la patata esté tierna, unos 15 min.",
+      "Retirar del fuego, añadir la nata y triturar con la batidora hasta obtener una crema fina y aterciopelada.",
+      "Trocear groseramente las almendras tostadas.",
+      "Servir la crema caliente con las almendras troceadas por encima."
+    ],
+    "description": "Crema blanca aterciopelada de puerro, con almendra tostada troceada por encima"
+  },
+  {
+    "id": "sopas_cremas_069",
+    "name": "Velouté de marisco con brandy",
+    "category": "sopas_cremas",
+    "mainProtein": "marisco",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 45,
+    "difficulty": "normal",
+    "kcal": 270,
+    "protein_g": 16,
+    "carbs_g": 10,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "lactosa",
+      "gluten",
+      "pescado"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Gambas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Brandy",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Fumet de pescado",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate concentrado",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar las gambas, reservando las cáscaras y las cabezas para el fumet.",
+      "Pelar y picar finamente la cebolla, el puerro y la zanahoria.",
+      "Calentar el aceite de oliva en una olla y saltear las cáscaras y cabezas de gamba 3-4 min hasta que tomen color; retirar y reservar.",
+      "En la misma olla, sofreír la cebolla, el puerro y la zanahoria a fuego medio hasta que estén blandos, unos 8 min.",
+      "Añadir el tomate concentrado y rehogar 1 min.",
+      "Verter el brandy, dejar que hierva unos segundos para evaporar el alcohol y flambear con cuidado.",
+      "Incorporar el fumet de pescado y las cáscaras reservadas; cocer a fuego medio 15 min y colar, descartando cáscaras y verduras.",
+      "En un cazo aparte, derretir la mantequilla, añadir la harina y cocinar 1 min removiendo para hacer un roux; incorporar poco a poco el caldo colado sin dejar de remover hasta que espese.",
+      "Añadir las colas de gamba peladas y cocer 3-4 min hasta que estén rosadas.",
+      "Añadir la nata, triturar con la batidora hasta obtener una textura sedosa y servir caliente."
+    ],
+    "description": "Velouté naranja pálido de marisco, con el aroma que sube al flambear el brandy"
+  },
+  {
+    "id": "sopas_cremas_070",
+    "name": "Crema fría de guisantes, menta y langostinos",
+    "category": "sopas_cremas",
+    "mainProtein": "marisco",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "normal",
+    "kcal": 220,
+    "protein_g": 17,
+    "carbs_g": 14,
+    "fat_g": 11,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "lactosa"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Guisantes congelados",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Langostinos pelados",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Descongelar los guisantes bajo agua fría o dejarlos a temperatura ambiente.",
+      "Pelar los langostinos si no vienen pelados y reservar.",
+      "Calentar una sartén con un poco de aceite de oliva y saltear los langostinos 2-3 min hasta que estén rosados; reservar en la nevera.",
+      "Cocer los guisantes en el caldo de verduras con el ajo pelado durante 5-6 min hasta que estén tiernos.",
+      "Escurrir los guisantes reservando el caldo de cocción y dejar enfriar unos minutos.",
+      "Triturar los guisantes con el caldo reservado, la menta fresca, el yogur natural y el aceite de oliva hasta obtener una crema fina.",
+      "Colar si se desea una textura más sedosa y refrigerar al menos 1 hora.",
+      "Servir la crema bien fría en boles, con los langostinos salteados repartidos por encima y unas hojas de menta."
+    ],
+    "description": "Crema fría de guisantes y menta, verde vivo con el rosa de los langostinos encima"
+  },
+  {
+    "id": "sopas_cremas_071",
+    "name": "Sopa de cebolla con queso gratinado y jamón",
+    "category": "sopas_cremas",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "mainBase": "pan",
+    "time": 50,
+    "difficulty": "normal",
+    "kcal": 340,
+    "protein_g": 18,
+    "carbs_g": 26,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "gluten",
+      "sulfitos"
+    ],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Cebolla",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Pan de baguette en rebanadas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso gruyère rallado",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido en tiras",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomillo",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar las cebollas y cortarlas en juliana fina.",
+      "Derretir la mantequilla en una olla amplia a fuego medio-bajo.",
+      "Añadir la cebolla y pochar muy lentamente, removiendo de vez en cuando, hasta que esté dorada y caramelizada, unos 25 min.",
+      "Verter el vino blanco, subir el fuego y dejar reducir 2-3 min hasta que evapore el alcohol.",
+      "Añadir el caldo de carne y el tomillo, llevar a ebullición y cocer a fuego suave 10 min.",
+      "Precalentar el horno en función gratinador.",
+      "Repartir la sopa en boles aptos para horno, colocar una rebanada de pan tostado sobre cada uno y repartir el jamón cocido en tiras y el queso gruyère rallado por encima.",
+      "Gratinar en el horno 4-5 min hasta que el queso esté fundido y dorado.",
+      "Servir inmediatamente, con cuidado porque los boles estarán muy calientes."
+    ],
+    "description": "Sopa de cebolla caramelizada con queso fundido y dorado sobre el caldo oscuro, y jamón"
+  },
+  {
+    "id": "sopas_cremas_072",
+    "name": "Crema de calabaza asada con salvia frita",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 55,
+    "difficulty": "normal",
+    "kcal": 230,
+    "protein_g": 4,
+    "carbs_g": 22,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Calabaza",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Hojas de salvia fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Pelar la calabaza, retirar las semillas y cortarla en dados de 3 cm.",
+      "Colocar la calabaza en una bandeja de horno con la cebolla en cuartos y el ajo con piel, rociar con un poco de aceite de oliva y asar 30-35 min hasta que estén tiernos y ligeramente dorados.",
+      "Dejar templar y pelar los dientes de ajo asados.",
+      "Poner la calabaza asada, la cebolla y el ajo en una olla, cubrir con el caldo de verduras y llevar a ebullición 5 min.",
+      "Triturar con la batidora hasta obtener una crema fina, añadiendo la nata al final.",
+      "Calentar el resto del aceite de oliva en una sartén pequeña y freír las hojas de salvia 30-40 segundos hasta que estén crujientes; retirar sobre papel absorbente.",
+      "Servir la crema caliente con las hojas de salvia frita por encima."
+    ],
+    "description": "Crema naranja profundo de calabaza asada, con hojas de salvia crujientes encima"
+  },
+  {
+    "id": "sopas_cremas_073",
+    "name": "Gazpacho verde de pepino y manzana",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 140,
+    "protein_g": 2,
+    "carbs_g": 14,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "apio"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Pepino",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Manzana verde",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre de manzana",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua fría",
+        "amount": 100,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar el pepino y cortarlo en trozos grandes.",
+      "Descorazonar la manzana verde y cortarla en trozos, dejando la piel.",
+      "Retirar las semillas del pimiento verde y trocearlo; picar el apio y pelar el ajo.",
+      "Introducir todos los ingredientes troceados en el vaso de la batidora junto con el vinagre de manzana y el agua fría.",
+      "Triturar a máxima potencia hasta obtener una crema fina y homogénea.",
+      "Añadir el aceite de oliva en un hilo mientras se tritura para que emulsione.",
+      "Probar y ajustar de sal.",
+      "Refrigerar al menos 30 min y servir muy frío."
+    ],
+    "description": "Gazpacho verde brillante de pepino y manzana, dulce y ácido a la vez"
+  },
+  {
+    "id": "sopas_cremas_074",
+    "name": "Crema de apionabo con avellanas tostadas",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "normal",
+    "kcal": 220,
+    "protein_g": 5,
+    "carbs_g": 17,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "apio",
+      "lactosa",
+      "frutos_secos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Apionabo",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Avellanas tostadas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar el apionabo, retirando bien la piel gruesa, y cortarlo en dados de 2 cm.",
+      "Pelar la patata y cortarla también en dados.",
+      "Pelar y picar la cebolla.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla hasta que esté transparente, unos 4 min.",
+      "Añadir el apionabo y la patata, cubrir con agua fría hasta superar los ingredientes 2 cm y llevar a ebullición.",
+      "Cocer a fuego medio hasta que las verduras estén muy tiernas, unos 20 min.",
+      "Retirar del fuego, añadir la nata y triturar con la batidora hasta obtener una crema fina.",
+      "Trocear groseramente las avellanas tostadas.",
+      "Servir la crema caliente con las avellanas troceadas por encima."
+    ],
+    "description": "Crema blanca suave de apionabo, con avellanas troceadas por encima"
+  },
+  {
+    "id": "sopas_cremas_075",
+    "name": "Sopa de tomate asado con burrata",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 45,
+    "difficulty": "facil",
+    "kcal": 260,
+    "protein_g": 9,
+    "carbs_g": 14,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Burrata",
+        "amount": 125,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Cortar los tomates por la mitad y colocarlos en una bandeja de horno junto con la cebolla en cuartos y los dientes de ajo con piel.",
+      "Rociar con la mitad del aceite de oliva, salar y asar 30 min hasta que los tomates estén blandos y ligeramente tostados.",
+      "Dejar templar y pelar los dientes de ajo asados.",
+      "Triturar los tomates, la cebolla y el ajo asados con la batidora hasta obtener una crema fina; colar si se desea una textura más sedosa.",
+      "Calentar la crema en una olla a fuego suave 5 min y ajustar de sal.",
+      "Servir la sopa caliente en boles, con la burrata partida en trozos en el centro de cada uno.",
+      "Terminar con un chorrito de aceite de oliva, hojas de albahaca fresca y pimienta recién molida."
+    ],
+    "description": "Sopa de tomate asado rojo intenso, con el corte cremoso de la burrata en el centro"
+  },
+  {
+    "id": "sopas_cremas_076",
+    "name": "Crema de espárragos verdes con parmesano",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 25,
+    "difficulty": "facil",
+    "kcal": 180,
+    "protein_g": 8,
+    "carbs_g": 12,
+    "fat_g": 11,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Espárragos verdes",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano en virutas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Lavar los espárragos verdes, retirar la parte final más dura del tallo y cortarlos en trozos, reservando algunas puntas para decorar.",
+      "Pelar y picar la cebolla; pelar la patata y cortarla en dados pequeños.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla hasta que esté transparente.",
+      "Añadir la patata y los espárragos troceados y rehogar 2 min.",
+      "Cubrir con el caldo de verduras, llevar a ebullición y cocer 12-15 min hasta que las verduras estén tiernas.",
+      "Mientras tanto, saltear las puntas de espárrago reservadas en una sartén con un poco de aceite hasta que estén tiernas y ligeramente doradas.",
+      "Triturar la crema con la batidora hasta que quede fina y homogénea.",
+      "Servir la crema caliente con las puntas de espárrago salteadas y virutas de parmesano por encima."
+    ],
+    "description": "Crema verde vivo de espárragos, con virutas de parmesano flotando en la superficie"
+  },
+  {
+    "id": "sopas_cremas_077",
+    "name": "Vichyssoise con crujiente de jamón",
+    "category": "sopas_cremas",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "normal",
+    "kcal": 240,
+    "protein_g": 9,
+    "carbs_g": 22,
+    "fat_g": 13,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Puerro",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Jamón serrano en lonchas finas",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar el puerro en rodajas finas, desechando la parte verde más oscura.",
+      "Pelar y picar la cebolla.",
+      "Pelar la patata y cortarla en dados de 2 cm.",
+      "Calentar la mitad del aceite de oliva en una olla y sofreír el puerro y la cebolla hasta que estén blandos y transparentes.",
+      "Añadir la patata y cubrir con agua fría hasta superar los ingredientes 2 cm; llevar a ebullición y cocer hasta que la patata esté tierna, unos 15 min.",
+      "Retirar del fuego, añadir la nata y triturar con la batidora hasta obtener una crema completamente fina.",
+      "Dejar enfriar y refrigerar al menos 2 horas.",
+      "Calentar el aceite de oliva restante en una sartén y dorar las lonchas de jamón serrano hasta que queden crujientes; dejar enfriar sobre papel absorbente y trocear.",
+      "Servir la vichyssoise bien fría con el crujiente de jamón repartido por encima."
+    ],
+    "description": "Vichyssoise blanca y fría, con virutas doradas de jamón crujiente por encima"
+  },
+  {
+    "id": "sopas_cremas_078",
+    "name": "Crema de setas con castañas",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 35,
+    "difficulty": "normal",
+    "kcal": 200,
+    "protein_g": 6,
+    "carbs_g": 22,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "invierno",
+    "ingredients": [
+      {
+        "name": "Setas variadas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Castañas cocidas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomillo",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar las setas con un paño húmedo y trocearlas.",
+      "Pelar y picar la cebolla y el puerro.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y el puerro hasta que estén blandos, unos 5 min.",
+      "Añadir las setas troceadas y saltear a fuego medio-alto hasta que suelten su agua y esta se evapore, unos 8 min.",
+      "Añadir las castañas cocidas y el tomillo, y remover 1 min.",
+      "Cubrir con el caldo de verduras y cocer a fuego medio 12 min.",
+      "Retirar del fuego, añadir la nata y triturar con la batidora hasta obtener una crema fina, dejando algo de textura si se prefiere.",
+      "Servir la crema bien caliente, con unas láminas de seta salteada o una castaña troceada por encima si se desea."
+    ],
+    "description": "Crema marrón profunda de setas y castañas, con dulzor de otoño de fondo"
+  },
+  {
+    "id": "sopas_cremas_079",
+    "name": "Sopa fría de tomate y sandía",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 140,
+    "protein_g": 2,
+    "carbs_g": 15,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "season": "verano",
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Sandía",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar el tomate en trozos, retirando el pedúnculo.",
+      "Cortar la sandía en trozos, retirando las pepitas si las tuviera.",
+      "Pelar el pepino y trocearlo; pelar el ajo.",
+      "Introducir el tomate, la sandía, el pepino y el ajo en el vaso de la batidora junto con el vinagre de Jerez.",
+      "Triturar a máxima potencia hasta obtener una crema fina y homogénea.",
+      "Añadir el aceite de oliva en un hilo mientras se tritura para que emulsione.",
+      "Probar y ajustar de sal.",
+      "Refrigerar al menos 1 hora y servir muy fría, con unas hojas de albahaca picadas por encima."
+    ],
+    "description": "Sopa fría de tomate y sandía, rojo vivo y sorprendentemente refrescante"
+  },
+  {
+    "id": "sopas_cremas_080",
+    "name": "Crema de zanahoria y naranja",
+    "category": "sopas_cremas",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 30,
+    "difficulty": "facil",
+    "kcal": 170,
+    "protein_g": 3,
+    "carbs_g": 24,
+    "fat_g": 7,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Zanahoria",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de naranja",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar la zanahoria en rodajas.",
+      "Pelar y picar la cebolla; pelar la patata y cortarla en dados pequeños.",
+      "Pelar y rallar el jengibre fresco.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y el jengibre hasta que estén fragantes, unos 3 min.",
+      "Añadir la zanahoria y la patata, remover 1 min y cubrir con el caldo de verduras.",
+      "Llevar a ebullición y cocer a fuego medio hasta que las verduras estén muy tiernas, unos 18 min.",
+      "Añadir el zumo de naranja y cocer 2 min más.",
+      "Triturar con la batidora hasta obtener una crema fina y muy suave.",
+      "Servir caliente, ajustando la textura con un poco de agua si queda demasiado espesa."
+    ],
+    "description": "Crema de zanahoria y naranja, naranja intenso por partida doble y muy suave"
+  },
+  {
+    "id": "sopas_cremas_081",
+    "name": "Bullabesa ligera de pescado",
+    "category": "sopas_cremas",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "primero",
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "elaborada",
+    "kcal": 320,
+    "protein_g": 30,
+    "carbs_g": 16,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado",
+      "marisco",
+      "moluscos",
+      "gluten",
+      "sulfitos"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Rape",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Mejillones",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Hinojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán en hebras",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Fumet de pescado",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pan tostado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar los mejillones raspando las conchas y retirando las barbas; pelar las gambas.",
+      "Cortar el rape en trozos grandes y salar ligeramente.",
+      "Pelar y picar la cebolla, el puerro, el hinojo y el ajo.",
+      "Calentar el aceite de oliva en una olla amplia y sofreír la cebolla, el puerro, el hinojo y el ajo a fuego medio hasta que estén blandos, unos 8 min.",
+      "Añadir el tomate triturado y el azafrán, y rehogar 3-4 min.",
+      "Verter el vino blanco y dejar reducir 2 min.",
+      "Añadir el fumet de pescado, llevar a ebullición y cocer 10 min para que se integren los sabores.",
+      "Incorporar el rape y cocer 4 min; añadir los mejillones y las gambas y cocer 3-4 min más hasta que los mejillones se abran y el pescado esté hecho.",
+      "Descartar los mejillones que no se hayan abierto.",
+      "Servir la bullabesa bien caliente en boles hondos, con el pan tostado y el perejil picado por encima."
+    ],
+    "description": "Bullabesa de caldo dorado con azafrán y piezas enteras de pescado y marisco",
+    "extraProteins": [
+      "marisco"
+    ]
   }
 ]

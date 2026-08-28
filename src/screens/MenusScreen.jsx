@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { Calendar, ChevronRight, Heart, History, Loader2, Pencil, RotateCw, Sparkles, Trash2, X } from "lucide-react";
+import { Calendar, Heart, History, Loader2, RotateCw, Sparkles, Trash2, X } from "lucide-react";
 import { BottomNav, EmptyIllustration, GoogleButton, APP_SHELL_MAX_WIDTH, bottomNavSpacer } from "../components/ui.jsx";
 import { sortMenusDesc, orderedWeeks, formatMenuRangeLabel, clampWeekCount, MAX_MENU_WEEKS, menuHasContent } from "../lib/menuArchive.js";
 
@@ -9,6 +9,19 @@ const cardStyle = {
   border: "1px solid #e6eee8",
   borderRadius: 18,
   padding: 18,
+};
+
+// Same title-band treatment as every other primary tab (Recetas, Compra,
+// Menú) — HEADER_BAND + a 36px icon chip + this exact title style, so this
+// secondary screen doesn't read as a different kind of screen from its
+// siblings even though it's no longer a tab itself (2026-08-25).
+const HEADER_BAND = "#e9f4ed";
+const titleStyle = {
+  fontSize: 20,
+  fontWeight: 900,
+  color: "#142f1d",
+  margin: 0,
+  letterSpacing: "-.3px",
 };
 
 function SectionLabel({ children }) {
@@ -96,25 +109,6 @@ function WeeksPill({ weeks }) {
   );
 }
 
-function CardActionButton({ icon: Icon, label, onClick, danger }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      style={{
-        flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-        padding: "10px 0", borderRadius: 11, border: "none", cursor: "pointer", fontFamily: "inherit",
-        background: danger ? "#fdf1f0" : "#f0f5f1",
-        color: danger ? "#c0392b" : "#2d5a3d",
-        fontSize: 12, fontWeight: 800,
-      }}
-    >
-      <Icon size={14} />
-      {label}
-    </button>
-  );
-}
-
 function DeleteMenuConfirmSheet({
   onCancel,
   onConfirm,
@@ -178,58 +172,6 @@ function DeleteMenuConfirmSheet({
     </div>
   );
   return createPortal(overlay, document.body);
-}
-
-function ActiveMenuCard({ menu, onOpen, onRegenerate, onEdit, onDelete }) {
-  const weeks = orderedWeeks(menu);
-  const rangeLabel = formatMenuRangeLabel(menu);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-
-  return (
-    <div style={cardStyle}>
-      <button
-        type="button"
-        onClick={onOpen}
-        style={{
-          width: "100%", textAlign: "left", cursor: "pointer", fontFamily: "inherit",
-          border: "none", background: "transparent", padding: 0,
-          display: "flex", alignItems: "center", gap: 14,
-        }}
-      >
-        <div
-          style={{
-            width: 46, height: 46, borderRadius: 13, background: "#2d5a3d",
-            color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-          }}
-        >
-          <Calendar size={20} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 15, fontWeight: 900, color: "#142f1d" }}>Menú actual</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 4 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 700, color: "#7a8a7f" }}>{rangeLabel}</span>
-            {weeks.length > 1 && <WeeksPill weeks={weeks} />}
-          </div>
-        </div>
-        <ChevronRight size={18} color="#9ab0a1" />
-      </button>
-
-      {(onRegenerate || onEdit || onDelete) && (
-      <div style={{ display: "flex", gap: 8, marginTop: 14, paddingTop: 14, borderTop: "1px solid #eef2ef" }}>
-        {onRegenerate && <CardActionButton icon={RotateCw} label="Regenerar" onClick={onRegenerate} />}
-        {onEdit && <CardActionButton icon={Pencil} label="Editar" onClick={onEdit} />}
-        {onDelete && <CardActionButton icon={Trash2} label="Borrar" danger onClick={() => setConfirmDelete(true)} />}
-      </div>
-      )}
-
-      {confirmDelete && onDelete && (
-        <DeleteMenuConfirmSheet
-          onCancel={() => setConfirmDelete(false)}
-          onConfirm={() => { setConfirmDelete(false); onDelete(); }}
-        />
-      )}
-    </div>
-  );
 }
 
 function HistoryMenuRow({ menu, onToggleFavorite, onReuse, onOpen, isOpening, onDelete, isActive = false }) {
@@ -510,17 +452,12 @@ function MenuTabSwitch({ tab, onChange, favCount, histCount }) {
 export function MenusScreen({
   data,
   hasAccount,
-  readOnly = false,
   onNav,
   onBack,
   onOpenCurrent,
-  onGenerateMenu,
   onReuseMenu,
   onToggleFavorite,
   onSignIn,
-  onRegenerateActive,
-  onEditActive,
-  onDeleteActive,
   onOpenHistory,
   onDeleteHistory,
 }) {
@@ -528,14 +465,12 @@ export function MenusScreen({
   const [openingId, setOpeningId] = useState(null);
   const [tab, setTab] = useState("favoritos");
 
-  // Only treat the active menú as present when it has real dishes — a
-  // content-less/degenerate record must never render as "Menú actual".
-  const rawActive = data.menus?.[data.activeMenuId] ?? null;
-  const activeMenu = rawActive && menuHasContent(rawActive) ? rawActive : null;
   const contentMenus = sortMenusDesc(data.menus).filter(menuHasContent);
-  // Históricos never lists the active menú (it lives in "Actual"), but
-  // Favoritos must — otherwise favouriting the current menú with the ♥ on the
-  // menu screen would silently vanish, since it's still the active one.
+  // Históricos never lists the active menú — para verlo siempre está el tab
+  // "Menú" del nav (2026-08-25: esta pantalla dejó de mostrar su propia card
+  // "Actual", sería una tercera puerta al mismo sitio). Favoritos sí debe
+  // listarlo — si no, favoritear el menú activo con el ♥ lo haría
+  // desaparecer de vista, aunque siga siendo el activo.
   const history = contentMenus.filter((m) => m.id !== data.activeMenuId);
   const favorites = contentMenus.filter((m) => m.isFavorite);
   const visibleList = tab === "favoritos" ? favorites : history;
@@ -543,10 +478,9 @@ export function MenusScreen({
 
   return (
     <div style={{ background: "#f7f9f7", minHeight: "100dvh", paddingBottom: bottomNavSpacer() }}>
-      <div style={{ padding: "20px 20px 0" }}>
-        {/* No longer a bottom-nav tab (see BottomNav in ui.jsx) — reached as a
-            header icon from "Menú", so it needs its own explicit way back. */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+      {/* Title band — mismo tratamiento que Recetas/Compra/Menú (2026-08-24). */}
+      <div style={{ background: HEADER_BAND, padding: "20px 20px 14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           {onBack && (
             <button
               type="button"
@@ -560,32 +494,24 @@ export function MenusScreen({
               Atrás
             </button>
           )}
-          <h2 style={{ fontSize: 26, fontWeight: 900, color: "#142f1d", margin: 0, letterSpacing: "-.7px" }}>
-            Menús
-          </h2>
+          <span
+            style={{
+              width: 36, height: 36, borderRadius: 11, background: "#daf0e4",
+              display: "inline-flex", alignItems: "center", justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <History size={18} color="#1f7a52" strokeWidth={2.4} />
+          </span>
+          <h2 style={titleStyle}>Menús guardados</h2>
         </div>
       </div>
 
-      <div style={{ padding: "0 20px" }}>
-        <SectionLabel>Actual</SectionLabel>
-        {activeMenu ? (
-          <ActiveMenuCard
-            menu={activeMenu}
-            onOpen={onOpenCurrent}
-            onRegenerate={onRegenerateActive}
-            onEdit={onEditActive}
-            onDelete={onDeleteActive}
-          />
-        ) : (
-          <EmptyState
-            text={readOnly ? "Sin menú activo en este hogar" : "Todavía no tienes un menú generado."}
-            onAction={readOnly ? undefined : onGenerateMenu}
-            actionLabel="Generar menú"
-          />
-        )}
-
-        <div style={{ height: 1, background: "#e6eee8", margin: "24px 0 18px" }} />
-
+      {/* Solo histórico y favoritos (2026-08-25) — se quitó la card "Menú
+          actual" que vivía aquí: para volver a tu menú siempre está el tab
+          "Menú" del nav, así que repetirlo en esta pantalla era una puerta
+          de más al mismo sitio, no una nueva. */}
+      <div style={{ padding: "20px 20px 0" }}>
         {!hasAccount ? (
           <>
             <SectionLabel>Histórico</SectionLabel>
@@ -666,6 +592,9 @@ export function MenusScreen({
 
       <style>{`@keyframes mp-spin { to { transform: rotate(360deg); } }`}</style>
 
+      {/* No longer a bottom-nav tab (2026-08-25) — reached from the ⋮ menu
+          on "Menú actual", so it highlights that tab, same pattern as
+          UserStatsScreen/HomeProfileScreen highlighting "dashboard". */}
       <BottomNav active="menu" onNav={onNav} />
     </div>
   );

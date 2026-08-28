@@ -27,15 +27,23 @@ import {
   Receipt,
   BarChart3,
   SlidersHorizontal,
-  Settings,
   Refrigerator,
   Menu as MenuIcon,
 } from "lucide-react";
 import { PantryInput } from "../components/PantryInput.jsx";
 import { PantryReceiptFlow } from "./PantryReceiptFlow.jsx";
 import { APP_SHELL_MAX_WIDTH, BottomNav, bottomNavSpacer, EmptyIllustration, ToggleSwitch } from "../components/ui.jsx";
-import { SwipePurchaseShell } from "./Shopping.jsx";
-import { PantryPrefsWizard } from "../components/ModeSheets.jsx";
+import {
+  SwipePurchaseShell,
+  // Aliased: Pantry.jsx already has its own local AisleIcon (a small item-
+  // thumbnail fallback, different signature) — this is Compra's aisle-
+  // section icon, reused only for the "Por pasillo" grouping header below.
+  AisleIcon as ShopAisleIcon,
+  AISLE_OPEN_BAND,
+  AISLE_DIVIDER,
+  aisleMetaPillStyle,
+  aisleItemsStyle,
+} from "./Shopping.jsx";
 import { PantryCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import {
   loadPantry,
@@ -54,7 +62,9 @@ import {
 import { guessShoppingAisle, isPerishableAisle } from "../lib/ingredientCategories.js";
 import { ingredientThumbSrc, aisleImageSrc } from "../lib/ingredientImages.js";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
-import { DATE_BUCKET_OPTIONS, estimateListCost, matchesDateBucket } from "../lib/priceHistory.js";
+import { DATE_BUCKET_OPTIONS, matchesDateBucket } from "../lib/priceHistory.js";
+import { priceShoppingList } from "../lib/listPricing.js";
+import { isMercadonaStore } from "../lib/storeCatalog.js";
 
 // Las 3 ubicaciones que el usuario ve como filtros. La única que el usuario
 // elige al guardar es "congelador" (frozen); nevera vs despensa se deriva del
@@ -172,16 +182,6 @@ function toEditableUnit(qty, unit) {
   if (unit === "g" && qty >= 1000) return { qty: qty / 1000, unit: "kg" };
   if (unit === "ml" && qty >= 1000) return { qty: qty / 1000, unit: "l" };
   return { qty, unit };
-}
-
-function stockPriceLabel(item, priceObs) {
-  const { total, matched } = estimateListCost(
-    [{ name: item.ingredientName, qty: item.qty, unit: item.unit }],
-    priceObs,
-  );
-  if (!(matched > 0) || !(total > 0)) return "—";
-  const v = Math.round(total * 10) / 10;
-  return `${v.toLocaleString("es-ES", { maximumFractionDigits: 1, minimumFractionDigits: 0 })} €`;
 }
 
 // Compact "12 jul" — never a full sentence, per the "sin copy muy grande"
@@ -477,7 +477,17 @@ function PantryLocationCards({ selected, counts, onPick }) {
               style={{
                 position: "relative",
                 width: "100%",
-                aspectRatio: "2 / 3",
+                // Was 2:3 (portrait, via aspectRatio) — ate too much vertical
+                // space stacked on top of the inventory list below
+                // (2026-08-25). Switched to a fixed px height instead of a
+                // shorter aspectRatio (4:3): CSS `aspect-ratio` combined with
+                // an async-loading <img> is a known source of scroll-height
+                // miscalculation on some mobile WebKit versions — the box
+                // can briefly resolve to 0 height before the image loads,
+                // and on some devices the page never re-measures its
+                // scrollable area afterwards. A fixed height has no such
+                // dependency on image load timing.
+                height: 84,
                 background: meta.tint,
                 boxSizing: "border-box",
                 overflow: "hidden",
@@ -490,8 +500,14 @@ function PantryLocationCards({ selected, counts, onPick }) {
                 style={{
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover",
-                  objectPosition: "center bottom",
+                  // These illustrations were framed for the old tall 2:3 box;
+                  // "cover" in the new short 4:3 one just chopped them in
+                  // half. "contain" shows the whole thing — the tint fills
+                  // whatever margin is left, so it reads as a deliberate mat,
+                  // not empty space. If it still looks off in the browser,
+                  // the real fix is 3 new MJ crops made for this ratio.
+                  objectFit: "contain",
+                  objectPosition: "center",
                   display: "block",
                 }}
               />
@@ -539,6 +555,53 @@ function PantryLocationCards({ selected, counts, onPick }) {
   );
 }
 
+// Cómo se agrupa el inventario (2026-08-25) — mismo patrón visual que
+// MenuTabSwitch en MenusScreen.jsx (icono en chip de color propio + label,
+// ambas opciones a flex:1 para que midan igual), en vez del SegmentedControl
+// genérico: aquí cada modo tiene su propia identidad de color, no solo un
+// estado seleccionado/no.
+function GroupBySwitch({ value, onChange }) {
+  const options = [
+    { id: "aisle", label: "Categoría", Icon: Store, ink: "#b7791f", tint: "#fbeecd" },
+    { id: "location", label: "Ubicación", Icon: Refrigerator, ink: "#1f7a52", tint: "#daf0e4" },
+  ];
+  return (
+    <div style={{ display: "flex", gap: 8, background: "#eef3f0", borderRadius: 14, padding: 4 }}>
+      {options.map((o) => {
+        const sel = value === o.id;
+        return (
+          <button
+            key={o.id}
+            type="button"
+            onClick={() => onChange(o.id)}
+            style={{
+              flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
+              padding: "9px 0", borderRadius: 11, border: "none", cursor: "pointer", fontFamily: "inherit",
+              background: sel ? "#fff" : "transparent",
+              color: sel ? "#142f1d" : "#7a8a7f",
+              fontSize: 13, fontWeight: 800,
+              boxShadow: sel ? "0 2px 8px rgba(20,47,29,.1)" : "none",
+              transition: "all .15s",
+            }}
+          >
+            <span
+              style={{
+                width: 24, height: 24, borderRadius: 8, flexShrink: 0,
+                display: "inline-flex", alignItems: "center", justifyContent: "center",
+                background: sel ? o.tint : "transparent",
+                color: o.ink,
+              }}
+            >
+              <o.Icon size={14} strokeWidth={2.5} />
+            </span>
+            {o.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 // Compact icon buttons in the "En casa" header (top-right): upload a ticket
 // and open the spend/tickets analytics. Square so two sit neatly beside the
 // title without competing with it.
@@ -572,7 +635,7 @@ const fieldStyle = {
 const ROW_GRID = {
   display: "grid",
   gridTemplateColumns: "34px 96px auto 26px",
-  gap: 3,
+  gap: 8,
   alignItems: "center",
 };
 
@@ -614,14 +677,6 @@ function pantryPill(text, kind) {
     </span>
   );
 }
-
-// Precio used to be a 3rd toggle option here, but it's meaningful for nearly
-// every ticket-sourced item — burying it behind a click hid it more often
-// than not, so it's now its own always-visible column instead.
-const STOCK_VIEWS = [
-  ["cantidad", "Cantidad"],
-  ["peso", "Peso"],
-];
 
 // Shows the ingredient's own cartoon when we have one and falls back to the
 // flat aisle icon otherwise — same 26px slot either way, so the row grid is
@@ -731,16 +786,27 @@ function LocationBadge({ location, size = 16 }) {
 
 // Thumbnail + badge de ubicación juntos, en un slot relativo para que el badge
 // se solape sin romper el grid de la fila.
-function RowThumb({ item, cooked, aisle }) {
-  return (
+function RowThumb({ item, cooked, aisle, onTap, size = 36 }) {
+  const img = (
     <span style={{ position: "relative", display: "inline-flex", justifySelf: "center" }}>
       {cooked ? (
-        <CookedDishIcon recipeRef={item.recipeRef} size={36} />
+        <CookedDishIcon recipeRef={item.recipeRef} size={size} />
       ) : (
-        <AisleIcon aisle={aisle} name={item.ingredientName} size={36} />
+        <AisleIcon aisle={aisle} name={item.ingredientName} size={size} />
       )}
-      <LocationBadge location={itemLocation(item)} />
+      <LocationBadge location={itemLocation(item)} size={Math.round(size * 0.44)} />
     </span>
+  );
+  if (!onTap) return img;
+  return (
+    <button
+      type="button"
+      onClick={onTap}
+      aria-label="Cambiar entre cantidad y envase"
+      style={{ border: "none", background: "transparent", padding: 0, cursor: "pointer", justifySelf: "center" }}
+    >
+      {img}
+    </button>
   );
 }
 
@@ -1205,10 +1271,20 @@ export function PantryScreen({
   pantryHouseholdId = null,
   priceObs = [],
   onNav,
-  navActive = "pantry",
+  // "pantry" stopped being a bottom-nav tab (2026-08-24) — it's reached from
+  // "Compra" (consult icon) or from the wizard now, so the nav highlights
+  // whichever real tab that was.
+  navActive = "shopping",
   // When true (onboarding «¿Qué repetimos?»), skip page chrome / BottomNav
   // so the stock UI nests inside the parent panel.
   embedded = false,
+  // Independent of `embedded`: whether Añadir/Inventario behave as switchable
+  // tabs (real "En casa" behavior — location cards, empty states, one at a
+  // time) or stack together with no switch. Defaults to mirroring `embedded`
+  // (stacked) for old embeds; the onboarding "¿Qué tienes ya en casa?" step
+  // (2026-08-24) passes `embedded` + `tabs` together, so it gets the exact
+  // same tabbed experience as the real page without the full-page frame.
+  tabs = !embedded,
   // Bumps after login merge so we reload once local→cloud fold finishes.
   pantryEpoch = 0,
   // Opens the spend analytics tab (Análisis → Gasto), which also hosts the
@@ -1231,6 +1307,10 @@ export function PantryScreen({
   // that menu-generation setting doesn't apply.
   useHomeStock = null,
   onToggleHomeStock = null,
+  // Compra's "En casa" tab (2026-08-25) sits next to Comprado's empty state
+  // (240px, 1:1) and wants to match it exactly — the onboarding wizard step
+  // keeps the bigger original size, so this only shrinks it when asked.
+  compactEmptyState = false,
 }) {
   const [items, setItems] = useState(() => (user ? [] : loadLocalPantry()));
   const [loading, setLoading] = useState(() => Boolean(user));
@@ -1238,27 +1318,11 @@ export function PantryScreen({
   const [editQty, setEditQty] = useState(1);
   const [editUnit, setEditUnit] = useState("ud");
   const [editLocation, setEditLocation] = useState("nevera");
-  // Which reading the single value column shows (mobile: one column, toggled).
-  const [stockView, setStockView] = useState("cantidad");
   // "Subir ticket" overlay (receipt capture + intent chooser), launched in place.
   const [showReceiptFlow, setShowReceiptFlow] = useState(false);
   const [showIconCoach, setShowIconCoach] = useState(false);
-  // Ajustes de despensa: una única decisión — cuándo se da por gastado lo de
-  // casa que usa el menú. Se pregunta en cualquier modo (sencillo incluido),
-  // porque tiene consecuencias visibles y ya no es jerga. El icono de ajustes
-  // del header lo reabre cuando se quiera.
-  const canEditPantryPrefs = Boolean(setData) && !embedded;
-  const [showPantryPrefs, setShowPantryPrefs] = useState(false);
   // Header options drawer (burger → sliding sidebar), mirroring the Menu screen.
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
-  // Solo se abre solo cuando la pregunta ya significa algo: con la despensa
-  // vacía, "cuándo damos por gastado lo de casa" es abstracto y se cuela como
-  // un interrogatorio de bienvenida. Esperamos a que haya algo dentro.
-  useEffect(() => {
-    if (!canEditPantryPrefs || data?.pantryPrefsSeen) return;
-    if (loading || items.length === 0) return;
-    setShowPantryPrefs(true);
-  }, [canEditPantryPrefs, data?.pantryPrefsSeen, loading, items.length]);
   // (showAddInput removed — PantryInput is always visible with its own tab control)
   // Empty-state entry: a centered prompt that, on tap, reveals two illustrated
   // choice cards (a mano / subir foto o ticket) and then opens PantryInput in
@@ -1269,6 +1333,37 @@ export function PantryScreen({
   const [mainTab, setMainTab] = useState(readOnly ? "inventory" : "add");
   // Filtro de ubicación de la pestaña Inventario (card nevera/despensa/congelador).
   const [locationFilters, setLocationFilters] = useState(() => new Set());
+  // Cómo se agrupa el inventario (2026-08-25, tras fusionar Comprado+En casa):
+  // "aisle"/"Categoría" es ahora el default (misma gramática que Pendiente en
+  // Compra, primera opción); "location"/"Ubicación" (cards Nevera/Despensa/
+  // Congelador + lista plana filtrada) queda como alternativa a la derecha.
+  const [groupBy, setGroupBy] = useState("aisle");
+  // Colapsable por pasillo — mismo patrón que Pendiente en Compra (openSections).
+  const [openAisles, setOpenAisles] = useState({});
+  // SKU de Mercadona en la despensa (2026-08-26): "400 g" es lo que hay en
+  // términos de receta, pero "1 paquete" es lo que hay de verdad en el
+  // armario — igual que Compra, el pack/SKU solo se pinta cuando hay súper
+  // Mercadona activado; un tap en la miniatura alterna entre las dos vistas.
+  const mercadonaSelected =
+    data?.wantsPriceEstimates !== false && (data?.supermarkets ?? []).some(isMercadonaStore);
+  const [skuMap, setSkuMap] = useState(() => new Map());
+  const [skuView, setSkuView] = useState(false);
+  useEffect(() => {
+    let active = true;
+    if (!mercadonaSelected || items.length === 0) {
+      setSkuMap(new Map());
+      return undefined;
+    }
+    const adapted = items
+      .filter((it) => !isCookedDish(it))
+      .map((it) => ({ id: it.id, name: it.ingredientName, qty: it.qty, unit: it.unit }));
+    priceShoppingList("Mercadona", adapted, priceObs).then(({ map }) => {
+      if (active) setSkuMap(map);
+    });
+    return () => {
+      active = false;
+    };
+  }, [mercadonaSelected, items, priceObs]);
   const rowRefs = useRef({});
   // Category + purchase-date + ticket filters, tucked behind a "Filtros"
   // toggle like Añadir ingredientes above — same collapsed-by-default pattern.
@@ -1280,7 +1375,6 @@ export function PantryScreen({
   const [storeFilters, setStoreFilters] = useState(() => new Set());
   const [ticketFilters, setTicketFilters] = useState(() => new Set());
   const canUploadReceipt = Boolean(setData);
-  const viewLabel = stockView === "peso" ? "Peso" : "Cantidad";
   // Stable empty-array fallback (not a fresh `?? []` literal each render) so
   // the useMemos below that depend on it don't re-run every single render.
   const receipts = useMemo(() => data?.receipts ?? [], [data?.receipts]);
@@ -1379,6 +1473,24 @@ export function PantryScreen({
     [visibleItems, locationFilters],
   );
 
+  // Modo "pasillo" (groupBy === "aisle"): mismo `visibleItems`, agrupado por
+  // guessShoppingAisle en vez de por ubicación — los platos cocinados no
+  // tienen pasillo real, así que se quedan en su propio grupo.
+  const aisleGroups = useMemo(() => {
+    const byAisle = new Map();
+    for (const it of visibleItems) {
+      const key = isCookedDish(it) ? "Platos cocinados" : guessShoppingAisle(it.ingredientName);
+      if (!byAisle.has(key)) byAisle.set(key, []);
+      byAisle.get(key).push(it);
+    }
+    return [...byAisle.entries()]
+      .map(([aisle, list]) => ({
+        aisle,
+        items: list.sort((a, b) => a.ingredientName.localeCompare(b.ingredientName)),
+      }))
+      .sort((a, b) => a.aisle.localeCompare(b.aisle));
+  }, [visibleItems]);
+
   useEffect(() => {
     if (!user) {
       setItems(loadLocalPantry());
@@ -1452,7 +1564,10 @@ export function PantryScreen({
   };
 
   // Header options — same actions as before, now behind a burger → sliding
-  // sidebar (mirrors the Menú screen). Order: subir ticket, gastos, ajustes.
+  // sidebar (mirrors the Menú screen). "Ajustes de En casa" (cuándo se da
+  // por gastado) se quitó de aquí (2026-08-25): esta pantalla es siempre de
+  // solo consulta ahora, y esa pregunta vive como paso del wizard justo
+  // después de "¿Qué tienes ya en casa?".
   const headerActions = [
     canUploadReceipt && {
       key: "receipt", label: "Subir ticket", Icon: Receipt, coach: "pantry-receipt",
@@ -1461,10 +1576,6 @@ export function PantryScreen({
     onOpenAnalytics && {
       key: "analytics", label: "Gastos y tickets", Icon: BarChart3, coach: "pantry-analytics",
       action: onOpenAnalytics, tint: "#e7effe", ink: "#2563eb",
-    },
-    canEditPantryPrefs && {
-      key: "prefs", label: "Ajustes de En casa", Icon: Settings, coach: "pantry-settings",
-      action: () => setShowPantryPrefs(true), tint: "#e6f2ea", ink: "#2d5a3d",
     },
   ].filter(Boolean);
 
@@ -1507,17 +1618,231 @@ export function PantryScreen({
     </div>
   );
 
-  // Con el doble segmented control, Añadir e Inventario son pestañas. En
-  // embedded (onboarding «¿Qué repetimos?») no hay pestañas: se apila todo.
-  const showAdd = !readOnly && (embedded || mainTab === "add");
-  const showInventory = readOnly || embedded || mainTab === "inventory";
+  // Con el doble segmented control, Añadir e Inventario son pestañas — salvo
+  // que `tabs` sea false (embeds antiguos tipo «¿Qué repetimos?»), donde no
+  // hay pestañas y se apila todo.
+  const showAdd = !readOnly && (!tabs || mainTab === "add");
+  const showInventory = readOnly || !tabs || mainTab === "inventory";
   const inventoryHasItems = !loading && items.length > 0;
+  // Filtros (aisle/fecha/súper/ticket) solo aportan cuando puedes hacer algo
+  // con lo que filtras (subir tickets, editar) — el modo consulta ("En casa"
+  // de Compra) los quita del todo, 2026-08-25.
+  const showFiltersButton = !readOnly && inventoryHasItems;
+
+  // Extraído a función (2026-08-25) para poder pintar cada fila igual tanto
+  // en la lista plana (groupBy "location") como dentro de cada sección de
+  // pasillo (groupBy "aisle") sin duplicar ~170 líneas de JSX.
+  const renderInventoryItem = (item, i, list) => {
+    const editing = editingId === item.id;
+    const cooked = isCookedDish(item);
+    const aisle = guessShoppingAisle(item.ingredientName);
+    const { peso, cantidad } = splitStockDisplay(item.ingredientName, item.qty, item.unit);
+    const valueText = cooked ? formatStockQty(item.qty, "racion") : cantidad;
+    // "400 g" (lo que pide la receta) vs "1 paquete" (lo que hay de verdad en
+    // el envase) — mismo dato que ya calcula Compra (storePackLabel/
+    // storeTotalQty), aquí alternable con un tap en la miniatura.
+    const sku = !cooked ? skuMap.get(item.id) : null;
+    const showSku = skuView && Boolean(sku?.storePackLabel);
+    const udsDisplay = showSku ? sku.storePackLabel : valueText;
+    const pesoDisplay = showSku ? sku.storeTotalQty ?? sku.storeUnitSize ?? peso : (cooked ? "—" : peso);
+    return (
+      <SwipePurchaseShell
+        key={item.id}
+        isLast={i === list.length - 1}
+        readOnly={readOnly || editing}
+        disabled={editing}
+        onDelete={() => handleRemove(item.id)}
+      >
+      <div
+        ref={(el) => { rowRefs.current[item.id] = el; }}
+        style={{
+          ...ROW_GRID,
+          // En modo consulta no hay botón de editar (esa 4ª columna de 26px
+          // se quedaba en blanco) — ese espacio libre se lo damos al nombre
+          // en vez de dejarlo vacío. El precio ya no se muestra en ningún
+          // modo (2026-08-28) — esta pantalla no habla de precio.
+          ...(readOnly ? { gridTemplateColumns: "34px 150px auto" } : null),
+          padding: "10px 8px 10px 4px",
+        }}
+      >
+        {editing ? (
+          <span style={{ gridColumn: "1 / -1", display: "flex", gap: 10, minWidth: 0 }}>
+            {/* Icono a la izquierda, estirado para ocupar la altura de las dos
+                filas de al lado (cantidad+unidad y dónde lo guardas) — al
+                editar antes desaparecía el icono/nombre y perdías de vista
+                qué ingrediente era. */}
+            <span style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 4, flexShrink: 0, width: 60 }}>
+              <RowThumb item={item} cooked={cooked} aisle={aisle} size={46} />
+              <span
+                style={{
+                  fontSize: 10, fontWeight: 800, color: INK, textAlign: "center", lineHeight: 1.2,
+                  width: "100%", overflow: "hidden", textOverflow: "ellipsis",
+                  display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical",
+                }}
+              >
+                {item.ingredientName}
+              </span>
+            </span>
+            <span style={{ flex: 1, display: "flex", flexDirection: "column", gap: 8, minWidth: 0 }}>
+              <span style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
+                <input
+                  type="text"
+                  inputMode="decimal"
+                  autoFocus
+                  value={editQty}
+                  onChange={(e) => setEditQty(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
+                  aria-label={`Cantidad de ${item.ingredientName}`}
+                  style={{ ...fieldStyle, width: 50, flexShrink: 0, height: 30, padding: "0 4px", fontSize: 12.5, textAlign: "center" }}
+                />
+                {cooked ? (
+                  <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: INK }}>
+                    raciones
+                  </span>
+                ) : (
+                  <select
+                    value={editUnit}
+                    onChange={(e) => setEditUnit(e.target.value)}
+                    aria-label={`Unidad de ${item.ingredientName}`}
+                    style={{ ...fieldStyle, width: 58, flexShrink: 0, height: 30, padding: "0 4px", fontSize: 12.5 }}
+                  >
+                    <option value="ud">ud</option>
+                    <option value="g">g</option>
+                    <option value="kg">kg</option>
+                    <option value="ml">ml</option>
+                    <option value="l">L</option>
+                  </select>
+                )}
+                <button
+                  type="button"
+                  onClick={() => saveEdit(item.id)}
+                  aria-label={`Guardar ${item.ingredientName}`}
+                  style={{
+                    flexShrink: 0,
+                    height: 30,
+                    padding: "0 12px",
+                    borderRadius: 7,
+                    border: "none",
+                    background: GREEN,
+                    color: "#fff",
+                    fontSize: 11.5,
+                    fontWeight: 800,
+                    fontFamily: "inherit",
+                    cursor: "pointer",
+                  }}
+                >
+                  OK
+                </button>
+              </span>
+              {!cooked && (
+                <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "flex-start", alignSelf: "flex-start", gap: 4 }}>
+                  <span style={{ fontSize: 11, fontWeight: 800, color: "#5a7066" }}>
+                    ¿Dónde lo guardas?
+                  </span>
+                  <LocationSegmentedControl value={editLocation} onChange={setEditLocation} />
+                </span>
+              )}
+            </span>
+          </span>
+        ) : (
+          <>
+            <RowThumb
+              item={item}
+              cooked={cooked}
+              aisle={aisle}
+              onTap={sku?.storePackLabel ? () => setSkuView((v) => !v) : undefined}
+            />
+            <span style={{ minWidth: 0, maxWidth: readOnly ? 150 : 96 }}>
+              <span
+                style={{
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  fontSize: 13,
+                  fontWeight: 700,
+                  color: INK,
+                  lineHeight: 1.25,
+                  overflowWrap: "break-word",
+                  wordBreak: "break-word",
+                }}
+              >
+                {item.ingredientName}
+              </span>
+              {(() => {
+                const fresh = freshnessTag(item);
+                return fresh ? (
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      marginTop: 3,
+                      padding: "1px 7px",
+                      borderRadius: 999,
+                      background: fresh.bg,
+                      color: fresh.color,
+                      fontSize: 10,
+                      fontWeight: 800,
+                    }}
+                  >
+                    {fresh.label}
+                  </span>
+                ) : null;
+              })()}
+            </span>
+            <span
+              style={{ display: "grid", gridTemplateColumns: "repeat(2, 58px)", gap: 6 }}
+              data-no-swipe
+            >
+              {pantryPill(udsDisplay, "uds")}
+              {pantryPill(pesoDisplay, "peso")}
+            </span>
+            {!readOnly && (
+            <button
+              type="button"
+              onClick={() => startEdit(item)}
+              aria-label={`Editar ${item.ingredientName}`}
+              title="Editar"
+              style={{
+                width: 26,
+                height: 26,
+                borderRadius: 999,
+                border: "1px solid #e3ede6",
+                justifySelf: "end",
+                background: "#f6faf7",
+                color: "#3d5245",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <Pencil size={13} strokeWidth={2.4} />
+            </button>
+            )}
+          </>
+        )}
+      </div>
+      </SwipePurchaseShell>
+    );
+  };
 
   const content = (
     <>
-        {!embedded && !readOnly && <PantryMainTabs value={mainTab} onChange={setMainTab} />}
+        {tabs && !readOnly && <PantryMainTabs value={mainTab} onChange={setMainTab} />}
 
-        {showInventory && !embedded && inventoryHasItems && (
+        {/* Agrupar por ubicación (nevera/despensa/congelador) o por pasillo
+            de súper (2026-08-25, tras fusionar Comprado+En casa) — cada
+            grupo se lleva bien a según qué pregunta: "¿dónde lo guardo?"
+            (ubicación) vs. "¿qué es?" (pasillo, misma gramática que Pendiente
+            en Compra). Un ingrediente por uno u otro, nunca los dos a la vez. */}
+        {showInventory && tabs && inventoryHasItems && (
+          <div style={{ marginBottom: 14 }}>
+            <GroupBySwitch value={groupBy} onChange={setGroupBy} />
+          </div>
+        )}
+
+        {showInventory && tabs && inventoryHasItems && groupBy === "location" && (
           <PantryLocationCards
             selected={locationFilters}
             counts={locationCounts}
@@ -1532,7 +1857,7 @@ export function PantryScreen({
           />
         )}
 
-        {showInventory && !embedded && !loading && items.length === 0 && (
+        {showInventory && tabs && !loading && items.length === 0 && (
           <div style={{ padding: "20px 0 8px" }}>
             <EmptyIllustration
               img="/avatares/cards/empty_despensa.jpg"
@@ -1542,8 +1867,9 @@ export function PantryScreen({
                   ? "Cuando el propietario añada ingredientes, los verás aquí."
                   : "Añade lo que tienes en casa: ingredientes de la nevera, la despensa o el congelador, y platos que ya has cocinado."
               }
-              maxWidth={300}
-              imgAspect="16 / 12"
+              maxWidth={compactEmptyState ? 240 : 300}
+              imgAspect={compactEmptyState ? "1 / 1" : "16 / 12"}
+              imgPosition={compactEmptyState ? "center" : "center 40%"}
             >
               {!readOnly && (
               <button
@@ -1573,7 +1899,7 @@ export function PantryScreen({
           </div>
         )}
 
-        {showInventory && embedded && (onToggleHomeStock || (!loading && items.length > 0)) && (
+        {showInventory && !tabs && (onToggleHomeStock || (!loading && items.length > 0)) && (
           // Breathing room + a soft rule below the "En casa / Favoritas"
           // tab cards (rendered by the onboarding parent right above this)
           // before the toggle+segmented row — without it the row felt glued
@@ -1581,7 +1907,7 @@ export function PantryScreen({
           <div style={{ height: 1, background: "#e5ebe7", margin: "6px 0 18px" }} />
         )}
 
-        {showInventory && (onToggleHomeStock || (!loading && items.length > 0)) && (
+        {showInventory && (onToggleHomeStock || showFiltersButton) && (
           <div
             style={{
               display: "flex",
@@ -1609,51 +1935,14 @@ export function PantryScreen({
                 <ToggleSwitch size="sm" checked={useHomeStock !== false} onChange={onToggleHomeStock} />
               </div>
             )}
-            {!loading && items.length > 0 && (
-              <div
-                style={{
-                  display: "inline-flex",
-                  gap: 2,
-                  padding: 2,
-                  borderRadius: 10,
-                  background: "#eef4ef",
-                  border: "1px solid #dce8e0",
-                  flexShrink: 0,
-                }}
-              >
-                {STOCK_VIEWS.map(([id, label]) => {
-                  const on = stockView === id;
-                  return (
-                    <button
-                      key={id}
-                      type="button"
-                      onClick={() => setStockView(id)}
-                      aria-pressed={on}
-                      style={{
-                        padding: onToggleHomeStock ? "4px 8px" : "5px 11px",
-                        borderRadius: 8,
-                        // White pill on select, instead of a solid-green fill
-                        // — one less block competing with the "En
-                        // casa"/"Favoritas" cards above for the same
-                        // full-saturation green.
-                        border: "none",
-                        cursor: "pointer",
-                        fontFamily: "inherit",
-                        fontSize: onToggleHomeStock ? 11 : 11.5,
-                        fontWeight: 800,
-                        background: on ? "#fff" : "transparent",
-                        color: on ? GREEN : "#5a7066",
-                        boxShadow: on ? "0 1px 3px rgba(20,47,29,.1)" : "none",
-                        transition: "all .15s",
-                      }}
-                    >
-                      {label}
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-            {!loading && items.length > 0 && (
+            {/* El segmented control de "cantidad/peso" que vivía aquí se quitó
+                (2026-08-25): no controlaba nada visible — las 2 pills de
+                cantidad y peso ya se muestran siempre a la vez en cada fila,
+                así que el toggle era puro código muerto. Los filtros
+                (aisle/fecha/súper/ticket) se quitan del todo en modo consulta
+                ("En casa" de Compra) — están pensados para gestionar tickets
+                y compras, no para el vistazo rápido de solo lectura. */}
+            {showFiltersButton && (
               <button
                 type="button"
                 onClick={() => setShowFilters(true)}
@@ -1736,6 +2025,67 @@ export function PantryScreen({
             <div style={{ marginBottom: 14 }}>
               {loading ? (
                 <p style={{ margin: 0, padding: 16, fontSize: 13, color: MUTED }}>Cargando…</p>
+              ) : groupBy === "aisle" ? (
+                aisleGroups.length === 0 ? (
+                  <p style={{ margin: 0, padding: 18, fontSize: 13, color: MUTED, textAlign: "center" }}>
+                    Sin ingredientes con estos filtros.
+                  </p>
+                ) : (
+                  aisleGroups.map((g, idx) => {
+                    const open = Boolean(openAisles[g.aisle]);
+                    const isLastSection = idx === aisleGroups.length - 1;
+                    return (
+                      <div key={g.aisle}>
+                        <button
+                          type="button"
+                          onClick={() => setOpenAisles((c) => ({ ...c, [g.aisle]: !c[g.aisle] }))}
+                          style={{
+                            width: "100%",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 10,
+                            padding: "8px 12px",
+                            border: "none",
+                            position: "relative",
+                            background: open ? AISLE_OPEN_BAND : "#fff",
+                            borderRadius: open ? "12px 12px 0 0" : 0,
+                            borderBottom: !open && !isLastSection ? AISLE_DIVIDER : "none",
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                            textAlign: "left",
+                          }}
+                        >
+                          <ShopAisleIcon aisle={g.aisle} size={38} soft />
+                          <span
+                            style={{
+                              flex: 1,
+                              minWidth: 0,
+                              fontSize: 13.5,
+                              fontWeight: 800,
+                              color: open ? "#fff" : "#142f1d",
+                              overflow: "hidden",
+                              textOverflow: "ellipsis",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            {g.aisle}
+                          </span>
+                          <span style={aisleMetaPillStyle(open, "count")}>{g.items.length}</span>
+                          {open ? (
+                            <ChevronDown size={16} color="rgba(255,255,255,.75)" style={{ flexShrink: 0 }} />
+                          ) : (
+                            <ChevronRight size={16} color="#c2cfc7" style={{ flexShrink: 0 }} />
+                          )}
+                        </button>
+                        {open && (
+                          <div style={aisleItemsStyle}>
+                            {g.items.map((item, i) => renderInventoryItem(item, i, g.items))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )
               ) : (
                 <>
                   {inventoryItems.length === 0 ? (
@@ -1745,174 +2095,7 @@ export function PantryScreen({
                         : "Sin ingredientes con estos filtros."}
                     </p>
                   ) : (
-                  inventoryItems.map((item, i) => {
-                    const editing = editingId === item.id;
-                    const cooked = isCookedDish(item);
-                    const aisle = guessShoppingAisle(item.ingredientName);
-                    const { peso, cantidad } = splitStockDisplay(item.ingredientName, item.qty, item.unit);
-                    const priceLabel = cooked ? "—" : stockPriceLabel(item, priceObs);
-                    const valueText = cooked
-                      ? formatStockQty(item.qty, "racion")
-                      : stockView === "peso" ? peso : cantidad;
-                    const lastUpdated = formatShortDay(item.updatedAt);
-                    return (
-                      <SwipePurchaseShell
-                        key={item.id}
-                        isLast={i === inventoryItems.length - 1}
-                        readOnly={readOnly || editing}
-                        disabled={editing}
-                        onDelete={() => handleRemove(item.id)}
-                      >
-                      <div
-                        ref={(el) => { rowRefs.current[item.id] = el; }}
-                        style={{
-                          ...ROW_GRID,
-                          padding: "10px 4px",
-                        }}
-                      >
-                        {editing ? (
-                          <span style={{ gridColumn: "1 / -1", display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-                            <span style={{ display: "flex", gap: 6, alignItems: "center", minWidth: 0 }}>
-                              <input
-                                type="text"
-                                inputMode="decimal"
-                                autoFocus
-                                value={editQty}
-                                onChange={(e) => setEditQty(e.target.value)}
-                                onKeyDown={(e) => e.key === "Enter" && saveEdit(item.id)}
-                                aria-label={`Cantidad de ${item.ingredientName}`}
-                                style={{ ...fieldStyle, width: 54, flexShrink: 0, padding: "6px 4px", fontSize: 13, textAlign: "center" }}
-                              />
-                              {cooked ? (
-                                <span style={{ flexShrink: 0, fontSize: 13, fontWeight: 700, color: INK }}>
-                                  raciones
-                                </span>
-                              ) : (
-                                <select
-                                  value={editUnit}
-                                  onChange={(e) => setEditUnit(e.target.value)}
-                                  aria-label={`Unidad de ${item.ingredientName}`}
-                                  style={{ ...fieldStyle, width: 62, flexShrink: 0, padding: "6px 4px", fontSize: 13 }}
-                                >
-                                  <option value="ud">ud</option>
-                                  <option value="g">g</option>
-                                  <option value="kg">kg</option>
-                                  <option value="ml">ml</option>
-                                  <option value="l">L</option>
-                                </select>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => saveEdit(item.id)}
-                                aria-label={`Guardar ${item.ingredientName}`}
-                                style={{
-                                  flexShrink: 0,
-                                  padding: "6px 14px",
-                                  borderRadius: 8,
-                                  border: "none",
-                                  background: GREEN,
-                                  color: "#fff",
-                                  fontSize: 12,
-                                  fontWeight: 800,
-                                  fontFamily: "inherit",
-                                  cursor: "pointer",
-                                }}
-                              >
-                                OK
-                              </button>
-                            </span>
-                            {!cooked && (
-                              <span style={{ display: "inline-flex", flexDirection: "column", gap: 4 }}>
-                                <span style={{ fontSize: 11, fontWeight: 800, color: "#5a7066" }}>
-                                  ¿Dónde?
-                                </span>
-                                <LocationSegmentedControl value={editLocation} onChange={setEditLocation} />
-                              </span>
-                            )}
-                            {lastUpdated && (
-                              <span style={{ fontSize: 10, fontWeight: 600, color: "#9ab0a1" }}>
-                                Última actualización: {lastUpdated}
-                              </span>
-                            )}
-                          </span>
-                        ) : (
-                          <>
-                            <RowThumb item={item} cooked={cooked} aisle={aisle} />
-                            <span style={{ minWidth: 0, maxWidth: 96 }}>
-                              <span
-                                style={{
-                                  display: "-webkit-box",
-                                  WebkitLineClamp: 3,
-                                  WebkitBoxOrient: "vertical",
-                                  overflow: "hidden",
-                                  fontSize: 13,
-                                  fontWeight: 700,
-                                  color: INK,
-                                  lineHeight: 1.25,
-                                  overflowWrap: "break-word",
-                                  wordBreak: "break-word",
-                                }}
-                              >
-                                {item.ingredientName}
-                              </span>
-                              {(() => {
-                                const fresh = freshnessTag(item);
-                                return fresh ? (
-                                  <span
-                                    style={{
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      marginTop: 3,
-                                      padding: "1px 7px",
-                                      borderRadius: 999,
-                                      background: fresh.bg,
-                                      color: fresh.color,
-                                      fontSize: 10,
-                                      fontWeight: 800,
-                                    }}
-                                  >
-                                    {fresh.label}
-                                  </span>
-                                ) : null;
-                              })()}
-                            </span>
-                            <span
-                              style={{ display: "grid", gridTemplateColumns: "repeat(3, 58px)", gap: 6 }}
-                              data-no-swipe
-                            >
-                              {pantryPill(cooked ? valueText : cantidad, "uds")}
-                              {pantryPill(cooked ? "—" : peso, "peso")}
-                              {pantryPill(priceLabel, "precio")}
-                            </span>
-                            {!readOnly && (
-                            <button
-                              type="button"
-                              onClick={() => startEdit(item)}
-                              aria-label={`Editar ${item.ingredientName}`}
-                              title="Editar"
-                              style={{
-                                width: 26,
-                                height: 26,
-                                borderRadius: 999,
-                                border: "1px solid #e3ede6",
-                                justifySelf: "end",
-                                background: "#f6faf7",
-                                color: "#3d5245",
-                                cursor: "pointer",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                              }}
-                            >
-                              <Pencil size={13} strokeWidth={2.4} />
-                            </button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      </SwipePurchaseShell>
-                    );
-                  })
+                    inventoryItems.map((item, i) => renderInventoryItem(item, i, inventoryItems))
                   )}
                 </>
               )}
@@ -1922,7 +2105,7 @@ export function PantryScreen({
 
         {showAdd && (
           <>
-            {embedded && (
+            {!tabs && (
               <div style={{ height: 3, borderRadius: 99, background: "#d8e8dc", margin: "16px 0 14px" }} />
             )}
             <div data-coach="pantry-add">
@@ -1942,8 +2125,27 @@ export function PantryScreen({
     </>
   );
 
+  // Renderizado en ambas ramas: si `tabs` habilita "Subir foto o ticket"
+  // estando `embedded`, el modal tiene que existir para que ese tap haga algo.
+  const receiptFlowOverlay = showReceiptFlow && (
+    <PantryReceiptFlow
+      data={data}
+      setData={setData}
+      shopping={shopping}
+      setShopping={setShopping}
+      onToast={onToast}
+      onClose={() => setShowReceiptFlow(false)}
+      onPantryChanged={handleSaved}
+    />
+  );
+
   if (embedded) {
-    return <div>{content}</div>;
+    return (
+      <>
+        <div>{content}</div>
+        {receiptFlowOverlay}
+      </>
+    );
   }
 
   return (
@@ -1955,31 +2157,7 @@ export function PantryScreen({
         {content}
       </div>
       {onNav && <BottomNav active={navActive} onNav={onNav} />}
-      {showReceiptFlow && (
-        <PantryReceiptFlow
-          data={data}
-          setData={setData}
-          shopping={shopping}
-          setShopping={setShopping}
-          onToast={onToast}
-          onClose={() => setShowReceiptFlow(false)}
-          onPantryChanged={handleSaved}
-        />
-      )}
-      {showPantryPrefs && canEditPantryPrefs && (
-        <PantryPrefsWizard
-          initial={data?.pantryPrefs}
-          onComplete={(prefs) => {
-            setData((d) => ({ ...d, pantryPrefs: prefs, pantryPrefsSet: true, pantryPrefsSeen: true }));
-            setShowPantryPrefs(false);
-            onToast?.("Preferencias de despensa guardadas");
-          }}
-          onLater={() => {
-            setData((d) => (d.pantryPrefsSeen ? d : { ...d, pantryPrefsSeen: true }));
-            setShowPantryPrefs(false);
-          }}
-        />
-      )}
+      {receiptFlowOverlay}
       {showIconCoach && <PantryCoachTour onClose={() => setShowIconCoach(false)} />}
 
       {/* Burger → sliding options sidebar, styled like the Menú drawer. */}

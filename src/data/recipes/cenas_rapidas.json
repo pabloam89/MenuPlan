@@ -107,7 +107,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 8,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_002",
@@ -222,7 +223,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_003",
@@ -401,7 +403,8 @@
     "sugar_g": 8,
     "saturated_fat_g": 6,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_004",
@@ -513,7 +516,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 6,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_005",
@@ -636,7 +640,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 210,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_006",
@@ -758,7 +763,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 11,
     "sodium_mg": 580,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_007",
@@ -869,7 +875,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_008",
@@ -998,7 +1005,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 2,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_009",
@@ -1087,7 +1095,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 8,
     "sodium_mg": 920,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_010",
@@ -1182,7 +1191,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 14,
     "sodium_mg": 980,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_012",
@@ -1322,7 +1332,8 @@
     "sugar_g": 8,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_013",
@@ -1475,7 +1486,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 4,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_016",
@@ -1598,7 +1610,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 6,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_017",
@@ -1715,7 +1728,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 9,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_014",
@@ -1839,7 +1853,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "cenas_rapidas_015",
@@ -1946,6 +1961,7 @@
     "sugar_g": 18,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   }
 ]

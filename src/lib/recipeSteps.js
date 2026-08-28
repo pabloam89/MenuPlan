@@ -54,6 +54,22 @@ export const STEP_KIND_META = {
 /** Los tipos que NO piden atención: su tiempo no cuenta como tiempo activo. */
 export const HANDS_OFF_KINDS = new Set(["pasivo", "espera"]);
 
+// Debe coincidir con STEP_PARTS en src/data/recipeSchema.js. Eje ORTOGONAL a
+// `kind` (que es de tiempo/atención): `part` dice QUÉ COMPONENTE del plato
+// trabaja el paso, para poder cocinar cada parte por separado cuando el
+// propio plato ya las incluye todas en una sola receta (p. ej. un arroz con
+// su salsa aparte dentro de la misma ficha). Opcional: la mayoría de recetas
+// de una sola técnica no lo necesitan y se quedan sin `part` — la UI las
+// pinta igual que hoy, sin secciones.
+export const STEP_PARTS = ["principal", "guarnicion", "salsa", "combinado"];
+
+export const STEP_PART_META = {
+  principal: { label: "Plato principal", color: "#2d5a3d" },
+  guarnicion: { label: "Guarnición", color: "#16a34a" },
+  salsa: { label: "Salsa", color: "#c2703d" },
+  combinado: { label: "Combinado", color: "#7c3aed" },
+};
+
 export function formatStepMinutes(m) {
   const n = Number(m);
   if (!Number.isFinite(n) || n <= 0) return null;
@@ -99,6 +115,7 @@ export function normalizeRichSteps(raw) {
     const mins = Number(s?.minutes);
     if (Number.isFinite(mins) && mins > 0) step.minutes = Math.max(1, Math.round(mins));
     if (STEP_KINDS.includes(s?.kind)) step.kind = s.kind;
+    if (STEP_PARTS.includes(s?.part)) step.part = s.part;
 
     if (step.kind === "paralelo") {
       const during = Number(s?.during);

@@ -3737,5 +3737,4149 @@
     "saturated_fat_g": 2,
     "sodium_mg": 180,
     "freezable": false
+  },
+  {
+    "id": "legumbres_021",
+    "name": "Ensalada de garbanzos de bote con atún y pimientos",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 29,
+    "carbs_g": 33,
+    "fat_g": 23,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos de bote",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en aceite de oliva",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo asado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir bien los garbanzos cocidos de bote y enjuagar bajo el grifo.",
+      "Escurrir el atún en aceite, reservando un poco del aceite de la lata.",
+      "Picar el pimiento verde y la cebolleta en dados pequeños.",
+      "Cortar el pimiento rojo asado en tiras finas.",
+      "Mezclar en un bol los garbanzos, el atún desmigado, los pimientos y la cebolleta.",
+      "Añadir las aceitunas negras.",
+      "Aliñar con aceite de oliva, vinagre de jerez y sal al gusto.",
+      "Remover bien y dejar reposar 5 min en la nevera antes de servir."
+    ],
+    "description": "Ensalada rápida de garbanzos de bote con atún, pimientos y aceitunas, lista en cinco minutos.",
+    "extraProteins": [
+      "pescado_azul"
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Pica los pimientos, la cebolleta y las aceitunas en el vaso. Añade los garbanzos escurridos, el atún y el aliño. Mezcla suavemente a velocidad baja para integrar todos los ingredientes sin triturarlos."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_022",
+    "name": "Tosta de hummus, pepino y sésamo",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mainBase": "pan",
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 510,
+    "protein_g": 18,
+    "carbs_g": 60,
+    "fat_g": 21,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Pan de pueblo",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 240,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pepino",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Sésamo tostado",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Triturar los garbanzos con el tahini, el zumo de limón, el ajo y el comino hasta obtener una crema lisa (añadir un chorrito de agua si queda muy espesa).",
+      "Salpimentar y ligar con la mitad del aceite de oliva.",
+      "Tostar las rebanadas de pan hasta que estén doradas y crujientes.",
+      "Cortar el pepino en láminas finas.",
+      "Untar generosamente cada tosta con el hummus.",
+      "Repartir las láminas de pepino por encima.",
+      "Terminar con un chorrito de aceite de oliva y el sésamo tostado."
+    ],
+    "description": "Tostas crujientes untadas con hummus casero, pepino fresco y sésamo tostado.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es ideal para preparar el hummus. Tritura los garbanzos cocidos con el resto de ingredientes (tahini, zumo de limón, ajo, comino, aceite, sal) hasta obtener una crema fina y homogénea. El pan se tuesta aparte en tostadora o sartén y se monta la tosta."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La airfryer es perfecta para tostar el pan de pueblo, dejándolo crujiente por fuera y tierno por dentro. Precalienta a 180°C y tuesta las rebanadas unos 5-7 minutos, dándoles la vuelta a mitad. El hummus se elabora aparte con una batidora o procesador de alimentos."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "El horno es excelente para tostar varias rebanadas de pan a la vez. Precalienta a 200°C con función grill y tuesta el pan durante 5-8 minutos, vigilando para que no se queme. Prepara el hummus aparte con una batidora o procesador de alimentos."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_023",
+    "name": "Wrap vegetal de hummus y verduras crudas",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "cena",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 15,
+    "carbs_g": 55,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Tortilla de trigo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Lechuga",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Triturar los garbanzos con el tahini, el zumo de limón, el ajo y el comino hasta obtener un hummus cremoso.",
+      "Ligar con el aceite de oliva y salpimentar.",
+      "Rallar la zanahoria y cortar el pepino, la lechuga y el pimiento rojo en tiras finas.",
+      "Calentar ligeramente las tortillas de trigo para que sean más flexibles.",
+      "Untar cada tortilla con una capa generosa de hummus.",
+      "Repartir las verduras crudas sobre el hummus.",
+      "Enrollar el wrap apretando bien y cortar por la mitad para servir."
+    ],
+    "description": "Wrap crujiente y colorido de hummus casero con verduras crudas, listo sin encender el fuego.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es perfecta para el hummus: tritura los garbanzos cocidos con el tahini, zumo de limón, ajo, comino, aceite de oliva y sal durante 2-3 minutos a velocidad progresiva hasta obtener una crema suave. También puedes picar las verduras rápidamente."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_024",
+    "name": "Bowl de falafel congelado con hummus y ensalada",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 530,
+    "protein_g": 19,
+    "carbs_g": 48,
+    "fat_g": 29,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Falafel congelado",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 18,
+        "unit": "ml"
+      },
+      {
+        "name": "Lechuga variada",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200 °C.",
+      "Hornear el falafel congelado siguiendo el tiempo del envase, hasta que esté dorado y crujiente, unos 15 min.",
+      "Mientras tanto, triturar los garbanzos cocidos con el tahini, el zumo de limón, el comino y la mitad del aceite de oliva hasta obtener un hummus rápido.",
+      "Lavar y cortar la lechuga, los tomates cherry por la mitad, el pepino en rodajas y la cebolla morada en juliana fina.",
+      "Repartir la lechuga como base en dos bowls.",
+      "Añadir el tomate, el pepino y la cebolla morada.",
+      "Colocar el falafel horneado sobre la ensalada y una cucharada generosa de hummus.",
+      "Terminar con el resto del aceite de oliva y sal al gusto."
+    ],
+    "description": "Bowl completo con falafel del congelador, hummus rápido y ensalada fresca, listo en diez minutos.",
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Cocina los falafel congelados durante 20-25 minutos, dándoles la vuelta a mitad para que doren uniformemente. Mientras, prepara el hummus y la ensalada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los falafel congelados en la airfryer a 190°C durante 15-18 minutos, agitándolos a mitad de cocción para un acabado crujiente y dorado. Aprovecha para preparar el hummus y la ensalada."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_025",
+    "name": "Lentejas guisadas con chorizo y huevo poché",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 27,
+    "carbs_g": 42,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Lentejas pardinas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas bajo el grifo y escurrir.",
+      "Pelar y picar la cebolla, el ajo, el pimiento verde y la zanahoria en dados pequeños.",
+      "Cortar el chorizo en rodajas.",
+      "Calentar aceite de oliva en una olla y sofreír la cebolla, el ajo y el pimiento a fuego medio hasta que ablanden, unos 5 min.",
+      "Añadir la zanahoria y el chorizo y rehogar 3 min más, hasta que el chorizo suelte su color.",
+      "Incorporar el pimentón y el tomate triturado y remover 1 min.",
+      "Añadir las lentejas y el laurel, cubrir con agua hasta superar 3 cm por encima y llevar a ebullición.",
+      "Bajar el fuego, tapar y cocer 30-35 min hasta que las lentejas estén tiernas, removiendo de vez en cuando.",
+      "Escalfar los huevos en agua a fuego suave con un chorrito de vinagre, creando un remolino, 3 min cada uno, y retirar con espumadera.",
+      "Servir las lentejas en platos hondos y coronar cada uno con un huevo poché."
+    ],
+    "description": "Lentejas guisadas con chorizo y coronadas con un huevo poché que rompe su yema sobre el guiso.",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito con las verduras y el chorizo en una cazuela apta para horno en la encimera. Luego, añade las lentejas, el pimentón, el laurel y el caldo, y cocina a fuego lento en el horno a 160-170°C durante 1.5-2 horas hasta que estén tiernas. Los huevos poché se hacen apar"
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras y sofríe en el vaso. Añade las lentejas, chorizo, pimentón, laurel y agua/caldo, programa 35-40 min, Varoma/100°C, giro inverso, velocidad cuchara. Los huevos poché se pueden hacer en el Varoma al mismo tiempo o al final para un resultado óptimo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras y el chorizo en la olla. Incorpora las lentejas, pimentón, laurel y agua/caldo. Cierra la olla y cocina a presión durante 15-20 minutos. Libera la presión y sirve las lentejas con los huevos poché hechos al momento en una cacerola aparte."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_026",
+    "name": "Hummus de remolacha con piñones tostados",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 470,
+    "protein_g": 15,
+    "carbs_g": 41,
+    "fat_g": 27,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sesamo",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Remolacha cocida",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Cortar la remolacha cocida en dados.",
+      "Triturar los garbanzos, la remolacha, el tahini, el zumo de limón, el ajo y el comino hasta obtener una crema fina.",
+      "Añadir el aceite de oliva poco a poco mientras se sigue triturando, hasta ligar.",
+      "Salpimentar al gusto y rectificar de limón si hace falta.",
+      "Tostar los piñones en una sartén sin aceite a fuego medio hasta que doren, removiendo para que no se quemen.",
+      "Extender el hummus en un plato haciendo un hueco en el centro con el dorso de una cuchara.",
+      "Terminar con un chorrito de aceite de oliva y los piñones tostados por encima."
+    ],
+    "description": "Hummus de un magenta intenso gracias a la remolacha, coronado con piñones tostados.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes (excepto los piñones) en el vaso de la Thermomix y tritura a velocidad progresiva hasta obtener una crema fina y homogénea. Sirve con los piñones tostados, que puedes hacer rápidamente en una sartén o en el mismo vaso de la Thermomix."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_027",
+    "name": "Hummus de aguacate y lima",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 400,
+    "protein_g": 12,
+    "carbs_g": 32,
+    "fat_g": 25,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de lima",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Tahini",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Cortar el aguacate por la mitad, retirar el hueso y sacar la pulpa con una cuchara.",
+      "Triturar los garbanzos con el aguacate, el zumo de lima, el tahini, el ajo y el comino hasta obtener una crema homogénea.",
+      "Añadir el aceite de oliva poco a poco mientras se tritura, hasta que quede cremoso.",
+      "Salpimentar y rectificar de lima si hace falta.",
+      "Picar el cilantro fresco y espolvorear por encima.",
+      "Servir enseguida con un chorrito de aceite de oliva para evitar que el aguacate oxide."
+    ],
+    "description": "Hummus cremoso y verde con aguacate y un toque ácido de lima que lo levanta.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes en el vaso de la Thermomix y tritura a velocidad progresiva 5-10 hasta obtener una crema suave y homogénea. Si es necesario, baja los restos de las paredes y vuelve a triturar brevemente."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_028",
+    "name": "Falafel crujiente con salsa de yogur y tahini",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 610,
+    "protein_g": 27,
+    "carbs_g": 50,
+    "fat_g": 33,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos secos crudos (en remojo)",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Cilantro molido",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Yogur griego",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Escurrir bien los garbanzos puestos en remojo la noche anterior (crudos, no cocidos).",
+      "Triturar los garbanzos junto con la cebolla, el ajo, el perejil, el cilantro, el comino y el cilantro molido hasta obtener una pasta gruesa, sin que quede puré fino.",
+      "Añadir la harina, la levadura química y la sal y mezclar bien. Dejar reposar la masa 15 min en la nevera.",
+      "Formar bolitas de unos 3 cm con las manos húmedas.",
+      "Calentar abundante aceite de girasol en una sartén honda a fuego medio-alto.",
+      "Freír los falafel en tandas hasta que estén dorados y crujientes por fuera, unos 3-4 min, y escurrir sobre papel absorbente.",
+      "Para la salsa, mezclar el yogur griego con el tahini, el zumo de limón y el agua hasta obtener una crema fluida. Salpimentar.",
+      "Servir los falafel calientes con la salsa de yogur y tahini para mojar."
+    ],
+    "description": "Falafel casero con una corteza dorada y crujiente, servido con salsa fresca de yogur y tahini.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara la mezcla de falafel y forma las bolitas. Rocíalas ligeramente con aceite y cocínalas en la airfryer precalentada a 190-200°C durante 15-20 minutos, dándoles la vuelta a mitad del tiempo para un dorado uniforme y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Forma los falafel y colócalos en una bandeja de horno con papel de hornear, rociados con un poco de aceite. Hornea a 180-190°C durante 25-30 minutos, volteándolos a mitad de cocción hasta que estén dorados y firmes."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_029",
+    "name": "Fabes con almejas y azafrán",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 90,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 31,
+    "carbs_g": 46,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Fabes de la granja secas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán en hebras",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner en remojo las fabes en agua fría la noche anterior.",
+      "Escurrir las fabes y ponerlas en una olla con agua fría hasta cubrir 3 dedos por encima.",
+      "Añadir la cebolla entera pelada, el ajo, el laurel y un chorrito de aceite de oliva.",
+      "Llevar a ebullición, retirar la espuma que suba a la superficie y bajar el fuego al mínimo.",
+      "Cocer tapado y a fuego muy suave 1 h - 1 h 15 min, añadiendo agua fría si rompe a hervir fuerte, hasta que las fabes estén tiernas.",
+      "Mientras tanto, poner las almejas en agua con sal 30 min para que suelten la arena, y escurrir.",
+      "Disolver el azafrán en el vino blanco caliente y reservar.",
+      "Retirar la cebolla cocida, triturarla con un poco del caldo de cocción y devolverla a la olla para ligar el guiso.",
+      "Añadir el vino con azafrán y las almejas a la olla, tapar y cocer 4-5 min hasta que las almejas se abran.",
+      "Espolvorear con perejil picado y servir bien caliente."
+    ],
+    "description": "Fabes tiernas en caldo dorado por el azafrán, con almejas recién abiertas encima.",
+    "extraProteins": [
+      "marisco"
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 100,
+        "difficulty": "normal",
+        "prepSummary": "Prepara un sofrito con cebolla y ajo, añade las fabes previamente remojadas y el resto de ingredientes para cocerlas a temperatura Varoma o 100°C durante 60-90 minutos. Incorpora las almejas al final en el vaso o Varoma hasta que se abran."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla. Añade las fabes remojadas, el vino, el azafrán y el laurel, cubre con agua y cocina a presión durante 20-30 minutos. Despresuriza, añade las almejas y cocina unos minutos más hasta que se abran."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_030",
+    "name": "Ensalada templada de lentejas, chorizo y manzana",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 430,
+    "protein_g": 24,
+    "carbs_g": 38,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos",
+      "mostaza"
+    ],
+    "ingredients": [
+      {
+        "name": "Lentejas pardinas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Manzana",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Mostaza a la antigua",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas y cocerlas en agua con una hoja de laurel unos 20-25 min, hasta que estén tiernas pero enteras. Escurrir y dejar templar.",
+      "Cortar el chorizo en dados pequeños.",
+      "Dorar el chorizo en una sartén sin aceite a fuego medio hasta que quede crujiente y suelte su grasa. Retirar sobre papel absorbente.",
+      "Cortar la manzana en dados pequeños, sin pelar.",
+      "Picar la cebolleta en aros finos.",
+      "Preparar la vinagreta batiendo el aceite de oliva, el vinagre de jerez, la mostaza y una pizca de sal.",
+      "Mezclar en un bol las lentejas templadas, la manzana, la cebolleta y el chorizo crujiente.",
+      "Aliñar con la vinagreta, remover con cuidado y servir templado."
+    ],
+    "description": "Lentejas templadas con chorizo dorado y crujiente, manzana fresca y una vinagreta de mostaza.",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las lentejas en el vaso a 100°C con giro inverso (aprox. 25-30 min). Sofríe el chorizo y la cebolleta en el mismo vaso o en una sartén aparte, y luego mezcla con la manzana y el aliño."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las lentejas en la olla express (8-12 min desde que sube la válvula) para un cocinado rápido. Mientras, dora el chorizo y la cebolleta en una sartén, y saltea la manzana brevemente. Combina todo y aliña."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_031",
+    "name": "Garbanzos especiados con espinacas y piñones",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 16,
+    "carbs_g": 34,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "frutos_secos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Lavar bien las espinacas frescas.",
+      "Tostar los piñones en una sartén sin aceite hasta que doren y reservar.",
+      "Calentar aceite de oliva en una sartén amplia y dorar el ajo laminado a fuego medio-bajo.",
+      "Añadir el comino y el pimentón y remover unos segundos para que suelten aroma sin quemarse.",
+      "Incorporar los garbanzos y saltear 3-4 min para que cojan sabor.",
+      "Añadir las espinacas y saltear hasta que se reduzcan, unos 3 min.",
+      "Rociar con el vinagre de jerez, salpimentar y remover.",
+      "Servir con los piñones tostados por encima."
+    ],
+    "description": "Garbanzos salteados con especias, espinacas y piñones tostados, con aroma a comino.",
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los garbanzos con aceite, ajo, comino y pimentón. Cocina en la airfryer a 190°C durante 15 minutos, agitando a mitad. Añade los piñones los últimos 3 minutos y las espinacas al final para que se marchiten con el calor residual."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Extiende los garbanzos con aceite, ajo, comino y pimentón en una bandeja. Hornea a 200°C durante 20 minutos, removiendo a mitad. Incorpora los piñones los últimos 5 minutos y las espinacas al sacar para que se ablanden con el calor."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo con aceite. Añade los garbanzos, especias y piñones, cocina unos minutos a temperatura Varoma, giro inverso, velocidad cuchara. Incorpora las espinacas y cocina 2-3 minutos más hasta que se marchiten."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_032",
+    "name": "Lentejas rojas al curry con leche de coco",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 410,
+    "protein_g": 17,
+    "carbs_g": 44,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Lentejas rojas peladas",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Leche de coco",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Cúrcuma",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Enjuagar las lentejas rojas bajo el grifo hasta que el agua salga clara.",
+      "Pelar y picar finamente la cebolla, el ajo y el jengibre.",
+      "Calentar aceite de oliva en una olla y sofreír la cebolla a fuego medio hasta que esté transparente, unos 4 min.",
+      "Añadir el ajo y el jengibre y sofreír 1 min más.",
+      "Incorporar el curry en polvo y la cúrcuma y remover para tostar las especias unos segundos.",
+      "Añadir el tomate triturado y cocinar 2 min.",
+      "Incorporar las lentejas rojas, la leche de coco y cubrir con agua hasta superar los ingredientes 2 cm.",
+      "Cocer a fuego medio-bajo 15-18 min, removiendo de vez en cuando, hasta que las lentejas se deshagan y el curry espese.",
+      "Rectificar de sal y servir espolvoreado con cilantro fresco picado."
+    ],
+    "description": "Curry cremoso de lentejas rojas con leche de coco, sin nata y con mucho sabor.",
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica y sofríe la cebolla, ajo y jengibre con aceite. Incorpora las lentejas, leche de coco, tomate y especias, y cocina a 90-100°C, velocidad cuchara, durante unos 20 minutos hasta que las lentejas estén tiernas."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla, ajo y jengibre en la olla. Añade las lentejas, leche de coco, tomate y especias, cierra la olla y cocina a presión durante 5-7 minutos. Deja despresurizar antes de abrir y servir."
+      }
+    ]
+  },
+  {
+    "id": "legumbres_033",
+    "name": "Hummus de guisantes y menta",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 320,
+    "protein_g": 13,
+    "carbs_g": 26,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Guisantes congelados",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cocer los guisantes congelados en agua hirviendo con sal 3-4 min, hasta que estén tiernos. Escurrir y refrescar bajo agua fría para fijar el color.",
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Triturar los guisantes, los garbanzos, el tahini, el zumo de limón, el ajo y la mitad de la menta hasta obtener una crema fina.",
+      "Añadir el aceite de oliva poco a poco mientras se tritura, hasta ligar.",
+      "Salpimentar y rectificar de limón si hace falta.",
+      "Picar el resto de la menta y espolvorear por encima antes de servir."
+    ],
+    "description": "Hummus verde y fresco de guisantes y menta, distinto al hummus clásico."
+  },
+  {
+    "id": "legumbres_034",
+    "name": "Buñuelos de garbanzo especiados",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 20,
+    "carbs_g": 42,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir bien los garbanzos cocidos y triturarlos junto con la cebolleta, el perejil, el comino y el pimentón hasta obtener una pasta gruesa.",
+      "Añadir el huevo, la harina, la levadura química y la sal, y mezclar hasta integrar todo en una masa espesa.",
+      "Dejar reposar la masa 10 min en la nevera.",
+      "Mezclar el yogur con la menta picada y el ajo rallado para la salsa. Reservar en frío.",
+      "Calentar abundante aceite de girasol en una sartén honda a fuego medio.",
+      "Formar los buñuelos con ayuda de dos cucharas y freír en tandas hasta que estén dorados por todos los lados, unos 3-4 min.",
+      "Escurrir sobre papel absorbente.",
+      "Servir calientes acompañados de la salsa de yogur y menta."
+    ],
+    "description": "Buñuelos de garbanzo dorados y crujientes por fuera, tiernos por dentro, con salsa de yogur."
+  },
+  {
+    "id": "legumbres_035",
+    "name": "Ensalada de garbanzos, chorizo crujiente y pimientos",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 24,
+    "carbs_g": 38,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 12,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Cortar el chorizo en dados pequeños.",
+      "Dorar el chorizo en una sartén sin aceite a fuego medio hasta que esté crujiente. Retirar sobre papel absorbente.",
+      "Cortar los pimientos rojo y verde en dados pequeños.",
+      "Picar la cebolla morada en juliana fina.",
+      "Mezclar en un bol los garbanzos, los pimientos, la cebolla y el perejil picado.",
+      "Añadir el chorizo crujiente y su grasa dorada por encima.",
+      "Aliñar con aceite de oliva, vinagre de jerez y sal, remover bien y servir."
+    ],
+    "description": "Ensalada contundente de garbanzos con chorizo crujiente y pimientos de colores.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "legumbres_036",
+    "name": "Judiones con almejas",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 100,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 470,
+    "protein_g": 30,
+    "carbs_g": 46,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Judiones secos",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner los judiones en remojo con agua fría la noche anterior.",
+      "Escurrir y poner en una olla cubiertos de agua fría con la cebolla entera pelada, el laurel y un chorrito de aceite de oliva.",
+      "Llevar a ebullición, desespumar y bajar el fuego a mínimo.",
+      "Cocer tapado 1 h - 1 h 15 min, añadiendo agua fría si rompe a hervir fuerte, hasta que los judiones estén cremosos por fuera y enteros por dentro.",
+      "Poner las almejas en agua con sal 30 min para que suelten la arena y escurrir.",
+      "En una sartén, calentar el resto del aceite y sofreír el ajo picado con el pimentón, con cuidado de que no se queme.",
+      "Añadir el vino blanco y dejar reducir 1 min.",
+      "Retirar la cebolla cocida de la olla, triturarla con un poco de caldo y devolverla al guiso para ligarlo.",
+      "Añadir el sofrito de ajo y pimentón y las almejas a la olla de judiones, tapar y cocer 4-5 min hasta que las almejas se abran.",
+      "Espolvorear con perejil picado y servir bien caliente."
+    ],
+    "description": "Judiones enormes y cremosos en caldo dorado, con almejas recién abiertas.",
+    "extraProteins": [
+      "marisco"
+    ]
+  },
+  {
+    "id": "legumbres_037",
+    "name": "Lentejas con boletus y tomillo",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 380,
+    "protein_g": 19,
+    "carbs_g": 42,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Lentejas pardinas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Boletus",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomillo fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vino oloroso",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas bajo el grifo y escurrir.",
+      "Limpiar los boletus con un paño húmedo, sin lavarlos bajo el grifo, y cortarlos en láminas gruesas.",
+      "Pelar y picar la cebolla, el ajo y la zanahoria en dados pequeños.",
+      "Calentar aceite de oliva en una olla y sofreír la cebolla y la zanahoria a fuego medio hasta que ablanden, unos 5 min.",
+      "Añadir el ajo y sofreír 1 min más.",
+      "Incorporar los boletus y saltear a fuego medio-alto hasta que suelten su agua y empiecen a dorarse, unos 5 min.",
+      "Añadir el vino oloroso y dejar reducir 1 min.",
+      "Incorporar las lentejas, el laurel y el tomillo, cubrir con agua hasta superar 3 cm por encima y llevar a ebullición.",
+      "Bajar el fuego, tapar y cocer 25-30 min hasta que las lentejas estén tiernas, removiendo de vez en cuando.",
+      "Rectificar de sal y servir bien caliente con un hilo de aceite de oliva."
+    ],
+    "description": "Guiso reconfortante de lentejas con boletus salteados y aroma a tomillo fresco."
+  },
+  {
+    "id": "legumbres_038",
+    "name": "Garbanzos con espinacas y huevo escalfado",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 400,
+    "protein_g": 20,
+    "carbs_g": 34,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Pan del día anterior",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Lavar bien las espinacas.",
+      "Freír el pan en dados y el ajo en un poco de aceite de oliva hasta dorar, y triturar con el comino y un poco de agua para hacer el majado.",
+      "En una cazuela, calentar el resto del aceite y sofreír el pimentón unos segundos, con cuidado de que no se queme.",
+      "Añadir los garbanzos y las espinacas y rehogar hasta que las espinacas se reduzcan, unos 4 min.",
+      "Incorporar el majado y un poco de agua, y cocer 5 min a fuego suave para que ligue.",
+      "Escalfar los huevos en agua con un chorrito de vinagre 3 min y retirar con espumadera.",
+      "Servir los garbanzos en platos hondos y coronar cada uno con un huevo escalfado."
+    ],
+    "description": "Garbanzos con espinacas al estilo andaluz, con la yema del huevo escalfado rota por encima."
+  },
+  {
+    "id": "legumbres_039",
+    "name": "Potaje de garbanzos con langostinos",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 428,
+    "protein_g": 30,
+    "carbs_g": 36,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Langostinos",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán en hebras",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Pelar los langostinos, reservando las cabezas y cáscaras.",
+      "Pelar y picar la cebolla, el ajo y el pimiento rojo en dados pequeños.",
+      "Calentar aceite de oliva en una cazuela y sofreír las cabezas y cáscaras de langostino 2-3 min para dar sabor, y retirar.",
+      "En el mismo aceite, sofreír la cebolla, el ajo y el pimiento a fuego medio hasta que ablanden, unos 6 min.",
+      "Añadir el pimentón y el tomate triturado y cocinar 2 min.",
+      "Incorporar los garbanzos, el azafrán y el caldo de pescado, y cocer a fuego medio 12-15 min para que se integren los sabores.",
+      "Añadir los langostinos pelados y cocer 2-3 min más, justo hasta que cambien de color.",
+      "Rectificar de sal y servir bien caliente."
+    ],
+    "description": "Potaje de garbanzos dorado con langostinos, un guiso contundente y marinero.",
+    "extraProteins": [
+      "marisco"
+    ]
+  },
+  {
+    "id": "legumbres_040",
+    "name": "Fabada asturiana ligera con compango crujiente",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 130,
+    "difficulty": "elaborada",
+    "season": "invierno",
+    "kcal": 610,
+    "protein_g": 34,
+    "carbs_g": 42,
+    "fat_g": 34,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Fabes de la granja secas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo asturiano",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Morcilla asturiana",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Panceta",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán en hebras",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las fabes en remojo con agua fría la noche anterior.",
+      "Escurrir las fabes y ponerlas en una olla grande cubiertas de agua fría junto con la cebolla entera pelada, el ajo y el laurel.",
+      "Añadir el chorizo y la panceta, dejando la morcilla para más tarde, ya que se desmenuza si cuece demasiado tiempo.",
+      "Llevar a ebullición, desespumar y bajar el fuego al mínimo.",
+      "Cocer tapado 1 h 15 min - 1 h 30 min, \"asustando\" el guiso con un chorro de agua fría cada vez que rompa a hervir fuerte, hasta que las fabes estén tiernas.",
+      "Disolver el azafrán y el pimentón en un cazo con un poco del caldo de cocción y añadir a la olla.",
+      "Incorporar la morcilla entera los últimos 20 min de cocción.",
+      "Mientras tanto, dorar rodajas extra de chorizo y morcilla en una sartén sin aceite hasta que queden crujientes, para decorar por encima.",
+      "Retirar la cebolla, el ajo y el laurel de la olla antes de servir.",
+      "Servir las fabes con el compango troceado y el chorizo y la morcilla crujientes por encima."
+    ],
+    "description": "Fabada asturiana clásica aligerada, con el compango extra dorado y crujiente por encima.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "legumbres_041",
+    "name": "Alubias blancas estofadas con costilla",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 95,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 34,
+    "carbs_g": 38,
+    "fat_g": 30,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Alubias blancas secas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Costilla de cerdo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Laurel",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las alubias en remojo con agua fría la noche anterior.",
+      "Salpimentar la costilla y dorarla en una olla con un poco de aceite de oliva a fuego fuerte por todos los lados. Retirar y reservar.",
+      "En la misma olla, sofreír la cebolla, el ajo, la zanahoria y el pimiento verde picados a fuego medio hasta que ablanden, unos 6 min.",
+      "Añadir el pimentón y el tomate triturado y cocinar 2 min.",
+      "Incorporar las alubias escurridas, la costilla dorada y el laurel.",
+      "Cubrir con agua fría hasta superar los ingredientes 3 cm y llevar a ebullición.",
+      "Desespumar, bajar el fuego al mínimo, tapar y cocer 1 h - 1 h 15 min, hasta que las alubias estén tiernas y la carne se separe fácilmente del hueso.",
+      "Rectificar de sal y dejar reposar 5 min antes de servir."
+    ],
+    "description": "Alubias blancas estofadas con costilla de cerdo, caldo espeso y carne que se deshace."
+  },
+  {
+    "id": "legumbres_042",
+    "name": "Lentejas con verduras de otoño y castañas",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 400,
+    "protein_g": 18,
+    "carbs_g": 55,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Lentejas pardinas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Castañas cocidas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Tomillo fresco",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas bajo el grifo y escurrir.",
+      "Limpiar el puerro y cortarlo en rodajas finas.",
+      "Pelar la zanahoria y la calabaza y cortarlas en dados pequeños.",
+      "Calentar aceite de oliva en una olla y sofreír el puerro y el ajo a fuego medio hasta que ablanden, unos 4 min.",
+      "Añadir la zanahoria y la calabaza y sofreír 4 min más.",
+      "Incorporar las lentejas, el tomillo y el caldo de verduras, y llevar a ebullición.",
+      "Bajar el fuego, tapar y cocer 20 min.",
+      "Añadir las castañas cocidas y cocer 8-10 min más, hasta que las lentejas y las verduras estén tiernas.",
+      "Rectificar de sal y servir bien caliente."
+    ],
+    "description": "Lentejas con verduras de otoño y castañas dulces, un guiso de colores cálidos."
+  },
+  {
+    "id": "legumbres_043",
+    "name": "Ensalada de alubias, atún y pimientos",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 28,
+    "carbs_g": 32,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Alubias blancas cocidas de bote",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en aceite de oliva",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo asado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de jerez",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar bien las alubias blancas de bote.",
+      "Escurrir el atún.",
+      "Cortar el pimiento rojo asado en tiras y la cebolleta en aros finos.",
+      "Mezclar en un bol las alubias, el atún desmigado, el pimiento y la cebolleta.",
+      "Añadir las aceitunas negras y el perejil picado.",
+      "Aliñar con aceite de oliva, vinagre de jerez y sal.",
+      "Remover con cuidado para no romper demasiado las alubias y servir."
+    ],
+    "description": "Ensalada fresca de alubias con atún y pimientos, perfecta para tupper o para plato.",
+    "extraProteins": [
+      "pescado_azul"
+    ]
+  },
+  {
+    "id": "legumbres_044",
+    "name": "Garbanzos con calamares",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 418,
+    "protein_g": 32,
+    "carbs_g": 36,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Calamar limpio",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir y enjuagar los garbanzos cocidos.",
+      "Limpiar el calamar y cortarlo en anillas.",
+      "Pelar y picar la cebolla, el ajo y el pimiento verde.",
+      "Calentar aceite de oliva en una cazuela y sofreír la cebolla, el ajo y el pimiento a fuego medio hasta que ablanden, unos 6 min.",
+      "Añadir el pimentón y el tomate triturado y cocinar 2 min.",
+      "Incorporar el vino blanco y dejar reducir 1 min.",
+      "Añadir las anillas de calamar y saltear 2 min a fuego fuerte.",
+      "Incorporar los garbanzos y un poco de agua o caldo, y cocer 8-10 min a fuego medio para que se integren los sabores sin que el calamar quede duro.",
+      "Rectificar de sal, espolvorear con perejil picado y servir."
+    ],
+    "description": "Garbanzos guisados con anillas tiernas de calamar en un sofrito oscuro y sabroso.",
+    "extraProteins": [
+      "marisco"
+    ]
+  },
+  {
+    "id": "legumbres_045",
+    "name": "Hummus de remolacha y comino",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "batidora",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 300,
+    "protein_g": 10,
+    "carbs_g": 28,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Remolacha cocida",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir los garbanzos cocidos y la remolacha cocida y trocear esta última en dados.",
+      "Pelar el ajo y retirar el germen central si lo tiene para que no amargue.",
+      "Añadir los garbanzos, la remolacha, el ajo, el tahini, el zumo de limón y el comino al vaso de la batidora.",
+      "Triturar a máxima potencia hasta obtener una pasta homogénea, parando para bajar los restos de las paredes si hace falta.",
+      "Añadir el aceite de oliva en hilo mientras se tritura de nuevo hasta que quede cremoso y de un magenta uniforme.",
+      "Probar y ajustar de limón o comino si hace falta; triturar 20 segundos más si la textura sigue densa.",
+      "Extender el hummus en un plato hondo formando un surco con el dorso de una cuchara.",
+      "Terminar con un chorrito de aceite de oliva y una pizca de comino por encima antes de servir."
+    ],
+    "description": "Crema de garbanzos y remolacha de color magenta intenso, con el aroma cálido del comino."
+  },
+  {
+    "id": "legumbres_046",
+    "name": "Potaje de vigilia con bacalao y espinacas",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "pescado_blanco"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 390,
+    "protein_g": 29,
+    "carbs_g": 34,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Alubias blancas cocidas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Bacalao desalado",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Desmigar el bacalao desalado con los dedos en lascas medianas y reservar.",
+      "Picar la cebolla en dados finos y laminar el ajo.",
+      "Calentar el aceite de oliva en una olla a fuego medio y sofreír la cebolla hasta que esté transparente, unos 5 min.",
+      "Añadir el ajo laminado y sofreír 1-2 min más sin que se queme.",
+      "Retirar la olla del fuego un momento, incorporar el pimentón y remover; volver al fuego y añadir el tomate triturado.",
+      "Sofreír el tomate a fuego medio hasta que reduzca, unos 4 min.",
+      "Incorporar las alubias cocidas, cubrir con agua o caldo hasta superarlas ligeramente y llevar a ebullición.",
+      "Añadir las espinacas, tapar y cocer a fuego suave 10 min hasta que el caldo espese ligeramente.",
+      "Incorporar el bacalao desmigado, remover con suavidad y cocer 4 min más hasta que esté hecho.",
+      "Servir bien caliente en platos hondos, repartiendo las lascas de bacalao por encima."
+    ],
+    "description": "Potaje de vigilia con alubias blancas, bacalao desmigado y espinacas."
+  },
+  {
+    "id": "legumbres_047",
+    "name": "Lentejas estofadas con calabaza",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 365,
+    "protein_g": 17,
+    "carbs_g": 55,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 18,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas bajo el grifo en un colador hasta que el agua salga limpia y escurrir.",
+      "Pelar la calabaza y cortarla en dados de unos 2 cm.",
+      "Pelar y picar la cebolla, el ajo y la zanahoria en dados pequeños.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y el ajo a fuego medio hasta que estén transparentes, unos 4 min.",
+      "Añadir la zanahoria y sofreír 3 min más.",
+      "Incorporar el tomate triturado y el comino y sofreír hasta que el tomate pierda el agua, unos 3 min.",
+      "Añadir las lentejas escurridas y la calabaza en dados y remover para que se impregnen del sofrito.",
+      "Cubrir con agua hasta superar los ingredientes unos 3 cm y llevar a ebullición a fuego fuerte.",
+      "Bajar el fuego, tapar y cocer a fuego suave hasta que las lentejas y la calabaza estén tiernas, unos 25 min.",
+      "Rectificar de sal y servir bien caliente, con la calabaza deshaciéndose ligeramente en el caldo."
+    ],
+    "description": "Lentejas guisadas con calabaza que se deshace en el caldo, dulces y reconfortantes."
+  },
+  {
+    "id": "legumbres_048",
+    "name": "Alubias pintas con costillas de cerdo",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 90,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 640,
+    "protein_g": 34,
+    "carbs_g": 45,
+    "fat_g": 32,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Alubias pintas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Costillas de cerdo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Hoja de laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Poner las alubias pintas en remojo con agua fría abundante la noche anterior, mínimo 8 horas.",
+      "Escurrir las alubias y reservar. Trocear las costillas en piezas de unos 4 cm si el carnicero no lo ha hecho.",
+      "Picar la cebolla, el pimiento verde y el ajo en dados pequeños.",
+      "Calentar el aceite en una olla y dorar las costillas por todos los lados a fuego fuerte, unos 6 min. Retirar y reservar.",
+      "En el mismo aceite, sofreír la cebolla, el pimiento y el ajo a fuego medio hasta que estén blandos, unos 6 min.",
+      "Añadir el pimentón fuera del fuego, remover y volver a poner al fuego junto con el tomate triturado.",
+      "Sofreír el tomate 3 min, incorporar las alubias escurridas, las costillas doradas y la hoja de laurel.",
+      "Cubrir con agua fría hasta superar los ingredientes unos 4 cm y llevar a ebullición.",
+      "Tapar, bajar el fuego y cocer a fuego suave hasta que las alubias y la carne estén tiernas, 60-70 min, añadiendo agua caliente si reduce demasiado.",
+      "Retirar el laurel y servir el guiso bien caliente y espeso."
+    ],
+    "description": "Guiso espeso de alubias pintas y costilla de cerdo, con la carne deshaciéndose de tierna."
+  },
+  {
+    "id": "legumbres_049",
+    "name": "Ensalada tibia de lentejas y salmón ahumado",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "pescado_azul"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 27,
+    "carbs_g": 32,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Lentejas cocidas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Salmón ahumado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolleta",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Rúcula",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Eneldo fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de manzana",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Calentar las lentejas cocidas en un cazo a fuego suave con una cucharada de agua hasta que estén templadas, unos 4 min.",
+      "Picar la cebolleta muy fina y el eneldo fresco.",
+      "Cortar el salmón ahumado en tiras o lascas de bocado.",
+      "En un bol pequeño, mezclar el aceite de oliva y el vinagre de manzana para el aliño.",
+      "Repartir la rúcula en la base de los platos.",
+      "Añadir las lentejas templadas encima de la rúcula y aliñar con la vinagreta.",
+      "Repartir el salmón ahumado, la cebolleta picada y el eneldo por encima.",
+      "Servir enseguida mientras las lentejas están aún templadas."
+    ],
+    "description": "Lentejas templadas con salmón ahumado, cebolleta y eneldo sobre un fondo de rúcula."
+  },
+  {
+    "id": "legumbres_050",
+    "name": "Garbanzos fritos crujientes especiados",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 320,
+    "protein_g": 12,
+    "carbs_g": 30,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón picante",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo en polvo",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escurrir bien los garbanzos cocidos y secarlos con papel de cocina hasta que queden lo más secos posible.",
+      "Calentar el aceite de oliva en una sartén amplia a fuego medio-fuerte.",
+      "Añadir los garbanzos en una sola capa y freír sin mover durante 3-4 min hasta que empiecen a dorarse por debajo.",
+      "Saltear removiendo con frecuencia hasta que estén dorados y crujientes por todos los lados, unos 8-10 min en total.",
+      "Retirar del fuego y escurrir sobre papel absorbente un par de minutos.",
+      "Espolvorear el pimentón picante, el comino y el ajo en polvo mientras aún están calientes y remover para que se peguen bien.",
+      "Servir templados en un bol para picar con las manos."
+    ],
+    "description": "Garbanzos dorados y crujientes por fuera, especiados para picotear recién hechos."
+  },
+  {
+    "id": "legumbres_051",
+    "name": "Judías verdes con garbanzos y jamón",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 340,
+    "protein_g": 20,
+    "carbs_g": 32,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Judías verdes",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Despuntar las judías verdes, retirar los hilos si tienen y cortarlas en trozos de unos 4 cm.",
+      "Cocer las judías verdes en agua con sal hasta que estén tiernas pero firmes, unos 10 min, y escurrir.",
+      "Picar la cebolla y el ajo finos y cortar el jamón serrano en taquitos pequeños.",
+      "Calentar el aceite de oliva en una sartén amplia y sofreír la cebolla y el ajo a fuego medio hasta que estén blandos, unos 5 min.",
+      "Añadir el jamón en taquitos y saltear 2 min hasta que suelte su aroma.",
+      "Incorporar el tomate triturado y sofreír 2 min más.",
+      "Añadir las judías verdes escurridas y los garbanzos cocidos y saltear todo junto a fuego medio-fuerte 4-5 min.",
+      "Rectificar de sal con cuidado, ya que el jamón aporta salinidad, y servir bien caliente."
+    ],
+    "description": "Judías verdes salteadas con garbanzos y virutas de jamón serrano."
+  },
+  {
+    "id": "legumbres_052",
+    "name": "Alubiada con butifarra y costilla",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 100,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 680,
+    "protein_g": 36,
+    "carbs_g": 48,
+    "fat_g": 36,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Alubias blancas",
+        "amount": 220,
+        "unit": "g"
+      },
+      {
+        "name": "Butifarra",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Costilla de cerdo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Hoja de laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Poner las alubias blancas en remojo con agua fría abundante la noche anterior, mínimo 8 horas.",
+      "Escurrir las alubias. Picar la cebolla, la zanahoria y el ajo en dados pequeños.",
+      "Calentar el aceite en una olla y dorar la costilla de cerdo por todos los lados a fuego fuerte, unos 5 min. Reservar.",
+      "En el mismo aceite, sofreír la cebolla, la zanahoria y el ajo a fuego medio hasta que estén blandos, unos 6 min.",
+      "Añadir el tomate triturado y sofreír 3 min más.",
+      "Incorporar las alubias escurridas, la costilla dorada y la hoja de laurel a la olla.",
+      "Cubrir con agua fría hasta superar los ingredientes unos 4 cm y llevar a ebullición, espumando si sale espuma.",
+      "Tapar, bajar el fuego y cocer a fuego suave 50 min.",
+      "Añadir la butifarra entera y seguir cociendo 20-25 min más hasta que las alubias y la carne estén tiernas.",
+      "Retirar el laurel, cortar la butifarra en rodajas y servir el guiso bien caliente y espeso."
+    ],
+    "description": "Guiso catalán de alubias con butifarra y costilla de cerdo, generoso y de cuchara."
+  },
+  {
+    "id": "legumbres_053",
+    "name": "Garbanzos con pulpo",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "marisco"
+    ],
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 28,
+    "carbs_g": 34,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "moluscos"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pulpo cocido",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla y el ajo en dados pequeños.",
+      "Cortar el pulpo cocido en rodajas de un dedo de grosor.",
+      "Calentar la mitad del aceite de oliva en una cazuela y sofreír la cebolla y el ajo a fuego medio hasta que estén transparentes, unos 6 min.",
+      "Retirar la cazuela del fuego un momento, añadir el pimentón dulce y remover rápido para que no se queme.",
+      "Incorporar los garbanzos cocidos con un chorrito de su propio caldo o agua y remover para integrar con el sofrito.",
+      "Cocer a fuego suave 8-10 min para que los garbanzos absorban el sabor del pimentón.",
+      "Añadir las rodajas de pulpo y calentar 3-4 min a fuego suave, sin que hierva fuerte para que no quede duro.",
+      "Repartir en platos, rociar con el resto del aceite de oliva en crudo y espolvorear con perejil fresco picado."
+    ],
+    "description": "Garbanzos guisados en un suave sofrito de pimentón con rodajas de pulpo tierno."
+  },
+  {
+    "id": "legumbres_054",
+    "name": "Lentejas con morcilla y manzana",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 24,
+    "carbs_g": 50,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Morcilla de Burgos",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Manzana",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas bajo el grifo en un colador hasta que el agua salga limpia y escurrir.",
+      "Picar la cebolla y la zanahoria en dados pequeños. Pelar la manzana y cortarla en dados algo más grandes.",
+      "Calentar el aceite de oliva en una olla y sofreír la cebolla y la zanahoria a fuego medio hasta que estén blandas, unos 5 min.",
+      "Retirar del fuego, añadir el pimentón y remover; volver a poner al fuego un instante.",
+      "Incorporar las lentejas escurridas y cubrir con agua hasta superarlas unos 3 cm. Llevar a ebullición.",
+      "Bajar el fuego, tapar y cocer a fuego suave 20 min.",
+      "Retirar la piel de la morcilla si es muy gruesa, desmenuzarla en trozos y añadirla a la olla junto con la manzana en dados.",
+      "Cocer 10 min más sin tapar, hasta que la manzana esté tierna y el guiso haya espesado.",
+      "Dejar reposar 3 min fuera del fuego y servir bien caliente."
+    ],
+    "description": "Lentejas guisadas con morcilla desmenuzada y dados de manzana, un contraste dulce y sabroso."
+  },
+  {
+    "id": "legumbres_055",
+    "name": "Potaje de habichuelas con conejo",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "pollo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 75,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 480,
+    "protein_g": 30,
+    "carbs_g": 42,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Judías blancas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Conejo troceado",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Hoja de laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Poner las judías blancas en remojo con agua fría abundante la noche anterior, mínimo 8 horas.",
+      "Escurrir las judías. Picar la cebolla, el pimiento rojo y el ajo en dados pequeños.",
+      "Calentar el aceite en una olla y dorar los trozos de conejo por todos los lados a fuego fuerte, unos 6 min. Reservar.",
+      "En el mismo aceite, sofreír la cebolla, el pimiento y el ajo a fuego medio hasta que estén blandos, unos 6 min.",
+      "Retirar del fuego, añadir el pimentón y remover; volver al fuego e incorporar el tomate triturado, sofriendo 3 min más.",
+      "Añadir las judías escurridas, el conejo dorado y la hoja de laurel a la olla.",
+      "Cubrir con agua fría hasta superar los ingredientes unos 4 cm y llevar a ebullición.",
+      "Tapar, bajar el fuego y cocer a fuego suave hasta que las judías y el conejo estén tiernos, 50-55 min, añadiendo agua caliente si reduce demasiado.",
+      "Retirar el laurel y servir el potaje bien caliente, con el caldo espeso."
+    ],
+    "description": "Potaje suave de judías blancas con conejo, de caldo espeso y sabroso."
+  },
+  {
+    "id": "legumbres_056",
+    "name": "Ensalada de garbanzos asados crujientes con feta",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 16,
+    "carbs_g": 32,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Queso feta",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomates cherry",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla roja",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano seco",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C con calor arriba y abajo.",
+      "Escurrir y secar bien los garbanzos cocidos con papel de cocina.",
+      "Mezclar los garbanzos con la mitad del aceite de oliva, el comino y una pizca de sal en una bandeja de horno.",
+      "Hornear los garbanzos 20-25 min, removiendo a mitad de cocción, hasta que estén dorados y crujientes.",
+      "Mientras se hornean, cortar los tomates cherry por la mitad, el pepino en dados y la cebolla roja en juliana fina.",
+      "Desmenuzar el queso feta en trozos irregulares con las manos o un tenedor.",
+      "Mezclar en un bol los tomates, el pepino y la cebolla roja con el resto del aceite, el zumo de limón y el orégano.",
+      "Añadir los garbanzos asados aún templados y el feta desmenuzado por encima y mezclar con suavidad antes de servir."
+    ],
+    "description": "Garbanzos asados hasta quedar crujientes sobre una ensalada fresca con feta desmenuzado."
+  },
+  {
+    "id": "legumbres_057",
+    "name": "Alubias negras con arroz estilo cubano",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "mainBase": "arroz",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 16,
+    "carbs_g": 82,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Alubias negras cocidas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz blanco",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Hoja de laurel",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Cocer el arroz blanco en agua con sal según el tiempo indicado en el envase y reservar escurrido.",
+      "Picar la cebolla, el pimiento verde y el ajo en dados pequeños.",
+      "Calentar el aceite de oliva en una sartén amplia y sofreír la cebolla y el pimiento a fuego medio hasta que estén blandos, unos 6 min.",
+      "Añadir el ajo y el comino y sofreír 1 min más hasta que suelten aroma.",
+      "Incorporar las alubias negras escurridas junto con un poco de su caldo y la hoja de laurel.",
+      "Cocer a fuego suave 10-12 min, aplastando ligeramente algunas alubias con el dorso de la cuchara para espesar el conjunto.",
+      "Retirar la hoja de laurel y rectificar de sal.",
+      "Servir las alubias negras junto al arroz blanco, uno al lado del otro en el plato."
+    ],
+    "description": "Alubias negras guisadas al estilo cubano, servidas junto a arroz blanco suelto."
+  },
+  {
+    "id": "legumbres_058",
+    "name": "Garbanzos con curry y espinacas",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 16,
+    "carbs_g": 40,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Leche de coco",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla en dados finos y el ajo y el jengibre bien picados.",
+      "Calentar el aceite de oliva en una sartén amplia y sofreír la cebolla a fuego medio hasta que esté transparente, unos 5 min.",
+      "Añadir el ajo y el jengibre y sofreír 1 min más hasta que suelten aroma.",
+      "Incorporar el curry en polvo y remover 30 segundos para que tueste ligeramente sin quemarse.",
+      "Añadir el tomate triturado y sofreír 2 min.",
+      "Incorporar los garbanzos cocidos y la leche de coco, remover bien y llevar a ebullición suave.",
+      "Cocer a fuego medio-bajo 8 min para que el guiso espese y los sabores se integren.",
+      "Añadir las espinacas y cocer 2-3 min más hasta que se ablanden.",
+      "Rectificar de sal y servir bien caliente."
+    ],
+    "description": "Garbanzos en un guiso de curry cremoso con espinacas, rápido y de sabor potente."
+  },
+  {
+    "id": "legumbres_059",
+    "name": "Lentejas con salchichas y pimentón",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 24,
+    "carbs_g": 48,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Lentejas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Salchichas frescas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar las lentejas bajo el grifo en un colador hasta que el agua salga limpia y escurrir.",
+      "Picar la cebolla, la zanahoria y el ajo en dados pequeños.",
+      "Cortar las salchichas en rodajas de un dedo de grosor.",
+      "Calentar el aceite en una olla y dorar las salchichas a fuego medio-fuerte 3 min. Reservar.",
+      "En el mismo aceite, sofreír la cebolla, la zanahoria y el ajo a fuego medio hasta que estén blandos, unos 5 min.",
+      "Retirar del fuego, añadir el pimentón y remover; volver al fuego e incorporar el tomate triturado, sofriendo 3 min.",
+      "Añadir las lentejas escurridas y cubrir con agua hasta superarlas unos 3 cm. Llevar a ebullición.",
+      "Tapar, bajar el fuego y cocer a fuego suave 20 min.",
+      "Incorporar de nuevo las salchichas doradas y cocer 5 min más hasta que las lentejas estén tiernas.",
+      "Servir bien caliente en platos hondos."
+    ],
+    "description": "Lentejas guisadas con salchichas y el rojo del pimentón, un plato de toda la vida."
+  },
+  {
+    "id": "legumbres_060",
+    "name": "Hummus de calabaza asada",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 40,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 320,
+    "protein_g": 9,
+    "carbs_g": 32,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C con calor arriba y abajo.",
+      "Pelar la calabaza, cortarla en dados de 2 cm y colocarla en una bandeja de horno.",
+      "Regar la calabaza con un poco de aceite de oliva y hornear 25 min hasta que esté blanda y ligeramente dorada.",
+      "Dejar templar la calabaza asada unos minutos.",
+      "Añadir los garbanzos cocidos, la calabaza asada, el tahini, el zumo de limón, el ajo y el comino al vaso de la batidora.",
+      "Triturar a máxima potencia hasta obtener una crema homogénea.",
+      "Añadir el aceite de oliva en hilo mientras se tritura de nuevo hasta que quede cremoso.",
+      "Probar y ajustar de sal o limón, extender en un plato hondo y terminar con un chorrito de aceite de oliva."
+    ],
+    "description": "Hummus suave con el dulzor de la calabaza asada, sorprendente y cremoso."
+  },
+  {
+    "id": "legumbres_061",
+    "name": "Alubias blancas con setas y romero",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 380,
+    "protein_g": 16,
+    "carbs_g": 40,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Alubias blancas cocidas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Setas variadas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 70,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Romero fresco",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Limpiar las setas con un paño húmedo y trocearlas si son grandes.",
+      "Picar la cebolla y el ajo en dados finos.",
+      "Calentar el aceite de oliva en una cazuela y sofreír la cebolla a fuego medio hasta que esté transparente, unos 5 min.",
+      "Añadir el ajo y las setas y saltear a fuego medio-fuerte hasta que las setas suelten su agua y se doren, unos 6 min.",
+      "Añadir el romero fresco picado y el vino blanco, subir el fuego y dejar que el alcohol se evapore, unos 2 min.",
+      "Incorporar las alubias blancas cocidas con un poco de su caldo y remover.",
+      "Cocer a fuego suave 10 min para que los sabores se integren.",
+      "Añadir la nata para cocinar, remover y cocer 3 min más sin que llegue a hervir fuerte.",
+      "Rectificar de sal y servir bien caliente."
+    ],
+    "description": "Alubias blancas en un guiso cremoso con setas salteadas y aroma a romero fresco."
+  },
+  {
+    "id": "legumbres_062",
+    "name": "Garbanzos con chorizo y huevo frito",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "cerdo",
+      "huevo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 580,
+    "protein_g": 28,
+    "carbs_g": 40,
+    "fat_g": 34,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla y el ajo en dados finos y cortar el chorizo en rodajas.",
+      "Calentar la mitad del aceite de oliva en una sartén y sofreír la cebolla y el ajo a fuego medio hasta que estén blandos, unos 5 min.",
+      "Añadir el chorizo en rodajas y saltear 3 min hasta que suelte su grasa y aroma.",
+      "Retirar del fuego, añadir el pimentón y remover; volver al fuego e incorporar el tomate triturado, sofriendo 2 min.",
+      "Añadir los garbanzos cocidos con un poco de agua o caldo y cocer a fuego medio 8 min removiendo de vez en cuando.",
+      "Mientras tanto, calentar el resto del aceite de oliva en otra sartén a fuego fuerte.",
+      "Freír los huevos uno a uno hasta que la clara esté cuajada y crujiente por el borde y la yema quede jugosa.",
+      "Repartir los garbanzos con chorizo en dos platos y coronar cada uno con un huevo frito recién hecho.",
+      "Servir enseguida, rompiendo la yema al comer."
+    ],
+    "description": "Garbanzos guisados con chorizo, con la puntilla crujiente de un huevo frito encima."
+  },
+  {
+    "id": "legumbres_063",
+    "name": "Cocido madrileño en tres vuelcos",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "ternera",
+      "cerdo",
+      "pollo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 150,
+    "difficulty": "facil",
+    "season": "invierno",
+    "kcal": 610,
+    "protein_g": 37,
+    "carbs_g": 38,
+    "fat_g": 31,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Morcillo de ternera",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pollo",
+        "amount": 240,
+        "unit": "g"
+      },
+      {
+        "name": "Tocino",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Hueso de jamón",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Morcilla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Repollo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Fideos finos",
+        "amount": 80,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner los garbanzos en remojo con agua fría abundante la noche anterior, mínimo 12 horas.",
+      "Escurrir los garbanzos. Pelar la patata y la zanahoria y cortarlas en trozos grandes. Cortar el repollo en cuartos.",
+      "Colocar el morcillo de ternera, el pollo, el tocino y el hueso de jamón en una olla grande y cubrir con agua fría abundante.",
+      "Llevar a ebullición a fuego fuerte y espumar la superficie con una espumadera hasta que el caldo salga limpio.",
+      "Añadir los garbanzos escurridos y la zanahoria, bajar el fuego a suave, tapar y cocer 1 hora.",
+      "Incorporar la patata, el repollo y el chorizo entero; tapar y cocer 30 min más hasta que la patata esté tierna.",
+      "Añadir la morcilla los últimos 10 min de cocción para que no se deshaga.",
+      "Colar parte del caldo, llevarlo a ebullición en un cazo aparte y cocer los fideos finos 3-4 min: este es el primer vuelco, la sopa.",
+      "Servir después el segundo vuelco, los garbanzos con la zanahoria, la patata y el repollo bien escurridos.",
+      "Terminar con el tercer vuelco: trinchar el morcillo, el pollo, el tocino, el chorizo y la morcilla y servir en una fuente aparte."
+    ],
+    "description": "El cocido de siempre servido en sus tres vuelcos: sopa, garbanzos con verdura y carnes, la comida que resuelve varios días."
+  },
+  {
+    "id": "legumbres_064",
+    "name": "Sopa de cocido con fideos finos",
+    "category": "legumbres",
+    "mainProtein": "none",
+    "mealRole": [
+      "primero",
+      "cena"
+    ],
+    "type": "completo",
+    "mainBase": "pasta",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "invierno",
+    "kcal": 180,
+    "protein_g": 6,
+    "carbs_g": 28,
+    "fat_g": 5,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Caldo de cocido",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Fideos finos",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Colar el caldo de cocido para retirar cualquier resto de verdura o grasa suelta.",
+      "Verter el caldo en una olla y llevarlo a ebullición a fuego fuerte.",
+      "Añadir los fideos finos y remover para que no se peguen entre sí.",
+      "Cocer a fuego medio 3-4 min, o el tiempo indicado en el envase, hasta que los fideos estén sueltos y tiernos.",
+      "Retirar del fuego y dejar reposar 1 min.",
+      "Picar el perejil fresco y espolvorearlo por encima.",
+      "Servir bien caliente en tazones hondos."
+    ],
+    "description": "El primer vuelco del cocido servido solo: caldo dorado con fideos finos recién cocidos."
+  },
+  {
+    "id": "legumbres_065",
+    "name": "Ropa vieja de cocido con garbanzos",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "ternera",
+      "cerdo",
+      "pollo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 32,
+    "carbs_g": 30,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Carne de cocido variada",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Desmenuzar con las manos o dos tenedores la carne sobrante del cocido en tiras finas.",
+      "Picar la cebolla, el pimiento verde y el ajo en dados pequeños.",
+      "Calentar el aceite de oliva en una sartén amplia y sofreír la cebolla y el pimiento a fuego medio hasta que estén blandos, unos 6 min.",
+      "Añadir el ajo y sofreír 1 min más.",
+      "Retirar del fuego, añadir el pimentón y remover; volver al fuego e incorporar el tomate triturado, sofriendo 2 min.",
+      "Añadir la carne desmenuzada y saltear a fuego medio-fuerte 4-5 min hasta que se dore ligeramente.",
+      "Incorporar los garbanzos cocidos y saltear todo junto 4 min más hasta que estén bien calientes.",
+      "Rectificar de sal y servir bien caliente, con la carne dorada por los bordes."
+    ],
+    "description": "La carne y el garbanzo sobrantes del cocido, salteados y dorados en la sartén del día siguiente."
+  },
+  {
+    "id": "legumbres_066",
+    "name": "Puchero andaluz con hierbabuena",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "extraProteins": [
+      "pollo",
+      "cerdo"
+    ],
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 100,
+    "difficulty": "facil",
+    "season": "invierno",
+    "kcal": 520,
+    "protein_g": 28,
+    "carbs_g": 42,
+    "fat_g": 24,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Garbanzos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Pollo troceado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Tocino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Hierbabuena fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Poner los garbanzos en remojo con agua fría abundante la noche anterior, mínimo 12 horas.",
+      "Escurrir los garbanzos. Pelar la patata y la calabaza y cortarlas en trozos grandes. Despuntar las judías verdes.",
+      "Picar la cebolla y el tomate. Colocar el pollo troceado y el tocino en una olla grande y cubrir con agua fría abundante.",
+      "Llevar a ebullición a fuego fuerte y espumar la superficie hasta que el caldo salga limpio.",
+      "Añadir la cebolla, el tomate, el aceite de oliva y los garbanzos escurridos; bajar el fuego, tapar y cocer 45 min.",
+      "Incorporar la patata, las judías verdes, la calabaza y el chorizo entero.",
+      "Cocer 30 min más a fuego suave hasta que la patata y los garbanzos estén tiernos.",
+      "Añadir la hierbabuena fresca picada los últimos 5 min de cocción para que perfume el caldo sin perder aroma.",
+      "Retirar el chorizo y el tocino, cortarlos en rodajas y devolverlos a la olla o servirlos aparte.",
+      "Servir el puchero bien caliente, repartiendo caldo, garbanzos, verduras y carne en cada plato."
+    ],
+    "description": "Puchero de garbanzos y pollo perfumado con hierbabuena fresca, distinto del cocido del norte."
+  },
+  {
+    "id": "legumbres_067",
+    "name": "Buddha bowl de garbanzos asados y tahini",
+    "category": "legumbres",
+    "mainProtein": "legumbre",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "mainBase": "quinoa",
+    "requiredAppliance": "horno",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 18,
+    "carbs_g": 46,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "sesamo"
+    ],
+    "ingredients": [
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Quinoa",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Boniato",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Rúcula",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tahini",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Comino molido",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón ahumado",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C con calor arriba y abajo.",
+      "Pelar el boniato y cortarlo en dados de 2 cm.",
+      "Escurrir y secar los garbanzos cocidos con papel de cocina.",
+      "Mezclar el boniato y los garbanzos con la mitad del aceite de oliva, el comino y el pimentón ahumado en una bandeja de horno.",
+      "Hornear 25 min, removiendo a mitad de cocción, hasta que el boniato esté tierno y los garbanzos crujientes.",
+      "Mientras tanto, cocer la quinoa en agua con sal según el tiempo del envase, escurrir y dejar templar.",
+      "Preparar el aliño de tahini mezclando el tahini, el zumo de limón, el resto del aceite de oliva y un par de cucharadas de agua hasta que quede fluido.",
+      "Cortar el aguacate en láminas.",
+      "Repartir en dos boles la quinoa, la rúcula, el boniato y los garbanzos asados, y el aguacate en láminas.",
+      "Terminar cada bowl con un buen chorro del aliño de tahini por encima."
+    ],
+    "description": "Cuencos de colores con garbanzos asados crujientes, quinoa, boniato y un aliño cremoso de tahini."
   }
 ]

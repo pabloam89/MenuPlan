@@ -47,7 +47,12 @@ const AUDIT_KEYWORDS = {
     "leche", "nata", "queso", "yogur", "mantequilla", "requeson", "mozzarella", "parmesano",
     "cuajada", "bechamel", "besamel", "mascarpone", "ricotta", "kefir", "crema pastelera",
   ],
-  frutos_secos: ["almendra", "nuez", "nueces", "avellana", "pistacho", "anacardo", "pinon", "macadamia", "castana"],
+  // "castana" (chestnut) deliberately excluded: botanically and legally it's
+  // not one of the EU-regulated tree nuts (Reglamento (UE) 1169/2011 anexo II
+  // solo lista almendra/avellana/nuez/anacardo/pacana/nuez de Brasil/
+  // pistacho/macadamia), así que declararlo "frutos_secos" sería alarmar de
+  // un alérgeno que la castaña no porta.
+  frutos_secos: ["almendra", "nuez", "nueces", "avellana", "pistacho", "anacardo", "pinon", "macadamia"],
   sesamo: ["sesamo", "tahini", "gomasio"],
   moluscos: [
     "calamar", "sepia", "pulpo", "mejillon", "almeja", "chirla", "navaja", "coquina",
@@ -63,6 +68,15 @@ function ingredientHitsAllergen(name, allergenId) {
   const n = normalizeText(name);
   if (allergenId === "frutos_secos" && /nuez moscada/.test(n)) return false; // nutmeg, not a tree nut
   if (allergenId === "gluten" && /\bcaldo\b/.test(n)) return false; // stock, no wheat by itself
+  // "pasta" también significa "pasta/puré" en español (pasta de miso, ají en
+  // pasta...), no solo la pasta de trigo — sin esta exclusión el matcher
+  // marca falsos positivos de gluten en salsas/condimentos sin harina.
+  if (allergenId === "gluten" && /pasta de (miso|curry|tomate|pimenton|aji|guindilla|umami)|en pasta\b/.test(n)) return false;
+  // "leche de coco" y las mantequillas de fruto seco/semilla no son lácteos:
+  // el matcher de "lactosa" solo mira la palabra "leche"/"mantequilla" suelta,
+  // así que hay que excluir explícitamente estos falsos positivos.
+  if (allergenId === "lactosa" && /leche de coco/.test(n)) return false;
+  if (allergenId === "lactosa" && /mantequilla de (cacahuete|almendra|anacardo|avellana)/.test(n)) return false;
   return COMPILED[allergenId].test(n);
 }
 

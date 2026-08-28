@@ -110,7 +110,7 @@ describe("generateUserRecipeDraft ingredients", () => {
 });
 
 describe("patchUserRecipeClassification", () => {
-  it("maps cena rápida to category and cena role", () => {
+  it("maps cena rápida to the montaje axis and the cena role, leaving category alone", () => {
     const base = {
       id: "user_test",
       category: "pasta_arroces",
@@ -119,8 +119,28 @@ describe("patchUserRecipeClassification", () => {
       mealRole: ["segundo"],
     };
     const next = patchUserRecipeClassification(base, { quickDinner: true, mealRole: ["segundo", "cena"] });
-    expect(next.category).toBe("cenas_rapidas");
+    // "Cena rápida" ya no secuestra `category`: es su propio eje. Que el plato
+    // siga siendo de pasta y ADEMÁS sea cena rápida es justo lo que el enum de
+    // valor único no podía expresar.
+    expect(next.montaje).toBe(true);
+    expect(next.category).toBe("pasta_arroces");
     expect(next.mealRole).toContain("cena");
+  });
+
+  it("keeps the deprecated category on recipes that already carried it", () => {
+    // Las recetas de usuario ya guardadas nunca se migran (el enum de Postgres
+    // conserva el valor), así que reclasificarlas no debe reescribir su
+    // category — solo añadir el eje nuevo.
+    const legacy = {
+      id: "user_legacy",
+      category: "cenas_rapidas",
+      usageTags: ["plato_normal"],
+      type: "principal",
+      mealRole: ["cena"],
+    };
+    const next = patchUserRecipeClassification(legacy, {});
+    expect(next.montaje).toBe(true);
+    expect(next.category).toBe("cenas_rapidas");
   });
 });
 

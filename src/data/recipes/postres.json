@@ -1682,5 +1682,1421 @@
         "kind": "emplatado"
       }
     ]
+  },
+  {
+    "id": "postres_019",
+    "name": "Tarta de queso vasca",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 65,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 580,
+    "protein_g": 9,
+    "carbs_g": 29,
+    "fat_g": 46,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "huevo",
+      "gluten"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Queso crema",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para montar",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 220,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 5,
+        "unit": "ud"
+      },
+      {
+        "name": "Harina",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 220 °C con calor arriba y abajo.",
+      "Forrar un molde desmontable de 22 cm con papel de horno, dejando que sobresalga por los bordes.",
+      "Batir el queso crema con la azúcar y la sal hasta lograr una crema lisa sin grumos.",
+      "Añadir los huevos de uno en uno, batiendo bien después de cada uno.",
+      "Incorporar la nata poco a poco sin dejar de batir hasta integrarla por completo.",
+      "Tamizar la harina sobre la mezcla y batir a velocidad baja solo hasta que desaparezca.",
+      "Verter la mezcla en el molde forrado.",
+      "Hornear 45-50 min, hasta que la superficie esté muy oscura y el centro tiemble ligeramente al mover el molde.",
+      "Dejar enfriar dentro del molde a temperatura ambiente al menos 1 h antes de desmoldar.",
+      "Refrigerar un mínimo de 3 h antes de cortar en porciones."
+    ],
+    "description": "Tarta de queso cremosa y quemada por fuera al estilo vasco, sin base de galleta."
+  },
+  {
+    "id": "postres_020",
+    "name": "Tarta Tatin de manzana caramelizada",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 70,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 3,
+    "carbs_g": 65,
+    "fat_g": 23,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Manzana reineta",
+        "amount": 1000,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Hojaldre",
+        "amount": 230,
+        "unit": "g"
+      },
+      {
+        "name": "Canela en polvo",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Pelar las manzanas, descorazonarlas y cortarlas por la mitad.",
+      "Fundir la mantequilla en una sartén apta para horno de 24 cm y añadir la azúcar, sin remover, hasta lograr un caramelo dorado.",
+      "Retirar del fuego y colocar las mitades de manzana bien apretadas sobre el caramelo, con la parte redondeada hacia abajo. Espolvorear con la canela.",
+      "Volver a poner la sartén a fuego medio-bajo 8-10 min, hasta que las manzanas empiecen a ablandarse por la base.",
+      "Extender la lámina de hojaldre sobre la sartén cubriendo las manzanas y remeter los bordes hacia dentro con una cuchara.",
+      "Pinchar el hojaldre con un tenedor y hornear 25-30 min, hasta que esté dorado y crujiente.",
+      "Dejar templar 5 min fuera del horno.",
+      "Colocar un plato grande boca abajo sobre la sartén y volcar con cuidado (usar guantes, el caramelo quema) para desmoldar con las manzanas arriba.",
+      "Servir templada, cortada en porciones."
+    ],
+    "description": "Tarta de manzana caramelizada que se vuelca al servir, con el caramelo brillante quedando por encima."
+  },
+  {
+    "id": "postres_021",
+    "name": "Brownie de chocolate con nueces",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 500,
+    "protein_g": 6,
+    "carbs_g": 48,
+    "fat_g": 31,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo",
+      "frutos_secos"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Chocolate negro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Harina",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Nueces",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cacao en polvo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 180 °C. Forrar un molde rectangular de 20x20 cm con papel de horno.",
+      "Trocear el chocolate y fundirlo con la mantequilla al baño maría o en el microondas en tandas de 30 s.",
+      "Dejar templar el chocolate fundido 5 min.",
+      "Batir los huevos con la azúcar hasta que blanqueen ligeramente.",
+      "Incorporar el chocolate fundido templado y mezclar bien.",
+      "Tamizar la harina, el cacao y la sal sobre la mezcla y remover con espátula solo hasta que no queden restos de harina.",
+      "Añadir las nueces troceadas y repartir la masa en el molde.",
+      "Hornear 22-25 min, hasta que la superficie esté cuarteada pero el centro siga húmedo.",
+      "Dejar enfriar por completo en el molde antes de cortar en cuadrados."
+    ],
+    "description": "Brownie denso y húmedo con corteza crujiente y trozos de nuez."
+  },
+  {
+    "id": "postres_022",
+    "name": "Tarta de limón con merengue",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 90,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 6,
+    "carbs_g": 70,
+    "fat_g": 17,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Harina",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 140,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 360,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Agua fría",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Ralladura de limón",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Maicena",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Yema de huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Clara de huevo",
+        "amount": 4,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Mezclar la harina con 100 g de mantequilla fría en dados y una pizca de sal con las manos hasta lograr una textura arenosa.",
+      "Añadir el huevo y el agua fría y amasar lo justo para formar una bola. Envolver en film y refrigerar 30 min.",
+      "Precalentar el horno a 180 °C. Estirar la masa, forrar un molde de tarta de 24 cm, pinchar la base y hornear con peso 15 min. Retirar el peso y hornear 8-10 min más hasta que esté dorada. Dejar enfriar.",
+      "Disolver la maicena en el agua en un cazo. Añadir el zumo y la ralladura de limón y 180 g de azúcar. Calentar a fuego medio removiendo hasta que espese.",
+      "Retirar del fuego, añadir las yemas una a una removiendo rápido, y volver a calentar 1-2 min más. Incorporar los 40 g de mantequilla restantes.",
+      "Verter el relleno de limón caliente sobre la base horneada y alisar la superficie. Dejar enfriar a temperatura ambiente.",
+      "Montar las claras a punto de nieve, añadiendo los 180 g de azúcar restantes poco a poco hasta lograr un merengue firme y brillante.",
+      "Cubrir el relleno de limón con el merengue, formando picos con una espátula.",
+      "Tostar el merengue con un soplete de cocina o bajo el grill del horno unos segundos, vigilando que no se queme.",
+      "Refrigerar al menos 2 h antes de cortar."
+    ],
+    "description": "Tarta de limón ácida bajo un merengue tostado con soplete, dulce y cítrica a la vez."
+  },
+  {
+    "id": "postres_023",
+    "name": "Tiramisú clásico",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 610,
+    "protein_g": 11,
+    "carbs_g": 47,
+    "fat_g": 42,
+    "baseServings": 6,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "effort": "cazo",
+    "ingredients": [
+      {
+        "name": "Bizcochos de soletilla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Café espresso",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Mascarpone",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Yema de huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Clara de huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Cacao en polvo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Licor de café",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Preparar el café espresso y dejarlo enfriar. Mezclarlo con el licor de café en un plato hondo.",
+      "Batir las yemas con la mitad de la azúcar hasta que blanqueen y dupliquen su volumen.",
+      "Incorporar el mascarpone a las yemas y mezclar con suavidad hasta lograr una crema homogénea.",
+      "Montar las claras a punto de nieve, añadiendo la azúcar restante poco a poco.",
+      "Incorporar las claras montadas a la crema de mascarpone con movimientos envolventes, sin bajar el aire.",
+      "Mojar rápido los bizcochos en el café (1-2 segundos por lado, sin empaparlos) y colocar una capa en el fondo de una fuente.",
+      "Cubrir con la mitad de la crema de mascarpone y alisar.",
+      "Repetir con otra capa de bizcochos mojados y el resto de la crema.",
+      "Tapar y refrigerar al menos 4 h, mejor de un día para otro.",
+      "Espolvorear con cacao en polvo justo antes de servir."
+    ],
+    "description": "Tiramisú clásico en capas de café y mascarpone, con cacao espolvoreado por encima."
+  },
+  {
+    "id": "postres_024",
+    "name": "Mousse de chocolate",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 340,
+    "protein_g": 9,
+    "carbs_g": 20,
+    "fat_g": 24,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo"
+    ],
+    "effort": "cazo",
+    "ingredients": [
+      {
+        "name": "Chocolate negro",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Trocear el chocolate y fundirlo al baño maría o en el microondas en tandas de 30 s. Dejar templar.",
+      "Separar las claras de las yemas en dos boles grandes.",
+      "Añadir las yemas al chocolate templado, una a una, removiendo bien tras cada una.",
+      "Montar las claras a punto de nieve firme con la pizca de sal.",
+      "Incorporar un tercio de las claras montadas al chocolate y remover con energía para aligerar la mezcla.",
+      "Añadir el resto de las claras con movimientos envolventes, de abajo hacia arriba, hasta que no queden restos blancos.",
+      "Repartir la mousse en 4 copas o vasitos individuales.",
+      "Refrigerar al menos 2 h, hasta que esté cuajada."
+    ],
+    "description": "Mousse de chocolate aireada y sedosa, hecha solo con chocolate y huevo."
+  },
+  {
+    "id": "postres_025",
+    "name": "Crumble de manzana y canela",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 470,
+    "protein_g": 4,
+    "carbs_g": 68,
+    "fat_g": 21,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Manzana",
+        "amount": 800,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Canela en polvo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar moreno",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 190 °C con calor arriba y abajo.",
+      "Pelar las manzanas, descorazonarlas y cortarlas en dados de 2 cm.",
+      "Mezclar las manzanas con la azúcar y la mitad de la canela en una fuente de horno. Repartir en la base.",
+      "Mezclar la harina, la azúcar moreno, la avena, el resto de la canela y la sal en un bol.",
+      "Añadir la mantequilla fría cortada en dados y desmigar con las yemas de los dedos hasta lograr migas gruesas.",
+      "Repartir las migas sobre la manzana, cubriendo toda la superficie sin apretar.",
+      "Hornear 35-40 min, hasta que la manzana burbujee por los bordes y las migas estén doradas y crujientes.",
+      "Dejar templar 10 min antes de servir."
+    ],
+    "description": "Crumble de manzana blanda bajo una capa de migas doradas y crujientes con canela."
+  },
+  {
+    "id": "postres_026",
+    "name": "Profiteroles con chocolate caliente",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 90,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 740,
+    "protein_g": 10,
+    "carbs_g": 40,
+    "fat_g": 58,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Agua",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para montar",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Chocolate negro",
+        "amount": 200,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200 °C. Forrar dos bandejas con papel de horno.",
+      "Calentar el agua con la mantequilla y la sal en un cazo hasta que rompa a hervir.",
+      "Retirar del fuego, añadir la harina de golpe y remover con fuerza hasta formar una bola de masa que se despegue del cazo.",
+      "Volver a poner el cazo a fuego bajo 1-2 min removiendo, para secar un poco la masa.",
+      "Pasar la masa a un bol y dejar templar 5 min. Añadir los huevos de uno en uno, batiendo bien tras cada uno hasta que la masa quede lisa y brillante.",
+      "Formar bolitas de unos 3 cm con dos cucharas o una manga pastelera y repartirlas separadas en las bandejas.",
+      "Hornear 25-30 min sin abrir el horno, hasta que estén doradas e infladas. Dejar enfriar sobre una rejilla.",
+      "Montar 400 ml de la nata con la azúcar hasta que esté firme. Rellenar los profiteroles con una manga pastelera, inyectando la nata por la base.",
+      "Fundir el chocolate con los 100 ml de nata restantes al baño maría hasta lograr una salsa lisa y brillante.",
+      "Servir los profiteroles apilados y bañados con el chocolate caliente justo antes de comer."
+    ],
+    "description": "Bolitas de pasta choux rellenas de nata, bañadas en chocolate caliente al momento."
+  },
+  {
+    "id": "postres_027",
+    "name": "Cookies rellenas de chocolate fundente",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 590,
+    "protein_g": 7,
+    "carbs_g": 70,
+    "fat_g": 30,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Harina",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar moreno",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Chocolate negro",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Bicarbonato",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Extracto de vainilla",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Batir la mantequilla en pomada con el azúcar moreno y el azúcar blanca hasta lograr una crema esponjosa.",
+      "Añadir el huevo y el extracto de vainilla y batir hasta integrar.",
+      "Mezclar la harina con el bicarbonato y la sal aparte, y añadirla a la mezcla anterior removiendo lo justo hasta formar una masa.",
+      "Tapar la masa y refrigerar 30 min para que sea más fácil de manejar.",
+      "Precalentar el horno a 180 °C. Forrar una bandeja con papel de horno.",
+      "Dividir la masa en 12 porciones. Aplanar cada una, colocar un trozo de chocolate en el centro y cerrar la masa envolviendo el chocolate por completo.",
+      "Colocar las bolas en la bandeja separadas entre sí y hornear 10-12 min, hasta que los bordes estén dorados pero el centro siga pálido.",
+      "Dejar reposar 5 min en la bandeja antes de pasarlas a una rejilla.",
+      "Servir templadas, para que el centro de chocolate esté fundido."
+    ],
+    "description": "Cookies con el centro relleno de chocolate fundente que se derrama al partirlas."
+  },
+  {
+    "id": "postres_028",
+    "name": "Red velvet con glaseado de queso crema",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 80,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 720,
+    "protein_g": 8,
+    "carbs_g": 96,
+    "fat_g": 32,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Harina",
+        "amount": 280,
+        "unit": "g"
+      },
+      {
+        "name": "Cacao en polvo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Bicarbonato",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Suero de leche",
+        "amount": 240,
+        "unit": "ml"
+      },
+      {
+        "name": "Colorante rojo alimentario",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Extracto de vainilla",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso crema",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar glas",
+        "amount": 250,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 175 °C. Engrasar y forrar dos moldes redondos de 18 cm.",
+      "Tamizar la harina con el cacao, el bicarbonato y la sal en un bol.",
+      "Batir 120 g de la mantequilla con la azúcar hasta que quede esponjosa. Añadir los huevos de uno en uno.",
+      "Mezclar el colorante rojo, el vinagre y el extracto de vainilla con el suero de leche.",
+      "Añadir a la mezcla de mantequilla los ingredientes secos y el suero de leche alternando en tres tandas, empezando y terminando por los secos.",
+      "Repartir la masa entre los dos moldes y hornear 28-32 min, hasta que al pinchar con un palillo salga limpio.",
+      "Dejar enfriar 10 min en los moldes y luego desmoldar sobre una rejilla hasta que estén fríos del todo.",
+      "Batir el queso crema con los 80 g de mantequilla restantes y la azúcar glas hasta lograr una crema lisa.",
+      "Cubrir un bizcocho con parte del glaseado, colocar el segundo bizcocho encima y cubrir toda la tarta con el resto del glaseado.",
+      "Refrigerar 30 min antes de cortar para que el glaseado asiente."
+    ],
+    "description": "Bizcocho rojo intenso de cacao con un cremoso glaseado blanco de queso."
+  },
+  {
+    "id": "postres_029",
+    "name": "Tarta de zanahoria con glaseado de queso",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 75,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 7,
+    "carbs_g": 62,
+    "fat_g": 30,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo",
+      "frutos_secos"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Zanahoria",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 280,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar moreno",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Canela en polvo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Bicarbonato",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Nueces",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso crema",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar glas",
+        "amount": 180,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 175 °C. Engrasar y forrar un molde redondo de 22 cm.",
+      "Mezclar la harina, el bicarbonato, la levadura, la canela, la nuez moscada y la sal en un bol.",
+      "Batir los huevos con la azúcar moreno hasta que blanqueen. Añadir el aceite en hilo sin dejar de batir.",
+      "Incorporar los ingredientes secos a la mezcla de huevos con movimientos envolventes, hasta que no queden restos de harina.",
+      "Añadir la zanahoria rallada y las nueces picadas y mezclar con espátula.",
+      "Verter la masa en el molde y hornear 45-50 min, hasta que al pinchar con un palillo salga limpio.",
+      "Dejar enfriar por completo sobre una rejilla antes de desmoldar.",
+      "Batir el queso crema con la mantequilla y la azúcar glas hasta lograr un glaseado liso.",
+      "Cubrir la tarta fría con el glaseado, extendiéndolo con una espátula."
+    ],
+    "description": "Bizcocho húmedo y especiado de zanahoria cubierto con un glaseado cremoso de queso."
+  },
+  {
+    "id": "postres_030",
+    "name": "Panna cotta de vainilla con frutos rojos",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 3,
+    "carbs_g": 32,
+    "fat_g": 36,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "effort": "cazo",
+    "ingredients": [
+      {
+        "name": "Nata para montar",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Leche",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 90,
+        "unit": "g"
+      },
+      {
+        "name": "Extracto de vainilla",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Hojas de gelatina",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Frutos rojos",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Poner las hojas de gelatina en un bol con agua fría durante 5 min hasta que se ablanden.",
+      "Calentar la nata, la leche, 60 g de azúcar y el extracto de vainilla en un cazo a fuego medio, sin dejar que hierva.",
+      "Retirar del fuego, escurrir la gelatina y disolverla en la nata caliente removiendo bien.",
+      "Repartir la mezcla en 4 moldes o vasos individuales.",
+      "Refrigerar al menos 4 h, hasta que cuaje por completo.",
+      "Calentar los frutos rojos con los 30 g de azúcar restantes y el agua en un cazo 5-6 min, hasta que suelten su jugo y espesen ligeramente.",
+      "Triturar la mitad de la salsa y dejar el resto con los frutos enteros. Dejar enfriar.",
+      "Desmoldar la panna cotta pasando un cuchillo fino por el borde (o servir directamente en el vaso) y cubrir con la salsa de frutos rojos."
+    ],
+    "description": "Panna cotta cremosa de vainilla que tiembla al moverla, con una salsa brillante de frutos rojos."
+  },
+  {
+    "id": "postres_031",
+    "name": "Helado casero de vainilla sin heladora",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 500,
+    "protein_g": 7,
+    "carbs_g": 39,
+    "fat_g": 35,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "effort": "cazo",
+    "ingredients": [
+      {
+        "name": "Nata para montar",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Leche condensada",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Extracto de vainilla",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Enfriar bien el bol y las varillas en el congelador 10 min antes de empezar.",
+      "Montar la nata a punto de nieve firme, que forme picos al levantar las varillas.",
+      "Mezclar la leche condensada con el extracto de vainilla y la sal en un bol grande.",
+      "Incorporar la nata montada a la leche condensada con movimientos envolventes, de abajo hacia arriba, sin bajar el aire.",
+      "Verter la mezcla en un recipiente hermético apto para congelador y alisar la superficie.",
+      "Tapar y congelar al menos 6 h, mejor de un día para otro.",
+      "Sacar del congelador 5-10 min antes de servir para que sea más fácil de servir con la cuchara."
+    ],
+    "description": "Helado cremoso de vainilla sin necesitar heladora, solo nata, leche condensada y paciencia."
+  },
+  {
+    "id": "postres_032",
+    "name": "Sorbete de limón",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 190,
+    "protein_g": 0,
+    "carbs_g": 48,
+    "fat_g": 0,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "effort": "cazo",
+    "ingredients": [
+      {
+        "name": "Zumo de limón",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua",
+        "amount": 350,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Ralladura de limón",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Calentar el agua con la azúcar en un cazo a fuego medio hasta que la azúcar se disuelva por completo, formando un almíbar ligero.",
+      "Retirar del fuego, añadir la ralladura de limón y dejar enfriar por completo.",
+      "Mezclar el almíbar frío con el zumo de limón.",
+      "Verter la mezcla en un recipiente bajo y ancho apto para congelador.",
+      "Congelar 1 h y remover con un tenedor raspando los bordes para romper los cristales de hielo.",
+      "Repetir el raspado cada 30-40 min durante 3-4 h más, hasta lograr una textura granizada y suelta.",
+      "Servir directamente del congelador en copas frías."
+    ],
+    "description": "Sorbete de limón refrescante y ácido, con esa textura granizada tan característica."
+  },
+  {
+    "id": "postres_033",
+    "name": "Coulant de chocolate",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 680,
+    "protein_g": 10,
+    "carbs_g": 45,
+    "fat_g": 49,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Chocolate negro",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Yema de huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Harina",
+        "amount": 60,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200 °C. Engrasar y enharinar 4 moldes individuales.",
+      "Trocear el chocolate y fundirlo con la mantequilla al baño maría o en el microondas en tandas de 30 s.",
+      "Batir los huevos enteros y las yemas con la azúcar hasta que blanqueen ligeramente.",
+      "Incorporar el chocolate fundido templado a la mezcla de huevos y remover hasta integrar.",
+      "Añadir la harina tamizada y mezclar con espátula hasta que no queden grumos.",
+      "Repartir la masa entre los moldes preparados.",
+      "Hornear 9-11 min, hasta que la superficie esté cuajada pero el centro siga líquido.",
+      "Dejar reposar 1 min fuera del horno y desmoldar inmediatamente volcando sobre el plato.",
+      "Servir al momento, mientras el centro todavía está líquido."
+    ],
+    "description": "Bizcocho de chocolate que se abre al partirlo, dejando salir un centro líquido y caliente."
+  },
+  {
+    "id": "postres_034",
+    "name": "Tarta borracha de ron",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 65,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 400,
+    "protein_g": 6,
+    "carbs_g": 60,
+    "fat_g": 13,
+    "baseServings": 8,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Harina",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Ron",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ralladura de limón",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 175 °C. Engrasar y enharinar un molde de 22 cm.",
+      "Fundir la mantequilla y dejar templar.",
+      "Batir los huevos con 150 g de la azúcar hasta que blanqueen y dupliquen su volumen.",
+      "Añadir la leche y la mantequilla fundida y mezclar.",
+      "Incorporar la harina tamizada con la levadura, con movimientos envolventes, hasta que no queden grumos.",
+      "Verter la masa en el molde y hornear 35-40 min, hasta que al pinchar con un palillo salga limpio.",
+      "Mientras se hornea, calentar el agua con los 150 g de azúcar restantes y la ralladura de limón hasta que hierva y la azúcar se disuelva. Retirar del fuego, templar y añadir el ron.",
+      "Con el bizcocho aún caliente y en el molde, pinchar toda la superficie con un palillo y verter el almíbar despacio, en varias veces, dejando que lo absorba.",
+      "Dejar reposar al menos 30 min para que el bizcocho quede bien empapado antes de desmoldar y servir."
+    ],
+    "description": "Bizcocho jugoso empapado en almíbar de ron, muy húmedo y aromático."
+  },
+  {
+    "id": "postres_035",
+    "name": "Galletas de mantequilla decoradas",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 620,
+    "protein_g": 7,
+    "carbs_g": 82,
+    "fat_g": 28,
+    "baseServings": 6,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Harina",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar glas",
+        "amount": 270,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Extracto de vainilla",
+        "amount": 5,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Clara de huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Batir la mantequilla en pomada con 120 g de la azúcar glas hasta lograr una crema lisa.",
+      "Añadir el huevo y el extracto de vainilla y mezclar bien.",
+      "Incorporar la harina tamizada con la sal y mezclar lo justo hasta formar una masa que no se pegue a las manos.",
+      "Formar un disco, envolver en film y refrigerar al menos 1 h.",
+      "Precalentar el horno a 170 °C. Estirar la masa sobre una superficie enharinada hasta unos 4 mm de grosor y cortar formas con cortapastas.",
+      "Colocar las galletas en una bandeja con papel de horno, separadas entre sí, y hornear 9-11 min, hasta que los bordes empiecen a dorarse.",
+      "Dejar enfriar por completo sobre una rejilla antes de decorar.",
+      "Batir la clara de huevo con los 150 g de azúcar glas restantes y el zumo de limón hasta lograr una glasa espesa y brillante.",
+      "Decorar las galletas frías con la glasa y dejar secar al menos 1 h antes de servir o guardar."
+    ],
+    "description": "Galletas de mantequilla doradas por los bordes, perfectas para decorar en familia."
+  },
+  {
+    "id": "postres_036",
+    "name": "Bizcocho de yogur y limón",
+    "category": "postres",
+    "mainProtein": "none",
+    "mealRole": [
+      "postre"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 430,
+    "protein_g": 6,
+    "carbs_g": 53,
+    "fat_g": 21,
+    "baseServings": 8,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "effort": "horno",
+    "requiredAppliance": "horno",
+    "ingredients": [
+      {
+        "name": "Yogur natural",
+        "amount": 125,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 16,
+        "unit": "g"
+      },
+      {
+        "name": "Ralladura de limón",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 180 °C. Engrasar y enharinar un molde de plumcake o redondo de 22 cm.",
+      "Batir el yogur con la azúcar y la ralladura de limón en un bol grande.",
+      "Añadir los huevos de uno en uno, batiendo bien tras cada uno.",
+      "Incorporar el aceite en hilo sin dejar de batir hasta emulsionar.",
+      "Tamizar la harina con la levadura y la sal sobre la mezcla y remover con espátula hasta que no queden grumos.",
+      "Verter la masa en el molde y hornear 40-45 min, hasta que al pinchar con un palillo salga limpio.",
+      "Dejar templar 10 min en el molde antes de desmoldar sobre una rejilla.",
+      "Dejar enfriar por completo antes de cortar."
+    ],
+    "description": "Bizcocho esponjoso de yogur y limón, el clásico sencillo de toda la vida."
   }
 ]

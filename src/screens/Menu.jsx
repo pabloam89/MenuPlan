@@ -36,17 +36,13 @@ import {
   Menu as MenuIcon,
   Microwave,
   Moon,
-  MoreVertical,
   Pizza,
   Plus,
-  Ban,
   RotateCcw,
   RotateCw,
   Refrigerator,
   Salad,
-  Search,
   Shell,
-  Shuffle,
   SlidersHorizontal,
   Snowflake,
   Share2,
@@ -74,6 +70,7 @@ import { migrateFixedDishes } from "../lib/fixedDishes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
 import { resolvePlainSteps, resolveRichSteps } from "../data/stepsRichById.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
+import salsasData from "../data/recipes/salsas.json";
 import { categoryColor, categoryIcon, categoryLabel, isKnownCategory } from "./CatalogBrowserSheet.jsx";
 import { isQualitativeUnit, qualitativeUnitLabel } from "../lib/ingredientCategories.js";
 import { RecipeStepList } from "../components/RecipeSteps.jsx";
@@ -115,7 +112,7 @@ import { RecipeClassificationFields } from "../components/RecipeClassificationFi
 import { isUserRecipeOwner, patchUserRecipeClassification } from "../lib/userRecipes.js";
 import { FavoriteScopeModal } from "../components/FavoriteScopeModal.jsx";
 import { MenuPdfExportModal } from "../components/MenuPdfExportModal.jsx";
-import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtras } from "./Onboarding.jsx";
+import { OnboardingRestrictions, OnboardingMealStyle, OnboardingMealExtrasComidas, OnboardingMealExtrasOtros } from "./Onboarding.jsx";
 import { downloadMenuPdf, shareMenu } from "../lib/menuExport.js";
 import { generateRecipeSteps, catalogToFrontendRecipe } from "../lib/aiPlanner.js";
 import bundledApplianceSteps from "../data/recipeStepsByAppliance.json";
@@ -893,6 +890,11 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   const [editingAvoid, setEditingAvoid] = useState(false);
   const [editingStyle, setEditingStyle] = useState(false);
   const [editingExtras, setEditingExtras] = useState(false);
+  // "Estructura y extras" solía ser una sola pantalla con pestañas
+  // Comidas/Otros; ahora son dos pasos propios del asistente, así que Afinar
+  // necesita su propio interruptor ligero para seguir editando los dos desde
+  // aquí (2026-08-24).
+  const [extrasEditPart, setExtrasEditPart] = useState("comidas");
 
   const wrappedSetData = (updater) => {
     setData(updater);
@@ -974,10 +976,34 @@ function ProfileSettingsSheet({ data, setData, onClose, onRegenerate }) {
   // "Estructura y extras": platos por comida, desayuno, merienda, postre y
   // cenas rápidas — same standalone-editor pattern as "A tu gusto" above.
   if (editingExtras) {
+    const ExtrasPart = extrasEditPart === "otros" ? OnboardingMealExtrasOtros : OnboardingMealExtrasComidas;
     return createPortal(
       <div style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(20,47,29,.28)", display: "flex", justifyContent: "center" }}>
-        <div style={{ width: "100%", maxWidth: 420, height: "100dvh", background: "#f5f9f6", boxShadow: "0 0 40px rgba(0,0,0,.18)" }}>
-          <OnboardingMealExtras
+        <div style={{ width: "100%", maxWidth: 420, height: "100dvh", background: "#f5f9f6", boxShadow: "0 0 40px rgba(0,0,0,.18)", position: "relative" }}>
+          <div style={{
+            position: "absolute", top: 56, left: "50%", transform: "translateX(-50%)", zIndex: 1,
+            display: "flex", background: "#e8efe9", borderRadius: 999, padding: 3, gap: 2,
+          }}>
+            {[
+              { id: "comidas", label: "Comidas" },
+              { id: "otros", label: "Otros" },
+            ].map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => setExtrasEditPart(t.id)}
+                style={{
+                  padding: "6px 14px", borderRadius: 999, border: "none",
+                  background: extrasEditPart === t.id ? "#0f766e" : "transparent",
+                  color: extrasEditPart === t.id ? "#fff" : "#4a6555",
+                  fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+          <ExtrasPart
             data={data}
             setData={wrappedSetData}
             onNext={() => setEditingExtras(false)}
@@ -1467,9 +1493,12 @@ function useLongPress(onLongPress, onClick, { ms = 420, moveTol = 12 } = {}) {
       firedLong.current = false;
       start.current = { x: e.clientX, y: e.clientY };
       clear();
+      // Captured now (plain DOM node, not the pooled synthetic event) so the
+      // callback can still read its bounding rect once the timer fires.
+      const target = e.currentTarget;
       timer.current = setTimeout(() => {
         firedLong.current = true;
-        onLongPress?.();
+        onLongPress?.(target);
       }, ms);
     },
     onPointerMove: (e) => {
@@ -1937,7 +1966,15 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
       ? { recipe, slot, groupId: group.id, day, meal, group, course: dish.courseKey }
       : null;
   const press = useLongPress(
-    () => sel && onDishLongPress?.(sel),
+    (targetEl) => {
+      if (!sel) return;
+      const tr = targetEl?.getBoundingClientRect();
+      const radius = targetEl ? parseFloat(getComputedStyle(targetEl).borderRadius) || 18 : 18;
+      onDishLongPress?.({
+        ...sel,
+        anchor: tr ? { tile: { top: tr.top, left: tr.left, width: tr.width, height: tr.height }, radius } : null,
+      });
+    },
     () => sel && onDishTap?.(sel),
   );
   const onPointerDownPrefetch = (e) => {
@@ -2081,53 +2118,6 @@ function DeckTile({ tile, day, onDishTap, onDishLongPress, imgWidth = 720, radiu
             <GroupMenuBadge key={gr.id} group={gr} size={compact ? 20 : 26} members={members} max={2} />
           ))}
         </div>
-      )}
-      {sel && onDishLongPress && (
-        // Explicit affordance (long-press is mobile-only / invisible on desktop).
-        // A <span role=button> avoids an invalid nested <button>; it stops the
-        // pointer/click so it never triggers the tile's open/long-press.
-        <span
-          role="button"
-          tabIndex={0}
-          aria-label="Acciones del plato"
-          data-coach="menu-actions"
-          className="deck-tile-actions"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            const r = e.currentTarget.getBoundingClientRect();
-            const tileEl = e.currentTarget.closest(".deck-tile");
-            const tr = tileEl?.getBoundingClientRect();
-            const radius = tileEl ? parseFloat(getComputedStyle(tileEl).borderRadius) || 18 : 18;
-            onDishLongPress({
-              ...sel,
-              anchor: {
-                icon: { top: r.top, left: r.left, right: r.right, bottom: r.bottom },
-                tile: tr ? { top: tr.top, left: tr.left, width: tr.width, height: tr.height } : null,
-                radius,
-              },
-            });
-          }}
-          style={{
-            position: "absolute",
-            top: compact ? 6 : 9,
-            right: compact ? 6 : 9,
-            width: compact ? 24 : 30,
-            height: compact ? 24 : 30,
-            borderRadius: 999,
-            background: "rgba(12,22,15,.44)",
-            backdropFilter: "blur(6px)",
-            WebkitBackdropFilter: "blur(6px)",
-            border: "1px solid rgba(255,255,255,.28)",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-            zIndex: 3,
-          }}
-        >
-          <MoreVertical size={compact ? 14 : 16} strokeWidth={2.8} color="#fff" />
-        </span>
       )}
       <div style={{ position: "absolute", left: compact ? 10 : 14, right: compact ? 10 : 14, bottom: compact ? 10 : 13 }}>
         <div
@@ -2510,6 +2500,7 @@ const LEGACY_TAG_TO_CATEGORY = {
 };
 
 const GUARNICION_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
+const SALSA_BY_ID = Object.fromEntries(salsasData.map((s) => [s.id, s]));
 
 /** Id de catálogo sin prefijo de grupo (p. ej. `adultos__carnes_032` → `carnes_032`). */
 function catalogRecipeId(recipeOrId) {
@@ -2535,7 +2526,7 @@ function resolveGarnishKey(recipe, catalogId) {
     if (byName) return byName.id;
   }
 
-  if (catalogId === "carnes_032") return "guarniciones_003";
+  if (catalogId === "carnes_032") return "guarniciones_024";
 
   return null;
 }
@@ -3393,63 +3384,17 @@ function DeckFilter({ groups, scope, onScopeChange, members }) {
   );
 }
 
-// Label for the "misma categoría" regen chip — a natural "otra/o <categoría>"
-// so it reads like "Otra ensalada" / "Otro pescado" instead of a vague "Parecido".
-const SAME_CATEGORY_LABEL = {
-  carnes: "Otra carne",
-  pescados: "Otro pescado",
-  legumbres: "Otra legumbre",
-  huevos: "Otro de huevo",
-  pasta_arroces: "Otra pasta/arroz",
-  sopas_cremas: "Otra sopa",
-  ensaladas_verduras: "Otra ensalada",
-  platos_unicos: "Otro plato único",
-  cenas_rapidas: "Otra cena rápida",
-  bebes: "Otro de bebé",
-  desayunos: "Otro desayuno",
-  meriendas: "Otra merienda",
-  postres: "Otro postre",
-};
-
 // Radial ("rosco") action menu: chips laid out around the spotlighted dish
-// thumbnail. The main dish-action menu (5 actions) spreads them on a full circle
-// with a thin ring connector; callers can instead pass an explicit `angle`
-// (degrees, -90 = top) per action to drop the ring and place chips exactly where
-// the parent chips were (e.g. the "Regenerar" sub-menu reusing the Regenerar /
-// Elegir slots).
+// thumbnail, spread on a full circle with a thin ring connector; callers can
+// instead pass an explicit `angle` (degrees, -90 = top) per action to drop the
+// ring and land chips at fixed spots. Only used by the value-props demo
+// carousel now (see ValueProps.jsx) — the real in-app dish menu uses
+// DishActionBar (a plain horizontal row) instead (2026-08-28).
 //
 // Per-action extras: `content` renders a custom node inside the chip instead of
 // an `Icon` (e.g. a group letter badge); `active` fills the chip in its color to
 // show a toggled/selected state. `center` renders a node at the middle of the
-// ring (e.g. a "Regenerar" confirm button for the multi-select scope picker).
-// Radial chip filled edge-to-edge with the category illustration, so "Otra
-// ensalada" shows the same artwork as the catalog and the shopping list rather
-// than a flat line icon. The Lucide icon stays underneath and shows through if
-// the image fails to load. Returns null when the category has no art, letting
-// RoscoMenu render its default icon.
-//
-// RoscoMenu invokes `content` as a plain function, not as a component, so this
-// must stay hook-free.
-function categoryChipContent(category, Icon, tint) {
-  const src = categoryImageSrc(category);
-  if (!src || !Icon) return null;
-  return (active) => (
-    <>
-      <Icon size={19} strokeWidth={2.2} color={active ? "#fff" : tint} />
-      <img
-        src={src}
-        alt=""
-        onError={(e) => { e.currentTarget.style.display = "none"; }}
-        style={{
-          position: "absolute", inset: 0,
-          width: "100%", height: "100%",
-          objectFit: "cover", borderRadius: "50%",
-        }}
-      />
-    </>
-  );
-}
-
+// ring (e.g. a confirm button for the multi-select scope picker).
 export function RoscoMenu({ anchor, actions, onClose, center = null, inline = false, frameW = null, frameH = null, radius = null }) {
   const a = anchor;
   // `inline` (value-props demo): render inside a relatively-positioned frame
@@ -3637,6 +3582,116 @@ export function RoscoMenu({ anchor, actions, onClose, center = null, inline = fa
   return inline ? overlay : createPortal(overlay, document.body);
 }
 
+// Acciones rápidas de un plato: fila horizontal (icono + copy debajo), sin
+// radial y sin sub-menús — cada botón ejecuta directamente al tocarlo.
+// Sustituye al RoscoMenu de "Regenerar/Mover/Duplicar/Quitar" (2026-08-28).
+function DishActionBar({ anchor, actions, onClose }) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const tile = anchor?.tile;
+  const BTN = 62;
+  const GAP = 8;
+  const PAD = 12;
+  const barW = actions.length * BTN + (actions.length - 1) * GAP + PAD * 2;
+  const cx = tile ? tile.left + tile.width / 2 : vw / 2;
+  const halfW = barW / 2 + 10;
+  const left = Math.min(Math.max(cx, halfW), vw - halfW);
+  // Prefers sitting just below the tile; flips above it when there isn't
+  // room (near the bottom of the viewport).
+  const fitsBelow = !tile || tile.top + tile.height + 92 <= vh;
+  const anchorFromBottom = Boolean(tile) && !fitsBelow;
+  const top = !tile ? vh / 2 : anchorFromBottom ? tile.top - 14 : tile.top + tile.height + 14;
+
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1200,
+        background: "rgba(9,18,12,.8)",
+        animation: "deckFadeIn .16s ease both",
+      }}
+    >
+      <style>{`
+        @keyframes deckFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes actionBarPop { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: scale(1); } }
+        @media (prefers-reduced-motion: reduce) {
+          .dish-action-bar, .dish-action-bar * { animation-duration: .001s !important; }
+        }
+      `}</style>
+
+      {tile && (
+        <div
+          style={{
+            position: "fixed",
+            top: tile.top, left: tile.left, width: tile.width, height: tile.height,
+            boxSizing: "border-box",
+            borderRadius: anchor.radius,
+            border: "2px solid rgba(255,255,255,.55)",
+            pointerEvents: "none",
+            zIndex: 1201,
+            animation: "deckFadeIn .16s ease both",
+          }}
+        />
+      )}
+
+      <div
+        style={{
+          position: "fixed",
+          top,
+          left,
+          // Static positioning transform (incl. the above/below flip) lives on
+          // this wrapper; the pop-in animation below only scales/fades, so the
+          // two never fight over the `transform` property.
+          transform: !tile ? "translate(-50%, -50%)" : anchorFromBottom ? "translate(-50%, -100%)" : "translate(-50%, 0)",
+          zIndex: 1203,
+        }}
+      >
+        <div
+          className="dish-action-bar"
+          onClick={(e) => e.stopPropagation()}
+          style={{
+            display: "flex",
+            gap: GAP,
+            padding: PAD,
+            borderRadius: 20,
+            background: "rgba(250,252,251,.98)",
+            boxShadow: "0 14px 34px rgba(9,18,12,.42)",
+            animation: "actionBarPop .22s cubic-bezier(.34,1.4,.64,1) both",
+          }}
+        >
+          {actions.map((act) => (
+            <button
+              key={act.id}
+              type="button"
+              aria-label={act.label}
+              onClick={() => act.onPick()}
+              style={{
+                display: "flex", flexDirection: "column", alignItems: "center", gap: 5,
+                width: BTN, padding: "8px 2px", border: "none", background: "none",
+                cursor: "pointer", fontFamily: "inherit", borderRadius: 12,
+              }}
+            >
+              <span
+                style={{
+                  width: 38, height: 38, borderRadius: "50%",
+                  display: "grid", placeItems: "center",
+                  background: act.tint ?? "#eef5f0",
+                }}
+              >
+                <act.Icon size={18} strokeWidth={2.3} color={act.color ?? "#2d5a3d"} />
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 800, color: "#142f1d", textAlign: "center", lineHeight: 1.15 }}>
+                {act.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 export const MenuScreen = memo(function MenuScreen({
   data,
   setData,
@@ -3646,14 +3701,9 @@ export const MenuScreen = memo(function MenuScreen({
   restrictionConflicts = [],
   onDishTap,
   onDishReplace,
-  onDishReplaceSameCategory,
-  onDishRegarnish,
   onDishSwap,
   onDishDuplicate,
-  onDishClear,
   onDishManualPick,
-  onDishPickCenaRapida,
-  onDishPickPlatoUnico,
   onNav,
   onRegenerate,
   onRegenerateDay,
@@ -3668,8 +3718,7 @@ export const MenuScreen = memo(function MenuScreen({
   onSwitchWeek,
   onOpenMenus,
   onOpenAnalytics,
-  autoOpenProfile = false,
-  onAutoOpenProfileHandled,
+  onDeleteActive,
   initialViewMode = "dia",
   // Demo-only (value-props carousel): seed the deck view ("semana"/"dia"/"lista")
   // and auto-play the quick-actions rosco so the tutorial can show off the
@@ -3687,14 +3736,12 @@ export const MenuScreen = memo(function MenuScreen({
   const [profileOpen, setProfileOpen] = useState(false);
   const [pdfExportOpen, setPdfExportOpen] = useState(false);
   const [showIconCoach, setShowIconCoach] = useState(false);
-  // Menu flexibility: tap a dish's ⋮ → spotlight the dish + a liquid-glass
-  // action card anchored to it. "Cambiar" and "Duplicar" arm a two-tap mode
-  // (`armed`), where the next dish/hueco tapped is the swap/duplicate target.
+  // Menu flexibility: long-press a dish → spotlight it + a horizontal action
+  // bar anchored under it (Cambiar/Mover/Duplicar). "Mover" and "Duplicar" arm
+  // a two-tap mode (`armed`), where the next dish/hueco tapped is the target;
+  // "Cambiar" executes on the spot, no extra step.
   const [dishAction, setDishAction] = useState(null);
   const [armed, setArmed] = useState(null); // null | { mode: "swap" | "duplicate", source }
-  // "Regenerar" on a dish that carries a garnish first asks what to regenerate:
-  // just the side ("Guarnición") or the whole dish ("Plato completo").
-  const [regenChoice, setRegenChoice] = useState(null); // null | dishAction
 
   const handleTileTap = useCallback(
     (sel) => {
@@ -3816,14 +3863,6 @@ export const MenuScreen = memo(function MenuScreen({
     [shoppingItems],
   );
 
-  // "Editar" desde la pantalla de Menús reutiliza este mismo sheet de "Tu
-  // perfil" en vez de duplicar un flujo de edición aparte — es un signal
-  // one-shot que el padre limpia tras consumirlo.
-  useEffect(() => {
-    if (!autoOpenProfile || readOnly) return;
-    setProfileOpen(true);
-    onAutoOpenProfileHandled?.();
-  }, [autoOpenProfile, onAutoOpenProfileHandled, readOnly]);
   const [viewMode, setViewMode] = useState(initialViewMode); // "dia" | "semana"
   const [viewAnimDir, setViewAnimDir] = useState(0);
   // Deck is now the only menu UI. (The classic view has been retired; its render
@@ -3852,6 +3891,7 @@ export const MenuScreen = memo(function MenuScreen({
   }, [deckView, autoDemo]);
   const [filterPanelOpen, setFilterPanelOpen] = useState(true);
   const [headerMenuOpen, setHeaderMenuOpen] = useState(false);
+  const [confirmDeleteActive, setConfirmDeleteActive] = useState(false);
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
     const idx = jsDay === 0 ? 6 : jsDay - 1;
@@ -4255,7 +4295,8 @@ export const MenuScreen = memo(function MenuScreen({
                 </div>
                 <div style={{ padding: "8px 10px", overflowY: "auto" }}>
                   {[
-                    onOpenAnalytics && { key: "analytics", label: "Análisis de tu menú", Icon: BarChart3, coach: "menu-analytics", action: onOpenAnalytics, tint: "#e7effe", ink: "#2563eb" },
+                    // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
+                    // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
                     hasMenu && { key: "share", label: "Compartir", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
@@ -4483,10 +4524,18 @@ export const MenuScreen = memo(function MenuScreen({
         )}
 
         {dishAction && autoDemo !== "actions" && !readOnly && (
-          <RoscoMenu
+          <DishActionBar
             anchor={dishAction.anchor}
             onClose={() => setDishAction(null)}
             actions={[
+              {
+                id: "regen", Icon: RotateCw, label: "Cambiar",
+                // Sin submenú de "cómo reemplazar": elige otra receta compatible
+                // con el hueco (mismo día/comida/curso) y la aplica ya — el
+                // criterio de "al azar" es cosa nuestra, no una decisión que deba
+                // tomar el usuario cada vez.
+                onPick: () => { onDishReplace?.(dishAction); setDishAction(null); },
+              },
               {
                 id: "swap", Icon: ArrowLeftRight, label: "Mover",
                 onPick: () => { setArmed({ mode: "swap", source: dishAction }); setDishAction(null); },
@@ -4495,86 +4544,9 @@ export const MenuScreen = memo(function MenuScreen({
                 id: "dup", Icon: CopyPlus, label: "Duplicar",
                 onPick: () => { setArmed({ mode: "duplicate", source: dishAction }); setDishAction(null); },
               },
-              {
-                id: "regen", Icon: RotateCw, label: "Regenerar",
-                // Sub-radial: cómo reemplazar (otra categoría / otro plato / otra
-                // guarnición / elegir a mano). "Elegir" ahora vive aquí dentro.
-                onPick: () => { setRegenChoice(dishAction); setDishAction(null); },
-              },
-              {
-                id: "clear", Icon: Trash2, label: "Quitar",
-                onPick: () => { onDishClear?.(dishAction); setDishAction(null); },
-              },
             ]}
           />
         )}
-
-        {/* "Regenerar" sub-radial — cómo reemplazar. Chips reutilizan el icono +
-            color de la categoría. */}
-        {regenChoice && !readOnly &&
-          (() => {
-            const cat = regenChoice.recipe?.category;
-            const hasGarnish = Boolean(regenChoice.recipe?.garnishId);
-            const sameCatIcon = cat ? categoryIcon(cat) : RotateCw;
-            const sameCatColor = cat ? categoryColor(cat) : undefined;
-            const sameCat = {
-              id: "same",
-              Icon: sameCatIcon,
-              color: sameCatColor,
-              content: categoryChipContent(cat, sameCatIcon, sameCatColor ?? "#3f5a49"),
-              label: (cat && SAME_CATEGORY_LABEL[cat]) || "Otro parecido",
-              onPick: () => { onDishReplaceSameCategory?.(regenChoice); setRegenChoice(null); },
-            };
-            const anyDish = {
-              id: "any", Icon: Shuffle, label: "Otro plato",
-              onPick: () => { onDishReplace?.(regenChoice); setRegenChoice(null); },
-            };
-            const pick = {
-              id: "pick", Icon: Search, label: "Elegir a mano",
-              onPick: () => { onDishManualPick?.(regenChoice); setRegenChoice(null); },
-            };
-            const garnish = {
-              id: "garnish", Icon: Salad, label: "Otra guarnición", color: "#16a34a",
-              onPick: () => { onDishRegarnish?.(regenChoice); setRegenChoice(null); },
-            };
-            // Slot-type picker: only dinners get the "Cena rápida" thumbnail
-            // picker. (Plato único was removed — it mixed two concepts and added
-            // confusion.) No reason step: it's a deliberate pick, like the garnish.
-            const meal = String(regenChoice.meal).toLowerCase();
-            const special =
-              meal === "cena"
-                ? {
-                    id: "cenarapida",
-                    Icon: categoryIcon("cenas_rapidas"),
-                    color: categoryColor("cenas_rapidas"),
-                    content: categoryChipContent(
-                      "cenas_rapidas",
-                      categoryIcon("cenas_rapidas"),
-                      categoryColor("cenas_rapidas"),
-                    ),
-                    label: "Cena rápida",
-                    onPick: () => { onDishPickCenaRapida?.(regenChoice); setRegenChoice(null); },
-                  }
-                : null;
-            // Avoid a duplicate "cena rápida" entry: when the current dish is
-            // already a cena rápida, the thumbnail picker (special) replaces the
-            // random "Otra cena rápida" (sameCat) — we keep the picker.
-            const dropSameCat = special && cat === "cenas_rapidas";
-            const base = [
-              ...(dropSameCat ? [] : [sameCat]),
-              ...(hasGarnish ? [garnish] : []),
-              anyDish,
-              pick,
-            ];
-            const actions = special ? [...base, special] : base;
-            return (
-              <RoscoMenu
-                anchor={regenChoice.anchor}
-                onClose={() => setRegenChoice(null)}
-                actions={actions}
-              />
-            );
-          })()}
 
         {armed && autoDemo !== "actions" &&
           createPortal(
@@ -4824,6 +4796,65 @@ export const MenuScreen = memo(function MenuScreen({
         />
       )}
 
+      {confirmDeleteActive && createPortal(
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 300, display: "flex",
+            alignItems: "flex-end", justifyContent: "center",
+            background: "rgba(10,20,14,.45)",
+          }}
+          onClick={() => setConfirmDeleteActive(false)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 420, background: "#fff",
+              borderRadius: "24px 24px 0 0", padding: "26px 22px calc(env(safe-area-inset-bottom,0px) + 22px)",
+            }}
+          >
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 20 }}>
+              <div
+                style={{
+                  width: 52, height: 52, borderRadius: 16, marginBottom: 10, background: "#fdf1f0",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Trash2 size={22} color="#c0392b" />
+              </div>
+              <h3 style={{ fontSize: 18, fontWeight: 900, color: "#142f1d", margin: 0, textAlign: "center" }}>
+                ¿Borrar este menú?
+              </h3>
+              <p style={{ fontSize: 13, color: "#7a8a7f", margin: "4px 0 0", textAlign: "center" }}>
+                Perderás los platos y la compra generada. El histórico no se ve afectado.
+              </p>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <button
+                type="button"
+                onClick={() => { setConfirmDeleteActive(false); onDeleteActive(); }}
+                style={{
+                  border: "none", borderRadius: 999, background: "#c0392b", color: "#fff",
+                  fontWeight: 800, fontSize: 14, padding: "13px 0", cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                Borrar menú
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDeleteActive(false)}
+                style={{
+                  border: "1.5px solid #e3ebe6", borderRadius: 999, background: "#fff", color: "#5c6b60",
+                  fontWeight: 800, fontSize: 14, padding: "13px 0", cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {pdfExportOpen && createPortal(
         <MenuPdfExportModal
           data={data}
@@ -4952,10 +4983,6 @@ export function DishDetail({
   favoriteScope = null,
   scopeGroups = [],
   onSetFavoriteScope,
-  // Catálogo (browse): descartar / recuperar el plato del pool permanente.
-  discarded = false,
-  onDiscardRecipe = null,
-  onRecoverRecipe = null,
   // Optional demo hooks (first-run value-prop carousel):
   // - initialAppliance: preselect a cooking method tab.
   // - stepsByAppliance: bundled step lists per appliance, so the demo shows
@@ -5094,6 +5121,26 @@ export function DishDetail({
     () => (garnishRecipe ? resolvePlainSteps(garnishRecipe.id, garnishRecipe) : []),
     [garnishRecipe],
   );
+  // ── Tercer curso: salsa (independiente de la guarnición — un plato puede
+  // llevar guarnición Y salsa a la vez). Solo existe cuando se eligió a mano
+  // desde "Combinar plato" (recipe.sauceId) — sin sugerencia automática.
+  const sauceRecipe = useMemo(() => {
+    const raw = recipe?.sauceId && SALSA_BY_ID[recipe.sauceId] ? SALSA_BY_ID[recipe.sauceId] : null;
+    return raw ? catalogToFrontendRecipe(raw, slot.eaters) : null;
+  }, [recipe, slot.eaters]);
+  const sauceIngredients = useMemo(
+    () => (sauceRecipe ? scaledIngredients(sauceRecipe, slot.eaters) : []),
+    [sauceRecipe, slot.eaters],
+  );
+  const sauceRichSteps = useMemo(
+    () => (sauceRecipe ? resolveRichSteps(sauceRecipe.id, sauceRecipe) : null),
+    [sauceRecipe],
+  );
+  const saucePlainSteps = useMemo(
+    () => (sauceRecipe ? resolvePlainSteps(sauceRecipe.id, sauceRecipe) : []),
+    [sauceRecipe],
+  );
+
   const [activeCourse, setActiveCourse] = useState(initialCourse);
   const garnishShortName = garnishRecipe
     ? (GUARNICION_BY_ID[garnishRecipe.id]?.shortName ?? garnishRecipe.name)
@@ -5106,37 +5153,46 @@ export function DishDetail({
     catalogId,
     garnishRecipe,
     garnishShortName,
+    sauceRecipe,
   );
   const showGarnishCourse = Boolean(garnishRecipe) && !platoUnico;
+  const showSalsaCourse = Boolean(sauceRecipe) && !platoUnico;
   const displayName = useMemo(() => {
-    if (!garnishRecipe) return recipe.name;
+    if (!garnishRecipe && !sauceRecipe) return recipe.name;
     if (platoUnico || activeCourse === "combinado") {
-      return formatDishWithGarnish(baseName, {
-        shortName: garnishShortName,
-        name: garnishRecipe.name,
-      });
+      return formatDishWithGarnish(
+        baseName,
+        garnishRecipe ? { shortName: garnishShortName, name: garnishRecipe.name } : null,
+        sauceRecipe,
+      );
     }
-    if (activeCourse === "guarnicion") return garnishRecipe.name;
+    if (activeCourse === "guarnicion" && garnishRecipe) return garnishRecipe.name;
+    if (activeCourse === "salsa" && sauceRecipe) return sauceRecipe.name;
     return baseName;
   }, [
     recipe.name,
     garnishRecipe,
     garnishShortName,
+    sauceRecipe,
     activeCourse,
     platoUnico,
     baseName,
   ]);
   const onGarnishCourse = showGarnishCourse && activeCourse === "guarnicion";
+  const onSalsaCourse = showSalsaCourse && activeCourse === "salsa";
   const onCombinedCourse =
-    (showGarnishCourse && activeCourse === "combinado") || (platoUnico && Boolean(garnishRecipe));
-  const cookCourse = platoUnico || (!onGarnishCourse && !onCombinedCourse);
+    ((showGarnishCourse || showSalsaCourse) && activeCourse === "combinado") ||
+    (platoUnico && (Boolean(garnishRecipe) || Boolean(sauceRecipe)));
+  const cookCourse = platoUnico || (!onGarnishCourse && !onSalsaCourse && !onCombinedCourse);
   const courseIngredients = onGarnishCourse
     ? garnishIngredients
-    : onCombinedCourse
-      ? [...ingredients, ...garnishIngredients]
-      : ingredients;
+    : onSalsaCourse
+      ? sauceIngredients
+      : onCombinedCourse
+        ? [...ingredients, ...garnishIngredients, ...sauceIngredients]
+        : ingredients;
   // Grupos de ingredientes plegables en la vista combinada; colapsados de salida.
-  const [openIngGroups, setOpenIngGroups] = useState({ principal: false, guarnicion: false });
+  const [openIngGroups, setOpenIngGroups] = useState({ principal: false, guarnicion: false, salsa: false });
 
   // Nutrientes secundarios (fibra, azúcares, grasas sat., sodio): opcionales y
   // solo presentes tras la pasada de enriquecimiento. Se muestran colapsados.
@@ -5668,26 +5724,6 @@ export function DishDetail({
           </button>
         )}
 
-        {browse && onDiscardRecipe && (
-          <button
-            type="button"
-            onClick={() => (discarded ? onRecoverRecipe?.() : onDiscardRecipe?.())}
-            aria-label={discarded ? "Recuperar plato" : "Descartar plato"}
-            title={discarded ? "Recuperar (vuelve al catálogo)" : "Descartar (No me gusta)"}
-            style={{
-              ...heroActionButtonStyle,
-              position: "absolute",
-              left: onSetFavoriteScope ? 66 : 26,
-              top: 26,
-              zIndex: 2,
-              background: discarded ? "#c0392b" : "rgba(255,255,255,.92)",
-              color: discarded ? "#fff" : "#c0392b",
-            }}
-          >
-            {discarded ? <RotateCcw size={17} /> : <Ban size={17} strokeWidth={2.4} />}
-          </button>
-        )}
-
         <DishVisual
           recipe={recipe}
           height={220}
@@ -5786,19 +5822,24 @@ export function DishDetail({
           {/* Divider tras la ficha rápida. Solo si debajo hay algún bloque
               (selector de curso, adaptaciones o badges); si no, evitamos que se
               pegue al divider de Nutrientes y se vea doble. */}
-          {(showGarnishCourse || recipe.adaptations?.length > 0 || healthBadges.length > 0) && (
+          {(showGarnishCourse || showSalsaCourse || recipe.adaptations?.length > 0 || healthBadges.length > 0) && (
             <div style={{ height: 2, background: "#d5e3da", borderRadius: 2, marginBottom: 14 }} />
           )}
 
-          {/* Selector de curso: icono a color + copy (primer plato · guarnición ·
-              combinado). Solo cuando el plato lleva guarnición. */}
-          {showGarnishCourse && (
+          {/* Selector de curso: icono a color + copy. Primer plato siempre;
+              Guarnición y Salsa solo si el plato las lleva (independientes
+              entre sí); Combinado en cuanto haya al menos una de las dos. */}
+          {(showGarnishCourse || showSalsaCourse) && (
             <div style={{ display: "flex", justifyContent: "center", gap: 8, marginBottom: 16 }}>
               {[
                 { id: "principal", Icon: CookingPot, color: "#2d5a3d", copy: "Primer plato", sub: baseName },
-                { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe.name },
-                { id: "combinado", Icon: Layers2, color: "#2f6fb8", copy: "Combinado", sub: "Plato + guarnición" },
-              ].map(({ id, Icon, color, copy, sub }) => {
+                showGarnishCourse && { id: "guarnicion", Icon: Salad, color: "#16a34a", copy: "Guarnición", sub: garnishRecipe.name },
+                showSalsaCourse && { id: "salsa", Icon: Droplets, color: "#c2703d", copy: "Salsa", sub: sauceRecipe.name },
+                {
+                  id: "combinado", Icon: Layers2, color: "#2f6fb8", copy: "Combinado",
+                  sub: [showGarnishCourse && "guarnición", showSalsaCourse && "salsa"].filter(Boolean).join(" + ") || "guarnición",
+                },
+              ].filter(Boolean).map(({ id, Icon, color, copy, sub }) => {
                 const sel = activeCourse === id;
                 return (
                   <button
@@ -6044,8 +6085,9 @@ export function DishDetail({
                     colapsados de salida para no soltar una lista larguísima. */}
                 {[
                   { key: "principal", label: recipe.name, items: ingredients },
-                  { key: "guarnicion", label: garnishRecipe.name, items: garnishIngredients },
-                ].map((grp) => {
+                  garnishRecipe && { key: "guarnicion", label: garnishRecipe.name, items: garnishIngredients },
+                  sauceRecipe && { key: "salsa", label: sauceRecipe.name, items: sauceIngredients },
+                ].filter(Boolean).map((grp) => {
                   const open = openIngGroups[grp.key];
                   return (
                     <div key={grp.key} style={{ marginBottom: 10, border: "1.5px solid #e3ede6", borderRadius: 12, overflow: "hidden" }}>
@@ -6126,21 +6168,32 @@ export function DishDetail({
                 </p>
               )
             )}
+            {recipeTab === "pasos" && onSalsaCourse && (
+              sauceRichSteps?.length > 0 || saucePlainSteps.length > 0 ? (
+                <RecipeStepList rich={sauceRichSteps} plain={saucePlainSteps} ingredients={sauceIngredients} kitchenTools={kitchenTools} />
+              ) : (
+                <p style={{ fontSize: 13, color: "#8a948d", margin: 0 }}>
+                  Esta salsa no tiene pasos detallados.
+                </p>
+              )
+            )}
             {recipeTab === "pasos" && onCombinedCourse && (
               <>
-                {/* Combinado: pasos del plato y de la guarnición en dos bloques
-                    etiquetados (el método tradicional de cada uno). */}
+                {/* Combinado: pasos del plato + guarnición + salsa (los que
+                    haya) en bloques etiquetados, el método tradicional de
+                    cada uno por separado. */}
                 {[
-                  { key: "principal", label: "Primer plato", color: "#2d5a3d", rich: richSteps, plain: mainPlainSteps, ings: ingredients },
-                  { key: "guarnicion", label: "Guarnición", color: "#16a34a", rich: garnishRichSteps, plain: garnishPlainSteps, ings: garnishIngredients },
-                ].map((blk, bi) => (
+                  { key: "principal", label: "Primer plato", color: "#2d5a3d", Icon: CookingPot, rich: richSteps, plain: mainPlainSteps, ings: ingredients },
+                  garnishRecipe && { key: "guarnicion", label: "Guarnición", color: "#16a34a", Icon: Salad, rich: garnishRichSteps, plain: garnishPlainSteps, ings: garnishIngredients },
+                  sauceRecipe && { key: "salsa", label: "Salsa", color: "#c2703d", Icon: Droplets, rich: sauceRichSteps, plain: saucePlainSteps, ings: sauceIngredients },
+                ].filter(Boolean).map((blk, bi) => (
                   <div key={blk.key} style={{ marginTop: bi === 0 ? 0 : 18 }}>
                     <div style={{
                       display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 10,
                       padding: "3px 10px", borderRadius: 999,
                       background: `${blk.color}14`, color: blk.color, fontSize: 11.5, fontWeight: 800,
                     }}>
-                      {blk.key === "principal" ? <CookingPot size={13} strokeWidth={2.4} /> : <Salad size={13} strokeWidth={2.4} />}
+                      <blk.Icon size={13} strokeWidth={2.4} />
                       {blk.label}
                     </div>
                     <RecipeStepList rich={blk.rich} plain={blk.plain} ingredients={blk.ings} kitchenTools={kitchenTools} />

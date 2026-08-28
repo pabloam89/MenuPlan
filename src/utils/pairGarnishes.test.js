@@ -161,12 +161,13 @@ describe("pairGarnishes", () => {
   });
 
   it("a user-pinned garnish wins even when excluded from the safe list (explicit choice overrides automatic filtering)", () => {
-    // guarniciones_003 "Puré de patatas" carries a real declared "lactosa"
-    // allergen in the bundled catalog — simulating a pin made before this
-    // group had a dairy allergy, or a deliberate exception the user wants.
+    // guarniciones_024 "Puré de patata con mantequilla y nuez moscada" carries
+    // a real declared "lactosa" allergen in the bundled catalog — simulating a
+    // pin made before this group had a dairy allergy, or a deliberate
+    // exception the user wants.
     const pool = { p1: principal() };
     const slots = [{ slotId: "lun_cena", recipeId: "p1" }];
-    const result = pairGarnishes(slots, pool, { p1: "guarniciones_003" }, []);
-    expect(result[0].garnishId).toBe("guarniciones_003");
+    const result = pairGarnishes(slots, pool, { p1: "guarniciones_024" }, []);
+    expect(result[0].garnishId).toBe("guarniciones_024");
   });
 });

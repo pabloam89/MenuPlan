@@ -570,18 +570,25 @@ describe("applyGarnishToRecipe adaptations", () => {
 
 describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes error propagation)", () => {
   // Three kids, each contributing a DIFFERENT allergy/intolerance. None of
-  // these alone would exhaust the 244-recipe catalog (see the "one member
-  // only" contrast test below) — it's specifically the UNION across several
-  // children (buildGroupContext's flatMap) that pushes the filtered pool
-  // under filterRecipes.js's minRecipes floor. hasKids + a 30-min weekday
-  // budget + cookLevel "basic" mirror a realistic family setup rather than an
+  // these alone would exhaust the catalog (see the "one member only" contrast
+  // test below) — it's specifically the UNION across several children
+  // (buildGroupContext's flatMap) that pushes the filtered pool under
+  // filterRecipes.js's minRecipes floor. hasKids + a 30-min weekday budget +
+  // cookLevel "basic" mirror a realistic family setup rather than an
   // artificial edge case.
+  //
+  // kid3 also carries a vegano intolerance on top of its allergies (a vegan
+  // child with an egg/fish allergy is a perfectly ordinary combination) — the
+  // catalog grew from 305 to 916 recipes (Recetario Estrella batch), so
+  // allergies alone no longer push the pool under the 25-recipe floor; vegano
+  // is the restriction strong enough to still do it, and — like the other two
+  // kids — it doesn't exhaust the pool on its own (verified below).
   const group = { id: "g1", label: "Niños", memberIds: ["kid1", "kid2", "kid3"] };
   const threeKidsData = {
     members: [
       { id: "kid1", age: 8, allergies: ["Gluten"], intolerances: ["fructosa"] },
       { id: "kid2", age: 6, allergies: ["Leche"], intolerances: ["sorbitol"] },
-      { id: "kid3", age: 10, allergies: ["Huevos", "Pescado"] },
+      { id: "kid3", age: 10, allergies: ["Huevos", "Pescado"], intolerances: ["vegano"] },
     ],
     groups: [group],
     schedule: {},
@@ -604,6 +611,14 @@ describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes err
     const oneKidGroup = { id: "g1", label: "Niños", memberIds: ["kid1"] };
     const oneKidData = { ...threeKidsData, members: [threeKidsData.members[0]], groups: [oneKidGroup] };
     const ctx = buildGroupContext(oneKidData, oneKidGroup);
+    const { error } = filterRecipes(ctx.filterOpts);
+    expect(error).toBeNull();
+  });
+
+  it("does NOT exhaust the pool for kid3 (vegano) alone either", () => {
+    const kid3Group = { id: "g1", label: "Niños", memberIds: ["kid3"] };
+    const kid3Data = { ...threeKidsData, members: [threeKidsData.members[2]], groups: [kid3Group] };
+    const ctx = buildGroupContext(kid3Data, kid3Group);
     const { error } = filterRecipes(ctx.filterOpts);
     expect(error).toBeNull();
   });
@@ -852,8 +867,17 @@ describe("generateGroupMenu: multiple rule domains active at once", () => {
     // adjacent, so the fixed dish's own sanctioned 2x/week repeat necessarily
     // lands on consecutive cenas — the post-check correctly leaves it alone
     // (touching either slot would mean overriding the user's own pin).
+    // recipeId_not_in_catalog is also expected here and for the same root
+    // cause as recipeId_repetido: `pool` is filterRecipes' PRIMARY-only tier
+    // (Recetario Estrella + own recipes — see filterRecipes.js's fondo de
+    // armario fallback), and this fixture's pinned dish (carnes_002) predates
+    // that batch, so it never was and was never meant to be a primary-tier
+    // member. enforceFixedDishes (fixedDishes.js) resolves it straight from
+    // recipeCatalogById regardless — the real placement is correct, only this
+    // re-validation's narrower `pool` doesn't contain it.
     const TOLERATED = new Set([
       "recipeId_repetido",
+      "recipeId_not_in_catalog",
       "dos_fritos_seguidos",
       "dos_cuchara_mismo_dia",
       "proteina_cena_consecutiva",

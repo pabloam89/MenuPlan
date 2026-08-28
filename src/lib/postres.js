@@ -28,8 +28,11 @@ export const POSTRE_TIPOS = [
 export const POSTRE_INMEDIATO_KINDS = [
   { id: "fruta", label: "Fruta", img: "/categories/cut/frutas.png" },
   { id: "yogur", label: "Yogur", img: "/ingredients/yogur-cut.png" },
-  // "+" = pool de fruta O yogur (elige uno u otro cada día), no un plato mezclado.
-  { id: "mix", label: "Yogur + fruta", img: "/avatares/cards/yogur_fruta.jpg" },
+  // Alterna entre fruta y yogur según el día — NUNCA un bol mezclado (por eso
+  // esta card no tiene su propia foto: reutiliza los iconos de fruta+yogur de
+  // arriba, uno junto al otro, para que se lea como "uno u otro", no "los dos
+  // juntos en el mismo bol").
+  { id: "mix", label: "Alterna" },
 ];
 
 /** Calendar season in Spain (meteorological quarters). */

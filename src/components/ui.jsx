@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { createPortal } from "react-dom";
-import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, Refrigerator, ShoppingCart, UserCircle, X } from "lucide-react";
+import { BookOpen, Calendar, ChevronDown, ClipboardList, CookingPot, Home, ShoppingCart, UserCircle, X } from "lucide-react";
 import { initialsOf, memberAvatarColor, memberAvatarThumbSrc } from "../lib/stages.js";
 import { formatWeekRangeLabel, getWeekDates } from "../lib/weekCalendar.js";
 import { adhocReasonLabel } from "../lib/groups.js";
@@ -453,17 +453,24 @@ export function bottomNavSpacer() {
 // One single bar everywhere in the app — it used to swap its 4-5 items
 // depending on a "home"/"menu" context prop, which meant the tabs under your
 // thumb silently changed screen to screen (a real source of "me pierdo" —
-// see product discussion 2026-07-23). Now it's always these 5, in this order,
-// full stop. Screens that lost their tab (Menús, Análisis, Perfil) are still
-// reachable — just as a header icon from the tab they conceptually belong to
-// (Menús + Análisis-cocina from "Menú"; Análisis-gasto + tickets from
-// "En casa"; Perfil from "Inicio") instead of competing for one of 5 slots.
+// see product discussion 2026-07-23). Screens that lost their tab (Análisis,
+// Perfil) are still reachable — just as a header icon from the tab they
+// conceptually belong to (Análisis-cocina from "Menú"; Análisis-gasto +
+// tickets from "Compra"; Perfil from "Inicio"). "En casa" (despensa) lost
+// its tab too — 2026-08-24: it's a snapshot you give once per menú, not a
+// place to keep visiting, so it now lives as a step of the wizard plus a
+// read-only consult icon from "Compra", instead of competing for a slot.
+// "Menú" (generación de un menú nuevo, y ver favoritos/históricos vía el
+// icono de menú ⋮) is la puerta única al menú — 2026-08-25: el tab
+// "Generar" que vivió aquí un tiempo se quitó del todo (competía con "Menú"
+// por el mismo verbo) y no se sustituye por nada — la quinta posición se
+// deja libre a propósito, en reserva para el Feed social. De momento el bar
+// solo enseña estos 4.
 const NAV_ITEMS = [
-  { id: "dashboard", icon: Home,          label: "Inicio",  color: "#e8854a" },
-  { id: "pantry",    icon: Refrigerator,  label: "En casa", color: "#3a9e7a" },
-  { id: "menu",      icon: ClipboardList, label: "Menú",    highlight: true },
-  { id: "recipes",   icon: BookOpen,      label: "Recetas", color: "#d45c7a" },
-  { id: "shopping",  icon: ShoppingCart,  label: "Compra",  color: "#5a82d4" },
+  { id: "dashboard", icon: Home,          label: "Inicio",   color: "#e8854a" },
+  { id: "menu",      icon: ClipboardList, label: "Menú",     highlight: true },
+  { id: "recipes",   icon: BookOpen,      label: "Recetas",  color: "#d45c7a" },
+  { id: "shopping",  icon: ShoppingCart,  label: "Compra",   color: "#5a82d4" },
 ];
 
 export function BottomNav({ active, onNav, dissolved = false }) {

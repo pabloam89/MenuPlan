@@ -37,7 +37,7 @@ const TAB_OPTIONS = [
   { id: "gasto", label: "Gasto" },
 ];
 
-export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, readOnly = false, readOnlyLabel = null, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null, onBackToPantry = null, navActive = "menu" }) {
+export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping, readOnly = false, readOnlyLabel = null, onUndoReceiptTachado, onNav, onToast, initialTab = null, onInitialTabHandled = null }) {
   const [tab, setTab] = useState(initialTab ?? "cocina");
   const tabDirRef = useRef(0);
   // Deep link from "En casa" → Gastos: land directly on the requested tab.
@@ -94,14 +94,13 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
           <h2 style={titleStyle}>{tab === "gasto" ? "Tu gasto" : "Tu semana"}</h2>
           {tab !== "gasto" && <WeekRangeBadge label={weekLabel} />}
           {/* Quick jump to "En casa" from Gasto — the two are tightly linked
-              (tickets feed the pantry) so it's useful from every route into
-              this tab, not just the deep-link-from-Pantry case: falls back
-              to a plain forward nav when there's no "back to where you came
-              from" callback (i.e. reached via the bottom nav directly). */}
+              (tickets feed the pantry), useful from every route into this
+              tab. Lands on the read-only consult view (2026-08-25) same as
+              Compra's own pantry icon. */}
           {tab === "gasto" && (
             <button
               type="button"
-              onClick={onBackToPantry ?? (() => onNav("pantry"))}
+              onClick={() => onNav("pantry")}
               aria-label="Ir a En casa"
               title="Ir a En casa"
               style={backToPantryBtnStyle}
@@ -152,7 +151,7 @@ export function AnalyticsScreen({ data, setData, menuPlan, shopping, setShopping
           hanging off whichever tab you opened it from, so that's what stays
           lit here: "En casa" when opened from Pantry's ticket icon, "Menú"
           from its Cocina-stats icon (the default). */}
-      <BottomNav active={navActive} onNav={onNav} />
+      <BottomNav active="menu" onNav={onNav} />
     </div>
   );
 }

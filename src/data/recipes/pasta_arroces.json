@@ -4189,5 +4189,5776 @@
     "saturated_fat_g": 8,
     "sodium_mg": 420,
     "freezable": false
+  },
+  {
+    "id": "pasta_arroces_026",
+    "name": "Pasta rápida con tomate cherry, ajo y albahaca",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 440,
+    "protein_g": 13,
+    "carbs_g": 68,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Tomates cherry",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua abundante y sal.",
+      "Lavar y cortar los tomates cherry por la mitad.",
+      "Pelar y laminar el ajo.",
+      "Cocer los espaguetis en el agua hirviendo según el tiempo del envase.",
+      "Mientras, calentar el aceite de oliva en una sartén amplia a fuego medio.",
+      "Añadir el ajo laminado y dorar ligeramente sin que se queme.",
+      "Incorporar los tomates cherry cortados y saltear a fuego fuerte 4-5 min hasta que empiecen a reventar.",
+      "Salpimentar y añadir un cucharón del agua de cocción de la pasta.",
+      "Escurrir los espaguetis al dente y añadirlos a la sartén.",
+      "Saltear todo junto 1 min, añadir la albahaca fresca troceada a mano y el parmesano rallado.",
+      "Servir enseguida con un chorrito de aceite de oliva por encima."
+    ],
+    "description": "Espaguetis con cherrys reventados en la sartén, ajo dorado y hoja fresca de albahaca."
+  },
+  {
+    "id": "pasta_arroces_027",
+    "name": "Espaguetis al huevo y queso (carbonara exprés)",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 22,
+    "carbs_g": 66,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Yema de huevo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Bacon en taquitos",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua abundante y sal.",
+      "Batir en un bol los huevos, la yema extra, el parmesano rallado y abundante pimienta negra hasta obtener una crema homogénea.",
+      "Cocer los espaguetis en el agua hirviendo según el tiempo del envase.",
+      "Mientras, dorar el bacon en taquitos en una sartén sin aceite hasta que quede crujiente.",
+      "Reservar un cucharón del agua de cocción de la pasta antes de escurrir.",
+      "Escurrir los espaguetis y añadirlos a la sartén con el bacon, fuera del fuego.",
+      "Verter la mezcla de huevo y queso sobre la pasta caliente y remover rápido fuera del fuego para que cuaje cremoso sin cuajar en grumos.",
+      "Añadir un poco de agua de cocción si queda demasiado espeso, hasta lograr una textura sedosa.",
+      "Servir enseguida con más pimienta negra molida y parmesano por encima."
+    ],
+    "description": "Espaguetis cremosos con huevo y queso, sin nata, listos en el tiempo de cocción de la pasta."
+  },
+  {
+    "id": "pasta_arroces_028",
+    "name": "Pasta con pesto de bote y tomates cherry",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 14,
+    "carbs_g": 64,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "frutos_secos",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Fusilli",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pesto de albahaca",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Tomates cherry",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua abundante y sal.",
+      "Lavar y cortar los tomates cherry por la mitad.",
+      "Tostar los piñones en una sartén pequeña sin aceite hasta que doren, removiendo para que no se quemen.",
+      "Cocer los fusilli en el agua hirviendo según el tiempo del envase.",
+      "Reservar un cucharón del agua de cocción antes de escurrir.",
+      "Escurrir la pasta y volcarla de nuevo en la olla fuera del fuego.",
+      "Añadir el pesto de bote y un poco de agua de cocción, mezclando bien hasta que la pasta quede uniformemente cubierta.",
+      "Incorporar los tomates cherry cortados y remover con suavidad para no aplastarlos.",
+      "Servir con los piñones tostados y el parmesano rallado por encima."
+    ],
+    "description": "Pasta verde vivo con pesto de bote y toques rojos de tomate cherry, del tarro a la mesa."
+  },
+  {
+    "id": "pasta_arroces_029",
+    "name": "Pasta con atún, tomate y aceitunas exprés",
+    "category": "pasta_arroces",
+    "mainProtein": "pescado_azul",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 470,
+    "protein_g": 26,
+    "carbs_g": 62,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Macarrones",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en conserva",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua abundante y sal.",
+      "Pelar y picar el ajo fino.",
+      "Cocer los macarrones en el agua hirviendo según el tiempo del envase.",
+      "Mientras, calentar el aceite de oliva en una sartén y sofreír el ajo picado 1 min sin que se queme.",
+      "Añadir el tomate triturado y cocer a fuego medio 5 min hasta que espese ligeramente.",
+      "Escurrir el atún en conserva y añadirlo a la sartén junto con las aceitunas negras troceadas.",
+      "Remover y cocer 2 min más para que se integren los sabores.",
+      "Escurrir los macarrones y añadirlos a la sartén, mezclando bien.",
+      "Servir caliente en platos hondos."
+    ],
+    "description": "Pasta con atún, tomate y aceitunas, de la despensa a la mesa en un cuarto de hora."
+  },
+  {
+    "id": "pasta_arroces_030",
+    "name": "Risotto de setas y trufa negra",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 14,
+    "carbs_g": 74,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "mainIngredients": [
+      "seta"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz arborio",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Setas variadas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Trufa negra",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla muy fina y limpiar las setas, cortándolas en láminas.",
+      "Calentar el caldo de verduras en una olla y mantenerlo a fuego muy suave durante toda la cocción.",
+      "Calentar el aceite de oliva en una cazuela ancha y pochar la cebolla a fuego medio-bajo hasta que esté transparente.",
+      "Añadir las setas laminadas y saltear 5 min hasta que suelten el agua y se doren ligeramente.",
+      "Incorporar el arroz y nacarar 2 min removiendo, hasta que los granos queden translúcidos por fuera.",
+      "Añadir el vino blanco y dejar que se evapore el alcohol removiendo.",
+      "Añadir el caldo caliente poco a poco, un cucharón cada vez, sin dejar de remover y esperando a que se absorba antes de añadir el siguiente.",
+      "Repetir este proceso durante 16-18 min hasta que el arroz esté en su punto, cremoso pero con el grano entero.",
+      "Retirar del fuego y añadir la mantequilla fría en dados y el parmesano rallado, mantecando con movimientos envolventes.",
+      "Dejar reposar 1 min tapado y servir con láminas de trufa negra recién cortadas por encima."
+    ],
+    "description": "Risotto cremoso de setas con láminas de trufa negra recién cortadas por encima."
+  },
+  {
+    "id": "pasta_arroces_031",
+    "name": "Arroz negro con alioli",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 610,
+    "protein_g": 28,
+    "carbs_g": 70,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "moluscos",
+      "huevo",
+      "sulfitos",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz bomba",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Calamar",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tinta de calamar",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 450,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Alioli",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar el calamar y cortarlo en aros y tiras pequeñas.",
+      "Picar la cebolla, el pimiento rojo y el ajo muy finos.",
+      "Calentar el caldo de pescado en una olla y mantenerlo caliente.",
+      "Calentar el aceite de oliva en una paellera o sartén ancha y sofreír la cebolla, el pimiento y el ajo a fuego medio hasta que estén blandos.",
+      "Añadir el calamar y saltear 3-4 min hasta que empiece a dorarse.",
+      "Incorporar el tomate triturado y sofreír 3 min más hasta que pierda el agua.",
+      "Añadir el arroz y remover 1 min para que se impregne del sofrito.",
+      "Disolver la tinta de calamar en un poco de caldo caliente y añadirla a la sartén junto con el resto del caldo.",
+      "Repartir el arroz de manera uniforme, salar y cocer a fuego fuerte 8 min y luego a fuego medio-bajo 8-10 min más sin remover, hasta que absorba el líquido.",
+      "Retirar del fuego, dejar reposar 3 min tapado con un paño y servir con una cucharada de alioli en el centro."
+    ],
+    "description": "Arroz negro intenso con la nube blanca de alioli servida al centro."
+  },
+  {
+    "id": "pasta_arroces_032",
+    "name": "Paella de marisco con sofrito casero",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 70,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 590,
+    "protein_g": 32,
+    "carbs_g": 68,
+    "fat_g": 18,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "marisco",
+      "moluscos",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz bomba",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mejillones",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Calamar",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 900,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar las gambas reservando las cabezas y pelar el calamar, cortándolo en aros.",
+      "Limpiar los mejillones raspando las conchas y retirando las barbas.",
+      "Picar la cebolla, el pimiento rojo y el ajo muy finos para el sofrito.",
+      "Calentar el caldo de pescado en una olla, añadir las cabezas de las gambas para reforzar el sabor y mantenerlo caliente.",
+      "Calentar el aceite de oliva en la paella y saltear las gambas peladas 1 min por lado hasta que doren; reservar.",
+      "En el mismo aceite, sofreír la cebolla, el pimiento y el ajo picados hasta que estén blandos.",
+      "Añadir el calamar y saltear 3 min, luego incorporar el tomate triturado y sofreír 5 min hasta que espese.",
+      "Añadir el arroz y remover 1 min para que se impregne bien del sofrito.",
+      "Verter el caldo caliente colado, disolver el azafrán en él y repartir el arroz de forma uniforme por toda la paella.",
+      "Cocer a fuego fuerte 10 min sin remover, repartir los mejillones y las gambas reservadas encima y bajar a fuego medio-bajo 8-10 min más hasta que se absorba el líquido y se forme el socarrat en el fondo.",
+      "Retirar del fuego, tapar con un paño 5 min y servir en la misma paellera."
+    ],
+    "description": "Paella de marisco con sofrito casero, socarrat dorado en el borde y marisco entero repartido."
+  },
+  {
+    "id": "pasta_arroces_033",
+    "name": "Fideuá negra con alioli",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 570,
+    "protein_g": 27,
+    "carbs_g": 66,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "moluscos",
+      "huevo",
+      "sulfitos",
+      "marisco",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Fideos huecos nº 2",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Calamar",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tinta de calamar",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Alioli",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar el calamar y cortarlo en tiras pequeñas, y pelar las gambas.",
+      "Picar la cebolla y el ajo muy finos.",
+      "Calentar el caldo de pescado en una olla y mantenerlo caliente.",
+      "Calentar el aceite de oliva en una paellera o sartén ancha y sofreír la cebolla y el ajo hasta que estén blandos.",
+      "Añadir el calamar y saltear 3 min, luego el tomate triturado y sofreír 3 min más.",
+      "Añadir los fideos y tostarlos removiendo 2-3 min hasta que cojan un color dorado.",
+      "Disolver la tinta de calamar en un poco de caldo caliente y añadirla junto con el resto del caldo.",
+      "Repartir los fideos de manera uniforme, salar y cocer a fuego fuerte 5 min y luego a fuego medio 8-10 min más sin remover.",
+      "Repartir las gambas peladas por encima a mitad de cocción para que se hagan con el vapor.",
+      "Retirar del fuego cuando el líquido se haya absorbido, dejar reposar 2 min y servir con una cucharada de alioli en el centro."
+    ],
+    "description": "Fideuá negra con los fideos tostados, alioli como contraste cremoso."
+  },
+  {
+    "id": "pasta_arroces_034",
+    "name": "Arroz meloso de rabo de toro",
+    "category": "pasta_arroces",
+    "mainProtein": "ternera",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 210,
+    "difficulty": "elaborada",
+    "season": "invierno",
+    "kcal": 650,
+    "protein_g": 34,
+    "carbs_g": 62,
+    "fat_g": 26,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Rabo de toro troceado",
+        "amount": 800,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz bomba",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 900,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Salpimentar el rabo de toro y dorarlo por todas sus caras en una olla con aceite de oliva a fuego fuerte; reservar.",
+      "En la misma olla, pochar la cebolla, la zanahoria, el puerro y el ajo picados hasta que estén blandos.",
+      "Añadir el tomate triturado y sofreír 5 min.",
+      "Devolver el rabo de toro a la olla, añadir el vino tinto y dejar reducir 5 min a fuego fuerte.",
+      "Cubrir con parte del caldo de carne, tapar y cocer a fuego muy suave 2 horas y media hasta que la carne se despegue del hueso, añadiendo caldo si se queda seco.",
+      "Retirar el rabo de toro, desmigar la carne descartando huesos y grasa, y triturar la salsa de cocción colándola si queda con tropezones grandes.",
+      "En una cazuela ancha, calentar el resto del caldo de carne con la salsa triturada.",
+      "Añadir el arroz y la carne desmigada, repartiendo bien.",
+      "Cocer a fuego medio 16-18 min removiendo de vez en cuando hasta lograr una textura melosa y el grano en su punto.",
+      "Dejar reposar 2 min y servir bien caliente."
+    ],
+    "description": "Arroz meloso con el brillo untuoso del guiso y la carne de rabo de toro deshecha entre el grano."
+  },
+  {
+    "id": "pasta_arroces_035",
+    "name": "Ravioli de boletus con mantequilla de salvia",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 90,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 540,
+    "protein_g": 16,
+    "carbs_g": 58,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "mainIngredients": [
+      "seta"
+    ],
+    "ingredients": [
+      {
+        "name": "Harina de trigo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Boletus secos",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ricotta",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salvia fresca",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Hidratar los boletus secos en agua templada 20 min, escurrir y picar finos, reservando el agua de remojo colada.",
+      "Amasar la harina con los huevos hasta obtener una masa lisa y elástica; envolver en film y dejar reposar 30 min.",
+      "Mezclar los boletus picados con la ricotta y el parmesano rallado, salpimentar y remover hasta obtener un relleno homogéneo.",
+      "Estirar la masa con rodillo o máquina de pasta hasta dejarla fina y cortarla en dos láminas iguales.",
+      "Colocar montoncitos de relleno separados sobre una lámina, cubrir con la otra lámina, sellar bien alrededor de cada montón y cortar los ravioli con un cortapastas o cuchillo.",
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Cocer los ravioli 3-4 min hasta que suban a la superficie; escurrir con cuidado.",
+      "Mientras, derretir la mantequilla en una sartén amplia a fuego medio hasta que empiece a dorarse ligeramente.",
+      "Añadir las hojas de salvia y freírlas 30 segundos hasta que queden crujientes.",
+      "Servir los ravioli con la mantequilla de salvia por encima y unas láminas de parmesano."
+    ],
+    "description": "Ravioli caseros de boletus con pasta translúcida y hojas de salvia fritas por encima."
+  },
+  {
+    "id": "pasta_arroces_036",
+    "name": "Tagliatelle al ragú de jabalí",
+    "category": "pasta_arroces",
+    "mainProtein": "ternera",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 150,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 610,
+    "protein_g": 32,
+    "carbs_g": 62,
+    "fat_g": 22,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sulfitos",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Carne de jabalí picada",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Tagliatelle",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar muy finos la cebolla, la zanahoria, el apio y el ajo.",
+      "Calentar el aceite de oliva en una olla y sofreír las verduras picadas a fuego medio hasta que estén blandas, unos 10 min.",
+      "Añadir la carne de jabalí picada y dorarla bien, deshaciendo los grumos con una cuchara de madera.",
+      "Verter el vino tinto y dejar reducir 5 min a fuego fuerte hasta que el alcohol se evapore.",
+      "Añadir el tomate triturado, salar y remover.",
+      "Tapar parcialmente y cocer a fuego muy suave 2 horas, removiendo de vez en cuando y añadiendo un poco de agua si queda demasiado seco, hasta obtener un ragú denso y oscuro.",
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Cocer los tagliatelle en el agua hirviendo según el tiempo del envase.",
+      "Escurrir la pasta reservando un poco de agua de cocción y mezclarla con el ragú, añadiendo agua si hace falta para ligar.",
+      "Servir con parmesano rallado por encima."
+    ],
+    "description": "Tagliatelle con salsa oscura y densa de ragú de jabalí enroscada en la pasta."
+  },
+  {
+    "id": "pasta_arroces_037",
+    "name": "Risotto de calabaza y parmesano",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 14,
+    "carbs_g": 76,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz arborio",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar la calabaza y cortarla en dados pequeños.",
+      "Picar la cebolla muy fina.",
+      "Calentar el caldo de verduras en una olla y mantenerlo caliente durante toda la cocción.",
+      "Calentar el aceite de oliva en una cazuela ancha y pochar la cebolla hasta que esté transparente.",
+      "Añadir los dados de calabaza y rehogar 5 min removiendo.",
+      "Incorporar el arroz y nacarar 2 min hasta que los granos queden translúcidos.",
+      "Añadir el vino blanco y dejar que se evapore removiendo.",
+      "Añadir el caldo caliente poco a poco, un cucharón cada vez, esperando a que se absorba antes de añadir el siguiente, durante 16-18 min, aplastando ligeramente la calabaza con la cuchara para que espese.",
+      "Retirar del fuego y añadir la mantequilla fría en dados y el parmesano rallado, mantecando con movimientos envolventes.",
+      "Dejar reposar 1 min tapado y servir con virutas de parmesano por encima."
+    ],
+    "description": "Risotto de un naranja intenso, cremoso, con virutas de parmesano recién rallado."
+  },
+  {
+    "id": "pasta_arroces_038",
+    "name": "Orecchiette con brócoli y anchoas",
+    "category": "pasta_arroces",
+    "mainProtein": "pescado_azul",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 470,
+    "protein_g": 18,
+    "carbs_g": 64,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "pescado"
+    ],
+    "mainIngredients": [
+      "verdura"
+    ],
+    "ingredients": [
+      {
+        "name": "Orecchiette",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Brócoli",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Anchoas en aceite",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Separar el brócoli en arbolitos pequeños.",
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Cocer el brócoli en el agua hirviendo 3 min, retirarlo con una espumadera y reservar, dejando el agua hirviendo.",
+      "Cocer las orecchiette en la misma agua según el tiempo del envase.",
+      "Mientras, pelar y laminar el ajo y calentar el aceite de oliva en una sartén amplia a fuego medio.",
+      "Añadir el ajo laminado y la guindilla y dorar 1 min sin que se queme.",
+      "Incorporar las anchoas y deshacerlas con una cuchara de madera hasta que se disuelvan en el aceite.",
+      "Añadir el brócoli cocido y saltear 3-4 min, aplastando ligeramente algunos arbolitos.",
+      "Escurrir la pasta reservando un poco de agua de cocción y añadirla a la sartén.",
+      "Saltear todo junto 1-2 min añadiendo agua de cocción si hace falta, y servir enseguida."
+    ],
+    "description": "Orecchiette de un verde brócoli intenso, con el brillo del aceite y el ajo dorado con anchoas."
+  },
+  {
+    "id": "pasta_arroces_039",
+    "name": "Arroz caldoso de bogavante",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 75,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 30,
+    "carbs_g": 58,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "marisco",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Bogavante",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Arroz bomba",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 800,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Partir el bogavante por la mitad longitudinalmente, separando las pinzas y reservando los jugos que suelte.",
+      "Picar la cebolla, el pimiento rojo y el ajo muy finos.",
+      "Calentar el aceite de oliva en una cazuela ancha y marcar el bogavante 1-2 min por cada lado; reservar.",
+      "En la misma cazuela, sofreír la cebolla, el pimiento y el ajo hasta que estén blandos.",
+      "Añadir el tomate triturado y el pimentón dulce, sofriendo 3 min sin dejar que se queme el pimentón.",
+      "Verter el caldo de pescado caliente junto con los jugos reservados del bogavante y llevar a ebullición.",
+      "Añadir el arroz, repartirlo bien y cocer a fuego medio 10 min.",
+      "Incorporar de nuevo el bogavante y sus pinzas y cocer 6-8 min más hasta que el arroz esté en su punto y el caldo quede meloso y abundante.",
+      "Rectificar de sal, dejar reposar 2 min y servir bien caliente en platos hondos."
+    ],
+    "description": "Arroz caldoso con caldo rojizo intenso y el bogavante partido en el centro del plato."
+  },
+  {
+    "id": "pasta_arroces_040",
+    "name": "Canelones de rabo de toro",
+    "category": "pasta_arroces",
+    "mainProtein": "ternera",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 240,
+    "difficulty": "elaborada",
+    "season": "invierno",
+    "kcal": 640,
+    "protein_g": 34,
+    "carbs_g": 48,
+    "fat_g": 32,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "requiredAppliance": "horno",
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Rabo de toro troceado",
+        "amount": 800,
+        "unit": "g"
+      },
+      {
+        "name": "Placas de canelones",
+        "amount": 16,
+        "unit": "ud"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Leche",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Salpimentar el rabo de toro y dorarlo por todas sus caras en una olla con aceite de oliva; reservar.",
+      "En la misma olla, pochar la cebolla, la zanahoria, el puerro y el ajo picados hasta que estén blandos.",
+      "Devolver el rabo de toro a la olla, añadir el vino tinto y dejar reducir 5 min.",
+      "Cubrir con el caldo de carne, tapar y cocer a fuego muy suave 3 horas hasta que la carne se despegue del hueso.",
+      "Retirar el rabo, desmigar la carne descartando huesos y grasa, y triturar la salsa de cocción colándola; mezclar la carne con parte de la salsa hasta obtener un relleno jugoso.",
+      "Cocer las placas de canelones en agua hirviendo con sal según el envase, escurrir y extender sobre un paño limpio.",
+      "Rellenar cada placa con una porción de carne desmigada y enrollar formando los canelones.",
+      "Preparar una bechamel derritiendo la mantequilla, añadiendo la harina y cociendo 1 min, luego incorporando la leche poco a poco sin dejar de remover hasta que espese.",
+      "Colocar los canelones en una fuente de horno, cubrir con la bechamel y espolvorear el parmesano rallado.",
+      "Gratinar en el horno precalentado a 200°C durante 15-20 min hasta que la superficie quede dorada."
+    ],
+    "description": "Canelones de rabo de toro con bechamel gratinada y dorada, y el relleno oscuro asomando al cortar."
+  },
+  {
+    "id": "pasta_arroces_041",
+    "name": "Linguine alle vongole",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 490,
+    "protein_g": 22,
+    "carbs_g": 66,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Linguine",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 35,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las almejas en un bol con agua fría y sal durante 30 min para que suelten la arena, cambiando el agua una vez.",
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Pelar y laminar el ajo, y picar el perejil fresco.",
+      "Cocer los linguine en el agua hirviendo según el tiempo del envase.",
+      "Mientras, calentar el aceite de oliva en una sartén amplia y dorar el ajo laminado y la guindilla 1 min sin que se quemen.",
+      "Escurrir las almejas y añadirlas a la sartén, subiendo el fuego.",
+      "Verter el vino blanco, tapar y cocer 2-3 min hasta que las almejas se abran; descartar las que no se abran.",
+      "Escurrir los linguine al dente reservando un poco de agua de cocción y añadirlos a la sartén.",
+      "Saltear todo junto 1-2 min, añadiendo agua de cocción si hace falta para ligar la salsa.",
+      "Espolvorear con el perejil picado y servir enseguida."
+    ],
+    "description": "Linguine con almejas abiertas repartidas por el plato y perejil fresco recién picado."
+  },
+  {
+    "id": "pasta_arroces_042",
+    "name": "Risotto negro con calamar",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 26,
+    "carbs_g": 68,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "moluscos",
+      "sulfitos",
+      "lactosa",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz arborio",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Calamar",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Tinta de calamar",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar el calamar, separando el cuerpo y cortándolo en aros.",
+      "Picar la cebolla y el ajo muy finos.",
+      "Calentar el caldo de pescado en una olla y mantenerlo caliente durante toda la cocción.",
+      "Calentar el aceite de oliva en una cazuela ancha y sellar la mitad de los aros de calamar 1-2 min hasta que doren; reservar para el emplatado.",
+      "En la misma cazuela, pochar la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir el resto del calamar y saltear 3 min.",
+      "Incorporar el arroz y nacarar 2 min hasta que los granos queden translúcidos.",
+      "Añadir el vino blanco y dejar que se evapore removiendo.",
+      "Disolver la tinta de calamar en un poco de caldo caliente y añadirla junto con el resto del caldo poco a poco, un cucharón cada vez, durante 16-18 min sin dejar de remover.",
+      "Retirar del fuego, añadir la mantequilla fría en dados y mantecar con movimientos envolventes; servir con los aros de calamar sellados encima."
+    ],
+    "description": "Risotto de un negro profundo con aros de calamar sellados por encima."
+  },
+  {
+    "id": "pasta_arroces_043",
+    "name": "Arroz con costra alicantino",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 90,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 600,
+    "protein_g": 32,
+    "carbs_g": 62,
+    "fat_g": 24,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "requiredAppliance": "horno",
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz bomba",
+        "amount": 320,
+        "unit": "g"
+      },
+      {
+        "name": "Muslo de pollo deshuesado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Costillas de cerdo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Butifarra",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 750,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Huevo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Salpimentar el pollo y las costillas troceadas.",
+      "Calentar el aceite de oliva en una cazuela apta para horno y dorar las costillas, el pollo y la butifarra por todas sus caras; reservar la butifarra entera y trocear el resto.",
+      "En la misma cazuela, sofreír el ajo picado y el tomate triturado 3-4 min.",
+      "Añadir el caldo de pollo caliente con el azafrán disuelto y llevar a ebullición.",
+      "Incorporar el arroz, la carne dorada y los garbanzos cocidos, repartiendo bien y rectificando de sal.",
+      "Cocer a fuego medio 8 min en la propia cazuela sobre el fuego.",
+      "Batir los huevos y verterlos por encima del arroz de manera uniforme, colocando la butifarra entera encima.",
+      "Introducir la cazuela en el horno precalentado y hornear 15-18 min hasta que el huevo cuaje y forme una costra dorada.",
+      "Dejar reposar 3 min fuera del horno antes de servir."
+    ],
+    "description": "Arroz con la costra dorada de huevo cuajado que se rompe al servir, típico de la comarca alicantina.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "pasta_arroces_044",
+    "name": "Pappardelle con ragú de pato",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 150,
+    "difficulty": "elaborada",
+    "season": "invierno",
+    "kcal": 620,
+    "protein_g": 30,
+    "carbs_g": 60,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "sulfitos",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Muslos de pato",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Pappardelle",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Salpimentar los muslos de pato y dorarlos por la piel en una cazuela sin aceite añadido, aprovechando su propia grasa, hasta que estén dorados; reservar.",
+      "Retirar el exceso de grasa de la cazuela dejando una cucharada, y pochar en ella la cebolla, la zanahoria, el apio y el ajo picados.",
+      "Devolver los muslos de pato a la cazuela, añadir el vino tinto y dejar reducir 5 min.",
+      "Incorporar el tomate triturado, salar y tapar parcialmente.",
+      "Cocer a fuego muy suave 2 horas hasta que la carne se separe fácilmente del hueso.",
+      "Retirar los muslos, desmigar la carne descartando piel y huesos, y devolverla a la salsa, removiendo hasta integrar.",
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Cocer los pappardelle en el agua hirviendo según el tiempo del envase.",
+      "Escurrir la pasta reservando un poco de agua de cocción y mezclarla con el ragú de pato, añadiendo agua si hace falta.",
+      "Servir con parmesano rallado por encima."
+    ],
+    "description": "Pappardelle en cinta ancha envueltos en la salsa oscura de un ragú de pato."
+  },
+  {
+    "id": "pasta_arroces_045",
+    "name": "Macarrones con mantequilla, parmesano y salvia crujiente",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 16,
+    "carbs_g": 64,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Macarrones",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salvia fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua abundante y sal.",
+      "Cocer los macarrones en el agua hirviendo según el tiempo del envase.",
+      "Mientras, derretir la mantequilla en una sartén amplia a fuego medio hasta que empiece a coger un tono avellana.",
+      "Añadir las hojas de salvia y freírlas 30-40 segundos hasta que queden crujientes; retirar y reservar sobre papel absorbente.",
+      "Reservar un cucharón del agua de cocción de la pasta antes de escurrir.",
+      "Escurrir los macarrones y añadirlos a la sartén con la mantequilla dorada.",
+      "Añadir el parmesano rallado y un poco de agua de cocción, removiendo hasta que la salsa quede sedosa y envuelva bien la pasta.",
+      "Salpimentar y servir con las hojas de salvia crujiente por encima y más parmesano al gusto."
+    ],
+    "description": "El plato de pasta más sencillo, elevado con hojas de salvia fritas en un momento."
+  },
+  {
+    "id": "pasta_arroces_046",
+    "name": "Espaguetis cacio e pepe",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 500,
+    "protein_g": 18,
+    "carbs_g": 62,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Queso pecorino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra en grano",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla con agua y menos sal de lo habitual, ya que el pecorino ya aporta sal.",
+      "Machacar la pimienta negra en grano en un mortero hasta dejarla gruesa.",
+      "Tostar la pimienta machacada en una sartén amplia y seca a fuego medio 1 min hasta que huela intensamente.",
+      "Cocer los espaguetis en el agua hirviendo, un par de minutos menos que el tiempo del envase.",
+      "Reservar un par de cucharones del agua de cocción antes de escurrir.",
+      "Rallar el pecorino muy fino y mezclarlo en un bol con un poco de agua de cocción templada, removiendo hasta formar una crema sin grumos.",
+      "Escurrir la pasta y terminarla de cocer 1-2 min directamente en la sartén con la pimienta tostada, añadiendo agua de cocción.",
+      "Retirar del fuego y añadir la crema de pecorino, moviendo la sartén con energía (no remover con cuchara) para que emulsione sin cortarse.",
+      "Añadir más agua de cocción si queda espeso y servir enseguida con más pimienta molida por encima."
+    ],
+    "description": "Espaguetis con solo queso, pimienta y agua de cocción: pura textura cremosa."
+  },
+  {
+    "id": "pasta_arroces_047",
+    "name": "Carbonara auténtica con guanciale",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 610,
+    "protein_g": 26,
+    "carbs_g": 60,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Guanciale",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Yema de huevo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso pecorino",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar el guanciale en tiras o taquitos.",
+      "Poner a hervir una olla con agua y sal.",
+      "Batir en un bol las yemas, el huevo entero y el pecorino rallado con abundante pimienta negra hasta obtener una crema homogénea.",
+      "Cocer los espaguetis en el agua hirviendo según el tiempo del envase.",
+      "Mientras, dorar el guanciale en una sartén amplia sin aceite a fuego medio hasta que suelte la grasa y quede crujiente; retirar del fuego.",
+      "Reservar un cucharón del agua de cocción de la pasta antes de escurrir.",
+      "Escurrir los espaguetis y añadirlos a la sartén con el guanciale y su grasa, fuera del fuego.",
+      "Verter la mezcla de huevo y queso sobre la pasta caliente y remover rápido fuera del fuego hasta que cuaje cremoso, sin que llegue a cuajar en grumos.",
+      "Añadir un poco de agua de cocción si queda demasiado espeso, hasta lograr una textura sedosa.",
+      "Servir enseguida con más pimienta negra molida y pecorino por encima."
+    ],
+    "description": "Carbonara auténtica con crema de yema sin nata y panceta de guanciale crujiente."
+  },
+  {
+    "id": "pasta_arroces_048",
+    "name": "Pasta al limón con parmesano",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 500,
+    "protein_g": 15,
+    "carbs_g": 64,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua abundante y sal.",
+      "Rallar la piel del limón y exprimir su zumo, reservando ambos por separado.",
+      "Cocer los espaguetis en el agua hirviendo según el tiempo del envase.",
+      "Mientras, derretir la mantequilla en una sartén amplia a fuego suave.",
+      "Añadir la nata, el zumo de limón y la mitad de la ralladura, y calentar removiendo sin que llegue a hervir fuerte.",
+      "Reservar un cucharón del agua de cocción de la pasta antes de escurrir.",
+      "Escurrir los espaguetis y añadirlos a la sartén con la salsa.",
+      "Añadir el parmesano rallado y un poco de agua de cocción, removiendo hasta que la salsa quede cremosa y envuelva bien la pasta.",
+      "Salpimentar y servir con el resto de la ralladura de limón por encima."
+    ],
+    "description": "Pasta con una salsa cremosa y cítrica de limón; el aroma sube nada más servirla."
+  },
+  {
+    "id": "pasta_arroces_049",
+    "name": "Pasta alla norma con berenjena y ricotta salada",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 16,
+    "carbs_g": 68,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Rigatoni",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Ricotta salada",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la berenjena en dados de 2 cm y salar ligeramente; dejar reposar 15 min y secar con papel de cocina.",
+      "Calentar la mitad del aceite de oliva en una sartén amplia a fuego medio-alto y freír la berenjena por tandas hasta que esté dorada por fuera y tierna por dentro. Reservar sobre papel absorbente.",
+      "En la misma sartén, con el resto del aceite, dorar el ajo laminado a fuego suave 1 min.",
+      "Añadir el tomate triturado y una pizca de sal, y cocer a fuego suave 15 min hasta que espese.",
+      "Llevar a ebullición una olla grande con agua abundante y sal, y cocer los rigatoni según el tiempo del envase hasta que estén al dente.",
+      "Escurrir la pasta reservando un poco de agua de cocción.",
+      "Incorporar la berenjena frita a la salsa de tomate y mezclar con cuidado 1 min.",
+      "Añadir la pasta escurrida a la sartén y saltear con la salsa, aligerando con un poco de agua de cocción si queda seca.",
+      "Servir en platos hondos con la ricotta salada rallada por encima y las hojas de albahaca."
+    ],
+    "description": "Pasta con berenjena frita dorada, salsa de tomate y ricotta salada rallada, el clásico siciliano."
+  },
+  {
+    "id": "pasta_arroces_050",
+    "name": "Spaghetti aglio, olio e peperoncino",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 12,
+    "carbs_g": 68,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Guindilla seca",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar a ebullición una olla grande con agua abundante y sal.",
+      "Cocer los espaguetis según el tiempo del envase hasta que estén al dente.",
+      "Mientras tanto, laminar el ajo fino y picar el perejil.",
+      "Calentar el aceite de oliva en una sartén amplia a fuego suave y dorar el ajo laminado sin que se queme.",
+      "Añadir la guindilla desmenuzada al aceite y sofreír 30 seg más.",
+      "Escurrir la pasta reservando medio vaso de agua de cocción y añadirla a la sartén.",
+      "Saltear la pasta con el aceite aromatizado 1-2 min, añadiendo agua de cocción si queda seca.",
+      "Añadir el perejil picado, mezclar y servir de inmediato."
+    ],
+    "description": "Espaguetis salteados en aceite de oliva con ajo dorado, guindilla y perejil, sencillos y con punto picante."
+  },
+  {
+    "id": "pasta_arroces_051",
+    "name": "Gnocchi de patata con mantequilla y salvia",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "patatas",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 11,
+    "carbs_g": 66,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Patata",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salvia fresca",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Parmesano",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cocer las patatas con piel en agua con sal hasta que estén tiernas, unos 25 min.",
+      "Escurrir, pelar en caliente y pasar por pasapurés sobre una superficie de trabajo enharinada.",
+      "Extender el puré, añadir el huevo, la sal y la nuez moscada, y mezclar.",
+      "Incorporar la harina poco a poco hasta formar una masa lisa y no pegajosa, sin trabajarla en exceso.",
+      "Dividir la masa en cilindros de 2 cm de grosor y cortar en trozos de 2 cm; marcar cada uno con un tenedor.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los gnocchi por tandas hasta que floten, unos 2 min.",
+      "Sacar con espumadera y reservar.",
+      "Derretir la mantequilla en una sartén a fuego medio hasta que tome color avellana y dorar las hojas de salvia.",
+      "Añadir los gnocchi a la sartén y saltear 1 min para que se impregnen.",
+      "Servir con el parmesano rallado por encima."
+    ],
+    "description": "Gnocchi de patata caseros salteados en mantequilla avellana con salvia crujiente."
+  },
+  {
+    "id": "pasta_arroces_052",
+    "name": "Gnocchi de ricotta y espinacas",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 18,
+    "carbs_g": 40,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Ricotta",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Escaldar las espinacas 1 min en agua hirviendo, escurrir muy bien y picar finas.",
+      "Mezclar en un bol la ricotta, las espinacas picadas, el huevo, el parmesano, la nuez moscada y la sal.",
+      "Añadir la harina y mezclar lo justo hasta obtener una masa homogénea y algo pegajosa.",
+      "Con las manos enharinadas, formar bolitas de unos 3 cm y colocarlas sobre una bandeja enharinada.",
+      "Llevar a ebullición una olla grande con agua y sal.",
+      "Cocer los gnocchi por tandas hasta que floten en la superficie, unos 3 min.",
+      "Sacar con espumadera y reservar escurridos.",
+      "Derretir la mantequilla en una sartén y saltear los gnocchi 1 min para que se doren ligeramente.",
+      "Servir con parmesano rallado por encima."
+    ],
+    "description": "Gnocchi caseros de ricotta y espinacas, verdes por dentro y mantecosos por fuera."
+  },
+  {
+    "id": "pasta_arroces_053",
+    "name": "Pasta con almejas y perejil",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 490,
+    "protein_g": 24,
+    "carbs_g": 62,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las almejas en agua fría con sal 1 hora para que suelten la arena, cambiando el agua una vez.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los espaguetis según el tiempo del envase.",
+      "Mientras tanto, calentar el aceite de oliva en una sartén amplia y sofreír el ajo picado y la guindilla a fuego suave.",
+      "Añadir las almejas escurridas y subir el fuego.",
+      "Verter el vino blanco y tapar la sartén hasta que las almejas se abran, unos 3-4 min.",
+      "Retirar las almejas que no se hayan abierto.",
+      "Escurrir la pasta reservando un poco de agua de cocción y añadirla a la sartén con las almejas y su jugo.",
+      "Saltear todo junto 1-2 min, añadir el perejil picado y servir de inmediato."
+    ],
+    "description": "Espaguetis con almejas abiertas al vino blanco, ajo y perejil fresco."
+  },
+  {
+    "id": "pasta_arroces_054",
+    "name": "Tortellini rellenos en caldo",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "normal",
+    "season": "invierno",
+    "kcal": 380,
+    "protein_g": 18,
+    "carbs_g": 38,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Tortellini frescos rellenos de carne",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 800,
+        "unit": "ml"
+      },
+      {
+        "name": "Parmesano",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar el caldo de carne a ebullición en una olla.",
+      "Probar de sal y ajustar.",
+      "Añadir los tortellini al caldo hirviendo y cocer según el tiempo indicado en el envase, removiendo con suavidad para que no se peguen.",
+      "Comprobar que los tortellini flotan y están tiernos antes de retirar del fuego.",
+      "Repartir en platos hondos con el caldo.",
+      "Servir con parmesano rallado y perejil picado por encima."
+    ],
+    "description": "Tortellini rellenos de carne servidos flotando en caldo caliente, el clásico reconfortante de invierno."
+  },
+  {
+    "id": "pasta_arroces_055",
+    "name": "Macarrones gratinados con bechamel y queso",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 45,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 580,
+    "protein_g": 19,
+    "carbs_g": 60,
+    "fat_g": 26,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Macarrones",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 800,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C con gratinador.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los macarrones un par de minutos menos de lo indicado en el envase; escurrir.",
+      "Derretir la mantequilla en un cazo a fuego medio y añadir la harina, removiendo 1 min para tostarla sin que coja color.",
+      "Añadir la leche poco a poco sin dejar de remover con varillas, hasta obtener una bechamel espesa y sin grumos.",
+      "Sazonar con sal y nuez moscada, y retirar del fuego.",
+      "Mezclar los macarrones escurridos con la bechamel y la mitad del queso rallado.",
+      "Volcar en una fuente de horno y repartir el queso restante por encima.",
+      "Gratinar 10-12 min hasta que la superficie esté dorada y burbujeante.",
+      "Dejar reposar 3 min antes de servir."
+    ],
+    "description": "Macarrones envueltos en bechamel cremosa, gratinados con queso hasta formar una corteza dorada."
+  },
+  {
+    "id": "pasta_arroces_056",
+    "name": "Lasaña de verduras con bechamel",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 70,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 440,
+    "protein_g": 15,
+    "carbs_g": 48,
+    "fat_g": 20,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Láminas de lasaña",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Berenjena",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Leche",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Cortar el calabacín, la berenjena, el pimiento y la cebolla en dados pequeños.",
+      "Calentar el aceite de oliva en una sartén amplia y sofreír la cebolla hasta que esté transparente.",
+      "Añadir el resto de verduras y sofreír 10-12 min a fuego medio hasta que estén tiernas.",
+      "Incorporar el tomate triturado y cocer 5 min más; salpimentar y reservar.",
+      "Preparar la bechamel: derretir la mantequilla, añadir la harina y tostar 1 min, luego incorporar la leche poco a poco removiendo hasta que espese.",
+      "Si las láminas de lasaña no son precocidas, hidratarlas según las instrucciones del envase.",
+      "Montar la lasaña en capas en una fuente de horno: lámina de pasta, verduras, un poco de bechamel, y repetir hasta terminar con bechamel.",
+      "Repartir el queso rallado por encima.",
+      "Hornear 25-30 min hasta que la superficie esté dorada. Dejar reposar 5 min antes de cortar y servir."
+    ],
+    "description": "Capas de pasta, verduras salteadas y bechamel gratinada al horno hasta dorar."
+  },
+  {
+    "id": "pasta_arroces_057",
+    "name": "Canelones de espinacas y piñones con bechamel",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 65,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 17,
+    "carbs_g": 44,
+    "fat_g": 25,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Placas de canelones",
+        "amount": 16,
+        "unit": "ud"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cocer las placas de canelones en agua hirviendo con sal según el envase; escurrir y extender sobre un paño limpio para que no se peguen.",
+      "Tostar los piñones en una sartén seca 2 min hasta que doren ligeramente; reservar.",
+      "Calentar el aceite de oliva y sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir las espinacas por tandas y cocinar hasta que reduzcan y suelten el agua; escurrir bien y picar.",
+      "Mezclar las espinacas con los piñones tostados y un tercio de la bechamel (preparada a continuación).",
+      "Preparar la bechamel: derretir la mantequilla, añadir la harina y tostar 1 min, incorporar la leche poco a poco hasta espesar; sazonar con sal y nuez moscada.",
+      "Rellenar cada placa de canelón con la mezcla de espinacas y enrollar.",
+      "Colocar los canelones en una fuente de horno, cubrir con el resto de la bechamel y repartir el queso rallado.",
+      "Hornear a 200°C durante 20 min hasta gratinar.",
+      "Dejar reposar 5 min antes de servir."
+    ],
+    "description": "Canelones rellenos de espinacas y piñones, cubiertos de bechamel y gratinados al horno."
+  },
+  {
+    "id": "pasta_arroces_058",
+    "name": "Canelones de pollo asado y jamón",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 70,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 30,
+    "carbs_g": 42,
+    "fat_g": 24,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Placas de canelones",
+        "amount": 16,
+        "unit": "ud"
+      },
+      {
+        "name": "Pechuga de pollo asada",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cocer las placas de canelones en agua hirviendo con sal según el envase; escurrir y extender sobre un paño limpio.",
+      "Picar el pollo asado y el jamón cocido finos, a cuchillo o con la picadora.",
+      "Calentar el aceite de oliva y sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir el pollo y el jamón picados y rehogar 3-4 min.",
+      "Preparar la bechamel: derretir la mantequilla, añadir la harina y tostar 1 min, incorporar la leche poco a poco hasta espesar; sazonar con sal.",
+      "Mezclar el relleno de pollo y jamón con un tercio de la bechamel.",
+      "Rellenar cada placa de canelón con la mezcla y enrollar.",
+      "Colocar los canelones en una fuente de horno, cubrir con el resto de la bechamel y repartir el queso rallado.",
+      "Hornear a 200°C durante 20 min hasta gratinar.",
+      "Dejar reposar 5 min antes de servir."
+    ],
+    "description": "Canelones rellenos de pollo asado y jamón, cubiertos de bechamel bien gratinada. El clásico de fiesta.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "pasta_arroces_059",
+    "name": "Lasaña boloñesa clásica",
+    "category": "pasta_arroces",
+    "mainProtein": "ternera",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 90,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 580,
+    "protein_g": 32,
+    "carbs_g": 46,
+    "fat_g": 28,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "apio",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Láminas de lasaña",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 600,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Apio",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 700,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Leche",
+        "amount": 800,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina de trigo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 6,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Picar la cebolla, la zanahoria y el apio en dados muy pequeños.",
+      "Calentar el aceite de oliva en una cazuela amplia y sofreír el picadillo de verduras 8-10 min hasta que esté tierno.",
+      "Añadir la carne picada y dorar a fuego alto, deshaciendo los grumos, hasta que pierda el color crudo.",
+      "Verter el vino tinto y dejar reducir 2 min.",
+      "Añadir el tomate triturado, salar y cocer a fuego suave 30 min removiendo de vez en cuando, hasta obtener una boloñesa espesa.",
+      "Preparar la bechamel: derretir la mantequilla, añadir la harina y tostar 1 min, incorporar la leche poco a poco hasta espesar; sazonar con sal.",
+      "Si las láminas de lasaña no son precocidas, hidratarlas según las instrucciones del envase.",
+      "Montar la lasaña en capas en una fuente de horno: pasta, boloñesa, un poco de bechamel, y repetir hasta terminar con bechamel.",
+      "Repartir el queso rallado por encima.",
+      "Hornear 30 min hasta que la superficie esté dorada.",
+      "Dejar reposar 10 min antes de cortar y servir."
+    ],
+    "description": "La lasaña de siempre, con capas de pasta, boloñesa jugosa y bechamel bien gratinada."
+  },
+  {
+    "id": "pasta_arroces_060",
+    "name": "Pasta fría con tomate, mozzarella y albahaca",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "verano",
+    "kcal": 460,
+    "protein_g": 16,
+    "carbs_g": 58,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Fusilli",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mozzarella",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre balsámico",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar a ebullición una olla grande con agua y sal, y cocer la pasta según el tiempo del envase hasta que esté al dente.",
+      "Escurrir la pasta y enfriarla bajo el grifo con agua fría para cortar la cocción.",
+      "Cortar los tomates cherry por la mitad y la mozzarella en dados.",
+      "Mezclar en un bol la pasta fría, los tomates y la mozzarella.",
+      "Aliñar con el aceite de oliva, el vinagre balsámico y la sal, y mezclar bien.",
+      "Añadir las hojas de albahaca troceadas a mano justo antes de servir.",
+      "Dejar reposar 10 min en la nevera para que se integren los sabores antes de servir."
+    ],
+    "description": "Pasta fría con tomate cherry, mozzarella y albahaca fresca, ideal para los días de calor."
+  },
+  {
+    "id": "pasta_arroces_061",
+    "name": "Ensalada de pasta con atún y aceitunas",
+    "category": "pasta_arroces",
+    "mainProtein": "pescado_azul",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 24,
+    "carbs_g": 54,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "pescado",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Fusilli",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en conserva",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate cherry",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla morada",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar a ebullición una olla grande con agua y sal, y cocer la pasta según el tiempo del envase.",
+      "Escurrir la pasta y enfriarla bajo el grifo con agua fría.",
+      "Cortar los tomates cherry por la mitad, el pimiento en dados pequeños y la cebolla morada en juliana fina.",
+      "Escurrir bien el atún en conserva y desmigarlo.",
+      "Mezclar en un bol la pasta fría, el atún, las aceitunas, el tomate, el pimiento y la cebolla.",
+      "Aliñar con el aceite de oliva, el vinagre y la sal, y mezclar bien antes de servir."
+    ],
+    "description": "Ensalada de pasta fría con atún, aceitunas y verduras crujientes, un clásico de tupper."
+  },
+  {
+    "id": "pasta_arroces_062",
+    "name": "Trofie al pesto genovés",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 540,
+    "protein_g": 15,
+    "carbs_g": 68,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "frutos_secos",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Trofie",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Patata",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Judía verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar la patata en dados pequeños; limpiar y cortar la judía verde en trozos.",
+      "Triturar en un vaso batidor la albahaca, los piñones, el ajo, el parmesano y el aceite de oliva hasta obtener una salsa homogénea; salar al gusto.",
+      "Llevar a ebullición una olla grande con agua y sal.",
+      "Cocer la patata y la judía verde 8 min, añadir las trofie y cocer todo junto según el tiempo indicado en el envase de la pasta.",
+      "Escurrir reservando un poco de agua de cocción.",
+      "Mezclar la pasta, la patata y la judía verde con el pesto en un bol amplio, aligerando con agua de cocción si queda espeso.",
+      "Servir templado con un poco más de parmesano por encima."
+    ],
+    "description": "Trofie ligures con pesto de albahaca, piñones y parmesano, con patata y judía verde como manda la tradición."
+  },
+  {
+    "id": "pasta_arroces_063",
+    "name": "Rigatoni con salchicha y tomate",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 22,
+    "carbs_g": 62,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Rigatoni",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Salchicha fresca italiana",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Retirar la piel de las salchichas y desmenuzar la carne con las manos.",
+      "Calentar el aceite de oliva en una sartén amplia y dorar la carne de salchicha desmenuzada a fuego medio-alto, deshaciendo los grumos.",
+      "Añadir la cebolla y el ajo picados y sofreír hasta que la cebolla esté transparente.",
+      "Verter el vino blanco y dejar reducir 2 min.",
+      "Añadir el tomate triturado y el orégano, y cocer a fuego suave 15 min hasta que espese.",
+      "Mientras tanto, cocer los rigatoni en agua hirviendo con sal según el tiempo del envase.",
+      "Escurrir la pasta y añadirla a la sartén con la salsa, mezclando bien 1-2 min.",
+      "Servir en platos hondos."
+    ],
+    "description": "Rigatoni con una salsa rústica de tomate y salchicha dorada, con un fondo de vino blanco."
+  },
+  {
+    "id": "pasta_arroces_064",
+    "name": "Penne all'arrabbiata",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 440,
+    "protein_g": 12,
+    "carbs_g": 66,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Penne",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los penne según el tiempo del envase.",
+      "Mientras tanto, calentar el aceite de oliva en una sartén amplia a fuego medio y dorar el ajo picado con la guindilla desmenuzada.",
+      "Añadir el tomate triturado y una pizca de sal, y cocer a fuego suave 12-15 min hasta que espese y el rojo se intensifique.",
+      "Escurrir la pasta reservando un poco de agua de cocción.",
+      "Añadir la pasta a la sartén con la salsa y saltear 1-2 min, aligerando con agua de cocción si hace falta.",
+      "Añadir el perejil picado, mezclar y servir de inmediato."
+    ],
+    "description": "Penne con salsa de tomate bien picante, ajo y guindilla, el clásico romano con carácter."
+  },
+  {
+    "id": "pasta_arroces_065",
+    "name": "Pasta con boletus y nata",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 580,
+    "protein_g": 14,
+    "carbs_g": 60,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Tagliatelle",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Boletus",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar los boletus con un paño húmedo y cortarlos en láminas.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer las tagliatelle según el tiempo del envase.",
+      "Mientras tanto, derretir la mantequilla en una sartén amplia y sofreír la cebolla y el ajo picados hasta que estén tiernos.",
+      "Añadir los boletus laminados y saltear a fuego medio-alto 5-6 min hasta que suelten el agua y se doren.",
+      "Verter la nata para cocinar, salar y cocer a fuego suave 5 min hasta que espese ligeramente.",
+      "Escurrir la pasta y añadirla a la sartén con la salsa, mezclando bien.",
+      "Añadir el perejil picado y servir de inmediato."
+    ],
+    "description": "Pasta en salsa cremosa de boletus con un fondo de mantequilla y ajo."
+  },
+  {
+    "id": "pasta_arroces_066",
+    "name": "Farfalle con salmón y eneldo",
+    "category": "pasta_arroces",
+    "mainProtein": "pescado_azul",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 26,
+    "carbs_g": 58,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Farfalle",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Salmón fresco",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Eneldo fresco",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar el salmón en dados de 2 cm, retirando piel y espinas si las hubiera.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer las farfalle según el tiempo del envase.",
+      "Mientras tanto, calentar el aceite de oliva en una sartén y sofreír la cebolla picada hasta que esté transparente.",
+      "Añadir los dados de salmón y saltear 2-3 min a fuego medio-alto, con cuidado de no deshacerlos.",
+      "Verter la nata para cocinar, salpimentar y cocer a fuego suave 3-4 min.",
+      "Escurrir la pasta y añadirla a la sartén, mezclando con cuidado.",
+      "Añadir el eneldo picado y servir de inmediato."
+    ],
+    "description": "Lazos de pasta en salsa cremosa de salmón con un toque fresco de eneldo."
+  },
+  {
+    "id": "pasta_arroces_067",
+    "name": "Pasta con gambas y ajo",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 26,
+    "carbs_g": 56,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "marisco"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas peladas",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los espaguetis según el tiempo del envase.",
+      "Mientras tanto, laminar el ajo y picar el perejil.",
+      "Calentar el aceite de oliva en una sartén amplia a fuego medio y dorar el ajo laminado con la guindilla.",
+      "Añadir las gambas peladas y saltear 2-3 min hasta que cambien de color; salar.",
+      "Escurrir la pasta reservando un poco de agua de cocción.",
+      "Añadir la pasta a la sartén con las gambas y saltear 1-2 min, aligerando con agua de cocción si hace falta.",
+      "Añadir el perejil picado, mezclar y servir de inmediato."
+    ],
+    "description": "Pasta salteada con gambas rosadas, ajo dorado y un toque de guindilla."
+  },
+  {
+    "id": "pasta_arroces_068",
+    "name": "Espaguetis con almejas (vongole)",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 24,
+    "carbs_g": 62,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 12,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las almejas en agua fría con sal 1 hora para que suelten la arena, cambiando el agua una vez.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los espaguetis según el tiempo del envase.",
+      "Mientras tanto, calentar el aceite de oliva en una sartén amplia y dorar el ajo picado con la guindilla.",
+      "Añadir las almejas escurridas y subir el fuego.",
+      "Verter el vino blanco y tapar hasta que las almejas se abran, unos 4 min.",
+      "Retirar las almejas que no se hayan abierto.",
+      "Escurrir la pasta reservando agua de cocción y añadirla a la sartén con las almejas y su jugo.",
+      "Saltear todo junto 1-2 min, añadir el perejil picado y servir de inmediato."
+    ],
+    "description": "Espaguetis vongole con almejas abiertas al vino blanco y ajo, con las conchas entre la pasta."
+  },
+  {
+    "id": "pasta_arroces_069",
+    "name": "Ravioli de queso y espinacas con mantequilla",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 540,
+    "protein_g": 20,
+    "carbs_g": 52,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Harina de trigo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Ricotta",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salvia fresca",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Amasar la harina con 2 huevos hasta obtener una masa lisa y elástica; envolver en film y dejar reposar 30 min.",
+      "Escaldar las espinacas 1 min, escurrir muy bien y picar finas.",
+      "Mezclar la ricotta, las espinacas, el parmesano, el huevo restante, la nuez moscada y la sal para el relleno.",
+      "Estirar la masa fina con rodillo o máquina de pasta en dos láminas.",
+      "Repartir montoncitos de relleno sobre una lámina, cubrir con la otra y presionar alrededor de cada montón para sellar, cortando los ravioli con un cortapastas.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los ravioli por tandas 3-4 min hasta que floten.",
+      "Sacar con espumadera y reservar.",
+      "Derretir la mantequilla en una sartén hasta que tome color avellana y dorar las hojas de salvia.",
+      "Añadir los ravioli a la sartén y saltear con cuidado 1 min para que se impregnen.",
+      "Servir con parmesano rallado por encima."
+    ],
+    "description": "Ravioli caseros rellenos de ricotta y espinacas, salteados en mantequilla de salvia."
+  },
+  {
+    "id": "pasta_arroces_070",
+    "name": "Ravioli de calabaza con mantequilla y salvia",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "requiredAppliance": "horno",
+    "time": 60,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 14,
+    "carbs_g": 58,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Harina de trigo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Calabaza",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Salvia fresca",
+        "amount": 4,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C. Cortar la calabaza en trozos, rociar con un poco de aceite y asar 30-35 min hasta que esté tierna.",
+      "Amasar la harina con 2 huevos hasta obtener una masa lisa y elástica; envolver en film y dejar reposar 30 min.",
+      "Triturar la calabaza asada con el parmesano, el huevo restante, la nuez moscada y la sal hasta obtener un puré espeso para el relleno.",
+      "Estirar la masa fina con rodillo o máquina de pasta en dos láminas.",
+      "Repartir montoncitos de relleno sobre una lámina, cubrir con la otra y presionar alrededor de cada montón para sellar, cortando los ravioli con un cortapastas.",
+      "Llevar a ebullición una olla grande con agua y sal, y cocer los ravioli por tandas 3-4 min hasta que floten.",
+      "Sacar con espumadera y reservar.",
+      "Derretir la mantequilla en una sartén hasta que tome color avellana y dorar las hojas de salvia.",
+      "Añadir los ravioli a la sartén y saltear con cuidado 1 min para que se impregnen.",
+      "Servir con parmesano rallado por encima."
+    ],
+    "description": "Ravioli caseros rellenos de calabaza asada, con mantequilla dorada y salvia crujiente."
+  },
+  {
+    "id": "pasta_arroces_071",
+    "name": "Fettuccine Alfredo",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 680,
+    "protein_g": 18,
+    "carbs_g": 62,
+    "fat_g": 38,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Fettuccine",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Parmesano",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Llevar a ebullición una olla grande con agua y sal, y cocer las fettuccine según el tiempo del envase.",
+      "Mientras tanto, derretir la mantequilla en una sartén amplia a fuego suave.",
+      "Añadir la nata para cocinar y calentar sin que llegue a hervir con fuerza.",
+      "Escurrir la pasta reservando un poco de agua de cocción y añadirla a la sartén.",
+      "Añadir el parmesano rallado poco a poco, removiendo fuera del fuego, hasta obtener una salsa cremosa; aligerar con agua de cocción si hace falta.",
+      "Salpimentar y servir de inmediato con más parmesano por encima."
+    ],
+    "description": "Fettuccine envueltas en una salsa cremosa de mantequilla y parmesano, sencilla y contundente."
+  },
+  {
+    "id": "pasta_arroces_072",
+    "name": "Pasta con brócoli, ajo y anchoas",
+    "category": "pasta_arroces",
+    "mainProtein": "pescado_azul",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 20,
+    "carbs_g": 56,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "pescado",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Brócoli",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Anchoas en aceite",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Lavar el brócoli y separarlo en arbolitos pequeños.",
+      "Pelar y laminar el ajo. Picar las anchoas en trozos pequeños.",
+      "Llevar a ebullición una olla grande con agua y sal.",
+      "Cocer el brócoli en el agua hirviendo 3 min hasta que esté al dente; retirar con una espumadera y reservar sin tirar el agua.",
+      "Cocer los espaguetis en la misma agua según el tiempo indicado en el envase.",
+      "Mientras tanto, calentar el aceite de oliva en una sartén grande a fuego medio y dorar el ajo laminado.",
+      "Añadir las anchoas picadas a la sartén y deshacerlas con una cuchara removiendo hasta que se derritan en el aceite.",
+      "Añadir el brócoli reservado y saltear 2 min aplastando ligeramente algunos arbolitos.",
+      "Escurrir los espaguetis reservando un cazo de agua de cocción y añadirlos a la sartén; saltear con un poco de agua de cocción hasta que liguen.",
+      "Espolvorear con queso parmesano rallado y servir de inmediato."
+    ],
+    "description": "Espaguetis con brócoli, ajo dorado y anchoas deshechas en el aceite, verde intenso con el punto salado de la anchoa."
+  },
+  {
+    "id": "pasta_arroces_073",
+    "name": "Arroz con leche de coco y pollo al curry",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 32,
+    "carbs_g": 54,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Arroz basmati",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Leche de coco",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Curry en polvo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Cilantro fresco",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la pechuga de pollo en dados de 3 cm.",
+      "Pelar y picar la cebolla, el ajo y el jengibre finamente.",
+      "Calentar el aceite de oliva en una cazuela ancha a fuego medio.",
+      "Sofreír la cebolla, el ajo y el jengibre hasta que la cebolla esté transparente.",
+      "Añadir el pollo troceado y dorarlo por todos los lados a fuego medio-fuerte.",
+      "Añadir el curry en polvo y remover 1 min para que tueste ligeramente y suelte aroma.",
+      "Incorporar el arroz y remover 1 min para que se impregne de las especias.",
+      "Verter la leche de coco y el caldo de pollo, remover y llevar a ebullición.",
+      "Bajar a fuego suave, tapar y cocer 15-18 min hasta que el arroz esté tierno y haya absorbido el líquido.",
+      "Retirar del fuego, dejar reposar 2 min, espolvorear con cilantro fresco picado y servir."
+    ],
+    "description": "Arroz jugoso en salsa de curry amarillo y leche de coco con pollo tierno, aroma que llena la cocina."
+  },
+  {
+    "id": "pasta_arroces_074",
+    "name": "Arroz meloso de setas",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 12,
+    "carbs_g": 66,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Setas variadas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 600,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar las setas con un paño húmedo y cortarlas en láminas.",
+      "Pelar y picar la cebolla y el ajo finamente.",
+      "Calentar el caldo de verduras en un cazo aparte y mantener caliente a fuego mínimo.",
+      "Calentar el aceite de oliva en una cazuela ancha a fuego medio y sofreír la cebolla hasta que esté transparente.",
+      "Añadir el ajo y las setas laminadas y saltear a fuego fuerte hasta que suelten el agua y se doren.",
+      "Añadir el arroz y remover 1 min para que se impregne del sofrito.",
+      "Verter el vino blanco y remover hasta que se evapore por completo.",
+      "Añadir el caldo caliente poco a poco, removiendo con frecuencia y esperando a que se absorba antes de añadir más, durante unos 16-18 min.",
+      "Retirar del fuego cuando el arroz esté meloso, añadir el queso parmesano rallado y remover con energía.",
+      "Espolvorear con perejil picado y servir de inmediato."
+    ],
+    "description": "Arroz cremoso de setas variadas sin nata, todo el sabor viene del caldo bien reducido."
+  },
+  {
+    "id": "pasta_arroces_075",
+    "name": "Arroz con costillas y verduras",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 562,
+    "protein_g": 30,
+    "carbs_g": 52,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Costillas de cerdo troceadas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 4,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Salar las costillas troceadas y secarlas con papel de cocina.",
+      "Cortar el pimiento en tiras, la zanahoria en rodajas y las judías verdes en trozos de 3 cm.",
+      "Pelar y picar el ajo.",
+      "Calentar el aceite de oliva en una cazuela ancha a fuego medio-fuerte y dorar las costillas por todos los lados. Reservar.",
+      "En la misma cazuela, sofreír el ajo, el pimiento y la zanahoria hasta que empiecen a ablandarse.",
+      "Añadir el tomate triturado y el pimentón dulce y sofreír 2 min removiendo.",
+      "Devolver las costillas a la cazuela, añadir el caldo de carne y llevar a ebullición.",
+      "Tapar y cocer a fuego suave 25 min hasta que la costilla esté tierna.",
+      "Añadir el arroz y las judías verdes, remover y cocer sin tapar 18-20 min hasta que el arroz esté en su punto.",
+      "Retirar del fuego, dejar reposar 2 min y servir."
+    ],
+    "description": "Arroz meloso con costilla dorada y verduras de temporada, carne asomando entre el grano suelto."
+  },
+  {
+    "id": "pasta_arroces_076",
+    "name": "Arroz caldoso de marisco",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 40,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 438,
+    "protein_g": 28,
+    "carbs_g": 50,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "marisco",
+      "moluscos",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Mejillones",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Rape",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 550,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Limpiar los mejillones raspando las conchas y retirando las barbas.",
+      "Cortar el rape en trozos de bocado y pelar las gambas, dejando un par enteras para decorar.",
+      "Pelar y picar el ajo y la cebolla finamente.",
+      "Calentar el aceite de oliva en una cazuela ancha a fuego medio y sofreír la cebolla y el ajo hasta que estén transparentes.",
+      "Añadir el tomate triturado y el pimentón dulce y sofreír 2 min removiendo.",
+      "Añadir el arroz y remover 1 min para que se impregne del sofrito.",
+      "Verter el caldo de pescado caliente, subir el fuego y llevar a ebullición.",
+      "Cocer a fuego medio 10 min removiendo de vez en cuando.",
+      "Añadir el rape, las gambas y los mejillones y cocer 5-6 min más hasta que los mejillones se abran y el arroz esté en su punto.",
+      "Retirar del fuego, dejar reposar 2 min y servir en platos hondos."
+    ],
+    "description": "Arroz caldoso con gambas, mejillones y rape en un caldo intenso de pescado, con piezas de marisco enteras.",
+    "baseDishId": "pasta_arroces_019",
+    "extraProteins": [
+      "pescado_blanco"
+    ]
+  },
+  {
+    "id": "pasta_arroces_077",
+    "name": "Paella mixta",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 60,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 518,
+    "protein_g": 32,
+    "carbs_g": 48,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "marisco",
+      "moluscos"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Muslos de pollo deshuesados",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Mejillones",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Judía verde plana",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate rallado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 0.3,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo y marisco",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar el pollo en trozos medianos y salar.",
+      "Limpiar los mejillones y pelar las gambas, dejando algunas con cáscara para decorar.",
+      "Cortar el pimiento en tiras y la judía verde en trozos de 3 cm.",
+      "Calentar el aceite de oliva en una paellera a fuego medio-fuerte y dorar el pollo por todos los lados. Reservar.",
+      "En la misma paellera, sofreír el pimiento y la judía verde 3-4 min.",
+      "Añadir el ajo picado y el tomate rallado y sofreír hasta que el tomate pierda el agua.",
+      "Añadir el pimentón dulce y remover rápido para que no se queme.",
+      "Incorporar el arroz, remover para que se impregne y repartirlo en una capa uniforme.",
+      "Verter el caldo caliente con el azafrán disuelto, devolver el pollo a la paellera y llevar a ebullición fuerte 2 min.",
+      "Bajar a fuego medio y cocer sin remover 10 min; repartir las gambas y los mejillones sobre el arroz.",
+      "Subir el fuego los últimos 2-3 min para lograr el socarrat en el fondo, con cuidado de que no se queme.",
+      "Retirar del fuego, tapar con un paño y dejar reposar 5 min antes de servir."
+    ],
+    "description": "Paella con pollo dorado y marisco repartidos sobre el socarrat, el clásico de fin de semana.",
+    "extraProteins": [
+      "marisco"
+    ]
+  },
+  {
+    "id": "pasta_arroces_078",
+    "name": "Arroz al horno con costilla y garbanzos",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "arroz",
+    "requiredAppliance": "horno",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 65,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 580,
+    "protein_g": 31,
+    "carbs_g": 57,
+    "fat_g": 25,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Costillas de cerdo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Garbanzos cocidos",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cabeza de ajos",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Patata",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 450,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Azafrán",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Salar las costillas troceadas y secarlas con papel de cocina.",
+      "Pelar la patata y cortarla en rodajas de 5 mm. Cortar el tomate en rodajas.",
+      "Calentar el aceite de oliva en una cazuela apta para horno a fuego fuerte y dorar las costillas por todos los lados. Reservar.",
+      "En la misma cazuela, dorar ligeramente las rodajas de patata 2-3 min por lado.",
+      "Añadir el pimentón dulce y el caldo de carne caliente con el azafrán disuelto, y llevar a ebullición.",
+      "Añadir el arroz y los garbanzos cocidos, remover con cuidado y repartir en una capa uniforme.",
+      "Colocar las costillas doradas, las rodajas de tomate y la cabeza de ajos entera sobre el arroz.",
+      "Introducir en el horno y cocer 20-22 min hasta que el arroz esté en su punto y la superficie dorada.",
+      "Retirar del horno, dejar reposar 3 min y servir directamente en la cazuela."
+    ],
+    "description": "Arroz al horno con costra dorada por arriba, costilla y garbanzos, típico de domingo."
+  },
+  {
+    "id": "pasta_arroces_079",
+    "name": "Risotto de espárragos verdes",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 430,
+    "protein_g": 11,
+    "carbs_g": 56,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz arborio",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Espárragos verdes",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 500,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Lavar los espárragos, retirar la parte dura del tallo y cortarlos en trozos de 2 cm, reservando las puntas.",
+      "Pelar y picar la cebolla en dados pequeños. Rallar el queso parmesano.",
+      "Calentar el caldo de verduras en un cazo a fuego suave y mantener caliente.",
+      "Fundir la mitad de la mantequilla en una olla a fuego medio y sofreír la cebolla hasta que esté transparente.",
+      "Añadir los tallos de espárrago y saltear 2 min.",
+      "Añadir el arroz arborio y sofreír, removiendo, hasta que los granos estén nacarados.",
+      "Verter el vino blanco y remover hasta que el arroz lo absorba por completo.",
+      "Añadir el caldo caliente cucharón a cucharón, removiendo sin parar y esperando a que se absorba antes de añadir más, durante 16-18 min; añadir las puntas de espárrago a mitad de cocción.",
+      "Retirar del fuego, añadir la mantequilla restante y el queso parmesano y remover con energía hasta integrar.",
+      "Tapar y dejar reposar 2 min antes de servir."
+    ],
+    "description": "Risotto verde vivo de espárragos, con la cremosidad clásica de un risotto bien trabajado."
+  },
+  {
+    "id": "pasta_arroces_080",
+    "name": "Risotto de gambas y limón",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "arroz",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 456,
+    "protein_g": 26,
+    "carbs_g": 56,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "marisco",
+      "lactosa",
+      "sulfitos",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz arborio",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas peladas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Pelar las gambas reservando las cáscaras y picar la cebolla finamente.",
+      "Calentar el caldo de pescado en un cazo, añadir las cáscaras de gambas y dejar infusionar 10 min a fuego suave; colar y mantener caliente.",
+      "Rallar la piel del limón y exprimir el zumo. Reservar por separado.",
+      "Fundir la mantequilla en una olla a fuego medio y sofreír la cebolla hasta que esté transparente.",
+      "Añadir el arroz arborio y sofreír, removiendo, hasta que los granos estén nacarados.",
+      "Verter el vino blanco y remover hasta que el arroz lo absorba por completo.",
+      "Añadir el caldo caliente cucharón a cucharón, removiendo sin parar y esperando a que se absorba, durante 16-18 min.",
+      "A mitad de cocción, salpimentar las gambas y saltearlas en otra sartén 1-2 min por lado; reservar.",
+      "Cuando el arroz esté al dente y cremoso, retirar del fuego, añadir la ralladura y el zumo de limón y remover.",
+      "Incorporar las gambas salteadas, espolvorear con perejil picado y servir de inmediato."
+    ],
+    "description": "Risotto rosado de gambas con un toque cítrico de limón que lo levanta todo."
+  },
+  {
+    "id": "pasta_arroces_081",
+    "name": "Arroz tres delicias casero",
+    "category": "pasta_arroces",
+    "mainProtein": "huevo",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 432,
+    "protein_g": 17,
+    "carbs_g": 56,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo",
+      "soja"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Guisantes",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Llevar a ebullición agua con sal en una olla y cocer el arroz según el tiempo del paquete.",
+      "Escurrir el arroz y extenderlo en una bandeja para que enfríe y quede suelto.",
+      "Pelar la zanahoria y cortarla en dados pequeños. Cortar el jamón cocido en dados del mismo tamaño.",
+      "Batir los huevos en un bol.",
+      "Calentar la mitad del aceite en una sartén amplia a fuego medio y cuajar el huevo batido en tortilla fina, sin remover.",
+      "Retirar la tortilla, dejar templar y cortarla en tiras finas. Reservar.",
+      "Subir el fuego a fuerte en la misma sartén con el resto del aceite y saltear la zanahoria 2 min.",
+      "Añadir los guisantes y el jamón y saltear 1-2 min más.",
+      "Añadir el arroz frío y saltear a fuego fuerte 2-3 min removiendo sin parar hasta que esté suelto y caliente.",
+      "Añadir la salsa de soja y las tiras de tortilla, mezclar con suavidad y servir de inmediato."
+    ],
+    "description": "Arroz salteado colorido con tortilla, guisantes, zanahoria y jamón, mejor que el del chino de siempre.",
+    "extraProteins": [
+      "cerdo"
+    ]
+  },
+  {
+    "id": "pasta_arroces_082",
+    "name": "Arroz con pato",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 75,
+    "difficulty": "elaborada",
+    "season": "all",
+    "kcal": 600,
+    "protein_g": 34,
+    "carbs_g": 52,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "allergens": [
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Muslos de pato",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Puerro",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Tomillo",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Salar los muslos de pato y secarlos con papel de cocina.",
+      "Picar la cebolla, la zanahoria y el puerro en dados pequeños.",
+      "Calentar el aceite de oliva en una cazuela ancha a fuego medio-fuerte y dorar los muslos de pato por la piel hasta que suelten grasa. Reservar.",
+      "Retirar el exceso de grasa de la cazuela dejando 1 cucharada, y sofreír la cebolla, la zanahoria y el puerro hasta que estén blandos.",
+      "Añadir el tomate triturado y sofreír 2 min.",
+      "Verter el vino tinto y dejar reducir a la mitad.",
+      "Devolver los muslos de pato a la cazuela, añadir el caldo y el tomillo, tapar y cocer a fuego suave 40 min hasta que la carne se separe del hueso.",
+      "Retirar los muslos, deshuesar y desmenuzar la carne, devolviéndola a la cazuela.",
+      "Añadir el arroz, remover y cocer sin tapar 18-20 min hasta que esté en su punto.",
+      "Retirar del fuego, dejar reposar 2 min y servir."
+    ],
+    "description": "Arroz meloso con carne de pato deshecha entre el grano dorado."
+  },
+  {
+    "id": "pasta_arroces_083",
+    "name": "Fideos a la cazuela con costilla",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 30,
+    "carbs_g": 56,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Fideos gordos",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Costillas de cerdo troceadas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de carne",
+        "amount": 500,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Salar las costillas troceadas.",
+      "Picar la cebolla, el pimiento verde y el ajo finamente.",
+      "Calentar el aceite de oliva en una cazuela de barro o similar a fuego medio-fuerte y dorar las costillas por todos los lados. Reservar.",
+      "En la misma cazuela, sofreír la cebolla, el pimiento y el ajo hasta que estén blandos.",
+      "Añadir el tomate triturado y el pimentón dulce y sofreír 3 min.",
+      "Añadir los fideos y tostarlos removiendo 2 min hasta que tomen color dorado.",
+      "Devolver las costillas a la cazuela, verter el caldo de carne caliente y llevar a ebullición.",
+      "Cocer a fuego medio sin tapar 10-12 min hasta que los fideos absorban el caldo y estén en su punto.",
+      "Retirar del fuego, dejar reposar 2 min y servir."
+    ],
+    "description": "Fideos tostados en cazuela con costilla que se separa sola de tierna."
+  },
+  {
+    "id": "pasta_arroces_084",
+    "name": "Pasta con pesto rojo de tomate seco",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 558,
+    "protein_g": 16,
+    "carbs_g": 62,
+    "fat_g": 27,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Fusilli",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomates secos en aceite",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua y sal.",
+      "Tostar los piñones en una sartén sin aceite a fuego suave hasta que doren ligeramente. Reservar.",
+      "Escurrir los tomates secos del aceite y trocearlos.",
+      "Rallar el queso parmesano.",
+      "Triturar en una batidora los tomates secos, los piñones tostados, el ajo, la albahaca, el queso parmesano y el aceite de oliva hasta obtener una pasta homogénea.",
+      "Cocer la pasta en el agua hirviendo según el tiempo del paquete.",
+      "Escurrir la pasta reservando un cazo de agua de cocción.",
+      "Mezclar la pasta caliente con el pesto rojo, añadiendo un poco de agua de cocción si queda demasiado espeso.",
+      "Servir de inmediato con un poco más de queso parmesano rallado por encima."
+    ],
+    "description": "Pasta con un pesto rojo de tomate seco, rojo intenso y más potente que el pesto clásico."
+  },
+  {
+    "id": "pasta_arroces_085",
+    "name": "Nidos de pasta con boloñesa gratinados",
+    "category": "pasta_arroces",
+    "mainProtein": "ternera",
+    "mainBase": "pasta",
+    "requiredAppliance": "horno",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 50,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 620,
+    "protein_g": 36,
+    "carbs_g": 54,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Nidos de tallarines",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Carne picada de ternera",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Queso mozzarella rallado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Picar la cebolla, la zanahoria y el ajo finamente.",
+      "Calentar el aceite de oliva en una sartén a fuego medio y sofreír la cebolla, la zanahoria y el ajo hasta que estén blandos.",
+      "Añadir la carne picada y dorarla a fuego fuerte, desmenuzándola con una cuchara.",
+      "Añadir el tomate triturado y el orégano, salpimentar y cocer a fuego suave 15 min hasta que espese.",
+      "Cocer los nidos de tallarines en agua hirviendo con sal 2 min menos del tiempo indicado en el envase, para que terminen de hacerse en el horno.",
+      "Escurrir los nidos con cuidado de que no se deshagan y colocarlos en una fuente de horno.",
+      "Rellenar el centro de cada nido con la boloñesa y cubrir con queso mozzarella rallado.",
+      "Gratinar en el horno 8-10 min hasta que el queso funda y dore.",
+      "Servir de inmediato."
+    ],
+    "description": "Nidos de pasta individuales rellenos de boloñesa y gratinados, cada uno con su corteza dorada."
+  },
+  {
+    "id": "pasta_arroces_086",
+    "name": "Pastel de macarrones con bechamel",
+    "category": "pasta_arroces",
+    "mainProtein": "pescado_azul",
+    "mainBase": "pasta",
+    "requiredAppliance": "horno",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 622,
+    "protein_g": 34,
+    "carbs_g": 54,
+    "fat_g": 30,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Macarrones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Atún en aceite",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate frito",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Leche entera",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Cocer los macarrones en agua hirviendo con sal según el tiempo del envase. Escurrir y reservar.",
+      "Picar la cebolla finamente y sofreírla en una sartén con un poco de aceite hasta que esté transparente.",
+      "Añadir el atún escurrido y el tomate frito, mezclar y cocer 3 min. Reservar.",
+      "Preparar la bechamel: fundir la mantequilla en un cazo, añadir la harina y cocinar 1 min removiendo.",
+      "Verter la leche poco a poco sin dejar de remover, cocer a fuego suave hasta que espese y sazonar con nuez moscada.",
+      "Mezclar los macarrones escurridos con el sofrito de atún y la mitad de la bechamel.",
+      "Verter la mezcla en un molde apto para horno, cubrir con la bechamel restante y espolvorear con queso rallado.",
+      "Hornear 15-18 min hasta que la superficie esté dorada.",
+      "Dejar reposar 5 min antes de desmoldar o servir directamente del molde."
+    ],
+    "description": "Pastel de macarrones con atún y bechamel que se desmolda entero, corte limpio y cremoso."
+  },
+  {
+    "id": "pasta_arroces_087",
+    "name": "Espaguetis con almejas y guindilla",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 498,
+    "protein_g": 24,
+    "carbs_g": 58,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "moluscos",
+      "sulfitos"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Almejas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla fresca",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 8,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner las almejas en agua con sal 30 min para que suelten la arena. Escurrir.",
+      "Poner a hervir una olla grande con agua y sal.",
+      "Pelar y laminar el ajo. Picar la guindilla fina, retirando las semillas si se quiere menos picante.",
+      "Calentar el aceite de oliva en una sartén amplia a fuego medio y dorar el ajo y la guindilla sin que se quemen.",
+      "Añadir las almejas y el vino blanco, tapar y cocer a fuego fuerte hasta que las almejas se abran.",
+      "Retirar las almejas que no se hayan abierto y descartarlas.",
+      "Cocer los espaguetis en el agua hirviendo según el tiempo del envase.",
+      "Escurrir la pasta reservando un cazo de agua de cocción y añadirla a la sartén con las almejas.",
+      "Saltear todo junto 1-2 min añadiendo un poco de agua de cocción para ligar la salsa.",
+      "Espolvorear con perejil picado y servir de inmediato."
+    ],
+    "description": "Espaguetis con almejas y un picante suave de guindilla, conchas brillantes entre la pasta."
+  },
+  {
+    "id": "pasta_arroces_088",
+    "name": "Arroz negro con sepia",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 445,
+    "protein_g": 22,
+    "carbs_g": 55,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "moluscos",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Sepia",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Tinta de calamar",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Caldo de pescado",
+        "amount": 450,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar la sepia en trozos de bocado.",
+      "Picar la cebolla y el ajo finamente.",
+      "Disolver la tinta de calamar en el caldo de pescado y reservar.",
+      "Calentar el aceite de oliva en una paella o cazuela ancha a fuego medio y sofreír la cebolla y el ajo hasta que estén blandos.",
+      "Añadir la sepia y saltear a fuego fuerte hasta que se dore ligeramente.",
+      "Añadir el tomate triturado y sofreír hasta que pierda el agua y oscurezca.",
+      "Incorporar el arroz y remover 1 min para que se impregne del sofrito.",
+      "Verter el caldo con la tinta, repartir el arroz en una capa uniforme y llevar a ebullición.",
+      "Cocer a fuego medio-suave sin remover 16-18 min hasta que el arroz absorba el caldo.",
+      "Retirar del fuego, dejar reposar tapado 2 min y servir directamente en la cazuela."
+    ],
+    "description": "Arroz negro profundo con trozos tiernos de sepia repartidos por todo el grano."
+  },
+  {
+    "id": "pasta_arroces_089",
+    "name": "Pasta con calabacín y gambas al ajillo",
+    "category": "pasta_arroces",
+    "mainProtein": "marisco",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 28,
+    "carbs_g": 54,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "marisco"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Gambas peladas",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Poner a hervir una olla grande con agua y sal.",
+      "Cortar el calabacín en medias lunas finas.",
+      "Pelar y laminar el ajo. Picar la guindilla fina.",
+      "Cocer la pasta en el agua hirviendo según el tiempo del envase.",
+      "Mientras tanto, calentar el aceite de oliva en una sartén amplia a fuego medio y dorar el ajo y la guindilla.",
+      "Añadir el calabacín y saltear 3-4 min hasta que esté tierno pero con cuerpo.",
+      "Añadir las gambas peladas y saltear 2 min hasta que cambien de color.",
+      "Escurrir la pasta reservando un cazo de agua de cocción y añadirla a la sartén.",
+      "Saltear todo junto 1 min, añadiendo un poco de agua de cocción si hace falta ligar.",
+      "Espolvorear con perejil picado y servir de inmediato."
+    ],
+    "description": "Pasta con calabacín salteado y gambas al ajillo en un aceite perfumado, verde y rosa."
+  },
+  {
+    "id": "pasta_arroces_090",
+    "name": "Pasta al horno con feta y tomates cherry",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "requiredAppliance": "horno",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 628,
+    "protein_g": 20,
+    "carbs_g": 56,
+    "fat_g": 36,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Penne",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Queso feta",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomates cherry",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Orégano",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Colocar el bloque de queso feta en el centro de una fuente de horno y rodearlo con los tomates cherry enteros.",
+      "Añadir los dientes de ajo pelados y enteros, regar todo con el aceite de oliva y espolvorear con orégano.",
+      "Hornear 25-30 min hasta que los tomates estén arrugados y la feta blanda y ligeramente dorada.",
+      "Mientras tanto, cocer la pasta en agua hirviendo con sal según el tiempo del envase.",
+      "Escurrir la pasta reservando un cazo de agua de cocción.",
+      "Sacar la fuente del horno y aplastar la feta y los tomates con un tenedor hasta formar una salsa cremosa.",
+      "Mezclar la salsa con la pasta escurrida, añadiendo agua de cocción si queda demasiado espesa.",
+      "Añadir albahaca fresca picada y servir de inmediato."
+    ],
+    "description": "Pasta al horno donde la feta se funde entera y liga la salsa sola: el viral de TikTok."
+  },
+  {
+    "id": "pasta_arroces_091",
+    "name": "Pasta a la vodka con panceta",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 664,
+    "protein_g": 28,
+    "carbs_g": 58,
+    "fat_g": 36,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Penne",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Panceta ahumada",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Vodka",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la panceta en tiras finas y picar la cebolla.",
+      "Poner a hervir una olla grande con agua y sal.",
+      "Dorar la panceta en una sartén sin aceite a fuego medio hasta que esté crujiente. Retirar y reservar, dejando la grasa en la sartén.",
+      "Sofreír la cebolla en la grasa de la panceta hasta que esté transparente.",
+      "Añadir el vodka y dejar reducir a la mitad a fuego medio-fuerte, con cuidado con las llamas.",
+      "Añadir el tomate triturado y cocer a fuego suave 10 min.",
+      "Cocer la pasta en el agua hirviendo según el tiempo del envase.",
+      "Añadir la nata a la salsa de tomate y remover hasta que quede homogénea y de color rosado.",
+      "Escurrir la pasta y mezclarla con la salsa; añadir el queso parmesano rallado y remover.",
+      "Servir con la panceta crujiente por encima."
+    ],
+    "description": "Pasta en salsa rosa cremosa con un toque de vodka reducido y panceta crujiente encima."
+  },
+  {
+    "id": "pasta_arroces_092",
+    "name": "Orzo mediterráneo con pollo, limón y espinacas",
+    "category": "pasta_arroces",
+    "mainProtein": "pollo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 546,
+    "protein_g": 36,
+    "carbs_g": 52,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Orzo",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Pechuga de pollo",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Espinacas frescas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de pollo",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso feta",
+        "amount": 40,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar la pechuga de pollo en dados y salpimentar.",
+      "Pelar y picar el ajo. Rallar la piel del limón y exprimir el zumo.",
+      "Calentar el aceite de oliva en una sartén amplia a fuego medio-fuerte y dorar el pollo por todos los lados. Reservar.",
+      "En la misma sartén, sofreír el ajo 1 min.",
+      "Añadir el orzo y remover 1 min para que se impregne del aceite.",
+      "Verter el caldo de pollo caliente, remover y llevar a ebullición.",
+      "Bajar a fuego medio y cocer sin tapar 9-10 min removiendo de vez en cuando, hasta que el orzo esté al dente.",
+      "Devolver el pollo a la sartén junto con las espinacas y remover hasta que se marchiten.",
+      "Retirar del fuego, añadir la ralladura y el zumo de limón y remover.",
+      "Desmenuzar el queso feta por encima y servir."
+    ],
+    "description": "Orzo suelto y brillante con pollo, limón y espinacas, verde y amarillo bien mediterráneo."
+  },
+  {
+    "id": "pasta_arroces_093",
+    "name": "One-pot pasta con tomate, ajo y albahaca",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 15,
+    "carbs_g": 64,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla y el ajo finamente.",
+      "Calentar el aceite de oliva en una cazuela ancha a fuego medio y sofreír la cebolla y el ajo 2-3 min.",
+      "Añadir el tomate triturado y el caldo de verduras y llevar a ebullición.",
+      "Romper los espaguetis por la mitad y añadirlos a la cazuela, sumergiéndolos en el líquido.",
+      "Cocer a fuego medio, removiendo con frecuencia para que no se peguen, durante 10-12 min hasta que la pasta esté al dente y el líquido se haya reducido a una salsa.",
+      "Añadir la albahaca fresca picada y remover.",
+      "Retirar del fuego, espolvorear con queso parmesano rallado y servir de inmediato."
+    ],
+    "description": "Espaguetis cocidos en su propia salsa de tomate, ajo y albahaca, todo en la misma cazuela."
+  },
+  {
+    "id": "pasta_arroces_094",
+    "name": "Macarrones con tomate y queso",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "primero",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 22,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 430,
+    "protein_g": 15,
+    "carbs_g": 58,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Macarrones",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Orégano",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Queso rallado curado",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla y el ajo finamente.",
+      "Llevar a ebullición agua con sal y cocer los macarrones el tiempo indicado en el envase hasta que estén al dente.",
+      "Mientras tanto, calentar el aceite de oliva en una sartén y sofreír la cebolla y el ajo a fuego medio hasta que la cebolla esté transparente.",
+      "Añadir el tomate triturado y el orégano, y cocinar a fuego medio-bajo 8-10 min removiendo de vez en cuando, hasta que la salsa espese y pierda acidez.",
+      "Salar la salsa al gusto.",
+      "Escurrir los macarrones y mezclarlos con la salsa de tomate directamente en la sartén.",
+      "Repartir en los platos y cubrir con abundante queso rallado por encima.",
+      "Servir enseguida, mientras el queso se funde con el calor de la pasta."
+    ],
+    "description": "Macarrones con salsa de tomate casera y una generosa capa de queso rallado fundiéndose por encima."
   }
 ]

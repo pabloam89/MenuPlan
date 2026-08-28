@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BriefcaseBusiness, Moon, Shuffle, Sun, Sunset } from "lucide-react";
+import { BriefcaseBusiness, Check, Moon, Shuffle, Sun, Sunset } from "lucide-react";
 import {
   migrateCookTime,
   writeCookTimeMode,
@@ -37,6 +37,12 @@ const MEAL_META = {
 // "Variable" pill with a shuffle icon instead of a fixed time — the whole point is
 // that it isn't a single number. Each level uses a Pixar-style cook illustration
 // (agobio → calma) served from public/avatares/cards.
+// Modelo de selección compartido con "Menú del cole", "Cómo os gusta comer" y
+// "Quién cocina y cómo" (2026-08-24): teal + icono de check + franja teal con
+// texto blanco al seleccionar. El acento propio de cada nivel (naranja/verde/
+// azul/morado) se conserva solo como color ambiente (borde, píldora de
+// tiempo) — no es lo que indica selección.
+const SELECTED_TEAL = "#0f766e";
 const LEVEL_META = {
   con_prisa: { img: "/avatares/cards/cook_con_prisa.png", accent: "#e08a2b", tint: "#fdf1e1", time: "≤ 20 min" },
   normal: { img: "/avatares/cards/cook_normal.png", accent: "#2d8a4e", tint: "#e6f5ec", time: "~ 35 min" },
@@ -172,15 +178,27 @@ function CookLevelChips({ selected, onSelect }) {
               padding: 0,
               overflow: "hidden",
               borderRadius: 15,
-              border: sel ? `2px solid ${meta.accent}` : "1.5px solid #e2eae5",
+              border: sel ? `2px solid ${SELECTED_TEAL}` : "1.5px solid #e2eae5",
               background: "#fff",
-              boxShadow: sel ? `0 6px 18px ${meta.accent}22` : "0 1px 3px rgba(20,47,29,.05)",
+              boxShadow: sel ? `0 6px 18px rgba(15,118,110,.22)` : "0 1px 3px rgba(20,47,29,.05)",
               cursor: "pointer",
               fontFamily: "inherit",
               textAlign: "left",
               transition: "all .16s cubic-bezier(.4,0,.2,1)",
             }}
           >
+            {sel && (
+              <span
+                style={{
+                  position: "absolute", top: 6, right: 6, zIndex: 2,
+                  width: 18, height: 18, borderRadius: 999,
+                  background: SELECTED_TEAL, border: "1.5px solid #fff",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}
+              >
+                <Check size={10} color="#fff" strokeWidth={3} />
+              </span>
+            )}
             {/* Ilustración del nivel sobre el color del nivel (contain para no
                 recortar al personaje) + píldora de tiempo/Variable superpuesta. */}
             <div
@@ -207,7 +225,7 @@ function CookLevelChips({ selected, onSelect }) {
                   style={{
                     position: "absolute",
                     top: 8,
-                    right: 8,
+                    left: 8,
                     fontSize: 10.5,
                     fontWeight: 800,
                     color: meta.accent,
@@ -225,7 +243,7 @@ function CookLevelChips({ selected, onSelect }) {
                   style={{
                     position: "absolute",
                     top: 8,
-                    right: 8,
+                    left: 8,
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 3,
@@ -243,13 +261,13 @@ function CookLevelChips({ selected, onSelect }) {
                 </span>
               )}
             </div>
-            <div style={{ width: "100%", padding: "10px 12px 11px", background: sel ? meta.tint : "#fff" }}>
+            <div style={{ width: "100%", padding: "10px 12px 11px", background: sel ? SELECTED_TEAL : "#fff" }}>
               <span
                 style={{
                   display: "block",
                   fontSize: 13.5,
                   fontWeight: 800,
-                  color: sel ? "#16321f" : "#25402f",
+                  color: sel ? "#fff" : "#25402f",
                   letterSpacing: "-.1px",
                 }}
               >
@@ -260,7 +278,7 @@ function CookLevelChips({ selected, onSelect }) {
                   display: "block",
                   fontSize: 10.5,
                   fontWeight: 600,
-                  color: sel ? "#4a6555" : "#9ab0a1",
+                  color: sel ? "rgba(255,255,255,.85)" : "#9ab0a1",
                   lineHeight: 1.3,
                   marginTop: 1,
                 }}

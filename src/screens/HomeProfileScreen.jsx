@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -9,13 +9,14 @@ import {
   Info,
   ShieldCheck,
 } from "lucide-react";
-import { Avatar, BottomNav, bottomNavSpacer, EmptyIllustration, GoogleButton } from "../components/ui.jsx";
+import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
 import { findAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const BG = "#f4f8f5";
+const HOGAR_ICON = "/avatares/hogares/hogar_propietario.jpg";
 
 // ── Avatar photo upload ─────────────────────────────────────────────────────
 
@@ -195,81 +196,56 @@ function familyPhotos(members) {
 
 // ── Compact horizontal nav row (illustration 40% + copy + chevron) ──────────
 
-function FamilyCardV({ members, onEditMembers }) {
-  const photos = members.length === 0 ? [] : familyPhotos(members);
-  const [idx, setIdx] = useState(0);
+// ── Stacked option row: square icon/photo left, title+subtitle, chevron
+//    right. This is the "Cuentas compartidas" pattern, now shared by every
+//    profile option instead of each section inventing its own card shape. ──
 
-  useEffect(() => {
-    if (photos.length <= 1) return undefined;
-    const t = setInterval(() => setIdx((i) => (i + 1) % photos.length), 5000);
-    return () => clearInterval(t);
-  }, [photos.length]);
-
+function ProfileOptionRow({ img, icon: Icon, title, subtitle, accent = INK, onClick }) {
   return (
     <button
       type="button"
-      onClick={onEditMembers}
+      onClick={onClick}
       style={{
-        width: "100%", display: "flex", flexDirection: "column",
-        padding: 0, overflow: "hidden", marginBottom: 10,
+        width: "100%", display: "flex", alignItems: "center", gap: 12,
+        padding: "12px 14px", marginBottom: 10,
         background: "#fff", border: "1.5px solid #cfe3d8", borderRadius: 16,
-        cursor: "pointer", fontFamily: "inherit",
+        cursor: "pointer", fontFamily: "inherit", textAlign: "left",
       }}
     >
-      {/* Illustration on top — wide/landscape band */}
-      <div style={{ width: "100%", aspectRatio: "16 / 9", position: "relative", overflow: "hidden", background: "#0f766e" }}>
-        {photos.length === 0 ? (
-          <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, opacity: 0.75 }}>
-            <Users size={22} color="#fff" />
-            <span style={{ fontSize: 11, color: "#fff", fontWeight: 700 }}>Vacío</span>
-          </div>
-        ) : (
-          photos.map((src, i) => (
-            <img
-              key={src}
-              src={src}
-              alt=""
-              style={{
-                position: "absolute", inset: 0, width: "100%", height: "100%",
-                objectFit: "cover", objectPosition: "center top",
-                opacity: i === idx ? 1 : 0, transition: "opacity .8s ease", display: "block",
-              }}
-            />
-          ))
+      <div
+        style={{
+          width: 44, height: 44, borderRadius: 12, overflow: "hidden", flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: img ? "transparent" : "#eef4f0",
+        }}
+      >
+        {img ? (
+          <img src={img} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        ) : Icon ? (
+          <Icon size={20} color={accent} />
+        ) : null}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: accent }}>{title}</p>
+        {subtitle && (
+          <p style={{ margin: "2px 0 0", fontSize: 12, color: "#7a9485" }}>{subtitle}</p>
         )}
       </div>
-      {/* Copy band below, centered */}
-      <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", alignItems: "center", gap: 3, textAlign: "center" }}>
-        <p style={{ margin: 0, fontSize: 14, fontWeight: 800, color: INK }}>Gestionar tu familia</p>
-        <p style={{ margin: 0, fontSize: 12, color: "#7a9485", lineHeight: 1.4 }}>Edita quién come en casa y sus perfiles.</p>
-        <ChevronDown size={16} color="#9ab0a1" style={{ marginTop: 2 }} />
-      </div>
+      <ChevronDown size={16} color="#9ab0a1" style={{ transform: "rotate(-90deg)", flexShrink: 0 }} />
     </button>
   );
 }
 
-// ── Vertical action card (illustration on top, copy + chevron below) ─────────
-
-function ActionCardV({ img, title, accent, onClick }) {
+function FamilyOptionRow({ members, onEditMembers }) {
+  const photos = members.length === 0 ? [] : familyPhotos(members);
   return (
-    <div style={{ flex: 1, minWidth: 0, display: "flex" }}>
-      <EmptyIllustration
-        img={img}
-        imgAspect="1 / 1"
-        imgPosition="center top"
-        accent={accent}
-        maxWidth={200}
-        bandPadding="8px 8px 10px"
-        onClick={onClick}
-      >
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, width: "100%" }}>
-          <p style={{ margin: 0, fontSize: 13, fontWeight: 800, color: INK, lineHeight: 1.25, textAlign: "center" }}>
-            {title}
-          </p>
-          <ChevronDown size={15} color="#9ab0a1" style={{ flexShrink: 0 }} />
-        </div>
-      </EmptyIllustration>
-    </div>
+    <ProfileOptionRow
+      img={photos[0]}
+      icon={Users}
+      title="Gestionar tu familia"
+      subtitle="Edita quién come en casa y sus perfiles."
+      onClick={onEditMembers}
+    />
   );
 }
 
@@ -296,6 +272,7 @@ export function HomeProfileScreen({
   onReset,
   onDeleteAccount,
   onEditMembers,
+  onOpenHouseholds,
   activeHousehold,
   householdReadOnly = false,
 }) {
@@ -427,29 +404,39 @@ export function HomeProfileScreen({
         )}
 
         {/* ── 2. Tu familia ─────────────────────────── */}
-        <FamilyCardV members={members} onEditMembers={onEditMembers} />
+        <FamilyOptionRow members={members} onEditMembers={onEditMembers} />
+
+        {/* ── Cuentas compartidas ───────────────────── */}
+        {/* "Hogares" perdió su icono en Inicio (2026-08-24) — cambiar de hogar
+            activo muta qué datos ves/editas, así que vive en un solo sitio
+            deliberado en vez de un botón suelto que se pueda tocar sin querer. */}
+        {onOpenHouseholds && (
+          <ProfileOptionRow
+            img={HOGAR_ICON}
+            title="Cuentas compartidas"
+            subtitle="Gestiona tus hogares y quién los ve."
+            onClick={onOpenHouseholds}
+          />
+        )}
 
         {/* ── Cuenta y datos ─────────────────────── */}
-        <div style={{ display: "flex", gap: 10, alignItems: "stretch" }}>
-          <ActionCardV
-            img="/avatares/cards/cerrar_sesion.jpg"
-            title="Cerrar sesión"
-            accent={GREEN}
-            onClick={onSignOut}
-          />
-          <ActionCardV
-            img="/avatares/cards/reiniciar_menu.jpg"
-            title="Reiniciar menú"
-            accent="#c0392b"
-            onClick={onReset}
-          />
-          <ActionCardV
-            img="/avatares/cards/eliminar_cuenta.jpg"
-            title="Eliminar cuenta"
-            accent="#c0392b"
-            onClick={onDeleteAccount}
-          />
-        </div>
+        <ProfileOptionRow
+          img="/avatares/cards/cerrar_sesion.jpg"
+          title="Cerrar sesión"
+          onClick={onSignOut}
+        />
+        <ProfileOptionRow
+          img="/avatares/cards/reiniciar_menu.jpg"
+          title="Reiniciar menú"
+          accent="#c0392b"
+          onClick={onReset}
+        />
+        <ProfileOptionRow
+          img="/avatares/cards/eliminar_cuenta.jpg"
+          title="Eliminar cuenta"
+          accent="#c0392b"
+          onClick={onDeleteAccount}
+        />
 
         {/* Política de privacidad */}
         <a

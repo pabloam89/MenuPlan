@@ -22,12 +22,14 @@ describe("normalizePantryInput", () => {
   it("asks the user to disambiguate instead of guessing a tied match", () => {
     const [pechuga, queso] = normalizePantryInput("pechuga, queso");
 
-    // "Pechuga" matches both "Pechuga de pollo" and "Pechuga de pavo" equally
-    // well — the caller must let the user pick, not silently assume one.
+    // "Pechuga" matches "Pechuga de pollo", "Pechuga de pavo" and "Pechuga de
+    // pato" (Pappardelle con ragú de pato) equally well — the caller must let
+    // the user pick, not silently assume one.
     expect(pechuga.matched).toBe(true);
     expect(pechuga.ambiguous).toBe(true);
     expect(pechuga.normalized).toBeUndefined();
     expect(pechuga.candidates.map((c) => c.normalized).sort()).toEqual([
+      "pechuga_pato",
       "pechuga_pavo",
       "pechuga_pollo",
     ]);
@@ -59,13 +61,15 @@ describe("normalizePantryInput", () => {
   });
 
   it("flags ingredients not in the catalog as unmatched", () => {
-    const result = normalizePantryInput("aguacate, quinoa, kale");
+    const result = normalizePantryInput("aguacate, quinoa, durian");
     // Aguacate and quinoa are actually in this catalog (guacamole, ensaladas);
-    // kale genuinely isn't — the spec's own example assumed none would be.
+    // durian (an exotic fruit with no place in Spanish home cooking) genuinely
+    // isn't — the spec's own example used "kale", which the catalog has grown
+    // to include for real (Ensalada de col kale con manzana y nueces).
     expect(result.find((r) => r.raw === "aguacate")?.matched).toBe(true);
     expect(result.find((r) => r.raw === "quinoa")?.matched).toBe(true);
-    const kale = result.find((r) => r.raw === "kale");
-    expect(kale).toEqual({ raw: "kale", normalized: "kale", matched: false, ambiguous: false });
+    const durian = result.find((r) => r.raw === "durian");
+    expect(durian).toEqual({ raw: "durian", normalized: "durian", matched: false, ambiguous: false });
   });
 
   it("returns an empty array for empty input", () => {

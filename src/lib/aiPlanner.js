@@ -6,6 +6,7 @@ import { getSchoolDish, hasAnySchoolDish } from "./schoolMenu.js";
 import { filterRecipes, filterGarnishes, decisionCatalog, filterOffMenuRecipes } from "../utils/filterRecipes.js";
 import { favoriteIdsForGroup } from "./recipeVotes.js";
 import { recipeCatalogById } from "../data/recipeCatalog.js";
+import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
 import {
   validateMenu,
   buildCorrectionMessage,
@@ -16,10 +17,12 @@ import {
   slotAcceptsRole,
 } from "../utils/validateMenu.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
-import { formatFixedDishesForAI, pinnedGarnishMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
+import salsasData from "../data/recipes/salsas.json";
+import { formatFixedDishesForAI, pinnedGarnishMap, pinnedSalsaMap, enforceFixedDishes, catalogMatchesForFixedDish } from "./fixedDishes.js";
 import { maxCookTime, maxCookTimeFilter, migrateCookTime } from "./cookTime.js";
 import { applySeasonalFruit, filterPostrePool } from "./postres.js";
 import { pairGarnishes } from "../utils/pairGarnishes.js";
+import { pairSauces } from "../utils/pairSauces.js";
 import { guessIngredientCategory, isQualitativeUnit } from "./ingredientCategories.js";
 import { buildAdaptationMap } from "./substitutions.js";
 import { assignPreparedToPlan, indexFrozenDishes, indexFridgeDishes, itemPortions, slotUsesPrepared, catalogIdOfPlanRecipe } from "./freezer.js";
@@ -600,15 +603,35 @@ export function buildUserMessage(filteredRecipes, slots, config, schoolMenuByDay
 
 // ── Slot-type exceptions (user-marked "plato único" / "cena rápida") ──────
 
-function recipeMatchesPreferType(recipe, preferType) {
+// Umbral de "rápida": una receta curada como montaje (tostas, ensaladas de
+// asamblaje...) siempre cuenta, sin importar tiempo/dificultad — es la razón
+// de ser de la categoría. Pero exigir SOLO montaje deja fuera platos que
+// cualquiera llamaría rápidos sin ser de asamblaje (una tortilla francesa a
+// la sartén), así que dificultad fácil + tiempo por debajo del umbral cuenta
+// como camino alternativo (OR), no como sustituto — el catálogo curado a
+// mano no se pierde, solo se amplía. `eaters` ajusta el tiempo vía
+// effectiveRecipeTime() para las recetas marcadas scalesWithEaters (cortar
+// para 6 no es lo mismo que para 3).
+function recipeMatchesPreferType(recipe, preferType, eaters) {
   if (!recipe) return false;
   if (preferType === "plato_unico") return (recipe.mealRole ?? []).includes("plato_unico");
-  if (preferType === "cena_rapida") return recipe.category === "cenas_rapidas";
+  if (preferType === "cena_rapida") {
+    if (isMontaje(recipe)) return true;
+    // Same role gate validateMenu.slotAcceptsRole applies to every cena slot —
+    // sin esto, un "segundo" pensado para acompañar un primero (un filete a
+    // la plancha) colaba como cena completa solo por ser fácil y rápido.
+    return (
+      (recipe.mealRole ?? []).includes("cena") &&
+      recipe.difficulty === "facil" &&
+      effectiveRecipeTime(recipe, eaters) < 20
+    );
+  }
   if (preferType === "comida_rapida") {
     const roles = recipe.mealRole ?? [];
     return (
-      (recipe.time ?? 99) <= 15 &&
-      recipe.category !== "cenas_rapidas" &&
+      !isMontaje(recipe) &&
+      recipe.difficulty === "facil" &&
+      effectiveRecipeTime(recipe, eaters) < 15 &&
       (roles.includes("plato_unico") || roles.includes("segundo") || roles.includes("primero"))
     );
   }
@@ -630,10 +653,10 @@ function enforceSlotTypes(slotAssignments, slotsContext, poolById) {
     const ctx = ctxBySlot[slotId];
     const preferType = ctx?.preferType;
     if (!preferType) continue;
-    if (recipeMatchesPreferType(poolById[a.recipeId], preferType)) continue;
+    if (recipeMatchesPreferType(poolById[a.recipeId], preferType, ctx.eaters)) continue;
 
     const fits = (r) => {
-      if (!recipeMatchesPreferType(r, preferType)) return false;
+      if (!recipeMatchesPreferType(r, preferType, ctx.eaters)) return false;
       if (ctx.maxTime && r.time > ctx.maxTime) return false;
       if (ctx.mode === "tupper" && !r.tupperFriendly) return false;
       return true;
@@ -942,6 +965,14 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
 
   // Schema retry with Haiku if format is wrong
   if (!schemaResult.success) {
+    // TEMPORAL: diagnóstico del fallo "no se pudo parsear el JSON del
+    // reintento" reportado en pruebas locales — quitar una vez identificada
+    // la causa.
+    console.error(
+      "[aiPlanner] Primera respuesta no cumplió el esquema:",
+      schemaResult.error.issues,
+      "\nJSON parseado:", parsed,
+    );
     const retryText = await request(
       [
         { role: "user", content: userMessage },
@@ -959,6 +990,8 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     try {
       parsed = extractJson(retryText);
     } catch (err) {
+      // TEMPORAL: ver comentario de arriba.
+      console.error("[aiPlanner] Texto crudo del reintento que no parseó:", retryText);
       throw new AIPlannerError("No se pudo parsear el JSON del reintento.", { cause: err, raw: retryText });
     }
     schemaResult = LLMResponseSchema.safeParse(parsed);
@@ -1065,6 +1098,32 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   slotAssignments = fixedDishesResult.slotAssignments;
   if (fixedDishesResult.warnings.length > 0) warnings.push(...fixedDishesResult.warnings);
 
+  // enforceFixedDishes resolves a pin straight from recipeCatalogById (see its
+  // own comment) and already back-fills `poolById` when the pin sits outside
+  // it (fixedDishes.js line ~272) — but that mutates the lookup OBJECT only.
+  // `filteredPool`, the ARRAY, never gets the same treatment, and step 6's
+  // validateMenu below takes the array, not the object — it rebuilds its own
+  // poolById from `filteredPool` alone, so fixedDishes.js's fix doesn't reach
+  // it. That's academic while filterRecipes() always returned the full
+  // catalog, since every pin was already in filteredPool by construction —
+  // but now that it prefers the Recetario Estrella tier and only falls back
+  // to the full catalog when that tier runs thin (fondo de armario), a fixed
+  // dish from the pre-2026 catalog can legitimately sit outside filteredPool
+  // while still being pinned. Without this, it becomes invisible to every
+  // rule in validateMenu (frequency caps, consecutive-protein checks...).
+  // Sync the array to match what poolById already knows — this never widens
+  // WHICH dishes the planner can pick, only what a pin already made resolves
+  // to for the checks that run after it's placed.
+  const filteredPoolIds = new Set(filteredPool.map((r) => r.id));
+  for (const id of allFixedDishIds(data.fixedDishes)) {
+    if (filteredPoolIds.has(id)) continue;
+    const catalogRecipe = poolById[id] ?? recipeCatalogById[id];
+    if (!catalogRecipe) continue;
+    filteredPool = [...filteredPool, catalogRecipe];
+    filteredPoolIds.add(id);
+    poolById[id] = catalogRecipe;
+  }
+
   // 4b. Force user-marked slot exceptions (plato único / cena rápida).
   slotAssignments = enforceSlotTypes(slotAssignments, ctx.slots, poolById);
 
@@ -1091,6 +1150,17 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
     pinnedGarnishMap(data.fixedDishes),
     safeGarnishes,
     data.garnishRepeat ?? "off",
+  );
+
+  // 5b. Pair a subset of "canReceiveSauce" dishes with a compatible sauce —
+  //     independiente de la guarnición, un plato puede llevar las dos.
+  //     Deliberadamente NO se aplica a todo lo elegible: tope de unas pocas
+  //     por semana + solo salsas rápidas entre semana (ver pairSauces.js),
+  //     para que sea un toque ocasional y no un plato de más cada noche.
+  slotAssignments = pairSauces(
+    slotAssignments,
+    poolById,
+    pinnedSalsaMap(data.fixedDishes),
   );
 
   // 6. Re-validate the FULLY-enforced menu. Steps 4/4b run AFTER the
@@ -1435,6 +1505,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
   let placedSlots = 0;
 
   const guarnicionById = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
+  const salsaById = Object.fromEntries(salsasData.map((s) => [s.id, s]));
   // User-created recipes aren't in the static bundled catalog, so the final
   // hydration step (recipeId -> full frontend recipe) needs its own lookup.
   const userRecipeById = Object.fromEntries((data.userRecipes ?? []).map((r) => [r.id, r]));
@@ -1454,7 +1525,7 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
 
     // Group assignments by day+meal
     const byDayMeal = {};
-    for (const { slotId, recipeId, garnishId } of slotAssignments) {
+    for (const { slotId, recipeId, garnishId, sauceId } of slotAssignments) {
       const catalogRecipe = recipeCatalogById[recipeId] ?? userRecipeById[recipeId];
       if (!catalogRecipe) continue;
 
@@ -1473,6 +1544,12 @@ export async function generateMenuWithAI(data, { signal, pantryIngredients = [],
         if (garnishId) {
           const garnish = guarnicionById[garnishId];
           if (garnish) applyGarnishToRecipe(fr, garnish, eaters, restrictions);
+        }
+        // Same for sauce — independent of garnish, applied after so the name
+        // suffix reads "... con Guarnición y Salsa" when both are present.
+        if (sauceId) {
+          const sauce = salsaById[sauceId];
+          if (sauce) applySauceToRecipe(fr, sauce, eaters, restrictions);
         }
 
         allRecipes.push(fr);
@@ -1799,6 +1876,69 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
 }
 
 /**
+ * Mismo patrón que applyGarnishToRecipe, para la salsa (independiente de la
+ * guarnición — un plato puede llevar las dos a la vez). Ver pairSauces.js
+ * para cómo se decide qué salsa y cuándo.
+ */
+export function applySauceToRecipe(fr, sauce, eaters, restrictions = []) {
+  if (!fr || !sauce) return fr;
+
+  // Preserve sauceId: DishDetail lo re-hidrata para el curso "Salsa" (pasos
+  // propios, ver pairSauces.js / SALSA_BY_ID en Menu.jsx).
+  fr.sauceId = sauce.id;
+  const norm = (s) => s.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
+  const suffix = norm(fr.name).includes(" con ") ? ` y ${sauce.name}` : ` con ${sauce.name}`;
+  if (!norm(fr.name).endsWith(norm(sauce.name))) {
+    fr.name = `${fr.name}${suffix}`;
+  }
+
+  // Time: se hace en paralelo o justo antes de servir, se muestra la más larga.
+  fr.time = Math.max(fr.time, sauce.time);
+
+  // Macros: los valores de la salsa están guardados por baseServings.
+  const sPerServing = sauce.baseServings ?? 1;
+  fr.kcal = fr.kcal + Math.round(sauce.kcal / sPerServing);
+  fr.macros = {
+    protein: (fr.macros.protein ?? 0) + Math.round(sauce.protein_g / sPerServing),
+    carbs: (fr.macros.carbs ?? 0) + Math.round(sauce.carbs_g / sPerServing),
+    fat: (fr.macros.fat ?? 0) + Math.round(sauce.fat_g / sPerServing),
+  };
+
+  // Ingredientes: misma lógica de escalado + adaptaciones que la guarnición.
+  const { renameByName, adaptations: sauceAdaptations } = buildAdaptationMap(sauce, restrictions);
+  const sFactor = eaters / sPerServing;
+  const sIngredients = sauce.ingredients.map((ing) => {
+    let scaledQty = ing.amount * sFactor;
+    if (ing.unit === "g" || ing.unit === "ml") {
+      scaledQty = Math.round(scaledQty / 5) * 5;
+      if (scaledQty < 5) scaledQty = 5;
+    } else {
+      scaledQty = Math.ceil(scaledQty);
+    }
+    const name = renameByName.get(ing.name) ?? ing.name;
+    return {
+      id: `sauce-${name.toLowerCase().replace(/\s+/g, "-")}`,
+      name,
+      category: guessIngredientCategory(name),
+      qty: scaledQty,
+      unit: ing.unit,
+    };
+  });
+  fr.ingredients = [...fr.ingredients, ...sIngredients];
+
+  if (sauceAdaptations.length > 0) {
+    fr.adaptations = [...(fr.adaptations ?? []), ...sauceAdaptations];
+  }
+
+  if (sauce.description) {
+    fr.prepSummary = `${fr.prepSummary}. ${sauce.description}`;
+  }
+  // Los pasos no se fusionan aquí, igual que la guarnición: DishDetail los
+  // muestra en su propio curso "Salsa".
+  return fr;
+}
+
+/**
  * Every catalog recipe id a fixed dish could resolve to — recipeId, id,
  * catalogId (fixedDishes entries use different fields depending on how they
  * were created — picked from the catalog vs. typed by name) plus whatever
@@ -2095,7 +2235,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
     if (b) usedBaseIds.add(b);
   }
 
-  // "cenas_rapidas" (nachos, sándwiches...) is only appropriate for the exact
+  // A montaje dish (nachos, sándwiches...) is only appropriate for the exact
   // slot the user flagged as "cena rápida" — otherwise it can replace a normal
   // dinner with something that doesn't match what the user actually asked for.
   const isCenaRapida = data.slotType?.[`${day}|${meal}`] === "rapida";
@@ -2108,7 +2248,7 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const structuralFit = (r) =>
     roleMatch(r) &&
     r.time <= slotMaxTime &&
-    (isCenaRapida || r.category !== "cenas_rapidas") &&
+    (isCenaRapida || !isMontaje(r)) &&
     (!restrictCategory || r.category === restrictCategory);
   const { candidates: selected, reusedDuplicate: rdup } = selectReplacementCandidates(
     pool,

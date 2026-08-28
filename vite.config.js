@@ -4,9 +4,15 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 function readJsonBody(req) {
   return new Promise((resolve) => {
-    let data = ''
-    req.on('data', (chunk) => { data += chunk })
+    // Junta los Buffers crudos y decodifica UNA sola vez al final. Decodificar
+    // cada chunk por separado (el `data += chunk` de antes, que llama a
+    // toString() en cada trozo) corrompe cualquier tilde/ñ que caiga justo en
+    // el borde entre dos chunks — algo raro por loopback (llega todo junto)
+    // pero real por WiFi real, donde el body sí puede venir partido.
+    const chunks = []
+    req.on('data', (chunk) => { chunks.push(chunk) })
     req.on('end', () => {
+      const data = Buffer.concat(chunks).toString('utf8')
       try { resolve(data ? JSON.parse(data) : {}) } catch { resolve({}) }
     })
   })

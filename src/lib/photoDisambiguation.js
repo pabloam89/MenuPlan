@@ -59,6 +59,22 @@ export function disambiguationClause(dishName) {
     );
   }
 
+  // Tortilla española (patatas/calabacín/espinacas/boletus...), NO "tortilla
+  // francesa" (esa sí va doblada, es correcto) ni "tortilla wrap"/de trigo
+  // (harina, no huevo) ni un bocadillo QUE lleva tortilla dentro.
+  const isSpanishTortilla =
+    /\btortilla\b/.test(d) && !/tortilla francesa|tortilla wrap|bocadillo/.test(d);
+  if (isSpanishTortilla) {
+    clauses.push(
+      `Es una tortilla española REDONDA y GRUESA, servida entera en el bol pero con UNA porción/cuña ` +
+        `ya cortada y ligeramente separada o levantada hacia arriba, dejando ver el corte transversal: ` +
+        `el interior jugoso y cuajado, con las capas visibles del relleno (patata, cebolla, verdura u otro ` +
+        `ingrediente mencionado en el nombre del plato) bien diferenciadas por dentro, no solo por encima. ` +
+        `PROHIBIDO mostrarla doblada por la mitad en forma de media luna cerrada como una tortilla francesa; ` +
+        `PROHIBIDO mostrarla entera sin ningún corte que revele el interior. `,
+    );
+  }
+
   const conIdx = d.indexOf(" con ");
   const isCombo = conIdx !== -1;
   const garnishPart = isCombo ? d.slice(conIdx + 5).trim() : "";
@@ -74,7 +90,11 @@ export function disambiguationClause(dishName) {
     );
   }
 
-  if (isCombo && isArrozGarnish) {
+  if (isSpanishTortilla) {
+    // "Tortilla de patatas con cebolla caramelizada": lo que sigue a "con" es
+    // relleno DENTRO de la tortilla, no una guarnición aparte en el bol — no
+    // aplican las reglas genéricas de combo de abajo.
+  } else if (isCombo && isArrozGarnish) {
     clauses.push(
       `OBLIGATORIO: arroz blanco suelto visible como guarnición, claramente distinguible del plato principal. `,
     );

@@ -2,11 +2,9 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "reac
 import { createPortal } from "react-dom";
 import {
   CalendarDays,
-  Sparkles,
   BookOpen,
   UserRound,
   Plus,
-  Heart,
   ChefHat,
   Users,
   Menu as MenuIcon,
@@ -78,23 +76,28 @@ export const HOUSEHOLDS_COACH_STEPS = [
   },
 ];
 
-// Home: the two action tiles + the meaningful nav tabs.
+// Home: the meaningful nav tabs (2026-08-24: Inicio dropped its 3 action
+// cards — generar/despensa/recetas ya no viven ahí, así que el tour ahora
+// apunta directo a los tabs del nav en vez de a las tarjetas desaparecidas).
+// 2026-08-25: el tab "Generar" se quitó del nav — "Generar menú nuevo" volvió
+// a vivir solo como card en Inicio (favoritos/históricos se ven ya desde el
+// menú ⋮ de "Menú actual"), así que este primer paso apunta a esa card.
 export const HOME_COACH_STEPS = [
   // El paso "Modo sencillo" desapareció con la píldora de la cabecera: sencillo
   // vs avanzado se pregunta ahora en la primera pantalla del asistente.
   {
-    selector: "#coach-generate-menu",
+    selector: '[data-coach="dashboard-generate"]',
     Icon: CalendarDays,
-    title: "Generar menú",
-    desc: "Crea el menú semanal para toda la familia, con cada persona y sus necesidades ya tenidas en cuenta.",
+    title: "Generar menú nuevo",
+    desc: "Tu menú de la semana, en segundos. Desde el menú de tu plan activo también puedes reusar uno guardado o ver favoritos e históricos.",
     place: "below",
   },
   {
-    selector: "#coach-generate-recipes",
-    Icon: Sparkles,
-    title: "Generar recetas",
-    desc: "Inventa recetas nuevas con lo que tengas en casa. La IA te las ajusta a tu cocina y tus gustos.",
-    place: "below",
+    selector: '[data-coach="nav-menu"]',
+    Icon: UtensilsCrossed,
+    title: "Tu menú",
+    desc: "El plan de esta semana, día a día, listo para cocinar.",
+    place: "above",
   },
   {
     selector: '[data-coach="nav-recipes"]',
@@ -114,20 +117,13 @@ export const HOME_COACH_STEPS = [
   },
 ];
 
-// Recetas del hogar: favoritas, mis recetas y descartados (catálogo → Biblioteca).
+// Recetas del hogar: mis recetas (propias + favoritas) y descartados (catálogo → Biblioteca).
 export const RECIPES_COACH_STEPS = [
-  {
-    selector: '[data-coach="recipes-tab-favorites"]',
-    Icon: Heart,
-    title: "Favoritas del hogar",
-    desc: "Las recetas que este hogar guarda para generar menús — las del propietario si entras como visitante.",
-    place: "below",
-  },
   {
     selector: '[data-coach="recipes-tab-mine"]',
     Icon: ChefHat,
     title: "Mis recetas",
-    desc: "Las recetas creadas para este hogar: edítalas y elige si las ve el resto de la familia.",
+    desc: "Las que creas para este hogar y las que marcas como favoritas en el catálogo — de aquí decides qué entra en tu menú.",
     place: "below",
   },
   {

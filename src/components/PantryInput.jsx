@@ -180,6 +180,7 @@ function cookedAtFromKey(key) {
 }
 
 const qLabelStyle = { fontSize: 11.5, fontWeight: 800, color: "#5a7066", marginBottom: 5 };
+const centeredLabelStyle = { ...qLabelStyle, textAlign: "center" };
 
 // Portaled picker — same language as RecipePlanner UnitPicker / CualDropdown.
 function StyledPickerMenu({ value, options, anchorRef, onSelect, onClose }) {
@@ -244,7 +245,7 @@ function StyledPickerMenu({ value, options, anchorRef, onSelect, onClose }) {
         borderRadius: 14,
         border: "1.5px solid #d7e6dc",
         boxShadow: "0 16px 40px -12px rgba(20,47,29,.28)",
-        zIndex: 400,
+        zIndex: 600,
         padding: 4,
       }}
     >
@@ -287,7 +288,7 @@ function StyledPickerMenu({ value, options, anchorRef, onSelect, onClose }) {
   );
 }
 
-function StyledPicker({ value, onChange, options, width, ariaLabel }) {
+function StyledPicker({ value, onChange, options, width, height = 34, ariaLabel }) {
   const [open, setOpen] = useState(false);
   const btnRef = useRef(null);
   const label = options.find((o) => o.value === value)?.label ?? value;
@@ -305,7 +306,7 @@ function StyledPicker({ value, onChange, options, width, ariaLabel }) {
           ...editInputBase,
           flexShrink: 0,
           width,
-          height: 34,
+          height,
           padding: "0 8px",
           display: "inline-flex",
           alignItems: "center",
@@ -835,7 +836,7 @@ function CualDropdown({ candidates, onSelect, onClose, anchorRef, optionStyle = 
         borderRadius: 14,
         border: "1.5px solid #d7e6dc",
         boxShadow: "0 16px 40px -12px rgba(20,47,29,.28)",
-        zIndex: 400,
+        zIndex: 600,
         padding: 4,
       }}
     >
@@ -936,7 +937,15 @@ function CualPicker({ candidates, onSelect, ariaLabel }) {
 // Ubicación por defecto de un ingrediente recién añadido: nevera si es fresco
 // perecedero, despensa en el resto. Es solo el punto de partida — el usuario
 // puede cambiarla (p. ej. peras en la despensa para que maduren).
+// Congelador solo se propone cuando el propio nombre ya lo dice ("Guisantes
+// congelados") o es un caso inequívoco (helado, hielo) — nunca se adivina
+// para un ingrediente que igual de normal se compra fresco (gambas,
+// langostinos...), porque el toggle de abajo lo corrige en un toque si hace
+// falta, pero acertar mal por defecto es peor que no arriesgar.
+const FROZEN_NAME_HINTS = ["congelad", "helado", "polo", "hielo"];
 function defaultLocationForName(name) {
+  const n = String(name ?? "").toLowerCase();
+  if (FROZEN_NAME_HINTS.some((h) => n.includes(h))) return "congelador";
   return isPerishableAisle(guessShoppingAisle(name)) ? "nevera" : "despensa";
 }
 
@@ -981,7 +990,7 @@ function ChipLocationRow({ value, onChange }) {
 
 // Miniatura del ingrediente para la ficha de edición (mismo lenguaje que la
 // tarjeta del plato cocinado): ilustración si la hay, icono neutro si no.
-function ChipThumb({ name }) {
+function ChipThumb({ name, size = 44 }) {
   const [failed, setFailed] = useState(false);
   const src = ingredientThumbSrc(name);
   const show = Boolean(src) && !failed;
@@ -990,12 +999,124 @@ function ChipThumb({ name }) {
       src={src}
       alt=""
       onError={() => setFailed(true)}
-      style={{ width: 44, height: 44, borderRadius: 10, objectFit: "cover", flexShrink: 0, background: "#eef4ef" }}
+      style={{ width: size, height: size, borderRadius: 10, objectFit: "cover", flexShrink: 0, background: "#eef4ef" }}
     />
   ) : (
-    <div style={{ width: 44, height: 44, borderRadius: 10, background: "#eef4ef", display: "grid", placeItems: "center", flexShrink: 0 }}>
-      <Salad size={20} color={GREEN} />
+    <div style={{ width: size, height: size, borderRadius: 10, background: "#eef4ef", display: "grid", placeItems: "center", flexShrink: 0 }}>
+      <Salad size={Math.round(size * 0.45)} color={GREEN} />
     </div>
+  );
+}
+
+// Alta manual de UN ingrediente: popup centrado, todo en el mínimo espacio
+// posible — icono+nombre a la izquierda, cantidad+unidad a la derecha,
+// congelado sí/no debajo, "+" para confirmar. Nada de nombre editable ni
+// envase/pack: eso sigue existiendo en la lista de chips (foto/voz), aquí la
+// gracia es la velocidad.
+function QuickAddPopup({ item, onChangeQty, onChangeUnit, onChangeLocation, onConfirm, onClose, saving }) {
+  if (!item) return null;
+  return createPortal(
+    <div
+      onClick={onClose}
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 500,
+        background: "rgba(15,30,20,.4)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`Añadir ${item.raw}`}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: 300,
+          maxWidth: "calc(100vw - 32px)",
+          background: "#fff",
+          borderRadius: 18,
+          padding: 16,
+          boxShadow: "0 24px 60px rgba(20,47,29,.28)",
+        }}
+      >
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "96px 46px 66px 30px",
+            gridTemplateRows: "auto auto",
+            gridTemplateAreas: `"icon cant ud plus" "icon where where ."`,
+            columnGap: 8,
+            rowGap: 8,
+          }}
+        >
+          <div style={{ gridArea: "icon", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3, minWidth: 0 }}>
+            <ChipThumb name={item.raw} size={94} />
+            <span
+              style={{
+                fontSize: 9.5, fontWeight: 800, color: INK, textAlign: "center", lineHeight: 1.15,
+                width: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+              }}
+            >
+              {item.raw}
+            </span>
+          </div>
+          <div style={{ gridArea: "cant", minWidth: 0 }}>
+            <div style={centeredLabelStyle}>Cant.</div>
+            <input
+              autoFocus
+              value={item.entryQty}
+              onChange={(e) => onChangeQty(e.target.value)}
+              inputMode="decimal"
+              aria-label="Cantidad"
+              style={{ ...editInputBase, background: FIELD_BG, width: "100%", height: 30, padding: "0 4px", textAlign: "center", fontSize: 12.5, fontWeight: 800 }}
+            />
+          </div>
+          <div style={{ gridArea: "ud", minWidth: 0 }}>
+            <div style={centeredLabelStyle}>Ud.</div>
+            <StyledPicker
+              value={item.entryUnit}
+              onChange={onChangeUnit}
+              options={PANTRY_UNITS.map((u) => ({ value: u, label: u === "l" ? "L" : u }))}
+              width={66}
+              height={30}
+              ariaLabel="Unidad"
+            />
+          </div>
+          <div style={{ gridArea: "plus" }}>
+            <div style={{ ...centeredLabelStyle, visibility: "hidden" }}>·</div>
+            <button
+              type="button"
+              onClick={onConfirm}
+              disabled={saving}
+              aria-label={`Añadir ${item.raw}`}
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 7,
+                border: "none",
+                background: saving ? "#c8d9ce" : GREEN,
+                color: "#fff",
+                cursor: saving ? "default" : "pointer",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {saving ? <Loader2 size={15} className="mp-spin" /> : <Plus size={16} strokeWidth={2.6} />}
+            </button>
+          </div>
+          <div style={{ gridArea: "where" }}>
+            <div style={qLabelStyle}>¿Dónde lo guardas?</div>
+            <ChipLocationRow value={item.location} onChange={onChangeLocation} />
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -1266,6 +1387,12 @@ export function PantryInput({
   const [dishCat, setDishCat] = useState(null);
   const [focusQtyIndex, setFocusQtyIndex] = useState(null);
   const fileInputRef = useRef(null);
+  // Alta manual de un ingrediente (2026-08-28): popup centrado de un solo
+  // item, en vez de apilarlo en la lista de chips — esa lista sigue viva tal
+  // cual para foto/voz, que sí necesitan revisar varios de golpe. null =
+  // cerrado.
+  const [quickAdd, setQuickAdd] = useState(null);
+  const [quickAddedNames, setQuickAddedNames] = useState(() => new Set());
 
   const addChips = (parsedList, source, qtyUnitByRaw) => {
     setChips((prev) => {
@@ -1402,10 +1529,10 @@ export function PantryInput({
     );
 
   // ── "Escrito" mode: RecipePlanner's own search/browse-by-category picker.
-  // Toggling a catalog name just adds/removes it from the SAME chip list
-  // voice/photo feed, so quantity editing and Guardar stay identical no
-  // matter which mode added an item.
-  const addedNames = new Set(chips.map((c) => c.raw.toLowerCase()));
+  // Tapping a catalog name opens the quick-add popup (below) instead of the
+  // chip list — that list stays reserved for foto/voz, which need to review
+  // several items at once.
+  const addedNames = new Set([...chips.map((c) => c.raw.toLowerCase()), ...quickAddedNames]);
 
   const appendChipAndFocusQty = (parsed) => {
     if (!parsed) return;
@@ -1432,14 +1559,40 @@ export function PantryInput({
   };
 
   const toggleIngredient = (name) => {
-    const key = name.toLowerCase();
-    const idx = chips.findIndex((c) => c.raw.toLowerCase() === key);
-    if (idx >= 0) {
-      removeChip(idx);
+    const [parsed] = normalizePantryInput(name);
+    if (!parsed || parsed.ambiguous) {
+      // Free-typed/ambiguous names still go through the chip list's ¿Cuál?
+      // resolver — the quick popup assumes a single clear match.
+      appendChipAndFocusQty(parsed);
       return;
     }
-    const [parsed] = normalizePantryInput(name);
-    appendChipAndFocusQty(parsed);
+    setQuickAdd({
+      ...parsed,
+      entryQty: 1,
+      entryUnit: "ud",
+      location: defaultLocationForName(parsed.raw ?? parsed.normalized),
+    });
+  };
+
+  const confirmQuickAdd = async () => {
+    if (!quickAdd || saving) return;
+    setSaving(true);
+    const { qty, unit } = toCanonicalStockQty(quickAdd.entryQty, quickAdd.entryUnit);
+    const items = [{
+      name: quickAdd.raw,
+      normalized: quickAdd.normalized,
+      qty,
+      unit,
+      pack: null,
+      source: "manual",
+      location: quickAdd.location,
+      frozen: quickAdd.location === "congelador",
+    }];
+    const saved = user ? await addPantryItems(user.id, items, householdId) : addLocalPantryItems(items);
+    setSaving(false);
+    setQuickAddedNames((prev) => new Set(prev).add(quickAdd.raw.toLowerCase()));
+    setQuickAdd(null);
+    onSaved?.(saved);
   };
 
   const addCustomIngredient = (name) => {
@@ -1632,6 +1785,16 @@ export function PantryInput({
                 saving={saving}
               />
             )}
+
+            <QuickAddPopup
+              item={quickAdd}
+              onChangeQty={(v) => setQuickAdd((cur) => (cur ? { ...cur, entryQty: v } : cur))}
+              onChangeUnit={(v) => setQuickAdd((cur) => (cur ? { ...cur, entryUnit: v } : cur))}
+              onChangeLocation={(v) => setQuickAdd((cur) => (cur ? { ...cur, location: v } : cur))}
+              onConfirm={confirmQuickAdd}
+              onClose={() => setQuickAdd(null)}
+              saving={saving}
+            />
           </>
         );
       })()}

@@ -136,7 +136,7 @@ import {
   KID_DINNER_DEFAULTS,
   KID_DINNER_AVOID_DEFAULTS,
 } from "../lib/kidsMenu.js";
-import { POSTRE_TIPOS, POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
+import { POSTRE_INMEDIATO_KINDS } from "../lib/postres.js";
 import { SCHOOL_DAYS, SCHOOL_COURSES, hasAnySchoolDish, householdHasSchoolMenu, normalizeSchoolMenus, replaceSchoolWeeks, setSchoolDishAt, clearSchoolWeek, clearSchoolScope, getSchoolIconOverride, setSchoolIconOverride } from "../lib/schoolMenu.js";
 import { outStateFor, isHomeState, resolveQuickActions } from "../lib/schedulePresets.js";
 import { importSchoolMenuFile, selectBestWeek } from "../lib/schoolMenuImport.js";
@@ -157,44 +157,6 @@ const MEAL_STRUCTURE_CARDS = [
   },
 ];
 
-const DESPENSA_OPTS = [
-  {
-    id: "strict",
-    label: "Solo con lo de casa",
-    subtitle: "Esta semana no hace falta ir al súper.",
-    pill: "Sin comprar",
-    accent: "#0f766e",
-    spectrumIdx: 0,
-    img: "/avatares/cards/casa_solo.jpg",
-  },
-  {
-    id: "only",
-    label: "Con lo que hay",
-    subtitle: "Cocinas con lo tuyo y compras solo lo que falte.",
-    pill: "+ lo que falte",
-    accent: "#2d8a4e",
-    spectrumIdx: 1,
-    img: "/avatares/cards/casa_partir.jpg",
-  },
-  {
-    id: "prefer",
-    label: "Aprovechando casa",
-    subtitle: "Busco recetas que gasten lo que ya tienes.",
-    pill: "Recomendado",
-    accent: "#c9820a",
-    spectrumIdx: 2,
-    img: "/avatares/cards/casa_encuenta.jpg",
-  },
-  {
-    id: "off",
-    label: "Menú libre",
-    subtitle: "No miro lo de casa al montar el menú.",
-    pill: "Sin mirar casa",
-    accent: "#8a9a90",
-    spectrumIdx: 3,
-    img: "/avatares/cards/casa_libre.jpg",
-  },
-];
 const MODO_OPTS = [
   { id: "basic", label: "Sencillo", subtitle: "Comidas y cenas. El resto lo decidimos por ti.", img: "/avatares/cards/modo_sencillo.jpg" },
   { id: "expert", label: "Avanzado", subtitle: "Tú controlas desayunos, meriendas, despensa y cocina.", img: "/avatares/cards/modo_avanzado.jpg" },
@@ -257,7 +219,7 @@ export function OnboardingShell({
   onReset,
   onNext,
   onFinish,
-  nextLabel = "Afinar menú",
+  nextLabel = "Continuar",
   finishLabel = "Generar menú",
   nextDisabled = false,
   finishDisabled = false,
@@ -368,6 +330,10 @@ export function OnboardingShell({
           boxShadow: "0 -10px 16px -10px rgba(0,0,0,0.14)",
         }}
       >
+        {/* Generar: contorno teal cuando va junto a "Continuar" (secundario
+            frente a él); relleno teal cuando es el único botón del paso — la
+            única acción no debería quedarse en un contorno flojo
+            (2026-08-24). */}
         {onFinish && onNext && (
           <button
             onClick={finishDisabled ? undefined : onFinish}
@@ -376,12 +342,33 @@ export function OnboardingShell({
               flex: 1,
               padding: "14px",
               borderRadius: 12,
-              border: `1.5px solid ${finishDisabled ? "#e0e8e3" : "#c8ddd0"}`,
+              border: `1.5px solid ${finishDisabled ? "#e0e8e3" : "#0f766e"}`,
               background: finishDisabled ? "#f1f5f2" : "#fff",
-              color: finishDisabled ? "#aebcb2" : "#2d5a3d",
+              color: finishDisabled ? "#aebcb2" : "#0f766e",
               fontSize: 14,
               fontWeight: 700,
               cursor: finishDisabled ? "not-allowed" : "pointer",
+            }}
+          >
+            {finishLabel}
+          </button>
+        )}
+        {onFinish && !onNext && (
+          <button
+            onClick={finishDisabled ? undefined : onFinish}
+            disabled={finishDisabled}
+            style={{
+              flex: 2,
+              padding: "14px",
+              borderRadius: 12,
+              border: "none",
+              background: finishDisabled ? "#bcdbd6" : "#0f766e",
+              color: "#fff",
+              fontSize: 14,
+              fontWeight: 700,
+              cursor: finishDisabled ? "not-allowed" : "pointer",
+              boxShadow: finishDisabled ? "none" : "0 4px 18px rgba(15,118,110,.3)",
+              opacity: finishDisabled ? 0.85 : 1,
             }}
           >
             {finishLabel}
@@ -397,44 +384,16 @@ export function OnboardingShell({
               padding: "14px",
               borderRadius: 12,
               border: "none",
-              background: nextDisabled ? "#c8d9ce" : "#2d5a3d",
+              background: nextDisabled ? "#bcdbd6" : "#0f766e",
               color: "#fff",
               fontSize: 14,
               fontWeight: 700,
               cursor: nextDisabled ? "not-allowed" : "pointer",
-              boxShadow: nextDisabled ? "none" : "0 4px 18px rgba(45,90,61,.25)",
+              boxShadow: nextDisabled ? "none" : "0 4px 18px rgba(15,118,110,.3)",
               opacity: nextDisabled ? 0.85 : 1,
             }}
           >
             {nextLabel}
-          </button>
-        )}
-        {onFinish && !onNext && (
-          <button
-            onClick={finishDisabled ? undefined : onFinish}
-            disabled={finishDisabled}
-            style={{
-              flex: 2,
-              padding: "14px",
-              borderRadius: 12,
-              border: "none",
-              background: finishDisabled
-                ? "#c8d9ce"
-                : "linear-gradient(135deg, #2d5a3d 0%, #4cba6e 100%)",
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 700,
-              cursor: finishDisabled ? "not-allowed" : "pointer",
-              boxShadow: finishDisabled ? "none" : "0 4px 18px rgba(76,186,110,.35)",
-              opacity: finishDisabled ? 0.85 : 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-            }}
-          >
-            <Sparkles size={15} />
-            {finishLabel}
           </button>
         )}
       </div>
@@ -863,7 +822,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
   return (
     <OnboardingShell
       title="¿Quién come en casa?"
-      subtitle="Añade a cada persona. Luego tócala para elegir su personaje, su color y su edad."
+      subtitle="Añade a cada persona. Luego tócala para elegir su personaje y su color."
       onReset={onReset}
       onBack={onBack}
       onNext={onNext}
@@ -880,17 +839,19 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
         onPromote={() => pendingBabyMember && promoteBabyToChild(pendingBabyMember.id)}
       />
 
-      {/* Name + age mini-popup (family builder) — compact: name + age on one
-          line, colours below, minimalist "Listo". No remove button: tapping
-          outside a just-dropped profile discards it; editing an existing one
-          just closes. */}
+      {/* Name mini-popup (family builder) — compact: name on top, colours
+          below, minimalist "Listo". Age dropped (2026-08-28): the avatar +
+          profile label (Hijo/Bebé/Abuelo…) already carry that signal, so
+          typing an exact number was friction without payoff; the profile's
+          default age (PROFILES table) still feeds the kid/baby-menu logic
+          under the hood. No remove button: tapping outside a just-dropped
+          profile discards it; editing an existing one just closes. */}
       {builderMode === "family" && editingMemberId && (() => {
         const editing = data.members.find((m) => m.id === editingMemberId);
         if (!editing) return null;
         const prof = profileByKey(editing.profileKey);
         const EIcon = prof?.icon ?? ROLE_ICON_MAP[migrateHomeRole(editing.homeRole)] ?? User;
         const color = editing.color ?? prof?.tint ?? "#2d5a3d";
-        const ageVal = editing.age != null && Number.isFinite(Number(editing.age)) ? String(editing.age) : "";
         // Editing an existing member (tapped its avatar) unlocks photo + colour;
         // the quick add popup (just-dropped profile) stays minimal.
         const isEdit = editingMemberId !== justAddedId;
@@ -975,7 +936,7 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                       </button>
                     </div>
 
-                    {/* ── RIGHT: top row (name · age → ✓ 🗑️) + avatar strip ─ */}
+                    {/* ── RIGHT: top row (name → ✓ 🗑️) + avatar strip ─ */}
                     <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 14 }}>
                       {/* Top row */}
                       <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -985,15 +946,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                           placeholder="Nombre"
                           autoFocus={!isEdit}
                           style={{ flex: 1, minWidth: 0, height: 34, padding: "0 10px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
-                        />
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          value={ageVal}
-                          onChange={(e) => updateMemberAge(editing.id, e.target.value.replace(/\D/g, ""))}
-                          placeholder="Edad"
-                          aria-label="Edad (opcional)"
-                          style={{ width: 42, flexShrink: 0, height: 34, padding: "0 4px", borderRadius: 9, border: "1.5px solid #ddd", fontSize: 12, fontWeight: 700, textAlign: "center", color: "#3d6b4f", outline: "none", boxSizing: "border-box", fontFamily: "inherit" }}
                         />
                         {isEdit ? (
                           // Editar: el ✓ "Listo" era redundante (tocar fuera cierra
@@ -1222,7 +1174,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                   const Icon = prof?.icon ?? ROLE_ICON_MAP[migrateHomeRole(m.homeRole)] ?? User;
                   const color = m.color ?? prof?.tint ?? AVATAR_PALETTE[idx % AVATAR_PALETTE.length];
                   const isLeaving = removingIds.has(m.id);
-                  const showAge = m.age != null && m.age !== "" && Number.isFinite(Number(m.age));
                   return (
                     <button
                       key={m.id}
@@ -1260,9 +1211,6 @@ export function OnboardingMembers({ data, setData, onNext, onFinish, onReset, on
                       <span style={{ fontSize: 11, fontWeight: 700, color: "#25402f", letterSpacing: "-.1px", maxWidth: "100%", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", textAlign: "center" }}>
                         {m.name || prof?.label || "—"}
                       </span>
-                      {showAge && (
-                        <span style={{ fontSize: 10, fontWeight: 700, color: "#9ab0a1", marginTop: -2 }}>{m.age} años</span>
-                      )}
                     </button>
                   );
                 })}
@@ -2204,7 +2152,7 @@ export function OnboardingRestrictions({
   return (
     <OnboardingShell
       title="¿Qué evitamos?"
-      subtitle="Alergias y quién necesita un menú más cuidado"
+      subtitle="Marca alergias, intolerancias o quién necesita un menú más cuidado (embarazo, lactancia…) para excluirlo de las recetas."
       bg="#f5f9f6"
       onBack={onBack}
       onReset={onReset}
@@ -2525,6 +2473,7 @@ function RestrictionTabCard({
   onClick,
   imgRatio = "1 / 1",
   imgHeight,
+  imgPosition = "center 28%",
   fillHeight = false,
   textOverlay = false,
   compact = false,
@@ -2601,7 +2550,7 @@ function RestrictionTabCard({
                 width: "100%",
                 height: "100%",
                 objectFit: fillHeight || imgHeight ? "cover" : imgRatio === "1 / 1" ? "contain" : "cover",
-                objectPosition: "center 28%",
+                objectPosition: imgPosition,
                 display: "block",
               }}
             />
@@ -2765,11 +2714,40 @@ export function OnboardingRepeat({
     });
   };
 
+  // Mismo patrón que setCatalogGarnish, para la salsa fijada a un plato.
+  const setCatalogSalsa = (recipe, sauceId) => {
+    const comida = mealOptions.find((m) => m.toLowerCase() === "comida") ?? mealOptions[0] ?? "Comida";
+    setData((d) => {
+      const list = migrateFixedDishes(d.fixedDishes ?? []);
+      const exists = list.some((fd) => fd.catalogId === recipe.id);
+      if (!exists) {
+        const entry = normalizeFixedDish({
+          name: recipe.name,
+          catalogId: recipe.id,
+          timesPerWeek: 1,
+          meals: [comida],
+          sauceId: sauceId ?? undefined,
+        });
+        if (!entry) return d;
+        return { ...d, fixedDishes: [...list, entry] };
+      }
+      const next = list.map((fd) =>
+        fd.catalogId === recipe.id
+          ? normalizeFixedDish({ ...fd, sauceId: sauceId ?? undefined })
+          : fd
+      );
+      return { ...d, fixedDishes: next };
+    });
+  };
+
   const fixedList = migrateFixedDishes(data.fixedDishes ?? []);
 
   const addedCatalogIds = new Set(fixedList.filter((fd) => fd.catalogId).map((fd) => fd.catalogId));
   const addedGarnishByCatalogId = Object.fromEntries(
     fixedList.filter((fd) => fd.catalogId && fd.garnishId).map((fd) => [fd.catalogId, fd.garnishId])
+  );
+  const addedSalsaByCatalogId = Object.fromEntries(
+    fixedList.filter((fd) => fd.catalogId && fd.sauceId).map((fd) => [fd.catalogId, fd.sauceId])
   );
 
   // Same browsing model as "Recetas" (categories first, then a Favoritas
@@ -2899,9 +2877,11 @@ export function OnboardingRepeat({
             recipeVotes={data.recipeVotes}
             addedIds={addedCatalogIds}
             garnishByCatalogId={addedGarnishByCatalogId}
+            salsaByCatalogId={addedSalsaByCatalogId}
             onAdd={addCatalogDish}
             onRemove={removeCatalogDish}
             onSetGarnish={setCatalogGarnish}
+            onSetSalsa={setCatalogSalsa}
             extraRecipes={data.userRecipes ?? []}
           />
         </>
@@ -3369,8 +3349,8 @@ export function IndividualMenuSheet({ member, reason, onConfirm, onCancel }) {
 // screens the user will actually see (e.g. "Menú del cole" is hidden when there
 // are no kids/babies in the house). MANTENER EN SINCRONÍA con el orden de
 // `onbScreens` en App.jsx: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
-// 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras ·
-// 11 En casa · 12 Cocina · 13 Tiempos.
+// 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
+// 11 Extras-Otros · 12 Tu despensa · 13 Cocina · 14 Tiempos.
 const AFINAR_WIZARD_STEPS = [
   { step: 0, Icon: SlidersHorizontal, label: "Modo", desc: "Sencillo o avanzado" },
   { step: 3, Icon: School, label: "Menú del cole", desc: "Sube el PDF o foto del comedor" },
@@ -3379,8 +3359,8 @@ const AFINAR_WIZARD_STEPS = [
   { step: 6, Icon: ShoppingCart, label: "Tu compra", desc: "Súper y presupuesto semanal" },
   { step: 7, Icon: House, label: "Horario", desc: "Quién come en casa cada día" },
   { step: 9, Icon: HeartPulse, label: "Estilo", desc: "El tipo de comida que os gusta" },
-  { step: 12, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
-  { step: 13, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
+  { step: 13, Icon: ChefHat, label: "Cocina", desc: "Tu nivel y herramientas" },
+  { step: 14, Icon: Clock, label: "Tiempos", desc: "Cuánto tiempo tienes para cocinar" },
 ];
 
 export function AfinarWizardBubble({ onClose, visibleSteps }) {
@@ -3789,7 +3769,7 @@ export function OnboardingMenuModel({ data, setData, onNext, onBack, onFinish, o
   return (
     <OnboardingShell
       title="¿Cómo coméis en casa?"
-      subtitle="Elige cómo organizar el menú familiar"
+      subtitle="Decide si toda la familia come el mismo menú o si cada grupo tiene el suyo propio."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -4687,7 +4667,7 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
   return (
     <OnboardingShell
       title="¿Dónde coméis?"
-      subtitle="Marca dónde come cada uno durante la semana"
+      subtitle="Marca dónde come cada uno cada día — en casa, en el cole, fuera o con tupper — para saber qué comidas planificar."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -5209,10 +5189,15 @@ function SectionTitle({ children, img, Icon, color }) {
 }
 
 function PostreInmediatoPicker({ value, onChange }) {
+  const imgById = Object.fromEntries(POSTRE_INMEDIATO_KINDS.map((k) => [k.id, k.img]));
   return (
-    <div style={{ display: "flex", gap: 8 }}>
+    <div style={{ display: "flex", gap: 10 }}>
       {POSTRE_INMEDIATO_KINDS.map((k) => {
         const sel = value === k.id;
+        // "Alterna" no tiene foto propia — un bol mezclado mentiría sobre lo
+        // que hace (elige fruta O yogur cada día, nunca los dos juntos). Se
+        // reutilizan los dos iconos de arriba, uno junto al otro.
+        const isAlterna = k.id === "mix";
         return (
           <button
             key={k.id}
@@ -5222,53 +5207,36 @@ function PostreInmediatoPicker({ value, onChange }) {
               flex: 1,
               display: "flex",
               flexDirection: "column",
-              alignItems: "stretch",
-              padding: 0,
-              overflow: "hidden",
+              alignItems: "center",
+              gap: 8,
+              padding: "16px 6px 12px",
               borderRadius: 14,
               border: `2px solid ${sel ? "#2d5a3d" : "#e0eae3"}`,
-              background: sel ? "#2d5a3d" : "#fff",
+              background: sel ? "#eef8f1" : "#fff",
               cursor: "pointer",
               fontFamily: "inherit",
-              boxShadow: sel ? "0 6px 18px rgba(45,90,61,.18)" : "0 1px 2px rgba(0,0,0,.04)",
+              boxShadow: sel ? "0 6px 18px -6px rgba(45,90,61,.4)" : "0 1px 2px rgba(0,0,0,.04)",
+              transition: "border-color .15s ease, box-shadow .15s ease, background .15s ease",
             }}
           >
-            <div
+            {isAlterna ? (
+              <div style={{ display: "flex", alignItems: "center", gap: 2, height: 68 }}>
+                <img src={imgById.fruta} alt="" style={{ width: 44, height: 44, objectFit: "contain" }} />
+                <img src={imgById.yogur} alt="" style={{ width: 44, height: 44, objectFit: "contain" }} />
+              </div>
+            ) : (
+              <img src={k.img} alt="" style={{ width: 68, height: 68, objectFit: "contain" }} />
+            )}
+            <span
               style={{
-                height: 52,
-                background: "#f4f7f5",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              {k.img ? (
-                <img src={k.img} alt="" style={{ width: 40, height: 40, objectFit: "contain" }} />
-              ) : (
-                <span style={{ display: "inline-flex", alignItems: "center", gap: 3 }}>
-                  <img src="/categories/cut/frutas.png" alt="" style={{ width: 28, height: 28, objectFit: "contain" }} />
-                  <span style={{ fontWeight: 800, fontSize: 13, color: "#2d5a3d", lineHeight: 1 }}>+</span>
-                  <img src="/ingredients/yogur-cut.png" alt="" style={{ width: 26, height: 26, objectFit: "contain" }} />
-                </span>
-              )}
-            </div>
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: "6px 4px 7px",
-                background: sel ? "#2d5a3d" : "#fff",
-                color: sel ? "#fff" : "#142f1d",
                 textAlign: "center",
                 fontWeight: 800,
-                fontSize: 11.5,
-                borderTop: sel ? "none" : "1px solid #eef2f0",
+                fontSize: 12.5,
+                color: sel ? "#2d5a3d" : "#142f1d",
               }}
             >
               {k.label}
-            </div>
+            </span>
           </button>
         );
       })}
@@ -6800,8 +6768,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   if (schoolKids.length === 0) {
     return (
       <OnboardingShell
-        title="Menú del cole"
-        subtitle="No hay niños/as en edad escolar todavía"
+        title="¿Cómo organizamos el menú del cole?"
+        subtitle="Añade un niño en edad escolar para subir el menú de su comedor."
         onBack={onBack}
         onReset={onReset}
         onNext={onNext}
@@ -6816,8 +6784,8 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
 
   return (
     <OnboardingShell
-      title="Menú del cole"
-      subtitle="Sube el PDF, foto o CSV del comedor"
+      title="¿Cómo organizamos el menú del cole?"
+      subtitle="Sube el menú del comedor: igual para todos o distinto por niño."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -6836,6 +6804,7 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
               type="button"
               onClick={() => openUpload(value)}
               style={{
+                position: "relative",
                 flex: 1,
                 minHeight: 0,
                 display: "flex",
@@ -6847,13 +6816,25 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                 borderRadius: 18,
                 cursor: "pointer",
                 overflow: "hidden",
-                background: sel ? "#2d5a3d" : "#f7f9f8",
-                border: `2.5px solid ${sel ? "#2d5a3d" : "#e8ede9"}`,
-                boxShadow: sel ? "0 4px 18px rgba(45,90,61,.25)" : "none",
+                background: sel ? CARD_ACCENT_TEAL : "#f7f9f8",
+                border: `2.5px solid ${sel ? CARD_ACCENT_TEAL : "#e8ede9"}`,
+                boxShadow: sel ? "0 4px 18px rgba(15,118,110,.3)" : "none",
                 transition: "all .18s ease",
                 fontFamily: "inherit",
               }}
             >
+              {sel && (
+                <span
+                  style={{
+                    position: "absolute", top: 8, right: 8, zIndex: 2,
+                    width: 20, height: 20, borderRadius: 999,
+                    background: CARD_ACCENT_TEAL, border: "1.5px solid #fff",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <Check size={11} color="#fff" strokeWidth={3} />
+                </span>
+              )}
               <img
                 src={img}
                 alt=""
@@ -6872,23 +6853,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
                   <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 15, marginBottom: 3 }}>{label}</div>
                   <div style={{ fontSize: 12, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.35 }}>{desc}</div>
                 </span>
-                {sel && (
-                  <span
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 4,
-                      background: "rgba(255,255,255,.2)",
-                      color: "#fff",
-                      fontSize: 12,
-                      fontWeight: 700,
-                      padding: "4px 10px",
-                      borderRadius: 20,
-                    }}
-                  >
-                    <Check size={12} /> Seleccionado
-                  </span>
-                )}
               </span>
               </button>
             );
@@ -7951,13 +7915,13 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                 display: "flex", flexDirection: "column", alignItems: "stretch",
                 borderRadius: 15,
                 overflow: "hidden",
-                border: `2px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
+                border: `2px solid ${sel ? CARD_ACCENT_TEAL : "#e3ebe6"}`,
                 padding: 0,
                 cursor: "pointer",
                 fontFamily: "inherit",
                 background: "#fff",
                 boxShadow: sel
-                  ? "0 6px 18px rgba(45,90,61,.24)"
+                  ? "0 6px 18px rgba(15,118,110,.28)"
                   : "0 1px 3px rgba(20,47,29,.06)",
                 transition: "box-shadow .16s ease, border-color .16s ease",
               }}
@@ -8063,7 +8027,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
                   <span style={{
                     position: "absolute", top: 4, right: 4, zIndex: 3,
                     width: 16, height: 16, borderRadius: 999,
-                    background: "#2d5a3d", border: "1.5px solid #fff",
+                    background: CARD_ACCENT_TEAL, border: "1.5px solid #fff",
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                   }}>
                     <Check size={9} color="#fff" strokeWidth={3} />
@@ -8072,7 +8036,7 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
               </div>
               <div style={{
                 padding: "8px 6px 9px",
-                background: sel ? "#2d5a3d" : "#fff",
+                background: sel ? CARD_ACCENT_TEAL : "#fff",
                   textAlign: "center",
                 transition: "background .16s ease",
               }}>
@@ -8516,7 +8480,11 @@ export function OnboardingMealStyle({ data, setData, onNext, onBack, onFinish, o
 // controls, same visual language as "Estructura de la comida" and "Postre"
 // (which already worked this way and read fine). "Cenas rápidas" keeps its
 // own sheet since it's a per-day pick, not a single 2-4 way choice.
-export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
+// Antes una sola pantalla con pestañas ilustradas "Comidas"/"Otros" que
+// cambiaban qué se veía; ahora cada una es su propia pantalla del asistente,
+// así que las tarjetas de pestaña (que solo servían para elegir cuál mirar)
+// ya no hacen falta — `part` decide qué bloque se muestra (2026-08-24).
+function OnboardingMealExtrasShared({ data, setData, onNext, onBack, onFinish, onReset, nextLabel, part }) {
   // Structure can vary per family group, same groups as the food×times table
   // in the previous step.
   useEffect(() => {
@@ -8533,7 +8501,6 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   );
   const hasMultipleGroups = styleableGroups.length > 1;
   const [activeGroupId, setActiveGroupId] = useState(null);
-  const [extrasTab, setExtrasTab] = useState("comidas");
   const autoSelectedGroupRef = useRef(false);
   useEffect(() => {
     if (!autoSelectedGroupRef.current && styleableGroups.length > 0) {
@@ -8662,10 +8629,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
 
   const expert = Boolean(data.expertMode);
   const postreOn = em.postre && em.postre !== "off";
-  const postreTipo = em.postreTipo ?? "inmediato";
   const structureId = data.mealStructureByGroup?.[subjectId] ?? "primero_segundo";
-
-  const showExtrasTabs = expert;
 
   const extrasSection = (key, children) => ({ key, children });
 
@@ -8674,7 +8638,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     comidaSections.push(
       extrasSection("desayuno",
         <>
-          <SectionTitle Icon={Coffee} color={mealTimeColor("Desayuno")}>Desayuno</SectionTitle>
+          <SectionTitle Icon={Coffee} color={mealTimeColor("Desayuno")}>¿Qué desayunáis normalmente?</SectionTitle>
           <div style={{ display: "flex", gap: 8 }}>
             {DESAYUNO_OPTS.map((t) => (
               <RestrictionTabCard
@@ -8696,7 +8660,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     comidaSections.push(
       extrasSection("estructura",
         <>
-          <SectionTitle Icon={Sun} color={mealTimeColor("Comida")}>Comida</SectionTitle>
+          <SectionTitle Icon={Sun} color={mealTimeColor("Comida")}>¿Cómo montáis el plato en la comida?</SectionTitle>
           <div style={{ display: "flex", gap: 8 }}>
             {MEAL_STRUCTURE_CARDS.map((t) => (
               <RestrictionTabCard
@@ -8724,9 +8688,9 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     comidaSections.push(
       extrasSection("rapidas",
         <>
-          <SectionTitle Icon={Zap} color="#d56b9a">Rápidas (≤ 15 min)</SectionTitle>
-          <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.4 }}>
-            Toca los días que quieres ligeros: ensalada, plancha, tortilla…
+          <SectionTitle Icon={Zap} color="#d56b9a">¿Qué días coméis más rápido?</SectionTitle>
+          <p style={{ fontSize: 12.5, color: "#6b7d70", margin: "0 0 12px", lineHeight: 1.4, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+            Toca los días ligeros: ensalada, plancha, tortilla…
           </p>
           {hasComida && (
             <div style={{ marginBottom: hasCena ? 14 : 0 }}>
@@ -8820,7 +8784,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     otrosSections.push(
       extrasSection("merienda",
         <>
-          <SectionTitle Icon={Apple} color="#c0504d">Merienda</SectionTitle>
+          <SectionTitle Icon={Apple} color="#c0504d">¿Qué meriendan los peques?</SectionTitle>
           <div style={{ display: "flex", gap: 8 }}>
             {MERIENDA_OPTS.map((t) => (
               <RestrictionTabCard
@@ -8842,7 +8806,7 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     otrosSections.push(
       extrasSection("postre",
         <>
-          <SectionTitle Icon={IceCream} color="#c0568f">Postre</SectionTitle>
+          <SectionTitle Icon={IceCream} color="#c0568f">¿Tomáis postre?</SectionTitle>
           {segmented(
             [
               { id: "comida", label: "Comida", Icon: Sun, tint: "#c9820a" },
@@ -8858,32 +8822,16 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
             (id) => (id === "ambas" ? em.postre === "ambas" : postreHas(id)),
             (id) => (id === "ambas" ? setExtraMeal("postre", em.postre === "ambas" ? "off" : "ambas") : togglePostre(id)),
           )}
+          {/* El nivel de esfuerzo (sin cocinar/cremas/horneados) se quitó del
+              wizard (2026-08-27): se asume que los peques eligen entre fruta,
+              yogur o la combinación — sin preguntar por dificultad. */}
           {postreOn && (
             <div style={{ marginTop: 14 }}>
-              <SectionTitle>Cómo lo preparas</SectionTitle>
-              <div style={{ display: "flex", gap: 8 }}>
-                {POSTRE_TIPOS.map((t) => (
-                  <RestrictionTabCard
-                    key={t.id}
-                    img={t.img}
-                    title={t.title}
-                    imgHeight={160}
-                    textOverlay
-                    active={postreTipo === t.id}
-                    onClick={() => setExtraMeal("postreTipo", t.id)}
-                  />
-                ))}
-        </div>
-              {postreTipo === "inmediato" && (
-                <div style={{ marginTop: 14 }}>
-                  <div style={{ height: 1, background: "#d7e6dc", margin: "0 0 14px" }} />
-                  <SectionTitle>¿Qué prefieres aquí?</SectionTitle>
-                  <PostreInmediatoPicker
-                    value={em.postreInmediato ?? "mix"}
-                    onChange={(id) => setExtraMeal("postreInmediato", id)}
-                  />
-                </div>
-              )}
+              <SectionTitle>¿Qué prefieren los peques?</SectionTitle>
+              <PostreInmediatoPicker
+                value={em.postreInmediato ?? "mix"}
+                onChange={(id) => setExtraMeal("postreInmediato", id)}
+              />
             </div>
           )}
         </>,
@@ -8891,12 +8839,18 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
     );
   }
 
-  const visibleSections = showExtrasTabs && extrasTab === "otros" ? otrosSections : comidaSections;
+  const visibleSections = part === "otros" ? otrosSections : comidaSections;
+  const title = part === "otros"
+    ? "¿Merienda y postre?"
+    : "¿Cómo organizamos las comidas?";
+  const subtitle = part === "otros"
+    ? "Toca para ajustar cada una. Si te vale, sigue."
+    : "Toca para ajustar cada comida. Si te vale, sigue.";
 
   return (
     <OnboardingShell
-      title="¿Cómo completamos el menú?"
-      subtitle="Toca para ajustar. Si te vale, sigue."
+      title={title}
+      subtitle={subtitle}
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
@@ -8904,33 +8858,17 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
       onFinish={onFinish}
       bg="#f5f9f6"
     >
-      {hasMultipleGroups && (
+      {/* En merienda/postre no hace falta elegir Todos/Adultos/Niños
+          (2026-08-28): la merienda se sobreentiende para peques y el postre
+          es igual de típico para todos, así que la pregunta de a quién
+          aplica sobra ahí — solo tiene sentido en desayuno/comida/cena. */}
+      {hasMultipleGroups && part !== "otros" && (
         <div style={{ marginBottom: 12 }}>
           <GroupScopePicker
             groups={styleableGroups}
             scope={activeGroupId ?? "all"}
             onChange={(id) => setActiveGroupId(id === "all" ? null : id)}
             members={data.members ?? []}
-          />
-        </div>
-      )}
-      {showExtrasTabs && (
-        <div style={{ display: "flex", gap: 8, marginBottom: 14 }}>
-          <RestrictionTabCard
-            img="/avatares/cards/comidas.jpg"
-            title="Comidas"
-            subtitle="desayuno, comida y cena"
-            accent={CARD_ACCENT_TEAL}
-            active={extrasTab === "comidas"}
-            onClick={() => setExtrasTab("comidas")}
-          />
-          <RestrictionTabCard
-            img="/avatares/cards/otros.jpg"
-            title="Otros"
-            subtitle="merienda y postre"
-            accent={CARD_ACCENT_TEAL}
-            active={extrasTab === "otros"}
-            onClick={() => setExtrasTab("otros")}
           />
         </div>
       )}
@@ -8949,6 +8887,14 @@ export function OnboardingMealExtras({ data, setData, onNext, onBack, onFinish, 
   );
 }
 
+export function OnboardingMealExtrasComidas(props) {
+  return <OnboardingMealExtrasShared {...props} part="comidas" />;
+}
+
+export function OnboardingMealExtrasOtros(props) {
+  return <OnboardingMealExtrasShared {...props} part="otros" />;
+}
+
 
 // ── ¿Cómo quieres usar la app? (sencillo vs avanzado) ────────────────────────
 // Primera pantalla del asistente: el modo decide QUÉ preguntas vienen después
@@ -8960,7 +8906,7 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
   return (
     <OnboardingShell
       title="¿Cómo quieres usar la app?"
-      subtitle="Elige una opción · puedes cambiarla siempre que quieras."
+      subtitle="Puedes cambiarla siempre que quieras."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
@@ -8989,40 +8935,53 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
 }
 
 
-// ── ¿Cómo aprovechamos lo de casa? ────────────────────────────────────────────
-// Pantalla dedicada (post «¿Cómo completamos el menú?») para elegir cuánto pesa
-// lo que ya hay en casa (despensa + nevera + congelador) al planificar. Las 4
-// opciones van de más a menos: solo con lo de casa → partir de ello → tenerlo en
-// cuenta → menú libre. Se mapean a data.pantryMode ("strict"/"only"/"prefer"/"off").
-export function OnboardingPantry({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
-  const current = data.pantryMode ?? "prefer";
+// ── ¿Qué tienes ya en casa? ───────────────────────────────────────────────
+// El paso previo de "cuánto pesa la despensa" (spectrum solo↔libre) se quitó
+// del asistente (2026-08-24): se sobreentiende con esta pantalla — si añades
+// algo, cuenta; si la dejas vacía, es como si no contara. `pantryMode` se
+// queda en su valor por defecto ("prefer", INITIAL_DATA) sin preguntarlo
+// aparte. Es la pantalla "En casa" de siempre (pestañas Añadir/Inventario,
+// foto/ticket/a mano), no una versión apilada/simplificada. "¿Cuándo se da
+// por gastado?" vivió aquí al lado un día (2026-08-25) como paso condicional
+// — se quitó del wizard al día siguiente: esa pregunta se entiende mejor
+// mirando la despensa real que a mitad del asistente, así que ahora es un
+// sheet contextual en Compra → En casa (ver PantryPrefsSheet en
+// components/ModeSheets.jsx), no un paso de este flujo.
+export function OnboardingPantryInventory({
+  onNext, onBack, onFinish, onReset, nextLabel,
+  user, pantryHouseholdId, priceObs, pantryEpoch, onToast, data, setData, shopping, setShopping,
+}) {
   return (
     <OnboardingShell
-      title="¿Aprovechamos lo que ya tienes en casa?"
-      subtitle="Nevera, despensa y congelador — tú eliges cuánto cuentan."
+      title="¿Qué tienes ya en casa?"
+      subtitle="Añade lo que veas en la nevera, la despensa o el congelador."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-        {DESPENSA_OPTS.map((t) => (
-          <RestrictionTabCard
-            key={t.id}
-            img={t.img}
-            title={t.label}
-            subtitle={t.subtitle}
-            pill={t.pill}
-            spectrumIdx={t.spectrumIdx}
-            accent={t.accent}
-            selectAccent={CARD_ACCENT_TEAL}
-            pillAccent={t.accent}
-            active={current === t.id}
-            onClick={() => setData((d) => ({ ...d, pantryMode: t.id, useHomeStock: t.id !== "off" }))}
-          />
-        ))}
-      </div>
+      <Suspense
+        fallback={
+          <p style={{ margin: 0, padding: "12px 2px", fontSize: 13, color: "#9ab0a1" }}>
+            Cargando…
+          </p>
+        }
+      >
+        <PantryScreen
+          embedded
+          tabs
+          user={user}
+          pantryHouseholdId={pantryHouseholdId}
+          priceObs={priceObs}
+          pantryEpoch={pantryEpoch}
+          onToast={onToast}
+          data={data}
+          setData={setData}
+          shopping={shopping}
+          setShopping={setShopping}
+        />
+      </Suspense>
     </OnboardingShell>
   );
 }
@@ -9700,7 +9659,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
   return (
     <OnboardingShell
       title="¿Quién cocina y cómo?"
-      subtitle="Tu nivel y tus herramientas"
+      subtitle="Tu nivel en la cocina y las herramientas con las que cuentas, para ajustar las recetas."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
@@ -9711,6 +9670,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
           En modo básico se asume "normal" y se oculta el selector. */}
       {data.expertMode && (
         <>
+          <SectionTitle>¿Cuál es tu nivel en la cocina?</SectionTitle>
           <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
             {levels.map((l) => {
               const sel = data.cookLevel === l.id;
@@ -9720,6 +9680,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                   key={l.id}
                   onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
                   style={{
+                    position: "relative",
                     flex: 1,
                     display: "flex",
                     flexDirection: "column",
@@ -9729,12 +9690,24 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                     borderRadius: 14,
                     cursor: "pointer",
                     background: "#fff",
-                    border: `2px solid ${sel ? "#2d5a3d" : "#e3ebe6"}`,
-                    boxShadow: sel ? "0 6px 18px rgba(45,90,61,.18)" : "0 1px 3px rgba(20,47,29,.05)",
+                    border: `2px solid ${sel ? CARD_ACCENT_TEAL : "#e3ebe6"}`,
+                    boxShadow: sel ? "0 6px 18px rgba(15,118,110,.22)" : "0 1px 3px rgba(20,47,29,.05)",
                     transition: "all .16s cubic-bezier(.4,0,.2,1)",
                     fontFamily: "inherit",
                   }}
                 >
+                  {sel && (
+                    <span
+                      style={{
+                        position: "absolute", top: 6, right: 6, zIndex: 2,
+                        width: 18, height: 18, borderRadius: 999,
+                        background: CARD_ACCENT_TEAL, border: "1.5px solid #fff",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}
+                    >
+                      <Check size={10} color="#fff" strokeWidth={3} />
+                    </span>
+                  )}
                   {/* Ilustración del nivel (contain para que se vea el personaje
                       entero) sobre un tinte neutro. */}
                   <div style={{ width: "100%", aspectRatio: "1 / 1", background: "#f4f7f5" }}>
@@ -9752,7 +9725,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
                       flexDirection: "column",
                       justifyContent: "center",
                       padding: "7px 5px 8px",
-                      background: sel ? "#2d5a3d" : "#fff",
+                      background: sel ? CARD_ACCENT_TEAL : "#fff",
                       textAlign: "center",
                     }}
                   >
@@ -9784,7 +9757,7 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
         .avoid-row:hover { background: #f3f7f4; }
       `}</style>
 
-      <AvoidSection icon={Utensils} accent="#2d5a3d" title="Herramientas disponibles">
+      <AvoidSection icon={Utensils} accent={CARD_ACCENT_TEAL} title="¿Con qué herramientas cuentas?">
         <div>
           <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
             {availableTools.map((tool) => {
@@ -10240,123 +10213,28 @@ const BUDGET_HERO = {
 };
 
 function BudgetIllustrationToggle({ hasBudget, onChange }) {
-  const mode = hasBudget ? BUDGET_HERO.capped : BUDGET_HERO.free;
-  const trackW = 88;
-  const trackH = 28;
-  const thumb = 20;
-  const pad = 4;
-  const travel = trackW - thumb - pad * 2;
-  const fade = "opacity .38s cubic-bezier(.4,0,.2,1)";
-
   return (
-    <div
-      style={{
-        width: "100%",
-        borderRadius: 16,
-        overflow: "hidden",
-        border: `1.5px solid ${mode.frame}`,
-        boxShadow: "0 8px 28px rgba(20,47,29,.08)",
-        transition: "border-color .38s cubic-bezier(.4,0,.2,1)",
-      }}
-    >
-      <div
-        style={{
-          position: "relative",
-          width: "100%",
-          aspectRatio: "1 / 1",
-          overflow: "hidden",
-        }}
-      >
-        {[BUDGET_HERO.free, BUDGET_HERO.capped].map((cfg) => (
-          <img
-            key={cfg.img}
-            src={cfg.img}
-            alt=""
-            aria-hidden={cfg !== mode}
-            style={{
-              position: "absolute",
-              inset: 0,
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              objectPosition: "center center",
-              pointerEvents: "none",
-              opacity: cfg === mode ? 1 : 0,
-              transition: fade,
-            }}
-          />
-        ))}
-
-        <div
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            top: "54%",
-            transform: "translateY(-50%)",
-            zIndex: 2,
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <button
-            type="button"
-            role="switch"
-            aria-checked={hasBudget}
-            aria-label={mode.copy}
-            onClick={() => onChange(!hasBudget)}
-            style={{
-              width: trackW,
-              height: trackH,
-              borderRadius: 999,
-              border: "none",
-              padding: pad,
-              background: mode.track,
-              cursor: "pointer",
-              fontFamily: "inherit",
-              flexShrink: 0,
-              boxShadow: "0 4px 14px rgba(20,47,29,.18), inset 0 1px 0 rgba(255,255,255,.2)",
-              transition: "background .34s cubic-bezier(.4,0,.2,1)",
-            }}
-          >
-            <span
-              style={{
-                display: "block",
-                width: thumb,
-                height: thumb,
-                borderRadius: 999,
-                background: "#fff",
-                transform: hasBudget ? `translateX(${travel}px)` : "translateX(0)",
-                transition: "transform .34s cubic-bezier(.4,0,.2,1)",
-                boxShadow: "0 2px 8px rgba(0,0,0,.16)",
-              }}
-            />
-          </button>
-        </div>
-      </div>
-
-      <div
-        style={{
-          padding: "12px 14px",
-          borderTop: `1.5px solid ${mode.frame}`,
-          background: "#fff",
-          textAlign: "center",
-          transition: "border-color .38s cubic-bezier(.4,0,.2,1)",
-        }}
-      >
-        <p
-          style={{
-            margin: 0,
-            fontSize: 14,
-            fontWeight: 800,
-            color: mode.track,
-            lineHeight: 1.35,
-            transition: "color .34s cubic-bezier(.4,0,.2,1)",
-          }}
-        >
-          {mode.copy}
-        </p>
-      </div>
+    <div style={{ display: "flex", gap: 10 }}>
+      <RestrictionTabCard
+        img={BUDGET_HERO.free.img}
+        title={BUDGET_HERO.free.copy}
+        imgHeight={128}
+        imgPosition="center 10%"
+        accent={BUDGET_HERO.free.track}
+        selectAccent={BUDGET_HERO.free.track}
+        active={!hasBudget}
+        onClick={() => onChange(false)}
+      />
+      <RestrictionTabCard
+        img={BUDGET_HERO.capped.img}
+        title={BUDGET_HERO.capped.copy}
+        imgHeight={128}
+        imgPosition="center 10%"
+        accent={BUDGET_HERO.capped.track}
+        selectAccent={BUDGET_HERO.capped.track}
+        active={hasBudget}
+        onClick={() => onChange(true)}
+      />
     </div>
   );
 }
@@ -10423,8 +10301,9 @@ function BudgetWeeklyInput({ value, min = 30, max = 200, onChange, compact = fal
       aria-label="Gasto semanal en euros"
       style={{
         ...budgetEuroInputStyle,
-        width: compact ? 44 : "100%",
+        width: compact ? 56 : "100%",
         height: compact ? 40 : 44,
+        padding: compact ? "0 4px" : budgetEuroInputStyle.padding,
         flexShrink: compact ? 0 : undefined,
         fontSize: compact ? 15 : 16,
       }}
@@ -10515,7 +10394,11 @@ function BudgetSliderEuroRow({ value, min = 30, max = 200, step = 5, onChange })
           aria-hidden
           style={{
             position: "absolute",
-            left: `${pct}%`,
+            // Interpola el CENTRO del thumb entre thumb/2 y (100% - thumb/2)
+            // en vez de left:pct% puro, para que a value=max el thumb se
+            // quede dentro del carril en lugar de sobresalir por el borde
+            // derecho y pisar el textbox de al lado.
+            left: `calc(${thumb / 2}px + (100% - ${thumb}px) * ${pct / 100})`,
             top: "50%",
             transform: "translate(-50%, -50%)",
             pointerEvents: "none",
@@ -10621,7 +10504,7 @@ function StoreCarouselPicker({ selected, onPick }) {
                 alignItems: "center",
                 justifyContent: "center",
                 minHeight: 72,
-                padding: "12px 8px 22px",
+                padding: "12px 8px",
                 borderRadius: 14,
                 border: `1.5px solid ${isOn ? "#2d5a3d" : "#e0eae3"}`,
                 background: isOn ? "#eef8f1" : "#fff",
@@ -10638,26 +10521,20 @@ function StoreCarouselPicker({ selected, onPick }) {
                 <span
                   style={{
                     position: "absolute",
-                    bottom: 6,
-                    left: "50%",
-                    transform: "translateX(-50%)",
+                    top: 6,
+                    right: 6,
                     display: "inline-flex",
                     alignItems: "center",
-                    gap: 3,
-                    fontSize: 8.5,
-                    fontWeight: 800,
-                    letterSpacing: ".35px",
-                    textTransform: "uppercase",
+                    justifyContent: "center",
+                    width: 18,
+                    height: 18,
                     color: "#6b8476",
                     background: "rgba(255,255,255,.94)",
                     border: "1px solid #dde8e1",
                     borderRadius: 999,
-                    padding: "2px 7px",
-                    whiteSpace: "nowrap",
                   }}
                 >
-                  <Lock size={9} strokeWidth={2.5} />
-                  Pronto
+                  <Lock size={10} strokeWidth={2.5} />
                 </span>
               )}
             </button>
@@ -10801,7 +10678,6 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
   const hasBudget = Boolean(data.hasBudget);
   const primaryStore = data.supermarkets[0] ?? "";
   const mercadonaOn = hasBudget && primaryStore === "Mercadona";
-  const totalBudget = hasBudget ? (Number(data.budget) || 0) * weekCount : null;
 
   const setBudgetMode = (capped) => {
     setData((d) => ({
@@ -10818,13 +10694,13 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
 
   return (
     <OnboardingShell
-      title="Tu compra"
+      title="¿Cuánto quieres gastar en la compra?"
       subtitle={
         hasBudget
           ? weekCount > 1
-            ? `${weekCount} semanas — tope y súper por semana de compra`
-            : "¿Cuánto quieres gastar y dónde compras?"
-          : "Activa el toggle si quieres fijar un tope semanal"
+            ? `${weekCount} semanas: tope de gasto y súper por semana.`
+            : "Fija cuánto gastar y en qué súper."
+          : "Actívalo para fijar tope de gasto y súper."
       }
       onBack={onBack}
       onNext={onNext}
@@ -10853,11 +10729,6 @@ export function OnboardingBudget({ data, setData, onBack, onNext, onFinish, onRe
             step={5}
             onChange={(v) => setData((d) => ({ ...d, budget: v }))}
           />
-          {weekCount > 1 && totalBudget != null && (
-            <p style={{ margin: "8px 0 0", fontSize: 10.5, color: "#5f7568", lineHeight: 1.4, textAlign: "center" }}>
-              ~{totalBudget} € total ({data.budget} € × {weekCount})
-            </p>
-          )}
         </div>
 
         <div style={{ marginTop: 20 }}>

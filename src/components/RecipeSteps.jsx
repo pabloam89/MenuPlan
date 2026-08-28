@@ -7,7 +7,7 @@
 
 import { isQualitativeUnit } from "../lib/ingredientCategories.js";
 import { kitchenHint } from "../lib/kitchenUnits.js";
-import { buildStepDisplay, formatQty, formatStepMinutes } from "../lib/recipeSteps.js";
+import { buildStepDisplay, formatQty, formatStepMinutes, STEP_PART_META } from "../lib/recipeSteps.js";
 
 function findIngredientForMarker(marker, ingredients) {
   if (!ingredients?.length) return null;
@@ -167,11 +167,31 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
           const { step: s, label, meta, isParallel } = d;
           const mins = formatStepMinutes(s.minutes);
           const isLast = di === arr.length - 1;
+          // Cabecera de sección cuando `part` cambia respecto al paso anterior
+          // (eje aparte de `kind`): agrupa visualmente qué pasos son de cada
+          // componente del plato (principal/guarnición/salsa/combinado) para
+          // poder cocinarlos por separado. Sin `part` no cambia nada de hoy.
+          const partMeta = s.part ? STEP_PART_META[s.part] : null;
+          const prevPart = arr[di - 1]?.step?.part ?? null;
+          const showPartHeader = partMeta && s.part !== prevPart;
           return (
-            <li
-              key={`${d.index}-${(s.text ?? "").slice(0, 24)}`}
-              style={{ display: "flex", gap: 11, marginBottom: isLast ? 0 : 12 }}
-            >
+            <li key={`${d.index}-${(s.text ?? "").slice(0, 24)}`}>
+              {showPartHeader && (
+                <div
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    margin: di === 0 ? "0 0 10px" : "16px 0 10px",
+                  }}
+                >
+                  <span style={{ fontSize: 12, fontWeight: 900, color: partMeta.color, whiteSpace: "nowrap" }}>
+                    {partMeta.label}
+                  </span>
+                  <div style={{ flex: 1, borderTop: `1.5px dashed ${partMeta.color}44` }} />
+                </div>
+              )}
+              <div
+                style={{ display: "flex", gap: 11, marginBottom: isLast ? 0 : 12 }}
+              >
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
                 <span style={{
                   minWidth: 24, height: 24, padding: "0 4px", borderRadius: 999, flexShrink: 0,
@@ -195,6 +215,7 @@ export function RecipeStepList({ rich = null, plain = [], ingredients = null, ki
                 <div style={{ fontSize: 13, lineHeight: 1.55, color: "#48564e" }}>
                   {renderStepText(s.text, ingredients, kitchenTools)}
                 </div>
+              </div>
               </div>
             </li>
           );

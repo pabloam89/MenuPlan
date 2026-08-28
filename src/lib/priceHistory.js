@@ -1,5 +1,6 @@
 import { RECIPES_BY_ID } from "../data/recipes.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
+import salsas from "../data/recipes/salsas.json";
 import { normalizeName, guessShoppingAisle } from "./ingredientCategories.js";
 
 // ── Canonical ingredient dictionary ──────────────────────────────────────
@@ -246,6 +247,14 @@ export function ingredientDictionary() {
   for (const recipe of recipeCatalog) {
     collectInto(map, recipe?.ingredients);
     collectAliasesInto(map, recipe);
+  }
+  // salsas.json vive fuera de recipeCatalog (igual que guarniciones.json —
+  // ver recipeCatalog.js), así que sin este bucle sus ingredientes (tahini,
+  // harissa, alcaparras...) y sus productAliases (Mayonesa, Alioli, Pesto...)
+  // nunca aparecerían al buscar en despensa/compra ni al matchear un tique.
+  for (const salsa of salsas) {
+    collectInto(map, salsa?.ingredients);
+    collectAliasesInto(map, salsa);
   }
   for (const id of runtimeIds) {
     collectInto(map, RECIPES_BY_ID[id]?.ingredients);

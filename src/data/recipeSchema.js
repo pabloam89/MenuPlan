@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { STEP_KINDS } from "../lib/recipeSteps.js";
+import { STEP_KINDS, STEP_PARTS } from "../lib/recipeSteps.js";
 
 // Canonical taxonomy for the recipe catalog. Adding a new category/protein/etc
 // requires updating this file — that's the point: it forces a conscious
@@ -14,19 +14,60 @@ const CATEGORIES = [
   // utils/filterRecipes.js, like "bebes"). They power the optional
   // desayuno/merienda/postre pool that unlocks fruit/yogur/kéfir/pan ingredients.
   "desayunos", "meriendas", "postres",
+  // "salsas" es igual de off-menu: nunca ocupa un slot de comida/cena por sí
+  // misma (mealRole "salsa", ver MEAL_ROLES), vive en su propio catálogo
+  // (data/recipes/salsas.json, mismo patrón que guarniciones.json) y se
+  // engancha a un plato principal vía `sauceId`/emparejamiento por `sauceCompat`.
+  "salsas",
 ];
+
+// "cenas_rapidas" y "platos_unicos" están DEPRECADAS como categoría: mezclaban
+// un eje distinto (esfuerzo/estructura) con el de ingrediente, y "plato único"
+// ya lo captura mealRole. Se sustituyen por el flag `montaje` y por mealRole
+// respectivamente — ver isMontaje() abajo.
+//
+// NO se eliminan del enum, ni aquí ni en Postgres: `recipe_category` es un enum
+// nativo compartido por `recipes` y `user_recipes` (supabase/migrations/
+// 0001_recipe_catalog.sql), quitar un valor obliga a reconstruir el tipo y hay
+// filas de usuarios reales que ya lo usan (el checkbox "cena rápida" de
+// RecipeClassificationFields.jsx las escribía). Se dejan de usar en recetas
+// nuevas; las existentes siguen validando y funcionando.
+const DEPRECATED_CATEGORIES = ["cenas_rapidas", "platos_unicos"];
 
 const MAIN_PROTEINS = [
   "cerdo", "huevo", "legumbre", "marisco", "none", "pavo",
   "pescado_azul", "pescado_blanco", "pollo", "ternera",
 ];
 
-const TYPES = ["completo", "principal", "guarnicion"];
+// Eje de composición NO proteica y NO feculenta: cubre lo que hoy no se captura
+// en ningún sitio. Deliberadamente sin solape semántico con MAIN_PROTEINS
+// (proteína dominante) ni con `mainBase` (base de carbohidrato: arroz/pasta/
+// patatas/quinoa/cuscus/pan/avena) — un valor que ya vive en uno de esos dos
+// ejes no se repite aquí, para que "legumbre" o "arroz" signifiquen siempre lo
+// mismo y en un solo campo. Es informativo/filtrable: NINGUNA regla de
+// no-repetición depende de él (esas siguen siendo mainProtein + mainBase).
+const MAIN_INGREDIENTS = [
+  "verdura", "lacteo", "seta", "fruta", "frutos_secos", "encurtido",
+];
+
+// Con qué tipo de plato principal encaja una salsa. Curado a mano, no
+// derivado — es gusto, no matemática (ver Contexto en model/recipe-data-
+// model-refactor.md §4). Deliberadamente más grueso que MAIN_PROTEINS: no
+// necesita distinguir pollo de pavo, solo "carne blanca" de "carne roja".
+const SAUCE_COMPAT_TAGS = [
+  "carne_roja", "carne_blanca", "pescado_blanco", "pescado_azul", "marisco",
+  "huevos", "verduras", "ensaladas", "arroz_blanco",
+];
+
+const TYPES = ["completo", "principal", "guarnicion", "salsa"];
 
 const MEAL_ROLES = [
   "cena", "guarnicion", "plato_unico", "primero", "segundo",
   // Off-menu roles for the optional light pool (see CATEGORIES note).
   "desayuno", "merienda", "postre",
+  // Igual que "guarnicion": una salsa nunca es el hueco de un menú por sí
+  // misma, solo marca su propio catálogo (ver TYPES/CATEGORIES "salsa"/"salsas").
+  "salsa",
 ];
 
 const DIFFICULTIES = ["elaborada", "facil", "normal"];
@@ -78,6 +119,11 @@ export const StepRichSchema = z.object({
   kind: z.enum(STEP_KINDS).optional(),
   // Índice 0-based del paso al que va en paralelo (solo kind === "paralelo").
   during: z.number().int().nonnegative().optional(),
+  // Eje ORTOGONAL a `kind` (que es de tiempo/atención): qué componente del
+  // plato trabaja el paso, para poder cocinar cada parte por separado cuando
+  // una sola receta ya incluye varias (p. ej. arroz + su salsa). Opcional:
+  // la mayoría de recetas de una sola técnica no lo llevan.
+  part: z.enum(STEP_PARTS).optional(),
 });
 
 export const RecipeSchema = z
@@ -93,6 +139,48 @@ export const RecipeSchema = z
     // same-day protein-variety rules must see (validateMenu.js proteinGroupsOf).
     extraProteins: z.array(z.enum(MAIN_PROTEINS)).optional(),
     mainBase: z.string().optional(),
+    // Composición no proteica/no feculenta — ver MAIN_INGREDIENTS. Aditivo:
+    // no sustituye a mainProtein ni a mainBase, que siguen siendo el motor de
+    // las reglas de variedad en utils/validateMenu.js.
+    mainIngredients: z.array(z.enum(MAIN_INGREDIENTS)).optional(),
+    // ¿Entra por los ojos? Eje de CURACIÓN, ortogonal a difficulty/time: un
+    // revuelto bien resuelto puede ser tan apetecible como un plato de 3h. Se
+    // marca a mano (no se deriva) y solo sesga qué se propone/destaca — ninguna
+    // regla del motor depende de él.
+    apetecible: z.boolean().optional(),
+    // "Cena rápida" de verdad: se monta, no se cocina (sándwich, tostas, tabla,
+    // ensalada de asamblaje). Sustituye a category "cenas_rapidas".
+    //
+    // Se marca a MANO y no se deriva de time+difficulty a propósito: medido
+    // contra el catálogo, las 16 recetas curadas como cenas_rapidas caen en
+    // 5-25 min, pero otras 57 recetas cumplen ese mismo umbral (fácil + rol
+    // cena + ≤20 min) sin tener el mismo carácter (Escalope de pollo, Ensalada
+    // César, Hamburguesas caseras...). Ni requiredAppliance ni el número de
+    // ingredientes separan los dos grupos — la cualidad no vive hoy en ningún
+    // campo estructurado, así que se declara.
+    montaje: z.boolean().optional(),
+    // ¿Puede además hacer de guarnición de otro plato? Capacidad independiente
+    // del rol: una ensalada o un arroz sencillo acompañan un filete un día y
+    // son la cena entera otro. Solo mete el plato en el pool de
+    // utils/pairGarnishes.js; su mealRole sigue describiendo los huecos de menú
+    // que acepta y no necesita incluir "guarnicion".
+    canBeGarnish: z.boolean().optional(),
+    // Salsa/emulsión emparejada (catálogo aparte, mismo patrón que guarniciones).
+    // Solo para salsas que se preparan APARTE y se añaden al final; una técnica
+    // de cocinado integral (al ajillo, en salsa verde, guisos) se queda dentro
+    // de ingredients/steps de la propia receta.
+    sauceId: z.string().optional(),
+    // Solo en recetas type "salsa": con qué tipo de plato principal encaja.
+    // Ver SAUCE_COMPAT_TAGS arriba.
+    sauceCompat: z.array(z.enum(SAUCE_COMPAT_TAGS)).optional(),
+    // ¿Puede recibir una salsa de acompañamiento (data/recipes/salsas.json)?
+    // Curado a mano, NUNCA derivado de category/mainProtein: la mayoría de
+    // carnes/pescados/ensaladas del catálogo ya llevan su sabor integrado
+    // (Merluza en salsa verde, Ensalada César) y añadir otra salsa encima
+    // sería redundante o directamente raro. Solo se marca en las recetas
+    // verificadas una a una como "a la plancha/horno sin aderezo propio" o
+    // "ensalada simple" — ver model/recipe-data-model-refactor.md §4.
+    canReceiveSauce: z.boolean().optional(),
     mealRole: z.array(z.enum(MEAL_ROLES)).min(1),
     type: z.enum(TYPES),
     // Links a variant (e.g. "Muslos de pollo al horno") to the base dish it
@@ -101,6 +189,13 @@ export const RecipeSchema = z
     baseDishId: z.string().optional(),
     requiredAppliance: z.string().optional(),
     time: z.number().positive(),
+    // `time` se cocina para `baseServings` comensales. Algunas recetas
+    // escalan de verdad con el nº de comensales (pelar/cortar más patatas
+    // para 6 que para 3); otras no (un horno tarda igual para 2 que para 6).
+    // Opcional y SIN CURAR hoy en el catálogo — indefinido se trata como
+    // false (no escala), así que nada cambia de comportamiento hasta que se
+    // marque receta a receta. Ver effectiveRecipeTime() más abajo.
+    scalesWithEaters: z.boolean().optional(),
     difficulty: z.enum(DIFFICULTIES),
     season: z.enum(SEASONS),
     kcal: z.number().nonnegative(),
@@ -174,6 +269,39 @@ export const RecipeSchema = z
       });
     }
 
+    if (type === "salsa") {
+      if (mealRole.length !== 1 || mealRole[0] !== "salsa") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `"${id}": type "salsa" requiere mealRole === ["salsa"], recibido [${mealRole.join(", ")}]`,
+        });
+      }
+    } else if (mealRole.includes("salsa")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": mealRole "salsa" solo es válido con type "salsa"`,
+      });
+    }
+
+    // sauceCompat solo tiene sentido en la propia receta de salsa; en un plato
+    // principal el campo relevante es sauceId (qué salsa lleva), no con qué
+    // encaja — mismo error de confusión que canBeGarnish en type "guarnicion".
+    if (recipe.sauceCompat && type !== "salsa") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": sauceCompat solo es válido en type "salsa"`,
+      });
+    }
+
+    // canReceiveSauce en una salsa o una guarnición es dato muerto: el flag
+    // habilita a un plato principal a recibir salsa, no al revés.
+    if (recipe.canReceiveSauce && (type === "salsa" || type === "guarnicion")) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": canReceiveSauce es redundante en type "${type}"`,
+      });
+    }
+
     if (recipe.baseDishId === id) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -190,7 +318,54 @@ export const RecipeSchema = z
         message: `"${id}": thawSteps requiere freezable true`,
       });
     }
+
+    // Un type "guarnicion" YA está en el pool de guarniciones; marcarlo además
+    // con canBeGarnish es dato muerto que sugiere una confusión sobre qué hace
+    // el flag (habilitar a un plato principal, no redundar en una guarnición).
+    if (recipe.canBeGarnish && type === "guarnicion") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `"${id}": canBeGarnish es redundante en type "guarnicion"`,
+      });
+    }
   });
+
+/**
+ * ¿Es una "cena rápida" (plato de montaje, no de cocinado)?
+ *
+ * Fuente única de verdad del predicado, compartida por el planificador
+ * (lib/aiPlanner.js), la validación determinista (utils/validateMenu.js) y el
+ * formulario de recetas de usuario — antes cada sitio comparaba
+ * `category === "cenas_rapidas"` por su cuenta.
+ *
+ * El fallback a la categoría deprecada NO es temporal: las recetas de usuario
+ * ya guardadas en Supabase con `category: "cenas_rapidas"` nunca se migran (ver
+ * DEPRECATED_CATEGORIES), así que siguen teniendo que resolverse como cena
+ * rápida indefinidamente.
+ */
+export function isMontaje(recipe) {
+  if (!recipe) return false;
+  if (typeof recipe.montaje === "boolean") return recipe.montaje;
+  return recipe.category === "cenas_rapidas";
+}
+
+/**
+ * `recipe.time` tal cual, salvo que la receta esté marcada `scalesWithEaters`
+ * — entonces se infla un 12% por cada comensal por encima de `baseServings`
+ * (nunca se reduce por debajo de la base: menos comensales no acelera la
+ * receta). Sin curar todavía en el catálogo, así que hoy devuelve siempre
+ * `recipe.time` sin tocar. Fuente única de verdad para el umbral de "comida/
+ * cena rápida" (ver aiPlanner.js recipeMatchesPreferType).
+ */
+export function effectiveRecipeTime(recipe, eaters) {
+  if (!recipe) return 0;
+  if (!recipe.scalesWithEaters || !eaters) return recipe.time;
+  const base = recipe.baseServings || 2;
+  const extra = Math.max(0, eaters - base);
+  return recipe.time * (1 + 0.12 * extra);
+}
+
+export { DEPRECATED_CATEGORIES, MAIN_INGREDIENTS, SAUCE_COMPAT_TAGS };
 
 /**
  * Validates every recipe in `recipes` against RecipeSchema.

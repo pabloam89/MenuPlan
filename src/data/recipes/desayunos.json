@@ -661,5 +661,1711 @@
     "saturated_fat_g": 2,
     "sodium_mg": 85,
     "freezable": false
+  },
+  {
+    "id": "desayunos_009",
+    "name": "Batido de plátano, avena y canela",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mainBase": "avena",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 323,
+    "protein_g": 9.5,
+    "carbs_g": 56,
+    "fat_g": 7.5,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Plátano",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Leche",
+        "amount": 350,
+        "unit": "ml"
+      },
+      {
+        "name": "Copos de avena",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Canela molida",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar plátano y cortar en trozos.",
+      "Añadir los trozos de plátano, leche, copos de avena y canela molida al vaso de la batidora.",
+      "Triturar a máxima potencia hasta obtener una mezcla cremosa y sin grumos.",
+      "Añadir miel y triturar unos segundos más hasta que quede integrada.",
+      "Repartir el batido en 2 vasos y servir."
+    ],
+    "description": "Batido cremoso y espeso de plátano, avena y canela, listo para tomar con cuchara.",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Plátano}} y cortar en trozos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir los trozos de plátano, {{Leche}}, {{Copos de avena}} y {{Canela molida}} al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar a máxima potencia hasta obtener una mezcla cremosa y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel}} y triturar unos segundos más hasta que quede integrada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el batido en 2 vasos y servir.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 28,
+    "saturated_fat_g": 2,
+    "sodium_mg": 55,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_010",
+    "name": "Smoothie verde de espinacas, piña y jengibre",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 130,
+    "protein_g": 2,
+    "carbs_g": 32,
+    "fat_g": 1,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Espinacas frescas",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Piña natural",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Jengibre fresco",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 150,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Lavar espinacas frescas bajo el grifo y escurrir bien.",
+      "Pelar piña natural y cortar en trozos.",
+      "Pelar plátano y cortar en trozos.",
+      "Pelar jengibre fresco y rallar fino.",
+      "Añadir las espinacas, la piña, el plátano, el jengibre y agua al vaso de la batidora.",
+      "Triturar a máxima potencia hasta que el smoothie quede fino y sin grumos.",
+      "Servir en vasos altos de inmediato."
+    ],
+    "description": "Smoothie verde intenso de espinacas, piña y jengibre, sorprendentemente dulce a pesar del color.",
+    "stepsRich": [
+      {
+        "text": "Lavar {{Espinacas frescas}} bajo el grifo y escurrir bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Piña natural}} y cortar en trozos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Plátano}} y cortar en trozos.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Pelar {{Jengibre fresco}} y rallar fino.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir las espinacas, la piña, el plátano, el jengibre y {{Agua}} al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar a máxima potencia hasta que el smoothie quede fino y sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir en vasos altos de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 26,
+    "saturated_fat_g": 0,
+    "sodium_mg": 35,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_011",
+    "name": "Smoothie de frutos rojos y yogur",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 172,
+    "protein_g": 6,
+    "carbs_g": 24,
+    "fat_g": 5,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Frutos rojos congelados",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Miel",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Añadir frutos rojos congelados, yogur natural y leche al vaso de la batidora.",
+      "Triturar a máxima potencia hasta obtener una mezcla lisa y homogénea.",
+      "Añadir miel y triturar unos segundos más hasta que quede integrada.",
+      "Repartir el smoothie en 2 vasos y servir de inmediato."
+    ],
+    "description": "Smoothie rosa vivo de frutos rojos y yogur, cremoso y con un punto ácido.",
+    "stepsRich": [
+      {
+        "text": "Añadir {{Frutos rojos congelados}}, {{Yogur natural}} y {{Leche}} al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar a máxima potencia hasta obtener una mezcla lisa y homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel}} y triturar unos segundos más hasta que quede integrada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el smoothie en 2 vasos y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 18,
+    "saturated_fat_g": 2,
+    "sodium_mg": 65,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_012",
+    "name": "Batido de cacao, plátano y avellanas",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 350,
+    "protein_g": 11,
+    "carbs_g": 43,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Plátano",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Leche",
+        "amount": 350,
+        "unit": "ml"
+      },
+      {
+        "name": "Cacao en polvo",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Avellanas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar plátano y cortar en trozos grandes.",
+      "Añadir el plátano troceado, leche, cacao en polvo y avellanas al vaso de la batidora.",
+      "Triturar a máxima potencia hasta que las avellanas estén bien integradas y la mezcla esté cremosa.",
+      "Añadir miel y triturar unos segundos hasta que quede integrada.",
+      "Repartir en 2 vasos y servir bien frío."
+    ],
+    "description": "Batido espeso y achocolatado de cacao, plátano y avellanas, sabe a capricho.",
+    "stepsRich": [
+      {
+        "text": "Pelar {{Plátano}} y cortar en trozos grandes.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir el plátano troceado, {{Leche}}, {{Cacao en polvo}} y {{Avellanas}} al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Triturar a máxima potencia hasta que las avellanas estén bien integradas y la mezcla esté cremosa.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel|chorrito}} y triturar unos segundos hasta que quede integrada.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en 2 vasos y servir bien frío.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 28,
+    "saturated_fat_g": 3,
+    "sodium_mg": 55,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_013",
+    "name": "Smoothie bowl de mango y coco",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 8,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 285,
+    "protein_g": 3,
+    "carbs_g": 39,
+    "fat_g": 15,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Mango congelado",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Plátano congelado",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Leche de coco",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Coco rallado",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de lima",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Añadir mango congelado, plátano congelado, leche de coco y zumo de lima al vaso de la batidora.",
+      "Triturar a velocidad alta hasta obtener una textura espesa tipo helado, parando para remover si la batidora se atasca.",
+      "Repartir la mezcla en 2 boles y alisar la superficie con el dorso de una cuchara.",
+      "Repartir coco rallado por encima y servir de inmediato."
+    ],
+    "description": "Smoothie bowl de mango y coco de color naranja intenso, con virutas de coco por encima.",
+    "stepsRich": [
+      {
+        "text": "Añadir {{Mango congelado}}, {{Plátano congelado}}, {{Leche de coco}} y {{Zumo de lima}} al vaso de la batidora.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar a velocidad alta hasta obtener una textura espesa tipo helado, parando para remover si la batidora se atasca.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la mezcla en 2 boles y alisar la superficie con el dorso de una cuchara.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Repartir {{Coco rallado}} por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 28,
+    "saturated_fat_g": 12,
+    "sodium_mg": 15,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_014",
+    "name": "Bowl de yogur griego con granola y frutos rojos",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 338,
+    "protein_g": 17,
+    "carbs_g": 37,
+    "fat_g": 13,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Yogur griego",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Granola",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Frutos rojos",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Repartir yogur griego en 2 boles.",
+      "Disponer frutos rojos sobre el yogur.",
+      "Repartir granola por encima de los frutos rojos.",
+      "Terminar con miel sobre cada bol y servir enseguida."
+    ],
+    "description": "Bowl de yogur griego en capas bien visibles, con granola crujiente y frutos rojos frescos.",
+    "stepsRich": [
+      {
+        "text": "Repartir {{Yogur griego}} en 2 boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Disponer {{Frutos rojos}} sobre el yogur.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Repartir {{Granola}} por encima de los frutos rojos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Terminar con {{Miel|chorrito}} sobre cada bol y servir enseguida.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 18,
+    "saturated_fat_g": 4,
+    "sodium_mg": 55,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_015",
+    "name": "Bowl de avena de un día para otro con manzana y canela",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mainBase": "avena",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 344,
+    "protein_g": 12,
+    "carbs_g": 52,
+    "fat_g": 10,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Copos de avena",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Manzana",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Canela molida",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Rallar manzana con piel, desechando el corazón.",
+      "Mezclar en un bol copos de avena, leche, yogur natural, la manzana rallada y canela molida.",
+      "Añadir miel y remover hasta que quede todo integrado.",
+      "Repartir la mezcla en 2 tarros o boles con tapa.",
+      "Tapar y dejar reposar en la nevera un mínimo de 6 horas o toda la noche.",
+      "Remover el contenido de cada tarro antes de servir."
+    ],
+    "description": "Avena remojada de un día para otro con manzana y canela, lista al abrir la nevera.",
+    "stepsRich": [
+      {
+        "text": "Rallar {{Manzana}} con piel, desechando el corazón.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Mezclar en un bol {{Copos de avena}}, {{Leche}}, {{Yogur natural}}, la manzana rallada y {{Canela molida|pizca}}.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel|chorrito}} y remover hasta que quede todo integrado.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la mezcla en 2 tarros o boles con tapa.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Tapar y dejar reposar en la nevera un mínimo de 6 horas o toda la noche.",
+        "minutes": 360,
+        "kind": "espera"
+      },
+      {
+        "text": "Remover el contenido de cada tarro antes de servir.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 22,
+    "saturated_fat_g": 3,
+    "sodium_mg": 85,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_016",
+    "name": "Porridge de avena con plátano y miel",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mainBase": "avena",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 350,
+    "protein_g": 11,
+    "carbs_g": 56,
+    "fat_g": 9,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa",
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Copos de avena",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 350,
+        "unit": "ml"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Miel",
+        "amount": 25,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Laminar plátano en rodajas y reservar.",
+      "Verter leche y copos de avena en un cazo y calentar a fuego suave sin dejar de remover.",
+      "Cocer a fuego suave sin dejar de remover hasta que la mezcla espese y tenga textura cremosa.",
+      "Repartir el porridge caliente en 2 boles.",
+      "Disponer las rodajas de plátano por encima del porridge y terminar con un hilo de miel."
+    ],
+    "description": "Porridge de avena cremoso y caliente con plátano y un hilo de miel por encima.",
+    "stepsRich": [
+      {
+        "text": "Laminar {{Plátano}} en rodajas y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Verter {{Leche}} y {{Copos de avena}} en un cazo y calentar a fuego suave sin dejar de remover.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer a fuego suave sin dejar de remover hasta que la mezcla espese y tenga textura cremosa.",
+        "minutes": 5,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir el porridge caliente en 2 boles.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Disponer las rodajas de plátano por encima del porridge y terminar con un hilo de {{Miel}}.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 4,
+    "sugar_g": 22,
+    "saturated_fat_g": 3,
+    "sodium_mg": 60,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_017",
+    "name": "Bowl de açaí con fruta y coco",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 8,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 236,
+    "protein_g": 3,
+    "carbs_g": 29,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Pulpa de açaí congelada",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Plátano congelado",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Frutos rojos",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Coco rallado",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Granola",
+        "amount": 20,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Trocear pulpa de açaí congelada en trozos pequeños para facilitar el triturado.",
+      "Trocear plátano congelado en rodajas gruesas.",
+      "Triturar la pulpa de açaí y el plátano en la batidora hasta obtener una textura espesa tipo helado.",
+      "Añadir un chorrito de agua si la mezcla no tritura bien, y continuar hasta que quede homogénea.",
+      "Repartir la mezcla en 2 boles y alisar la superficie con una cuchara.",
+      "Disponer frutos rojos, granola y coco rallado por encima formando montoncitos.",
+      "Servir de inmediato antes de que la mezcla pierda su textura helada."
+    ],
+    "description": "Bowl de açaí morado intenso, coronado con fruta fresca y coco.",
+    "stepsRich": [
+      {
+        "text": "Trocear {{Pulpa de açaí congelada}} en trozos pequeños para facilitar el triturado.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Trocear {{Plátano congelado}} en rodajas gruesas.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Triturar la pulpa de açaí y el plátano en la batidora hasta obtener una textura espesa tipo helado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir un chorrito de agua si la mezcla no tritura bien, y continuar hasta que quede homogénea.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir la mezcla en 2 boles y alisar la superficie con una cuchara.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Disponer {{Frutos rojos}}, {{Granola}} y {{Coco rallado}} por encima formando montoncitos.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Servir de inmediato antes de que la mezcla pierda su textura helada.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 5,
+    "sugar_g": 14,
+    "saturated_fat_g": 6,
+    "sodium_mg": 20,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_018",
+    "name": "Tostada francesa con canela y sirope de arce",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mainBase": "pan",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 395,
+    "protein_g": 15,
+    "carbs_g": 52,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Leche",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Canela molida",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sirope de arce",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Batir huevo con leche y canela molida en un plato hondo hasta que la mezcla esté homogénea.",
+      "Cortar pan en rebanadas de unos 2 cm de grosor.",
+      "Remojar cada rebanada de pan en la mezcla de huevo por ambos lados hasta que empape bien.",
+      "Calentar sartén a fuego medio y fundir mantequilla hasta que espume.",
+      "Dorar las rebanadas de pan en la sartén durante 2 min por el primer lado hasta que estén doradas.",
+      "Dar la vuelta a las rebanadas y dorar 2 min por el otro lado hasta que estén doradas y esponjosas.",
+      "Servir las rebanadas de inmediato con sirope de arce por encima."
+    ],
+    "description": "Tostada francesa dorada por fuera y esponjosa por dentro, con canela y sirope de arce, el capricho de domingo.",
+    "stepsRich": [
+      {
+        "text": "Batir {{Huevo}} con {{Leche}} y {{Canela molida|pizca}} en un plato hondo hasta que la mezcla esté homogénea.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Cortar {{Pan}} en rebanadas de unos 2 cm de grosor.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Remojar cada rebanada de pan en la mezcla de huevo por ambos lados hasta que empape bien.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio y fundir {{Mantequilla}} hasta que espume.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Dorar las rebanadas de pan en la sartén durante 2 min por el primer lado hasta que estén doradas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a las rebanadas y dorar 2 min por el otro lado hasta que estén doradas y esponjosas.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir las rebanadas de inmediato con {{Sirope de arce}} por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 2,
+    "sugar_g": 14,
+    "saturated_fat_g": 5,
+    "sodium_mg": 280,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_019",
+    "name": "Tostada de plátano, mantequilla de cacahuete y miel",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mainBase": "pan",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 6,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 408,
+    "protein_g": 13,
+    "carbs_g": 63,
+    "fat_g": 13,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "cacahuetes"
+    ],
+    "ingredients": [
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla de cacahuete",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Plátano",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Miel",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Tostar pan en la tostadora hasta que esté dorado y crujiente.",
+      "Laminar plátano en rodajas finas mientras el pan se tuesta.",
+      "Untar mantequilla de cacahuete sobre las tostadas calientes.",
+      "Disponer las rodajas de plátano sobre la mantequilla de cacahuete.",
+      "Terminar con un hilo de miel por encima y servir de inmediato."
+    ],
+    "description": "Tostada cremosa y dulce de mantequilla de cacahuete, con plátano en rodajas y miel por encima.",
+    "stepsRich": [
+      {
+        "text": "Tostar {{Pan}} en la tostadora hasta que esté dorado y crujiente.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Laminar {{Plátano}} en rodajas finas mientras el pan se tuesta.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 0
+      },
+      {
+        "text": "Untar {{Mantequilla de cacahuete}} sobre las tostadas calientes.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer las rodajas de plátano sobre la mantequilla de cacahuete.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Terminar con un hilo de {{Miel}} por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 22,
+    "saturated_fat_g": 3,
+    "sodium_mg": 210,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_020",
+    "name": "Pan tumaca clásico con jamón",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mainBase": "pan",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 10,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 396,
+    "protein_g": 20,
+    "carbs_g": 43,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten"
+    ],
+    "ingredients": [
+      {
+        "name": "Pan rústico",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate maduro",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Jamón serrano",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Cortar tomate maduro por la mitad.",
+      "Tostar pan rústico en una tostadora o bajo el grill hasta que esté dorado y crujiente.",
+      "Frotar ajo cortado por la mitad sobre el pan aún caliente.",
+      "Frotar el tomate maduro sobre el pan hasta que quede impregnado de pulpa; desechar la piel.",
+      "Regar con aceite de oliva y añadir sal.",
+      "Disponer jamón serrano por encima y servir de inmediato."
+    ],
+    "description": "Pan tostado frotado con tomate y aceite, coronado con jamón serrano, el clásico de siempre.",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "stepsRich": [
+      {
+        "text": "Cortar {{Tomate maduro}} por la mitad.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Tostar {{Pan rústico}} en una tostadora o bajo el grill hasta que esté dorado y crujiente.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Frotar {{Ajo}} cortado por la mitad sobre el pan aún caliente.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Frotar el tomate maduro sobre el pan hasta que quede impregnado de pulpa; desechar la piel.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Regar con {{Aceite de oliva|chorrito}} y añadir {{Sal|gusto}}.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Disponer {{Jamón serrano}} por encima y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 4,
+    "saturated_fat_g": 4,
+    "sodium_mg": 980,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_021",
+    "name": "Tortitas americanas con sirope y frutos rojos",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 564,
+    "protein_g": 18,
+    "carbs_g": 94,
+    "fat_g": 17,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Harina",
+        "amount": 140,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Leche",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Sirope de arce",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Frutos rojos",
+        "amount": 100,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Mezclar harina, levadura química y azúcar en un bol hasta que estén bien integrados.",
+      "Batir huevo con leche en otro bol hasta obtener una mezcla homogénea.",
+      "Añadir los líquidos a los ingredientes secos y mezclar con varillas hasta que no queden grumos grandes.",
+      "Calentar sartén a fuego medio y fundir mantequilla hasta que cubra el fondo.",
+      "Verter un cucharón de masa en la sartén y cocinar 2 min, hasta que aparezcan burbujas en la superficie.",
+      "Dar la vuelta a la tortita y cocinar 2 min más, hasta que esté dorada por ese lado.",
+      "Repetir los 2 pasos anteriores con el resto de la masa, engrasando la sartén si es necesario.",
+      "Apilar las tortitas en el plato, verter sirope de arce por encima y distribuir frutos rojos."
+    ],
+    "description": "Torre de tortitas americanas doradas y esponjosas, con sirope cayendo por los lados y frutos rojos.",
+    "stepsRich": [
+      {
+        "text": "Mezclar {{Harina}}, {{Levadura química}} y {{Azúcar}} en un bol hasta que estén bien integrados.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} con {{Leche}} en otro bol hasta obtener una mezcla homogénea.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir los líquidos a los ingredientes secos y mezclar con varillas hasta que no queden grumos grandes.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego medio y fundir {{Mantequilla}} hasta que cubra el fondo.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter un cucharón de masa en la sartén y cocinar 2 min, hasta que aparezcan burbujas en la superficie.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Dar la vuelta a la tortita y cocinar 2 min más, hasta que esté dorada por ese lado.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Repetir los 2 pasos anteriores con el resto de la masa, engrasando la sartén si es necesario.",
+        "minutes": 6,
+        "kind": "activo"
+      },
+      {
+        "text": "Apilar las tortitas en el plato, verter {{Sirope de arce}} por encima y distribuir {{Frutos rojos}}.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 22,
+    "saturated_fat_g": 6,
+    "sodium_mg": 310,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_022",
+    "name": "Gofres caseros con nata y fresas",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "requiredAppliance": "gofrera",
+    "time": 22,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 653,
+    "protein_g": 18,
+    "carbs_g": 76,
+    "fat_g": 30,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Harina",
+        "amount": 140,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Leche",
+        "amount": 220,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Levadura química",
+        "amount": 6,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para montar",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Fresas",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Azúcar glas",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Fundir mantequilla en un cazo a fuego suave hasta que se derrita por completo.",
+      "Retirar el cazo del fuego y dejar templar la mantequilla fundida durante 3 min.",
+      "Mezclar en un bol harina, levadura química y azúcar hasta integrar.",
+      "Batir huevo con leche y la mantequilla templada en otro bol hasta homogeneizar.",
+      "Añadir la mezcla líquida sobre los ingredientes secos y remover hasta obtener una masa lisa sin grumos.",
+      "Calentar la gofrera según las instrucciones del fabricante hasta que alcance la temperatura de cocción.",
+      "Laminar fresas en rodajas finas y reservar.",
+      "Verter un cucharón de masa en la gofrera caliente y cerrar.",
+      "Cocer el gofre hasta que esté dorado y crujiente, unos 4 min.",
+      "Montar nata para montar con unas varillas hasta que espese y forme picos firmes.",
+      "Añadir azúcar glas a la nata y remover con suavidad para integrar.",
+      "Retirar el gofre de la gofrera y repetir el proceso con el resto de masa hasta agotar.",
+      "Servir los gofres calientes con la nata montada y las fresas laminadas por encima."
+    ],
+    "description": "Gofres caseros de cuadrícula dorada y crujiente, con nata montada y fresas frescas encima.",
+    "stepsRich": [
+      {
+        "text": "Fundir {{Mantequilla}} en un cazo a fuego suave hasta que se derrita por completo.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el cazo del fuego y dejar templar la mantequilla fundida durante 3 min.",
+        "minutes": 3,
+        "kind": "espera"
+      },
+      {
+        "text": "Mezclar en un bol {{Harina}}, {{Levadura química}} y {{Azúcar}} hasta integrar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Batir {{Huevo}} con {{Leche}} y la mantequilla templada en otro bol hasta homogeneizar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir la mezcla líquida sobre los ingredientes secos y remover hasta obtener una masa lisa sin grumos.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Calentar la gofrera según las instrucciones del fabricante hasta que alcance la temperatura de cocción.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Laminar {{Fresas}} en rodajas finas y reservar.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 5
+      },
+      {
+        "text": "Verter un cucharón de masa en la gofrera caliente y cerrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Cocer el gofre hasta que esté dorado y crujiente, unos 4 min.",
+        "minutes": 4,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Montar {{Nata para montar}} con unas varillas hasta que espese y forme picos firmes.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "during": 8
+      },
+      {
+        "text": "Añadir {{Azúcar glas}} a la nata y remover con suavidad para integrar.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Retirar el gofre de la gofrera y repetir el proceso con el resto de masa hasta agotar.",
+        "minutes": 4,
+        "kind": "activo"
+      },
+      {
+        "text": "Servir los gofres calientes con la nata montada y las fresas laminadas por encima.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 3,
+    "sugar_g": 18,
+    "saturated_fat_g": 17,
+    "sodium_mg": 210,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_023",
+    "name": "Huevos revueltos cremosos con cebollino",
+    "category": "desayunos",
+    "mainProtein": "huevo",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 8,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 317,
+    "protein_g": 17,
+    "carbs_g": 2,
+    "fat_g": 27,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 5,
+        "unit": "ud"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebollino fresco",
+        "amount": 8,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar cebollino fresco muy fino y reservar.",
+      "Cascar huevo en un bol, añadir sal y batir lo justo hasta que la yema y la clara se integren.",
+      "Calentar sartén a fuego suave y fundir mantequilla hasta que cubra el fondo sin dorarse.",
+      "Verter los huevos batidos y remover sin parar con una espátula, retirando la sartén del fuego cada 20 segundos para controlar el calor.",
+      "Añadir nata para cocinar cuando los huevos empiecen a cuajar pero sigan brillantes.",
+      "Remover fuera del fuego hasta alcanzar una textura cremosa y suave.",
+      "Repartir en platos, espolvorear con el cebollino picado y servir de inmediato."
+    ],
+    "description": "Huevos revueltos de textura sedosa, con el verde fresco del cebollino picado.",
+    "stepsRich": [
+      {
+        "text": "Picar {{Cebollino fresco}} muy fino y reservar.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Cascar {{Huevo}} en un bol, añadir {{Sal|gusto}} y batir lo justo hasta que la yema y la clara se integren.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{@Sartén}} a fuego suave y fundir {{Mantequilla}} hasta que cubra el fondo sin dorarse.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Verter los huevos batidos y remover sin parar con una espátula, retirando la sartén del fuego cada 20 segundos para controlar el calor.",
+        "minutes": 3,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Nata para cocinar}} cuando los huevos empiecen a cuajar pero sigan brillantes.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Remover fuera del fuego hasta alcanzar una textura cremosa y suave.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Repartir en platos, espolvorear con el cebollino picado y servir de inmediato.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 0,
+    "sugar_g": 1,
+    "saturated_fat_g": 14,
+    "sodium_mg": 310,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_024",
+    "name": "Bol de requesón con miel y nueces",
+    "category": "desayunos",
+    "mainProtein": "none",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 5,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 326,
+    "protein_g": 20,
+    "carbs_g": 20,
+    "fat_g": 19,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Requesón",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Nueces",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Canela molida",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Trocear nueces groseramente con un cuchillo.",
+      "Repartir requesón en 2 boles.",
+      "Distribuir las nueces troceadas por encima del requesón.",
+      "Añadir miel en hilo fino sobre cada bol.",
+      "Espolvorear canela molida y servir de inmediato."
+    ],
+    "description": "Bol de requesón blanco y cremoso, con el dorado de la miel y el crujiente de la nuez.",
+    "stepsRich": [
+      {
+        "text": "Trocear {{Nueces}} groseramente con un cuchillo.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Repartir {{Requesón}} en 2 boles.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Distribuir las nueces troceadas por encima del requesón.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Añadir {{Miel|chorrito}} en hilo fino sobre cada bol.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Espolvorear {{Canela molida|pizca}} y servir de inmediato.",
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 1,
+    "sugar_g": 17,
+    "saturated_fat_g": 6,
+    "sodium_mg": 90,
+    "freezable": false
+  },
+  {
+    "id": "desayunos_025",
+    "name": "Tostada de aguacate y huevo frito",
+    "category": "desayunos",
+    "mainProtein": "huevo",
+    "mainBase": "pan",
+    "mealRole": [
+      "desayuno"
+    ],
+    "type": "completo",
+    "time": 12,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 478,
+    "protein_g": 15,
+    "carbs_g": 46,
+    "fat_g": 27,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Pan",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Tostar pan en la tostadora hasta que esté dorado y crujiente.",
+      "Cortar aguacate por la mitad, retirar el hueso y extraer la pulpa con una cuchara a un bol.",
+      "Exprimir limón sobre la pulpa de aguacate.",
+      "Añadir sal al aguacate y machacar con un tenedor hasta obtener una crema rústica.",
+      "Calentar aceite de oliva en sartén a fuego medio-alto.",
+      "Freír huevo hasta que la clara esté cuajada y la yema siga líquida.",
+      "Extender la crema de aguacate sobre las tostadas.",
+      "Colocar un huevo frito sobre cada tostada y servir de inmediato."
+    ],
+    "description": "Tostada de aguacate cremoso con huevo frito y la yema rota encima, el clásico de brunch.",
+    "stepsRich": [
+      {
+        "text": "Tostar {{Pan}} en la tostadora hasta que esté dorado y crujiente.",
+        "minutes": 3,
+        "kind": "pasivo"
+      },
+      {
+        "text": "Cortar {{Aguacate}} por la mitad, retirar el hueso y extraer la pulpa con una cuchara a un bol.",
+        "minutes": 2,
+        "kind": "prep"
+      },
+      {
+        "text": "Exprimir {{Limón}} sobre la pulpa de aguacate.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Añadir {{Sal|gusto}} al aguacate y machacar con un tenedor hasta obtener una crema rústica.",
+        "minutes": 1,
+        "kind": "prep"
+      },
+      {
+        "text": "Calentar {{Aceite de oliva|chorrito}} en {{@Sartén}} a fuego medio-alto.",
+        "minutes": 1,
+        "kind": "activo"
+      },
+      {
+        "text": "Freír {{Huevo}} hasta que la clara esté cuajada y la yema siga líquida.",
+        "minutes": 2,
+        "kind": "activo"
+      },
+      {
+        "text": "Extender la crema de aguacate sobre las tostadas.",
+        "minutes": 1,
+        "kind": "emplatado"
+      },
+      {
+        "text": "Colocar un huevo frito sobre cada tostada y servir de inmediato.",
+        "minutes": 1,
+        "kind": "emplatado"
+      }
+    ],
+    "fiber_g": 7,
+    "sugar_g": 2,
+    "saturated_fat_g": 5,
+    "sodium_mg": 320,
+    "freezable": false
   }
 ]

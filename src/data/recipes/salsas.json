@@ -1,0 +1,1818 @@
+[
+  {
+    "id": "salsas_001",
+    "name": "Vinagreta clásica",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "ensaladas",
+      "verduras"
+    ],
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 130,
+    "protein_g": 0,
+    "carbs_g": 1,
+    "fat_g": 14,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "mostaza"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Aceite de oliva virgen extra",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de Jerez",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Mostaza de Dijon",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Mezclar el vinagre, la mostaza y la sal en un bol",
+      "Añadir el aceite en hilo fino batiendo sin parar hasta emulsionar",
+      "Rectificar de sal y pimienta",
+      "Servir en salsera o verter directamente sobre la ensalada"
+    ],
+    "description": "Vinagreta clásica de mostaza y vinagre de Jerez, para aliñar ensaladas y verduras.",
+    "productAliases": [
+      "Vinagreta"
+    ]
+  },
+  {
+    "id": "salsas_002",
+    "name": "Alioli",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "carne_blanca",
+      "pescado_blanco",
+      "pescado_azul",
+      "marisco"
+    ],
+    "time": 10,
+    "difficulty": "normal",
+    "kcal": 180,
+    "protein_g": 0,
+    "carbs_g": 1,
+    "fat_g": 20,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva suave",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Machacar el ajo con una pizca de sal hasta hacer una pasta",
+      "Añadir el aceite en hilo muy fino sin dejar de batir hasta que emulsione",
+      "Terminar con unas gotas de limón",
+      "Reservar en frío hasta el momento de servir"
+    ],
+    "description": "Alioli tradicional de ajo y aceite, sin huevo, para carnes, pescados y marisco a la plancha.",
+    "productAliases": [
+      "Alioli"
+    ]
+  },
+  {
+    "id": "salsas_003",
+    "name": "Salsa de tomate casera",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "arroz_blanco",
+      "huevos"
+    ],
+    "time": 25,
+    "difficulty": "facil",
+    "kcal": 70,
+    "protein_g": 1,
+    "carbs_g": 8,
+    "fat_g": 4,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Tomate triturado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 50,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Sofreír la cebolla y el ajo picados en el aceite a fuego suave",
+      "Añadir el tomate triturado y el azúcar",
+      "Cocer 20 min a fuego bajo removiendo de vez en cuando",
+      "Salpimentar y triturar si se quiere una textura fina"
+    ],
+    "description": "El clásico tomate frito casero: para arroz blanco, huevos o cualquier plato sencillo.",
+    "productAliases": [
+      "Tomate frito",
+      "Salsa de tomate"
+    ]
+  },
+  {
+    "id": "salsas_004",
+    "name": "Salsa de carne (jugo de asado)",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "carne_blanca"
+    ],
+    "time": 30,
+    "difficulty": "normal",
+    "kcal": 90,
+    "protein_g": 2,
+    "carbs_g": 4,
+    "fat_g": 6,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Caldo de carne",
+        "amount": 300,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino tinto",
+        "amount": 50,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 10,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Rehogar la cebolla y la zanahoria picadas en la mantequilla",
+      "Añadir el vino tinto y dejar reducir 5 min",
+      "Incorporar el caldo de carne y cocer a fuego bajo 20 min hasta reducir a la mitad",
+      "Colar y ligar con un poco de harina disuelta en agua fría si se quiere más espesa"
+    ],
+    "description": "Jugo de asado clásico, reducido aparte: para carnes al horno o a la plancha."
+  },
+  {
+    "id": "salsas_005",
+    "name": "Salsa verde clásica",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "pescado_blanco",
+      "pescado_azul",
+      "carne_blanca"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 110,
+    "protein_g": 0,
+    "carbs_g": 1,
+    "fat_g": 12,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Perejil fresco",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Alcaparras",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar muy fino el perejil, el ajo y las alcaparras",
+      "Mezclar con el aceite y el zumo de limón",
+      "Salar al gusto",
+      "Dejar reposar 10 min antes de servir"
+    ],
+    "description": "Salsa verde en crudo de perejil y alcaparras, para pescado blanco, azul o carnes blancas."
+  },
+  {
+    "id": "salsas_006",
+    "name": "Mojo verde canario",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_blanca",
+      "pescado_blanco",
+      "marisco",
+      "verduras"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 115,
+    "protein_g": 0,
+    "carbs_g": 1,
+    "fat_g": 13,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Cilantro fresco",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Triturar el cilantro, el ajo y el comino",
+      "Añadir el vinagre y triturar de nuevo",
+      "Incorporar el aceite en hilo mientras se tritura hasta emulsionar",
+      "Rectificar de sal"
+    ],
+    "description": "Mojo verde canario de cilantro y comino, para carnes blancas, pescado, marisco o verduras."
+  },
+  {
+    "id": "salsas_007",
+    "name": "Mojo rojo picón canario",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "carne_blanca",
+      "verduras"
+    ],
+    "time": 20,
+    "difficulty": "normal",
+    "kcal": 120,
+    "protein_g": 0,
+    "carbs_g": 2,
+    "fat_g": 13,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "healthFlags": [
+      "picante"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Pimiento choricero (ñora)",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón picante",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Rehidratar la ñora en agua caliente 15 min y retirar la pulpa",
+      "Triturar la pulpa con el ajo, el pimentón, el comino y el vinagre",
+      "Añadir el aceite en hilo hasta emulsionar",
+      "Rectificar de sal"
+    ],
+    "description": "Mojo picón canario, picante, de pimentón y ñora: para carnes y verduras asadas."
+  },
+  {
+    "id": "salsas_008",
+    "name": "Chimichurri",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "carne_blanca"
+    ],
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 125,
+    "protein_g": 0,
+    "carbs_g": 1,
+    "fat_g": 14,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Perejil fresco",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Orégano seco",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 90,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre de vino",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar muy fino el perejil y el ajo",
+      "Mezclar con el orégano, la guindilla y la sal",
+      "Añadir el vinagre y el aceite",
+      "Dejar reposar al menos 30 min antes de servir para que se integren los sabores"
+    ],
+    "description": "Chimichurri argentino de perejil y orégano, el clásico para carnes a la parrilla.",
+    "productAliases": [
+      "Chimichurri"
+    ]
+  },
+  {
+    "id": "salsas_009",
+    "name": "Salsa de mostaza y miel",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_blanca",
+      "carne_roja"
+    ],
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 95,
+    "protein_g": 0,
+    "carbs_g": 8,
+    "fat_g": 7,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "mostaza"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Mostaza de Dijon",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Mezclar la mostaza y la miel hasta integrar",
+      "Añadir el aceite en hilo fino batiendo",
+      "Terminar con el zumo de limón",
+      "Rectificar de sal"
+    ],
+    "description": "Salsa agridulce de mostaza y miel, clásica para pollo, pavo o carnes a la plancha."
+  },
+  {
+    "id": "salsas_010",
+    "name": "Romesco",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "pescado_blanco",
+      "pescado_azul",
+      "verduras"
+    ],
+    "time": 35,
+    "difficulty": "normal",
+    "kcal": 160,
+    "protein_g": 3,
+    "carbs_g": 6,
+    "fat_g": 14,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "frutos_secos",
+      "gluten"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Tomate maduro",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento choricero (ñora)",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Almendra tostada",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Avellana tostada",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Pan frito",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Asar el tomate y el ajo 20 min al horno",
+      "Rehidratar la ñora en agua caliente y retirar la pulpa",
+      "Triturar todos los ingredientes con el aceite y el vinagre hasta obtener una crema",
+      "Rectificar de sal"
+    ],
+    "description": "Romesco catalán de almendra, avellana y ñora: para pescado o verduras asadas."
+  },
+  {
+    "id": "salsas_011",
+    "name": "Salsa tahini y limón",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "ensaladas",
+      "verduras",
+      "carne_blanca"
+    ],
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 110,
+    "protein_g": 3,
+    "carbs_g": 3,
+    "fat_g": 10,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "sesamo"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Tahini",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Agua",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Mezclar el tahini con el zumo de limón hasta que espese",
+      "Añadir agua poco a poco batiendo hasta obtener una crema fluida",
+      "Añadir el ajo picado muy fino y la sal",
+      "Rectificar de textura con más agua si hace falta"
+    ],
+    "description": "Crema de tahini y limón, para ensaladas, verduras asadas o carnes blancas."
+  },
+  {
+    "id": "salsas_012",
+    "name": "Salsa de yogur, eneldo y pepino",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_blanca",
+      "pescado_blanco",
+      "ensaladas"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 60,
+    "protein_g": 4,
+    "carbs_g": 3,
+    "fat_g": 3,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Yogur griego",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Eneldo fresco",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Rallar el pepino y escurrir el exceso de agua",
+      "Mezclar con el yogur, el eneldo picado y el ajo",
+      "Añadir el aceite y la sal",
+      "Enfriar antes de servir"
+    ],
+    "description": "Salsa fresca de yogur, pepino y eneldo, tipo tzatziki: para carnes blancas, pescado o ensaladas."
+  },
+  {
+    "id": "salsas_013",
+    "name": "Miso y mantequilla",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "pescado_blanco",
+      "pescado_azul",
+      "verduras"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 140,
+    "protein_g": 2,
+    "carbs_g": 5,
+    "fat_g": 12,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "soja",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Miso blanco",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Mirin",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Derretir la mantequilla a fuego suave",
+      "Añadir el miso y disolver removiendo",
+      "Incorporar el mirin y el agua hasta ligar",
+      "Retirar del fuego y reservar templada"
+    ],
+    "description": "Glaseado de miso y mantequilla, untuoso y umami, para pescado o verduras asadas."
+  },
+  {
+    "id": "salsas_014",
+    "name": "Gremolata",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "carne_blanca",
+      "pescado_blanco",
+      "verduras"
+    ],
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 15,
+    "protein_g": 1,
+    "carbs_g": 2,
+    "fat_g": 0,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Perejil fresco",
+        "amount": 25,
+        "unit": "g"
+      },
+      {
+        "name": "Ralladura de limón",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar muy fino el perejil y el ajo",
+      "Mezclar con la ralladura de limón",
+      "Reservar y espolvorear justo antes de servir"
+    ],
+    "description": "Gremolata italiana de perejil, limón y ajo: un toque fresco final para carnes, pescado o verduras."
+  },
+  {
+    "id": "salsas_015",
+    "name": "Anchoas, ajo y limón",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "pescado_blanco",
+      "carne_blanca",
+      "verduras"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 130,
+    "protein_g": 2,
+    "carbs_g": 1,
+    "fat_g": 14,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "pescado"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Filetes de anchoa en aceite",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil fresco",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Machacar las anchoas con el ajo hasta hacer una pasta",
+      "Añadir el aceite en hilo mientras se bate",
+      "Terminar con el zumo de limón y el perejil picado",
+      "Rectificar de sal (las anchoas ya aportan)"
+    ],
+    "description": "Salsa untuosa de anchoas, ajo y limón, con mucho carácter: para pescado blanco o verduras.",
+    "extraProteins": [
+      "pescado_azul"
+    ]
+  },
+  {
+    "id": "salsas_016",
+    "name": "Harissa y yogur",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "carne_blanca",
+      "verduras"
+    ],
+    "time": 5,
+    "difficulty": "facil",
+    "kcal": 70,
+    "protein_g": 4,
+    "carbs_g": 4,
+    "fat_g": 4,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "healthFlags": [
+      "picante"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Harissa",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur griego",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Mezclar el yogur con la harissa hasta integrar",
+      "Añadir el zumo de limón",
+      "Rectificar de sal",
+      "Enfriar antes de servir"
+    ],
+    "description": "Yogur picante con harissa, para carnes a la plancha o verduras asadas."
+  },
+  {
+    "id": "salsas_017",
+    "name": "Pistacho y albahaca",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "ensaladas",
+      "pescado_blanco",
+      "carne_blanca"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 190,
+    "protein_g": 4,
+    "carbs_g": 3,
+    "fat_g": 18,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Pistacho pelado",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 70,
+        "unit": "ml"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 3,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Triturar el pistacho, la albahaca y el ajo",
+      "Añadir el aceite en hilo mientras se tritura",
+      "Incorporar el parmesano rallado",
+      "Rectificar de sal"
+    ],
+    "description": "Pesto de pistacho y albahaca, para ensaladas, pescado blanco o carnes blancas."
+  },
+  {
+    "id": "salsas_019",
+    "name": "Beurre noisette y salvia",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "pescado_blanco",
+      "verduras"
+    ],
+    "time": 10,
+    "difficulty": "normal",
+    "kcal": 135,
+    "protein_g": 0,
+    "carbs_g": 0,
+    "fat_g": 15,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "freezable": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Mantequilla",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Salvia fresca",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Fundir la mantequilla a fuego medio hasta que tome color avellana y huela a frutos secos",
+      "Añadir las hojas de salvia y freírlas 30 segundos",
+      "Retirar del fuego y añadir el zumo de limón",
+      "Servir templada"
+    ],
+    "description": "Mantequilla avellanada con salvia crujiente, clásico italiano para pescado blanco o verduras."
+  },
+  {
+    "id": "salsas_020",
+    "name": "Naranja y jengibre",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_blanca",
+      "pescado_azul"
+    ],
+    "time": 15,
+    "difficulty": "facil",
+    "kcal": 55,
+    "protein_g": 0,
+    "carbs_g": 12,
+    "fat_g": 0,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "soja"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Zumo de naranja",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Jengibre fresco rallado",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Miel",
+        "amount": 15,
+        "unit": "g"
+      },
+      {
+        "name": "Salsa de soja",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Maicena",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Calentar el zumo de naranja con el jengibre rallado",
+      "Añadir la miel y la soja",
+      "Cocer 5 min a fuego medio",
+      "Ligar con la maicena disuelta en un poco de agua fría hasta espesar"
+    ],
+    "description": "Glaseado de naranja y jengibre, agridulce, para pollo, pavo o pescado azul."
+  },
+  {
+    "id": "salsas_021",
+    "name": "Alioli de azafrán",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "pescado_blanco",
+      "marisco",
+      "arroz_blanco"
+    ],
+    "time": 15,
+    "difficulty": "normal",
+    "kcal": 180,
+    "protein_g": 0,
+    "carbs_g": 1,
+    "fat_g": 20,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Ajo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva suave",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Azafrán en hebras",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 5,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Infusionar el azafrán en una cucharada de agua caliente unos minutos",
+      "Machacar el ajo con la sal",
+      "Añadir el aceite en hilo fino batiendo hasta emulsionar",
+      "Incorporar el azafrán infusionado y el limón"
+    ],
+    "description": "Alioli con un toque de azafrán, para pescado blanco, marisco o arroz."
+  },
+  {
+    "id": "salsas_023",
+    "name": "Sésamo, soja y miel",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "ensaladas",
+      "carne_blanca",
+      "pescado_azul"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 90,
+    "protein_g": 2,
+    "carbs_g": 10,
+    "fat_g": 4,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "soja",
+      "sesamo"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Salsa de soja",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Miel",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de sésamo",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Semillas de sésamo",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Jengibre fresco rallado",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Mezclar la soja, la miel y el aceite de sésamo",
+      "Añadir el ajo y el jengibre rallados",
+      "Calentar 2 min a fuego suave hasta que espese ligeramente",
+      "Terminar con las semillas de sésamo"
+    ],
+    "description": "Aliño agridulce de sésamo, soja y miel, para ensaladas, pollo o pescado azul."
+  },
+  {
+    "id": "salsas_024",
+    "name": "Roquefort ligera",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "ensaladas"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 95,
+    "protein_g": 5,
+    "carbs_g": 3,
+    "fat_g": 7,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Queso roquefort",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Yogur griego",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Pimienta negra",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Desmenuzar el roquefort y machacarlo con un tenedor",
+      "Mezclar con el yogur y la leche hasta obtener una crema fluida",
+      "Añadir pimienta al gusto",
+      "Enfriar antes de servir"
+    ],
+    "description": "Crema ligera de roquefort, para carne roja a la plancha o ensaladas con fruta."
+  },
+  {
+    "id": "salsas_025",
+    "name": "Mayonesa casera",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "pescado_blanco",
+      "marisco",
+      "ensaladas",
+      "huevos"
+    ],
+    "time": 10,
+    "difficulty": "normal",
+    "kcal": 190,
+    "protein_g": 1,
+    "carbs_g": 0,
+    "fat_g": 21,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": false,
+    "allergens": [
+      "huevo"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de girasol",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Batir el huevo entero con la sal",
+      "Añadir el aceite en hilo muy fino sin dejar de batir hasta que emulsione y espese",
+      "Terminar con el zumo de limón",
+      "Reservar en frío"
+    ],
+    "description": "Mayonesa casera clásica, para pescado, marisco, ensaladas o huevos.",
+    "productAliases": [
+      "Mayonesa"
+    ]
+  },
+  {
+    "id": "salsas_026",
+    "name": "Salsa brava",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "huevos",
+      "verduras"
+    ],
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 45,
+    "protein_g": 1,
+    "carbs_g": 5,
+    "fat_g": 2,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "gluten"
+    ],
+    "healthFlags": [
+      "picante"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón picante",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Cayena",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Harina",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Sofreír el ajo en el aceite",
+      "Añadir la harina y tostarla 1 min",
+      "Incorporar el tomate y el pimentón",
+      "Cocer 10 min a fuego bajo removiendo, añadiendo agua si espesa demasiado"
+    ],
+    "description": "La clásica salsa brava española, picante, para patatas, huevos o verduras.",
+    "productAliases": [
+      "Salsa brava"
+    ]
+  },
+  {
+    "id": "salsas_027",
+    "name": "Pesto genovés",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "ensaladas",
+      "carne_blanca",
+      "pescado_blanco"
+    ],
+    "time": 10,
+    "difficulty": "facil",
+    "kcal": 180,
+    "protein_g": 4,
+    "carbs_g": 2,
+    "fat_g": 18,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "frutos_secos",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Albahaca fresca",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Piñones",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Triturar la albahaca, los piñones y el ajo",
+      "Añadir el aceite en hilo mientras se tritura",
+      "Incorporar el parmesano rallado a mano al final",
+      "Rectificar de sal"
+    ],
+    "description": "Pesto genovés clásico, para ensaladas, pollo a la plancha o pescado blanco.",
+    "productAliases": [
+      "Pesto"
+    ]
+  },
+  {
+    "id": "salsas_028",
+    "name": "Salsa holandesa",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "verduras",
+      "pescado_blanco"
+    ],
+    "time": 20,
+    "difficulty": "normal",
+    "kcal": 210,
+    "protein_g": 2,
+    "carbs_g": 0,
+    "fat_g": 23,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "freezable": false,
+    "allergens": [
+      "huevo",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Yema de huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Zumo de limón",
+        "amount": 10,
+        "unit": "ml"
+      },
+      {
+        "name": "Agua",
+        "amount": 15,
+        "unit": "ml"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Fundir la mantequilla y reservarla templada",
+      "Batir las yemas con el agua al baño maría hasta que espesen",
+      "Añadir la mantequilla en hilo fino sin dejar de batir hasta emulsionar",
+      "Terminar con el zumo de limón y sal"
+    ],
+    "description": "Salsa holandesa clásica, para espárragos, verduras al vapor o pescado blanco."
+  },
+  {
+    "id": "salsas_029",
+    "name": "Bechamel",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "verduras",
+      "huevos"
+    ],
+    "time": 20,
+    "difficulty": "facil",
+    "kcal": 90,
+    "protein_g": 2,
+    "carbs_g": 6,
+    "fat_g": 6,
+    "baseServings": 4,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Mantequilla",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 400,
+        "unit": "ml"
+      },
+      {
+        "name": "Nuez moscada",
+        "amount": 1,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 2,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Fundir la mantequilla y añadir la harina, tostando 1-2 min sin que coja color",
+      "Verter la leche poco a poco sin dejar de remover para evitar grumos",
+      "Cocer 8-10 min a fuego bajo hasta espesar",
+      "Sazonar con sal y nuez moscada"
+    ],
+    "description": "Bechamel clásica, para gratinar verduras o napar huevos y croquetas.",
+    "productAliases": [
+      "Bechamel"
+    ]
+  },
+  {
+    "id": "salsas_030",
+    "name": "Salsa de Pedro Ximénez",
+    "category": "salsas",
+    "mainProtein": "none",
+    "mealRole": [
+      "salsa"
+    ],
+    "type": "salsa",
+    "sauceCompat": [
+      "carne_roja",
+      "carne_blanca"
+    ],
+    "time": 25,
+    "difficulty": "normal",
+    "kcal": 140,
+    "protein_g": 0,
+    "carbs_g": 18,
+    "fat_g": 5,
+    "baseServings": 4,
+    "kidFriendly": false,
+    "tupperFriendly": true,
+    "freezable": true,
+    "allergens": [
+      "sulfitos",
+      "lactosa"
+    ],
+    "season": "all",
+    "ingredients": [
+      {
+        "name": "Vino Pedro Ximénez",
+        "amount": 200,
+        "unit": "ml"
+      },
+      {
+        "name": "Chalota",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Sal",
+        "amount": 1,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Picar la chalota muy fina y pochar en la mantequilla a fuego suave",
+      "Añadir el vino Pedro Ximénez",
+      "Reducir a fuego medio 15-20 min hasta que espese y tenga textura de jarabe",
+      "Colar si se quiere una textura más fina y salpimentar"
+    ],
+    "description": "Reducción de vino Pedro Ximénez, dulce y untuosa: la clásica salsa de solomillo."
+  }
+]

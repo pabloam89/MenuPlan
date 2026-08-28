@@ -26653,5 +26653,322 @@
         "kind": "emplatado"
       }
     ]
+  },
+  "huevos_017": {
+    "airfryer": [
+      {
+        "text": "Precalentar la airfryer a 200 °C.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en bastones de 1 cm de grosor.",
+        "minutes": 4,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 0
+      },
+      {
+        "text": "Mezclar los bastones de patata con {{Aceite de oliva|chorrito}} hasta que queden bien impregnados.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Colocar las patatas en la cesta y cocinar a 200 °C durante 20 min, agitando a mitad de cocción.",
+        "minutes": 20,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 3
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 3
+      },
+      {
+        "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 3
+      },
+      {
+        "text": "Mezclar la cebolla, el ajo, el pimiento rojo, el pimiento verde, el calabacín y el tomate en un bol.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir un chorrito de aceite de oliva al bol y mezclar para que las verduras queden impregnadas.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Cocinar las verduras en la airfryer a 180 °C durante 18 min, removiendo a mitad de cocción.",
+        "minutes": 18,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar las patatas de la airfryer cuando estén doradas y reservar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Retirar el pisto de la airfryer cuando las verduras estén tiernas y reservar.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Freír {{Huevo}} en {{@Sartén}} con un chorrito de aceite de oliva a fuego medio hasta que la clara cuaje.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir el pisto en el plato con las patatas fritas al lado y el huevo frito encima.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ],
+    "horno": [
+      {
+        "text": "Precalentar el horno a 220 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Pelar {{Patata}} y cortar en bastones de 1 cm de grosor.",
+        "minutes": 4,
+        "kind": "paralelo",
+        "part": "guarnicion",
+        "during": 0
+      },
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 0
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 0
+      },
+      {
+        "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 0
+      },
+      {
+        "text": "Disponer los bastones de patata en una bandeja, regar con {{Aceite de oliva|chorrito}} y mezclar.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Hornear las patatas a 220 °C en la bandeja del horno durante 25 min, dando la vuelta a mitad.",
+        "minutes": 25,
+        "kind": "pasivo",
+        "part": "guarnicion"
+      },
+      {
+        "text": "Disponer la cebolla, el ajo, el pimiento rojo, el pimiento verde y el calabacín en una segunda bandeja.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Regar las verduras con un chorrito de aceite de oliva y mezclar para impregnar.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Hornear las verduras a 200 °C durante 20 min, removiendo a mitad de cocción.",
+        "minutes": 20,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Añadir el tomate maduro a la bandeja de verduras y hornear 5 min más hasta que todo esté tierno.",
+        "minutes": 5,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar ambas bandejas del horno cuando las patatas estén doradas y las verduras tiernas.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "combinado"
+      },
+      {
+        "text": "Freír {{Huevo}} en {{@Sartén}} con un chorrito de aceite de oliva a fuego medio hasta que la clara cuaje.",
+        "minutes": 3,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Servir el pisto en el plato con las patatas al lado y el huevo frito encima.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
+  },
+  "huevos_016": {
+    "airfryer": [
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 4,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
+        "minutes": 2,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Mezclar la cebolla, el ajo, el pimiento rojo, el pimiento verde, el calabacín y el tomate en un molde apto para airfryer.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Regar las verduras con {{Aceite de oliva|chorrito}} y remover para que queden bien impregnadas.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Cocinar el molde con las verduras en la airfryer a 180 °C durante 18 min, removiendo a mitad de cocción.",
+        "minutes": 18,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar el molde de la airfryer y remover el pisto.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Hacer 4 huecos en el pisto y cascar {{Huevo}} dentro de cada hueco con cuidado.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "combinado"
+      },
+      {
+        "text": "Cocinar de nuevo en la airfryer a 160 °C durante 5 min, hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 5,
+        "kind": "pasivo",
+        "part": "combinado"
+      },
+      {
+        "text": "Servir el pisto con los huevos directamente desde el molde.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ],
+    "horno": [
+      {
+        "text": "Precalentar el horno a 200 °C con calor arriba y abajo.",
+        "minutes": 10,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Picar {{Cebolla}} y {{Ajo}} en dados pequeños.",
+        "minutes": 3,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 0
+      },
+      {
+        "text": "Cortar {{Pimiento rojo}}, {{Pimiento verde}} y {{Calabacín}} en dados pequeños.",
+        "minutes": 4,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 0
+      },
+      {
+        "text": "Pelar {{Tomate maduro}} y cortar en dados pequeños.",
+        "minutes": 2,
+        "kind": "paralelo",
+        "part": "principal",
+        "during": 0
+      },
+      {
+        "text": "Mezclar la cebolla, el ajo, el pimiento rojo, el pimiento verde, el calabacín y el tomate en una bandeja apta para horno.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Regar las verduras con {{Aceite de oliva|chorrito}} y remover para que queden bien impregnadas.",
+        "minutes": 1,
+        "kind": "prep",
+        "part": "principal"
+      },
+      {
+        "text": "Hornear la bandeja en el horno a 200 °C durante 20 min, removiendo a mitad de cocción.",
+        "minutes": 20,
+        "kind": "pasivo",
+        "part": "principal"
+      },
+      {
+        "text": "Retirar la bandeja del horno y remover el pisto.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "principal"
+      },
+      {
+        "text": "Hacer 4 huecos en el pisto y cascar {{Huevo}} dentro de cada hueco con cuidado.",
+        "minutes": 1,
+        "kind": "activo",
+        "part": "combinado"
+      },
+      {
+        "text": "Hornear de nuevo a 180 °C durante 5 min, hasta que la clara esté cuajada y la yema líquida.",
+        "minutes": 5,
+        "kind": "pasivo",
+        "part": "combinado"
+      },
+      {
+        "text": "Servir el pisto con los huevos directamente desde la bandeja.",
+        "minutes": 1,
+        "kind": "emplatado",
+        "part": "combinado"
+      }
+    ]
   }
 }

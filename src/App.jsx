@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Soup, Utensils, Play, Eraser, X } from "lucide-react";
+import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
   OnboardingMode,
@@ -8,8 +8,9 @@ import {
   OnboardingMenuModel,
   OnboardingKidsDinner,
   OnboardingMealStyle,
-  OnboardingMealExtras,
-  OnboardingPantry,
+  OnboardingMealExtrasComidas,
+  OnboardingMealExtrasOtros,
+  OnboardingPantryInventory,
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
@@ -22,14 +23,12 @@ import {
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { CatalogBrowserSheet } from "./screens/CatalogBrowserSheet.jsx";
-import { SlotTypePickerSheet } from "./screens/SlotTypePickerSheet.jsx";
 import { recipeCatalogById } from "./data/recipeCatalog.js";
 const ValuePropsCarousel = lazy(() => import("./screens/ValueProps.jsx").then(m => ({ default: m.ValuePropsCarousel })));
 const ShoppingScreen = lazy(() => import("./screens/Shopping.jsx").then(m => ({ default: m.ShoppingScreen })));
 const AnalyticsScreen = lazy(() => import("./screens/Analytics.jsx").then(m => ({ default: m.AnalyticsScreen })));
 const SettingsScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.SettingsScreen })));
 const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ default: m.AccountScreen })));
-const PantryScreen = lazy(() => import("./screens/Pantry.jsx").then(m => ({ default: m.PantryScreen })));
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
@@ -37,7 +36,7 @@ const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").t
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
-import { generateMenuWithAI, pickCatalogReplacement, pickGarnishReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -105,13 +104,12 @@ import {
 import {
   loadRecipeDiscards,
   saveRecipeDiscard,
-  deleteRecipeDiscard,
   upsertRecipeDiscards,
   mergeDiscards,
 } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { loadHouseholdState, saveHouseholdState } from "./lib/householdState.js";
-import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
+import { loadHouseholdDiscards, saveHouseholdDiscard } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { shouldAdoptRemoteProfile, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
@@ -277,7 +275,9 @@ const INITIAL_DATA = {
   //                          pasado la próxima vez que abres la app)
   // multiWeek/lifecycle ya NO se preguntan: en multisemana la despensa va a la
   // semana más cercana y el ciclo interno se resetea solo (defaults internos).
-  pantryPrefs: { consume: "onGenerate" },
+  // Default "onCook" (2026-08-26, era "onGenerate"): no descuenta comida que
+  // aún no has cocinado de verdad — el más honesto de los tres sin preguntar.
+  pantryPrefs: { consume: "onCook" },
   // Si el usuario ya respondió el cuestionario de despensa (modo avanzado).
   pantryPrefsSet: false,
   // Si ya se ha mostrado el cuestionario de despensa al menos una vez (para no
@@ -666,7 +666,7 @@ function migrate(state) {
   // Una sola preferencia real. Los valores antiguos "none" (y cualquier campo
   // apply/multiWeek/lifecycle heredado) se colapsan al default seguro.
   d.pantryPrefs = {
-    consume: ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onGenerate",
+    consume: ["endOfDay", "onGenerate", "onCook"].includes(d.pantryPrefs.consume) ? d.pantryPrefs.consume : "onCook",
   };
   if (typeof d.pantryPrefsSet !== "boolean") d.pantryPrefsSet = false;
   if (typeof d.pantryPrefsSeen !== "boolean") d.pantryPrefsSeen = false;
@@ -940,9 +940,6 @@ export default function App() {
   const [screen, setScreen] = useState(
     DEV_DEMO_MENU ? (persisted?.screen ?? "menu") : "splash"
   );
-  // "pantry" is opened from Compra / nav Inicio — remembers which so "Atrás"
-  // returns there instead of always landing on dashboard.
-  const [pantryOrigin, setPantryOrigin] = useState("dashboard");
   // Bumps after mergeLocalPantryIntoCloud so Pantry/Shopping/onboarding reload
   // stock once the local→cloud fold finishes (avoids a stale empty list).
   const [pantryEpoch, setPantryEpoch] = useState(0);
@@ -950,11 +947,11 @@ export default function App() {
   // Tu compra, and land on Análisis → Gasto. Cleared by the target once consumed.
   const [shoppingCaptureIntent, setShoppingCaptureIntent] = useState(false);
   const [analyticsInitialTab, setAnalyticsInitialTab] = useState(null);
-  // Whether "Tu gasto" should show a "volver a En casa" shortcut in its own
-  // header — only true right after the deep link from Pantry's "histórico y
-  // analítica" button, not on a plain bottom-nav tap into Analytics/Gasto
-  // (which has no particular screen to "go back" to).
-  const [gastoFromPantry, setGastoFromPantry] = useState(false);
+  // "pantry" used to be its own screen (retired 2026-08-25 — En casa is now
+  // a tab inside Compra, triple segmented control con Por comprar/Comprado/
+  // En casa). Deep links that used to navigate there (icono de Compra,
+  // "Ir a En casa" desde Gasto) now just land on Compra with this tab open.
+  const [shoppingInitialTab, setShoppingInitialTab] = useState(null);
   const [onbStep, setOnbStep] = useState(persisted?.onbStep ?? 0);
   // Which history entry is open in the read-only viewer (screen "menuHistory").
   const [historyMenuId, setHistoryMenuId] = useState(null);
@@ -2219,11 +2216,6 @@ export default function App() {
 
   const openMenusScreen = useCallback(() => fwd(() => setScreen("menus")), []);
 
-  // One-shot signal consumed by MenuScreen: "Editar" en la card de menú
-  // actual reutiliza el sheet de "Tu perfil" (ProfileSettingsSheet) en vez
-  // de mandar a un flujo de edición aparte.
-  const [pendingProfileOpen, setPendingProfileOpen] = useState(false);
-
   // Switches which week of the ACTIVE menú is displayed (menús spanning
   // several weeks) — materializes that week's plan/shopping into the live
   // menuPlan/shopping state everything else already reads from.
@@ -2338,9 +2330,12 @@ export default function App() {
     });
   }, [shopping, data.activeMenuId, data.menuWeek?.offset]);
 
-  // "Borrar" from the Menús screen: drops the active menú from the archive
-  // (still leaves any OTHER past menús untouched) and clears the live
-  // plan/shopping so nothing stale lingers around.
+  // "Borrar menú" desde el ⋮ de Menú actual (2026-08-25: ya no vive en Menús
+  // guardados — esa pantalla dejó de mostrar el activo del todo): drops the
+  // active menú from the archive (still leaves any OTHER past menús
+  // untouched) and clears the live plan/shopping so nothing stale lingers
+  // around. No navega a ningún sitio — Menu.jsx ya sabe mostrar su propio
+  // EmptyState en cuanto se queda sin menú activo.
   const deleteActiveMenu = useCallback(() => {
     if (householdReadOnly) return;
     const menuIdToDelete = data.activeMenuId;
@@ -2709,24 +2704,14 @@ export default function App() {
   }, [destroyHousehold, user?.id, data.userRecipes, data.recipeVotes, showToast]);
 
   const handleNav = useCallback((id) => {
-    dirRef.current = navDirection(screen, id);
-    if (id === "pantry") {
-      const origin =
-        screen === "shopping" ? "shopping"
-        : screen === "dashboard" ? "dashboard"
-        : screen === "profile" ? "profile"
-        : screen === "account" ? "account"
-        : screen === "pantry" ? pantryOrigin
-        : "dashboard";
-      setPantryOrigin(origin);
-    }
-    // A plain bottom-nav tap into Analytics is not the pantry deep link —
-    // drop any leftover "volver a En casa" shortcut from an earlier visit so
-    // it doesn't linger into an unrelated visit to Gasto.
-    if (id === "analytics") setGastoFromPantry(false);
-    setScreen(id);
-    if (id === "shopping") trackEvent(user, "shopping_opened", "shopping");
-  }, [screen, user, pantryOrigin]);
+    // "pantry" isn't a real screen anymore — it's the "En casa" tab inside
+    // Compra, so redirect there instead of navigating away.
+    const target = id === "pantry" ? "shopping" : id;
+    if (id === "pantry") setShoppingInitialTab("home");
+    dirRef.current = navDirection(screen, target);
+    setScreen(target);
+    if (target === "shopping") trackEvent(user, "shopping_opened", "shopping");
+  }, [screen, user]);
 
   // Internal: navigate directly, no gate. Used after the resume dialog resolves.
   const _doGoToOnboardingStep = useCallback((step) => {
@@ -2791,13 +2776,18 @@ export default function App() {
       showToast("Solo lectura: no puedes generar menú aquí");
       return;
     }
-    if ((data.members ?? []).length > 0) {
+    // El modal "Continuar donde lo dejé / Empezar de cero" solo tiene sentido
+    // si ya existe un menú generado de verdad — tener familia configurada
+    // (p. ej. tras el first-run onboarding) no basta: para alguien que nunca
+    // ha generado nada, "continuar" no aplica y hay que entrar directo al
+    // journey de onboarding.
+    if ((data.members ?? []).length > 0 && planHasDishes(menuPlan)) {
       setOnbResumeOpen(true);
     } else {
       setQuickMenu(false);
       _doGoToOnboardingStep(0);
     }
-  }, [data.members, _doGoToOnboardingStep, householdReadOnly, showToast]);
+  }, [data.members, menuPlan, _doGoToOnboardingStep, householdReadOnly, showToast]);
 
   // "Continuar donde lo dejé": if they already generated a menu, land on the
   // last wizard step (CookTime, step 10) in quick mode so the user can review
@@ -2965,40 +2955,6 @@ export default function App() {
     return label;
   }, [slotBaseRecipeId, data.recipeVotes, data.discards, user, householdReadOnly, syncHouseholdId]);
 
-  // Recuperar (Recetas ▸ Descartados): clear a permanent discard so the dish
-  // rejoins the active catalog.
-  const handleUndiscardRecipe = useCallback((recipeId) => {
-    if (householdReadOnly) return;
-    if (!recipeId) return;
-    setData((d) => {
-      const forever = (d.discards?.forever ?? []).filter((id) => id !== recipeId);
-      const cooldownUntil = { ...(d.discards?.cooldownUntil ?? {}) };
-      delete cooldownUntil[recipeId];
-      return { ...d, discards: { forever, cooldownUntil } };
-    });
-    if (user?.id) {
-      if (syncHouseholdId) deleteHouseholdDiscard(syncHouseholdId, recipeId);
-      else deleteRecipeDiscard(user.id, recipeId);
-    }
-    showToast("Receta recuperada");
-  }, [showToast, user, householdReadOnly, syncHouseholdId]);
-
-  // Descartar desde el catálogo (Recetas ▸ Catálogo): añade al listado permanente
-  // "No me gusta" sin pasar por el menú. Equivalente a elegir «No me gusta» desde
-  // el menú; se puede revertir desde la pestaña Descartados.
-  const handleDiscardRecipe = useCallback((recipeId) => {
-    if (householdReadOnly) return;
-    if (!recipeId) return;
-    setData((d) => {
-      const forever = [...(d.discards?.forever ?? [])];
-      if (!forever.includes(recipeId)) forever.push(recipeId);
-      const cooldownUntil = { ...(d.discards?.cooldownUntil ?? {}) };
-      delete cooldownUntil[recipeId];
-      return { ...d, discards: { forever, cooldownUntil } };
-    });
-    showToast("Receta descartada — aparece en la pestaña Descartados");
-  }, [showToast, householdReadOnly]);
-
   // Selectable scopes for a favorite
   // (excluding the single-family "Familia"). Empty/one → no per-group choice.
   const favoriteScopeGroups = useMemo(() => {
@@ -3012,10 +2968,17 @@ export default function App() {
     if (!recipe?.id) return;
     const fromCatalog = recipeCatalogById[recipe.id] ?? recipe;
     const resolvedGarnishId = opts.garnishId ?? fromCatalog.pinnedGarnishId ?? null;
-    const initialCourse = opts.initialCourse ?? (resolvedGarnishId ? "combinado" : "principal");
+    // Sin fallback a un "pinned" de catálogo (no existe hoy para salsa, a
+    // diferencia de la guarnición): solo la elección explícita del picker.
+    const resolvedSauceId = opts.sauceId ?? null;
+    const initialCourse = opts.initialCourse ?? (resolvedGarnishId || resolvedSauceId ? "combinado" : "principal");
     const eaters = Math.max(1, data.members?.length || 4);
     const full = catalogToFrontendRecipe(fromCatalog, eaters);
     if (resolvedGarnishId) full.garnishId = resolvedGarnishId;
+    // sauceForRecipe() (utils/pairSauces.js) lee recipe.sauceId antes que
+    // calcular una sugerencia por defecto, así que fijarlo aquí basta para
+    // que la ficha muestre la salsa elegida en el picker, no la automática.
+    if (resolvedSauceId) full.sauceId = resolvedSauceId;
     registerRecipes([full]);
     setSelectedSlot({
       recipe: full,
@@ -3023,7 +2986,7 @@ export default function App() {
       browse: true,
       initialCourse,
     });
-    trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id, garnishId: resolvedGarnishId ?? undefined });
+    trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id, garnishId: resolvedGarnishId ?? undefined, sauceId: resolvedSauceId ?? undefined });
   }, [data.members, user]);
 
   const handleUpdateUserRecipe = useCallback((updated) => {
@@ -3284,28 +3247,7 @@ export default function App() {
 
   // Vaciar hueco: keep the slot (flagged `cleared`) so the deck renders a
   // tappable placeholder to refill it; offer an undo that restores the dishes.
-  const handleClearSlot = useCallback(async (sel, { reason = null } = {}) => {
-    if (householdReadOnly) return;
-    const { groupId, day, meal } = sel;
-    const key = `${day}-${meal}`;
-    const prevSlot = menuPlan[groupId]?.[key];
-    if (!prevSlot || (!prevSlot.recipeId && !prevSlot.firstRecipeId)) return;
-    const discardLabel = reason ? applyDiscardReason(sel, reason) : null;
-    const groups = data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
-    const snapshot = prevSlot;
-    const writeSlot = (slotValue) =>
-      setMenuPlan((plan) => {
-        const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: slotValue } };
-        applyShoppingFor(next, groups, pantryIngredients);
-        return next;
-      });
-    writeSlot({ ...prevSlot, recipeId: null, firstRecipeId: null, cleared: true, warnings: [] });
-    showToast(discardLabel ?? "Hueco vaciado", { label: "Deshacer", onClick: () => writeSlot(snapshot) });
-    trackEvent(user, "dish_cleared", "menu", { day, meal });
-  }, [data, menuPlan, showToast, user, applyShoppingFor, applyDiscardReason]);
-
-  // Duplicar: copy a dish into another slot (rosco → "Duplicar" → tap target).
+  // Duplicar: copy a dish into another slot (action bar → "Duplicar" → tap target).
   const handleDuplicateSlot = useCallback(async (source, target) => {
     if (householdReadOnly) return;
     if (!source || !target) return;
@@ -3327,48 +3269,6 @@ export default function App() {
     });
     showToast("Plato duplicado");
     trackEvent(user, "dish_duplicated", "menu", { from: sKey, to: tKey });
-  }, [data, menuPlan, showToast, user, applyShoppingFor]);
-
-  // "Regenerar → Cambiar guarnición": keep the main dish, swap only its side.
-  // The recipe id encodes only the main, so it doesn't change — we overwrite the
-  // registry/aiRecipes entry in place and bounce the slot to force a re-render +
-  // shopping rebuild with the new garnish's ingredients.
-  const handleRegarnishSlot = useCallback(async (sel) => {
-    if (householdReadOnly) return;
-    const { groupId, day, meal } = sel;
-    const course = sel.course ?? "main";
-    const key = `${day}-${meal}`;
-    const currentRecipeId =
-      course === "first" ? menuPlan[groupId]?.[key]?.firstRecipeId : menuPlan[groupId]?.[key]?.recipeId;
-    const currentGarnishId = RECIPES_BY_ID[currentRecipeId]?.garnishId ?? sel.recipe?.garnishId ?? null;
-    const result = pickGarnishReplacement(data, menuPlan, { groupId, day, meal, course, currentGarnishId });
-    if (!result) {
-      showToast("No hay otra guarnición para este plato");
-      return;
-    }
-    const { frontendRecipe } = result;
-    registerRecipes([frontendRecipe]);
-    setAiRecipes((cur) => {
-      const byId = new Map(cur.map((r) => [r.id, r]));
-      byId.set(frontendRecipe.id, frontendRecipe);
-      return Array.from(byId.values());
-    });
-    const groups =
-      data.groups.length > 0 ? data.groups : groupsFromModel(data.members, data.menuModel);
-    const pantryIngredients = user ? await loadPantry(user.id) : loadLocalPantry();
-    setMenuPlan((plan) => {
-      const prevSlot = plan[groupId]?.[key] ?? {};
-      const nextSlot = {
-        ...prevSlot,
-        ...(course === "first" ? { firstRecipeId: frontendRecipe.id } : { recipeId: frontendRecipe.id }),
-        warnings: [],
-      };
-      const next = { ...plan, [groupId]: { ...(plan[groupId] ?? {}), [key]: nextSlot } };
-      applyShoppingFor(next, groups, pantryIngredients);
-      return next;
-    });
-    showToast(`Nueva guarnición: «${frontendRecipe.name}»`);
-    trackEvent(user, "dish_regarnished", "menu", { day, meal });
   }, [data, menuPlan, showToast, user, applyShoppingFor]);
 
   /**
@@ -3407,27 +3307,6 @@ export default function App() {
     if (reason) applyDiscardReason(sel, reason);
     setSlotPicker({ groupId: sel.groupId, day: sel.day, meal: sel.meal, course: sel.course ?? "main" });
   }, [applyDiscardReason]);
-
-  // "Regenerar → Cena rápida / Plato único": open the picker restricted to the
-  // relevant pool (cenas_rapidas for a dinner, plato_unico dishes for a lunch),
-  // with thumbnails + tap-to-open dish detail. Placing one also flips this slot's
-  // type (data.slotType) so future regenerations keep honoring the choice.
-  const handlePickSlotType = useCallback((sel, kind) => {
-    if (householdReadOnly) return;
-    const all = [...Object.values(recipeCatalogById), ...(data.userRecipes ?? [])];
-    const recipes =
-      kind === "cena_rapida"
-        ? all.filter((r) => r.category === "cenas_rapidas")
-        : all.filter((r) => (r.mealRole ?? []).includes("plato_unico"));
-    setSlotPicker({
-      groupId: sel.groupId,
-      day: sel.day,
-      meal: sel.meal,
-      course: sel.course ?? "main",
-      kind,
-      recipes,
-    });
-  }, [data.userRecipes]);
 
   // Apply the catalog dish the user picked into the pending slot.
   const handleChooseRecipeForSlot = useCallback(async (recipeId) => {
@@ -3596,10 +3475,15 @@ export default function App() {
   // real choice: no kids to diverge from adults, nothing to upload if nobody
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
   // Orden de `onbScreens`: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
-  // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras ·
-  // 11 En casa · 12 Cocina · 13 Tiempos. Los índices de abajo (y
-  // AFINAR_WIZARD_STEPS en Onboarding.jsx) dependen de ese orden.
-  const ONB_STEP_COUNT = 14;
+  // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
+  // 11 Extras-Otros · 12 Tu despensa · 13 Cocina · 14 Tiempos. Los índices de
+  // abajo (y AFINAR_WIZARD_STEPS en Onboarding.jsx) dependen de ese orden.
+  // "Ajustes despensa" (¿cuándo se da por gastado?) vivió aquí como paso 13
+  // condicional un día (2026-08-25) — se quitó al día siguiente: la pregunta
+  // se entiende mejor mirando la despensa real que a mitad del asistente, así
+  // que ahora es un sheet contextual en Compra → En casa (icono de ajustes +
+  // primer aviso tras generar un menú), no un paso del wizard.
+  const ONB_STEP_COUNT = 15;
   // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
   // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
   // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
@@ -3610,8 +3494,8 @@ export default function App() {
   // "¿Cómo comen los niños?" (8) solo si hay niños en casa.
   const skipKidsDinner = !hasChildMember(data.members);
   // Modo básico simplifica el onboarding: "¿Cómo os gusta comer?" (9, se asume
-  // equilibrado) y "¿Cómo completamos el menú?" (10, la estructura de plato se
-  // pregunta ya en "¿Qué comidas quieres organizar?") se ocultan.
+  // equilibrado) y "Extras" (10-11, la estructura de plato se pregunta ya en
+  // "¿Qué comidas quieres organizar?") se ocultan.
   const basicMode = !data.expertMode;
   // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
   const skipBudgetStep = false;
@@ -3625,7 +3509,7 @@ export default function App() {
       (i === 3 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
       (i === 8 && skipKidsDinner) ||
-      (basicMode && (i === 9 || i === 10)) ||
+      (basicMode && (i === 9 || i === 10 || i === 11)) ||
       (quickMenu && i === 1),
     [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding]
   );
@@ -3791,7 +3675,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMealExtras
+    <OnboardingMealExtrasComidas
       data={data}
       setData={setData}
       onNext={nextOf(10)}
@@ -3799,7 +3683,7 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingPantry
+    <OnboardingMealExtrasOtros
       data={data}
       setData={setData}
       onNext={nextOf(11)}
@@ -3807,19 +3691,34 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
+    <OnboardingPantryInventory
+      user={user}
+      pantryHouseholdId={activeHouseholdId}
+      priceObs={data.priceObs ?? []}
+      pantryEpoch={pantryEpoch}
+      onToast={showToast}
+      data={data}
+      setData={setData}
+      shopping={shopping}
+      setShopping={setShopping}
+      onNext={nextOf(12)}
+      onBack={backOf(12)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
     <OnboardingCooking
       data={data}
       setData={setData}
-      onNext={nextOf(12)}
-      onBack={backOf(12)}
+      onNext={nextOf(13)}
+      onBack={backOf(13)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
     <OnboardingCookTime
       data={data}
       setData={setData}
-      onNext={nextOf(13)}
-      onBack={backOf(13)}
+      onNext={nextOf(14)}
+      onBack={backOf(14)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
@@ -3938,14 +3837,9 @@ export default function App() {
               restrictionConflicts={restrictionConflicts}
               onDishTap={handleDishTap}
               onDishReplace={householdReadOnly ? undefined : handleReplaceSlot}
-              onDishReplaceSameCategory={householdReadOnly ? undefined : (sel, opts = {}) => handleReplaceSlot(sel, { ...opts, sameCategory: true })}
-              onDishRegarnish={householdReadOnly ? undefined : handleRegarnishSlot}
               onDishSwap={householdReadOnly ? undefined : handleSwapSlots}
               onDishDuplicate={householdReadOnly ? undefined : handleDuplicateSlot}
-              onDishClear={householdReadOnly ? undefined : handleClearSlot}
               onDishManualPick={householdReadOnly ? undefined : handleManualPickSlot}
-              onDishPickCenaRapida={householdReadOnly ? undefined : (sel) => handlePickSlotType(sel, "cena_rapida")}
-              onDishPickPlatoUnico={householdReadOnly ? undefined : (sel) => handlePickSlotType(sel, "plato_unico")}
               onRegenerateDay={householdReadOnly ? undefined : handleRegenerateDay}
               onNav={handleNav}
               onRegenerate={householdReadOnly ? undefined : handleRegenerate}
@@ -3960,12 +3854,10 @@ export default function App() {
               onSwitchWeek={switchActiveWeek}
               onOpenMenus={openMenusScreen}
               onOpenAnalytics={() => {
-                setGastoFromPantry(false);
                 setAnalyticsInitialTab(null);
                 fwd(() => setScreen("analytics"));
               }}
-              autoOpenProfile={pendingProfileOpen}
-              onAutoOpenProfileHandled={() => setPendingProfileOpen(false)}
+              onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
               shoppingItems={shopping.items}
             />
           </div>
@@ -3988,11 +3880,9 @@ export default function App() {
               <MenusScreen
                 data={data}
                 hasAccount={Boolean(user)}
-                readOnly={householdReadOnly}
                 onNav={handleNav}
                 onBack={() => back(() => setScreen("menu"))}
                 onOpenCurrent={() => fwd(() => setScreen("menu"))}
-                onGenerateMenu={householdReadOnly ? undefined : handleGenerateMenu}
                 onReuseMenu={householdReadOnly ? undefined : reuseMenu}
                 onToggleFavorite={householdReadOnly ? undefined : (menuId) => {
                   const nextFavorite = !data.menus?.[menuId]?.isFavorite;
@@ -4000,9 +3890,6 @@ export default function App() {
                   if (user) toggleMenuFavoriteRemote(user.id, menuId, nextFavorite);
                 }}
                 onSignIn={signInWithGoogle}
-                onRegenerateActive={householdReadOnly ? undefined : () => { fwd(() => setScreen("menu")); regenerateMenu(); }}
-                onEditActive={householdReadOnly ? undefined : () => { setPendingProfileOpen(true); fwd(() => setScreen("menu")); }}
-                onDeleteActive={householdReadOnly ? undefined : deleteActiveMenu}
                 onOpenHistory={openHistoryMenu}
                 onDeleteHistory={householdReadOnly ? undefined : deleteHistoryMenu}
               />
@@ -4048,6 +3935,8 @@ export default function App() {
                 openCaptureOnMount={shoppingCaptureIntent}
                 onCaptureHandled={() => setShoppingCaptureIntent(false)}
                 pantryEpoch={pantryEpoch}
+                initialTab={shoppingInitialTab}
+                onInitialTabHandled={() => setShoppingInitialTab(null)}
               />
             </Suspense>
           </div>
@@ -4072,10 +3961,6 @@ export default function App() {
                 onToast={showToast}
                 initialTab={analyticsInitialTab}
                 onInitialTabHandled={() => setAnalyticsInitialTab(null)}
-                onBackToPantry={
-                  gastoFromPantry ? () => back(() => { setGastoFromPantry(false); setScreen("pantry"); }) : null
-                }
-                navActive={gastoFromPantry ? "pantry" : "menu"}
               />
             </Suspense>
           </div>
@@ -4126,35 +4011,6 @@ export default function App() {
           </div>
         )}
 
-        {screen === "pantry" && (
-          <div
-            key="pantry"
-            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
-          >
-            <Suspense fallback={null}>
-              <PantryScreen
-                user={user}
-                readOnly={householdReadOnly}
-                readOnlyLabel={householdReadOnlyLabel}
-                pantryHouseholdId={activeHouseholdId}
-                onBack={() => back(() => setScreen(pantryOrigin))}
-                priceObs={data.priceObs ?? []}
-                pantryEpoch={pantryEpoch}
-                onNav={handleNav}
-                data={data}
-                setData={householdReadOnly ? null : setData}
-                shopping={shopping}
-                setShopping={householdReadOnly ? null : setShopping}
-                onToast={showToast}
-                onOpenAnalytics={householdReadOnly ? null : () => {
-                  setAnalyticsInitialTab("gasto");
-                  setGastoFromPantry(true);
-                  fwd(() => setScreen("analytics"));
-                }}
-              />
-            </Suspense>
-          </div>
-        )}
 
         {screen === "dashboard" && (
           <div
@@ -4168,15 +4024,10 @@ export default function App() {
                 menuPlan={menuPlan}
                 activeHousehold={activeHousehold}
                 householdReadOnly={householdReadOnly}
-                onOpenHouseholds={() => fwd(() => setScreen("households"))}
                 onNav={handleNav}
                 onOpenAccount={() => fwd(() => setScreen("profile"))}
                 onViewMenu={goToMenuFromDashboard}
-                onGenerateNewMenu={handleGenerateMenu}
-                onOpenAnalytics={() => fwd(() => setScreen("analytics"))}
-                onOpenRecipePlanner={() => { recipePlannerOriginRef.current = "dashboard"; setEditingRecipe(null); fwd(() => setScreen("recipePlanner")); }}
-                onOpenRecipes={() => fwd(() => setScreen("recipes"))}
-                onOpenStreak={() => fwd(() => setScreen("menus"))}
+                onGenerateMenu={householdReadOnly ? undefined : handleGenerateMenu}
               />
             </Suspense>
           </div>
@@ -4199,11 +4050,8 @@ export default function App() {
                 userRecipes={ownUserRecipes}
                 recipeVotes={data.recipeVotes}
                 scopeGroups={favoriteScopeGroups}
-                discardedIds={data.discards?.forever ?? []}
                 readOnly={householdReadOnly}
                 readOnlyLabel={householdReadOnly && activeHousehold ? `Recetas de ${activeHousehold.name}` : null}
-                onRecoverRecipe={handleUndiscardRecipe}
-                onDiscardRecipe={handleDiscardRecipe}
                 onSetFavoriteScope={handleSetFavoriteScope}
                 onOpenRecipe={handleOpenCatalogRecipe}
                 onNav={handleNav}
@@ -4219,10 +4067,6 @@ export default function App() {
                   if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
                 }}
                 onDeleteRecipe={handleDeleteRecipe}
-                onBrowseGarnishCombo={(recipe, garnish) => {
-                  if (!garnish?.id) return;
-                  handleOpenCatalogRecipe(recipe, { garnishId: garnish.id, initialCourse: "combinado" });
-                }}
                 onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
             </Suspense>
@@ -4349,9 +4193,9 @@ export default function App() {
                   setEditingRecipe(recipe);
                   fwd(() => setScreen("recipePlanner"));
                 }}
-                onBrowseGarnishCombo={(recipe, garnish) => {
-                  if (!garnish?.id) return;
-                  handleOpenCatalogRecipe(recipe, { garnishId: garnish.id, initialCourse: "combinado" });
+                onBrowseGarnishCombo={(recipe, { garnishId, sauceId } = {}) => {
+                  if (!garnishId && !sauceId) return;
+                  handleOpenCatalogRecipe(recipe, { garnishId, sauceId, initialCourse: "combinado" });
                 }}
                 onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
               />
@@ -4376,6 +4220,7 @@ export default function App() {
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
                 onEditMembers={() => fwd(() => setScreen("members"))}
+                onOpenHouseholds={() => fwd(() => setScreen("households"))}
                 activeHousehold={activeHousehold}
                 householdReadOnly={householdReadOnly}
               />
@@ -4439,12 +4284,6 @@ export default function App() {
       )}
 
       {selectedSlot && (() => {
-        const browseCatalogId = selectedSlot.browse
-          ? String(selectedSlot.recipe.baseRecipeId ?? selectedSlot.recipe.id).split("__").pop()
-          : null;
-        const canBrowseDiscard = Boolean(
-          browseCatalogId && !String(browseCatalogId).startsWith("user_"),
-        );
         return (
         <DishDetail
           key={selectedSlot.recipe.id}
@@ -4460,9 +4299,6 @@ export default function App() {
           favoriteScope={favScopeOf(data.recipeVotes?.[String(selectedSlot.recipe.id).split("__").pop()])}
           scopeGroups={favoriteScopeGroups}
           onSetFavoriteScope={householdReadOnly ? undefined : (scope) => handleSetFavoriteScope(selectedSlot.recipe.id, scope)}
-          discarded={canBrowseDiscard && (data.discards?.forever ?? []).includes(browseCatalogId)}
-          onDiscardRecipe={householdReadOnly || !canBrowseDiscard ? undefined : () => handleDiscardRecipe(browseCatalogId)}
-          onRecoverRecipe={householdReadOnly || !canBrowseDiscard ? undefined : () => handleUndiscardRecipe(browseCatalogId)}
           onClose={() => setSelectedSlot(null)}
           onReject={householdReadOnly || selectedSlot.browse ? undefined : () => handleReplaceSlot(selectedSlot)}
           day={selectedSlot.day ?? null}
@@ -4487,18 +4323,6 @@ export default function App() {
         />
         );
       })()}
-
-      {/* Cena rápida / Plato único: minimal thumbnail-only picker. */}
-      {slotPicker && (slotPicker.kind === "cena_rapida" || slotPicker.kind === "plato_unico") && (
-        <SlotTypePickerSheet
-          title={slotPicker.kind === "cena_rapida" ? "Cena rápida" : "Plato único"}
-          Icon={slotPicker.kind === "cena_rapida" ? Soup : Utensils}
-          accent={slotPicker.kind === "cena_rapida" ? "#d56b9a" : "#5a7066"}
-          recipes={slotPicker.recipes ?? []}
-          onPick={(id) => { if (id) handleChooseRecipeForSlot(id); }}
-          onClose={() => setSlotPicker(null)}
-        />
-      )}
 
       {/* Elegir a mano: full catalog browser. */}
       {slotPicker && !slotPicker.kind && (

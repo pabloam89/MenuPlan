@@ -5,11 +5,22 @@ import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
+import { dishImageUrl } from "../assets/dishes/dishImages.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
 // isolation filter in filterRecipes()). Kept as a Set for O(1) membership.
 const OFF_MENU_CATEGORIES = new Set(["desayunos", "meriendas", "postres"]);
+
+// Recetario Estrella (611 recetas, 2026) es ahora el catálogo principal; el
+// resto del catálogo original ("fondo de armario") se queda como fallback —
+// solo entra si las restricciones del grupo agotan el pool principal. La
+// señal es la misma que usa el navegador de Catálogo (CatalogBrowserSheet):
+// tiene foto propia real, generada para este lote. Una receta propia del
+// usuario siempre cuenta como "principal" — nunca depende de tener foto.
+function isPrimaryCatalog(recipe) {
+  return recipe.source === "user" || Boolean(dishImageUrl(recipe.id));
+}
 
 // Shared with the hasKids alcohol check inside filterRecipes() below.
 const ALCOHOL_RE =
@@ -319,9 +330,20 @@ export function filterRecipes({
 
   // Validate minimum viable pool. "Solo las mías" naturally has far fewer
   // recipes, so relax the minimums (repetition is expected and acceptable).
-  const categories = new Set(pool.map((r) => r.category));
   const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 1 : 25;
   const minCategories = isBabyGroup ? 1 : recipeMode === "only" ? 1 : 4;
+
+  // 9. Recetario Estrella primero: si el pool principal (Recetario Estrella +
+  // recetas propias) ya da para un menú variado, el fondo de armario ni se
+  // toca. Solo se amplía al catálogo completo cuando las restricciones del
+  // grupo dejan el pool principal demasiado corto — el plan B, no el default.
+  const primaryPool = pool.filter(isPrimaryCatalog);
+  const primaryCategories = new Set(primaryPool.map((r) => r.category));
+  const usePrimaryOnly =
+    primaryPool.length >= minRecipes && primaryCategories.size >= minCategories;
+  if (usePrimaryOnly) pool = primaryPool;
+
+  const categories = usePrimaryOnly ? primaryCategories : new Set(pool.map((r) => r.category));
   if (pool.length < minRecipes) {
     return {
       recipes: pool,

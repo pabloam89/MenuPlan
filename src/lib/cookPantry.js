@@ -18,7 +18,7 @@ export const PANTRY_CONSUME_MODES = ["onGenerate", "onCook", "endOfDay"];
  */
 export function pantryConsumeMode(data) {
   const mode = data?.pantryPrefs?.consume;
-  return PANTRY_CONSUME_MODES.includes(mode) ? mode : "onGenerate";
+  return PANTRY_CONSUME_MODES.includes(mode) ? mode : "onCook";
 }
 
 /**

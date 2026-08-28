@@ -4,7 +4,7 @@ import { callModel, extractJson, AIPlannerError, ICON_TYPE_MAP, CATEGORY_ICON } 
 import { FAST_MODEL } from "./aiModels.js";
 import { EU_ALLERGENS } from "./allergens.js";
 import { normalizeRichSteps, richToPlainSteps } from "./recipeSteps.js";
-import { StepRichSchema } from "../data/recipeSchema.js";
+import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import {
@@ -261,7 +261,7 @@ export function patchUserRecipeClassification(recipe, { usageTags, mealRole, qui
   const tags = usageTags ?? recipe.usageTags ?? deriveUsageTagsFromType(recipe.type);
   const type = deriveTypeFromUsageTags(tags);
   const isGarnishOnly = type === "guarnicion";
-  const qd = quickDinner ?? recipe.category === "cenas_rapidas";
+  const qd = quickDinner ?? isMontaje(recipe);
   const roles = mealRole ?? recipe.mealRole ?? [];
   const fallbackCategory =
     recipe.category && recipe.category !== "cenas_rapidas" && recipe.category !== "guarniciones"
@@ -272,7 +272,17 @@ export function patchUserRecipeClassification(recipe, { usageTags, mealRole, qui
     ...recipe,
     usageTags: tags,
     type,
-    category: isGarnishOnly ? "guarniciones" : qd ? "cenas_rapidas" : fallbackCategory,
+    // "Cena rápida" pasa a viajar en `montaje`, su propio eje, en vez de
+    // secuestrar `category` (que ahora solo responde "qué lleva el plato").
+    // La categoría deprecada solo se conserva si la receta YA la tenía: las
+    // recetas de usuario existentes no se migran, y isMontaje() las sigue
+    // resolviendo por el fallback.
+    montaje: qd,
+    category: isGarnishOnly
+      ? "guarniciones"
+      : qd && recipe.category === "cenas_rapidas"
+        ? "cenas_rapidas"
+        : fallbackCategory,
     mealRole: isGarnishOnly
       ? ["guarnicion"]
       : qd
