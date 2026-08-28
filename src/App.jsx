@@ -1457,6 +1457,20 @@ export default function App() {
             }
           }
         }
+        if (!activeWeek && !activeMenuIdRef.current) {
+          // No cloud menú marked active (activeSummary null — e.g. the user
+          // deleted their active menú but kept older history), and no
+          // not-yet-synced local one either (activeMenuIdRef). The live
+          // menuPlan/shopping still hold whatever remoteState.state.shopping
+          // (the legacy user_state blob) set higher up, which can be stale —
+          // e.g. the delete happened while offline and the debounced profile
+          // push never caught up (see deleteActiveMenu's "Puede reaparecer al
+          // recargar" warning). Cloud's menús table is the authority on "is
+          // there an active menú", so clear the live state to match instead of
+          // leaving old items sitting in Compra with no menú behind them.
+          setMenuPlan({});
+          setShopping({ items: [] });
+        }
 
         // The cloud tables have no row cap (loadMenuSummaries/loadMenuWeekRanges
         // fetch the whole history), so apply the same cap used everywhere else
