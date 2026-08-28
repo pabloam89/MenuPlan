@@ -35,7 +35,7 @@ const OUT_IMAGES_PATH = join(ROOT, "supabase", "seed_dish_images.sql");
 // así que va con ON CONFLICT DO UPDATE columna a columna — y en lotes de
 // BATCH_SIZE filas por sentencia, porque una sola sentencia con las ~900
 // recetas es demasiado larga para el editor SQL de Supabase.
-const BATCH_SIZE = 80;
+const BATCH_SIZE = 10;
 
 function sqlString(value) {
   if (value === null || value === undefined) return "NULL";
@@ -145,28 +145,40 @@ const recipeRows = recipes.map((r) => {
     `${sqlTextArray(r.mainIngredients)}, ${sqlString(r.sauceId)})`;
 });
 
-recipeLines.push(
-  ...batchedUpsert({
-    rows: recipeRows,
-    table: "recipes",
-    columns: RECIPE_COLUMNS,
-    pk: "id",
-    updateCols: RECIPE_UPDATE_COLUMNS,
-  }),
-);
+// 4 archivos en vez de 1 — cada uno se pega y ejecuta entero de una sola vez
+// en el SQL Editor (dentro lleva sus propias sentencias pequeñas por lote,
+// así que sigue sin chocar con el límite de tamaño por sentencia), pero solo
+// son 4 copiar-pegar en vez de una tabla gigante o decenas de bloques sueltos.
+const RECIPE_PARTS = 4;
+const recipeRowParts = chunk(recipeRows, Math.ceil(recipeRows.length / RECIPE_PARTS));
 
-recipeLines.push("insert into catalog_meta (id, version) values");
-recipeLines.push(`  ('recipes', ${CATALOG_VERSION})`);
-recipeLines.push("on conflict (id) do update set version = excluded.version, updated_at = now();");
-recipeLines.push("");
+recipeRowParts.forEach((partRows, i) => {
+  const partLines = [...recipeLines];
+  partLines.push(
+    ...batchedUpsert({
+      rows: partRows,
+      table: "recipes",
+      columns: RECIPE_COLUMNS,
+      pk: "id",
+      updateCols: RECIPE_UPDATE_COLUMNS,
+    }),
+  );
+  // La versión de catálogo se sube solo en la última parte, para que no
+  // quede marcada como "lista" hasta que las 4 se hayan ejecutado.
+  if (i === recipeRowParts.length - 1) {
+    partLines.push("insert into catalog_meta (id, version) values");
+    partLines.push(`  ('recipes', ${CATALOG_VERSION})`);
+    partLines.push("on conflict (id) do update set version = excluded.version, updated_at = now();");
+    partLines.push("");
+  }
+  partLines.push("commit;");
+  partLines.push("");
 
-recipeLines.push("commit;");
-recipeLines.push("");
-
-writeFileSync(OUT_RECIPES_PATH, recipeLines.join("\n"), "utf8");
-console.log(`✅ Generado ${OUT_RECIPES_PATH}`);
-console.log(`   ${recipes.length} recetas, versión de catálogo: v${CATALOG_VERSION}`);
-console.log(`   Lotes de ${BATCH_SIZE} filas por sentencia (${Math.ceil(recipes.length / BATCH_SIZE)} sentencias)`);
+  const partPath = OUT_RECIPES_PATH.replace(/\.sql$/, `_${i + 1}_de_${recipeRowParts.length}.sql`);
+  writeFileSync(partPath, partLines.join("\n"), "utf8");
+  console.log(`✅ Generado ${partPath} (${partRows.length} recetas)`);
+});
+console.log(`   ${recipes.length} recetas en total, versión de catálogo: v${CATALOG_VERSION}, ${RECIPE_PARTS} archivos`);
 
 let imageCount = 0;
 if (existsSync(IMAGES_PATH)) {

@@ -17,7 +17,15 @@ insert into dish_images (
   ('bebes_007', 'bebes_007', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_007.jpg?v=16'),
   ('bebes_008', 'bebes_008', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_008.jpg?v=16'),
   ('bebes_009', 'bebes_009', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_009.jpg?v=16'),
-  ('bebes_010', 'bebes_010', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_010.jpg?v=16'),
+  ('bebes_010', 'bebes_010', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_010.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('bebes_012', 'bebes_012', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_012.jpg?v=16'),
   ('bebes_013', 'bebes_013', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_013.jpg?v=16'),
   ('bebes_014', 'bebes_014', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_014.jpg?v=16'),
@@ -27,7 +35,15 @@ insert into dish_images (
   ('bebes_019', 'bebes_019', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_019.jpg?v=16'),
   ('bebes_021', 'bebes_021', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_021.jpg?v=16'),
   ('bebes_022', 'bebes_022', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/bebes_022.jpg?v=16'),
-  ('desayunos_001', 'desayunos_001', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_001.jpg?v=16'),
+  ('desayunos_001', 'desayunos_001', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_001.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('desayunos_008', 'desayunos_008', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_008.jpg?v=16'),
   ('postres_001', 'postres_001', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_001.jpg?v=16'),
   ('postres_002', 'postres_002', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_002.jpg?v=16'),
@@ -37,7 +53,15 @@ insert into dish_images (
   ('postres_009', 'postres_009', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_009.jpg?v=16'),
   ('postres_013', 'postres_013', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_013.jpg?v=16'),
   ('postres_014', 'postres_014', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_014.jpg?v=16'),
-  ('meriendas_001', 'meriendas_001', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_001.jpg?v=16'),
+  ('meriendas_001', 'meriendas_001', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_001.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('meriendas_005', 'meriendas_005', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/meriendas_005.jpg?v=16'),
   ('carnes_037', 'carnes_037', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_037.jpg?v=16'),
   ('carnes_038', 'carnes_038', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_038.jpg?v=16'),
@@ -47,7 +71,15 @@ insert into dish_images (
   ('carnes_042', 'carnes_042', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_042.jpg?v=16'),
   ('carnes_043', 'carnes_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_043.jpg?v=16'),
   ('carnes_044', 'carnes_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_044.jpg?v=16'),
-  ('carnes_045', 'carnes_045', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_045.jpg?v=16'),
+  ('carnes_045', 'carnes_045', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_045.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_046', 'carnes_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_046.jpg?v=16'),
   ('carnes_047', 'carnes_047', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_047.jpg?v=16'),
   ('carnes_048', 'carnes_048', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_048.jpg?v=16'),
@@ -57,7 +89,15 @@ insert into dish_images (
   ('carnes_052', 'carnes_052', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_052.jpg?v=16'),
   ('carnes_053', 'carnes_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_053.jpg?v=16'),
   ('carnes_054', 'carnes_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_054.jpg?v=16'),
-  ('carnes_055', 'carnes_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_055.jpg?v=16'),
+  ('carnes_055', 'carnes_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_055.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_056', 'carnes_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_056.jpg?v=16'),
   ('carnes_057', 'carnes_057', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_057.jpg?v=16'),
   ('carnes_058', 'carnes_058', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_058.jpg?v=16'),
@@ -67,7 +107,15 @@ insert into dish_images (
   ('carnes_062', 'carnes_062', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_062.jpg?v=16'),
   ('carnes_063', 'carnes_063', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_063.jpg?v=16'),
   ('carnes_064', 'carnes_064', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_064.jpg?v=16'),
-  ('carnes_065', 'carnes_065', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_065.jpg?v=16'),
+  ('carnes_065', 'carnes_065', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_065.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_066', 'carnes_066', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_066.jpg?v=16'),
   ('carnes_067', 'carnes_067', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_067.jpg?v=16'),
   ('carnes_068', 'carnes_068', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_068.jpg?v=16'),
@@ -77,7 +125,15 @@ insert into dish_images (
   ('carnes_072', 'carnes_072', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_072.jpg?v=16'),
   ('carnes_073', 'carnes_073', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_073.jpg?v=16'),
   ('carnes_074', 'carnes_074', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_074.jpg?v=16'),
-  ('carnes_075', 'carnes_075', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_075.jpg?v=16'),
+  ('carnes_075', 'carnes_075', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_075.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_076', 'carnes_076', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_076.jpg?v=16'),
   ('carnes_077', 'carnes_077', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_077.jpg?v=16'),
   ('carnes_078', 'carnes_078', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_078.jpg?v=16'),
@@ -105,7 +161,15 @@ insert into dish_images (
   ('carnes_092', 'carnes_092', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_092.jpg?v=16'),
   ('carnes_093', 'carnes_093', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_093.jpg?v=16'),
   ('carnes_094', 'carnes_094', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_094.jpg?v=16'),
-  ('carnes_095', 'carnes_095', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_095.jpg?v=16'),
+  ('carnes_095', 'carnes_095', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_095.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_096', 'carnes_096', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_096.jpg?v=16'),
   ('carnes_097', 'carnes_097', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_097.jpg?v=16'),
   ('carnes_098', 'carnes_098', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_098.jpg?v=16'),
@@ -115,7 +179,15 @@ insert into dish_images (
   ('carnes_102', 'carnes_102', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_102.jpg?v=16'),
   ('carnes_103', 'carnes_103', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_103.jpg?v=16'),
   ('carnes_104', 'carnes_104', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_104.jpg?v=16'),
-  ('carnes_105', 'carnes_105', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_105.jpg?v=16'),
+  ('carnes_105', 'carnes_105', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_105.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_106', 'carnes_106', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_106.jpg?v=16'),
   ('carnes_107', 'carnes_107', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_107.jpg?v=16'),
   ('carnes_108', 'carnes_108', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_108.jpg?v=16'),
@@ -125,7 +197,15 @@ insert into dish_images (
   ('carnes_112', 'carnes_112', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_112.jpg?v=16'),
   ('carnes_113', 'carnes_113', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_113.jpg?v=16'),
   ('carnes_114', 'carnes_114', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_114.jpg?v=16'),
-  ('carnes_115', 'carnes_115', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_115.jpg?v=16'),
+  ('carnes_115', 'carnes_115', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_115.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_116', 'carnes_116', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_116.jpg?v=16'),
   ('carnes_117', 'carnes_117', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_117.jpg?v=16'),
   ('carnes_118', 'carnes_118', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_118.jpg?v=16'),
@@ -135,7 +215,15 @@ insert into dish_images (
   ('carnes_122', 'carnes_122', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_122.jpg?v=16'),
   ('carnes_123', 'carnes_123', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_123.jpg?v=16'),
   ('carnes_124', 'carnes_124', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_124.jpg?v=16'),
-  ('carnes_125', 'carnes_125', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_125.jpg?v=16'),
+  ('carnes_125', 'carnes_125', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_125.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_126', 'carnes_126', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_126.jpg?v=16'),
   ('carnes_127', 'carnes_127', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_127.jpg?v=16'),
   ('carnes_128', 'carnes_128', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_128.jpg?v=16'),
@@ -145,7 +233,15 @@ insert into dish_images (
   ('carnes_132', 'carnes_132', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_132.jpg?v=16'),
   ('carnes_133', 'carnes_133', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_133.jpg?v=16'),
   ('carnes_134', 'carnes_134', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_134.jpg?v=16'),
-  ('carnes_135', 'carnes_135', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_135.jpg?v=16'),
+  ('carnes_135', 'carnes_135', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_135.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('carnes_136', 'carnes_136', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_136.jpg?v=16'),
   ('carnes_137', 'carnes_137', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_137.jpg?v=16'),
   ('carnes_138', 'carnes_138', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_138.jpg?v=16'),
@@ -155,7 +251,15 @@ insert into dish_images (
   ('carnes_142', 'carnes_142', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_142.jpg?v=16'),
   ('carnes_143', 'carnes_143', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_143.jpg?v=16'),
   ('carnes_144', 'carnes_144', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_144.jpg?v=16'),
-  ('carnes_145', 'carnes_145', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_145.jpg?v=16'),
+  ('carnes_145', 'carnes_145', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/carnes_145.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('desayunos_009', 'desayunos_009', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_009.jpg?v=16'),
   ('desayunos_010', 'desayunos_010', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_010.jpg?v=16'),
   ('desayunos_011', 'desayunos_011', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_011.jpg?v=16'),
@@ -165,7 +269,15 @@ insert into dish_images (
   ('desayunos_015', 'desayunos_015', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_015.jpg?v=16'),
   ('desayunos_016', 'desayunos_016', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_016.jpg?v=16'),
   ('desayunos_017', 'desayunos_017', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_017.jpg?v=16'),
-  ('desayunos_018', 'desayunos_018', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_018.jpg?v=16'),
+  ('desayunos_018', 'desayunos_018', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_018.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('desayunos_019', 'desayunos_019', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_019.jpg?v=16'),
   ('desayunos_020', 'desayunos_020', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_020.jpg?v=16'),
   ('desayunos_021', 'desayunos_021', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/desayunos_021.jpg?v=16'),
@@ -193,7 +305,15 @@ insert into dish_images (
   ('ensaladas_verduras_040', 'ensaladas_verduras_040', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_040.jpg?v=16'),
   ('ensaladas_verduras_041', 'ensaladas_verduras_041', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_041.jpg?v=16'),
   ('ensaladas_verduras_042', 'ensaladas_verduras_042', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_042.jpg?v=16'),
-  ('ensaladas_verduras_043', 'ensaladas_verduras_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_043.jpg?v=16'),
+  ('ensaladas_verduras_043', 'ensaladas_verduras_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_043.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('ensaladas_verduras_044', 'ensaladas_verduras_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_044.jpg?v=16'),
   ('ensaladas_verduras_045', 'ensaladas_verduras_045', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_045.jpg?v=16'),
   ('ensaladas_verduras_046', 'ensaladas_verduras_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_046.jpg?v=16'),
@@ -203,7 +323,15 @@ insert into dish_images (
   ('ensaladas_verduras_050', 'ensaladas_verduras_050', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_050.jpg?v=16'),
   ('ensaladas_verduras_051', 'ensaladas_verduras_051', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_051.jpg?v=16'),
   ('ensaladas_verduras_052', 'ensaladas_verduras_052', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_052.jpg?v=16'),
-  ('ensaladas_verduras_053', 'ensaladas_verduras_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_053.jpg?v=16'),
+  ('ensaladas_verduras_053', 'ensaladas_verduras_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_053.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('ensaladas_verduras_054', 'ensaladas_verduras_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_054.jpg?v=16'),
   ('ensaladas_verduras_055', 'ensaladas_verduras_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_055.jpg?v=16'),
   ('ensaladas_verduras_056', 'ensaladas_verduras_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_056.jpg?v=16'),
@@ -213,7 +341,15 @@ insert into dish_images (
   ('ensaladas_verduras_060', 'ensaladas_verduras_060', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_060.jpg?v=16'),
   ('ensaladas_verduras_061', 'ensaladas_verduras_061', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_061.jpg?v=16'),
   ('ensaladas_verduras_062', 'ensaladas_verduras_062', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_062.jpg?v=16'),
-  ('ensaladas_verduras_063', 'ensaladas_verduras_063', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_063.jpg?v=16'),
+  ('ensaladas_verduras_063', 'ensaladas_verduras_063', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_063.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('ensaladas_verduras_064', 'ensaladas_verduras_064', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_064.jpg?v=16'),
   ('ensaladas_verduras_065', 'ensaladas_verduras_065', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_065.jpg?v=16'),
   ('ensaladas_verduras_066', 'ensaladas_verduras_066', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_066.jpg?v=16'),
@@ -223,7 +359,15 @@ insert into dish_images (
   ('ensaladas_verduras_070', 'ensaladas_verduras_070', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_070.jpg?v=16'),
   ('ensaladas_verduras_071', 'ensaladas_verduras_071', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_071.jpg?v=16'),
   ('ensaladas_verduras_072', 'ensaladas_verduras_072', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_072.jpg?v=16'),
-  ('ensaladas_verduras_073', 'ensaladas_verduras_073', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_073.jpg?v=16'),
+  ('ensaladas_verduras_073', 'ensaladas_verduras_073', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_073.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('ensaladas_verduras_074', 'ensaladas_verduras_074', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_074.jpg?v=16'),
   ('ensaladas_verduras_075', 'ensaladas_verduras_075', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_075.jpg?v=16'),
   ('ensaladas_verduras_076', 'ensaladas_verduras_076', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_076.jpg?v=16'),
@@ -233,7 +377,15 @@ insert into dish_images (
   ('ensaladas_verduras_080', 'ensaladas_verduras_080', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_080.jpg?v=16'),
   ('ensaladas_verduras_081', 'ensaladas_verduras_081', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_081.jpg?v=16'),
   ('ensaladas_verduras_082', 'ensaladas_verduras_082', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_082.jpg?v=16'),
-  ('ensaladas_verduras_083', 'ensaladas_verduras_083', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_083.jpg?v=16'),
+  ('ensaladas_verduras_083', 'ensaladas_verduras_083', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_083.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('ensaladas_verduras_084', 'ensaladas_verduras_084', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_084.jpg?v=16'),
   ('ensaladas_verduras_085', 'ensaladas_verduras_085', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_085.jpg?v=16'),
   ('ensaladas_verduras_086', 'ensaladas_verduras_086', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_086.jpg?v=16'),
@@ -243,7 +395,15 @@ insert into dish_images (
   ('ensaladas_verduras_090', 'ensaladas_verduras_090', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_090.jpg?v=16'),
   ('ensaladas_verduras_091', 'ensaladas_verduras_091', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_091.jpg?v=16'),
   ('ensaladas_verduras_092', 'ensaladas_verduras_092', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_092.jpg?v=16'),
-  ('ensaladas_verduras_093', 'ensaladas_verduras_093', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_093.jpg?v=16'),
+  ('ensaladas_verduras_093', 'ensaladas_verduras_093', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_093.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('ensaladas_verduras_094', 'ensaladas_verduras_094', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_094.jpg?v=16'),
   ('ensaladas_verduras_095', 'ensaladas_verduras_095', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_095.jpg?v=16'),
   ('ensaladas_verduras_096', 'ensaladas_verduras_096', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_096.jpg?v=16'),
@@ -253,7 +413,15 @@ insert into dish_images (
   ('ensaladas_verduras_100', 'ensaladas_verduras_100', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_100.jpg?v=16'),
   ('ensaladas_verduras_101', 'ensaladas_verduras_101', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_101.jpg?v=16'),
   ('ensaladas_verduras_102', 'ensaladas_verduras_102', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_102.jpg?v=16'),
-  ('ensaladas_verduras_103', 'ensaladas_verduras_103', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_103.jpg?v=16'),
+  ('ensaladas_verduras_103', 'ensaladas_verduras_103', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_103.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('ensaladas_verduras_104', 'ensaladas_verduras_104', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_104.jpg?v=16'),
   ('ensaladas_verduras_105', 'ensaladas_verduras_105', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_105.jpg?v=16'),
   ('ensaladas_verduras_106', 'ensaladas_verduras_106', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_106.jpg?v=16'),
@@ -281,7 +449,15 @@ insert into dish_images (
   ('ensaladas_verduras_120', 'ensaladas_verduras_120', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_120.jpg?v=16'),
   ('ensaladas_verduras_121', 'ensaladas_verduras_121', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_121.jpg?v=16'),
   ('ensaladas_verduras_122', 'ensaladas_verduras_122', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/ensaladas_verduras_122.jpg?v=16'),
-  ('guarniciones_024', 'guarniciones_024', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_024.jpg?v=16'),
+  ('guarniciones_024', 'guarniciones_024', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_024.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('guarniciones_025', 'guarniciones_025', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_025.jpg?v=16'),
   ('guarniciones_026', 'guarniciones_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_026.jpg?v=16'),
   ('guarniciones_027', 'guarniciones_027', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_027.jpg?v=16'),
@@ -291,7 +467,15 @@ insert into dish_images (
   ('guarniciones_031', 'guarniciones_031', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_031.jpg?v=16'),
   ('guarniciones_032', 'guarniciones_032', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_032.jpg?v=16'),
   ('guarniciones_033', 'guarniciones_033', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_033.jpg?v=16'),
-  ('guarniciones_034', 'guarniciones_034', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_034.jpg?v=16'),
+  ('guarniciones_034', 'guarniciones_034', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_034.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('guarniciones_035', 'guarniciones_035', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_035.jpg?v=16'),
   ('guarniciones_036', 'guarniciones_036', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_036.jpg?v=16'),
   ('guarniciones_037', 'guarniciones_037', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_037.jpg?v=16'),
@@ -301,7 +485,15 @@ insert into dish_images (
   ('guarniciones_041', 'guarniciones_041', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_041.jpg?v=16'),
   ('guarniciones_042', 'guarniciones_042', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_042.jpg?v=16'),
   ('guarniciones_043', 'guarniciones_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_043.jpg?v=16'),
-  ('guarniciones_044', 'guarniciones_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_044.jpg?v=16'),
+  ('guarniciones_044', 'guarniciones_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_044.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('guarniciones_045', 'guarniciones_045', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_045.jpg?v=16'),
   ('guarniciones_046', 'guarniciones_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_046.jpg?v=16'),
   ('guarniciones_047', 'guarniciones_047', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_047.jpg?v=16'),
@@ -311,7 +503,15 @@ insert into dish_images (
   ('guarniciones_051', 'guarniciones_051', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_051.jpg?v=16'),
   ('guarniciones_052', 'guarniciones_052', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_052.jpg?v=16'),
   ('guarniciones_053', 'guarniciones_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_053.jpg?v=16'),
-  ('guarniciones_054', 'guarniciones_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_054.jpg?v=16'),
+  ('guarniciones_054', 'guarniciones_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_054.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('guarniciones_055', 'guarniciones_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_055.jpg?v=16'),
   ('guarniciones_056', 'guarniciones_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_056.jpg?v=16'),
   ('guarniciones_057', 'guarniciones_057', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_057.jpg?v=16'),
@@ -321,7 +521,15 @@ insert into dish_images (
   ('guarniciones_061', 'guarniciones_061', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_061.jpg?v=16'),
   ('guarniciones_062', 'guarniciones_062', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_062.jpg?v=16'),
   ('guarniciones_063', 'guarniciones_063', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/guarniciones_063.jpg?v=16'),
-  ('huevos_018', 'huevos_018', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_018.jpg?v=16'),
+  ('huevos_018', 'huevos_018', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_018.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('huevos_019', 'huevos_019', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_019.jpg?v=16'),
   ('huevos_020', 'huevos_020', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_020.jpg?v=16'),
   ('huevos_021', 'huevos_021', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_021.jpg?v=16'),
@@ -331,7 +539,15 @@ insert into dish_images (
   ('huevos_025', 'huevos_025', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_025.jpg?v=16'),
   ('huevos_026', 'huevos_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_026.jpg?v=16'),
   ('huevos_027', 'huevos_027', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_027.jpg?v=16'),
-  ('huevos_028', 'huevos_028', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_028.jpg?v=16'),
+  ('huevos_028', 'huevos_028', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_028.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('huevos_029', 'huevos_029', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_029.jpg?v=16'),
   ('huevos_030', 'huevos_030', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_030.jpg?v=16'),
   ('huevos_031', 'huevos_031', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_031.jpg?v=16'),
@@ -341,7 +557,15 @@ insert into dish_images (
   ('huevos_035', 'huevos_035', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_035.jpg?v=16'),
   ('huevos_036', 'huevos_036', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_036.jpg?v=16'),
   ('huevos_037', 'huevos_037', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_037.jpg?v=16'),
-  ('huevos_038', 'huevos_038', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_038.jpg?v=16'),
+  ('huevos_038', 'huevos_038', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_038.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('huevos_039', 'huevos_039', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_039.jpg?v=16'),
   ('huevos_040', 'huevos_040', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_040.jpg?v=16'),
   ('huevos_041', 'huevos_041', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_041.jpg?v=16'),
@@ -369,7 +593,15 @@ insert into dish_images (
   ('huevos_055', 'huevos_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_055.jpg?v=16'),
   ('huevos_056', 'huevos_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_056.jpg?v=16'),
   ('huevos_057', 'huevos_057', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_057.jpg?v=16'),
-  ('huevos_058', 'huevos_058', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_058.jpg?v=16'),
+  ('huevos_058', 'huevos_058', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_058.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('huevos_059', 'huevos_059', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_059.jpg?v=16'),
   ('huevos_060', 'huevos_060', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_060.jpg?v=16'),
   ('huevos_061', 'huevos_061', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_061.jpg?v=16'),
@@ -379,7 +611,15 @@ insert into dish_images (
   ('huevos_065', 'huevos_065', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_065.jpg?v=16'),
   ('huevos_066', 'huevos_066', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_066.jpg?v=16'),
   ('huevos_067', 'huevos_067', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_067.jpg?v=16'),
-  ('huevos_068', 'huevos_068', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_068.jpg?v=16'),
+  ('huevos_068', 'huevos_068', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_068.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('huevos_069', 'huevos_069', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_069.jpg?v=16'),
   ('huevos_070', 'huevos_070', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_070.jpg?v=16'),
   ('huevos_071', 'huevos_071', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_071.jpg?v=16'),
@@ -389,7 +629,15 @@ insert into dish_images (
   ('huevos_075', 'huevos_075', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_075.jpg?v=16'),
   ('huevos_076', 'huevos_076', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_076.jpg?v=16'),
   ('huevos_077', 'huevos_077', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_077.jpg?v=16'),
-  ('huevos_078', 'huevos_078', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_078.jpg?v=16'),
+  ('huevos_078', 'huevos_078', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_078.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('huevos_079', 'huevos_079', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_079.jpg?v=16'),
   ('huevos_080', 'huevos_080', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_080.jpg?v=16'),
   ('huevos_081', 'huevos_081', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/huevos_081.jpg?v=16'),
@@ -399,7 +647,15 @@ insert into dish_images (
   ('legumbres_023', 'legumbres_023', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_023.jpg?v=16'),
   ('legumbres_024', 'legumbres_024', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_024.jpg?v=16'),
   ('legumbres_025', 'legumbres_025', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_025.jpg?v=16'),
-  ('legumbres_026', 'legumbres_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_026.jpg?v=16'),
+  ('legumbres_026', 'legumbres_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_026.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('legumbres_027', 'legumbres_027', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_027.jpg?v=16'),
   ('legumbres_028', 'legumbres_028', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_028.jpg?v=16'),
   ('legumbres_029', 'legumbres_029', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_029.jpg?v=16'),
@@ -409,7 +665,15 @@ insert into dish_images (
   ('legumbres_033', 'legumbres_033', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_033.jpg?v=16'),
   ('legumbres_034', 'legumbres_034', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_034.jpg?v=16'),
   ('legumbres_035', 'legumbres_035', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_035.jpg?v=16'),
-  ('legumbres_036', 'legumbres_036', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_036.jpg?v=16'),
+  ('legumbres_036', 'legumbres_036', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_036.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('legumbres_037', 'legumbres_037', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_037.jpg?v=16'),
   ('legumbres_038', 'legumbres_038', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_038.jpg?v=16'),
   ('legumbres_039', 'legumbres_039', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_039.jpg?v=16'),
@@ -419,7 +683,15 @@ insert into dish_images (
   ('legumbres_043', 'legumbres_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_043.jpg?v=16'),
   ('legumbres_044', 'legumbres_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_044.jpg?v=16'),
   ('legumbres_045', 'legumbres_045', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_045.jpg?v=16'),
-  ('legumbres_046', 'legumbres_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_046.jpg?v=16'),
+  ('legumbres_046', 'legumbres_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_046.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('legumbres_047', 'legumbres_047', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_047.jpg?v=16'),
   ('legumbres_048', 'legumbres_048', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_048.jpg?v=16'),
   ('legumbres_049', 'legumbres_049', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_049.jpg?v=16'),
@@ -429,7 +701,15 @@ insert into dish_images (
   ('legumbres_053', 'legumbres_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_053.jpg?v=16'),
   ('legumbres_054', 'legumbres_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_054.jpg?v=16'),
   ('legumbres_055', 'legumbres_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_055.jpg?v=16'),
-  ('legumbres_056', 'legumbres_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_056.jpg?v=16'),
+  ('legumbres_056', 'legumbres_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_056.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('legumbres_057', 'legumbres_057', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_057.jpg?v=16'),
   ('legumbres_058', 'legumbres_058', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_058.jpg?v=16'),
   ('legumbres_059', 'legumbres_059', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/legumbres_059.jpg?v=16'),
@@ -457,7 +737,15 @@ insert into dish_images (
   ('pasta_arroces_031', 'pasta_arroces_031', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_031.jpg?v=16'),
   ('pasta_arroces_032', 'pasta_arroces_032', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_032.jpg?v=16'),
   ('pasta_arroces_033', 'pasta_arroces_033', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_033.jpg?v=16'),
-  ('pasta_arroces_034', 'pasta_arroces_034', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_034.jpg?v=16'),
+  ('pasta_arroces_034', 'pasta_arroces_034', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_034.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pasta_arroces_035', 'pasta_arroces_035', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_035.jpg?v=16'),
   ('pasta_arroces_036', 'pasta_arroces_036', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_036.jpg?v=16'),
   ('pasta_arroces_037', 'pasta_arroces_037', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_037.jpg?v=16'),
@@ -467,7 +755,15 @@ insert into dish_images (
   ('pasta_arroces_041', 'pasta_arroces_041', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_041.jpg?v=16'),
   ('pasta_arroces_042', 'pasta_arroces_042', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_042.jpg?v=16'),
   ('pasta_arroces_043', 'pasta_arroces_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_043.jpg?v=16'),
-  ('pasta_arroces_044', 'pasta_arroces_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_044.jpg?v=16'),
+  ('pasta_arroces_044', 'pasta_arroces_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_044.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pasta_arroces_045', 'pasta_arroces_045', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_045.jpg?v=16'),
   ('pasta_arroces_046', 'pasta_arroces_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_046.jpg?v=16'),
   ('pasta_arroces_047', 'pasta_arroces_047', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_047.jpg?v=16'),
@@ -477,7 +773,15 @@ insert into dish_images (
   ('pasta_arroces_051', 'pasta_arroces_051', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_051.jpg?v=16'),
   ('pasta_arroces_052', 'pasta_arroces_052', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_052.jpg?v=16'),
   ('pasta_arroces_053', 'pasta_arroces_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_053.jpg?v=16'),
-  ('pasta_arroces_054', 'pasta_arroces_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_054.jpg?v=16'),
+  ('pasta_arroces_054', 'pasta_arroces_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_054.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pasta_arroces_055', 'pasta_arroces_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_055.jpg?v=16'),
   ('pasta_arroces_056', 'pasta_arroces_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_056.jpg?v=16'),
   ('pasta_arroces_057', 'pasta_arroces_057', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_057.jpg?v=16'),
@@ -487,7 +791,15 @@ insert into dish_images (
   ('pasta_arroces_061', 'pasta_arroces_061', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_061.jpg?v=16'),
   ('pasta_arroces_062', 'pasta_arroces_062', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_062.jpg?v=16'),
   ('pasta_arroces_063', 'pasta_arroces_063', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_063.jpg?v=16'),
-  ('pasta_arroces_064', 'pasta_arroces_064', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_064.jpg?v=16'),
+  ('pasta_arroces_064', 'pasta_arroces_064', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_064.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pasta_arroces_065', 'pasta_arroces_065', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_065.jpg?v=16'),
   ('pasta_arroces_066', 'pasta_arroces_066', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_066.jpg?v=16'),
   ('pasta_arroces_067', 'pasta_arroces_067', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_067.jpg?v=16'),
@@ -497,7 +809,15 @@ insert into dish_images (
   ('pasta_arroces_071', 'pasta_arroces_071', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_071.jpg?v=16'),
   ('pasta_arroces_072', 'pasta_arroces_072', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_072.jpg?v=16'),
   ('pasta_arroces_073', 'pasta_arroces_073', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_073.jpg?v=16'),
-  ('pasta_arroces_074', 'pasta_arroces_074', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_074.jpg?v=16'),
+  ('pasta_arroces_074', 'pasta_arroces_074', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_074.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pasta_arroces_075', 'pasta_arroces_075', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_075.jpg?v=16'),
   ('pasta_arroces_076', 'pasta_arroces_076', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_076.jpg?v=16'),
   ('pasta_arroces_077', 'pasta_arroces_077', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_077.jpg?v=16'),
@@ -507,7 +827,15 @@ insert into dish_images (
   ('pasta_arroces_081', 'pasta_arroces_081', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_081.jpg?v=16'),
   ('pasta_arroces_082', 'pasta_arroces_082', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_082.jpg?v=16'),
   ('pasta_arroces_083', 'pasta_arroces_083', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_083.jpg?v=16'),
-  ('pasta_arroces_084', 'pasta_arroces_084', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_084.jpg?v=16'),
+  ('pasta_arroces_084', 'pasta_arroces_084', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_084.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pasta_arroces_085', 'pasta_arroces_085', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_085.jpg?v=16'),
   ('pasta_arroces_086', 'pasta_arroces_086', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_086.jpg?v=16'),
   ('pasta_arroces_087', 'pasta_arroces_087', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_087.jpg?v=16'),
@@ -517,7 +845,15 @@ insert into dish_images (
   ('pasta_arroces_091', 'pasta_arroces_091', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_091.jpg?v=16'),
   ('pasta_arroces_092', 'pasta_arroces_092', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_092.jpg?v=16'),
   ('pasta_arroces_093', 'pasta_arroces_093', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pasta_arroces_093.jpg?v=16'),
-  ('pescados_026', 'pescados_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_026.jpg?v=16'),
+  ('pescados_026', 'pescados_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_026.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_027', 'pescados_027', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_027.jpg?v=16'),
   ('pescados_028', 'pescados_028', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_028.jpg?v=16'),
   ('pescados_029', 'pescados_029', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_029.jpg?v=16'),
@@ -545,7 +881,15 @@ insert into dish_images (
   ('pescados_043', 'pescados_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_043.jpg?v=16'),
   ('pescados_044', 'pescados_044', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_044.jpg?v=16'),
   ('pescados_045', 'pescados_045', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_045.jpg?v=16'),
-  ('pescados_046', 'pescados_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_046.jpg?v=16'),
+  ('pescados_046', 'pescados_046', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_046.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_047', 'pescados_047', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_047.jpg?v=16'),
   ('pescados_048', 'pescados_048', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_048.jpg?v=16'),
   ('pescados_049', 'pescados_049', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_049.jpg?v=16'),
@@ -555,7 +899,15 @@ insert into dish_images (
   ('pescados_053', 'pescados_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_053.jpg?v=16'),
   ('pescados_054', 'pescados_054', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_054.jpg?v=16'),
   ('pescados_055', 'pescados_055', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_055.jpg?v=16'),
-  ('pescados_056', 'pescados_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_056.jpg?v=16'),
+  ('pescados_056', 'pescados_056', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_056.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_057', 'pescados_057', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_057.jpg?v=16'),
   ('pescados_058', 'pescados_058', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_058.jpg?v=16'),
   ('pescados_059', 'pescados_059', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_059.jpg?v=16'),
@@ -565,7 +917,15 @@ insert into dish_images (
   ('pescados_063', 'pescados_063', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_063.jpg?v=16'),
   ('pescados_064', 'pescados_064', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_064.jpg?v=16'),
   ('pescados_065', 'pescados_065', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_065.jpg?v=16'),
-  ('pescados_066', 'pescados_066', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_066.jpg?v=16'),
+  ('pescados_066', 'pescados_066', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_066.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_067', 'pescados_067', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_067.jpg?v=16'),
   ('pescados_068', 'pescados_068', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_068.jpg?v=16'),
   ('pescados_069', 'pescados_069', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_069.jpg?v=16'),
@@ -575,7 +935,15 @@ insert into dish_images (
   ('pescados_073', 'pescados_073', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_073.jpg?v=16'),
   ('pescados_074', 'pescados_074', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_074.jpg?v=16'),
   ('pescados_075', 'pescados_075', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_075.jpg?v=16'),
-  ('pescados_076', 'pescados_076', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_076.jpg?v=16'),
+  ('pescados_076', 'pescados_076', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_076.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_077', 'pescados_077', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_077.jpg?v=16'),
   ('pescados_078', 'pescados_078', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_078.jpg?v=16'),
   ('pescados_079', 'pescados_079', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_079.jpg?v=16'),
@@ -585,7 +953,15 @@ insert into dish_images (
   ('pescados_083', 'pescados_083', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_083.jpg?v=16'),
   ('pescados_084', 'pescados_084', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_084.jpg?v=16'),
   ('pescados_085', 'pescados_085', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_085.jpg?v=16'),
-  ('pescados_086', 'pescados_086', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_086.jpg?v=16'),
+  ('pescados_086', 'pescados_086', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_086.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_087', 'pescados_087', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_087.jpg?v=16'),
   ('pescados_088', 'pescados_088', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_088.jpg?v=16'),
   ('pescados_089', 'pescados_089', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_089.jpg?v=16'),
@@ -595,7 +971,15 @@ insert into dish_images (
   ('pescados_093', 'pescados_093', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_093.jpg?v=16'),
   ('pescados_094', 'pescados_094', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_094.jpg?v=16'),
   ('pescados_095', 'pescados_095', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_095.jpg?v=16'),
-  ('pescados_096', 'pescados_096', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_096.jpg?v=16'),
+  ('pescados_096', 'pescados_096', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_096.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_097', 'pescados_097', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_097.jpg?v=16'),
   ('pescados_098', 'pescados_098', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_098.jpg?v=16'),
   ('pescados_099', 'pescados_099', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_099.jpg?v=16'),
@@ -605,7 +989,15 @@ insert into dish_images (
   ('pescados_103', 'pescados_103', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_103.jpg?v=16'),
   ('pescados_104', 'pescados_104', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_104.jpg?v=16'),
   ('pescados_105', 'pescados_105', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_105.jpg?v=16'),
-  ('pescados_106', 'pescados_106', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_106.jpg?v=16'),
+  ('pescados_106', 'pescados_106', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_106.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('pescados_107', 'pescados_107', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_107.jpg?v=16'),
   ('pescados_108', 'pescados_108', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_108.jpg?v=16'),
   ('pescados_109', 'pescados_109', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/pescados_109.jpg?v=16'),
@@ -633,7 +1025,15 @@ insert into dish_images (
   ('postres_023', 'postres_023', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_023.jpg?v=16'),
   ('postres_024', 'postres_024', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_024.jpg?v=16'),
   ('postres_025', 'postres_025', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_025.jpg?v=16'),
-  ('postres_026', 'postres_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_026.jpg?v=16'),
+  ('postres_026', 'postres_026', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_026.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('postres_027', 'postres_027', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_027.jpg?v=16'),
   ('postres_028', 'postres_028', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_028.jpg?v=16'),
   ('postres_029', 'postres_029', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_029.jpg?v=16'),
@@ -643,7 +1043,15 @@ insert into dish_images (
   ('postres_033', 'postres_033', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_033.jpg?v=16'),
   ('postres_034', 'postres_034', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_034.jpg?v=16'),
   ('postres_035', 'postres_035', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_035.jpg?v=16'),
-  ('postres_036', 'postres_036', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_036.jpg?v=16'),
+  ('postres_036', 'postres_036', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/postres_036.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('sopas_cremas_021', 'sopas_cremas_021', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_021.jpg?v=16'),
   ('sopas_cremas_022', 'sopas_cremas_022', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_022.jpg?v=16'),
   ('sopas_cremas_023', 'sopas_cremas_023', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_023.jpg?v=16'),
@@ -653,7 +1061,15 @@ insert into dish_images (
   ('sopas_cremas_027', 'sopas_cremas_027', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_027.jpg?v=16'),
   ('sopas_cremas_028', 'sopas_cremas_028', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_028.jpg?v=16'),
   ('sopas_cremas_029', 'sopas_cremas_029', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_029.jpg?v=16'),
-  ('sopas_cremas_030', 'sopas_cremas_030', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_030.jpg?v=16'),
+  ('sopas_cremas_030', 'sopas_cremas_030', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_030.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('sopas_cremas_031', 'sopas_cremas_031', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_031.jpg?v=16'),
   ('sopas_cremas_032', 'sopas_cremas_032', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_032.jpg?v=16'),
   ('sopas_cremas_033', 'sopas_cremas_033', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_033.jpg?v=16'),
@@ -663,7 +1079,15 @@ insert into dish_images (
   ('sopas_cremas_037', 'sopas_cremas_037', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_037.jpg?v=16'),
   ('sopas_cremas_038', 'sopas_cremas_038', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_038.jpg?v=16'),
   ('sopas_cremas_039', 'sopas_cremas_039', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_039.jpg?v=16'),
-  ('sopas_cremas_040', 'sopas_cremas_040', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_040.jpg?v=16'),
+  ('sopas_cremas_040', 'sopas_cremas_040', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_040.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('sopas_cremas_041', 'sopas_cremas_041', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_041.jpg?v=16'),
   ('sopas_cremas_042', 'sopas_cremas_042', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_042.jpg?v=16'),
   ('sopas_cremas_043', 'sopas_cremas_043', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_043.jpg?v=16'),
@@ -673,7 +1097,15 @@ insert into dish_images (
   ('sopas_cremas_047', 'sopas_cremas_047', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_047.jpg?v=16'),
   ('sopas_cremas_048', 'sopas_cremas_048', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_048.jpg?v=16'),
   ('sopas_cremas_049', 'sopas_cremas_049', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_049.jpg?v=16'),
-  ('sopas_cremas_050', 'sopas_cremas_050', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_050.jpg?v=16'),
+  ('sopas_cremas_050', 'sopas_cremas_050', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_050.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('sopas_cremas_051', 'sopas_cremas_051', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_051.jpg?v=16'),
   ('sopas_cremas_052', 'sopas_cremas_052', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_052.jpg?v=16'),
   ('sopas_cremas_053', 'sopas_cremas_053', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_053.jpg?v=16'),
@@ -683,7 +1115,15 @@ insert into dish_images (
   ('sopas_cremas_057', 'sopas_cremas_057', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_057.jpg?v=16'),
   ('sopas_cremas_058', 'sopas_cremas_058', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_058.jpg?v=16'),
   ('sopas_cremas_059', 'sopas_cremas_059', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_059.jpg?v=16'),
-  ('sopas_cremas_060', 'sopas_cremas_060', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_060.jpg?v=16'),
+  ('sopas_cremas_060', 'sopas_cremas_060', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_060.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('sopas_cremas_061', 'sopas_cremas_061', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_061.jpg?v=16'),
   ('sopas_cremas_062', 'sopas_cremas_062', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_062.jpg?v=16'),
   ('sopas_cremas_063', 'sopas_cremas_063', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_063.jpg?v=16'),
@@ -693,7 +1133,15 @@ insert into dish_images (
   ('sopas_cremas_067', 'sopas_cremas_067', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_067.jpg?v=16'),
   ('sopas_cremas_068', 'sopas_cremas_068', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_068.jpg?v=16'),
   ('sopas_cremas_069', 'sopas_cremas_069', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_069.jpg?v=16'),
-  ('sopas_cremas_070', 'sopas_cremas_070', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_070.jpg?v=16'),
+  ('sopas_cremas_070', 'sopas_cremas_070', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_070.jpg?v=16')
+on conflict (combo_id) do update set
+  recipe_id = excluded.recipe_id,
+  garnish_id = excluded.garnish_id,
+  image_url = excluded.image_url;
+
+insert into dish_images (
+  combo_id, recipe_id, garnish_id, image_url
+) values
   ('sopas_cremas_071', 'sopas_cremas_071', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_071.jpg?v=16'),
   ('sopas_cremas_072', 'sopas_cremas_072', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_072.jpg?v=16'),
   ('sopas_cremas_073', 'sopas_cremas_073', NULL, 'https://aayue0yfv0dzbs2n.public.blob.vercel-storage.com/dishes/sopas_cremas_073.jpg?v=16'),
