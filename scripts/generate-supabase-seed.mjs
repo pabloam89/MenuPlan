@@ -133,6 +133,23 @@ const RECIPE_COLUMNS = [
 ];
 const RECIPE_UPDATE_COLUMNS = RECIPE_COLUMNS.filter((c) => c !== "id");
 
+// Tipo Postgres de cada columna (salvo id, ya existe como PK). No todas las
+// migraciones que las añaden se han aplicado siempre a todos los entornos
+// (se vio con product_aliases, de la migración 0008) — en vez de perseguir
+// cuál falta cada vez que cambia el error, el seed se auto-repara: añade
+// cualquier columna que falte con IF NOT EXISTS antes de insertar.
+const RECIPE_COLUMN_TYPES = {
+  name: "text", category: "text", main_protein: "text", main_base: "text",
+  meal_roles: "meal_role[]", type: "text", base_dish_id: "text",
+  required_appliance: "text", time_minutes: "integer", difficulty: "text",
+  season: "text", kcal: "integer", protein_g: "integer", carbs_g: "integer",
+  fat_g: "integer", base_servings: "integer", kid_friendly: "boolean",
+  tupper_friendly: "boolean", allergens: "text[]", ingredients: "jsonb",
+  steps: "text[]", description: "text", methods: "jsonb",
+  product_aliases: "text[]", apetecible: "boolean", montaje: "boolean",
+  can_be_garnish: "boolean", main_ingredients: "text[]", sauce_id: "text",
+};
+
 const recipeRows = recipes.map((r) => {
   return `  (${sqlString(r.id)}, ${sqlString(r.name)}, ${sqlString(r.category)}, ${sqlString(r.mainProtein)}, ` +
     `${sqlString(r.mainBase)}, ${sqlEnumArray(r.mealRole, "meal_role")}, ${sqlString(r.type)}, ` +
@@ -154,6 +171,14 @@ const recipeRowParts = chunk(recipeRows, Math.ceil(recipeRows.length / RECIPE_PA
 
 recipeRowParts.forEach((partRows, i) => {
   const partLines = [...recipeLines];
+  if (i === 0) {
+    partLines.push("-- Auto-repara columnas que alguna migración añadió pero que este");
+    partLines.push("-- entorno nunca llegó a aplicar (idempotente, no toca las que ya existen).");
+    for (const col of RECIPE_UPDATE_COLUMNS) {
+      partLines.push(`alter table recipes add column if not exists ${col} ${RECIPE_COLUMN_TYPES[col]};`);
+    }
+    partLines.push("");
+  }
   partLines.push(
     ...batchedUpsert({
       rows: partRows,

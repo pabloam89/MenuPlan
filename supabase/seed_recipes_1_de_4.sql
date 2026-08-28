@@ -5,6 +5,38 @@
 
 begin;
 
+-- Auto-repara columnas que alguna migración añadió pero que este
+-- entorno nunca llegó a aplicar (idempotente, no toca las que ya existen).
+alter table recipes add column if not exists name text;
+alter table recipes add column if not exists category text;
+alter table recipes add column if not exists main_protein text;
+alter table recipes add column if not exists main_base text;
+alter table recipes add column if not exists meal_roles meal_role[];
+alter table recipes add column if not exists type text;
+alter table recipes add column if not exists base_dish_id text;
+alter table recipes add column if not exists required_appliance text;
+alter table recipes add column if not exists time_minutes integer;
+alter table recipes add column if not exists difficulty text;
+alter table recipes add column if not exists season text;
+alter table recipes add column if not exists kcal integer;
+alter table recipes add column if not exists protein_g integer;
+alter table recipes add column if not exists carbs_g integer;
+alter table recipes add column if not exists fat_g integer;
+alter table recipes add column if not exists base_servings integer;
+alter table recipes add column if not exists kid_friendly boolean;
+alter table recipes add column if not exists tupper_friendly boolean;
+alter table recipes add column if not exists allergens text[];
+alter table recipes add column if not exists ingredients jsonb;
+alter table recipes add column if not exists steps text[];
+alter table recipes add column if not exists description text;
+alter table recipes add column if not exists methods jsonb;
+alter table recipes add column if not exists product_aliases text[];
+alter table recipes add column if not exists apetecible boolean;
+alter table recipes add column if not exists montaje boolean;
+alter table recipes add column if not exists can_be_garnish boolean;
+alter table recipes add column if not exists main_ingredients text[];
+alter table recipes add column if not exists sauce_id text;
+
 insert into recipes (
   id, name, category, main_protein, main_base, meal_roles, type, base_dish_id, required_appliance, time_minutes, difficulty, season, kcal, protein_g, carbs_g, fat_g, base_servings, kid_friendly, tupper_friendly, allergens, ingredients, steps, description, methods, product_aliases, apetecible, montaje, can_be_garnish, main_ingredients, sauce_id
 ) values
