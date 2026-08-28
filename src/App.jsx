@@ -17,7 +17,6 @@ import {
   OnboardingCookTime,
   OnboardingWeek,
   OnboardingBudget,
-  AfinarWizardBubble,
   IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
@@ -955,23 +954,6 @@ export default function App() {
   const [onbStep, setOnbStep] = useState(persisted?.onbStep ?? 0);
   // Which history entry is open in the read-only viewer (screen "menuHistory").
   const [historyMenuId, setHistoryMenuId] = useState(null);
-  // "Afinar o generar ya" bubble — shown once on the first onboarding screen
-  // after Members (whichever is visible), remembered locally so it never nags.
-  const [afinarBubbleSeen, setAfinarBubbleSeen] = useState(() => {
-    try {
-      return Boolean(localStorage.getItem("mp_onb_afinar_seen"));
-    } catch {
-      return false;
-    }
-  });
-  const dismissAfinarBubble = useCallback(() => {
-    try {
-      localStorage.setItem("mp_onb_afinar_seen", "1");
-    } catch {
-      // ignore storage failures (private mode, etc.)
-    }
-    setAfinarBubbleSeen(true);
-  }, []);
   // First-run value-prop carousel — shown once, only to brand-new guests before
   // onboarding (see the splash "onNext" wiring). Remembered locally so it never
   // reappears after the first pass.
@@ -3485,7 +3467,7 @@ export default function App() {
   // Orden de `onbScreens`: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
   // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
   // 11 Extras-Otros · 12 Tu despensa · 13 Cocina · 14 Tiempos. Los índices de
-  // abajo (y AFINAR_WIZARD_STEPS en Onboarding.jsx) dependen de ese orden.
+  // abajo dependen de ese orden.
   // "Ajustes despensa" (¿cuándo se da por gastado?) vivió aquí como paso 13
   // condicional un día (2026-08-25) — se quitó al día siguiente: la pregunta
   // se entiende mejor mirando la despensa real que a mitad del asistente, así
@@ -3820,12 +3802,6 @@ export default function App() {
             >
               <div style={{ flex: 1 }}>{onbScreens[safeOnbStep]}</div>
             </div>
-            {!afinarBubbleSeen && !firstRunOnboarding && safeOnbStep === visibleSteps[0] && (
-              <AfinarWizardBubble
-                visibleSteps={visibleSteps}
-                onClose={dismissAfinarBubble}
-              />
-            )}
           </OnboardingProgressContext.Provider>
         )}
 

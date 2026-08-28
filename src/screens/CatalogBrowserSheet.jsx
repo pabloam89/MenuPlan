@@ -877,7 +877,13 @@ export function CatalogBrowserSheet({
         const broken = isFacet && brokenFacetImgs.has(tile.id);
         const label = isMine ? "Mis recetas" : isFacet ? meta.label : categoryLabel(tile.id);
         const count = isMine ? mineIds.size : isFacet ? facetCounts[tile.id] ?? 0 : categoryCounts[tile.id] ?? 0;
+        // "Mis recetas" a 0 no lleva a ningún sitio útil — antes entrabas y
+        // caías en el mensaje genérico de "No encontramos platos con esos
+        // filtros", que confunde (parece que falló una búsqueda, no que aún
+        // no has creado/marcado nada). Mejor deshabilitar la tile entera.
+        const disabled = isMine && count === 0;
         const onTileClick = () => {
+          if (disabled) return;
           if (isMine) {
             setViewingMine(true);
             setCats(new Set());
@@ -894,11 +900,13 @@ export function CatalogBrowserSheet({
             key={`${tile.kind}-${tile.id}`}
             type="button"
             onClick={onTileClick}
+            disabled={disabled}
             className="catalog-card-enter"
             style={{
               display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
               padding: 0, border: "none", background: "transparent",
-              cursor: "pointer", fontFamily: "inherit", textAlign: "center",
+              cursor: disabled ? "default" : "pointer", fontFamily: "inherit", textAlign: "center",
+              opacity: disabled ? 0.45 : 1,
               animationDelay: `${i < 18 ? i * 14 : 0}ms`,
             }}
           >

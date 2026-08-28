@@ -4483,7 +4483,7 @@ export const MenuScreen = memo(function MenuScreen({
       )}
 
       {!isGenerating && !error && !hasVisibleMenu && (
-        <EmptyState onRegenerate={onRegenerate} readOnly={readOnly} />
+        <EmptyState readOnly={readOnly} />
       )}
 
       {!isGenerating && !error && hasVisibleMenu && (
@@ -4929,7 +4929,9 @@ function ErrorCard({ error, onRetry }) {
   );
 }
 
-function EmptyState({ onRegenerate, readOnly = false }) {
+// Sin botón de generar (2026-08-29): el único sitio para generar un menú es
+// la card de Inicio — meter un segundo botón aquí duplicaba esa acción.
+function EmptyState({ readOnly = false }) {
   return (
     <div style={{ padding: "16px 18px", maxWidth: 420, margin: "0 auto", boxSizing: "border-box" }}>
       <EmptyIllustration
@@ -4938,28 +4940,12 @@ function EmptyState({ onRegenerate, readOnly = false }) {
         subtitle={
           readOnly
             ? "Cuando el propietario genere el menú, lo verás aquí."
-            : 'Pulsa "Generar" y la IA diseñará tu menú a partir de todo lo que has configurado.'
+            : "Genera tu menú desde Inicio y aparecerá aquí."
         }
         maxWidth={240}
         imgAspect="1 / 1"
         imgPosition="center"
-      >
-        {onRegenerate && (
-          <button
-            type="button"
-            onClick={onRegenerate}
-            style={{
-              marginTop: 14, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7,
-              padding: "11px 20px", borderRadius: 13, border: "none",
-              background: "#2d5a3d", color: "#fff", fontSize: 14, fontWeight: 800,
-              cursor: "pointer", fontFamily: "inherit",
-            }}
-          >
-            <Wand2 size={15} strokeWidth={2.8} />
-            Generar
-          </button>
-        )}
-      </EmptyIllustration>
+      />
     </div>
   );
 }
