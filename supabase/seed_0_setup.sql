@@ -2,35 +2,72 @@
 -- RUN THIS FILE FIRST, on its own — paste it and click Run by itself, before
 -- any of the seed_recipes_N_de_4.sql files. Idempotent, safe to re-run.
 
--- meal_role: migración 0001 solo creó los 5 originales; 0008 (desayuno/
--- merienda/postre) no siempre se aplicó; "salsa" no está en ninguna migración.
+-- Enums: TODOS los valores que usa el catálogo, derivados de los propios
+-- JSON. El estado real de la BD no coincide con las migraciones — la 0008
+-- (desayunos/meriendas/postres) puede no estar aplicada, y las salsas no
+-- están en ninguna migración.
+alter type recipe_category add value if not exists 'bebes';
+alter type recipe_category add value if not exists 'carnes';
+alter type recipe_category add value if not exists 'cenas_rapidas';
+alter type recipe_category add value if not exists 'desayunos';
+alter type recipe_category add value if not exists 'ensaladas_verduras';
+alter type recipe_category add value if not exists 'guarniciones';
+alter type recipe_category add value if not exists 'huevos';
+alter type recipe_category add value if not exists 'legumbres';
+alter type recipe_category add value if not exists 'meriendas';
+alter type recipe_category add value if not exists 'pasta_arroces';
+alter type recipe_category add value if not exists 'pescados';
+alter type recipe_category add value if not exists 'platos_unicos';
+alter type recipe_category add value if not exists 'postres';
+alter type recipe_category add value if not exists 'salsas';
+alter type recipe_category add value if not exists 'sopas_cremas';
+alter type main_protein add value if not exists 'cerdo';
+alter type main_protein add value if not exists 'huevo';
+alter type main_protein add value if not exists 'legumbre';
+alter type main_protein add value if not exists 'marisco';
+alter type main_protein add value if not exists 'none';
+alter type main_protein add value if not exists 'pavo';
+alter type main_protein add value if not exists 'pescado_azul';
+alter type main_protein add value if not exists 'pescado_blanco';
+alter type main_protein add value if not exists 'pollo';
+alter type main_protein add value if not exists 'ternera';
 alter type meal_role add value if not exists 'cena';
-alter type meal_role add value if not exists 'guarnicion';
-alter type meal_role add value if not exists 'plato_unico';
-alter type meal_role add value if not exists 'primero';
-alter type meal_role add value if not exists 'segundo';
 alter type meal_role add value if not exists 'desayuno';
+alter type meal_role add value if not exists 'guarnicion';
 alter type meal_role add value if not exists 'merienda';
+alter type meal_role add value if not exists 'plato_unico';
 alter type meal_role add value if not exists 'postre';
+alter type meal_role add value if not exists 'primero';
 alter type meal_role add value if not exists 'salsa';
+alter type meal_role add value if not exists 'segundo';
+alter type recipe_type add value if not exists 'completo';
+alter type recipe_type add value if not exists 'guarnicion';
+alter type recipe_type add value if not exists 'principal';
+alter type recipe_type add value if not exists 'salsa';
+alter type difficulty_level add value if not exists 'elaborada';
+alter type difficulty_level add value if not exists 'facil';
+alter type difficulty_level add value if not exists 'normal';
+alter type recipe_season add value if not exists 'all';
+alter type recipe_season add value if not exists 'invierno';
+alter type recipe_season add value if not exists 'verano';
 
 -- recipes: columnas de migraciones que este entorno puede no tener aplicadas
 -- (se vio con product_aliases, de la 0008) — no toca las que ya existen.
 alter table recipes add column if not exists name text;
-alter table recipes add column if not exists category text;
-alter table recipes add column if not exists main_protein text;
+alter table recipes add column if not exists category recipe_category;
+alter table recipes add column if not exists main_protein main_protein;
 alter table recipes add column if not exists main_base text;
 alter table recipes add column if not exists meal_roles meal_role[];
-alter table recipes add column if not exists type text;
+alter table recipes add column if not exists type recipe_type;
 alter table recipes add column if not exists base_dish_id text;
 alter table recipes add column if not exists required_appliance text;
 alter table recipes add column if not exists time_minutes integer;
-alter table recipes add column if not exists difficulty text;
-alter table recipes add column if not exists season text;
-alter table recipes add column if not exists kcal integer;
-alter table recipes add column if not exists protein_g integer;
-alter table recipes add column if not exists carbs_g integer;
-alter table recipes add column if not exists fat_g integer;
+alter table recipes add column if not exists difficulty difficulty_level;
+alter table recipes add column if not exists season recipe_season;
+alter table recipes add column if not exists kcal numeric;
+alter table recipes add column if not exists protein_g numeric;
+alter table recipes add column if not exists carbs_g numeric;
+alter table recipes add column if not exists fat_g numeric;
 alter table recipes add column if not exists base_servings integer;
 alter table recipes add column if not exists kid_friendly boolean;
 alter table recipes add column if not exists tupper_friendly boolean;
