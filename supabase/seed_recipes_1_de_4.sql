@@ -3,6 +3,18 @@
 -- Idempotent: safe to re-run against a DB that already has this data (upsert by id).
 -- Run this whole file (or paste it insert-by-insert) in the Supabase SQL Editor.
 
+-- Fuera de la transacción a propósito: un valor de enum nuevo debe estar
+-- confirmado antes de poder usarse en el INSERT de más abajo.
+alter type meal_role add value if not exists 'cena';
+alter type meal_role add value if not exists 'guarnicion';
+alter type meal_role add value if not exists 'plato_unico';
+alter type meal_role add value if not exists 'primero';
+alter type meal_role add value if not exists 'segundo';
+alter type meal_role add value if not exists 'desayuno';
+alter type meal_role add value if not exists 'merienda';
+alter type meal_role add value if not exists 'postre';
+alter type meal_role add value if not exists 'salsa';
+
 begin;
 
 -- Auto-repara columnas que alguna migración añadió pero que este
