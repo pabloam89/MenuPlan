@@ -43,6 +43,38 @@ function greetingWord() {
   return "Buenas noches";
 }
 
+// Nombres compuestos españoles frecuentes: en "José María García" las dos
+// primeras palabras son UN nombre, mientras que en "Pablo Artiñano" la
+// segunda ya es el apellido. No hay forma programática de distinguirlos sin
+// una lista — esta cubre los más habituales y el resto cae al caso general
+// (solo la primera palabra).
+const COMPOUND_FIRST_NAMES = new Set([
+  "jose maria", "jose luis", "jose antonio", "jose manuel", "jose miguel",
+  "jose carlos", "jose ramon", "jose ignacio", "jose angel", "jose javier",
+  "juan carlos", "juan jose", "juan manuel", "juan antonio", "juan luis",
+  "juan pablo", "juan miguel", "juan ramon", "juan ignacio", "juan francisco",
+  "maria jose", "maria carmen", "maria luisa", "maria teresa", "maria pilar",
+  "maria isabel", "maria dolores", "maria angeles", "maria jesus", "maria elena",
+  "maria victoria", "maria rosa", "maria antonia", "maria cristina", "maria eugenia",
+  "ana maria", "ana belen", "ana isabel", "ana rosa", "ana cristina",
+  "luis miguel", "luis alberto", "luis fernando", "luis javier", "luis enrique",
+  "francisco javier", "francisco jose", "francisco manuel",
+  "miguel angel", "antonio jose", "carlos alberto", "jesus maria",
+  "victor manuel", "pedro pablo", "rosa maria", "carmen maria", "isabel maria",
+]);
+
+// Solo el nombre de pila para el saludo: "Pablo Artiñano" → "Pablo", pero
+// "José María García" → "José María" (ver COMPOUND_FIRST_NAMES).
+function firstNameOf(fullName) {
+  const parts = String(fullName ?? "").trim().split(/\s+/).filter(Boolean);
+  if (parts.length <= 1) return parts[0] ?? "";
+  const firstTwo = parts.slice(0, 2).join(" ")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "");
+  return COMPOUND_FIRST_NAMES.has(firstTwo) ? parts.slice(0, 2).join(" ") : parts[0];
+}
+
 // ── Today's dish row ────────────────────────────────────────────────────────
 
 function TodayDishCard({ meal, recipe, photo, basis, onClick }) {
@@ -324,7 +356,11 @@ export function DashboardScreen({
     return out;
   }, [menuPlan, data, hasMenu, selectedGroup]);
 
-  const showTodaySection = multiGroup ? hasMenu : todayMeals.length > 0;
+  // Siempre visible (2026-08-28): antes la sección desaparecía entera cuando
+  // no había menú, así que Inicio se quedaba en un hueco vacío bajo la card.
+  // Ahora mantiene su cabecera (y el selector de grupos con sus avatares en
+  // hogares con varios) y solo cambia las cards de plato por un copy.
+  const showTodaySection = true;
 
   // The hero is the one place with room to spare, so nobody hides behind a
   // "+N" here. Past six the row folds into two staggered halves — the same
@@ -377,7 +413,7 @@ export function DashboardScreen({
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}
             >
-              {greetingWord()}, {g.name}
+              {greetingWord()}, {firstNameOf(g.name)}
             </p>
             {onOpenAccount && (
               <button
@@ -537,7 +573,9 @@ export function DashboardScreen({
               </div>
             ) : (
               <p style={{ margin: "2px 2px 0", fontSize: 12.5, color: "#9aa8a0", fontStyle: "italic" }}>
-                Sin menú de hoy para {selectedGroup?.label?.toLowerCase() ?? "este grupo"}
+                {multiGroup && selectedGroup?.label
+                  ? `Hoy no tenemos menú para ${selectedGroup.label.toLowerCase()}`
+                  : "Hoy no tenemos menú"}
               </p>
             )}
           </div>
