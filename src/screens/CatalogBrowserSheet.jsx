@@ -636,6 +636,21 @@ export function CatalogBrowserSheet({
     return counts;
   }, [fullCatalog, catalogGarnishBrowseList.length, catalogSalsaBrowseList.length]);
 
+  // Sobre platoCatalog (no fullCatalog): es la misma base que filtran los
+  // resultados reales al tocar la faceta, así el número de la esquina
+  // coincide siempre con lo que se ve después.
+  const facetCounts = useMemo(() => {
+    const counts = { ninos: 0, rapido: 0, gourmet: 0, verano: 0, invierno: 0 };
+    for (const r of platoCatalog) {
+      if (r.kidFriendly) counts.ninos++;
+      if (isMontaje(r)) counts.rapido++;
+      if (r.apetecible) counts.gourmet++;
+      if (r.season === "verano") counts.verano++;
+      if (r.season === "invierno") counts.invierno++;
+    }
+    return counts;
+  }, [platoCatalog]);
+
   const styleBlock = (
     <style>{`
       @keyframes sheetUp {
@@ -856,7 +871,7 @@ export function CatalogBrowserSheet({
         const active = isMine ? viewingMine : isFacet ? facetActive[tile.id] : false;
         const broken = isFacet && brokenFacetImgs.has(tile.id);
         const label = isMine ? "Mis recetas" : isFacet ? meta.label : categoryLabel(tile.id);
-        const count = isMine ? mineIds.size : isFacet ? null : categoryCounts[tile.id] ?? 0;
+        const count = isMine ? mineIds.size : isFacet ? facetCounts[tile.id] ?? 0 : categoryCounts[tile.id] ?? 0;
         const onTileClick = () => {
           if (isMine) {
             setViewingMine(true);
