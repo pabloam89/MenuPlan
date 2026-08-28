@@ -157,9 +157,12 @@ const MEAL_STRUCTURE_CARDS = [
   },
 ];
 
+// Etiquetas por tiempo en vez de por nivel (2026-08-29): "sencillo/avanzado"
+// pedía juzgar tu propia implicación sin haber visto nada de la app todavía.
+// El tiempo es concreto y no juzga.
 const MODO_OPTS = [
-  { id: "basic", label: "Sencillo", subtitle: "Comidas y cenas. El resto lo decidimos por ti.", img: "/avatares/cards/modo_sencillo.jpg" },
-  { id: "expert", label: "Avanzado", subtitle: "Tú controlas desayunos, meriendas, despensa y cocina.", img: "/avatares/cards/modo_avanzado.jpg" },
+  { id: "basic", label: "2 minutos", subtitle: "Comidas y cenas. El resto lo decidimos por ti.", img: "/avatares/cards/modo_sencillo.jpg" },
+  { id: "expert", label: "5 minutos", subtitle: "Tú controlas desayunos, meriendas, despensa y cocina.", img: "/avatares/cards/modo_avanzado.jpg" },
 ];
 const DESAYUNO_OPTS = [
   { id: "variado", label: "Variado", img: "/avatares/cards/desayuno_variado.jpg" },
@@ -4733,29 +4736,11 @@ export function OnboardingSchedule({ data, setData, onNext, onBack, onFinish, on
         })}
       </div>
 
-      {/* Estructura de plato: en modo básico se decide aquí mismo (una sola vez,
-          para todos) en lugar de en una pantalla aparte. Solo tiene sentido si
-          se organiza la comida. */}
-      {!data.expertMode && meals.includes("Comida") && (
-        <>
-          <div style={{ height: 1, background: "#d6e9dc", margin: "0 0 20px" }} />
-          <SectionTitle>¿Uno o dos platos en la comida?</SectionTitle>
-          <div style={{ display: "flex", gap: 8, marginBottom: 28 }}>
-            {MEAL_STRUCTURE_CARDS.map((t) => (
-              <RestrictionTabCard
-                key={t.id}
-                img={t.img}
-                title={t.title}
-                subtitle={t.subtitle}
-                imgHeight={160}
-                textOverlay
-                active={(data.mealStructure ?? "primero_segundo") === t.id}
-                onClick={() => setData((d) => ({ ...d, mealStructure: t.id }))}
-              />
-            ))}
-          </div>
-        </>
-      )}
+      {/* La pregunta "¿uno o dos platos?" se quitó del modo básico
+          (2026-08-29): ahora se fija a "1_plato" al elegir el modo (ver
+          OnboardingMode) en vez de preguntarlo aquí — una decisión menos.
+          El modo avanzado la sigue teniendo, pero en su propia pantalla por
+          grupo (mealStructureByGroup, ver FamilyMenuModelSection). */}
 
       {hasSchoolMenuLoaded && allowCole && (
         <div
@@ -8905,8 +8890,8 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
   const current = data.expertMode ? "expert" : "basic";
   return (
     <OnboardingShell
-      title="¿Cómo quieres usar la app?"
-      subtitle="Puedes cambiarla siempre que quieras."
+      title="¿Cuánto tiempo tienes ahora?"
+      subtitle="Puedes cambiarlo siempre que quieras."
       nextLabel={nextLabel}
       onBack={onBack}
       onReset={onReset}
@@ -8925,7 +8910,16 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
             accent={CARD_ACCENT_TEAL}
             active={current === t.id}
             onClick={() =>
-              setData((d) => ({ ...d, expertMode: t.id === "expert", modePrompted: true }))
+              setData((d) => ({
+                ...d,
+                expertMode: t.id === "expert",
+                modePrompted: true,
+                // Básico se salta la pregunta de "¿uno o dos platos?" (ver
+                // OnboardingSchedule) — asume plato combinado, la opción con
+                // menos fricción, en vez de dejarlo caer en el fallback de
+                // "primero_segundo" sin haberlo elegido nadie.
+                ...(t.id === "basic" ? { mealStructure: "1_plato" } : {}),
+              }))
             }
           />
         ))}

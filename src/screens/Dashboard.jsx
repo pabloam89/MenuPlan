@@ -24,13 +24,24 @@ import menuCardPhoto3 from "../assets/dashboard/menu-card-3.jpg";
 // tono aproximado en el punto donde se usa como color sólido de apoyo (el
 // fundido del borde del carrusel de "Hoy toca") — el degradado es suave así
 // que un tono intermedio pasa desapercibido.
-const PAGE_GRADIENT = "linear-gradient(165deg, #e3f5e9 0%, #fbf3d9 50%, #fde3d3 100%)";
+const PAGE_GRADIENT = "linear-gradient(165deg, #e3f5e9 0%, #fbf3d9 45%, #fce6d1 65%, #fde3d3 100%)";
 const PAGE_BG = "#fbf3d9";
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 
 
 const todayShort = () => DAYS[(new Date().getDay() + 6) % 7];
+
+// Saludo contextual: le da a la cabecera un texto propio en vez de depender
+// solo de los avatares — pequeño, gratis, y varía a lo largo del día en vez
+// de ser una etiqueta estática.
+function greetingWord() {
+  const h = new Date().getHours();
+  if (h < 6) return "Buenas noches";
+  if (h < 13) return "Buenos días";
+  if (h < 20) return "Buenas tardes";
+  return "Buenas noches";
+}
 
 // ── Today's dish row ────────────────────────────────────────────────────────
 
@@ -352,26 +363,50 @@ export function DashboardScreen({
             alignItems: "center",
           }}
         >
-          {/* "Perfil" lost its bottom-nav tab (see BottomNav in ui.jsx) —
-              it's reached from here now, the "Inicio" it always stays under. */}
-          {onOpenAccount && (
-            <button
-              type="button"
-              data-coach="dashboard-profile"
-              onClick={onOpenAccount}
-              aria-label="Tu perfil"
-              title="Tu perfil"
+          {/* Saludo protagonista: antes la cabecera no tenía ningún texto
+              propio, solo avatares. El botón de ajustes se cuelga de la
+              misma línea (a la derecha) en vez de flotar suelto en una
+              esquina sin contexto — sigue siendo el mismo acceso a "Perfil"
+              (ver BottomNav en ui.jsx). Color/tamaño provisionales (dorado,
+              más grande) hasta tener la ilustración Pixar de la rueda. */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+            <p
               style={{
-                position: "absolute", top: 0, right: 0, zIndex: 1,
-                width: 30, height: 30, borderRadius: "50%",
-                border: "none", background: "rgba(255,255,255,.6)",
-                backdropFilter: "blur(6px)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                cursor: "pointer", boxShadow: "0 2px 8px rgba(20,47,29,.1)",
+                margin: 0, fontSize: 19, fontWeight: 900, color: INK,
+                letterSpacing: "-.3px", flex: 1, minWidth: 0,
+                overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}
             >
-              <Settings size={14} color={GREEN} strokeWidth={2.3} />
-            </button>
+              {greetingWord()}, {g.name}
+            </p>
+            {onOpenAccount && (
+              <button
+                type="button"
+                data-coach="dashboard-profile"
+                onClick={onOpenAccount}
+                aria-label="Tu perfil"
+                title="Tu perfil"
+                style={{
+                  flexShrink: 0,
+                  width: 34, height: 34, borderRadius: "50%",
+                  border: "none", background: "rgba(255,255,255,.75)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  cursor: "pointer", boxShadow: "0 2px 6px rgba(20,47,29,.14)",
+                }}
+              >
+                <Settings size={18} color="#c9820a" strokeWidth={2.4} />
+              </button>
+            )}
+          </div>
+
+          {user && activeHousehold && (
+            <p
+              style={{
+                margin: "3px 0 0", fontSize: 11, fontWeight: 700, color: "#5c7568",
+              }}
+            >
+              {activeHousehold.name}
+            </p>
           )}
 
           {/* Familia como hero: el usuario es el primer avatar del racimo
@@ -419,28 +454,13 @@ export function DashboardScreen({
             ))}
           </div>
 
-          {/* name */}
-          <p
-            style={{
-              margin: "12px 0 0", fontSize: 15.5, fontWeight: 900, color: INK,
-              letterSpacing: "-.2px", position: "relative", textAlign: "center",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%",
-            }}
-          >
-            {g.name}
-          </p>
-
-          {user && activeHousehold && (
-            <p
-              style={{
-                position: "relative", zIndex: 1, marginTop: 3,
-                fontSize: 11, fontWeight: 700, color: "#5c7568",
-              }}
-            >
-              {activeHousehold.name}
-            </p>
-          )}
         </div>
+
+        {/* Ruptura mínima entre cabecera y card: antes todo fluía en un
+            único bloque continuo sobre el degradado — esta línea tenue
+            marca "aquí acaba lo tuyo, aquí empieza la acción" sin
+            necesitar un color ni una caja nueva. */}
+        <div aria-hidden style={{ height: 1, background: "rgba(45,90,61,.12)", margin: "2px 0 18px" }} />
 
         {/* Único CTA que le queda a Inicio (2026-08-25): generar un menú
             nuevo. Todo lo demás (En casa, Recetas, Compra, favoritos e
@@ -449,7 +469,7 @@ export function DashboardScreen({
           <MenuHeroCard
             photos={[menuCardPhoto2, menuCardPhoto3]}
             onClick={onGenerateMenu}
-            title="Generar menú"
+            title={hasMenu ? "Generar menú" : "Genera tu primer menú"}
           />
         )}
 

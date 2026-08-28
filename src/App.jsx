@@ -3522,7 +3522,7 @@ export default function App() {
       (i === 2 && skipMenuModel) ||
       (i === 3 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
-      (i === 8 && skipKidsDinner) ||
+      (i === 8 && (skipKidsDinner || basicMode)) ||
       (basicMode && (i === 9 || i === 10 || i === 11)) ||
       (quickMenu && i === 1),
     [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding]
@@ -3601,7 +3601,7 @@ export default function App() {
       // El visitante recién llegado aún no tiene familia: ofrecerle "Generar"
       // aquí no llevaría a ninguna parte (igual que en Familia).
       onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
-      onReset={firstRunOnboarding ? undefined : handleAbandonOnboarding}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingMembers
       data={data}
@@ -3614,7 +3614,7 @@ export default function App() {
       onBack={backOf(1)}
       onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
       nextLabel={firstRunOnboarding ? "Continuar" : undefined}
-      onReset={firstRunOnboarding ? undefined : handleAbandonOnboarding}
+      onReset={handleAbandonOnboarding}
     />,
     <OnboardingMenuModel
       data={data}

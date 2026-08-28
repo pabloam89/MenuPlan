@@ -899,7 +899,8 @@ export async function generateGroupMenu(data, group, signal, pantryIngredients =
   for (const [recipeRef, items] of indexFridgeDishes(pantryIngredients)) {
     if (!frozenPoolIds.has(recipeRef)) continue;
     const garnishRef = items.find((it) => it.garnishRef)?.garnishRef ?? null;
-    const garnishName = garnishRef ? guarnicionesData.find((g) => g.id === garnishRef)?.shortName : null;
+    const garnishMatch = garnishRef ? guarnicionesData.find((g) => g.id === garnishRef) : null;
+    const garnishName = garnishMatch ? (garnishMatch.shortName ?? garnishMatch.name) : null;
     fridgeDishes.push({
       recipeId: recipeRef,
       name:
@@ -1816,7 +1817,11 @@ export function applyGarnishToRecipe(fr, garnish, eaters, restrictions = []) {
   // Preserve garnishId so the photo lookup can build the combo key
   // "<dish>+<garnish>" that the image is stored under.
   fr.garnishId = garnish.id;
-  const suffix = ` con ${garnish.shortName}`;
+  // shortName es un dato curado a mano que no todas las guarniciones tienen
+  // (p. ej. ninguna de las nuevas de Recetario Estrella lo trae todavía) —
+  // sin fallback, el nombre del plato salía "... con undefined". Mismo
+  // fallback que ya usa formatDishWithGarnish en lib/dishNaming.js.
+  const suffix = ` con ${garnish.shortName ?? garnish.name}`;
   const norm = (s) => s.toLowerCase().normalize("NFD").replace(/\p{M}/gu, "");
   if (!norm(fr.name).endsWith(norm(suffix))) {
     fr.name = `${fr.name}${suffix}`;
