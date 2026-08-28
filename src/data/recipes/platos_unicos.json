@@ -2581,7 +2581,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "platos_unicos_015",
@@ -3395,7 +3396,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 9,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "platos_unicos_020",

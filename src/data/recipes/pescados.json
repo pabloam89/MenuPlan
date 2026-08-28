@@ -3802,7 +3802,8 @@
         "difficulty": "facil",
         "prepSummary": "Para los huevos poché, coloca cada huevo en un ramequín ligeramente engrasado y cocina en la vaporera durante 8-12 minutos, hasta que la clara esté firme y la yema a tu gusto. El pan se tostaría aparte en una tostadora o sartén."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_027",
@@ -4147,7 +4148,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C y tuesta el pan de centeno durante 5-7 minutos hasta que esté crujiente. Retira, unta el queso crema y decora con el salmón, eneldo, zumo de limón y alcaparras."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_029",
@@ -4483,7 +4485,8 @@
         "difficulty": "facil",
         "prepSummary": "Para ablandar las tortillas y que sean más fáciles de enrollar, envuélvelas en papel de cocina húmedo y caliéntalas en el microondas durante 30-60 segundos a máxima potencia."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_031",
@@ -4601,7 +4604,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C (preferiblemente con función grill). Tuesta el pan durante 5-8 minutos, vigilando que quede bien dorado y crujiente. Prepara el resto de ingredientes mientras el pan se hornea."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_032",
@@ -6694,7 +6698,21 @@
     "sugar_g": 0,
     "saturated_fat_g": 3,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para las cigalas, precalienta la airfryer a 190-200°C. Píntalas con un poco de aceite y sal, y cocínalas durante 8-10 minutos, dándoles la vuelta a mitad, hasta que estén doradas y rosadas. El alioli se prepara aparte de forma tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Para las cigalas, precalienta el horno con función grill o a 220°C. Colócalas en una bandeja con un chorrito de aceite y sal, y ásalas durante 8-12 minutos, hasta que estén bien rosadas y ligeramente doradas. El alioli se prepara aparte."
+      }
+    ]
   },
   {
     "id": "pescados_044",
@@ -6884,7 +6902,27 @@
     "sugar_g": 5,
     "saturated_fat_g": 3,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 70,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara el sofrito en una cazuela apta para horno en el fuego. Añade el arroz, el caldo y el bogavante, y termina la cocción en el horno precalentado a 190°C durante 20-25 minutos para un arroz meloso y uniforme."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Elabora el sofrito en el vaso de la Thermomix. Incorpora el arroz, el caldo y el bogavante troceado, cocinando a temperatura Varoma o 100°C con giro inverso y velocidad cuchara durante 20-22 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en la olla a presión. Añade el arroz, el caldo caliente y el bogavante troceado, cierra y cocina a fuego medio durante 5-7 minutos desde que sube la válvula. Despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "pescados_045",
@@ -7067,7 +7105,15 @@
     "sugar_g": 5,
     "saturated_fat_g": 5,
     "sodium_mg": 1800,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 1450,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es ideal para picar finamente el eneldo y machacar la pimienta en grano para la mezcla de curado. También permite emulsionar la salsa de mostaza y miel de forma rápida y homogénea, facilitando la preparación de los componentes de la receta."
+      }
+    ]
   },
   {
     "id": "pescados_046",
@@ -7246,6 +7292,26 @@
         "text": "Servir bien caliente con perejil fresco picado por encima.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Prepara un sofrito con las verduras en una cazuela apta para horno. Añade el bacalao desmigado y hornea a 180°C durante 20 minutos, permitiendo que los sabores se concentren y el bacalao se cocine suavemente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras y sofríelas con aceite y guindilla. Incorpora el tomate y cocina. Añade el bacalao desmigado y cocina a 90°C en giro inverso, velocidad cuchara, durante 8-10 minutos para integrar sin deshacer el pescado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en la olla abierta hasta que estén tiernas. Añade el tomate y cocina unos minutos. Incorpora el bacalao desmigado y cocina a fuego suave sin tapar durante 5-7 minutos, permitiendo que los sabores se mezclen sin sobrecocer el pescado."
       }
     ]
   },
@@ -7452,6 +7518,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara el sofrito y la base de la salsa en una cazuela apta para horno en la encimera. Incorpora el bacalao y hornea a 170°C durante 30-40 minutos, permitiendo que los sabores se integren y el pescado se cocine suavemente en su jugo, logrando una textura melosa."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Pica y sofríe la cebolla y el ajo en la Thermomix. Añade el tomate, los pimientos choriceros rehidratados y el pan frito, tritura y cocina la salsa. Finalmente, incorpora el bacalao y cocínalo a 90°C en giro inverso durante 15-20 minutos para que quede jugoso y la salsa ligada."
+      }
     ]
   },
   {
@@ -7590,7 +7670,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Combina las gambas, ajo laminado, guindilla, jerez, aceite y sal en una cazuela de barro. Hornea 12-15 minutos hasta que las gambas estén rosadas y el aceite burbujee."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Trocea el ajo y la guindilla. Sofríelos con el aceite en la Thermomix a 120°C, velocidad cuchara, durante 5 min. Añade las gambas, el jerez y la sal, y cocina 6-8 min a 100°C, giro inverso, velocidad cuchara."
+      }
+    ]
   },
   {
     "id": "pescados_049",
@@ -7711,7 +7805,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Coloca las navajas limpias en la cesta, rocía con un poco de aceite de oliva y cocina durante 6-8 minutos, o hasta que se abran y estén ligeramente doradas. Sirve con el ajo, perejil y limón."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 220°C con función grill si es posible. Coloca las navajas en una bandeja de horno, rocía con aceite de oliva y hornea durante 8-10 minutos, o hasta que se abran y los bordes estén ligeramente crujientes. Añade el ajo, perejil y limón al servir."
+      }
+    ]
   },
   {
     "id": "pescados_050",
@@ -7894,7 +8002,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 8,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo, añade las zamburiñas y el vino. Mezcla con el resto de ingredientes y gratina en el horno precalentado a 180-200°C durante 10-15 minutos hasta dorar."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito en una sartén. Rellena las conchas o moldes y gratina en la airfryer a 180-190°C durante 8-12 minutos, vigilando que el queso se dore sin quemarse."
+      }
+    ]
   },
   {
     "id": "pescados_051",
@@ -8045,7 +8167,15 @@
     "sugar_g": 9,
     "saturated_fat_g": 3,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la función de picado para el salmón, mango, cebolleta y cilantro, ajustando la velocidad para obtener la textura deseada. Luego, mezcla suavemente todos los ingredientes con la salsa de soja, aceite de sésamo y zumo de lima para un tartar homogéneo y rápido."
+      }
+    ]
   },
   {
     "id": "pescados_052",
@@ -8250,7 +8380,27 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito en una cazuela apta para horno. Añade las patatas, pescado, vino, caldo y azafrán, y hornea a 180°C durante 45 minutos. Incorpora las gambas y mejillones y cocina 5-10 minutos más hasta que estén listos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras y sofríelas en el vaso. Añade las patatas, pescado, vino, caldo y azafrán, y cocina a 100°C, giro inverso, velocidad cuchara, durante 35-40 minutos. Incorpora las gambas y mejillones y cocina 3-5 minutos más."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito en la olla sin presión. Añade las patatas, vino, caldo y azafrán, cierra la olla y cocina 10-12 minutos desde que sube la válvula. Libera la presión, incorpora el pescado, gambas y mejillones, y cocina 3-5 minutos más sin presión hasta que estén hechos."
+      }
+    ]
   },
   {
     "id": "pescados_053",
@@ -8498,6 +8648,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 95,
+        "difficulty": "elaborada",
+        "prepSummary": "Tras sellar los calamares rellenos en una sartén, estófalos en una cazuela con la salsa de tinta en el horno precalentado a 160°C durante 60-75 minutos, cubierto, para una cocción uniforme y tierna."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 80,
+        "difficulty": "normal",
+        "prepSummary": "Prepara los sofritos para el relleno y la salsa en el vaso. Una vez rellenos, cocina los calamares en la salsa de tinta en el vaso a 100°C, velocidad cuchara inversa, durante 45-60 minutos, asegurando una cocción suave y homogénea."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Realiza los sofritos y la salsa directamente en la olla. Tras rellenar y sellar los calamares, cocínalos en la salsa a presión durante 15-20 minutos desde que sube la válvula, logrando una ternura excepcional en mucho menos tiempo."
+      }
     ]
   },
   {
@@ -8620,7 +8790,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para la merluza, precalienta la airfryer a 190°C. Pincela los lomos con aceite, sazona y cocina durante 12-15 minutos, dándoles la vuelta a mitad para un dorado uniforme y una textura jugosa. La salsa se prepara aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Coloca los lomos de merluza en una bandeja con papel de horno, rocíalos con un poco de aceite y hornea durante 15-20 minutos hasta que estén cocidos y ligeramente dorados. La salsa se puede hacer mientras."
+      }
+    ]
   },
   {
     "id": "pescados_055",
@@ -8784,7 +8968,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 6,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Para el salmón, precalienta la airfryer a 190-200°C. Cocina los lomos durante 12-15 minutos, girándolos a mitad, hasta que estén dorados y jugosos. La ensalada se prepara aparte mientras el salmón se cocina."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con función de aire si es posible. Hornea los lomos de salmón en una bandeja con papel de horno durante 15-18 minutos hasta que estén cocidos y ligeramente dorados. La ensalada se prepara aparte."
+      }
+    ]
   },
   {
     "id": "pescados_056",
@@ -8918,7 +9116,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 11,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Rocía los filetes enharinados con un poco de aceite y cocina durante 10-12 minutos, volteando a mitad, hasta que estén dorados y crujientes. La salsa se prepara aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Hornea los filetes enharinados y ligeramente aceitados a 180-200°C durante 12-15 minutos, hasta que estén cocidos y ligeramente dorados. La salsa de mantequilla y limón se prepara aparte y se vierte al servir."
+      }
+    ]
   },
   {
     "id": "pescados_057",
@@ -9075,7 +9287,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Sazona el emperador y cocínalo en la airfryer precalentada a 200°C durante 10-12 minutos, dándole la vuelta a mitad para un dorado uniforme. Mientras, prepara la salsa mezclando el tomate, ajo picado, albahaca y aceite de oliva, calentándola ligeramente si lo deseas."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con función grill. Sazona el emperador, rocía con aceite y hornea 12-15 minutos, usando el grill al final para dorar. Prepara la salsa rápida de tomate y albahaca mientras el pescado se hornea."
+      }
+    ]
   },
   {
     "id": "pescados_058",
@@ -9203,7 +9429,15 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es ideal para preparar la 'leche de tigre': tritura el ají amarillo, cebolla morada, cilantro y zumo de lima con el aceite de oliva. Luego, lamina la corvina muy fina y vierte la salsa para marinar, manteniendo el carácter crudo del tiradito."
+      }
+    ]
   },
   {
     "id": "pescados_059",
@@ -9348,7 +9582,16 @@
     "sugar_g": 8,
     "saturated_fat_g": 4,
     "sodium_mg": 95,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es excelente para preparar la vinagreta de cítricos. Emulsiona el aceite de oliva con los zumos de naranja, pomelo y limón, y el eneldo fresco picado durante 1 minuto a velocidad 5. Luego, solo tienes que laminar el salmón calidad sashimi y aderezar generosamente."
+      }
+    ],
+    "montaje": true
   },
   {
     "id": "pescados_060",
@@ -9511,7 +9754,8 @@
     "sugar_g": 0,
     "saturated_fat_g": 4,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "pescados_061",
@@ -9627,7 +9871,33 @@
     "sugar_g": 4,
     "saturated_fat_g": 8,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina el salmón durante 12-15 minutos, dándole la vuelta a mitad, hasta que esté dorado y jugoso. Mientras, mezcla los ingredientes de la salsa y sírvela sobre el salmón."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca el salmón en una bandeja y hornea durante 15-18 minutos. Para la salsa, mezcla la mostaza, eneldo, nata y miel, y viértela sobre el salmón los últimos 5 minutos de cocción o sírvela aparte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la salsa en el vaso mezclando los ingredientes. Coloca el salmón en el recipiente Varoma y cocina al vapor durante 15-20 minutos a temperatura Varoma, velocidad 1, con 500ml de agua en el vaso. Sirve el salmón con la salsa."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el salmón al vapor en la vaporera durante 10-15 minutos hasta que esté tierno. Mientras, mezcla la mostaza, eneldo, nata y miel en un bol o sartén a fuego bajo para la salsa. Sirve el salmón con la salsa por encima."
+      }
+    ]
   },
   {
     "id": "pescados_062",
@@ -9832,7 +10102,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 5,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la merluza rebozada y las patatas cortadas en bastones con un poco de aceite en spray. Cocina en la airfryer a 190°C: las patatas unos 20 minutos, agitándolas, y la merluza unos 12 minutos, dándole la vuelta. El alioli se prepara aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Hornea las patatas cortadas en bastones con un chorrito de aceite a 200°C durante unos 35-40 minutos, dándoles la vuelta. Añade la merluza rebozada, rociada con un poco de aceite, y hornea 15-20 minutos más hasta que esté dorada. El alioli se prepara aparte."
+      }
+    ]
   },
   {
     "id": "pescados_063",
@@ -10004,7 +10288,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 5,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Para las patatas, córtalas en bastones, rocía con aceite y cocina a 190°C durante 20-25 min, agitando. Luego, enharina el bacalao, rocíalo con aceite y cocínalo a 190°C durante 12-15 min, dándole la vuelta, para un acabado crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Corta las patatas en gajos, rocíalas con aceite y ásalas durante 30-35 min. Enharina el bacalao, úntalo con un poco de aceite y hornéalo junto a las patatas los últimos 15-20 min, hasta que esté dorado y jugoso."
+      }
+    ]
   },
   {
     "id": "pescados_064",
@@ -10143,7 +10441,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Sazona los filetes con sal y pimienta, úntalos ligeramente con aceite de oliva y cocínalos durante 10-12 minutos, dándoles la vuelta a mitad. Mientras, derrite la mantequilla con el zumo de limón, alcaparras y perejil para salsear el pescado u"
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca los filetes de lubina en una bandeja de horno con papel de hornear, rocíalos con aceite de oliva y hornea durante 12-15 minutos hasta que estén cocidos y ligeramente dorados. Sirve con la salsa de mantequilla, limón y "
+      }
+    ]
   },
   {
     "id": "pescados_065",
@@ -10316,6 +10628,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta la airfryer a 190°C. Sella los medallones de rape ligeramente enharinados y con un poco de aceite durante 12-15 minutos, dándoles la vuelta a mitad para un dorado uniforme. Prepara la salsa verde en paralelo en una sartén, sofriendo el ajo y añadiendo el resto de ingr"
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno con la función grill a 200°C. Coloca los medallones de rape en una bandeja con un hilo de aceite y cocina durante 15-20 minutos, girándolos a mitad para asegurar un dorado parejo. La salsa verde se elabora simultáneamente en una cazuela."
+      }
     ]
   },
   {
@@ -10462,7 +10788,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 4,
     "sodium_mg": 980,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la salsa teriyaki y marina el salmón. Cocina en la airfryer a 190°C durante 12-15 minutos, pincelando con la salsa a mitad de cocción para un glaseado perfecto y una textura jugosa."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Marina el salmón en la salsa teriyaki. Hornea a 200°C durante 15-20 minutos, pincelando varias veces con la salsa para lograr un glaseado brillante y una carne tierna."
+      }
+    ]
   },
   {
     "id": "pescados_067",
@@ -10604,7 +10944,27 @@
     "sugar_g": 8,
     "saturated_fat_g": 3,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe ligeramente las verduras en una sartén o directamente en una fuente de horno. Añade el tomate, vino y laurel, hornea a 180°C durante 25-30 minutos y luego incorpora el atún en los últimos 10-12 minutos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Trocea y sofríe las verduras con aceite. Añade el tomate, vino y laurel, programa para cocer a temperatura Varoma/100°C durante 15-20 minutos y luego el atún en los últimos 5-7 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en la olla abierta. Incorpora el tomate, vino y laurel, cierra y cocina 5-7 minutos desde que sube la válvula. Despresuriza, añade el atún y cocina 2-3 minutos más sin presión hasta que esté hecho."
+      }
+    ]
   },
   {
     "id": "pescados_068",
@@ -10798,7 +11158,15 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Para la dorada, cubre el pescado con la sal gruesa y hornea a 190-200°C durante 45 minutos. Mientras, asa los tomates y ajos para la salsa romesco en el mismo horno, luego tritúralos con las ñoras, almendras, pan frito, vinagre y aceite hasta obtener una salsa homogénea."
+      }
+    ]
   },
   {
     "id": "pescados_069",
@@ -10967,7 +11335,15 @@
     "sugar_g": 1,
     "saturated_fat_g": 5,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rocía las rodajas de emperador con un poco de aceite de oliva y cocínalas durante 10-12 minutos, volteándolas a mitad, hasta que estén doradas por fuera y jugosas por dentro. Prepara la salsa tártara mientras el pescado se cocina."
+      }
+    ]
   },
   {
     "id": "pescados_070",
@@ -11144,6 +11520,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo en una cazuela apta para horno. Añade los chipirones, el vino blanco y el laurel, tapa y hornea a 180°C durante 25-30 minutos hasta que los chipirones estén tiernos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y el ajo, sofríelos con aceite. Incorpora los chipirones, el vino y el laurel, y cocina a temperatura Varoma, giro inverso, velocidad cuchara durante 20-25 minutos hasta que estén tiernos y la salsa reducida."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta. Agrega los chipirones, el vino y el laurel, cierra la olla y cocina a presión alta durante 4-5 minutos. Deja despresurizar naturalmente para una textura perfecta."
+      }
     ]
   },
   {
@@ -11259,7 +11655,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina la sepia marinada con ajo, perejil y aceite durante 12-15 minutos, volteándola a mitad, para lograr un exterior dorado y un interior tierno."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 220°C con la función grill. Coloca la sepia marinada en una bandeja y cocina 15-20 minutos, dándole la vuelta, hasta que esté bien dorada y jugosa, imitando el efecto plancha."
+      }
+    ]
   },
   {
     "id": "pescados_072",
@@ -11420,7 +11830,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla y el ajo, sofríe con aceite. Añade el tomate, vino y especias. Coloca los mejillones en el Varoma y cocina al vapor mientras la salsa se integra en el vaso, o cocínalos directamente en el vaso."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y el ajo en la olla abierta. Añade el resto de ingredientes y los mejillones. Cierra la olla y cocina a presión alta 2-3 minutos desde que sube la válvula. Despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "pescados_073",
@@ -11578,7 +12002,15 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe el ajo picado, añade la harina, el vino blanco y el caldo de pescado. Incorpora las almejas y cocina a 100°C con giro inverso y velocidad cuchara durante 6-8 minutos, o hasta que se abran, finalizando con perejil picado."
+      }
+    ]
   },
   {
     "id": "pescados_074",
@@ -11712,7 +12144,27 @@
     "sugar_g": 1,
     "saturated_fat_g": 1,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo, añade el vino, agua, laurel y sal. Coloca los berberechos en el recipiente Varoma y cocina al vapor hasta que se abran, aprovechando el caldo aromático en el vaso."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Hierve el agua con el vino, ajo, laurel y sal en la base de la vaporera. Cocina los berberechos en la cesta de vapor hasta que se abran, permitiendo que absorban los aromas del caldo."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Introduce todos los ingredientes en la olla a presión. Cocina a fuego medio-bajo por 1-2 minutos desde que sube la válvula, liberando la presión inmediatamente para evitar sobrecocer los berberechos."
+      }
+    ]
   },
   {
     "id": "pescados_075",
@@ -11878,7 +12330,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Enharina ligeramente el pescado, rocía con un poco de aceite y cocina en tandas durante 12-15 minutos cada una, volteando a mitad, hasta que esté dorado y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C (con ventilador si es posible). Enharina el pescado, rocía con aceite y distribúyelo en una bandeja con papel de horno. Hornea durante 20-25 minutos, volteando a mitad, hasta que esté dorado y crujiente."
+      }
+    ]
   },
   {
     "id": "pescados_076",
@@ -12143,6 +12609,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es excelente para preparar la masa de las croquetas y el alioli. Sofríe la cebolla, elabora una bechamel perfecta con el bacalao y luego el alioli de forma rápida y sin esfuerzo, controlando temperatura y velocidad para evitar grumos."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Para una versión más ligera, cocina las croquetas en la airfryer a 190-200°C durante 15-20 minutos, dándoles la vuelta a mitad. Rocíalas ligeramente con aceite para un exterior más crujiente, aunque la textura será menos jugosa que la fritura tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 75,
+        "difficulty": "normal",
+        "prepSummary": "Para una alternativa horneada, precalienta el horno a 200°C. Hornea las croquetas durante 20-25 minutos, o hasta que estén doradas, dándoles la vuelta a mitad. Pulverízalas con un poco de aceite para mejorar la capa exterior."
+      }
     ]
   },
   {
@@ -12319,7 +12805,27 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Prepara un sofrito con cebolla, ajo y manzana en una sartén apta para horno. Añade la sidra, coloca la merluza y las almejas, y hornea a 190°C durante 15-20 minutos hasta que el pescado esté hecho y las almejas abiertas."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Prepara un sofrito con cebolla, ajo y manzana en el vaso. Añade la sidra, coloca la merluza y las almejas en el Varoma y cocina todo simultáneamente a temperatura Varoma, velocidad cuchara, durante 15-20 minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla, ajo y manzana en la olla. Añade la sidra, la merluza y las almejas. Cierra la olla y cocina a presión durante 3-4 minutos desde que sube la válvula. Despresuriza y sirve."
+      }
+    ]
   },
   {
     "id": "pescados_078",
@@ -12545,7 +13051,33 @@
     "sugar_g": 9,
     "saturated_fat_g": 4,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el pisto cocinando las verduras troceadas con un poco de aceite a 180°C durante 20-25 minutos, removiendo a mitad. Luego, cocina el bacalao a 190°C durante 10-12 minutos y, si lo deseas, hornea un huevo en un ramekin junto a ellos."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Asa el pisto mezclando todas las verduras troceadas con aceite y tomate a 180-190°C durante 30-40 minutos. Añade el bacalao en los últimos 15-20 minutos y, si lo deseas, hornea un huevo en un ramekin junto a ellos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el pisto en el vaso, troceando y sofriendo las verduras. Cocina el bacalao y los huevos al vapor en el recipiente Varoma mientras el pisto se termina de hacer en el vaso, a temperatura Varoma."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras del pisto en la olla express, añade el tomate y cocina a presión durante 8-10 minutos. Abre, introduce el bacalao y cocina 2-3 minutos más. El huevo se puede freír aparte o escalfar rápidamente."
+      }
+    ]
   },
   {
     "id": "pescados_079",
@@ -12690,7 +13222,15 @@
     "sugar_g": 2,
     "saturated_fat_g": 5,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es ideal para picar finamente la cebolleta y el cilantro, así como para emulsionar la vinagreta de soja y sésamo. El salmón se puede picar con golpes de turbo muy cortos para mantener su textura, mientras que el aguacate se corta a cuchillo para preservar su forma."
+      }
+    ]
   },
   {
     "id": "pescados_080",
@@ -12868,7 +13408,15 @@
     "sugar_g": 4,
     "saturated_fat_g": 1,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es excelente para picar finamente la cebolla morada, el cilantro, el chile, el jengibre y el apio. Además, permite emulsionar rápidamente la leche de tigre, mezclando los jugos de lima con los aromáticos para una base homogénea y llena de sabor."
+      }
+    ]
   },
   {
     "id": "pescados_081",
@@ -13015,7 +13563,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Enharina ligeramente la trucha, rocíala con un poco de aceite y cocina 12-15 minutos, añadiendo el jamón y las almendras laminadas los últimos 3-5 minutos para que se doren y queden crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Coloca la trucha en una bandeja con papel de horno y un chorrito de aceite. Hornea durante 15-20 minutos y añade el jamón y las almendras laminadas los últimos 5-7 minutos para que se tuesten y el jamón quede crujiente."
+      }
+    ]
   },
   {
     "id": "pescados_082",
@@ -13146,7 +13708,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 3,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 190°C. Coloca las sardinas en una bandeja, rocía con la mezcla de limón, ajo, perejil y aceite, y hornea durante 18-22 minutos hasta que estén doradas y cocidas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 185°C. Dispón las sardinas en una sola capa, rocía con la mezcla de aderezo y cocina por 12-15 minutos, volteándolas a mitad de cocción para un dorado uniforme y piel crujiente."
+      }
+    ]
   },
   {
     "id": "pescados_083",
@@ -13331,7 +13907,15 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 180-200°C. Dispón las patatas y verduras laminadas en una bandeja, coloca el rodaballo encima, riega con aceite y vino, y hornea hasta que el pescado esté en su punto y las patatas tiernas y doradas."
+      }
+    ]
   },
   {
     "id": "pescados_084",
@@ -13492,7 +14076,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 3,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Cocina el pez espada salpimentado con un poco de aceite durante 10-14 minutos, dándole la vuelta a mitad para un dorado uniforme. Prepara la salsa de mango mientras se cocina el pescado."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Coloca el pez espada en una bandeja con un chorrito de aceite y hornea durante 15-20 minutos, o hasta que esté cocido y ligeramente dorado. Prepara la salsa fresca de mango mientras el pescado está en el horno."
+      }
+    ]
   },
   {
     "id": "pescados_085",
@@ -13657,6 +14255,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el sofrito de cebolla y pimientos en una sartén. Añade el tomate triturado y cocina 10 minutos. Vierte la salsa en una fuente de horno, coloca los lomos de bacalao y hornea a 180°C durante 20-25 minutos hasta que el pescado esté tierno y la salsa reducida."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla, pimientos y ajo, y sofríe en el vaso. Añade el tomate triturado y cocina la salsa. Incorpora el bacalao en el Varoma y cocina al vapor sobre la salsa durante 15-20 minutos, hasta que esté en su punto."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla, pimientos y ajo en la olla abierta. Añade el tomate triturado y cocina a presión durante 5-7 minutos. Despresuriza, incorpora los lomos de bacalao y cocina sin presión unos 3-5 minutos más hasta que el pescado esté hecho, evitando que se deshaga."
+      }
     ]
   },
   {
@@ -13808,7 +14426,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 14,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Enharina el lenguado, rocíalo con mantequilla derretida o aceite en spray y cocina en la airfryer precalentada a 190°C durante 12-15 minutos, dándole la vuelta a mitad para un dorado uniforme. Sirve con la salsa de mantequilla, limón y perejil."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Enharina el lenguado y colócalo en una bandeja de horno con papel de hornear, rociando con mantequilla derretida. Hornea a 200°C durante 15-20 minutos, hasta que esté dorado y cocido, luego añade el limón y perejil."
+      }
+    ]
   },
   {
     "id": "pescados_087",
@@ -14012,6 +14644,26 @@
         "minutes": 2,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 110,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara el sofrito en una cazuela apta para horno, incorpora los calamares, tintas, vino y caldo. Cocina tapado en el horno precalentado a 160°C durante 90-100 minutos hasta que los calamares estén muy tiernos. El arroz se cocina aparte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Pica y sofríe las verduras en la Thermomix. Añade los calamares, tintas, vino y caldo, y cocina a 90°C, velocidad cuchara, giro inverso, durante 45-60 minutos. El arroz se puede cocinar en el cestillo o aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en la olla express. Incorpora los calamares, tintas, vino y caldo. Cierra la olla y cocina a presión durante 15-20 minutos. Despresuriza y sirve con arroz blanco cocido aparte."
+      }
     ]
   },
   {
@@ -14158,7 +14810,21 @@
     "sugar_g": 0,
     "saturated_fat_g": 2,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Rocía los langostinos con un poco de aceite y sal gorda y cocínalos durante 8-10 minutos, dándoles la vuelta a mitad, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 220°C con la función grill. Coloca los langostinos en una bandeja, rocíalos con un hilo de aceite y sal gorda, y gratina durante 5-7 minutos, vigilando que no se sequen, hasta que estén rosados y ligeramente tostados."
+      }
+    ]
   },
   {
     "id": "pescados_089",
@@ -14309,7 +14975,27 @@
     "sugar_g": 2,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rocía ligeramente los buñuelos formados con aceite de oliva y cocínalos en tandas durante 15-20 minutos, dándoles la vuelta a mitad, hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Forma los buñuelos y colócalos sobre papel de horno en una bandeja, pincelándolos con un poco de aceite. Hornea a 200°C durante 20-25 minutos, o hasta que estén bien dorados y cocidos por dentro."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix es ideal para preparar la masa de los buñuelos. Pica el ajo y perejil, añade el resto de ingredientes y mezcla a velocidad media hasta obtener una masa homogénea en pocos minutos. Luego, fríe los buñuelos en sartén como de costumbre."
+      }
+    ]
   },
   {
     "id": "pescados_090",
@@ -14496,6 +15182,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en una cazuela apta para horno. Añade el tomate, pimentón, patatas y caldo. Lleva a ebullición y hornea a 180°C durante 30-40 minutos hasta que las patatas estén tiernas. Incorpora el bonito los últimos 5 minutos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Trocea y sofríe las verduras. Añade las patatas, tomate, pimentón y caldo, y cocina 25-30 minutos a 100°C, giro inverso, velocidad cuchara. Incorpora el bonito al final y deja reposar unos minutos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en la olla. Añade las patatas, tomate, pimentón y caldo. Cierra y cocina 10-12 minutos desde que sube la presión. Despresuriza, añade el bonito y deja reposar 5 minutos con el calor residual."
+      }
     ]
   },
   {
@@ -14674,6 +15380,32 @@
         "text": "Espolvorear pimentón dulce y picante al gusto, añadir sal gorda y regar con un chorrito de aceite de oliva virgen extra en crudo.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Cuece el pulpo en la olla express con un vaso de agua durante 20-25 minutos desde que sube la válvula. Las patatas se pueden cocer en el mismo líquido o aparte para un resultado tierno y rápido."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 70,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el pulpo troceado en el vaso con agua (o al vapor en el Varoma) a 95-100°C durante 40-60 minutos, y las patatas en el Varoma simultáneamente para un cocinado preciso y uniforme."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 90,
+        "difficulty": "normal",
+        "prepSummary": "Cuece el pulpo y las patatas en la vaporera durante 60-90 minutos hasta que estén muy tiernos. Este método mantiene mejor los sabores y la textura."
+      },
+      {
+        "appliance": "horno",
+        "time": 180,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el pulpo a baja temperatura (120-140°C) en un recipiente tapado con un poco de agua o sus propios jugos durante 2-3 horas hasta que esté muy tierno. Las patatas se cuecen aparte."
       }
     ]
   },
@@ -14876,7 +15608,27 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito en una cazuela apta para horno en la encimera. Añade el caldo y los fideos, lleva a ebullición y hornea a 180°C durante 20-25 minutos. Incorpora el rape y las gambas en los últimos 5-7 minutos para que se cocinen a la perfección."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Realiza el sofrito programando velocidad y temperatura. Luego, añade el caldo y los fideos, cocinando a temperatura Varoma o 100°C con giro inverso. Incorpora el rape y las gambas en los últimos minutos para una cocción precisa."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe las verduras en la olla abierta. Añade el caldo y los fideos, cierra la olla y cocina a presión durante 3-5 minutos. Despresuriza, añade el rape y las gambas, y cocina unos minutos más sin presión hasta que estén hechos."
+      }
+    ]
   },
   {
     "id": "pescados_093",
@@ -15025,7 +15777,15 @@
     "sugar_g": 4,
     "saturated_fat_g": 1,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Pica las verduras (pimientos, cebolla, tomate) en el vaso en varios golpes de turbo o velocidad 4-5. Añade el marisco cocido y el aliño, y mezcla suavemente a velocidad cuchara para integrar todos los ingredientes sin triturar."
+      }
+    ]
   },
   {
     "id": "pescados_094",
@@ -15199,7 +15959,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 7,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe la cebolla y el jamón, mezcla con el vino y un poco de pan rallado. Coloca las vieiras en sus conchas, cubre con la mezcla, más pan rallado y un trocito de mantequilla. Gratina en el horno precalentado a 200°C durante 15-20 minutos hasta que estén doradas y burbujeantes."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el sofrito de cebolla y jamón en una sartén. Monta las vieiras en sus conchas o en recipientes aptos para airfryer con la mezcla, pan rallado y mantequilla. Cocina en la airfryer precalentada a 190°C durante 8-12 minutos, vigilando que el gratinado quede dorado y las viei"
+      }
+    ]
   },
   {
     "id": "pescados_095",
@@ -15358,7 +16132,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "elaborada",
+        "prepSummary": "Prepara la salsa verde en una cazuela apta para horno, sofriendo el ajo y añadiendo la harina, vino y caldo hasta espesar. Incorpora el congrio y las almejas, y hornea a 180°C durante unos 20-25 minutos hasta que el pescado esté tierno y las almejas abiertas, vigilando que no se "
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Pica el ajo y perejil. Prepara la salsa verde en el vaso, sofriendo el ajo y luego añadiendo la harina, vino y caldo para cocinarla. Incorpora el congrio y las almejas y cocina a 90-100°C, velocidad cuchara inversa, durante 15-20 minutos, hasta que el pescado esté hecho y las alm"
+      }
+    ]
   },
   {
     "id": "pescados_096",
@@ -15535,7 +16323,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Para los salmonetes, cocínalos directamente en la airfryer a 190°C durante 10-12 minutos, dándoles la vuelta a mitad para un dorado uniforme. Para el romesco, asa los tomates, pimiento y ajo en la airfryer a 180°C por 15-20 minutos, luego tritura con el resto de ingredientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Para el romesco, asa los tomates, pimiento y ajo en el horno a 200°C durante 20-25 minutos. Luego, hornea los salmonetes a 210°C por 15-18 minutos hasta que estén dorados, pudiendo usar el grill al final. Tritura los ingredientes asados con el resto para la salsa."
+      }
+    ]
   },
   {
     "id": "pescados_097",
@@ -15714,7 +16516,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Para los filetes de pescado, sumérgelos en la mezcla de harina y cerveza, rocía con un poco de aceite y cocina en la airfryer a 190°C durante 15-20 minutos, volteando a mitad, hasta que estén dorados y crujientes. Las tortillas se pueden calentar brevemente en la airfryer también"
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Reboza los filetes de merluza y colócalos en una bandeja de horno con papel de hornear, rociando con un poco de aceite. Hornea a 200°C (con calor arriba y abajo) durante 20-25 minutos, o hasta que estén dorados y cocidos, volteando una vez. Las tortillas se pueden calentar en el "
+      }
+    ]
   },
   {
     "id": "pescados_098",
@@ -15886,7 +16702,33 @@
     "sugar_g": 3,
     "saturated_fat_g": 7,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el salmón en la airfryer a 190°C durante 12-15 minutos para un exterior ligeramente crujiente y un interior jugoso. Mientras, prepara el arroz por separado y el resto de ingredientes para montar el bowl."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Hornea el salmón a 200°C durante 15-20 minutos hasta que esté cocido y ligeramente dorado. Prepara el arroz y el resto de ingredientes frescos mientras el salmón se cocina."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz en el cestillo y el salmón (junto con el edamame) en el Varoma simultáneamente durante unos 20 minutos. Esto optimiza el tiempo y asegura una cocción perfecta y jugosa de todos los componentes principales."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz en un recipiente apto para vaporera y el salmón (y edamame) en las bandejas superiores durante unos 20-25 minutos. El salmón quedará muy jugoso y saludable, manteniendo todos sus nutrientes."
+      }
+    ]
   },
   {
     "id": "pescados_099",
@@ -16088,7 +16930,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 14,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "pescados_100",
@@ -16281,7 +17124,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 9,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "elaborada",
+        "prepSummary": "El bacalao se confita en una fuente con aceite a baja temperatura (90-100°C) en el horno durante 30-40 minutos. La coliflor se puede asar en el horno para el puré, o cocer al vapor aparte, y el pil-pil se emulsiona en un cazo en la encimera."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix permite confitar el bacalao a baja temperatura (90°C, velocidad cuchara) en el vaso. La coliflor se cuece al vapor en el Varoma y se tritura en el vaso para el puré, y el pil-pil se emulsiona fácilmente con el aceite del confitado y los ajos, controlando temperatura "
+      }
+    ]
   },
   {
     "id": "pescados_101",
@@ -16515,7 +17372,15 @@
     "sugar_g": 3,
     "saturated_fat_g": 18,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Para las patatas panadera, corta las patatas y cebolla en rodajas finas, mézclalas con aceite de oliva y sal, y hornea en una fuente a 180°C durante 30-35 minutos. Añade los filetes de lubina sobre las patatas o en una bandeja aparte y hornea 10-12 minutos más hasta que estén coc"
+      }
+    ]
   },
   {
     "id": "pescados_102",
@@ -16701,7 +17566,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 7,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Para la pescadilla y las patatas, precalienta la airfryer a 190°C. Cocina el pescado enharinado y ligeramente rociado con aceite durante 12-15 minutos. Las patatas cortadas finas, también con un poco de aceite, cocínalas en tandas si es necesario, unos 15-20 minutos, agitando a m"
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Hornea la pescadilla enharinada y rociada con un hilo de aceite durante 15-20 minutos. Las patatas cortadas finas, con un poco de aceite y sal, hornéalas en una sola capa por 25-35 minutos, volteándolas a mitad, hasta que estén doradas y crujientes."
+      }
+    ]
   },
   {
     "id": "pescados_103",
@@ -16924,7 +17803,39 @@
     "sugar_g": 18,
     "saturated_fat_g": 7,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el salmón a 180°C durante 12-15 minutos para un exterior crujiente y jugoso. El boniato, cortado en cubos, se cocina a 180°C por 15-20 minutos hasta ablandar y luego se tritura para el puré. La salsa teriyaki se prepara aparte en un cazo."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Asa el salmón a 190°C durante 15-20 minutos hasta que esté tierno y jugoso. El boniato se asa entero o en trozos a la misma temperatura por 30-40 minutos, luego se tritura para el puré. La salsa se elabora en un cazo aparte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el puré de boniato cociéndolo al vapor en el Varoma y luego triturándolo con el resto de ingredientes. El salmón se cocina al vapor en el Varoma simultáneamente. La salsa teriyaki se elabora y espesa en el vaso de la Thermomix, picando previamente el jengibre y ajo."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el boniato al vapor hasta que esté muy tierno para el puré. El salmón se cuece al vapor en la misma vaporera, resultando jugoso y saludable. La salsa teriyaki se prepara en un cazo aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece el boniato en la olla express con un poco de agua hasta que esté muy tierno (aprox. 5-7 min desde que sube la válvula) para el puré. El salmón se cocina al vapor en la misma olla en una cesta, muy rápidamente (3-5 min). La salsa se prepara en un cazo aparte."
+      }
+    ]
   },
   {
     "id": "pescados_104",
@@ -18485,7 +19396,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 5,
     "sodium_mg": 720,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "pescados_111",

@@ -614,7 +614,8 @@
     "sugar_g": 7,
     "saturated_fat_g": 1,
     "sodium_mg": 85,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_005",
@@ -750,7 +751,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 3,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_006",
@@ -3399,7 +3401,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_022",
@@ -4113,7 +4116,8 @@
     "sugar_g": 13,
     "saturated_fat_g": 1,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_026",
@@ -4268,7 +4272,8 @@
     "sugar_g": 7,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_027",
@@ -5410,7 +5415,8 @@
     "sugar_g": 11,
     "saturated_fat_g": 1,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_034",
@@ -7662,7 +7668,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 3,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_047",
@@ -11098,7 +11105,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 3,
     "sodium_mg": 80,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_066",
@@ -12470,7 +12478,8 @@
     "sugar_g": 9,
     "saturated_fat_g": 1,
     "sodium_mg": 30,
-    "freezable": false
+    "freezable": false,
+    "montaje": true
   },
   {
     "id": "sopas_cremas_074",

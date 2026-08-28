@@ -1962,7 +1962,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_011",
@@ -3895,7 +3896,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_022",
@@ -4057,7 +4059,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_023",
@@ -4234,7 +4237,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_024",
@@ -4818,7 +4822,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_027",
@@ -4960,7 +4965,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_028",
@@ -6194,7 +6200,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_034",
@@ -8358,7 +8365,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_044",
@@ -8735,7 +8743,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "legumbres_046",

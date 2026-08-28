@@ -41,6 +41,7 @@ import {
   Snowflake,
 } from "lucide-react";
 import { recipeCatalog, recipeCatalogById } from "../data/recipeCatalog.js";
+import { isMontaje } from "../data/recipeSchema.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import salsasData from "../data/recipes/salsas.json";
 import { dishImageUrl, dishImageForRecipe } from "../assets/dishes/dishImages.js";
@@ -86,8 +87,10 @@ const CATEGORY_META = {
 // datos reales en el catálogo, solo faltaba conectar el chip).
 const FACET_META = {
   ninos:    { label: "Para peques", img: "/categories/faceta_ninos.png", wired: true, color: "#d56b9a", Icon: Baby },
-  // "rapido" (Cena rápida) quitada del grid (2026-08-27): duplicaba la
-  // categoría real "Cenas rápidas" y confundía al mostrarse dos veces.
+  // "rapido" filtra por `montaje` (isMontaje) — se monta, no se cocina de
+  // verdad (tostas, sándwiches, gazpachos...) — no por tiempo/dificultad
+  // como antes, que colaba cualquier plato rápido aunque requiriera cocinar.
+  rapido:   { label: "Cenas rápidas", img: "/categories/faceta_rapido.png", wired: true, color: "#cf7833", Icon: Clock },
   gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.png", wired: true, color: "#a97e21", Icon: Sparkles },
   verano:   { label: "De verano", img: "/categories/faceta_verano.png", wired: true, color: "#e0a83a", Icon: Sun },
   invierno: { label: "De invierno", img: "/categories/faceta_invierno.png", wired: true, color: "#4f5c78", Icon: Snowflake },
@@ -416,6 +419,7 @@ export function CatalogBrowserSheet({
   }, [fullCatalog, gatePick, platoCatalog, catalogGarnishBrowseList.length, catalogSalsaBrowseList.length]);
 
   const gourmetOnly = activeFacets.has("gourmet");
+  const rapidoOnly = activeFacets.has("rapido");
   const seasonFilter = activeFacets.has("verano") ? "verano" : activeFacets.has("invierno") ? "invierno" : null;
 
   const activeFilterCount =
@@ -425,6 +429,7 @@ export function CatalogBrowserSheet({
     (maxTime ? 1 : 0) +
     (kidOnly ? 1 : 0) +
     (gourmetOnly ? 1 : 0) +
+    (rapidoOnly ? 1 : 0) +
     (seasonFilter ? 1 : 0);
 
   const platoResults = useMemo(() => {
@@ -439,11 +444,12 @@ export function CatalogBrowserSheet({
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
       if (gourmetOnly && !r.apetecible) return false;
+      if (rapidoOnly && !isMontaje(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, seasonFilter, platoCatalog, restrictToIds, viewingMine, mineIds]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, platoCatalog, restrictToIds, viewingMine, mineIds]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -484,6 +490,7 @@ export function CatalogBrowserSheet({
         if (difficulties.size && !difficulties.has(r.difficulty)) return false;
         if (kidOnly && !r.kidFriendly) return false;
         if (gourmetOnly && !r.apetecible) return false;
+        if (rapidoOnly && !isMontaje(r)) return false;
         if (seasonFilter && r.season !== seasonFilter) return false;
         return true;
       });
@@ -504,6 +511,7 @@ export function CatalogBrowserSheet({
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
       if (gourmetOnly && !r.apetecible) return false;
+      if (rapidoOnly && !isMontaje(r)) return false;
       if (seasonFilter && r.season !== seasonFilter) return false;
       return true;
     };
@@ -530,7 +538,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes]);
 
   const gatePickMinePlatoCount = useMemo(
     () => mineRecipes.filter(isGatePickPlato).length,
@@ -639,25 +647,14 @@ export function CatalogBrowserSheet({
     `}</style>
   );
 
-  const isRapidoActive = maxTime === 20 && difficulties.size === 1 && difficulties.has("facil");
-
   function toggleFacet(id) {
     if (id === "ninos") {
       setKidOnly((v) => !v);
       return;
     }
-    if (id === "rapido") {
-      if (isRapidoActive) {
-        setMaxTime(0);
-        setDifficulties(new Set());
-      } else {
-        setMaxTime(20);
-        setDifficulties(new Set(["facil"]));
-      }
-      return;
-    }
-    // gourmet/verano/invierno: chips independientes, salvo verano↔invierno,
-    // mutuamente excluyentes porque `season` es un único valor por receta.
+    // rapido/gourmet/verano/invierno: chips independientes, salvo
+    // verano↔invierno, mutuamente excluyentes porque `season` es un único
+    // valor por receta.
     setActiveFacets((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
@@ -673,7 +670,7 @@ export function CatalogBrowserSheet({
 
   const facetActive = {
     ninos: kidOnly,
-    rapido: isRapidoActive,
+    rapido: rapidoOnly,
     gourmet: activeFacets.has("gourmet"),
     verano: activeFacets.has("verano"),
     invierno: activeFacets.has("invierno"),

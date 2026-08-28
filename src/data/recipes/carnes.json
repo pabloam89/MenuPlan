@@ -13215,7 +13215,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a máxima potencia con la función grill. Sella el solomillo 3-4 minutos por cada lado hasta dorar ligeramente la superficie. Refrigera en el congelador (15-20 min) para un corte más fácil, luego lamina muy fino y emplata el carpaccio."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "carnes_070",
@@ -24119,7 +24120,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Coloca las quesadillas rellenas en una bandeja con papel de horno y hornea durante 8-10 minutos, hasta que el queso se derrita y las tortillas estén doradas y crujientes."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "carnes_121",
@@ -24710,7 +24712,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 190°C. Corta el pan en dados, rocía con aceite y hornea 8-10 minutos hasta dorar. El pollo troceado se puede calentar o dorar ligeramente junto a los picatostes durante los últimos 5-7 minutos."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "carnes_124",
@@ -25026,7 +25029,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Dispón las tostas con la sobrasada y el queso en una bandeja y hornea durante 8-10 minutos, hasta que el pan dore y el queso se funda. Termina con un chorrito de miel."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "carnes_126",
@@ -25152,7 +25156,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 190°C (o usa la función grill). Unta el pan con mantequilla, monta el sándwich y hornea durante 8-12 minutos, vigilando que el pan quede crujiente y el pastrami bien caliente."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "carnes_127",
@@ -25292,7 +25297,8 @@
         "difficulty": "facil",
         "prepSummary": "Si buscas un pollo más crujiente y templado, hornéalo a 180°C durante 10-12 minutos. Luego, desmenúzalo y úsalo en la ensalada para un contraste de texturas."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "carnes_128",
@@ -25411,7 +25417,8 @@
         "difficulty": "facil",
         "prepSummary": "Precalienta el horno a 200°C con calor arriba y abajo. Tuesta las rebanadas de pan rústico directamente sobre la rejilla durante 5-7 minutos hasta que estén doradas. Monta la tosta con el paté, los higos y la rúcula."
       }
-    ]
+    ],
+    "montaje": true
   },
   {
     "id": "carnes_129",
@@ -25915,7 +25922,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 4,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 200°C. Sazona la pechuga, rocíala con un poco de aceite y cocina unos 15-18 minutos, dándole la vuelta a mitad, para un exterior dorado y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Sazona la pechuga, rocíala con un poco de aceite y hornea durante 20-25 minutos hasta que esté bien cocida y ligeramente dorada, asegurando que no se seque."
+      }
+    ]
   },
   {
     "id": "carnes_132",
