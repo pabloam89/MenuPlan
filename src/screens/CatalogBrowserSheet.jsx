@@ -1005,6 +1005,13 @@ export function CatalogBrowserSheet({
                 hasScopeChoice={scopeGroups.length > 1}
                 onOpenScopePicker={() => setScopeFor(r)}
                 onOpenRecipe={onOpenRecipe}
+                // Borrar solo en "Mis recetas" y solo sobre recetas propias:
+                // esta tarjeta es la del catálogo, donde no se borra nada.
+                onDelete={
+                  viewingMine && onDeleteRecipe && r.source === "user"
+                    ? () => onDeleteRecipe(r.id)
+                    : undefined
+                }
                 animDelay={i < 12 ? i * 18 : 0}
               />
             ))
@@ -2268,12 +2275,15 @@ function formatDishTime(totalMin) {
 // tiene foto propia — sin guarnición, sin salsa, sin descarte: eso vivía en
 // la lista antigua y ya no aplica a este pool.
 function RecipeGridCard({
-  recipe, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker, onOpenRecipe, animDelay = 0,
+  recipe, favorite, onSetFavoriteScope, hasScopeChoice, onOpenScopePicker, onOpenRecipe, onDelete, animDelay = 0,
 }) {
   const color = categoryColor(recipe.category);
   const photo = dishImageForRecipe(recipe);
   const diffLabel = DIFFICULTY_LABEL[recipe.difficulty];
   const diffColor = DIFFICULTY_BADGE_COLOR[recipe.difficulty] ?? GREEN;
+  // Dos toques para borrar: el primero pide confirmación en el propio icono.
+  // Sin diálogo, pero tampoco un borrado irreversible a un solo toque.
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   return (
     <div className="catalog-card-enter" style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0, animationDelay: `${animDelay}ms` }}>
@@ -2329,6 +2339,33 @@ function RecipeGridCard({
             }}
           >
             <Heart size={12} color={favorite ? "#fff" : "#c9b8ae"} fill={favorite ? "#fff" : "none"} strokeWidth={2.4} />
+          </span>
+        )}
+        {onDelete && (
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (confirmDelete) onDelete();
+              else setConfirmDelete(true);
+            }}
+            onKeyDown={(e) => { if (e.key === "Enter") e.currentTarget.click(); }}
+            aria-label={confirmDelete ? `Confirmar borrado de ${recipe.name}` : `Borrar ${recipe.name}`}
+            title={confirmDelete ? "Toca otra vez para borrar" : "Borrar receta"}
+            style={{
+              position: "absolute", bottom: 6, right: 6,
+              height: 24, minWidth: 24, padding: confirmDelete ? "0 8px" : 0,
+              borderRadius: 999,
+              border: "1.5px solid #fff",
+              background: confirmDelete ? "#c0392b" : "rgba(255,255,255,.92)",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 4,
+              boxShadow: "0 1px 3px rgba(0,0,0,.2)", zIndex: 1,
+              fontSize: 10.5, fontWeight: 800, color: "#fff",
+            }}
+          >
+            <Trash2 size={12} color={confirmDelete ? "#fff" : "#c0392b"} strokeWidth={2.4} />
+            {confirmDelete && "Borrar"}
           </span>
         )}
       </button>

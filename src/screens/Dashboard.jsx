@@ -516,11 +516,31 @@ export function DashboardScreen({
               <p style={{ margin: 0, fontSize: 14, fontWeight: 900, color: INK, letterSpacing: "-.2px", flexShrink: 0 }}>
                 Hoy toca
               </p>
-              {multiGroup && (
-                <>
-                  <div style={{ flex: 1, borderTop: "2px dashed #d7e4dc" }} />
-                  <GroupSegmentedControl groups={groups} members={members} activeId={selectedGroup?.id} onChange={setActiveGroupId} />
-                </>
+              {/* Separador siempre (antes solo con varios grupos, y sin menú
+                  la cabecera se quedaba coja). Con varios grupos, el selector;
+                  con uno solo, los avatares de la familia sin ser botón — el
+                  mismo remate visual, sin fingir una elección que no existe. */}
+              <div style={{ flex: 1, borderTop: "2px dashed #d7e4dc" }} />
+              {multiGroup ? (
+                <GroupSegmentedControl groups={groups} members={members} activeId={selectedGroup?.id} onChange={setActiveGroupId} />
+              ) : (
+                members.length > 0 && (
+                  <div style={{ display: "flex", flexShrink: 0 }} aria-hidden>
+                    {members.slice(0, 3).map((m, i) => (
+                      <div
+                        key={m.id}
+                        style={{
+                          marginLeft: i === 0 ? 0 : -10,
+                          borderRadius: "50%",
+                          zIndex: 3 - i,
+                          lineHeight: 0,
+                        }}
+                      >
+                        <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={24} color={memberAvatarColor(m.id, members)} />
+                      </div>
+                    ))}
+                  </div>
+                )
               )}
             </div>
             {todayMeals.length > 0 ? (
