@@ -12,9 +12,11 @@ import { supabase } from "./supabase.js";
  * being rated — they're shown and edited as separate controls in the UI.
  *
  * Legacy entries were a bare 'up'/'down' string, from before the two were
- * split. A bare "up" meant "liked AND favorited (all groups)" at the time, so
- * it's read that way for backward compatibility with data written before
- * this split.
+ * split. They used to also collapse to "favorited (all groups)" for
+ * backward compat, but that made every old casual 👍 permanently count as a
+ * deliberate ❤️ favorite — bloating "Mis recetas" with hundreds of dishes
+ * someone once rated well but never actually favorited (2026-08-28). A bare
+ * string is now read as JUST a rating, same as the modern `{v}`-only shape.
  * @typedef {'up' | 'down'} RecipeVote
  * @typedef {RecipeVote | { v?: RecipeVote, fav?: 'all' | string[] }} VoteEntry
  */
@@ -28,8 +30,7 @@ export function voteOf(entry) {
 
 /** Normalizes any entry to its favorite scope ("all" | string[]), or null if not a favorite. */
 export function favScopeOf(entry) {
-  if (entry == null) return null;
-  if (typeof entry === "string") return entry === "up" ? "all" : null;
+  if (entry == null || typeof entry === "string") return null;
   return entry.fav ?? null;
 }
 
