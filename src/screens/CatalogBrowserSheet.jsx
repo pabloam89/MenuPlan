@@ -90,7 +90,7 @@ const FACET_META = {
   // "rapido" filtra por `montaje` (isMontaje) — se monta, no se cocina de
   // verdad (tostas, sándwiches, gazpachos...) — no por tiempo/dificultad
   // como antes, que colaba cualquier plato rápido aunque requiriera cocinar.
-  rapido:   { label: "Cenas rápidas", img: "/categories/faceta_rapido.png", wired: true, color: "#cf7833", Icon: Clock },
+  rapido:   { label: "Cenas rápidas", img: "/categories/cenas_rapidas.png", wired: true, color: "#cf7833", Icon: Clock },
   gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.png", wired: true, color: "#a97e21", Icon: Sparkles },
   verano:   { label: "De verano", img: "/categories/faceta_verano.png", wired: true, color: "#e0a83a", Icon: Sun },
   invierno: { label: "De invierno", img: "/categories/faceta_invierno.png", wired: true, color: "#4f5c78", Icon: Snowflake },
