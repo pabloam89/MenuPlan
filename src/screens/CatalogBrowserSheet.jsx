@@ -505,6 +505,11 @@ export function CatalogBrowserSheet({
 
     const matchesCommon = (r) => {
       if (favoriteIds && !favoriteIds.has(r.id)) return false;
+      // "Mis recetas" (tile del grid): sin esto se activaba el modo pero nadie
+      // filtraba en ESTA lista — platoResults sí lo aplicaba, pero no es la
+      // que se pinta aquí — así que salía el catálogo entero, como si fuera
+      // una categoría más.
+      if (viewingMine && !mineIds.has(r.id)) return false;
       if (restrictToIds && !restrictToIds.has(r.id)) return false;
       if (q && !norm(r.name).includes(q)) return false;
       if (maxTime && (r.time ?? 999) > maxTime) return false;
@@ -538,7 +543,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, rapidoOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes, viewingMine, mineIds]);
 
   const gatePickMinePlatoCount = useMemo(
     () => mineRecipes.filter(isGatePickPlato).length,

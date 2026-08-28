@@ -2920,8 +2920,11 @@ export default function App() {
   //   "dislike" → descartar para siempre (Recetas ▸ Descartados, reversible)
   //   "week"    → descartar esta semana (~7 días)
   //   "timing"  → tarda demasiado = descartar esta semana (~7 días)
-  //   "recent"  → «me gusta pero lo comí hace poco»: enfriamiento ~14 días +
-  //               marcar favorito para que vuelva en próximos menús.
+  //   "recent"  → «me gusta pero lo comí hace poco»: enfriamiento ~14 días.
+  // "recent" marcaba ADEMÁS el plato como favorito, para que la IA lo trajera
+  // de vuelta antes. Se quitó (2026-08-28): favorito es una acción deliberada
+  // del usuario (el ❤️), y hacerlo a su espalda llenaba "Mis recetas" de
+  // platos que nunca marcó. El enfriamiento ya lo devuelve al pool solo.
   const applyDiscardReason = useCallback((sel, reason) => {
     if (householdReadOnly) return;
     if (!reason) return;
@@ -2938,17 +2941,8 @@ export default function App() {
         const days = reason === "recent" ? 14 : 7;
         cooldownUntil[baseId] = Date.now() + days * DAY_MS;
       }
-      let next = { ...d, discards: { forever, cooldownUntil } };
-      if (reason === "recent") {
-        next = { ...next, recipeVotes: setFavoriteScope(next.recipeVotes ?? {}, baseId, "all") };
-      }
-      return next;
+      return { ...d, discards: { forever, cooldownUntil } };
     });
-    if (reason === "recent" && user?.id) {
-      const nextVotes = setFavoriteScope(data.recipeVotes ?? {}, baseId, "all");
-      const entry = nextVotes[baseId] ?? null;
-      if (entry != null) saveRecipeVote(user.id, baseId, entry);
-    }
     if (user?.id) {
       if (reason === "dislike") {
         if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, { isPermanent: true });
@@ -2967,7 +2961,7 @@ export default function App() {
         : "Descartado esta semana";
     trackEvent(user, "dish_discarded", "menu", { reason, recipeId: baseId });
     return label;
-  }, [slotBaseRecipeId, data.recipeVotes, data.discards, user, householdReadOnly, syncHouseholdId]);
+  }, [slotBaseRecipeId, data.discards, user, householdReadOnly, syncHouseholdId]);
 
   // Selectable scopes for a favorite
   // (excluding the single-family "Familia"). Empty/one → no per-group choice.
