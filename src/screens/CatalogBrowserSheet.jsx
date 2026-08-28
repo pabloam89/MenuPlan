@@ -79,16 +79,18 @@ const CATEGORY_META = {
 // Estante horizontal de facetas (eje secundario) sobre la barra de búsqueda.
 // A diferencia de CATEGORY_META (qué es el plato), esto es cómo se usa —
 // no son categorías nuevas, son lentes sobre el mismo catálogo. "wired"
-// marca cuáles ya tienen filtro real detrás (kidOnly, maxTime+difficulties);
-// gourmet/verano/invierno son de momento solo visuales — les falta el campo
-// `apetecible` y un filtro de `season` reales, aún no wireados.
+// marca cuáles ya tienen filtro real detrás. gourmet filtra por `apetecible`
+// (2026-08-28: el campo llevaba desde siempre en el schema pero sin curar en
+// ninguna receta — se está rellenando aparte, por lotes, en los JSON del
+// catálogo); verano/invierno filtran por `season` (ese campo sí ya tenía
+// datos reales en el catálogo, solo faltaba conectar el chip).
 const FACET_META = {
   ninos:    { label: "Para peques", img: "/categories/faceta_ninos.png", wired: true, color: "#d56b9a", Icon: Baby },
   // "rapido" (Cena rápida) quitada del grid (2026-08-27): duplicaba la
   // categoría real "Cenas rápidas" y confundía al mostrarse dos veces.
-  gourmet:  { label: "Con estrella", img: "/categories/faceta_gourmet.png", wired: false, color: "#a97e21", Icon: Sparkles },
-  verano:   { label: "De verano", img: "/categories/faceta_verano.png", wired: false, color: "#e0a83a", Icon: Sun },
-  invierno: { label: "De invierno", img: "/categories/faceta_invierno.png", wired: false, color: "#4f5c78", Icon: Snowflake },
+  gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.png", wired: true, color: "#a97e21", Icon: Sparkles },
+  verano:   { label: "De verano", img: "/categories/faceta_verano.png", wired: true, color: "#e0a83a", Icon: Sun },
+  invierno: { label: "De invierno", img: "/categories/faceta_invierno.png", wired: true, color: "#4f5c78", Icon: Snowflake },
 };
 
 const DEFAULT_COLOR = "#5a7066";
@@ -386,9 +388,10 @@ export function CatalogBrowserSheet({
   const [maxTime, setMaxTime] = useState(0);
   const [difficulties, setDifficulties] = useState(() => new Set());
   const [kidOnly, setKidOnly] = useState(false);
-  // Facetas sin filtro real todavia (gourmet/verano/invierno) — estado
-  // puramente visual para previsualizar el estante, no filtra resultados.
-  const [previewFacets, setPreviewFacets] = useState(() => new Set());
+  // Facetas de faceta única activable (gourmet/verano/invierno). verano e
+  // invierno son mutuamente excluyentes (season es un valor único por
+  // receta) — activar una desactiva la otra, ver toggleFacet.
+  const [activeFacets, setActiveFacets] = useState(() => new Set());
   // Ilustraciones de faceta que aun no existen (404) — fallback a icono.
   const [brokenFacetImgs, setBrokenFacetImgs] = useState(() => new Set());
   const [garnishFor, setGarnishFor] = useState(null);
@@ -412,12 +415,17 @@ export function CatalogBrowserSheet({
     };
   }, [fullCatalog, gatePick, platoCatalog, catalogGarnishBrowseList.length, catalogSalsaBrowseList.length]);
 
+  const gourmetOnly = activeFacets.has("gourmet");
+  const seasonFilter = activeFacets.has("verano") ? "verano" : activeFacets.has("invierno") ? "invierno" : null;
+
   const activeFilterCount =
     cats.size +
     proteins.size +
     difficulties.size +
     (maxTime ? 1 : 0) +
-    (kidOnly ? 1 : 0);
+    (kidOnly ? 1 : 0) +
+    (gourmetOnly ? 1 : 0) +
+    (seasonFilter ? 1 : 0);
 
   const platoResults = useMemo(() => {
     const q = norm(query);
@@ -430,10 +438,12 @@ export function CatalogBrowserSheet({
       if (maxTime && (r.time ?? 999) > maxTime) return false;
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
+      if (gourmetOnly && !r.apetecible) return false;
+      if (seasonFilter && r.season !== seasonFilter) return false;
       return true;
     });
     return sortByNameQuery(filtered, q);
-  }, [query, cats, proteins, maxTime, difficulties, kidOnly, platoCatalog, restrictToIds, viewingMine, mineIds]);
+  }, [query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, seasonFilter, platoCatalog, restrictToIds, viewingMine, mineIds]);
 
   const garnishResults = useMemo(() => {
     const q = norm(query);
@@ -473,6 +483,8 @@ export function CatalogBrowserSheet({
         if (maxTime && (r.time ?? 999) > maxTime) return false;
         if (difficulties.size && !difficulties.has(r.difficulty)) return false;
         if (kidOnly && !r.kidFriendly) return false;
+        if (gourmetOnly && !r.apetecible) return false;
+        if (seasonFilter && r.season !== seasonFilter) return false;
         return true;
       });
       return sortByNameQuery(filtered, q);
@@ -491,6 +503,8 @@ export function CatalogBrowserSheet({
       if (maxTime && (r.time ?? 999) > maxTime) return false;
       if (difficulties.size && !difficulties.has(r.difficulty)) return false;
       if (kidOnly && !r.kidFriendly) return false;
+      if (gourmetOnly && !r.apetecible) return false;
+      if (seasonFilter && r.season !== seasonFilter) return false;
       return true;
     };
 
@@ -516,7 +530,7 @@ export function CatalogBrowserSheet({
       }
     }
     return sortByNameQuery(out, q);
-  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes]);
+  }, [gatePick, typeFilter, platoResults, garnishResults, query, cats, proteins, maxTime, difficulties, kidOnly, gourmetOnly, seasonFilter, fullCatalog, favoriteIds, restrictToIds, catalogGarnishBrowseList, catalogSalsaBrowseList, sourceRecipes]);
 
   const gatePickMinePlatoCount = useMemo(
     () => mineRecipes.filter(isGatePickPlato).length,
@@ -628,18 +642,11 @@ export function CatalogBrowserSheet({
   const isRapidoActive = maxTime === 20 && difficulties.size === 1 && difficulties.has("facil");
 
   function toggleFacet(id) {
-    const meta = FACET_META[id];
-    if (!meta.wired) {
-      setPreviewFacets((prev) => {
-        const next = new Set(prev);
-        next.has(id) ? next.delete(id) : next.add(id);
-        return next;
-      });
-      return;
-    }
     if (id === "ninos") {
       setKidOnly((v) => !v);
-    } else if (id === "rapido") {
+      return;
+    }
+    if (id === "rapido") {
       if (isRapidoActive) {
         setMaxTime(0);
         setDifficulties(new Set());
@@ -647,15 +654,29 @@ export function CatalogBrowserSheet({
         setMaxTime(20);
         setDifficulties(new Set(["facil"]));
       }
+      return;
     }
+    // gourmet/verano/invierno: chips independientes, salvo verano↔invierno,
+    // mutuamente excluyentes porque `season` es un único valor por receta.
+    setActiveFacets((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        if (id === "verano") next.delete("invierno");
+        if (id === "invierno") next.delete("verano");
+        next.add(id);
+      }
+      return next;
+    });
   }
 
   const facetActive = {
     ninos: kidOnly,
     rapido: isRapidoActive,
-    gourmet: previewFacets.has("gourmet"),
-    verano: previewFacets.has("verano"),
-    invierno: previewFacets.has("invierno"),
+    gourmet: activeFacets.has("gourmet"),
+    verano: activeFacets.has("verano"),
+    invierno: activeFacets.has("invierno"),
   };
 
   const searchRow = (

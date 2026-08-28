@@ -3086,6 +3086,7 @@
     "type": "completo",
     "time": 50,
     "difficulty": "normal",
+    "apetecible": true,
     "kcal": 482,
     "protein_g": 26,
     "carbs_g": 56,
