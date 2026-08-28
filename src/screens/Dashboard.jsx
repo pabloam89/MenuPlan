@@ -399,16 +399,6 @@ export function DashboardScreen({
             )}
           </div>
 
-          {user && activeHousehold && (
-            <p
-              style={{
-                margin: "3px 0 0", fontSize: 11, fontWeight: 700, color: "#5c7568",
-              }}
-            >
-              {activeHousehold.name}
-            </p>
-          )}
-
           {/* Familia como hero: el usuario es el primer avatar del racimo
               (aro dorado lo distingue de "tú"), no una foto grande aparte. */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: 18, position: "relative" }}>
@@ -454,6 +444,15 @@ export function DashboardScreen({
             ))}
           </div>
 
+          {user && activeHousehold && (
+            <p
+              style={{
+                margin: "8px 0 0", fontSize: 11, fontWeight: 700, color: "#5c7568",
+              }}
+            >
+              {activeHousehold.name}
+            </p>
+          )}
         </div>
 
         {/* Ruptura mínima entre cabecera y card: antes todo fluía en un
