@@ -90,7 +90,7 @@ const FACET_META = {
   // "rapido" filtra por `montaje` (isMontaje) — se monta, no se cocina de
   // verdad (tostas, sándwiches, gazpachos...) — no por tiempo/dificultad
   // como antes, que colaba cualquier plato rápido aunque requiriera cocinar.
-  rapido:   { label: "Cenas rápidas", img: "/categories/cenas_rapidas.png", wired: true, color: "#cf7833", Icon: Clock },
+  rapido:   { label: "Cenas rápidas", img: "/categories/faceta_rapido.png", wired: true, color: "#cf7833", Icon: Clock },
   gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.png", wired: true, color: "#a97e21", Icon: Sparkles },
   verano:   { label: "De verano", img: "/categories/faceta_verano.png", wired: true, color: "#e0a83a", Icon: Sun },
   invierno: { label: "De invierno", img: "/categories/faceta_invierno.png", wired: true, color: "#4f5c78", Icon: Snowflake },
@@ -587,6 +587,10 @@ export function CatalogBrowserSheet({
     setMaxTime(0);
     setDifficulties(new Set());
     setKidOnly(false);
+    // Las facetas del estante (gourmet/rápido/verano/invierno) también son
+    // filtros: sin esto, "Volver" devolvía a la rejilla con una faceta aún
+    // activa y sin nada en la UI que lo indicara.
+    setActiveFacets(new Set());
   };
 
   const goBackToCategories = () => {
@@ -605,7 +609,13 @@ export function CatalogBrowserSheet({
     (reference || browseCategories || (gatePick && gatePickSourceTabs && sourceTab === "catalog"))
     && !favoriteIds
     && !sourceRecipes;
-  const showCategoryGrid = isBrowseCatalog && cats.size === 0 && !viewingMine && !query.trim();
+  // Una faceta activa es, como una categoría, "ya he elegido qué ver": sin
+  // contarla aquí la rejilla se quedaba puesta y los platos filtrados no se
+  // llegaban a pintar nunca — tocabas "Cenas rápidas" y solo se iluminaba la
+  // tesela.
+  const anyFacetActive = kidOnly || activeFacets.size > 0;
+  const showCategoryGrid =
+    isBrowseCatalog && cats.size === 0 && !viewingMine && !query.trim() && !anyFacetActive;
   // En la rejilla de inicio (fuera de gatePick) el estante de facetas ya
   // cubre "explorar" — la barra de busqueda/filtros solo aparece al entrar
   // en una categoria o al buscar, no compitiendo con el estante arriba.
