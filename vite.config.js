@@ -164,6 +164,11 @@ export default defineConfig(({ mode }) => {
           // respuesta de IA cacheada y obsoleta.
           navigateFallbackDenylist: [/^\/api\//],
           cleanupOutdatedCaches: true,
+          // El catálogo de recetas enriquecido (fixedDishes) supera el límite
+          // por defecto de 2 MiB de workbox — sin esto, el build falla al
+          // generar el service worker en vez de simplemente dejar ese chunk
+          // fuera del precache.
+          maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
         },
         devOptions: {
           enabled: false,
