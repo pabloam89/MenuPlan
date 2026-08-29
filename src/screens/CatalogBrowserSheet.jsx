@@ -86,14 +86,14 @@ const CATEGORY_META = {
 // catálogo); verano/invierno filtran por `season` (ese campo sí ya tenía
 // datos reales en el catálogo, solo faltaba conectar el chip).
 const FACET_META = {
-  ninos:    { label: "Para peques", img: "/categories/faceta_ninos.png", wired: true, color: "#d56b9a", Icon: Baby },
+  ninos:    { label: "Para peques", img: "/categories/faceta_ninos.webp", wired: true, color: "#d56b9a", Icon: Baby },
   // "rapido" filtra por `montaje` (isMontaje) — se monta, no se cocina de
   // verdad (tostas, sándwiches, gazpachos...) — no por tiempo/dificultad
   // como antes, que colaba cualquier plato rápido aunque requiriera cocinar.
-  rapido:   { label: "Cenas rápidas", img: "/categories/faceta_rapido.png", wired: true, color: "#cf7833", Icon: Clock },
-  gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.png", wired: true, color: "#a97e21", Icon: Sparkles },
-  verano:   { label: "De verano", img: "/categories/faceta_verano.png", wired: true, color: "#e0a83a", Icon: Sun },
-  invierno: { label: "De invierno", img: "/categories/faceta_invierno.png", wired: true, color: "#4f5c78", Icon: Snowflake },
+  rapido:   { label: "Cenas rápidas", img: "/categories/faceta_rapido.webp", wired: true, color: "#cf7833", Icon: Clock },
+  gourmet:  { label: "Platos gourmet", img: "/categories/faceta_gourmet.webp", wired: true, color: "#a97e21", Icon: Sparkles },
+  verano:   { label: "De verano", img: "/categories/faceta_verano.webp", wired: true, color: "#e0a83a", Icon: Sun },
+  invierno: { label: "De invierno", img: "/categories/faceta_invierno.webp", wired: true, color: "#4f5c78", Icon: Snowflake },
 };
 
 const DEFAULT_COLOR = "#5a7066";
