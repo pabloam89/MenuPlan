@@ -210,6 +210,52 @@ describe("pickCatalogReplacement respects school-menu avoidance", () => {
   });
 });
 
+describe("pickCatalogReplacement derives the target role from slot shape, not from the current dish", () => {
+  // Regression: targetRoles used to mirror the mealRole of whatever dish was
+  // already sitting in the slot. If a "primero"-only recipe (e.g. an
+  // ensalada tagged mealRole ["primero","cena"], no "segundo") ever ended up
+  // in the segundo/recipeId slot, every "Regenerar" of that slot mirrored
+  // that same wrong role and kept placing more primero-only dishes there —
+  // reported as two ensaladas shown as 1º and 2º of the same comida.
+  const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
+  const data = { members: [{ id: "m1", age: 35 }], groups: [group], schedule: {} };
+
+  it("never proposes a primero-only dish for a segundo slot, even when one is already incorrectly sitting there", () => {
+    const misplacedPrimero = Object.values(recipeCatalogById).find(
+      (r) =>
+        r.mealRole?.includes("primero") &&
+        !r.mealRole?.includes("segundo") &&
+        !r.mealRole?.includes("plato_unico"),
+    );
+    // Sanity check: this shape (a real "primero"-only dish) exists in the
+    // catalog — otherwise the regression this test guards can't occur.
+    expect(misplacedPrimero).toBeTruthy();
+
+    const anotherPrimero = Object.values(recipeCatalogById).find(
+      (r) => r.mealRole?.includes("primero") && r.id !== misplacedPrimero.id,
+    );
+
+    const menuPlan = {
+      [group.id]: {
+        "Lun-Comida": { firstRecipeId: anotherPrimero.id, recipeId: misplacedPrimero.id, eaters: 2 },
+      },
+    };
+
+    for (let i = 0; i < 30; i++) {
+      const result = pickCatalogReplacement(data, menuPlan, {
+        groupId: group.id,
+        day: "Lun",
+        meal: "Comida",
+        course: "main",
+      });
+      expect(result).toBeTruthy();
+      const catalogRecipe =
+        recipeCatalogById[result.recipeId] ?? recipeCatalogById[result.frontendRecipe.baseRecipeId];
+      expect(catalogRecipe.mealRole).toEqual(expect.arrayContaining(["segundo"]));
+    }
+  });
+});
+
 describe("pickCatalogReplacement keeps the same-day protein group separated (rule 3c)", () => {
   const group = { id: "g1", label: "Familia", memberIds: ["m1"] };
   const PROTEIN_GROUPS = {

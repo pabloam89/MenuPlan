@@ -2212,12 +2212,18 @@ export function pickCatalogReplacement(data, menuPlan, { groupId, day, meal, cou
   const currentBaseId = stripGroupPrefix(currentRecipeId);
   const currentCatalog = currentBaseId ? recipeCatalogById[currentBaseId] : null;
 
-  // Target meal roles: mirror the dish being replaced; otherwise infer from the
-  // slot shape (a comida with a first course → segundo; plato único; cena).
+  // Target meal roles: ALWAYS inferred from the slot's own structural shape
+  // (a comida with a first course → segundo; plato único; cena) — never from
+  // the dish currently sitting there. This used to mirror the current dish's
+  // own mealRole first, which sounds harmless but silently PROPAGATES a
+  // misplaced dish: if a "primero"-only recipe ever ended up in a segundo
+  // slot, every subsequent "Regenerar" of that same slot mirrored that same
+  // wrong role and kept placing more primero-only dishes there — reported as
+  // two ensaladas shown as 1º and 2º of the same comida. Slot shape is the
+  // one thing that's always correct, since it comes from where the recipe is
+  // stored (firstRecipeId vs recipeId), not from what was placed there.
   let targetRoles;
-  if (currentCatalog?.mealRole?.length) {
-    targetRoles = new Set(currentCatalog.mealRole);
-  } else if (course === "first") {
+  if (course === "first") {
     targetRoles = new Set(["primero"]);
   } else if (String(meal).toLowerCase() === "cena") {
     targetRoles = new Set(["cena", "plato_unico"]);
