@@ -1280,6 +1280,77 @@ describe("dos_cuchara_mismo_dia", () => {
   });
 });
 
+describe("dos_ensaladas_en_comida", () => {
+  it("flags un primero y un segundo ambos llamados \"ensalada\", aunque sean de categorías distintas", () => {
+    // Reproduce el caso reportado: la ensalada de rúcula (category
+    // ensaladas_verduras, mealRole primero) y la ensalada de pollo asado
+    // (category carnes, mealRole segundo/plato_unico — un rol legítimo para
+    // una "ensalada completa"). Ni el category ni el mainProtein coinciden,
+    // así que ninguna otra regla los pilla — solo el nombre.
+    const pool = [
+      recipe({ id: "ens_rucula", name: "Ensalada de rúcula, parmesano y piñones", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "ens_pollo", name: "Ensalada de pollo asado de bolsa con nueces y queso", category: "carnes", mainProtein: "pollo", mealRole: ["segundo", "plato_unico"] }),
+    ];
+    const slots = [slot("mar_comida_1"), slot("mar_comida_2")];
+    const assignments = [
+      { slotId: "mar_comida_1", recipeId: "ens_rucula" },
+      { slotId: "mar_comida_2", recipeId: "ens_pollo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).toContain("dos_ensaladas_en_comida");
+    expect(violations.find((v) => v.rule === "dos_ensaladas_en_comida").slotId).toBe("mar_comida_2");
+  });
+
+  it("NO flags una sola ensalada de primero con un segundo normal", () => {
+    const pool = [
+      recipe({ id: "ens_rucula", name: "Ensalada de rúcula, parmesano y piñones", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "atun", name: "Atún a la plancha", category: "pescados", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "ens_rucula" },
+      { slotId: "lun_comida_2", recipeId: "atun" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("dos_ensaladas_en_comida");
+  });
+
+  it("NO flags un segundo que lleva ensalada de guarnición (\"ensalada\" no está al principio del nombre)", () => {
+    // "Salmón a la plancha con ensalada de pepino y eneldo" es un plato de
+    // pescado con una ensalada de acompañamiento, no "una ensalada" — muy
+    // distinto de "Ensalada de pollo asado..." donde SÍ lo es. Real, del
+    // catálogo: 35 segundos contienen "ensalada" en el nombre así.
+    const pool = [
+      recipe({ id: "ens_rucula", name: "Ensalada de rúcula, parmesano y piñones", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "salmon", name: "Salmón a la plancha con ensalada de pepino y eneldo", category: "pescados", mainProtein: "pescado_azul", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("lun_comida_1"), slot("lun_comida_2")];
+    const assignments = [
+      { slotId: "lun_comida_1", recipeId: "ens_rucula" },
+      { slotId: "lun_comida_2", recipeId: "salmon" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    expect(violations.map((v) => v.rule)).not.toContain("dos_ensaladas_en_comida");
+  });
+
+  it("applyFallback sustituye el segundo por un plato sin \"ensalada\" en el nombre", () => {
+    const pool = [
+      recipe({ id: "ens_rucula", name: "Ensalada de rúcula, parmesano y piñones", category: "ensaladas_verduras", mainProtein: "none", mealRole: ["primero"] }),
+      recipe({ id: "ens_pollo", name: "Ensalada de pollo asado de bolsa con nueces y queso", category: "carnes", mainProtein: "pollo", mealRole: ["segundo", "plato_unico"] }),
+      recipe({ id: "merluza", name: "Merluza al horno", category: "pescados", mainProtein: "pescado_blanco", mealRole: ["segundo"] }),
+    ];
+    const slots = [slot("mar_comida_1"), slot("mar_comida_2")];
+    const assignments = [
+      { slotId: "mar_comida_1", recipeId: "ens_rucula" },
+      { slotId: "mar_comida_2", recipeId: "ens_pollo" },
+    ];
+    const { violations } = validateMenu(assignments, pool, slots);
+    const fixed = applyFallback(assignments, violations, pool, slots);
+    expect(fixed.find((s) => s.slotId === "mar_comida_2")?.recipeId).toBe("merluza");
+    expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("dos_ensaladas_en_comida");
+  });
+});
+
 describe("guarnicion_cena_consecutiva (misma base de hidratos en cenas de días consecutivos)", () => {
   it("flags pasta lun_cena + pasta mar_cena", () => {
     const pool = [

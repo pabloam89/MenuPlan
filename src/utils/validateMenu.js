@@ -118,6 +118,26 @@ function isPlatoCuchara(recipe) {
   return CUCHARA_NAME_RE.test(normName(recipe.name));
 }
 
+// Name-based, same idea as isPlatoCuchara: catches "ensalada" dishes
+// regardless of which catalog category they live in. This matters because a
+// hearty "ensalada completa" (e.g. "Ensalada de pollo asado con nueces y
+// queso") is correctly filed under category "carnes" with mealRole
+// ["segundo","plato_unico"] — a perfectly valid segundo on its own — but
+// pairing it with an "ensalada"-named primero reads as two salads to the
+// user even though neither dish's role/category is wrong. Used by rule 3d.
+//
+// Anchored at the START of the name on purpose, not a bare substring match:
+// 35 real segundo dishes contain "ensalada" somewhere in the name but AREN'T
+// salads themselves — e.g. "Salmón a la plancha con ensalada de pepino y
+// eneldo" or "Lomo de cerdo a la plancha con ensalada de tomate y cebolla"
+// are a protein main course WITH a side salad, not "a salad". Those are a
+// completely normal primero+segundo pairing and must not be flagged. Only
+// the 15 dishes where "Ensalada" IS the dish (starts the name) count.
+const ENSALADA_NAME_RE = /^ensalada/i;
+function isEnsalada(recipe) {
+  return recipe ? ENSALADA_NAME_RE.test(recipe.name.trim()) : false;
+}
+
 function buildMealOrder(slotAssignments) {
   const mealOrder = [];
   for (const { slotId, recipeId } of slotAssignments) {
@@ -427,6 +447,31 @@ export function validateMenu(
           message: `"${r2.name}" repite el grupo de proteína "${shared}" del primero ("${r1.name}") el mismo día (${daySlug})`,
         });
       }
+    }
+  }
+
+  // 3d. Same-comida primero+segundo can't BOTH be "ensalada"-named dishes —
+  // even when each one's mealRole is individually valid for its slot (e.g. a
+  // protein-heavy "ensalada completa" correctly tagged segundo). A tester
+  // reported exactly this: "Ensalada de rúcula, parmesano y piñones" as
+  // primero next to "Ensalada de pollo asado de bolsa con nueces y queso" as
+  // segundo — nothing else in this file catches it, since the two dishes can
+  // have different categories (ensaladas_verduras vs carnes) and different
+  // mainProtein, so rules 3b/3c never fire. Name-based like isPlatoCuchara,
+  // because "looks like two salads" is what the user actually perceives.
+  for (const [daySlug, positions] of Object.entries(comidaByDay)) {
+    const slot1 = positions["1"];
+    const slot2 = positions["2"];
+    if (!slot1 || !slot2) continue;
+    const r1 = poolById[slot1.recipeId];
+    const r2 = poolById[slot2.recipeId];
+    if (!r1 || !r2) continue;
+    if (isEnsalada(r1) && isEnsalada(r2)) {
+      violations.push({
+        rule: "dos_ensaladas_en_comida",
+        slotId: slot2.slotId,
+        message: `"${r1.name}" (primero) y "${r2.name}" (segundo) son ambas ensaladas en la misma comida (${daySlug})`,
+      });
     }
   }
 
@@ -787,6 +832,7 @@ export const GUARD_FOR_RULE = {
   school_carb_conflict: "carb",
   proteina_consecutiva: "protein",
   proteina_repetida_en_comida: "sibling",
+  dos_ensaladas_en_comida: "ensaladaClash",
   proteina_repetida_en_dia: "primeroGroup",
   proteina_cena_consecutiva: "cenaConsecutiva",
   dos_fritos_seguidos: "frito",
@@ -1001,6 +1047,9 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // pair under COMIDA_KCAL_SOFT_CAP (rule 7b). null = not a two-course
     // comida, so there's no pair to balance.
     let siblingKcal = null;
+    // Mirrors rule 3d: is the OTHER half of this comida an "ensalada"-named
+    // dish? If so, a replacement must not also be one.
+    let siblingIsEnsalada = false;
     {
       const pos = slot.slotId.split("_")[2];
       if (mealType === "comida" && (pos === "1" || pos === "2")) {
@@ -1009,6 +1058,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         const siblingRecipe = siblingRecipeId ? poolById[siblingRecipeId] : null;
         if (siblingRecipe && siblingRecipe.mainProtein !== "none") siblingProtein = siblingRecipe.mainProtein;
         if (siblingRecipe) siblingKcal = siblingRecipe.kcal ?? 0;
+        if (siblingRecipe) siblingIsEnsalada = isEnsalada(siblingRecipe);
       }
     }
 
@@ -1061,6 +1111,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
       },
       protein: (r) => !neighborProteins.has(r.mainProtein),
       sibling: (r) => !(siblingProtein && r.mainProtein === siblingProtein),
+      ensaladaClash: (r) => !(siblingIsEnsalada && isEnsalada(r)),
       primeroGroup: (r) =>
         !(sameDayPrimeroGroups && [...proteinGroupsOf(r)].some((g) => sameDayPrimeroGroups.has(g))),
       cenaConsecutiva: (r) =>
@@ -1085,7 +1136,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
     // dropped first and `weight` last. Every extra guard kept while a better
     // candidate exists is fine; dropping the important ones first is what
     // produced visibly-bad menus.
-    const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "cenaConsecutiva", "sibling", "protein", "carb"];
+    const RELAX_ORDER = ["weight", "cenaRapida", "frito", "cuchara", "primeroGroup", "cenaConsecutiva", "ensaladaClash", "sibling", "protein", "carb"];
     const guardTiers = [];
     for (let drop = 0; drop <= RELAX_ORDER.length; drop++) {
       const dropped = new Set(RELAX_ORDER.slice(0, drop));
