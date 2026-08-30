@@ -4522,7 +4522,8 @@
     "saturated_fat_g": 9,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_032",
@@ -4694,7 +4695,8 @@
     "saturated_fat_g": 9,
     "sodium_mg": 480,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_033",
@@ -4870,7 +4872,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_034",
@@ -4991,7 +4994,8 @@
     "saturated_fat_g": 11,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_035",
@@ -5153,7 +5157,8 @@
     "saturated_fat_g": 10,
     "sodium_mg": 480,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5312,7 +5317,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 7,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_037",
@@ -5417,7 +5423,8 @@
     "saturated_fat_g": 8,
     "sodium_mg": 280,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_038",
@@ -5532,7 +5539,8 @@
     "saturated_fat_g": 11,
     "sodium_mg": 320,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_039",
@@ -5658,7 +5666,8 @@
     "sugar_g": 10,
     "saturated_fat_g": 7,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_040",
@@ -5825,7 +5834,8 @@
     "sugar_g": 11,
     "saturated_fat_g": 7,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_041",
@@ -5979,7 +5989,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_042",
@@ -6099,7 +6110,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 7,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_043",
@@ -6214,7 +6226,8 @@
     "saturated_fat_g": 6,
     "sodium_mg": 480,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_044",
@@ -6366,7 +6379,8 @@
     "sugar_g": 8,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_045",
@@ -6498,7 +6512,8 @@
     "sugar_g": 16,
     "saturated_fat_g": 3,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_046",
@@ -6625,7 +6640,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_047",
@@ -6758,7 +6774,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 2,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_048",
@@ -6888,7 +6905,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_049",
@@ -7008,7 +7026,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 520,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_050",
@@ -7133,7 +7152,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 6,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_051",
@@ -7259,7 +7279,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_052",
@@ -7449,7 +7470,8 @@
     "sugar_g": 7,
     "saturated_fat_g": 3,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_053",
@@ -7627,7 +7649,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_054",
@@ -7831,7 +7854,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 4,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_055",
@@ -7945,7 +7969,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 5,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_056",
@@ -8072,7 +8097,8 @@
     "sugar_g": 10,
     "saturated_fat_g": 7,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_057",
@@ -8238,7 +8264,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_058",
@@ -8388,7 +8415,8 @@
     "sugar_g": 7,
     "saturated_fat_g": 2,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_059",
@@ -8551,7 +8579,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_060",
@@ -8700,7 +8729,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_061",
@@ -8820,7 +8850,8 @@
     "sugar_g": 8,
     "saturated_fat_g": 2,
     "sodium_mg": 40,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_062",
@@ -8934,7 +8965,8 @@
     "sugar_g": 10,
     "saturated_fat_g": 6,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_063",
@@ -9032,7 +9064,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_064",
@@ -9163,7 +9196,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 6,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_065",
@@ -9334,7 +9368,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_066",
@@ -9479,7 +9514,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 7,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_067",
@@ -9706,7 +9742,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 7,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_068",
@@ -9832,7 +9869,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 1,
     "sodium_mg": 80,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_069",
@@ -9928,7 +9966,8 @@
     "sugar_g": 9,
     "saturated_fat_g": 2,
     "sodium_mg": 120,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_070",
@@ -10094,7 +10133,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 120,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_071",
@@ -10229,7 +10269,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_072",
@@ -10394,7 +10435,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_073",
@@ -10516,7 +10558,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_074",
@@ -10623,7 +10666,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 2,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_075",
@@ -10744,7 +10788,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_076",
@@ -10867,7 +10912,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 3,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_077",
@@ -11010,7 +11056,8 @@
     "sugar_g": 10,
     "saturated_fat_g": 4,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_078",
@@ -11148,7 +11195,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_079",
@@ -11312,7 +11360,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_080",
@@ -11473,7 +11522,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 3,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_081",
@@ -11650,7 +11700,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 6,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_082",
@@ -11773,7 +11824,8 @@
     "sugar_g": 16,
     "saturated_fat_g": 4,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_083",
@@ -11894,7 +11946,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 8,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_084",
@@ -12042,7 +12095,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_085",
@@ -12178,7 +12232,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_086",
@@ -12293,7 +12348,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_087",
@@ -12466,7 +12522,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_088",
@@ -12587,7 +12644,8 @@
     "saturated_fat_g": 14,
     "sodium_mg": 320,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_089",
@@ -12763,7 +12821,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 7,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_090",
@@ -12998,7 +13057,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_091",
@@ -13184,7 +13244,8 @@
     "sugar_g": 9,
     "saturated_fat_g": 4,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_092",
@@ -13362,7 +13423,8 @@
     "sugar_g": 8,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_093",
@@ -13602,7 +13664,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_094",
@@ -13723,7 +13786,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 2,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_095",
@@ -13924,7 +13988,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 5,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_096",
@@ -14066,7 +14131,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_097",
@@ -14236,7 +14302,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_098",
@@ -14377,7 +14444,8 @@
     "sugar_g": 7,
     "saturated_fat_g": 4,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_099",
@@ -14542,7 +14610,8 @@
     "sugar_g": 9,
     "saturated_fat_g": 2,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_100",
@@ -14696,7 +14765,8 @@
     "sugar_g": 10,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_101",
@@ -14833,7 +14903,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 1,
     "sodium_mg": 220,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_102",
@@ -14957,7 +15028,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 290,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_103",
@@ -15136,7 +15208,8 @@
     "sugar_g": 8,
     "saturated_fat_g": 3,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_104",
@@ -15325,7 +15398,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 10,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_105",
@@ -15481,7 +15555,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 2,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_106",
@@ -15646,7 +15721,8 @@
     "sugar_g": 9,
     "saturated_fat_g": 2,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_107",
@@ -15841,7 +15917,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_108",
@@ -16030,7 +16107,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_109",
@@ -16149,7 +16227,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 6,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_110",
@@ -16302,7 +16381,8 @@
     "sugar_g": 12,
     "saturated_fat_g": 6,
     "sodium_mg": 210,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_111",
@@ -16451,7 +16531,8 @@
     "sugar_g": 9,
     "saturated_fat_g": 1,
     "sodium_mg": 85,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_112",
@@ -16583,7 +16664,8 @@
     "sugar_g": 10,
     "saturated_fat_g": 4,
     "sodium_mg": 210,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_113",
@@ -16707,7 +16789,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_114",
@@ -16910,7 +16993,8 @@
     "sugar_g": 8,
     "saturated_fat_g": 4,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_115",
@@ -17137,7 +17221,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_116",
@@ -17296,7 +17381,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_117",
@@ -17484,7 +17570,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_118",
@@ -17743,7 +17830,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_119",
@@ -18079,7 +18167,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_120",
@@ -18250,7 +18339,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 11,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_121",
@@ -18463,7 +18553,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_122",
@@ -18589,7 +18680,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "ensaladas_verduras_123",
@@ -18794,6 +18886,7 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   }
 ]

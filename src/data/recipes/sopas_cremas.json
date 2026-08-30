@@ -3402,7 +3402,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 820,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_022",
@@ -3604,7 +3605,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_023",
@@ -3819,7 +3821,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_024",
@@ -3985,7 +3988,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_025",
@@ -4117,7 +4121,8 @@
     "saturated_fat_g": 1,
     "sodium_mg": 320,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_026",
@@ -4273,7 +4278,8 @@
     "saturated_fat_g": 2,
     "sodium_mg": 620,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_027",
@@ -4449,7 +4455,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_028",
@@ -4599,7 +4606,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_029",
@@ -4777,7 +4785,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_030",
@@ -4940,7 +4949,8 @@
     "sugar_g": 9,
     "saturated_fat_g": 10,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_031",
@@ -5107,7 +5117,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_032",
@@ -5266,7 +5277,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_033",
@@ -5416,7 +5428,8 @@
     "saturated_fat_g": 1,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_034",
@@ -5560,7 +5573,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_035",
@@ -5708,7 +5722,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_036",
@@ -5826,7 +5841,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_037",
@@ -5978,7 +5994,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_038",
@@ -6150,7 +6167,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_039",
@@ -6350,7 +6368,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_040",
@@ -6516,7 +6535,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_041",
@@ -6710,7 +6730,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_042",
@@ -6897,7 +6918,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_043",
@@ -7090,7 +7112,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_044",
@@ -7319,7 +7342,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 720,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_045",
@@ -7501,7 +7525,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_046",
@@ -7669,7 +7694,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 390,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_047",
@@ -7850,7 +7876,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_048",
@@ -8005,7 +8032,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 1,
     "sodium_mg": 980,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_049",
@@ -8179,7 +8207,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_050",
@@ -8350,7 +8379,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_051",
@@ -8533,7 +8563,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_052",
@@ -8733,7 +8764,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_053",
@@ -8943,7 +8975,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_054",
@@ -9128,7 +9161,8 @@
     "sugar_g": 10,
     "saturated_fat_g": 14,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_055",
@@ -9321,7 +9355,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_056",
@@ -9446,7 +9481,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_057",
@@ -9628,7 +9664,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_058",
@@ -9837,7 +9874,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_059",
@@ -10057,7 +10095,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_060",
@@ -10195,7 +10234,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 4,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_061",
@@ -10442,7 +10482,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_062",
@@ -10608,7 +10649,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 11,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_063",
@@ -10781,7 +10823,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_064",
@@ -10945,7 +10988,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_065",
@@ -11106,7 +11150,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 80,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_066",
@@ -11281,7 +11326,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_067",
@@ -11420,7 +11466,8 @@
     "sugar_g": 7,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_068",
@@ -11577,7 +11624,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_069",
@@ -11802,7 +11850,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_070",
@@ -11954,7 +12003,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_071",
@@ -12145,7 +12195,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_072",
@@ -12341,7 +12392,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_073",
@@ -12479,7 +12531,8 @@
     "saturated_fat_g": 1,
     "sodium_mg": 30,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_074",
@@ -12637,7 +12690,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_075",
@@ -12819,7 +12873,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_076",
@@ -12990,7 +13045,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_077",
@@ -13162,7 +13218,8 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_078",
@@ -13333,7 +13390,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_079",
@@ -13471,7 +13529,8 @@
     "sugar_g": 11,
     "saturated_fat_g": 1,
     "sodium_mg": 15,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "sopas_cremas_080",
@@ -13641,7 +13700,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "sopas_cremas_081",
@@ -13862,6 +13922,7 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   }
 ]

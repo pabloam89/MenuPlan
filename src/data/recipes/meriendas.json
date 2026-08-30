@@ -82,7 +82,8 @@
     "sugar_g": 24,
     "saturated_fat_g": 2,
     "sodium_mg": 70,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "meriendas_002",
@@ -400,7 +401,8 @@
     "sugar_g": 22,
     "saturated_fat_g": 1,
     "sodium_mg": 5,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "meriendas_006",
