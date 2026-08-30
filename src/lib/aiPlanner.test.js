@@ -624,11 +624,12 @@ describe("pool exhaustion from MULTIPLE members' restrictions (filterRecipes err
   // artificial edge case.
   //
   // kid3 also carries a vegano intolerance on top of its allergies (a vegan
-  // child with an egg/fish allergy is a perfectly ordinary combination) — the
-  // catalog grew from 305 to 916 recipes (Recetario Estrella batch), so
-  // allergies alone no longer push the pool under the 25-recipe floor; vegano
-  // is the restriction strong enough to still do it, and — like the other two
-  // kids — it doesn't exhaust the pool on its own (verified below).
+  // child with an egg/fish allergy is a perfectly ordinary combination) —
+  // vegano alone leaves ~19 curated (Recetario Estrella) recipes, which is
+  // thin but fine on its own (filterRecipes.js's minRecipes=15 accepts it,
+  // repetition and all); it's specifically the UNION with the other two
+  // kids' allergies that pushes the combined pool down to ~10 and crosses
+  // the floor — verified below.
   const group = { id: "g1", label: "Niños", memberIds: ["kid1", "kid2", "kid3"] };
   const threeKidsData = {
     members: [

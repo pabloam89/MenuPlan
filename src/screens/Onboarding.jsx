@@ -10191,7 +10191,7 @@ function BudgetSliderEuroRow({ value, min = 30, max = 200, step = 5, onChange })
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
       <style>{`
-        .sl-budget { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; outline: none; cursor: pointer; position: absolute; inset: 0; z-index: 3; margin: 0; }
+        .sl-budget { -webkit-appearance: none; appearance: none; width: 100%; height: 44px; background: transparent; outline: none; cursor: pointer; position: absolute; inset: 0; z-index: 3; margin: 0; touch-action: none; }
         .sl-budget::-webkit-slider-runnable-track { background: transparent; height: 44px; }
         .sl-budget::-moz-range-track { background: transparent; height: 44px; border: none; }
         .sl-budget::-webkit-slider-thumb { -webkit-appearance: none; width: ${thumb}px; height: ${thumb}px; border-radius: 50%; background: transparent; border: none; box-shadow: none; cursor: grab; margin-top: -20px; }

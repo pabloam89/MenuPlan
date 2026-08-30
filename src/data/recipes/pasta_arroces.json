@@ -4347,7 +4347,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_027",
@@ -4491,7 +4492,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_028",
@@ -4615,7 +4617,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_029",
@@ -4760,7 +4763,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_030",
@@ -4953,7 +4957,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_031",
@@ -5132,7 +5137,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_032",
@@ -5358,7 +5364,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_033",
@@ -5551,7 +5558,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_034",
@@ -5752,7 +5760,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_035",
@@ -5992,7 +6001,8 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_036",
@@ -6212,7 +6222,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_037",
@@ -6400,7 +6411,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_038",
@@ -6560,7 +6572,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_039",
@@ -6727,7 +6740,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_040",
@@ -7040,7 +7054,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_041",
@@ -7215,7 +7230,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_042",
@@ -7414,7 +7430,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_043",
@@ -7630,7 +7647,8 @@
         "minutes": 2,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_044",
@@ -7862,7 +7880,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_045",
@@ -8004,7 +8023,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_046",
@@ -8134,7 +8154,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_047",
@@ -8302,7 +8323,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_048",
@@ -8465,7 +8487,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_049",
@@ -8678,7 +8701,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_050",
@@ -8821,7 +8845,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_051",
@@ -9017,7 +9042,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_052",
@@ -9201,7 +9227,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_053",
@@ -9382,7 +9409,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_054",
@@ -9495,7 +9523,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_055",
@@ -9685,7 +9714,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_056",
@@ -9983,7 +10013,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_057",
@@ -10282,7 +10313,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_058",
@@ -10557,7 +10589,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_059",
@@ -10841,7 +10874,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_060",
@@ -10977,7 +11011,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_061",
@@ -11119,7 +11154,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_062",
@@ -11275,7 +11311,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_063",
@@ -11443,7 +11480,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_064",
@@ -11595,7 +11633,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_065",
@@ -11764,7 +11803,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_066",
@@ -11921,7 +11961,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_067",
@@ -12063,7 +12104,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_068",
@@ -12234,7 +12276,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_069",
@@ -12477,7 +12520,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_070",
@@ -12721,7 +12765,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_071",
@@ -12857,7 +12902,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_072",
@@ -13020,7 +13066,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_073",
@@ -13195,7 +13242,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_074",
@@ -13386,7 +13434,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_075",
@@ -13560,7 +13609,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_076",
@@ -13737,7 +13787,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_077",
@@ -13965,7 +14016,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_078",
@@ -14142,7 +14194,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_079",
@@ -14312,7 +14365,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_080",
@@ -14485,7 +14539,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_081",
@@ -14651,7 +14706,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_082",
@@ -14851,7 +14907,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_083",
@@ -15049,7 +15106,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_084",
@@ -15189,7 +15247,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_085",
@@ -15371,7 +15430,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_086",
@@ -15612,7 +15672,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_087",
@@ -15782,7 +15843,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_088",
@@ -15937,7 +15999,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_089",
@@ -16094,7 +16157,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_090",
@@ -16258,7 +16322,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_091",
@@ -16422,7 +16487,8 @@
         "kind": "emplatado",
         "part": "combinado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_092",
@@ -16584,7 +16650,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_093",
@@ -16736,7 +16803,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "pasta_arroces_094",
@@ -16874,6 +16942,7 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   }
 ]

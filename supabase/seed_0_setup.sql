@@ -85,3 +85,4 @@ alter table recipes add column if not exists sauce_id text;
 alter table recipes add column if not exists extra_proteins main_protein[];
 alter table recipes add column if not exists freezable boolean;
 alter table recipes add column if not exists steps_rich jsonb;
+alter table recipes add column if not exists estrella boolean;

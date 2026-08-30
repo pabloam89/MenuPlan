@@ -148,6 +148,15 @@ export const RecipeSchema = z
     // marca a mano (no se deriva) y solo sesga qué se propone/destaca — ninguna
     // regla del motor depende de él.
     apetecible: z.boolean().optional(),
+    // ¿Pertenece al Recetario Estrella (catálogo principal, curado en 2026)?
+    // Antes se deducía de "¿tiene foto en dishImages.json?" — pero eso acopla
+    // el nivel de catálogo a un detalle puramente visual: conectar una foto
+    // huérfana (fix visual sin relación con el generador) promovía la receta
+    // al pool principal sin que nadie lo decidiera. Se marca a mano y es la
+    // única fuente de verdad que usa filterRecipes.isPrimaryCatalog(); el
+    // resto del catálogo ("fondo de armario") solo entra si el pool principal
+    // se queda corto para las restricciones del grupo.
+    estrella: z.boolean().optional(),
     // "Cena rápida" de verdad: se monta, no se cocina (sándwich, tostas, tabla,
     // ensalada de asamblaje). Sustituye a category "cenas_rapidas".
     //

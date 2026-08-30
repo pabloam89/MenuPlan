@@ -181,6 +181,11 @@ const RECIPE_COLUMNS = [
   // 0024_recipe_extra_fields.sql) — rowToRecipe() las perdía en silencio para
   // cualquier receta servida desde Supabase.
   "extra_proteins", "freezable", "steps_rich",
+  // Reemplaza a "¿tiene foto?" como señal de nivel de catálogo (ver
+  // 0025_recipe_estrella.sql) — crítico: sin esto, isPrimaryCatalog()
+  // devuelve false para todo lo servido desde Supabase y el pool principal
+  // del generador se queda a 0 para cualquier grupo sin bebés.
+  "estrella",
 ];
 const RECIPE_UPDATE_COLUMNS = RECIPE_COLUMNS.filter((c) => c !== "id");
 
@@ -203,6 +208,7 @@ const RECIPE_COLUMN_TYPES = {
   product_aliases: "text[]", apetecible: "boolean", montaje: "boolean",
   can_be_garnish: "boolean", main_ingredients: "text[]", sauce_id: "text",
   extra_proteins: "main_protein[]", freezable: "boolean", steps_rich: "jsonb",
+  estrella: "boolean",
 };
 
 const recipeRows = recipes.map((r) => {
@@ -215,7 +221,8 @@ const recipeRows = recipes.map((r) => {
     `${sqlJsonb(r.methods)}, ${sqlTextArray(r.productAliases)}, ` +
     `${sqlNullableBool(r.apetecible)}, ${sqlNullableBool(r.montaje)}, ${sqlNullableBool(r.canBeGarnish)}, ` +
     `${sqlTextArray(r.mainIngredients)}, ${sqlString(r.sauceId)}, ` +
-    `${sqlEnumArray(r.extraProteins, "main_protein")}, ${sqlNullableBool(r.freezable)}, ${sqlJsonb(r.stepsRich)})`;
+    `${sqlEnumArray(r.extraProteins, "main_protein")}, ${sqlNullableBool(r.freezable)}, ${sqlJsonb(r.stepsRich)}, ` +
+    `${sqlNullableBool(r.estrella)})`;
 });
 
 // Setup: un archivo APARTE que hay que pegar y ejecutar solo, ANTES que los

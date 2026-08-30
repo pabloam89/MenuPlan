@@ -5,21 +5,24 @@ import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
-import { dishImageUrl } from "../assets/dishes/dishImages.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
 // isolation filter in filterRecipes()). Kept as a Set for O(1) membership.
 const OFF_MENU_CATEGORIES = new Set(["desayunos", "meriendas", "postres"]);
 
-// Recetario Estrella (611 recetas, 2026) es ahora el catálogo principal; el
-// resto del catálogo original ("fondo de armario") se queda como fallback —
-// solo entra si las restricciones del grupo agotan el pool principal. La
-// señal es la misma que usa el navegador de Catálogo (CatalogBrowserSheet):
-// tiene foto propia real, generada para este lote. Una receta propia del
-// usuario siempre cuenta como "principal" — nunca depende de tener foto.
+// Recetario Estrella (2026) es ahora el catálogo principal; el resto del
+// catálogo original ("fondo de armario") ya NUNCA entra para un grupo normal,
+// ni siquiera si las restricciones dejan el pool principal corto (ver el
+// "sin plan B" en el punto 9 más abajo) — solo los bebés quedan fuera de esta
+// distinción, con su propio pool aislado. La señal es el flag `estrella`
+// (recipeSchema.js), marcado a mano — NO "¿tiene foto?": esa señal se usó
+// hasta que un fix puramente visual (conectar una foto huérfana que ya
+// existía en Blob) promovió sin querer ~200 recetas del fondo de armario al
+// pool principal de golpe, sin que nadie lo decidiera. Una receta propia del
+// usuario siempre cuenta como "principal".
 function isPrimaryCatalog(recipe) {
-  return recipe.source === "user" || Boolean(dishImageUrl(recipe.id));
+  return recipe.source === "user" || Boolean(recipe.estrella);
 }
 
 // Shared with the hasKids alcohol check inside filterRecipes() below.
@@ -330,7 +333,16 @@ export function filterRecipes({
 
   // Validate minimum viable pool. "Solo las mías" naturally has far fewer
   // recipes, so relax the minimums (repetition is expected and acceptable).
-  const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 1 : 25;
+  //
+  // El 25 histórico se calibró contra el catálogo completo (916, con fondo de
+  // armario incluido); con el Recetario Estrella "sin plan B" (punto 9 abajo)
+  // el pool real es el curado (605 de 899), y una sola restricción fuerte pero
+  // legítima (p.ej. vegano) puede dejarlo en ~19 sin que eso sea un problema —
+  // que se repitan platos es preferible a no poder generar menú. 15 mantiene
+  // el caso que sí debe seguir bloqueando: la UNIÓN de varias restricciones de
+  // distintos miembros (ver "pool exhaustion from MULTIPLE members" en
+  // aiPlanner.test.js), que cae a ~10.
+  const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 1 : 15;
   const minCategories = isBabyGroup ? 1 : recipeMode === "only" ? 1 : 4;
 
   // 9. Recetario Estrella, sin plan B: el fondo de armario (catálogo antiguo,

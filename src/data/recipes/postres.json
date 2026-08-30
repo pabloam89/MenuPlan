@@ -111,7 +111,8 @@
     "sugar_g": 28,
     "saturated_fat_g": 0,
     "sodium_mg": 5,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_002",
@@ -188,7 +189,8 @@
     "sugar_g": 22,
     "saturated_fat_g": 3,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_003",
@@ -256,7 +258,8 @@
     "sugar_g": 20,
     "saturated_fat_g": 0,
     "sodium_mg": 2,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_004",
@@ -747,7 +750,8 @@
     "sugar_g": 32,
     "saturated_fat_g": 0,
     "sodium_mg": 4,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_008",
@@ -789,7 +793,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 50,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_009",
@@ -865,7 +870,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 1,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_013",
@@ -911,7 +917,8 @@
     "sugar_g": 13,
     "saturated_fat_g": 1,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_014",
@@ -1028,7 +1035,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_015",
@@ -1834,7 +1842,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_020",
@@ -2022,7 +2031,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_021",
@@ -2214,7 +2224,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_022",
@@ -2479,7 +2490,8 @@
     "sugar_g": 52,
     "saturated_fat_g": 9,
     "sodium_mg": 80,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_023",
@@ -2642,7 +2654,8 @@
     "sugar_g": 32,
     "saturated_fat_g": 24,
     "sodium_mg": 95,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_024",
@@ -2753,7 +2766,8 @@
     "sugar_g": 12,
     "saturated_fat_g": 12,
     "sodium_mg": 95,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_025",
@@ -2935,7 +2949,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_026",
@@ -3135,7 +3150,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 34,
     "sodium_mg": 130,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_027",
@@ -3343,7 +3359,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_028",
@@ -3577,7 +3594,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_029",
@@ -3811,7 +3829,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_030",
@@ -3963,7 +3982,8 @@
     "sugar_g": 28,
     "saturated_fat_g": 22,
     "sodium_mg": 45,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_031",
@@ -4085,7 +4105,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_032",
@@ -4222,7 +4243,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_033",
@@ -4391,7 +4413,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_034",
@@ -4593,7 +4616,8 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   },
   {
     "id": "postres_035",
@@ -4756,7 +4780,8 @@
     "sugar_g": 45,
     "saturated_fat_g": 17,
     "sodium_mg": 110,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "postres_036",
@@ -4947,6 +4972,7 @@
         "minutes": 1,
         "kind": "emplatado"
       }
-    ]
+    ],
+    "estrella": true
   }
 ]

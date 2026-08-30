@@ -95,7 +95,8 @@
     "sugar_g": 28,
     "saturated_fat_g": 2,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_002",
@@ -665,7 +666,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 2,
     "sodium_mg": 85,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_009",
@@ -756,7 +758,8 @@
     "sugar_g": 28,
     "saturated_fat_g": 2,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_010",
@@ -856,7 +859,8 @@
     "sugar_g": 26,
     "saturated_fat_g": 0,
     "sodium_mg": 35,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_011",
@@ -935,7 +939,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 2,
     "sodium_mg": 65,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_012",
@@ -1025,7 +1030,8 @@
     "sugar_g": 28,
     "saturated_fat_g": 3,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_013",
@@ -1107,7 +1113,8 @@
     "sugar_g": 28,
     "saturated_fat_g": 12,
     "sodium_mg": 15,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_014",
@@ -1187,7 +1194,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 4,
     "sodium_mg": 55,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_015",
@@ -1290,7 +1298,8 @@
     "sugar_g": 22,
     "saturated_fat_g": 3,
     "sodium_mg": 85,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_016",
@@ -1377,7 +1386,8 @@
     "sugar_g": 22,
     "saturated_fat_g": 3,
     "sodium_mg": 60,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_017",
@@ -1478,7 +1488,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 6,
     "sodium_mg": 20,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_018",
@@ -1588,7 +1599,8 @@
     "sugar_g": 14,
     "saturated_fat_g": 5,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_019",
@@ -1677,7 +1689,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 210,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   },
   {
     "id": "desayunos_020",
@@ -1782,7 +1795,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 4,
     "sodium_mg": 980,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_021",
@@ -1907,7 +1921,8 @@
     "sugar_g": 22,
     "saturated_fat_g": 6,
     "sodium_mg": 310,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_022",
@@ -2070,7 +2085,8 @@
     "sugar_g": 18,
     "saturated_fat_g": 17,
     "sodium_mg": 210,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_023",
@@ -2172,7 +2188,8 @@
     "sugar_g": 1,
     "saturated_fat_g": 14,
     "sodium_mg": 310,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_024",
@@ -2257,7 +2274,8 @@
     "sugar_g": 17,
     "saturated_fat_g": 6,
     "sodium_mg": 90,
-    "freezable": false
+    "freezable": false,
+    "estrella": true
   },
   {
     "id": "desayunos_025",
@@ -2373,6 +2391,7 @@
     "saturated_fat_g": 5,
     "sodium_mg": 320,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "estrella": true
   }
 ]

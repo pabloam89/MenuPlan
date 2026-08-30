@@ -88,6 +88,12 @@ function rowToRecipe(row) {
     // `montaje: false` es un juicio ya tomado y debe sobrevivir el viaje.
     ...(row.montaje != null ? { montaje: row.montaje } : {}),
     ...(row.apetecible != null ? { apetecible: row.apetecible } : {}),
+    // ¿Recetario Estrella? Señal que usa filterRecipes.isPrimaryCatalog() en
+    // vez de "¿tiene foto?" (ver recipeSchema.js). Mismo mapeo que faltaba en
+    // apetecible/montaje hasta 0023 — sin él, undefined para toda receta
+    // servida desde Supabase y el pool principal del generador se queda a 0
+    // para cualquier grupo sin bebés. Ver 0025_recipe_estrella.sql.
+    ...(row.estrella != null ? { estrella: row.estrella } : {}),
     ...(row.can_be_garnish != null ? { canBeGarnish: row.can_be_garnish } : {}),
     ...(row.main_ingredients?.length ? { mainIngredients: row.main_ingredients } : {}),
     // Proteínas animales secundarias (jamón en una ensalada, atún en un
