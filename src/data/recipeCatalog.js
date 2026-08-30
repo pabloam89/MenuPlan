@@ -137,6 +137,36 @@ function rowToRecipe(row) {
 
 const SUPABASE_FETCH_TIMEOUT_MS = 3000;
 
+// Caché en localStorage del catálogo remoto ya validado, para no repetir el
+// select("*") completo (~3.5MB) en cada recarga de página — solo se salta la
+// red mientras la versión cacheada siga siendo >= BUNDLED_CATALOG_VERSION (si
+// el bundle sube de versión, la caché queda obsoleta automáticamente) y no
+// haya pasado CACHE_TTL_MS desde que se guardó.
+const CATALOG_CACHE_KEY = "mp_recipe_catalog_cache_v1";
+const CATALOG_CACHE_TTL_MS = 30 * 60 * 1000;
+
+function readCatalogCache() {
+  try {
+    const raw = localStorage.getItem(CATALOG_CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed.version !== "number" || !Array.isArray(parsed.recipes)) return null;
+    if (typeof parsed.cachedAt !== "number" || Date.now() - parsed.cachedAt > CATALOG_CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCatalogCache(version, recipes) {
+  try {
+    localStorage.setItem(CATALOG_CACHE_KEY, JSON.stringify({ version, recipes, cachedAt: Date.now() }));
+  } catch {
+    // Cuota de localStorage llena o no disponible — la caché es una pura
+    // optimización, seguir sin ella no cambia el comportamiento.
+  }
+}
+
 function withTimeout(promise, ms) {
   return Promise.race([
     promise,
@@ -171,6 +201,12 @@ async function loadRemoteCatalogVersion() {
 // validated above). Never throws: menu generation must keep working.
 async function loadRecipes() {
   if (!supabase) return JSON_RECIPES;
+
+  const cached = readCatalogCache();
+  if (cached && cached.version >= BUNDLED_CATALOG_VERSION) {
+    return cached.recipes;
+  }
+
   try {
     const [remoteVersion, result] = await Promise.all([
       loadRemoteCatalogVersion(),
@@ -195,6 +231,7 @@ async function loadRecipes() {
     const errors = validateCatalog(remoteRecipes, [remoteGuarniciones, remoteSalsas]);
     if (errors.length > 0) throw new Error(`invalid data:\n${errors.join("\n")}`);
 
+    writeCatalogCache(remoteVersion, remoteRecipes);
     return remoteRecipes;
   } catch (e) {
     console.warn(

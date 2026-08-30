@@ -1107,7 +1107,7 @@ on conflict (id) do update set
   estrella = excluded.estrella;
 
 insert into catalog_meta (id, version) values
-  ('recipes', 17)
+  ('recipes', 18)
 on conflict (id) do update set version = excluded.version, updated_at = now();
 
 commit;

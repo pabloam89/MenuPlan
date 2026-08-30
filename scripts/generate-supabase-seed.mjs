@@ -149,6 +149,7 @@ const ENUM_VALUES = {
 for (const r of recipes) {
   if (r.category) ENUM_VALUES.recipe_category.add(r.category);
   if (r.mainProtein) ENUM_VALUES.main_protein.add(r.mainProtein);
+  for (const v of r.extraProteins ?? []) ENUM_VALUES.main_protein.add(v);
   for (const v of r.mealRole ?? []) ENUM_VALUES.meal_role.add(v);
   if (r.type) ENUM_VALUES.recipe_type.add(r.type);
   if (r.difficulty) ENUM_VALUES.difficulty_level.add(r.difficulty);
@@ -252,6 +253,19 @@ setupLines.push("-- recipes: columnas de migraciones que este entorno puede no t
 setupLines.push("-- (se vio con product_aliases, de la 0008) — no toca las que ya existen.");
 for (const col of RECIPE_UPDATE_COLUMNS) {
   setupLines.push(`alter table recipes add column if not exists ${col} ${RECIPE_COLUMN_TYPES[col]};`);
+}
+setupLines.push("");
+// Solo las 3 columnas que 0024/0025 añaden a AMBAS tablas (extra_proteins,
+// freezable, estrella) — no todo RECIPE_UPDATE_COLUMNS: user_recipes tiene un
+// schema propio (owner_id, visibility…) y steps_rich, por ejemplo, ya le
+// llegó por una migración anterior (0013), así que repetirla aquí sería un
+// no-op inofensivo pero engañoso sobre qué falta de verdad en cada tabla.
+const USER_RECIPES_SHARED_COLUMNS = ["extra_proteins", "freezable", "estrella"];
+setupLines.push("-- user_recipes: mismas columnas nuevas que recipes en 0024/0025 (mismo motivo:");
+setupLines.push("-- este seed no escribe filas de user_recipes, pero si algún entorno depende");
+setupLines.push("-- solo de este autoreparador, la tabla se queda corta si no se cubre aquí).");
+for (const col of USER_RECIPES_SHARED_COLUMNS) {
+  setupLines.push(`alter table user_recipes add column if not exists ${col} ${RECIPE_COLUMN_TYPES[col]};`);
 }
 setupLines.push("");
 writeFileSync(OUT_SETUP_PATH, setupLines.join("\n"), "utf8");
