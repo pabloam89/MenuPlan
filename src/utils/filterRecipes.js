@@ -333,17 +333,16 @@ export function filterRecipes({
   const minRecipes = isBabyGroup ? 10 : recipeMode === "only" ? 1 : 25;
   const minCategories = isBabyGroup ? 1 : recipeMode === "only" ? 1 : 4;
 
-  // 9. Recetario Estrella primero: si el pool principal (Recetario Estrella +
-  // recetas propias) ya da para un menú variado, el fondo de armario ni se
-  // toca. Solo se amplía al catálogo completo cuando las restricciones del
-  // grupo dejan el pool principal demasiado corto — el plan B, no el default.
-  const primaryPool = pool.filter(isPrimaryCatalog);
-  const primaryCategories = new Set(primaryPool.map((r) => r.category));
-  const usePrimaryOnly =
-    primaryPool.length >= minRecipes && primaryCategories.size >= minCategories;
-  if (usePrimaryOnly) pool = primaryPool;
+  // 9. Recetario Estrella, sin plan B: el fondo de armario (catálogo antiguo,
+  // sin foto propia) nunca entra para un grupo normal, ni siquiera cuando las
+  // restricciones dejan el pool principal corto — en ese caso se devuelve el
+  // error de abajo en vez de rellenar en silencio con catálogo antiguo. Los
+  // bebés no pasan por esta distinción: su pool ya está aislado al 100% a
+  // "bebes" en el paso 0b y esas recetas siempre tienen foto propia, así que
+  // filtrar por isPrimaryCatalog no les quita nada.
+  if (!isBabyGroup) pool = pool.filter(isPrimaryCatalog);
 
-  const categories = usePrimaryOnly ? primaryCategories : new Set(pool.map((r) => r.category));
+  const categories = new Set(pool.map((r) => r.category));
   if (pool.length < minRecipes) {
     return {
       recipes: pool,

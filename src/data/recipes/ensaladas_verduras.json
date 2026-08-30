@@ -4522,7 +4522,21 @@
     "saturated_fat_g": 9,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan rústico a 180°C durante 5-7 minutos hasta que esté dorado y crujiente. Puedes añadir los tomates cherry con un poco de aceite los últimos 3 minutos para que se templen y ablanden ligeramente, realzando su sabor."
+      },
+      {
+        "appliance": "horno",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Tuesta el pan durante 5-7 minutos hasta que esté dorado. Para potenciar el sabor, asa los tomates cherry partidos por la mitad con un chorrito de aceite y sal durante 10-12 minutos hasta que estén ligeramente caramelizados."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_032",
@@ -4694,7 +4708,21 @@
     "saturated_fat_g": 9,
     "sodium_mg": 480,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Extiende los nachos en una bandeja, cubre con el queso rallado y los jalapeños. Hornea durante 10-12 minutos, o hasta que el queso esté completamente fundido y burbujeante. Sirve inmediatamente con el guacamole recién hecho."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Coloca una capa de nachos en la cesta, cubre con el queso y los jalapeños. Cocina por 8-10 minutos, agitando ligeramente a mitad, hasta que el queso esté fundido y los nachos ligeramente crujientes. Sirve con el guacamole."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_033",
@@ -4870,7 +4898,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Coloca las tortitas ligeramente aceitadas y cocina por 16-20 minutos, dándoles la vuelta a mitad para un dorado uniforme y crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 22,
+        "difficulty": "facil",
+        "prepSummary": "Hornea a 200°C sobre papel de horno durante 20-25 minutos, volteando a mitad de cocción. Quedarán doradas y cocidas uniformemente, con una textura ligeramente más suave."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_034",
@@ -4991,7 +5033,27 @@
     "saturated_fat_g": 11,
     "sodium_mg": 420,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Tostar el pan rústico en la airfryer a 180°C durante 5-7 minutos hasta que esté crujiente. El tomate triturado se puede servir a temperatura ambiente o ligeramente templado aparte."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalentar el horno a 180°C. Tostar el pan rústico durante 8-10 minutos y, al mismo tiempo, calentar ligeramente el tomate triturado con aceite y orégano en un recipiente apto para horno."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Preparar una base de tomate templada y emulsionada calentando el tomate triturado con aceite, orégano, sal y pimienta a 80°C, velocidad 2, durante 5 minutos. El pan se tuesta aparte."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_035",
@@ -5153,7 +5215,21 @@
     "saturated_fat_g": 10,
     "sodium_mg": 480,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Saltea el relleno de champiñones, cebolla y ajo. Monta la quesadilla y cocínala en la airfryer a 180°C durante 8-10 minutos, volteándola a mitad para un dorado uniforme y queso fundido."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el relleno salteando champiñones, cebolla y ajo. Monta las quesadillas y hornéalas en el horno precalentado a 200°C (con calor arriba y abajo) durante 10-12 minutos, hasta que estén doradas y el queso fundido."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_036",
@@ -5312,7 +5388,21 @@
     "sugar_g": 1,
     "saturated_fat_g": 7,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Cocina el bacon en una capa durante 8-10 minutos hasta que esté crujiente. Luego, tuesta los picatostes con un poco de aceite durante 5-7 minutos. El huevo se puede cocer duro en la airfryer o de forma tradicional."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Hornea el bacon y los picatostes en bandejas separadas durante 15-20 minutos hasta que estén dorados y crujientes. El huevo se puede cocer duro en el horno o de forma tradicional."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_037",
@@ -5417,7 +5507,21 @@
     "saturated_fat_g": 8,
     "sodium_mg": 280,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Para el pan, precalienta la airfryer a 180°C y tuesta las rebanadas durante 5-7 minutos hasta que estén doradas y crujientes. Luego, monta la tosta con la burrata, miel, pistachos, AOVE y sal."
+      },
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta el pan rústico en el horno precalentado a 190°C durante 5-8 minutos hasta obtener una base dorada. Retira, coloca la burrata y finaliza con la miel, los pistachos, un chorrito de AOVE y las escamas de sal."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_038",
@@ -5532,7 +5636,8 @@
     "saturated_fat_g": 11,
     "sodium_mg": 320,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_039",
@@ -5658,7 +5763,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 7,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta las nueces en la airfryer a 160°C durante 5-7 minutos hasta que estén ligeramente doradas. Para un toque gourmet, calienta el queso de cabra con un chorrito de miel unos minutos para que se dore ligeramente."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta las nueces en el horno precalentado a 170°C durante 7-10 minutos, vigilando que no se quemen. Para realzar el sabor, hornea el queso de cabra con un hilo de miel hasta que esté templado y ligeramente dorado."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_040",
@@ -5825,7 +5944,21 @@
     "sugar_g": 11,
     "saturated_fat_g": 7,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Marca la piel del magret, sazona y cocina en la airfryer a 190°C durante 15-20 minutos, con la piel hacia arriba, hasta que esté crujiente y dorado. Deja reposar antes de cortar."
+      },
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Sella el magret por el lado de la piel en una sartén apta para horno hasta dorar y renderizar la grasa. Termina en el horno precalentado a 180°C durante 10-12 minutos para el punto deseado. Reposa la carne antes de laminar."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_041",
@@ -5979,7 +6112,33 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para los langostinos, rocíalos con un poco de aceite y cocínalos en la airfryer a 190°C durante 8-10 minutos, agitándolos a mitad, hasta que estén dorados y cocidos. Luego, mezcla con el resto de ingredientes frescos."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Extiende los langostinos en una bandeja de horno con un poco de aceite y sal. Ásalos a 200°C durante 10-12 minutos, volteándolos una vez, hasta que estén rosados y cocidos. Combina con el resto de la ensalada."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los langostinos en el recipiente Varoma y cocínalos al vapor durante 5-7 minutos a temperatura Varoma, velocidad 1, con 500ml de agua en el vaso. Esto asegura langostinos jugosos para la ensalada."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los langostinos en la vaporera durante 5-7 minutos hasta que estén rosados y tiernos. Este método los mantiene jugosos y es perfecto para una ensalada ligera."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_042",
@@ -6099,7 +6258,21 @@
     "sugar_g": 14,
     "saturated_fat_g": 7,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para realzar el sabor, tuesta las nueces en la airfryer a 160°C durante 5 minutos. Si deseas, puedes asar ligeramente la pera en rodajas a 180°C durante 8-10 minutos hasta que esté tierna y ligeramente dorada, luego ensambla la ensalada con el resto de ingredientes y el aderezo."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 180°C. Tuesta las nueces en una bandeja durante 7 minutos hasta que estén aromáticas. Si prefieres la pera templada, ásala en rodajas junto a las nueces durante 10-15 minutos hasta que esté tierna, luego enfría ligeramente y monta la ensalada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_043",
@@ -6214,7 +6387,8 @@
     "saturated_fat_g": 6,
     "sodium_mg": 480,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_044",
@@ -6366,7 +6540,33 @@
     "sugar_g": 8,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la quinoa en el cestillo con agua y sal durante 15-18 minutos a temperatura Varoma, velocidad 4. Una vez cocida y fría, mezcla con el resto de los ingredientes y el aliño en el vaso a velocidad cuchara."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece la quinoa en la vaporera hasta que esté tierna y esponjosa, aproximadamente 20-25 minutos. Deja enfriar completamente antes de mezclarla con la granada, el feta, el pepino, la menta y el aliño."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la quinoa en la olla express con el doble de agua y una pizca de sal durante 5-7 minutos desde que sube la válvula. Deja despresurizar de forma natural, enfría y luego incorpora el resto de los ingredientes."
+      },
+      {
+        "appliance": "microondas",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Prepara la quinoa en un recipiente apto para microondas con el doble de agua y sal, cocinándola durante 10-12 minutos a máxima potencia. Deja reposar, enfría y luego mezcla con los demás componentes de la ensalada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_045",
@@ -6498,7 +6698,8 @@
     "sugar_g": 16,
     "saturated_fat_g": 3,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_046",
@@ -6625,7 +6826,39 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Corta las patatas en dados y cocínalas en la airfryer a 190°C durante 20-25 minutos, removiendo a mitad. Añade el pulpo cocido troceado los últimos 5 minutos para que se caliente y dore ligeramente."
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Asa las patatas troceadas con un chorrito de aceite a 200°C durante 30-40 minutos hasta que estén tiernas. Incorpora el pulpo cocido troceado los últimos 10 minutos para que se temple."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas troceadas al vapor en el Varoma durante 25-30 minutos, velocidad 1, temperatura Varoma. Añade el pulpo cocido troceado los últimos 5 minutos para que se caliente suavemente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas troceadas al vapor hasta que estén tiernas, unos 25-30 minutos. Incorpora el pulpo cocido troceado los últimos 5 minutos de cocción para que se temple sin resecarse."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas troceadas en la olla express con un vaso de agua y una hoja de laurel durante 8-10 minutos desde que sube la válvula. Despresuriza, añade el pulpo troceado y calienta 2 minutos más."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_047",
@@ -6758,7 +6991,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 2,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla los garbanzos, pimiento y cebolla con aceite, comino, pimentón y sal. Cocina en la airfryer a 190°C durante 15-18 minutos, agitando a mitad, hasta que estén ligeramente dorados y tiernos. Añade perejil y limón al final."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Extiende los garbanzos, pimiento y cebolla mezclados con aceite, comino, pimentón y sal en una bandeja. Hornea a 200°C durante 20-25 minutos, removiendo una vez, hasta que estén crujientes y las verduras tiernas. Incorpora perejil y limón al servir."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_048",
@@ -6888,7 +7135,33 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Rocía los espárragos con aceite, sal, pimienta y ajo picado, y cocina 8-10 min. Añade el jamón en los últimos 2-3 min para que quede crujiente."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Extiende los espárragos en una bandeja con aceite, sal, pimienta y ajo picado. Hornea 10-12 min hasta que estén tiernos y ligeramente dorados, añadiendo el jamón los últimos 5 min para que se dore."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los espárragos al vapor 5-7 minutos hasta que estén tiernos pero firmes. Para el jamón, saltéalo en una sartén aparte o caliéntalo brevemente en el microondas hasta que esté crujiente."
+      },
+      {
+        "appliance": "microondas",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Coloca los espárragos con una cucharada de agua en un recipiente apto para microondas y cocina 3-4 minutos a máxima potencia. Cocina el jamón entre papel de cocina 1-2 minutos para que quede crujiente."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_049",
@@ -7008,7 +7281,8 @@
     "saturated_fat_g": 3,
     "sodium_mg": 520,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_050",
@@ -7133,7 +7407,21 @@
     "sugar_g": 18,
     "saturated_fat_g": 6,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 180°C. Coloca los higos partidos por la mitad y las rodajas de queso de cabra. Cocina durante 6-8 minutos hasta que los higos estén tiernos y el queso ligeramente dorado y cremoso. Monta la ensalada con el resto de ingredientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C con función grill. Dispón los higos partidos y las rodajas de queso de cabra en una bandeja de horno. Gratina durante 5-7 minutos hasta que el queso esté dorado y los higos ligeramente caramelizados. Monta la ensalada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_051",
@@ -7259,7 +7547,27 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es ideal para rallar el queso parmesano en segundos y emulsionar el aderezo de aceite, vinagre, sal y pimienta, logrando una textura perfecta para la ensalada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 5,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta los piñones en la airfryer a 160°C durante 3-4 minutos, agitándolos a mitad, para realzar su sabor y aportar un toque crujiente a la ensalada."
+      },
+      {
+        "appliance": "horno",
+        "time": 7,
+        "difficulty": "facil",
+        "prepSummary": "Para un sabor más intenso, tuesta los piñones en el horno a 180°C durante 5-7 minutos, extendidos en una bandeja, vigilando para que no se quemen y queden dorados."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_052",
@@ -7449,7 +7757,39 @@
     "sugar_g": 7,
     "saturated_fat_g": 3,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Corta el pollo en tiras, rocía con un poco de aceite y cocina en la airfryer a 190°C durante 15-18 minutos, volteando a mitad, hasta que esté dorado y jugoso. Mientras, prepara las verduras y el aliño."
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Hornea la pechuga de pollo entera o en tiras a 190°C durante 20-25 minutos, hasta que esté cocida y ligeramente dorada. Para un toque extra, puedes marinarla previamente con un poco de salsa de soja."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la pechuga de pollo al vapor en el Varoma durante 15-20 minutos a temperatura Varoma, velocidad 1, para que quede tierna. Utiliza el vaso para picar las verduras y emulsionar el aliño a velocidad media."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina la pechuga de pollo entera o en trozos en la vaporera durante 15-20 minutos, hasta que esté completamente cocida y muy jugosa. Este método es ideal para una ensalada ligera y saludable."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "normal",
+        "prepSummary": "Cocina la pechuga de pollo entera en la olla express con un poco de agua o caldo durante 5-7 minutos desde que sube la válvula. Deja despresurizar naturalmente para obtener un pollo muy tierno, ideal para desmenuzar."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_053",
@@ -7627,7 +7967,39 @@
     "sugar_g": 3,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina el bogavante (partido por la mitad) durante 12-15 minutos, hasta que la carne esté opaca. Los huevos se pueden hacer a 130°C durante 13-15 min para que queden duros y fáciles de pelar."
+      },
+      {
+        "appliance": "horno",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 200°C. Asa el bogavante (partido por la mitad con un poco de aceite) durante 15-20 minutos. Hierve los huevos por separado hasta que estén duros y enfríalos para pelar fácilmente."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Cocina el bogavante entero o partido en el recipiente Varoma durante 20-25 minutos a velocidad Varoma. Aprovecha para cocer los huevos en el mismo Varoma o en el cestillo, programando 13-15 minutos."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Cuece el bogavante entero o partido al vapor durante 15-20 minutos hasta que esté rojo y la carne opaca. Puedes cocer los huevos duros en la misma vaporera durante 12-15 minutos para un resultado perfecto."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 40,
+        "difficulty": "elaborada",
+        "prepSummary": "Introduce el bogavante entero o partido en la olla express con un poco de agua y cocina 5-7 minutos desde que sube la válvula. Los huevos se pueden cocinar 5-6 minutos a presión para pelarlos fácilmente, pero ten cuidado de no sobrecocer el bogavante."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_054",
@@ -7831,7 +8203,27 @@
     "sugar_g": 4,
     "saturated_fat_g": 4,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas y judías verdes en el recipiente Varoma y los huevos en el cestillo, todo a la vez durante unos 20-25 minutos a temperatura Varoma. El truco es aprovechar la cocción simultánea para optimizar el tiempo y lograr la textura perfecta."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas y judías verdes al vapor hasta que estén tiernas (unos 15-20 minutos para las patatas, 8-10 para las judías). Hierve los huevos por separado o en la misma vaporera si tiene esa función. La cocción suave al vapor mantiene la textura ideal de los ingredientes."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las patatas, judías verdes y huevos en la olla express con la rejilla y un poco de agua, durante 5-7 minutos desde que sube la válvula. El truco es despresurizar rápidamente para evitar que las verduras se pasen y queden perfectas."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_055",
@@ -7945,7 +8337,8 @@
     "sugar_g": 4,
     "saturated_fat_g": 5,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_056",
@@ -8072,7 +8465,15 @@
     "sugar_g": 10,
     "saturated_fat_g": 7,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la Thermomix para pesar con precisión todos los ingredientes y emulsionar la vinagreta de aceite, vinagre y miel, logrando una mezcla homogénea y perfecta para aderezar la ensalada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_057",
@@ -8238,7 +8639,27 @@
     "sugar_g": 5,
     "saturated_fat_g": 2,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es excelente para picar finamente las verduras y hierbas en segundos. Luego, puedes hidratar el cuscús con agua caliente en el vaso y mezclar todos los ingredientes con el aceite y limón, logrando una textura homogénea."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "La vaporera es perfecta para cocinar el cuscús, dejándolo suelto y esponjoso. Hidrata el cuscús al vapor durante unos 10-12 minutos y luego mézclalo con las verduras frescas picadas y el aliño para un resultado auténtico."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "El microondas es ideal para calentar rápidamente el agua o caldo para hidratar el cuscús en pocos minutos. Simplemente calienta el líquido, añade el cuscús, deja reposar y luego mezcla con el resto de ingredientes frescos para un tabulé rápido."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_058",
@@ -8388,7 +8809,21 @@
     "sugar_g": 7,
     "saturated_fat_g": 2,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Cortar las verduras, mezclarlas con aceite de oliva, sal y pimienta. Asarlas en el horno precalentado a 200°C durante 25-30 minutos hasta que estén tiernas y ligeramente doradas. Preparar el cuscús con agua caliente y mezclar todo."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Trocear las verduras, aderezar con aceite de oliva. Cocinarlas en la airfryer a 190°C en tandas durante 15-20 minutos, removiendo a mitad, hasta que estén tiernas y con un ligero tostado. Hidratar el cuscús y combinar."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_059",
@@ -8551,7 +8986,27 @@
     "sugar_g": 5,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas y el huevo al vapor en el recipiente Varoma simultáneamente durante unos 25-30 minutos, asegurando que queden tiernos y cocidos a la perfección."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas y el huevo al vapor en la vaporera durante unos 25-30 minutos hasta que estén tiernos, manteniendo su textura y nutrientes."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas y el huevo en la olla express con un poco de agua durante 5-7 minutos desde que sube la válvula, reduciendo significativamente el tiempo de cocción."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_060",
@@ -8700,7 +9155,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para unas setas tiernas y jamón crujiente, cocina las setas con ajo y un chorrito de aceite en la airfryer a 180°C durante 10-12 minutos. Añade el jamón en taquitos los últimos 3-5 minutos para que se dore bien."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Asa las setas con ajo y un poco de aceite en una bandeja de horno a 200°C durante 15-20 minutos, removiendo a mitad. Incorpora el jamón en taquitos los últimos 5-7 minutos para que quede dorado y crujiente."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_061",
@@ -8820,7 +9289,27 @@
     "sugar_g": 8,
     "saturated_fat_g": 2,
     "sodium_mg": 40,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Tuesta las almendras laminadas en la airfryer a 170°C durante 4-5 minutos, agitándolas a mitad para un dorado uniforme. Luego, mezcla todos los ingredientes y aliña con la vinagreta."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 170°C. Tuesta las almendras laminadas en una bandeja durante 5-7 minutos hasta que estén ligeramente doradas. Deja enfriar y luego combina con el resto de ingredientes y el aderezo."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el aderezo emulsionando el aceite, vinagre y miel en la Thermomix durante 30 segundos a velocidad 4-5. Luego, vierte sobre las espinacas, fresas y almendras, y mezcla suavemente."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_062",
@@ -8934,7 +9423,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 6,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "Para realzar el queso de cabra, caliéntalo en la airfryer a 180°C durante 4-5 minutos hasta que esté ligeramente dorado y cremoso. Luego, monta la ensalada con el resto de ingredientes frescos y el queso templado."
+      },
+      {
+        "appliance": "horno",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "Gratina el queso de cabra en el horno precalentado a 200°C durante 5-7 minutos, hasta que esté fundente y con una ligera costra dorada. Sirve el queso templado sobre la ensalada ya montada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_063",
@@ -9032,7 +9535,8 @@
     "sugar_g": 3,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_064",
@@ -9163,7 +9667,21 @@
     "sugar_g": 5,
     "saturated_fat_g": 6,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Pica la cebolla, el pepino y el perejil en segundos. Calienta las lentejas cocidas a 90°C, velocidad cuchara, giro inverso durante 5-7 minutos y emulsiona el aliño en el vaso."
+      },
+      {
+        "appliance": "microondas",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Calienta las lentejas cocidas en un recipiente apto para microondas durante 2-3 minutos a máxima potencia hasta que estén templadas. Luego, mezcla con el resto de ingredientes frescos."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_065",
@@ -9334,7 +9852,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Prepara el pollo empanado y cocínalo en la airfryer a 190-200°C durante 15-18 minutos, dándole la vuelta a mitad, hasta que esté dorado y crujiente. Luego, monta la ensalada."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Empana el pollo y hornéalo en un horno precalentado a 200°C durante 20-25 minutos, o hasta que esté bien dorado y crujiente. Voltea a mitad de cocción para un resultado uniforme."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_066",
@@ -9479,7 +10011,21 @@
     "sugar_g": 14,
     "saturated_fat_g": 7,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza en cubos, mézclala con aceite, sal y pimienta. Ásala en el horno precalentado a 200°C durante 30-35 minutos, hasta que esté tierna y ligeramente caramelizada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza en cubos, mézclala con aceite, sal y pimienta. Cocínala en la airfryer a 190°C durante 18-20 minutos, agitando la cesta a mitad de cocción, hasta que esté tierna y dorada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_067",
@@ -9706,7 +10252,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 7,
     "sodium_mg": 820,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Para el pollo crujiente y los picatostes, precalienta la airfryer a 190°C. Cocina el pollo empanado durante 15-18 minutos, dándole la vuelta a mitad, y los picatostes unos 5-7 minutos hasta que estén dorados y crujientes."
+      },
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Hornea el pollo empanado y los picatostes simultáneamente en bandejas separadas. Precalienta el horno a 200°C y cocina el pollo durante 20-25 minutos y los picatostes unos 10-15 minutos, hasta que ambos estén dorados y crujientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_068",
@@ -9832,7 +10392,15 @@
     "sugar_g": 18,
     "saturated_fat_g": 1,
     "sodium_mg": 80,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Ralla las zanahorias en el vaso a velocidad 5-7 durante unos segundos. Añade las pasas, comino, aceite, limón y perejil, y mezcla a velocidad 3-4 en sentido inverso durante 10-15 segundos para integrar todos los ingredientes sin triturar."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_069",
@@ -9928,7 +10496,15 @@
     "sugar_g": 9,
     "saturated_fat_g": 2,
     "sodium_mg": 120,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 8,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es ideal para emulsionar la vinagreta de miel y mostaza en segundos, garantizando una mezcla homogénea y perfecta. Simplemente añade todos los ingredientes de la vinagreta y mezcla a velocidad media-alta."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_070",
@@ -10094,7 +10670,27 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 120,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz salvaje en el cestillo mientras las verduras troceadas se cocinan al vapor en el Varoma. Luego, mezcla todo con el aderezo en el vaso."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 55,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz salvaje en la base o en un cuenco adecuado, y las verduras troceadas en la bandeja superior al vapor hasta que estén tiernas. Combina y adereza."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el arroz salvaje a presión para reducir el tiempo. Luego, cocina las verduras troceadas muy brevemente al vapor dentro de la misma olla o en una cesta para mantener su textura y color."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_071",
@@ -10229,7 +10825,39 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las judías verdes a 190°C durante 12-15 minutos hasta que estén tiernas y ligeramente doradas. Hierve los huevos en la airfryer a 130°C durante 13-15 minutos para que queden duros."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Asa las judías verdes con un poco de aceite a 190°C durante 15-20 minutos. Hornea los huevos en un molde apto para horno a 180°C durante 15-18 minutos hasta que estén cocidos."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las judías verdes y los huevos en el recipiente Varoma durante 15-20 minutos a temperatura Varoma, velocidad 1, con 500ml de agua en el vaso. Los huevos quedarán perfectos y las judías al dente."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina al vapor las judías verdes durante 15-20 minutos hasta que estén tiernas. Añade los huevos a la vaporera y cuécelos durante 12-15 minutos para obtener huevos duros perfectos."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las judías verdes en la olla express con un poco de agua durante 3-4 minutos desde que sube la válvula. Los huevos se pueden cocer en el mismo tiempo o por separado durante 5-6 minutos a presión."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_072",
@@ -10394,7 +11022,27 @@
     "sugar_g": 3,
     "saturated_fat_g": 3,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas troceadas y los huevos en el cestillo o Varoma simultáneamente durante unos 25-30 minutos a temperatura Varoma, velocidad 1. Luego pica la cebolla y mezcla todos los ingredientes."
+      },
+      {
+        "appliance": "vaporera",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cuece las patatas troceadas y los huevos en la vaporera durante 25-30 minutos hasta que estén tiernas y duros, respectivamente. Luego enfría, pica la cebolla y mezcla el resto de ingredientes."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las patatas troceadas y los huevos en la olla a presión con un poco de agua durante 5-7 minutos desde que sube la válvula. Despresuriza, enfría y mezcla con el resto de ingredientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_073",
@@ -10516,7 +11164,15 @@
     "sugar_g": 5,
     "saturated_fat_g": 4,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 10,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es perfecta para picar finamente el ajo y la menta. Luego, trocea el pepino y mezcla todos los ingredientes con el yogur y el aceite a velocidad baja hasta obtener una ensalada homogénea y lista para servir."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_074",
@@ -10623,7 +11279,21 @@
     "sugar_g": 18,
     "saturated_fat_g": 2,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Para una versión templada y con un toque dulce, corta el hinojo en láminas finas, rocíalas con aceite de oliva y cocínalas en la airfryer a 180°C durante 12-15 minutos, hasta que estén tiernas y ligeramente doradas. Luego, mezcla con la naranja fresca y las aceitunas para un cont"
+      },
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Para realzar el sabor del hinojo y darle una textura más suave y caramelizada, ásalo cortado en láminas finas con un chorrito de aceite de oliva en el horno precalentado a 200°C durante 20-25 minutos. Combina el hinojo asado tibio con la naranja y las aceitunas para una ensalada "
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_075",
@@ -10744,7 +11414,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Coloca los corazones de alcachofa, ajo y tomillo en una fuente apta para horno, cúbrelos con el aceite de oliva. Hornea a 160°C durante 40 minutos hasta que estén tiernos y confitados."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Introduce los corazones de alcachofa, ajo, tomillo y aceite en el vaso. Cocina a 90°C, velocidad cuchara, giro inverso, durante 35 minutos para confitar las alcachofas suavemente."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_076",
@@ -10867,7 +11551,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 3,
     "sodium_mg": 180,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_077",
@@ -11010,7 +11695,15 @@
     "sugar_g": 10,
     "saturated_fat_g": 4,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 12,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es perfecta para esta ensalada, ya que pica el kale, la manzana y las nueces de forma rápida y homogénea. Además, emulsiona el aliño a la perfección, garantizando una mezcla uniforme de todos los ingredientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_078",
@@ -11148,7 +11841,8 @@
     "sugar_g": 2,
     "saturated_fat_g": 2,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_079",
@@ -11312,7 +12006,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Mezcla la coliflor con aceite, comino y pimentón, y ásala en una bandeja durante 30-35 minutos, removiendo a mitad para un dorado uniforme y tierno."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cubre la coliflor con aceite y especias, y cocina en la cesta durante 18-22 minutos, agitando a mitad para lograr un asado crujiente y bien dorado."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_080",
@@ -11473,7 +12181,15 @@
     "sugar_g": 6,
     "saturated_fat_g": 3,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza el Thermomix para picar finamente los pimientos, cebolla y tomate en segundos. Luego, mezcla todos los ingredientes en el vaso o en un bol aparte y emulsiona el aliño con aceite, vinagre y sal para añadirlo al final."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_081",
@@ -11650,7 +12366,27 @@
     "sugar_g": 6,
     "saturated_fat_g": 6,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "La Thermomix es ideal para cocer la pasta de forma controlada. Añade agua y sal al vaso, calienta, y luego incorpora los fusilli cociéndolos a la temperatura y tiempo indicados en el paquete, a velocidad cuchara y giro inverso. El resto de ingredientes se pican y mezclan manualme"
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "La olla express es excelente para cocer la pasta en mucho menos tiempo. Añade el agua y la sal, lleva a ebullición, incorpora la pasta y cocina a presión por la mitad del tiempo indicado en el paquete, o incluso menos, liberando la presión rápidamente para evitar que se pase. Lue"
+      },
+      {
+        "appliance": "microondas",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Puedes cocer la pasta en el microondas usando un recipiente apto con agua y sal, calentando a máxima potencia hasta que hierva y luego cocinando según las instrucciones del paquete, removiendo ocasionalmente. Es una opción rápida para la cocción, luego solo tienes que añadir los "
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_082",
@@ -11773,7 +12509,8 @@
     "sugar_g": 16,
     "saturated_fat_g": 4,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_083",
@@ -11894,7 +12631,8 @@
     "sugar_g": 6,
     "saturated_fat_g": 8,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_084",
@@ -12042,7 +12780,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 5,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Los langostinos, marinados con curry, aceite y sal, se cocinan en la airfryer a 190°C durante 6-8 minutos, agitándolos a mitad. Esto les da una textura crujiente por fuera y jugosa por dentro, ideal para la ensalada."
+      },
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Marinar los langostinos con curry, aceite y sal, y asarlos en el horno precalentado a 200°C durante 8-10 minutos hasta que estén rosados y cocidos. Esta cocción al horno realza el sabor del curry de forma suave."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_085",
@@ -12178,7 +12930,15 @@
     "sugar_g": 18,
     "saturated_fat_g": 2,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Utiliza la Thermomix para picar la cebolla morada y la remolacha cocida en trozos uniformes (velocidad 4, 3-4 segundos). Emulsiona el aceite, vinagre y sal para el aliño (velocidad 5, 30 segundos). Luego, mezcla todo suavemente en un bol con el resto de ingredientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_086",
@@ -12293,7 +13053,21 @@
     "sugar_g": 5,
     "saturated_fat_g": 9,
     "sodium_mg": 420,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Asa los tomates cherry partidos por la mitad con un chorrito de aceite y sal en el horno precalentado a 180°C durante 15 minutos, hasta que estén tiernos y ligeramente caramelizados. Combínalos tibios con la mozzarella, albahaca, aceite y vinagre."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Para intensificar su sabor, asa los tomates cherry partidos por la mitad con un poco de aceite y sal en la airfryer a 180°C durante 10-12 minutos, agitándolos a mitad. Luego, mezcla con la mozzarella fresca, albahaca, aceite y vinagre."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_087",
@@ -12466,7 +13240,21 @@
     "sugar_g": 14,
     "saturated_fat_g": 4,
     "sodium_mg": 520,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el pollo marinado en la airfryer a 190-200°C durante 15-18 minutos, dándole la vuelta a mitad para un exterior dorado y jugoso."
+      },
+      {
+        "appliance": "horno",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Hornea la pechuga de pollo a 200°C durante 20-25 minutos en una bandeja, asegurando que quede cocida pero jugosa por dentro."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_088",
@@ -12587,7 +13375,8 @@
     "saturated_fat_g": 14,
     "sodium_mg": 320,
     "freezable": false,
-    "montaje": true
+    "montaje": true,
+    "methods": []
   },
   {
     "id": "ensaladas_verduras_089",
@@ -12763,7 +13552,15 @@
     "sugar_g": 5,
     "saturated_fat_g": 7,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "thermomix",
+        "time": 15,
+        "difficulty": "facil",
+        "prepSummary": "Cocina el orzo en el vaso de la Thermomix siguiendo las instrucciones para pasta. Una vez cocido y escurrido, añade el resto de los ingredientes frescos y el aliño, mezclando suavemente para integrar."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_090",
@@ -12998,6 +13795,20 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 180-200°C. Monta las capas de berenjena rebozada, salsa de tomate y quesos en una fuente apta para horno, horneando durante 45-50 minutos hasta que el queso esté fundido y dorado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Cocina las rodajas de berenjena rebozadas en la airfryer a 180°C por 15-20 minutos en tandas, hasta que doren. Luego, monta las capas en un molde pequeño apto para airfryer y gratina a 170°C por 15-20 minutos hasta que el queso burbujee y dore."
+      }
     ]
   },
   {
@@ -13184,7 +13995,27 @@
     "sugar_g": 9,
     "saturated_fat_g": 4,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Corta las verduras en trozos, mézclalas con aceite, ajo y sal. Hornea a 190°C durante 35-40 minutos hasta que estén tiernas y ligeramente doradas, removiendo a mitad. Sirve con el huevo frito hecho aparte."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Trocea las verduras en la Thermomix y sofríelas con aceite. Luego, programa para cocer a temperatura Varoma, velocidad cuchara, durante 25-30 minutos hasta que el pisto esté tierno y meloso. El huevo se fríe aparte."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe la cebolla y los pimientos en la olla con aceite. Añade el resto de verduras y tomate, cierra y cocina a presión baja unos 8-10 minutos. Despresuriza y sirve con el huevo frito."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_092",
@@ -13362,7 +14193,15 @@
     "sugar_g": 8,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 65,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 190-200°C. Cubre la coliflor con la mezcla de aceite y especias. Ásala durante 60-65 minutos o hasta que esté tierna y dorada, girándola a mitad de cocción para un asado uniforme y una textura perfecta."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_093",
@@ -13602,6 +14441,26 @@
         "minutes": 1,
         "kind": "emplatado"
       }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Se vacían los calabacines, se cocina la quinoa y se sofríen las verduras. Se rellenan, se cubren con queso y se hornean a 180-200°C durante 25-30 minutos hasta que estén tiernos y dorados."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Tras vaciar los calabacines y preparar el relleno (cocinar quinoa y saltear verduras), se rellenan y se cocinan en la airfryer a 180°C durante 20-25 minutos, hasta que el calabacín esté tierno y el queso gratinado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "La Thermomix cocina la quinoa y sofríe las verduras para el relleno. Los calabacines vaciados se cocinan al vapor en el Varoma. Luego se rellenan y se espolvorea el queso para que se funda con el calor residual."
+      }
     ]
   },
   {
@@ -13723,7 +14582,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 2,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Mezcla las setas con el aceite, ajo, perejil y sal. Extiéndelas en una bandeja y hornea a 190°C durante 25-30 minutos hasta que estén tiernas y ligeramente doradas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 195°C. Mezcla las setas con los ingredientes y cocina en la cesta durante 15-18 minutos, agitando a mitad de cocción para un dorado uniforme y óptimo."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_095",
@@ -13924,7 +14797,21 @@
     "sugar_g": 4,
     "saturated_fat_g": 5,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 28,
+        "difficulty": "facil",
+        "prepSummary": "Cocina los espárragos en la airfryer a 190°C durante 12-15 minutos, agitándolos a mitad para un dorado uniforme. Asa también los tomates y ajos para la romesco antes de triturar todos los ingredientes de la salsa."
+      },
+      {
+        "appliance": "horno",
+        "time": 38,
+        "difficulty": "facil",
+        "prepSummary": "Asa los espárragos, tomates y ajos en el horno precalentado a 200°C durante 20-25 minutos hasta que estén tiernos y ligeramente dorados. Luego, tritura los ingredientes asados con el resto para la salsa romesco."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_096",
@@ -14066,7 +14953,33 @@
     "sugar_g": 6,
     "saturated_fat_g": 2,
     "sodium_mg": 780,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Corta el repollo en gajos, rocía con aceite de oliva y asa a 180°C durante 20-25 minutos hasta que esté tierno. Luego, vierte la mezcla de miso, soja, jengibre, ajo, aceite de sésamo y agua, y hornea 5-10 minutos más para que se glasee."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 20,
+        "difficulty": "normal",
+        "prepSummary": "Pica el ajo y jengibre, sofríe con aceite. Añade el repollo troceado, la mezcla de miso, soja, aceite de sésamo y agua. Cocina 15-20 minutos a 100°C, velocidad cuchara, giro inverso, hasta que el repollo esté tierno y bien impregnado."
+      },
+      {
+        "appliance": "olla_express",
+        "time": 15,
+        "difficulty": "normal",
+        "prepSummary": "Sofríe el ajo y jengibre con aceite. Incorpora el repollo troceado y la mezcla de miso, soja, aceite de sésamo y agua. Cierra la olla y cocina a presión durante 3-5 minutos. Libera la presión y remueve para que el repollo absorba bien la salsa."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Corta el repollo en gajos, rocía con aceite de oliva y cocina en la airfryer a 180°C durante 15-20 minutos, dándole la vuelta a mitad, hasta que esté tierno y ligeramente dorado. Luego, mezcla con la salsa de miso, soja, jengibre, ajo, aceite de sésamo y agua."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_097",
@@ -14236,7 +15149,21 @@
     "sugar_g": 14,
     "saturated_fat_g": 3,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Mezcla las zanahorias con el aceite, comino, miel y sal, y ásalas durante 35 minutos hasta que estén tiernas y ligeramente caramelizadas. La salsa de yogur se prepara aparte mezclando el resto de ingredientes."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cubre las zanahorias con el aceite, comino, miel y sal, y cocínalas por 25 minutos, agitándolas a mitad de cocción, hasta que estén tiernas y doradas. La salsa de yogur se prepara aparte mezclando el resto de ingredientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_098",
@@ -14377,7 +15304,21 @@
     "sugar_g": 7,
     "saturated_fat_g": 4,
     "sodium_mg": 390,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "normal",
+        "prepSummary": "Para confitar los puerros en el horno, colócalos limpios y troceados en una fuente apta, cúbrelos con el aceite de oliva y hornea a 150°C durante 60 minutos hasta que estén muy tiernos. La cocción lenta y uniforme es clave para el confitado."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "En la Thermomix, trocea los puerros y confítalos con el aceite de oliva a 90-100°C, velocidad cuchara y giro inverso, durante unos 50 minutos. Esto asegura una cocción suave y homogénea, ideal para el confitado."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_099",
@@ -14542,7 +15483,21 @@
     "sugar_g": 9,
     "saturated_fat_g": 2,
     "sodium_mg": 320,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 40,
+        "difficulty": "facil",
+        "prepSummary": "Corta la calabaza en dados, mezcla con aceite, comino, canela y sal. Ásala en el horno precalentado a 190°C durante 30-35 minutos hasta que esté tierna y ligeramente dorada."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 20,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190-200°C. Cocina la calabaza aderezada en una sola capa durante 15-20 minutos, agitándola a mitad del tiempo para un dorado uniforme y una textura tierna."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_100",
@@ -14696,7 +15651,21 @@
     "sugar_g": 10,
     "saturated_fat_g": 2,
     "sodium_mg": 620,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Asa las berenjenas a 200°C hasta que estén tiernas (aprox. 25-30 min). Luego, úntalas con la salsa de miso y gratina unos minutos hasta que la salsa burbujee y se caramelice ligeramente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Cocina las berenjenas a 180-190°C en la airfryer durante 15-20 minutos hasta que estén tiernas. Después, pincela con la salsa de miso y cocina 3-5 minutos más a 200°C para caramelizar."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_101",
@@ -14833,7 +15802,21 @@
     "sugar_g": 14,
     "saturated_fat_g": 1,
     "sodium_mg": 220,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Mezcla las coles con el aceite, sal y ajo, y ásalas en una bandeja durante 20 minutos. Luego, añade la miel y guindilla, y hornea 10 minutos más hasta que estén tiernas y caramelizadas."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Cocina las coles mezcladas con aceite, sal y ajo durante 12-15 minutos, agitando la cesta a mitad del tiempo. Luego, incorpora la miel y guindilla, y cocina 3-5 minutos más hasta que estén bien lacadas y crujientes."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_102",
@@ -14957,7 +15940,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 3,
     "sodium_mg": 290,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "airfryer",
+        "time": 40,
+        "difficulty": "normal",
+        "prepSummary": "Prepara las alcachofas limpiándolas y cortándolas, rocíalas con un poco de aceite de oliva, sal y zumo de limón. Cocínalas en la airfryer a 190°C durante 25-30 minutos, volteando a mitad, hasta que estén tiernas y doradas. El truco es no sobrecargar la cesta para asegurar una fri"
+      },
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "normal",
+        "prepSummary": "Limpia y corta las alcachofas, mézclalas con un chorrito de aceite de oliva, sal y zumo de limón. Ásalas en el horno precalentado a 200°C (con ventilador si es posible) durante 35-45 minutos, volteándolas ocasionalmente, hasta que estén tiernas por dentro y crujientes por fuera."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_103",
@@ -15136,7 +16133,21 @@
     "sugar_g": 8,
     "saturated_fat_g": 3,
     "sodium_mg": 280,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 55,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el relleno pochando las verduras y cociendo el arroz. Rellena los tomates y hornea a 180-200°C durante 30-40 minutos, hasta que estén tiernos y el queso gratinado."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 50,
+        "difficulty": "normal",
+        "prepSummary": "Prepara el relleno de arroz y verduras previamente en sartén. Rellena los tomates y cocínalos en la airfryer a 170-180°C durante 25-35 minutos, vigilando para que queden tiernos y ligeramente dorados."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_104",
@@ -15325,7 +16336,21 @@
     "sugar_g": 2,
     "saturated_fat_g": 10,
     "sodium_mg": 680,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 35,
+        "difficulty": "normal",
+        "prepSummary": "Precalienta el horno a 190°C. Rellena los champiñones con la mezcla de queso de cabra, jamón, ajo y perejil, espolvorea con queso rallado y hornea durante 20-25 minutos hasta que estén dorados y gratinados."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 30,
+        "difficulty": "normal",
+        "prepSummary": "Prepara los champiñones y el relleno de la misma forma. Cocina en la airfryer a 180°C durante 15-20 minutos, vigilando que el queso se gratine sin quemarse y los champiñones estén tiernos."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_105",
@@ -15481,7 +16506,21 @@
     "sugar_g": 3,
     "saturated_fat_g": 2,
     "sodium_mg": 380,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 30,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta el horno a 200°C. Mezcla el brócoli con aceite, ajo picado y sal, y ásalo durante 25-30 minutos hasta que esté tierno y ligeramente dorado. Sirve con el ajo negro, zumo de limón y almendras."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 18,
+        "difficulty": "facil",
+        "prepSummary": "Precalienta la airfryer a 190°C. Mezcla el brócoli con aceite, ajo picado y sal, y cocina en la cesta durante 15-18 minutos, agitando a mitad de cocción para un resultado uniforme. Añade el ajo negro, zumo de limón y almendras al servir."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_106",
@@ -15646,7 +16685,21 @@
     "sugar_g": 9,
     "saturated_fat_g": 2,
     "sodium_mg": 480,
-    "freezable": false
+    "freezable": false,
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 60,
+        "difficulty": "facil",
+        "prepSummary": "Asar las verduras enteras o en mitades a 180-200°C durante 45-60 minutos hasta que estén tiernas y la piel ligeramente quemada. Un truco clave es taparlas al sacarlas para que suden y pelarlas fácilmente."
+      },
+      {
+        "appliance": "airfryer",
+        "time": 35,
+        "difficulty": "facil",
+        "prepSummary": "Cortar las verduras en trozos grandes, rociar con aceite y sal. Cocinar en la airfryer a 180-190°C durante 30-40 minutos, removiendo a mitad, hasta que estén tiernas y con la piel ligeramente chamuscada."
+      }
+    ]
   },
   {
     "id": "ensaladas_verduras_107",
@@ -15840,6 +16893,20 @@
         "text": "Servir caliente en platos hondos.",
         "minutes": 1,
         "kind": "emplatado"
+      }
+    ],
+    "methods": [
+      {
+        "appliance": "horno",
+        "time": 45,
+        "difficulty": "facil",
+        "prepSummary": "Sofríe el ajo y el pan en una sartén. Combina con el resto de ingredientes en una fuente apta para horno y hornea a 180°C durante 25-30 minutos para que los sabores se integren bien."
+      },
+      {
+        "appliance": "thermomix",
+        "time": 25,
+        "difficulty": "facil",
+        "prepSummary": "Pica el ajo y sofríelo con el pan y el aceite. Añade las espinacas, garbanzos, especias y vinagre, cocinando a 100°C, giro inverso, velocidad cuchara durante 15-20 minutos hasta que las espinacas estén tiernas y los sabores ligados."
       }
     ]
   },

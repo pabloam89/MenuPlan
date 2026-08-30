@@ -177,6 +177,10 @@ const RECIPE_COLUMNS = [
   // escribían aquí, así que el seed nunca los llevaba a producción aunque
   // ya estuvieran bien en el JSON del bundle.
   "apetecible", "montaje", "can_be_garnish", "main_ingredients", "sauce_id",
+  // Se quedaron fuera de la migración 0023 y del seed hasta ahora (ver
+  // 0024_recipe_extra_fields.sql) — rowToRecipe() las perdía en silencio para
+  // cualquier receta servida desde Supabase.
+  "extra_proteins", "freezable", "steps_rich",
 ];
 const RECIPE_UPDATE_COLUMNS = RECIPE_COLUMNS.filter((c) => c !== "id");
 
@@ -198,6 +202,7 @@ const RECIPE_COLUMN_TYPES = {
   steps: "text[]", description: "text", methods: "jsonb",
   product_aliases: "text[]", apetecible: "boolean", montaje: "boolean",
   can_be_garnish: "boolean", main_ingredients: "text[]", sauce_id: "text",
+  extra_proteins: "main_protein[]", freezable: "boolean", steps_rich: "jsonb",
 };
 
 const recipeRows = recipes.map((r) => {
@@ -209,7 +214,8 @@ const recipeRows = recipes.map((r) => {
     `${sqlTextArray(r.allergens)}, ${sqlJsonb(r.ingredients)}, ${sqlTextArray(r.steps)}, ${sqlString(r.description)}, ` +
     `${sqlJsonb(r.methods)}, ${sqlTextArray(r.productAliases)}, ` +
     `${sqlNullableBool(r.apetecible)}, ${sqlNullableBool(r.montaje)}, ${sqlNullableBool(r.canBeGarnish)}, ` +
-    `${sqlTextArray(r.mainIngredients)}, ${sqlString(r.sauceId)})`;
+    `${sqlTextArray(r.mainIngredients)}, ${sqlString(r.sauceId)}, ` +
+    `${sqlEnumArray(r.extraProteins, "main_protein")}, ${sqlNullableBool(r.freezable)}, ${sqlJsonb(r.stepsRich)})`;
 });
 
 // Setup: un archivo APARTE que hay que pegar y ejecutar solo, ANTES que los

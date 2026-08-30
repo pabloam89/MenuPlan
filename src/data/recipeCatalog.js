@@ -90,6 +90,13 @@ function rowToRecipe(row) {
     ...(row.apetecible != null ? { apetecible: row.apetecible } : {}),
     ...(row.can_be_garnish != null ? { canBeGarnish: row.can_be_garnish } : {}),
     ...(row.main_ingredients?.length ? { mainIngredients: row.main_ingredients } : {}),
+    // Proteínas animales secundarias (jamón en una ensalada, atún en un
+    // huevo…) — la regla de "no repetir proteína el mismo día" en
+    // validateMenu.js depende de verlas. Se quedó fuera de este mapeo hasta
+    // ahora (2026-08-30): la columna existía en el schema/JSON local pero
+    // nunca en Supabase ni aquí, así que se perdía en silencio para toda
+    // receta servida desde la nube. Ver 0024_recipe_extra_fields.sql.
+    ...(row.extra_proteins?.length ? { extraProteins: row.extra_proteins } : {}),
     ...(row.sauce_id ? { sauceId: row.sauce_id } : {}),
     ...(row.sauce_compat?.length ? { sauceCompat: row.sauce_compat } : {}),
     mealRole: row.meal_roles,
