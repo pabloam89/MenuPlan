@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.homenu.app",
+        "sha256_cert_fingerprints": ["34:DD:DF:AF:8F:D6:4D:6B:A5:3B:41:91:96:75:F0:04:1A:1D:46:57:41:04:E9:92:5A:AB:85:F8:42:51:33:DA"]
+      }
+    }]
