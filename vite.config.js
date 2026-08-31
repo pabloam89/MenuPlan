@@ -140,6 +140,7 @@ export default defineConfig(({ mode }) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.svg', 'pwa-icons/apple-touch-icon.png'],
         manifest: {
+          id: '/',
           name: 'MenúPlan',
           short_name: 'MenúPlan',
           description: 'El menú familiar de la semana, resuelto con IA.',
@@ -150,6 +151,7 @@ export default defineConfig(({ mode }) => {
           start_url: '/',
           scope: '/',
           lang: 'es',
+          categories: ['food', 'lifestyle', 'productivity'],
           icons: [
             { src: '/pwa-icons/icon-192.png', sizes: '192x192', type: 'image/png' },
             { src: '/pwa-icons/icon-512.png', sizes: '512x512', type: 'image/png' },
