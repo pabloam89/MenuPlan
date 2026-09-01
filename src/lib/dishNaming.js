@@ -10,6 +10,19 @@ export function normalizeDishName(s) {
 }
 
 /**
+ * Ningún plato del catálogo tiene `shortName` (dato curado a mano que nunca
+ * se rellenó), así que este fallback siempre cae en `recipe.name` — el
+ * nombre "de título" del plato, con mayúscula inicial porque es su propio
+ * título. Pegado en mitad de una frase ("... con Puré de patatas gratinado")
+ * lee como un error de mayúsculas (el catálogo viejo que el usuario
+ * sospechaba). En español solo la primera palabra de una frase lleva
+ * mayúscula, así que se minúsculiza la inicial al insertarlo tras "con".
+ */
+export function lowerFirst(s) {
+  return s ? s.charAt(0).toLowerCase() + s.slice(1) : s;
+}
+
+/**
  * Build "Plato con guarnición y salsa" (o solo uno de los dos) sin duplicar
  * cuando el nombre base ya los incluye (menús hidratados tras
  * applyGarnishToRecipe). `sauce` es opcional: un plato puede llevar
@@ -17,8 +30,8 @@ export function normalizeDishName(s) {
  */
 export function formatDishWithGarnish(baseName, garnish, sauce) {
   const base = String(baseName ?? "").trim();
-  const g = String(garnish?.shortName ?? garnish?.name ?? "").trim();
-  const s = String(sauce?.name ?? "").trim();
+  const g = lowerFirst(String(garnish?.shortName ?? garnish?.name ?? "").trim());
+  const s = lowerFirst(String(sauce?.name ?? "").trim());
   const parts = [g, s].filter(Boolean);
   if (parts.length === 0) return base;
   const suffix = ` con ${parts.join(" y ")}`;

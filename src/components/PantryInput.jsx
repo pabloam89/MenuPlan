@@ -19,6 +19,7 @@ import { recipeCatalogById } from "../data/recipeCatalog.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import { dishImageForRecipe } from "../assets/dishes/dishImages.js";
 import { aisleImageSrc, categoryImageSrc, ingredientThumbSrc } from "../lib/ingredientImages.js";
+import { lowerFirst } from "../lib/dishNaming.js";
 
 const GARNISH_BY_ID = Object.fromEntries(guarnicionesData.map((g) => [g.id, g]));
 const GREEN = "#2d5a3d";
@@ -574,7 +575,7 @@ function CookedDishPicker({ query = "", dishCat = null, onDishCatChange, onSave,
           )}
           <div style={{ minWidth: 0, flex: 1 }}>
             <div style={{ fontSize: 13.5, fontWeight: 800, color: INK, lineHeight: 1.2 }}>
-              {garnish ? `${selected.name} con ${garnish.shortName ?? garnish.name}` : selected.name}
+              {garnish ? `${selected.name} con ${lowerFirst(garnish.shortName ?? garnish.name)}` : selected.name}
             </div>
             <DishRolePicker value={dishRole} onChange={(role) => {
               setDishRole(role);
@@ -1662,7 +1663,7 @@ export function PantryInput({
     setSaving(true);
     const garnish = garnishRef ? GARNISH_BY_ID[garnishRef] : null;
     const displayName = garnish
-      ? `${recipe.name} con ${garnish.shortName ?? garnish.name}`
+      ? `${recipe.name} con ${lowerFirst(garnish.shortName ?? garnish.name)}`
       : recipe.name;
     const items = [{
       name: displayName,
