@@ -15,7 +15,7 @@ import { recipeCatalog } from "../data/recipeCatalog.js";
 // needs "poco"/"de" gone too to isolate the actual ingredient.
 const STOPWORDS = new Set([
   "el", "la", "los", "las", "un", "una", "unos", "unas",
-  "de", "del", "con", "en",
+  "de", "del", "con", "en", "a",
   "tengo", "hay", "poco", "algo", "hago",
 ]);
 
@@ -223,8 +223,20 @@ export function normalizePantryInput(input) {
   return splitIntoTokens(text).map((raw) => {
     const words = significantWords(raw);
     let matches = findCatalogMatches(words, catalogIndex);
-    if (matches.length === 0) {
-      matches = findRelatedCatalogMatches(words, catalogIndex);
+    // A bare category word ("pasta", "carne"...) whose only catalog hits are
+    // generic multi-word entries (e.g. a recipe just calling for "Pasta
+    // corta") should still surface the full category breakdown — otherwise
+    // that partial match short-circuits the search before it ever reaches
+    // the specific options CATEGORY_SEEDS exists to offer. Skipped when
+    // there's already an exact single-word hit ("Arroz"): that's
+    // unambiguous on its own and doesn't need the broader net — and
+    // skipping it matters, since the net is coarse (substring-ish) and can
+    // pull in unrelated entries.
+    const isExactHit = matches.length > 0 && matches[0].words.length === words.length;
+    const isBareCategoryWord = words.length === 1 && Boolean(CATEGORY_SEEDS[singularize(words[0])]);
+    if (matches.length === 0 || (isBareCategoryWord && !isExactHit)) {
+      const related = findRelatedCatalogMatches(words, catalogIndex);
+      if (related.length > 0) matches = dedupeCatalogEntries([...matches, ...related]);
     }
 
     if (matches.length === 1) {
