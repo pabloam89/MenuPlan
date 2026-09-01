@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { CalendarDays, ShoppingCart, MapPin, GraduationCap, Baby, Salad, UtensilsCrossed, Coffee, Package, ChefHat, CookingPot, Timer, Check, LayoutGrid, Rows3 } from "lucide-react";
 import { OnboardingShell } from "./Onboarding.jsx";
 import { hasChildMember } from "../lib/groups.js";
+import { householdHasSchoolMenu } from "../lib/schoolMenu.js";
 
 const GREEN = "#2d5a3d";
 // Teal, no el verde de marca: mismo tono que ya usan las tarjetas de
@@ -58,7 +59,11 @@ const TOPICS = [
     img: () => "/avatares/cards/ninos_cenan_mediodia.jpg",
     // Sin menú subido no es un hueco a rellenar: el generador ya planifica su
     // comida aparte (ver scheduleLabel), así que no hace falta cuadrar nada.
-    value: () => "No hace falta calcular el menú con el de mis hijos",
+    // Con uno subido sí hay algo que contar: la tarjeta era un texto fijo y
+    // seguía diciendo "no hace falta" después de cargarlo.
+    value: (d) => (householdHasSchoolMenu(d.schoolMenus)
+      ? "Menú del comedor cargado"
+      : "No hace falta calcular el menú con el de mis hijos"),
     onlyKids: true,
     steps: [4],
   },
@@ -111,10 +116,13 @@ const TOPICS = [
     id: "despensa", group: "Cómo cocináis",
     Icon: Package,
     title: "¿Queréis usar lo que hay en casa?",
-    img: (d) => (d.pantryMode === "ignore"
+    // Ojo con el valor: pantryMode es "strict"|"only"|"prefer"|"off", nunca
+    // "ignore" — comparando contra eso la tarjeta decía "Aprovechamos lo que
+    // hay" siempre, también con la despensa apagada, que es el default.
+    img: (d) => (d.pantryMode === "off"
       ? "/avatares/cards/despensa_sin.jpg"
       : "/avatares/cards/despensa_usar.jpg"),
-    value: (d) => (d.pantryMode === "ignore" ? "No tengo nada que usar" : "Aprovechamos lo que hay"),
+    value: (d) => (d.pantryMode === "off" ? "No contamos con lo que haya en casa" : "Aprovechamos lo que hay"),
     steps: [12],
   },
   {

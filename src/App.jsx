@@ -271,13 +271,19 @@ const INITIAL_DATA = {
   discards: { forever: [], cooldownUntil: {} },
   // When true, mapped «En casa» stock soft-biases menu generation (pantryScore
   // + LLM nudge). Shopping still discounts stock either way.
-  useHomeStock: true,
+  useHomeStock: false,
   // How «En casa» stock feeds menu generation:
   //   "only"   → strong bias: build the menu mostly from what's at home
   //   "prefer" → soft, secondary preference (the historical useHomeStock:true)
   //   "off"    → ignore the pantry when planning
   // useHomeStock is kept in sync as a legacy boolean (off ⇄ false).
-  pantryMode: "prefer",
+  //
+  // Default "off": aprovechar lo de casa es una decisión que hay que TOMAR, no
+  // un supuesto. El asistente se puede saltar entero desde el paso 0 ("Generar
+  // menú" sin abrir ningún paso), y con "prefer" de partida el menú saldría
+  // sesgado por un inventario que nadie ha rellenado. Mismo criterio que
+  // hasBudget: false — lo que no se ha preguntado, no se aplica.
+  pantryMode: "off",
   // ── Modo básico vs avanzado (progressive disclosure) ──
   // false = modo básico (por defecto): asumimos los ajustes más sencillos y
   // ocultamos los controles avanzados. true = modo avanzado: el usuario ve y
@@ -455,9 +461,9 @@ function resolveModeData(data) {
     slotType: cleanedSlotType,
     // Nivel de cocina normal.
     cookLevel: "normal",
-    // Despensa: usar lo que haya (preferencia blanda).
-    pantryMode: "prefer",
-    useHomeStock: true,
+    // Despensa: no la tenemos en cuenta mientras no se diga lo contrario.
+    pantryMode: "off",
+    useHomeStock: false,
     // Multisemana: cosas distintas cada semana (sin repetir platos).
     menuVarietyPref: "strict",
     // Estilo de comida: equilibrado, sin diferenciar por grupo.
@@ -664,12 +670,18 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
-  if (typeof d.useHomeStock !== "boolean") d.useHomeStock = true;
-  // pantryMode is the richer 4-way successor to the useHomeStock boolean; seed
-  // it from the legacy flag for existing saves (false → "off", true → "prefer").
+  if (typeof d.useHomeStock !== "boolean") d.useHomeStock = false;
+  // pantryMode is the richer 4-way successor to the useHomeStock boolean.
   // "strict" (solo con lo de casa, sin comprar) is the newest, strongest tier.
+  //
+  // Sin un pantryMode válido guardado no hay elección que respetar: el
+  // useHomeStock:true de los saves antiguos era el default de entonces, no algo
+  // que nadie marcase, así que sembrar "prefer" desde ahí dejaba la despensa
+  // sesgando el menú sin que se hubiera pedido. Se siembra "off" y se pide
+  // desde la pantalla de despensa como cualquier otro ajuste.
   if (!["strict", "only", "prefer", "off"].includes(d.pantryMode)) {
-    d.pantryMode = d.useHomeStock === false ? "off" : "prefer";
+    d.pantryMode = "off";
+    d.useHomeStock = false;
   }
   // ── Modo básico / avanzado ──
   const looksEstablished =
@@ -1771,10 +1783,10 @@ export default function App() {
       const pantryStock = user ? await loadPantry(user.id) : loadLocalPantry();
       // Planning bias is controlled by pantryMode ("strict"/"only"/"prefer"/"off");
       // shopping always sees the stock so «Ya en casa» stays accurate.
-      // Fall back to the legacy useHomeStock boolean for older saves.
+      // Sin un modo válido guardado no se asume nada: "off" (ver normalizeData).
       const pantryMode = ["strict", "only", "prefer", "off"].includes(working.pantryMode)
         ? working.pantryMode
-        : working.useHomeStock === false ? "off" : "prefer";
+        : "off";
       const pantryIngredients = pantryMode === "off" ? [] : pantryStock;
       // Decisión B (multisemana): "nearest" → la despensa solo sesga la semana
       // más cercana; "all" → todas las semanas ven la despensa completa
