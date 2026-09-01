@@ -1,0 +1,63 @@
+[
+  {
+    "ingredientId": "bechamel",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Bechamel sin lactosa",
+    "note": "Se hace igual, con leche sin lactosa."
+  },
+  {
+    "ingredientId": "cava",
+    "restriction": "alcohol_cocina",
+    "replacementLabel": "Cava sin alcohol"
+  },
+  {
+    "ingredientId": "cerveza",
+    "restriction": "alcohol_cocina",
+    "replacementLabel": "Cerveza sin alcohol"
+  },
+  {
+    "ingredientId": "leche",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Leche sin lactosa"
+  },
+  {
+    "ingredientId": "leche-condensada",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Leche condensada sin lactosa"
+  },
+  {
+    "ingredientId": "nata",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Nata para cocinar sin lactosa"
+  },
+  {
+    "ingredientId": "nata-para-montar",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Nata para montar sin lactosa"
+  },
+  {
+    "ingredientId": "queso-fresco",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Queso fresco sin lactosa"
+  },
+  {
+    "ingredientId": "sidra",
+    "restriction": "alcohol_cocina",
+    "replacementLabel": "Sidra sin alcohol"
+  },
+  {
+    "ingredientId": "vino-blanco",
+    "restriction": "alcohol_cocina",
+    "replacementLabel": "Vino blanco sin alcohol"
+  },
+  {
+    "ingredientId": "vino-tinto",
+    "restriction": "alcohol_cocina",
+    "replacementLabel": "Vino tinto sin alcohol"
+  },
+  {
+    "ingredientId": "yogur",
+    "restriction": "lactosa_fina",
+    "replacementLabel": "Yogur natural sin lactosa"
+  }
+]

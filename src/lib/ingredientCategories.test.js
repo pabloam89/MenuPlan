@@ -81,6 +81,70 @@ describe("guessShoppingAisle", () => {
     expect(guessShoppingAisle("Hogaza")).toBe("Panadería");
     expect(guessShoppingAisle("Focaccia")).toBe("Panadería");
   });
+
+  // 2026-09-01 audit, from building the canonical ingredient catalog
+  // (scripts/build-ingredient-catalog.mjs): 136 of the catalog's 389 distinct
+  // ingredients were landing on the "Verduras" default and ~70 of them are not
+  // produce at all. The default is not harmless — isPerishableAisle("Verduras")
+  // is true, so every one of them was also being treated as fridge-bound by
+  // Pantry.jsx and PantryReceiptFlow.jsx.
+  it("shelves bare 'Pan' as Panadería (the most used bread in the catalog matched no rule at all)", () => {
+    expect(guessShoppingAisle("Pan")).toBe("Panadería");
+    expect(guessShoppingAisle("Pan del día anterior")).toBe("Panadería");
+    expect(guessShoppingAisle("Panceta")).toBe("Carne"); // \bpan\b must not hijack this
+  });
+
+  it("shelves doughs, wafers and biscuits as Panadería", () => {
+    expect(guessShoppingAisle("Hojaldre")).toBe("Panadería");
+    expect(guessShoppingAisle("Masa quebrada")).toBe("Panadería");
+    expect(guessShoppingAisle("Obleas de empanadilla")).toBe("Panadería");
+    expect(guessShoppingAisle("Galletas María")).toBe("Panadería");
+    expect(guessShoppingAisle("Tortilla de trigo")).toBe("Panadería");
+  });
+
+  it("shelves the italian pasta shapes that were missing by name", () => {
+    for (const shape of ["Tagliatelle", "Fettuccine", "Rigatoni", "Farfalle", "Orecchiette", "Trofie", "Orzo"]) {
+      expect(guessShoppingAisle(shape)).toBe("Pasta y arroz");
+    }
+  });
+
+  it("shelves spirits and pantry staples out of the produce default", () => {
+    expect(guessShoppingAisle("Brandy")).toBe("Aceites y conservas");
+    expect(guessShoppingAisle("Cerveza")).toBe("Aceites y conservas");
+    expect(guessShoppingAisle("Chocolate negro")).toBe("Aceites y conservas");
+    expect(guessShoppingAisle("Agua")).toBe("Aceites y conservas");
+  });
+
+  it("shelves plural nuts, which the singular-only 'nuez'/'almendra' tokens missed", () => {
+    expect(guessShoppingAisle("Nueces")).toBe("Aceites y conservas");
+    expect(guessShoppingAisle("Piñones")).toBe("Aceites y conservas");
+    expect(guessShoppingAisle("Pistacho pelado")).toBe("Aceites y conservas");
+  });
+
+  it("keeps dried fruit out of Frutas, which would send it to the fridge", () => {
+    expect(guessShoppingAisle("Pasas")).toBe("Aceites y conservas");
+    expect(guessShoppingAisle("Uvas pasas")).toBe("Aceites y conservas");
+    expect(guessShoppingAisle("Uvas")).toBe("Frutas"); // fresh grapes still produce
+  });
+
+  it("separates sesame seeds from sesame oil across two adjacent aisle groups", () => {
+    expect(guessShoppingAisle("Semillas de sésamo")).toBe("Especias");
+    expect(guessShoppingAisle("Sésamo tostado")).toBe("Especias");
+    expect(guessShoppingAisle("Aceite de sésamo")).toBe("Aceites y conservas");
+  });
+
+  it("shelves cured meats and game that fell through to Verduras", () => {
+    expect(guessShoppingAisle("Sobrasada")).toBe("Carne");
+    expect(guessShoppingAisle("Rabo de toro troceado")).toBe("Carne");
+    expect(guessShoppingAisle("Foie mi-cuit")).toBe("Carne");
+    expect(guessShoppingAisle("Perdiz")).toBe("Carne");
+  });
+
+  it("still resolves real produce to Verduras", () => {
+    for (const veg of ["Cebolla", "Calabacín", "Grelos", "Acelgas", "Coles de Bruselas", "Nabo"]) {
+      expect(guessShoppingAisle(veg)).toBe("Verduras");
+    }
+  });
 });
 
 describe("ingredientStem", () => {

@@ -1030,7 +1030,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -1121,7 +1122,8 @@
     "tupperFriendly": false,
     "allergens": [
       "lactosa",
-      "gluten"
+      "gluten",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [

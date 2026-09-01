@@ -7719,7 +7719,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "lactosa"
+      "lactosa",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -7901,7 +7902,8 @@
     "tupperFriendly": true,
     "allergens": [
       "soja",
-      "sesamo"
+      "sesamo",
+      "gluten"
     ],
     "ingredients": [
       {
@@ -14073,7 +14075,8 @@
     "kidFriendly": true,
     "tupperFriendly": true,
     "allergens": [
-      "gluten"
+      "gluten",
+      "apio"
     ],
     "ingredients": [
       {

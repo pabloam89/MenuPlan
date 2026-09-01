@@ -1960,7 +1960,8 @@
     "tupperFriendly": false,
     "allergens": [
       "moluscos",
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "season": "all",
     "ingredients": [
@@ -2304,7 +2305,8 @@
     "tupperFriendly": true,
     "allergens": [
       "huevo",
-      "soja"
+      "soja",
+      "gluten"
     ],
     "season": "all",
     "ingredients": [
@@ -2475,7 +2477,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "soja"
+      "soja",
+      "huevo"
     ],
     "season": "all",
     "ingredients": [
@@ -4643,7 +4646,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "ingredients": [
       {
@@ -6028,7 +6032,9 @@
     "allergens": [
       "gluten",
       "sulfitos",
-      "lactosa"
+      "lactosa",
+      "apio",
+      "huevo"
     ],
     "ingredients": [
       {
@@ -7675,7 +7681,8 @@
       "gluten",
       "huevo",
       "sulfitos",
-      "lactosa"
+      "lactosa",
+      "apio"
     ],
     "ingredients": [
       {
@@ -9741,7 +9748,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "lactosa"
+      "lactosa",
+      "huevo"
     ],
     "ingredients": [
       {
@@ -10618,7 +10626,8 @@
       "gluten",
       "lactosa",
       "apio",
-      "sulfitos"
+      "sulfitos",
+      "huevo"
     ],
     "ingredients": [
       {
@@ -11660,7 +11669,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "lactosa"
+      "lactosa",
+      "huevo"
     ],
     "ingredients": [
       {
@@ -12791,7 +12801,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "lactosa"
+      "lactosa",
+      "huevo"
     ],
     "ingredients": [
       {
@@ -13812,7 +13823,8 @@
     "tupperFriendly": false,
     "allergens": [
       "marisco",
-      "moluscos"
+      "moluscos",
+      "pescado"
     ],
     "ingredients": [
       {
@@ -14565,7 +14577,8 @@
     "tupperFriendly": true,
     "allergens": [
       "huevo",
-      "soja"
+      "soja",
+      "gluten"
     ],
     "ingredients": [
       {
@@ -15273,7 +15286,8 @@
     "tupperFriendly": true,
     "allergens": [
       "gluten",
-      "lactosa"
+      "lactosa",
+      "huevo"
     ],
     "ingredients": [
       {
@@ -15868,7 +15882,8 @@
     "tupperFriendly": false,
     "allergens": [
       "moluscos",
-      "pescado"
+      "pescado",
+      "sulfitos"
     ],
     "ingredients": [
       {

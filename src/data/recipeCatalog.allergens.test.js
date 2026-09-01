@@ -35,28 +35,54 @@ const AUDIT_KEYWORDS = {
     "pan rallado", "semola", "bulgur", "seitan", "picatostes", "empanad", "rebozad", "crep",
     "tortita", "bizcocho", "galleta", "sobao", "hojaldre", "masa quebrada", "wrap", "bollo",
     "brioche", "bechamel", "besamel", "trigo", "oblea",
+    // 2026-09-01: la salsa de soja tradicional se fermenta con trigo y era el
+    // hueco más grande del catálogo — 21 recetas asiáticas (teriyaki, tataki,
+    // costillas coreanas, arroz tres delicias) la llevaban sin declarar gluten.
+    "salsa de soja",
+    // Formas de pasta italiana que no contienen la palabra "pasta" ni estaban
+    // en la lista original.
+    "tagliatelle", "fettuccine", "linguine", "pappardelle", "rigatoni", "farfalle",
+    "orecchiette", "trofie", "orzo", "bucatini", "conchiglie", "muffin", "granola", "falafel",
   ],
-  marisco: ["gamba", "langostino", "langosta", "cigala", "bogavante", "camaron", "cangrejo", "marisco"],
-  huevo: ["huevo", "clara de huevo", "yema", "mayonesa", "alioli"],
+  marisco: [
+    "gamba", "langostino", "langosta", "cigala", "bogavante", "camaron", "cangrejo", "marisco",
+    "necora", "centoll", "buey de mar", "percebe", "txangurro", "quisquilla", "carabinero", "gambon",
+  ],
+  huevo: [
+    "huevo", "clara de huevo", "yema", "mayonesa", "alioli",
+    // Pasta al huevo por tradición (cintas, rellena y placas de lasaña) y
+    // surimi, que se liga con clara.
+    "tagliatelle", "fettuccine", "pappardelle", "tortellini", "surimi",
+    "nidos de tallarines", "l[aá]minas de lasa", "placas de lasa",
+  ],
   pescado: [
     "merluza", "salmon", "bacalao", "atun", "sardina", "anchoa", "boqueron", "rape", "lubina",
     "rodaballo", "dorada", "besugo", "lenguado", "emperador", "caballa", "trucha", "rosada",
     "bonito", "pescadilla", "gallo", "pescado",
+    // Pescado escondido en salsas y sucedáneos: la Worcestershire (y su nombre
+    // comercial en España, Perrins) lleva anchoa, y el surimi es pescado
+    // reconstituido.
+    "worcester", "perrins", "surimi", "palito de cangrejo", "cabracho", "corvina",
   ],
   lactosa: [
     "leche", "nata", "queso", "yogur", "mantequilla", "requeson", "mozzarella", "parmesano",
     "cuajada", "bechamel", "besamel", "mascarpone", "ricotta", "kefir", "crema pastelera",
+    // Lácteo escondido dentro de un producto compuesto: el hojaldre es masa de
+    // mantequilla, el pesto lleva parmesano y el paté/foie se liga con nata.
+    "hojaldre", "pesto", "foie", "pat[eé]",
   ],
   // "castana" (chestnut) deliberately excluded: botanically and legally it's
   // not one of the EU-regulated tree nuts (Reglamento (UE) 1169/2011 anexo II
   // solo lista almendra/avellana/nuez/anacardo/pacana/nuez de Brasil/
   // pistacho/macadamia), así que declararlo "frutos_secos" sería alarmar de
   // un alérgeno que la castaña no porta.
-  frutos_secos: ["almendra", "nuez", "nueces", "avellana", "pistacho", "anacardo", "pinon", "macadamia"],
-  sesamo: ["sesamo", "tahini", "gomasio"],
+  // "pesto" incluido por los piñones del genovés, igual que en la lista de lactosa.
+  frutos_secos: ["almendra", "nuez", "nueces", "avellana", "pistacho", "anacardo", "pinon", "macadamia", "pesto"],
+  sesamo: ["sesamo", "tahini", "gomasio", "hummus"],
   moluscos: [
     "calamar", "sepia", "pulpo", "mejillon", "almeja", "chirla", "navaja", "coquina",
     "berberecho", "vieira", "ostra",
+    "chipiron", "chopito", "jibia", "zamburi",
   ],
 };
 

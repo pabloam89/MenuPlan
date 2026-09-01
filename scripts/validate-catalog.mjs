@@ -14,10 +14,12 @@
  * Usage:  node scripts/validate-catalog.mjs
  */
 
-import { readFileSync, readdirSync } from "fs";
+import { readFileSync, readdirSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { validateRecipes } from "../src/data/recipeSchema.js";
+import { validateIngredients } from "../src/data/ingredientSchema.js";
+import { normalizeName } from "../src/lib/ingredientCategories.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -46,10 +48,65 @@ for (const r of recipes) {
   }
 }
 
+// El catálogo de ingredientes se valida aquí también, y no solo en su
+// generador: src/lib/ingredients.js lanza al importarlo, así que un JSON
+// inválido es una pantalla en blanco. Mejor que reviente el build.
+const INGREDIENTS_PATH = join(ROOT, "src", "data", "ingredients.json");
+let ingredientCount = 0;
+if (existsSync(INGREDIENTS_PATH)) {
+  const ingredients = JSON.parse(readFileSync(INGREDIENTS_PATH, "utf8"));
+  ingredientCount = ingredients.length;
+  errors.push(...validateIngredients(ingredients));
+
+  // Cobertura: cada ingrediente que usa una receta tiene que resolver contra el
+  // catálogo. Si no, es que se añadió una receta sin regenerarlo
+  // (npm run build:ingredients).
+  const labels = new Set();
+  for (const ing of ingredients) {
+    for (const label of [ing.name, ...ing.aliases]) labels.add(normalizeName(label));
+  }
+  const sinResolver = new Set();
+  for (const r of recipes) {
+    for (const line of r.ingredients ?? []) {
+      if (!labels.has(normalizeName(line.name))) sinResolver.add(line.name);
+    }
+  }
+  for (const name of sinResolver) {
+    errors.push(`Ingrediente "${name}" no está en ingredients.json — regenera con npm run build:ingredients`);
+  }
+
+  // Sustituciones (Fase 3). Una que apunte a un ingrediente inexistente no da
+  // error en runtime: simplemente no se aplica nunca, y "no se adapta" pasa
+  // mucho más desapercibido que "revienta".
+  const SUBS_PATH = join(ROOT, "src", "data", "ingredientSubstitutions.json");
+  if (existsSync(SUBS_PATH)) {
+    const ids = new Set(ingredients.map((i) => i.id));
+    // Mismo criterio que el CHECK de 0031: `restriction` es una intolerancia,
+    // jamás un alérgeno. Confundirlos ofrecería a un alérgico un plato que le
+    // sienta mal, sin ningún error visible por el camino.
+    const ADAPTABLES = new Set(["lactosa_fina", "alcohol_cocina"]);
+    for (const sub of JSON.parse(readFileSync(SUBS_PATH, "utf8"))) {
+      if (!ids.has(sub.ingredientId)) {
+        errors.push(`Sustitución para un ingrediente inexistente: "${sub.ingredientId}"`);
+      }
+      if (!ADAPTABLES.has(sub.restriction)) {
+        errors.push(
+          `Sustitución con restricción no adaptable: "${sub.restriction}" (${sub.ingredientId})`,
+        );
+      }
+      if (!sub.replacementLabel) {
+        errors.push(`Sustitución sin replacementLabel: "${sub.ingredientId}"`);
+      }
+    }
+  }
+}
+
 if (errors.length > 0) {
-  console.error(`❌ Catálogo de recetas inválido (${errors.length} error/es):`);
+  console.error(`❌ Catálogo inválido (${errors.length} error/es):`);
   for (const e of errors) console.error(`  - ${e}`);
   process.exit(1);
 }
 
-console.log(`✅ Catálogo válido — ${recipes.length} recetas verificadas.`);
+console.log(
+  `✅ Catálogo válido — ${recipes.length} recetas y ${ingredientCount} ingredientes verificados.`,
+);

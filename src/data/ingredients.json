@@ -1,0 +1,6270 @@
+[
+  {
+    "id": "aceite-de-sesamo",
+    "name": "Aceite de sésamo",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [
+      "sesamo"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 10
+  },
+  {
+    "id": "aceite-girasol",
+    "name": "Aceite de girasol",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 300
+  },
+  {
+    "id": "aceite-oliva",
+    "name": "Aceite de oliva",
+    "aliases": [
+      "Aceite de oliva suave",
+      "Aceite de oliva para freír",
+      "Aceite de oliva (para freír)",
+      "Aceite de oliva suave para freír",
+      "Aceite de trufa"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 20
+  },
+  {
+    "id": "aceite-oliva-virgen",
+    "name": "Aceite de oliva virgen extra",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 20
+  },
+  {
+    "id": "aceitunas",
+    "name": "Aceitunas",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "aceitunas-negras",
+    "name": "Aceitunas negras",
+    "aliases": [
+      "Aceitunas negras (kalamata)"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "acelga",
+    "name": "Acelgas",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 275
+  },
+  {
+    "id": "agua",
+    "name": "Agua",
+    "aliases": [
+      "Agua fría"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 100
+  },
+  {
+    "id": "aguacate",
+    "name": "Aguacate",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "ajete",
+    "name": "Ajetes",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "ajetes-tiernos",
+    "name": "Ajetes tiernos",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "aji-amarillo",
+    "name": "Ají amarillo",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 15
+  },
+  {
+    "id": "ajo",
+    "name": "Ajo",
+    "aliases": [
+      "Cabeza de ajos",
+      "Ajo negro"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 10
+  },
+  {
+    "id": "ajo-polvo",
+    "name": "Ajo en polvo",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
+  },
+  {
+    "id": "albahaca",
+    "name": "Albahaca fresca",
+    "aliases": [
+      "Albahaca"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 10
+  },
+  {
+    "id": "alcachofa",
+    "name": "Alcachofas",
+    "aliases": [
+      "Alcachofa"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 77
+  },
+  {
+    "id": "alcachofa-conserva",
+    "name": "Corazones de alcachofa",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "alcaparras",
+    "name": "Alcaparras",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 18
+  },
+  {
+    "id": "alga-nori",
+    "name": "Alga nori",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 2
+  },
+  {
+    "id": "alga-wakame",
+    "name": "Alga wakame",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 5
+  },
+  {
+    "id": "alioli",
+    "name": "Alioli",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 55
+  },
+  {
+    "id": "alitas-de-pollo",
+    "name": "Alitas de pollo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 600
+  },
+  {
+    "id": "almejas",
+    "name": "Almejas",
+    "aliases": [
+      "Almejas frescas"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 275
+  },
+  {
+    "id": "almendras",
+    "name": "Almendras",
+    "aliases": [
+      "Almendra tostada",
+      "Almendras laminadas",
+      "Almendras tostadas",
+      "Almendra molida",
+      "Almendras crudas"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [
+      "frutos_cascara"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "alubia-grande",
+    "name": "Fabes de la granja secas",
+    "aliases": [
+      "Judiones",
+      "Judiones secos"
+    ],
+    "aisle": "Legumbres",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "alubias",
+    "name": "Alubias blancas cocidas",
+    "aliases": [
+      "Alubias blancas",
+      "Alubias blancas cocidas de bote",
+      "Alubias blancas secas",
+      "Alubias negras cocidas",
+      "Alubias pintas"
+    ],
+    "aisle": "Legumbres",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "alubias-rojas",
+    "name": "Alubias rojas",
+    "aliases": [],
+    "aisle": "Legumbres",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "anchoa-en-aceite",
+    "name": "Anchoas en aceite",
+    "aliases": [
+      "Anchoas",
+      "Filetes de anchoa en aceite"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "apio",
+    "name": "Apio",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "apio"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 50
+  },
+  {
+    "id": "apionabo",
+    "name": "Apionabo",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "apio"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 475
+  },
+  {
+    "id": "arandanos",
+    "name": "Arándanos",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "arroz",
+    "name": "Arroz",
+    "aliases": [
+      "Arroz blanco",
+      "Arroz basmati",
+      "Arroz cocido",
+      "Arroz salvaje",
+      "Arroz sushi"
+    ],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 160
+  },
+  {
+    "id": "arroz-arborio",
+    "name": "Arroz arborio",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 160
+  },
+  {
+    "id": "arroz-bomba",
+    "name": "Arroz bomba",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 320
+  },
+  {
+    "id": "atun",
+    "name": "Atún en aceite",
+    "aliases": [
+      "Atún en aceite de oliva",
+      "Atún (lomo fresco)",
+      "Atún rojo (calidad sashimi)",
+      "Atún rojo fresco de calidad sashimi"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 160
+  },
+  {
+    "id": "atun-fresco",
+    "name": "Atún fresco",
+    "aliases": [
+      "Atún fresco para sushi",
+      "Lomo de atún fresco",
+      "Rodajas de atún fresco"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "atun-lata",
+    "name": "Atún en conserva",
+    "aliases": [
+      "Atún en conserva escurrido",
+      "Atún en lata"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 160
+  },
+  {
+    "id": "avellanas",
+    "name": "Avellanas",
+    "aliases": [
+      "Avellana tostada",
+      "Avellanas tostadas"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "frutos_cascara"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "avena",
+    "name": "Copos de avena",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 50
+  },
+  {
+    "id": "azafran",
+    "name": "Azafrán",
+    "aliases": [
+      "Azafrán en hebras",
+      "Hebras de azafrán"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 1
+  },
+  {
+    "id": "azucar",
+    "name": "Azúcar",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "azucar-glas",
+    "name": "Azúcar glas",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 215
+  },
+  {
+    "id": "azucar-moreno",
+    "name": "Azúcar moreno",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "bacalao",
+    "name": "Bacalao desalado",
+    "aliases": [
+      "Bacalao desalado desmigado",
+      "Bacalao desalado en lomos",
+      "Bacalao desalado (desmigado)",
+      "Lomos de bacalao desalado",
+      "Bacalao desalado (lomos)",
+      "Bacalao desalado y desmigado",
+      "Filetes de merluza o abadejo",
+      "Kokotxas de bacalao"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "bacon",
+    "name": "Bacon en lonchas",
+    "aliases": [
+      "Bacon en tiras",
+      "Bacon",
+      "Bacon en dados",
+      "Bacon en taquitos",
+      "Beicon en lonchas"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "baguette",
+    "name": "Pan chapata",
+    "aliases": [
+      "Pan de baguette en rebanadas"
+    ],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 105
+  },
+  {
+    "id": "bechamel",
+    "name": "Bechamel",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten",
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 200
+  },
+  {
+    "id": "berberecho",
+    "name": "Berberechos frescos",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 500
+  },
+  {
+    "id": "berenjena",
+    "name": "Berenjena",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "bicarbonato",
+    "name": "Bicarbonato",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 5
+  },
+  {
+    "id": "bizcocho-de-soletilla",
+    "name": "Bizcochos de soletilla",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "bogavante",
+    "name": "Bogavante",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "crustaceos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 600
+  },
+  {
+    "id": "boletus",
+    "name": "Boletus",
+    "aliases": [
+      "Boletus secos"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "boniato",
+    "name": "Boniato",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "bonito-del-norte",
+    "name": "Bonito en conserva",
+    "aliases": [
+      "Bonito fresco en tacos"
+    ],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "boquerones",
+    "name": "Boquerones limpios",
+    "aliases": [
+      "Boquerones frescos limpios en lomos"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 320
+  },
+  {
+    "id": "brandy",
+    "name": "Brandy",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 30
+  },
+  {
+    "id": "brocoli",
+    "name": "Brócoli",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "brote-tierno",
+    "name": "Brotes tiernos",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 160
+  },
+  {
+    "id": "burrata",
+    "name": "Burrata",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "butifarra",
+    "name": "Butifarra",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 175
+  },
+  {
+    "id": "caballa",
+    "name": "Caballa",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "cabracho",
+    "name": "Cabracho",
+    "aliases": [
+      "Cabracho (o rape/merluza)"
+    ],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "cacahuete",
+    "name": "Cacahuetes tostados",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "cacahuetes"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "cacao",
+    "name": "Cacao en polvo",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "cafe-espresso",
+    "name": "Café espresso",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 300
+  },
+  {
+    "id": "calabacin",
+    "name": "Calabacín",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "calabaza",
+    "name": "Calabaza",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "calamar",
+    "name": "Calamar",
+    "aliases": [
+      "Calamares",
+      "Calamar en anillas",
+      "Calamar limpio",
+      "Calamares limpios con sus tintas",
+      "Calamares medianos limpios con tinta",
+      "Chipirones limpios"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "caldo-de-carne",
+    "name": "Caldo de carne",
+    "aliases": [
+      "Caldo de cocido"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 300
+  },
+  {
+    "id": "caldo-de-marisco",
+    "name": "Caldo de marisco",
+    "aliases": [
+      "Caldo de pescado y marisco",
+      "Caldo de pollo y marisco",
+      "Fumet de marisco"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [
+      "crustaceos",
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 500
+  },
+  {
+    "id": "caldo-de-pescado",
+    "name": "Caldo de pescado",
+    "aliases": [
+      "Fumet de pescado"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 450
+  },
+  {
+    "id": "caldo-de-pollo",
+    "name": "Caldo de pollo",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 450
+  },
+  {
+    "id": "caldo-de-verduras",
+    "name": "Caldo de verduras",
+    "aliases": [
+      "Caldo casero sin sal"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 350
+  },
+  {
+    "id": "callo-de-ternera-limpio",
+    "name": "Callos de ternera limpios",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 1000
+  },
+  {
+    "id": "canela",
+    "name": "Canela molida",
+    "aliases": [
+      "Canela en polvo",
+      "Canela"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 2
+  },
+  {
+    "id": "canelones",
+    "name": "Placas de canelones",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 16
+  },
+  {
+    "id": "carne-de-cerdo-en-dado-aguja-o-secreto",
+    "name": "Carne de cerdo en dados (aguja o secreto)",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "carne-de-cocido",
+    "name": "Carne de cocido",
+    "aliases": [
+      "Carne de cocido desmenuzada",
+      "Carne de cocido variada"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 275
+  },
+  {
+    "id": "carne-de-jabali-picada",
+    "name": "Carne de jabalí picada",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 500
+  },
+  {
+    "id": "carne-de-ternera-para-guisar",
+    "name": "Carne de ternera para guisar",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "carne-de-txangurro",
+    "name": "Carne de txangurro",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "crustaceos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "carne-picada",
+    "name": "Carne picada de ternera",
+    "aliases": [
+      "Carne picada de cerdo",
+      "Carne picada de ternera y cerdo"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "carrillada",
+    "name": "Carrillada",
+    "aliases": [
+      "Carrillada de cerdo",
+      "Carrillada ibérica"
+    ],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 750
+  },
+  {
+    "id": "carrillera",
+    "name": "Carrillera de ternera",
+    "aliases": [
+      "Carrilleras de cerdo"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 650
+  },
+  {
+    "id": "castanas",
+    "name": "Castañas cocidas",
+    "aliases": [
+      "Castañas cocidas y peladas"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "cava",
+    "name": "Cava",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 150
+  },
+  {
+    "id": "cayena",
+    "name": "Chile fresco",
+    "aliases": [
+      "Chile jalapeño"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 10
+  },
+  {
+    "id": "cebolla",
+    "name": "Cebolla",
+    "aliases": [
+      "Cebolla dulce"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 70
+  },
+  {
+    "id": "cebolla-morada",
+    "name": "Cebolla morada",
+    "aliases": [
+      "Cebolla roja"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 35
+  },
+  {
+    "id": "cebolleta",
+    "name": "Cebolleta",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 25
+  },
+  {
+    "id": "cebollino",
+    "name": "Cebollino",
+    "aliases": [
+      "Cebollino fresco"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 5
+  },
+  {
+    "id": "cereales",
+    "name": "Cereales",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "cerveza",
+    "name": "Cerveza",
+    "aliases": [
+      "Cerveza fría"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 150
+  },
+  {
+    "id": "chalota",
+    "name": "Chalota",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "champinon",
+    "name": "Champiñones",
+    "aliases": [
+      "Champiñón grande",
+      "Champiñones enteros",
+      "Champiñones portobello"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "chocolate",
+    "name": "Chocolate negro",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 175
+  },
+  {
+    "id": "chorizo",
+    "name": "Chorizo",
+    "aliases": [
+      "Chorizo asturiano"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "chuletas-de-cerdo",
+    "name": "Chuletas de cerdo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "chuleton-de-ternera",
+    "name": "Chuletón de ternera",
+    "aliases": [
+      "Chuletón de ternera madurada"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 800
+  },
+  {
+    "id": "cigala",
+    "name": "Cigalas frescas",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "crustaceos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 8
+  },
+  {
+    "id": "cilantro",
+    "name": "Cilantro fresco",
+    "aliases": [
+      "Cilantro",
+      "Cilantro molido"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 5
+  },
+  {
+    "id": "cinta-de-lomo",
+    "name": "Filetes de lomo de cerdo",
+    "aliases": [
+      "Cinta de lomo",
+      "Cinta de lomo de cerdo abierta en libro",
+      "Lomo de cerdo (filetes)"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "ciruelas-pasas",
+    "name": "Ciruelas pasas",
+    "aliases": [
+      "Ciruelas pasas sin hueso"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 50
+  },
+  {
+    "id": "coco",
+    "name": "Coco rallado",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 15
+  },
+  {
+    "id": "codorniz",
+    "name": "Codorniz",
+    "aliases": [
+      "Codorniz limpia entera"
+    ],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 8
+  },
+  {
+    "id": "cointreau",
+    "name": "Cointreau",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 50
+  },
+  {
+    "id": "col",
+    "name": "Col china",
+    "aliases": [
+      "Col kale"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "coles-de-bruselas",
+    "name": "Coles de Bruselas",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "coliflor",
+    "name": "Coliflor",
+    "aliases": [
+      "Coliflor entera"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 500
+  },
+  {
+    "id": "colorante",
+    "name": "Colorante rojo alimentario",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 10
+  },
+  {
+    "id": "comino",
+    "name": "Comino molido",
+    "aliases": [
+      "Comino"
+    ],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
+  },
+  {
+    "id": "conejo",
+    "name": "Conejo troceado",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "congrio",
+    "name": "Congrio en rodajas",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "contramuslos-de-pollo",
+    "name": "Contramuslo de pollo",
+    "aliases": [
+      "Contramuslos de pollo",
+      "Contramuslos de pollo deshuesados",
+      "Muslos y contramuslos de pollo"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "cordero",
+    "name": "Chuletillas de cordero",
+    "aliases": [
+      "Paletilla de cordero"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 600
+  },
+  {
+    "id": "corvina",
+    "name": "Corvina",
+    "aliases": [
+      "Corvina fresca",
+      "Corvina fresca en lomo limpio"
+    ],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "costilla",
+    "name": "Costillas de cerdo",
+    "aliases": [
+      "Costillar de cerdo",
+      "Costilla de cerdo",
+      "Costillas de cerdo troceadas",
+      "Costillas de cordero (chuletillas)",
+      "Costillas de ternera (corte fino estilo galbi)"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "curcuma",
+    "name": "Cúrcuma",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
+  },
+  {
+    "id": "curry",
+    "name": "Curry en polvo",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 8
+  },
+  {
+    "id": "cuscus",
+    "name": "Cuscús",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "dorada",
+    "name": "Dorada (limpia, entera)",
+    "aliases": [
+      "Dorada entera",
+      "Dorada entera limpia sin escamar"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 700
+  },
+  {
+    "id": "edamame",
+    "name": "Edamame",
+    "aliases": [
+      "Edamame desvainado"
+    ],
+    "aisle": "Legumbres",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "soja"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "eneldo",
+    "name": "Eneldo fresco",
+    "aliases": [
+      "Eneldo"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 5
+  },
+  {
+    "id": "entrania-de-ternera",
+    "name": "Entraña de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "entrecot",
+    "name": "Entrecot de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "escalopines-de-ternera",
+    "name": "Escalopines de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 325
+  },
+  {
+    "id": "espaguetis",
+    "name": "Espaguetis",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "esparragos",
+    "name": "Espárragos trigueros",
+    "aliases": [
+      "Espárragos verdes"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "esparragos-blancos",
+    "name": "Espárragos blancos en conserva",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "especia-cajun",
+    "name": "Especias cajún",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 8
+  },
+  {
+    "id": "espinacas",
+    "name": "Espinacas frescas",
+    "aliases": [
+      "Espinacas",
+      "Espinacas baby",
+      "Espinaca fresca"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 175
+  },
+  {
+    "id": "extracto-de-vainilla",
+    "name": "Extracto de vainilla",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 5
+  },
+  {
+    "id": "fabes",
+    "name": "Fabes",
+    "aliases": [],
+    "aisle": "Legumbres",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "falafel-congelado",
+    "name": "Falafel congelado",
+    "aliases": [],
+    "aisle": "Legumbres",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "farfalle",
+    "name": "Farfalle",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "fettuccine",
+    "name": "Fettuccine",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten",
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "fideo-mediano",
+    "name": "Fideos n°2",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 180
+  },
+  {
+    "id": "fideos",
+    "name": "Fideos finos",
+    "aliases": [
+      "Fideos gruesos",
+      "Fideos gordos",
+      "Fideos huecos nº 2"
+    ],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "filete-de-cerdo",
+    "name": "Filetes de cerdo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "filete-de-pez-espada",
+    "name": "Filetes de pez espada",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "filete-de-ternera",
+    "name": "Filetes de ternera",
+    "aliases": [
+      "Filete de ternera",
+      "Filete de ternera para milanesa"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 375
+  },
+  {
+    "id": "filetes-finos-de-ternera",
+    "name": "Filetes finos de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "foie",
+    "name": "Foie mi-cuit",
+    "aliases": [
+      "Foie fresco o mi-cuit"
+    ],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "fresa",
+    "name": "Fresas",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "frutos-rojos",
+    "name": "Frutos rojos",
+    "aliases": [
+      "Frutos rojos (frambuesa, mora, arándano)",
+      "Frutos rojos congelados"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "fuet",
+    "name": "Fuet",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "fusilli",
+    "name": "Fusilli",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "galletas-maria",
+    "name": "Galletas María",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 190
+  },
+  {
+    "id": "gambas",
+    "name": "Gambas peladas",
+    "aliases": [
+      "Gambas",
+      "Cabezas y cáscaras de gamba",
+      "Gambas cocidas peladas",
+      "Gambas frescas o congeladas",
+      "Gambas peladas congeladas"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "crustaceos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "garbanzos",
+    "name": "Garbanzos cocidos",
+    "aliases": [
+      "Garbanzos",
+      "Garbanzos cocidos de bote",
+      "Garbanzos secos crudos (en remojo)"
+    ],
+    "aisle": "Legumbres",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "garrofon",
+    "name": "Garrofón",
+    "aliases": [],
+    "aisle": "Legumbres",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "gazpacho-de-bote",
+    "name": "Gazpacho de bote",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 500
+  },
+  {
+    "id": "gochujang",
+    "name": "Gochujang",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "granada",
+    "name": "Granada",
+    "aliases": [
+      "Granada (arilos)"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "granola",
+    "name": "Granola",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "grelo",
+    "name": "Grelos",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "guanciale",
+    "name": "Guanciale",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 120
+  },
+  {
+    "id": "guindilla",
+    "name": "Guindilla",
+    "aliases": [
+      "Guindilla en copos",
+      "Guindilla fresca",
+      "Guindilla seca",
+      "Ají amarillo o guindilla fresca",
+      "Cayena",
+      "Cayena molida",
+      "Copos de guindilla",
+      "Guindilla roja"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 2
+  },
+  {
+    "id": "guisantes",
+    "name": "Guisantes",
+    "aliases": [
+      "Guisantes congelados",
+      "Guisantes cocidos"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "hamburguesa",
+    "name": "Pan de hamburguesa",
+    "aliases": [
+      "Pan de hamburguesa brioche"
+    ],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 2
+  },
+  {
+    "id": "harina",
+    "name": "Harina",
+    "aliases": [
+      "Harina de trigo",
+      "Harina de fuerza",
+      "Harina fina de trigo"
+    ],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "harissa",
+    "name": "Harissa",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "higado-de-ternera",
+    "name": "Hígado de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "higo",
+    "name": "Higos",
+    "aliases": [
+      "Higos frescos"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 102
+  },
+  {
+    "id": "hinojo",
+    "name": "Hinojo",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "hoja-de-gelatina",
+    "name": "Hojas de gelatina",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 6
+  },
+  {
+    "id": "hojaldre",
+    "name": "Hojaldre",
+    "aliases": [
+      "Masa de hojaldre"
+    ],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten",
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 230
+  },
+  {
+    "id": "hojas-verdes",
+    "name": "Hojas verdes variadas",
+    "aliases": [
+      "Mezclum de hojas",
+      "Lechuga o mezclum",
+      "Mezcla de hojas verdes",
+      "Mezclum de lechugas"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "hueso-de-ternera",
+    "name": "Hueso de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "huevos",
+    "name": "Huevo",
+    "aliases": [
+      "Yema de huevo",
+      "Huevo cocido",
+      "Clara de huevo"
+    ],
+    "aisle": "Huevos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 3
+  },
+  {
+    "id": "jamon",
+    "name": "Jamón serrano",
+    "aliases": [
+      "Jamón serrano en lonchas finas",
+      "Jamón serrano en tacos",
+      "Hueso de jamón",
+      "Jamón serrano en lonchas",
+      "Jamón serrano en taquitos",
+      "Jamón serrano en virutas",
+      "Jamón",
+      "Jamón ibérico en lonchas",
+      "Jamón ibérico en taquitos",
+      "Jamón serrano picado"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "jamon-york",
+    "name": "Jamón cocido",
+    "aliases": [
+      "Jamón cocido en lonchas",
+      "Jamón cocido en dados",
+      "Jamón cocido en tacos",
+      "Jamón cocido en tiras"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "jarrete-de-ternera",
+    "name": "Jarrete de ternera",
+    "aliases": [
+      "Jarrete de ternera con hueso (ossobuco)"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 950
+  },
+  {
+    "id": "jengibre",
+    "name": "Jengibre fresco",
+    "aliases": [
+      "Jengibre fresco rallado",
+      "Jengibre"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 10
+  },
+  {
+    "id": "jerez-seco",
+    "name": "Jerez seco",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 40
+  },
+  {
+    "id": "judia-blanca",
+    "name": "Judías blancas cocidas",
+    "aliases": [
+      "Judías blancas"
+    ],
+    "aisle": "Legumbres",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "judia-negra",
+    "name": "Judías negras cocidas",
+    "aliases": [],
+    "aisle": "Legumbres",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "judia-verde",
+    "name": "Judías verdes",
+    "aliases": [
+      "Judía verde",
+      "Judía verde plana"
+    ],
+    "aisle": "Verduras",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "judias-pintas",
+    "name": "Frijoles negros cocidos",
+    "aliases": [
+      "Judías pintas"
+    ],
+    "aisle": "Legumbres",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "kefir",
+    "name": "Kéfir",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 300
+  },
+  {
+    "id": "ketchup",
+    "name": "Ketchup",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "lacon",
+    "name": "Lacón",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 115
+  },
+  {
+    "id": "langostinos",
+    "name": "Langostinos pelados",
+    "aliases": [
+      "Langostinos",
+      "Cáscaras y cabezas de langostinos",
+      "Langostinos cocidos pelados",
+      "Langostinos frescos con cáscara"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "crustaceos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "lasana",
+    "name": "Láminas de lasaña",
+    "aliases": [
+      "Placas de lasaña"
+    ],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten",
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "laurel",
+    "name": "Laurel",
+    "aliases": [
+      "Hoja de laurel"
+    ],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 1
+  },
+  {
+    "id": "leche",
+    "name": "Leche",
+    "aliases": [
+      "Leche entera",
+      "Suero de leche"
+    ],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 230
+  },
+  {
+    "id": "leche-coco",
+    "name": "Leche de coco",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 200
+  },
+  {
+    "id": "leche-condensada",
+    "name": "Leche condensada",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "lechuga",
+    "name": "Lechuga",
+    "aliases": [
+      "Canónigos",
+      "Lechuga romana",
+      "Endivias",
+      "Endivia",
+      "Lechuga variada",
+      "Lechugas variadas"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "lenguado",
+    "name": "Lenguado",
+    "aliases": [
+      "Filetes de lenguado",
+      "Lenguado limpio"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 161
+  },
+  {
+    "id": "lentejas",
+    "name": "Lentejas",
+    "aliases": [
+      "Lentejas cocidas",
+      "Lentejas pardinas",
+      "Lentejas pardinas cocidas"
+    ],
+    "aisle": "Legumbres",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "lentejas-rojas",
+    "name": "Lentejas rojas",
+    "aliases": [
+      "Lentejas rojas peladas"
+    ],
+    "aisle": "Legumbres",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 90
+  },
+  {
+    "id": "levadura",
+    "name": "Levadura de panadería seca",
+    "aliases": [
+      "Levadura fresca"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Panadería y cereales",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 7
+  },
+  {
+    "id": "levadura-quimica",
+    "name": "Levadura química",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 6
+  },
+  {
+    "id": "licor-de-cafe",
+    "name": "Licor de café",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 30
+  },
+  {
+    "id": "lima",
+    "name": "Lima",
+    "aliases": [
+      "Zumo de lima",
+      "Lima (zumo)"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 4
+  },
+  {
+    "id": "limon",
+    "name": "Limón",
+    "aliases": [
+      "Zumo de limón",
+      "Ralladura de limón"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 5
+  },
+  {
+    "id": "linguine",
+    "name": "Linguine",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 180
+  },
+  {
+    "id": "lombarda",
+    "name": "Lombarda",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "lomo-de-cerdo-en-filetes",
+    "name": "Lomo de cerdo en filetes",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "lubina",
+    "name": "Lubina entera limpia",
+    "aliases": [
+      "Filetes de lubina",
+      "Lomo de lubina fresca",
+      "Lubina (filetes)",
+      "Lubina entera"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 410
+  },
+  {
+    "id": "macarrones",
+    "name": "Macarrones",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "magro-de-cerdo",
+    "name": "Magro de cerdo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "maicena",
+    "name": "Maicena",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "maiz",
+    "name": "Maíz",
+    "aliases": [
+      "Maíz dulce",
+      "Maíz dulce cocido",
+      "Maíz cocido",
+      "Maíz tostado"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "mango",
+    "name": "Mango",
+    "aliases": [
+      "Mango maduro",
+      "Mango congelado"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "manitas-de-cerdo",
+    "name": "Manitas de cerdo",
+    "aliases": [
+      "Manitas de cerdo partidas por la mitad"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 1200
+  },
+  {
+    "id": "manteca-de-cerdo",
+    "name": "Manteca de cerdo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 155
+  },
+  {
+    "id": "mantequilla",
+    "name": "Mantequilla",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "mantequilla-de-cacahuete",
+    "name": "Mantequilla de cacahuete",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "cacahuetes"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "manzana",
+    "name": "Manzana",
+    "aliases": [
+      "Manzana ácida",
+      "Manzana Golden",
+      "Manzana reineta",
+      "Manzana verde"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 120
+  },
+  {
+    "id": "masa-de-pizza",
+    "name": "Masa de pizza",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "masa-quebrada",
+    "name": "Masa quebrada",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "mascarpone",
+    "name": "Mascarpone",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 500
+  },
+  {
+    "id": "mayonesa",
+    "name": "Mayonesa",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "medio-cochinillo",
+    "name": "Medio cochinillo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 2500
+  },
+  {
+    "id": "mejillones",
+    "name": "Mejillones",
+    "aliases": [
+      "Mejillones (sin concha)",
+      "Mejillones cocidos",
+      "Mejillones frescos"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "melocoton",
+    "name": "Melocotón",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "melon",
+    "name": "Melón",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "menta",
+    "name": "Menta fresca",
+    "aliases": [
+      "Hierbabuena fresca",
+      "Menta"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 8
+  },
+  {
+    "id": "merluza",
+    "name": "Merluza",
+    "aliases": [
+      "Merluza en rodajas",
+      "Filetes de merluza",
+      "Kokotxas de merluza",
+      "Merluza en trozos",
+      "Merluza o pescado blanco",
+      "Rosada en lomos"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "merluza-lomos",
+    "name": "Merluza en lomos",
+    "aliases": [
+      "Lomos de merluza"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 335
+  },
+  {
+    "id": "mermelada",
+    "name": "Mermelada",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "miel",
+    "name": "Miel",
+    "aliases": [
+      "Miel de caña"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "mirin",
+    "name": "Mirin",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 20
+  },
+  {
+    "id": "miso",
+    "name": "Miso",
+    "aliases": [
+      "Miso blanco"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "soja"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "monkfish",
+    "name": "Rape",
+    "aliases": [
+      "Colas de rape en trozos",
+      "Medallones de rape",
+      "Rape (cola, en medallones)"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "morcilla",
+    "name": "Morcilla",
+    "aliases": [
+      "Morcilla de Burgos",
+      "Morcilla asturiana"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "morcillo",
+    "name": "Carne para mechar (morcillo de ternera)",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "morcillo-de-ternera",
+    "name": "Morcillo de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "mostaza",
+    "name": "Mostaza de Dijon",
+    "aliases": [
+      "Mostaza",
+      "Mostaza a la antigua",
+      "Mostaza americana"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [
+      "mostaza"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 15
+  },
+  {
+    "id": "mozzarella",
+    "name": "Mozzarella fresca",
+    "aliases": [
+      "Mozzarella",
+      "Queso mozzarella rallado",
+      "Mozzarella (bocconcini)",
+      "Mozzarella rallada",
+      "Queso mozzarella"
+    ],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "muffin-ingle",
+    "name": "Muffin inglés",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 2
+  },
+  {
+    "id": "muslo-de-pollo",
+    "name": "Muslos de pollo",
+    "aliases": [
+      "Muslo de pollo deshuesado",
+      "Muslos de pollo deshuesados"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 500
+  },
+  {
+    "id": "nabo",
+    "name": "Nabo",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 55
+  },
+  {
+    "id": "nachos",
+    "name": "Nachos de maíz",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 135
+  },
+  {
+    "id": "naranja",
+    "name": "Naranja",
+    "aliases": [
+      "Zumo de naranja",
+      "Ralladura de naranja"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 60
+  },
+  {
+    "id": "nata",
+    "name": "Nata para cocinar",
+    "aliases": [
+      "Nata",
+      "Nata líquida"
+    ],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 80
+  },
+  {
+    "id": "nata-para-montar",
+    "name": "Nata para montar",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 400
+  },
+  {
+    "id": "navaja",
+    "name": "Navajas frescas",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 500
+  },
+  {
+    "id": "nueces",
+    "name": "Nueces",
+    "aliases": [
+      "Nuez"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "frutos_cascara"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "nuez-moscada",
+    "name": "Nuez moscada",
+    "aliases": [
+      "Nuez moscada molida"
+    ],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 1
+  },
+  {
+    "id": "obleas",
+    "name": "Obleas",
+    "aliases": [
+      "Obleas de empanadilla",
+      "Obleas para empanadillas",
+      "Obleas para gyoza"
+    ],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 16
+  },
+  {
+    "id": "orecchiette",
+    "name": "Orecchiette",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 180
+  },
+  {
+    "id": "oregano",
+    "name": "Orégano",
+    "aliases": [
+      "Orégano seco"
+    ],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 2
+  },
+  {
+    "id": "oreja-de-cerdo",
+    "name": "Oreja de cerdo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "orzo",
+    "name": "Orzo",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 155
+  },
+  {
+    "id": "pan",
+    "name": "Pan",
+    "aliases": [
+      "Pan rústico",
+      "Pan del día anterior",
+      "Pan de hogaza",
+      "Pan frito",
+      "Pan de barra",
+      "Pan tostado",
+      "Pan de masa madre",
+      "Pan de centeno",
+      "Pan duro",
+      "Pan de pueblo"
+    ],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "pan-de-payes",
+    "name": "Pan de payés",
+    "aliases": [
+      "Pan payés del día anterior"
+    ],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 135
+  },
+  {
+    "id": "pan-molde",
+    "name": "Pan de molde",
+    "aliases": [
+      "Pan de molde para picatostes"
+    ],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 18
+  },
+  {
+    "id": "pan-rallado",
+    "name": "Pan rallado",
+    "aliases": [],
+    "aisle": "Panadería",
+    "category": "Panadería y cereales",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "panceta",
+    "name": "Panceta",
+    "aliases": [
+      "Panceta ahumada",
+      "Panceta ahumada en lonchas finas",
+      "Panceta ahumada en taquitos"
+    ],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "parmesano",
+    "name": "Queso parmesano",
+    "aliases": [
+      "Parmesano",
+      "Queso parmesano rallado",
+      "Parmesano rallado",
+      "Parmesano en virutas",
+      "Queso parmesano en virutas",
+      "Queso pecorino"
+    ],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "pasas",
+    "name": "Pasas",
+    "aliases": [
+      "Uvas pasas"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "pasta",
+    "name": "Pasta pequeña",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "pasta-corta",
+    "name": "Pasta corta",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 180
+  },
+  {
+    "id": "pastrami-de-ternera-en-loncha",
+    "name": "Pastrami de ternera en lonchas",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "pata-de-ternera",
+    "name": "Pata de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "patata",
+    "name": "Patata",
+    "aliases": [
+      "Patatas",
+      "Patata baby",
+      "Patata grande"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "pate",
+    "name": "Paté de cerdo",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 120
+  },
+  {
+    "id": "pato",
+    "name": "Magret de pato",
+    "aliases": [
+      "Muslos de pato",
+      "Pechuga de pato"
+    ],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "pavo",
+    "name": "Filete de pavo",
+    "aliases": [
+      "Filetes de pavo"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "pechuga-de-pavo",
+    "name": "Pechuga de pavo",
+    "aliases": [
+      "Pechuga de pavo en lonchas"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "pechuga-de-pollo",
+    "name": "Pechuga de pollo",
+    "aliases": [
+      "Pechuga de pollo asada"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "pedro-ximenez",
+    "name": "Pedro Ximénez",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 80
+  },
+  {
+    "id": "penne",
+    "name": "Penne",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "pepinillos",
+    "name": "Pepinillos",
+    "aliases": [
+      "Pepinillos en vinagre",
+      "Pepinillos encurtidos",
+      "Pepinillos en rodajas"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "pepino",
+    "name": "Pepino",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "pera",
+    "name": "Pera",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 125
+  },
+  {
+    "id": "perdiz",
+    "name": "Perdiz",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 2
+  },
+  {
+    "id": "perejil",
+    "name": "Perejil",
+    "aliases": [
+      "Perejil fresco",
+      "Perejil picado"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 5
+  },
+  {
+    "id": "pescadilla",
+    "name": "Pescadilla (filetes)",
+    "aliases": [
+      "Pescadilla en lomos"
+    ],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 335
+  },
+  {
+    "id": "pesto",
+    "name": "Pesto",
+    "aliases": [
+      "Pesto de albahaca"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "frutos_cascara",
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 35
+  },
+  {
+    "id": "pimenton",
+    "name": "Pimentón dulce",
+    "aliases": [
+      "Pimentón",
+      "Pimentón picante",
+      "Pimentón ahumado"
+    ],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 4
+  },
+  {
+    "id": "pimienta",
+    "name": "Pimienta negra",
+    "aliases": [
+      "Pimienta",
+      "Pimienta negra en grano",
+      "Pimienta verde en grano",
+      "Pimienta negra en grano machacada",
+      "Pimienta negra molida"
+    ],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 2
+  },
+  {
+    "id": "pimienta-blanca",
+    "name": "Pimienta blanca",
+    "aliases": [],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 1
+  },
+  {
+    "id": "pimiento-choricero",
+    "name": "Pimiento choricero",
+    "aliases": [
+      "Pimiento choricero (ñora)",
+      "Ñora hidratada",
+      "Pimiento choricero (pulpa de ñora)",
+      "Pimiento choricero (pulpa)",
+      "Pimiento choricero o ñora hidratado"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 15
+  },
+  {
+    "id": "pimiento-rojo",
+    "name": "Pimiento rojo",
+    "aliases": [
+      "Pimiento rojo asado",
+      "Pimientos rojos"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "pimiento-verde",
+    "name": "Pimiento verde",
+    "aliases": [
+      "Pimiento morrón",
+      "Pimiento amarillo",
+      "Pimiento de padrón",
+      "Pimiento verde italiano",
+      "Pimientos choriceros"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "pimientos-del-piquillo",
+    "name": "Pimientos del piquillo",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 104
+  },
+  {
+    "id": "pina",
+    "name": "Piña natural",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "pinones",
+    "name": "Piñones",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "frutos_cascara"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 20
+  },
+  {
+    "id": "pistacho",
+    "name": "Pistacho pelado",
+    "aliases": [
+      "Pistachos",
+      "Pistachos pelados"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "frutos_cascara"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "placas-de-cannelones",
+    "name": "Placas de cannelones",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "platano",
+    "name": "Plátano",
+    "aliases": [
+      "Plátano congelado"
+    ],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 1
+  },
+  {
+    "id": "platano-macho",
+    "name": "Plátano macho",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 1
+  },
+  {
+    "id": "pluma-iberica",
+    "name": "Pluma ibérica",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "pollo",
+    "name": "Pollo troceado",
+    "aliases": [
+      "Pollo",
+      "Pollo asado de bolsa",
+      "Carne picada de pollo",
+      "Pollo asado desmenuzado",
+      "Pollo entero"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "pomelo",
+    "name": "Pomelo",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 101
+  },
+  {
+    "id": "presa-iberica",
+    "name": "Presa ibérica",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 375
+  },
+  {
+    "id": "puerro",
+    "name": "Puerro",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "pulpa-de-acai-congelada",
+    "name": "Pulpa de açaí congelada",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "pulpo",
+    "name": "Pulpo cocido",
+    "aliases": [
+      "Pulpo congelado limpio"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "quesito",
+    "name": "Quesito en porciones",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "queso",
+    "name": "Queso rallado",
+    "aliases": [
+      "Queso gruyère rallado",
+      "Queso curado",
+      "Queso en porciones",
+      "Queso rallado para fundir",
+      "Queso cheddar (lonchas)",
+      "Queso cheddar curado en lonchas",
+      "Queso cheddar en lonchas",
+      "Queso curado rallado",
+      "Queso Emmental",
+      "Queso emmental en lonchas",
+      "Queso gruyère",
+      "Queso para fundir en lonchas",
+      "Queso rallado curado"
+    ],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 50
+  },
+  {
+    "id": "queso-azul",
+    "name": "Queso azul",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "queso-brie",
+    "name": "Queso brie",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "queso-cabra",
+    "name": "Queso de cabra",
+    "aliases": [
+      "Queso de cabra en rulo"
+    ],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "queso-crema",
+    "name": "Queso crema",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 180
+  },
+  {
+    "id": "queso-en-lonchas",
+    "name": "Queso en lonchas",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "queso-feta",
+    "name": "Queso feta",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "queso-fresco",
+    "name": "Queso fresco",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "queso-tierno",
+    "name": "Queso semicurado en lonchas",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "quinoa",
+    "name": "Quinoa",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Legumbres y pasta",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "rabo-de-toro",
+    "name": "Rabo de toro troceado",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 800
+  },
+  {
+    "id": "ravioli",
+    "name": "Tortellini frescos rellenos de carne",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "gluten",
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "redondo-de-ternera",
+    "name": "Redondo de ternera",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 425
+  },
+  {
+    "id": "remolacha",
+    "name": "Remolacha cocida",
+    "aliases": [
+      "Remolacha"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "repollo",
+    "name": "Repollo",
+    "aliases": [
+      "Repollo morado"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "requeson",
+    "name": "Requesón",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "ricotta",
+    "name": "Ricotta",
+    "aliases": [
+      "Ricotta salada"
+    ],
+    "aisle": "Lácteos",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 175
+  },
+  {
+    "id": "rigatoni",
+    "name": "Rigatoni",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "rodaballo",
+    "name": "Rodaballo",
+    "aliases": [
+      "Lomos de rodaballo",
+      "Rodaballo (filetes)",
+      "Rodaballo entero limpio"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "rodajas-de-emperador",
+    "name": "Rodajas de emperador",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 320
+  },
+  {
+    "id": "romero",
+    "name": "Romero",
+    "aliases": [
+      "Romero fresco"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
+  },
+  {
+    "id": "ron",
+    "name": "Ron",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 80
+  },
+  {
+    "id": "roquefort",
+    "name": "Queso roquefort",
+    "aliases": [],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "rucula",
+    "name": "Rúcula",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 40
+  },
+  {
+    "id": "sal",
+    "name": "Sal",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 3
+  },
+  {
+    "id": "sal-escamas",
+    "name": "Sal en escamas",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 2
+  },
+  {
+    "id": "sal-gruesa",
+    "name": "Sal gorda",
+    "aliases": [
+      "Sal gruesa"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 25
+  },
+  {
+    "id": "salchicha",
+    "name": "Salchichas frescas",
+    "aliases": [
+      "Salchicha fresca italiana"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "salmon",
+    "name": "Lomos de salmón",
+    "aliases": [
+      "Salmón (lomos)",
+      "Salmón",
+      "Salmonetes limpios",
+      "Salmonetes pequeños"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 310
+  },
+  {
+    "id": "salmon-ahumado",
+    "name": "Salmón ahumado",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "salmon-fresco",
+    "name": "Salmón fresco",
+    "aliases": [
+      "Salmón fresco calidad sashimi",
+      "Lomo de salmón fresco con piel",
+      "Lomo de salmón fresco de calidad sashimi",
+      "Salmón fresco para sushi"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 220
+  },
+  {
+    "id": "salsa-barbacoa",
+    "name": "Salsa barbacoa",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "salsa-cesar",
+    "name": "Salsa César",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [
+      "huevos",
+      "mostaza",
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "salsa-soja",
+    "name": "Salsa de soja",
+    "aliases": [],
+    "aisle": "Legumbres",
+    "category": "Despensa",
+    "allergens": [
+      "gluten",
+      "soja"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 20
+  },
+  {
+    "id": "salsa-worcestershire",
+    "name": "Salsa Worcestershire",
+    "aliases": [
+      "Salsa de pescado",
+      "Salsa Perrins"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ml",
+    "medianAmount": 10
+  },
+  {
+    "id": "salvia",
+    "name": "Salvia fresca",
+    "aliases": [
+      "Hojas de salvia fresca"
+    ],
+    "aisle": "Especias",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 6
+  },
+  {
+    "id": "sandia",
+    "name": "Sandía",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 300
+  },
+  {
+    "id": "sardinas",
+    "name": "Sardinas",
+    "aliases": [
+      "Sardinas ahumadas",
+      "Sardinas frescas limpias"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "secreto-iberico",
+    "name": "Secreto ibérico",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "semola-de-trigo",
+    "name": "Sémola de trigo",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 15
+  },
+  {
+    "id": "sepia",
+    "name": "Sepia",
+    "aliases": [
+      "Sepia limpia"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "sesamo",
+    "name": "Semillas de sésamo",
+    "aliases": [
+      "Sésamo tostado",
+      "Semillas de sésamo tostado",
+      "Sésamo blanco y negro"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sesamo"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 6
+  },
+  {
+    "id": "setas",
+    "name": "Setas variadas",
+    "aliases": [
+      "Setas",
+      "Setas (champiñones portobello)",
+      "Setas silvestres variadas"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 250
+  },
+  {
+    "id": "sidra",
+    "name": "Sidra natural",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 150
+  },
+  {
+    "id": "sirope-de-arce",
+    "name": "Sirope de arce",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 30
+  },
+  {
+    "id": "sobrasada",
+    "name": "Sobrasada",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "solomillo",
+    "name": "Solomillo de ternera",
+    "aliases": [
+      "Solomillo de cerdo",
+      "Filete de solomillo de ternera",
+      "Solomillo de ternera (para tartar)",
+      "Solomillo de ternera en dados",
+      "Solomillo de ternera muy fresco",
+      "Solomillo de ternera picado"
+    ],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 350
+  },
+  {
+    "id": "sriracha",
+    "name": "Sriracha",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 15
+  },
+  {
+    "id": "surimi",
+    "name": "Palitos de cangrejo o surimi",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "crustaceos",
+      "huevos",
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "tabasco",
+    "name": "Tabasco",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 2
+  },
+  {
+    "id": "tahini",
+    "name": "Tahini",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "sesamo"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 25
+  },
+  {
+    "id": "tallarines",
+    "name": "Tagliatelle",
+    "aliases": [
+      "Nidos de tallarines",
+      "Pappardelle",
+      "Tallarines"
+    ],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten",
+      "huevos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "ternera-magra",
+    "name": "Ternera magra",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Carnes y pescados",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "tinta-de-calamar",
+    "name": "Tinta de calamar",
+    "aliases": [
+      "Bolsas de tinta de calamar",
+      "Bolsitas de tinta de calamar"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "moluscos",
+      "sulfitos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 8
+  },
+  {
+    "id": "tocino",
+    "name": "Tocino",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  },
+  {
+    "id": "tofu",
+    "name": "Tofu firme",
+    "aliases": [],
+    "aisle": "Legumbres",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "soja"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "tomate",
+    "name": "Tomate",
+    "aliases": [
+      "Tomate maduro",
+      "Tomate natural",
+      "Tomate raf",
+      "Tomate rallado",
+      "Tomates grandes"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 150
+  },
+  {
+    "id": "tomate-cherry",
+    "name": "Tomate cherry",
+    "aliases": [
+      "Tomates cherry"
+    ],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 110
+  },
+  {
+    "id": "tomate-concentrado",
+    "name": "Tomate concentrado",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 18
+  },
+  {
+    "id": "tomate-frito",
+    "name": "Tomate frito",
+    "aliases": [
+      "Salsa de tomate"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 100
+  },
+  {
+    "id": "tomate-seco",
+    "name": "Tomate seco en aceite",
+    "aliases": [
+      "Tomates secos en aceite"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 50
+  },
+  {
+    "id": "tomate-triturado",
+    "name": "Tomate triturado",
+    "aliases": [
+      "Tomate triturado de bote"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 100
+  },
+  {
+    "id": "tomillo",
+    "name": "Tomillo",
+    "aliases": [
+      "Tomillo fresco"
+    ],
+    "aisle": "Especias",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 2
+  },
+  {
+    "id": "tortilla-de-maiz",
+    "name": "Tortillas de maíz",
+    "aliases": [
+      "Tortilla de maíz"
+    ],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 4
+  },
+  {
+    "id": "tortilla-de-trigo",
+    "name": "Tortillas de trigo",
+    "aliases": [
+      "Tortilla de trigo",
+      "Tortillas de trigo grandes",
+      "Tortillas de trigo pequeñas"
+    ],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 2
+  },
+  {
+    "id": "trofie",
+    "name": "Trofie",
+    "aliases": [],
+    "aisle": "Pasta y arroz",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 200
+  },
+  {
+    "id": "truchas-enteras",
+    "name": "Trucha limpia sin espinas",
+    "aliases": [
+      "Truchas enteras",
+      "Truchas limpias"
+    ],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 400
+  },
+  {
+    "id": "trufa-negra",
+    "name": "Trufa negra",
+    "aliases": [
+      "Trufa negra fresca"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 9
+  },
+  {
+    "id": "unto",
+    "name": "Unto",
+    "aliases": [],
+    "aisle": "Carne",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 30
+  },
+  {
+    "id": "uvas",
+    "name": "Uvas",
+    "aliases": [],
+    "aisle": "Frutas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 60
+  },
+  {
+    "id": "ventresca",
+    "name": "Ventresca de atún en aceite",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "pescado"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 120
+  },
+  {
+    "id": "vieira",
+    "name": "Vieiras (sin concha)",
+    "aliases": [
+      "Vieiras limpias",
+      "Vieiras limpias en su concha"
+    ],
+    "aisle": "Pescado",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "ud",
+    "medianAmount": 8
+  },
+  {
+    "id": "vinagre",
+    "name": "Vinagre",
+    "aliases": [
+      "Vinagre de vino",
+      "Vinagre de vino blanco",
+      "Vinagre de arroz",
+      "Vinagre de vino tinto",
+      "Jalapeños en vinagre"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 10
+  },
+  {
+    "id": "vinagre-balsamico",
+    "name": "Vinagre balsámico",
+    "aliases": [
+      "Vinagre de Módena",
+      "Crema de vinagre balsámico",
+      "Reducción de vinagre balsámico"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 10
+  },
+  {
+    "id": "vinagre-de-jerez",
+    "name": "Vinagre de Jerez",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 10
+  },
+  {
+    "id": "vinagre-de-manzana",
+    "name": "Vinagre de manzana",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 15
+  },
+  {
+    "id": "vino-blanco",
+    "name": "Vino blanco",
+    "aliases": [
+      "Vino Pedro Ximénez",
+      "Vino de Jerez",
+      "Vino oloroso",
+      "Vino de Oporto",
+      "Vino rancio"
+    ],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 60
+  },
+  {
+    "id": "vino-tinto",
+    "name": "Vino tinto",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Despensa",
+    "allergens": [],
+    "cookingAllergens": [
+      "sulfitos"
+    ],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 100
+  },
+  {
+    "id": "vodka",
+    "name": "Vodka",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 50
+  },
+  {
+    "id": "vol-au-vent",
+    "name": "Vol-au-vent de hojaldre",
+    "aliases": [
+      "Vol-au-vent de hojaldre (cestas precocidas)"
+    ],
+    "aisle": "Panadería",
+    "category": "Verduras y frutas",
+    "allergens": [
+      "gluten",
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ud",
+    "medianAmount": 5
+  },
+  {
+    "id": "whisky",
+    "name": "Whisky",
+    "aliases": [],
+    "aisle": "Aceites y conservas",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "alcohol_cocina"
+    ],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "ml",
+    "medianAmount": 60
+  },
+  {
+    "id": "yogur",
+    "name": "Yogur natural",
+    "aliases": [
+      "Yogur griego",
+      "Yogur griego natural",
+      "Yogur de sabores"
+    ],
+    "aisle": "Lácteos",
+    "category": "Lácteos y huevos",
+    "allergens": [
+      "leche"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [
+      "lactosa_fina"
+    ],
+    "isVegetarian": true,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 125
+  },
+  {
+    "id": "zamburina",
+    "name": "Carne de zamburiña",
+    "aliases": [],
+    "aisle": "Pescado",
+    "category": "Carnes y pescados",
+    "allergens": [
+      "moluscos"
+    ],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": false,
+    "isVegan": false,
+    "defaultUnit": "g",
+    "medianAmount": 240
+  },
+  {
+    "id": "zanahoria",
+    "name": "Zanahoria",
+    "aliases": [],
+    "aisle": "Verduras",
+    "category": "Verduras y frutas",
+    "allergens": [],
+    "cookingAllergens": [],
+    "conflictsWith": [],
+    "isVegetarian": true,
+    "isVegan": true,
+    "defaultUnit": "g",
+    "medianAmount": 80
+  }
+]

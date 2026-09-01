@@ -3,14 +3,23 @@
  *
  * Reads the JSON recipe catalog (src/data/recipes/*.json), the dish image
  * manifest (src/assets/dishes/dishImages.json), and BUNDLED_CATALOG_VERSION
- * (src/data/catalogVersion.js) and generates two files — INSERT ... ON
- * CONFLICT DO UPDATE statements matching the schema in supabase/migrations/,
- * batched so each statement pastes cleanly into the Supabase SQL Editor
- * (which rejects very long single queries):
- *   - supabase/seed_recipes.sql — recipes + catalog_meta version bump
+ * (src/data/catalogVersion.js) and generates INSERT ... ON CONFLICT DO UPDATE
+ * statements matching the schema in supabase/migrations/, batched so each
+ * statement pastes cleanly into the Supabase SQL Editor (which rejects very
+ * long single queries). Ficheros que escribe, EN ESTE ORDEN DE EJECUCIÓN:
+ *   - supabase/seed_0_setup.sql — enums y columnas que falten. VA SOLO Y EL
+ *     PRIMERO: Postgres no deja usar un valor de enum recién añadido dentro de
+ *     la misma transacción que lo crea, y el editor SQL trata cada pegada como
+ *     una transacción.
+ *   - supabase/seed_recipes_N_de_M.sql — recipes + bump de catalog_meta
  *   - supabase/seed_dish_images.sql — dish_images
- * Two separate files (not two sections of one file) so they're easy to find
- * and can be run independently.
+ *   - supabase/seed_ingredients.sql — ingredients + ingredient_aliases
+ *     (requiere supabase/migrations/0029_ingredients.sql aplicada)
+ *   - supabase/seed_recipe_ingredients.sql — la unión receta ↔ ingrediente
+ *     (requiere 0030_recipe_ingredients.sql, y va DESPUÉS de seed_ingredients
+ *     y de las recetas: tiene FK a las dos)
+ * Ficheros separados, no secciones de uno solo, para poder ejecutarlos por
+ * partes y encontrarlos fácil.
  *
  * This script does NOT connect to Supabase. It only writes .sql files for a
  * human to paste into the Supabase SQL Editor, so no DB credentials are ever
@@ -29,6 +38,10 @@ const RECIPES_DIR = join(ROOT, "src", "data", "recipes");
 const IMAGES_PATH = join(ROOT, "src", "assets", "dishes", "dishImages.json");
 const CATALOG_VERSION_PATH = join(ROOT, "src", "data", "catalogVersion.js");
 const OUT_SETUP_PATH = join(ROOT, "supabase", "seed_0_setup.sql");
+// Nombre BASE, nunca se escribe tal cual: de él se derivan los
+// seed_recipes_N_de_M.sql (ver más abajo). Hubo un seed_recipes.sql real de
+// cuando el catálogo cabía en un fichero; se quedó en el repo con datos viejos
+// hasta que se borró, porque pegarlo revertía correcciones de alérgenos.
 const OUT_RECIPES_PATH = join(ROOT, "supabase", "seed_recipes.sql");
 const OUT_IMAGES_PATH = join(ROOT, "supabase", "seed_dish_images.sql");
 
@@ -345,5 +358,194 @@ if (existsSync(IMAGES_PATH)) {
     writeFileSync(OUT_IMAGES_PATH, imageLines.join("\n"), "utf8");
     console.log(`✅ Generado ${OUT_IMAGES_PATH}`);
     console.log(`   ${imageCount} imágenes, ${Math.ceil(imageCount / BATCH_SIZE)} sentencias`);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Catálogo de ingredientes (Fase 1) → supabase/seed_ingredients.sql
+//
+// Espejo de src/data/ingredients.json en las tablas de
+// supabase/migrations/0029_ingredients.sql. La fuente de verdad sigue siendo el
+// JSON bundleado; esto solo lo replica para poder consultarlo por SQL.
+//
+// Los alias se reemplazan enteros en cada seed (delete + insert) en vez de
+// hacer upsert: un alias que desaparece del catálogo tiene que desaparecer
+// también de la tabla, y un upsert lo dejaría ahí para siempre apuntando a un
+// ingrediente que ya no lo reclama.
+// ─────────────────────────────────────────────────────────────────────────
+{
+  const INGREDIENTS_PATH = join(ROOT, "src", "data", "ingredients.json");
+  const OUT_INGREDIENTS_PATH = join(ROOT, "supabase", "seed_ingredients.sql");
+
+  if (existsSync(INGREDIENTS_PATH)) {
+    const { normalizeName } = await import("../src/lib/ingredientCategories.js");
+    const ingredients = JSON.parse(readFileSync(INGREDIENTS_PATH, "utf8"));
+
+    const lines = [
+      "-- Generado por scripts/generate-supabase-seed.mjs — no editar a mano.",
+      "-- Requiere supabase/migrations/0029_ingredients.sql aplicada.",
+      "begin;",
+      "",
+    ];
+
+    lines.push(
+      ...batchedUpsert({
+        rows: ingredients.map(
+          (i) =>
+            `  (${sqlString(i.id)}, ${sqlString(i.name)}, ${sqlString(i.aisle)}, ` +
+            `${sqlString(i.category)}, ${sqlTextArray(i.allergens)}, ` +
+            `${sqlTextArray(i.cookingAllergens)}, ${sqlTextArray(i.conflictsWith)}, ` +
+            `${i.isVegetarian}, ${i.isVegan}, ` +
+            `${sqlString(i.defaultUnit)}, ${i.medianAmount ?? "null"})`,
+        ),
+        table: "ingredients",
+        columns: [
+          "id", "name", "aisle", "category", "allergens", "cooking_allergens",
+          "restriction_conflicts", "is_vegetarian", "is_vegan", "default_unit", "median_amount",
+        ],
+        pk: "id",
+        updateCols: [
+          "name", "aisle", "category", "allergens", "cooking_allergens",
+          "restriction_conflicts", "is_vegetarian", "is_vegan", "default_unit", "median_amount",
+        ],
+      }),
+    );
+
+    // Un ingrediente que ya no está en el JSON se queda en la tabla: borrarlo
+    // rompería cualquier fila que lo referencie. Se avisa en vez de borrar.
+    lines.push("-- Ingredientes en la BD que ya no están en el bundle (revisar a mano):");
+    lines.push("--   select id, name from ingredients where id <> all (array[...]);");
+    lines.push("");
+
+    const aliasRows = [];
+    for (const ing of ingredients) {
+      for (const alias of ing.aliases) {
+        aliasRows.push(
+          `  (${sqlString(normalizeName(alias))}, ${sqlString(alias)}, ${sqlString(ing.id)})`,
+        );
+      }
+    }
+    lines.push("delete from ingredient_aliases;");
+    lines.push("");
+    lines.push(
+      ...batchedUpsert({
+        rows: aliasRows,
+        table: "ingredient_aliases",
+        columns: ["alias_normalized", "alias", "ingredient_id"],
+        pk: "alias_normalized",
+        updateCols: ["alias", "ingredient_id"],
+      }),
+    );
+
+    lines.push("commit;");
+    lines.push("");
+
+    writeFileSync(OUT_INGREDIENTS_PATH, lines.join("\n"), "utf8");
+    console.log(`✅ Generado ${OUT_INGREDIENTS_PATH}`);
+    console.log(`   ${ingredients.length} ingredientes, ${aliasRows.length} alias`);
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Unión receta ↔ ingrediente (Fase 2) → supabase/seed_recipe_ingredients.sql
+//
+// Proyección de recipes.ingredients (jsonb), que sigue siendo la fuente de
+// verdad. Usa createIngredientResolver — el MISMO resolutor que la app — para
+// que un ingrediente no resuelva distinto en la BD que en el cliente.
+//
+// Se reemplaza entero (delete + insert) en vez de upsert: si una receta pierde
+// un ingrediente, su fila tiene que desaparecer, y un upsert por
+// (recipe_id, position) la dejaría ahí colgada al final de la lista.
+// ─────────────────────────────────────────────────────────────────────────
+{
+  const INGREDIENTS_PATH = join(ROOT, "src", "data", "ingredients.json");
+  const OUT_RI_PATH = join(ROOT, "supabase", "seed_recipe_ingredients.sql");
+
+  if (existsSync(INGREDIENTS_PATH)) {
+    const { createIngredientResolver } = await import("../src/lib/ingredientResolver.js");
+    const catalog = JSON.parse(readFileSync(INGREDIENTS_PATH, "utf8"));
+    const { resolveIngredientId } = createIngredientResolver(catalog);
+
+    const rows = [];
+    let unresolved = 0;
+    for (const r of recipes) {
+      (r.ingredients ?? []).forEach((line, position) => {
+        const id = resolveIngredientId(line.name);
+        if (!id) unresolved += 1;
+        rows.push(
+          `  (${sqlString(r.id)}, ${position}, ${id ? sqlString(id) : "NULL"}, ` +
+            `${sqlString(line.name)}, ${sqlNumber(line.amount)}, ${sqlString(line.unit)})`,
+        );
+      });
+    }
+
+    const lines = [
+      "-- Generado por scripts/generate-supabase-seed.mjs — no editar a mano.",
+      "-- Requiere supabase/migrations/0030_recipe_ingredients.sql aplicada,",
+      "-- y seed_ingredients.sql ejecutada ANTES (hay FK a ingredients.id).",
+      "begin;",
+      "",
+      "delete from recipe_ingredients;",
+      "",
+      ...batchedUpsert({
+        rows,
+        table: "recipe_ingredients",
+        columns: ["recipe_id", "position", "ingredient_id", "raw_name", "amount", "unit"],
+        pk: "recipe_id, position",
+        updateCols: ["ingredient_id", "raw_name", "amount", "unit"],
+      }),
+      "commit;",
+      "",
+    ];
+
+    writeFileSync(OUT_RI_PATH, lines.join("\n"), "utf8");
+    console.log(`✅ Generado ${OUT_RI_PATH}`);
+    console.log(
+      `   ${rows.length} líneas de ${recipes.length} recetas, ${unresolved} sin resolver`,
+    );
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────
+// Sustituciones (Fase 3) → supabase/seed_ingredient_substitutions.sql
+//
+// Se reemplaza entera: una sustitución que se retira de la curación tiene que
+// desaparecer de la tabla, no quedarse ofreciendo un cambio que ya no avalamos.
+// ─────────────────────────────────────────────────────────────────────────
+{
+  const SUBS_PATH = join(ROOT, "src", "data", "ingredientSubstitutions.json");
+  const OUT_SUBS_PATH = join(ROOT, "supabase", "seed_ingredient_substitutions.sql");
+
+  if (existsSync(SUBS_PATH)) {
+    const subs = JSON.parse(readFileSync(SUBS_PATH, "utf8"));
+    const lines = [
+      "-- Generado por scripts/generate-supabase-seed.mjs — no editar a mano.",
+      "-- Requiere supabase/migrations/0031_ingredient_substitutions.sql,",
+      "-- y seed_ingredients.sql ejecutada ANTES (FK a ingredients.id).",
+      "begin;",
+      "",
+      "delete from ingredient_substitutions;",
+      "",
+      ...batchedUpsert({
+        rows: subs.map(
+          (s) =>
+            `  (${sqlString(s.ingredientId)}, ${sqlString(s.restriction)}, ` +
+            `${sqlString(s.replacementLabel)}, ${sqlString(s.replacementId ?? null)}, ` +
+            `${sqlBool(s.invisible !== false)}, ${sqlString(s.note ?? null)})`,
+        ),
+        table: "ingredient_substitutions",
+        columns: [
+          "ingredient_id", "restriction", "replacement_label",
+          "replacement_id", "invisible", "note",
+        ],
+        pk: "ingredient_id, restriction",
+        updateCols: ["replacement_label", "replacement_id", "invisible", "note"],
+      }),
+      "commit;",
+      "",
+    ];
+    writeFileSync(OUT_SUBS_PATH, lines.join("\n"), "utf8");
+    console.log(`✅ Generado ${OUT_SUBS_PATH}`);
+    console.log(`   ${subs.length} sustituciones`);
   }
 }

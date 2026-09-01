@@ -4262,7 +4262,8 @@
     "tupperFriendly": false,
     "allergens": [
       "huevo",
-      "sulfitos"
+      "sulfitos",
+      "lactosa"
     ],
     "ingredients": [
       {
@@ -9805,7 +9806,8 @@
     "tupperFriendly": false,
     "allergens": [
       "huevo",
-      "marisco"
+      "marisco",
+      "sulfitos"
     ],
     "ingredients": [
       {

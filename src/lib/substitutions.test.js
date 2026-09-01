@@ -139,6 +139,59 @@ describe("planAdaptations (lactosa_fina)", () => {
   });
 });
 
+// El choque dejó de decidirse por palabras clave y lo dice el catálogo de
+// ingredientes (conflictsWith). Estos casos son adaptaciones que la versión por
+// keywords SÍ producía y que llegaban al usuario como una promesa falsa.
+describe("adaptaciones que ya no se inventan", () => {
+  it("no adapta la leche de coco: no lleva lactosa", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Curry", ["Leche de coco", "Pollo"]),
+      ["lactosa_fina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(false);
+  });
+
+  it("no adapta el vinagre: su alcohol ya fermentó en ácido acético", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Escabeche", ["Vinagre", "Pollo"]),
+      ["alcohol_cocina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(false);
+  });
+
+  // Un destilado no tiene versión sin alcohol de súper, así que la receta NO se
+  // puede adaptar. Bloquearla es la respuesta honesta; renombrarla "Ron sin
+  // alcohol" era prometer un producto inexistente a una embarazada.
+  it("bloquea en vez de fingir que adapta un destilado", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Solomillo al whisky", ["Whisky", "Solomillo"]),
+      ["alcohol_cocina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(true);
+  });
+
+  it("bloquea con un lácteo sin versión sin lactosa (mozzarella)", () => {
+    const { swaps, blocked } = planAdaptations(
+      recipe("Ensalada caprese", ["Mozzarella fresca", "Tomate"]),
+      ["lactosa_fina"],
+    );
+    expect(swaps).toEqual([]);
+    expect(blocked).toBe(true);
+  });
+
+  // Un ingrediente sustituible no rescata a la receta si otro no lo es.
+  it("bloquea aunque parte de los ingredientes sí se puedan cambiar", () => {
+    const { blocked } = planAdaptations(
+      recipe("Lasaña de setas", ["Leche", "Mozzarella fresca"]),
+      ["lactosa_fina"],
+    );
+    expect(blocked).toBe(true);
+  });
+});
+
 describe("buildAdaptationMap", () => {
   it("returns a rename map and a compact adaptations list", () => {
     const { renameByName, adaptations } = buildAdaptationMap(
