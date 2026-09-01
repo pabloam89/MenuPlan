@@ -36,7 +36,6 @@ const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => (
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const InspiranosScreen = lazy(() => import("./screens/InspiranosScreen.jsx").then(m => ({ default: m.InspiranosScreen })));
-const FeedScreen = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.FeedScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
@@ -141,7 +140,6 @@ import {
   loadUserRecipes,
   upsertUserRecipe,
   upsertUserRecipes,
-  loadPublicRecipe,
   updateRecipeVisibility,
   deleteUserRecipe,
 } from "./lib/userRecipesSync.js";
