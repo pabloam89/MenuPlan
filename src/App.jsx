@@ -36,6 +36,7 @@ const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => (
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
 const InspiranosScreen = lazy(() => import("./screens/InspiranosScreen.jsx").then(m => ({ default: m.InspiranosScreen })));
+const FeedScreen = lazy(() => import("./screens/FeedScreen.jsx").then(m => ({ default: m.FeedScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
@@ -140,6 +141,7 @@ import {
   loadUserRecipes,
   upsertUserRecipe,
   upsertUserRecipes,
+  loadPublicRecipe,
   updateRecipeVisibility,
   deleteUserRecipe,
 } from "./lib/userRecipesSync.js";
@@ -284,6 +286,10 @@ const INITIAL_DATA = {
   // sesgado por un inventario que nadie ha rellenado. Mismo criterio que
   // hasBudget: false — lo que no se ha preguntado, no se aplica.
   pantryMode: "off",
+  // ¿Se ha elegido el modo de despensa a propósito? Sirve para distinguir un
+  // "prefer" que puso el usuario de uno que puso un default antiguo: sin este
+  // flag no se pueden separar, y los saves de entonces llevan "prefer" escrito.
+  pantryModeSet: false,
   // ── Modo básico vs avanzado (progressive disclosure) ──
   // false = modo básico (por defecto): asumimos los ajustes más sencillos y
   // ocultamos los controles avanzados. true = modo avanzado: el usuario ve y
@@ -670,6 +676,16 @@ function migrate(state) {
   }
   delete d.allergies;
   d.fixedDishes = migrateFixedDishes(d.fixedDishes);
+  // Los saves anteriores a `pantryModeSet` llevan el pantryMode que les escribió
+  // el normalizador viejo (useHomeStock:true → "prefer"), no una elección de
+  // nadie — así que la tarjeta del asistente decía "Aprovechamos lo que hay" en
+  // cuentas que nunca lo habían pedido. Se apaga una vez; el flag queda
+  // guardado (en false: sigue sin elegirse) y la migración no se repite.
+  if (typeof d.pantryModeSet !== "boolean") {
+    d.pantryModeSet = false;
+    d.pantryMode = "off";
+    d.useHomeStock = false;
+  }
   if (typeof d.useHomeStock !== "boolean") d.useHomeStock = false;
   // pantryMode is the richer 4-way successor to the useHomeStock boolean.
   // "strict" (solo con lo de casa, sin comprar) is the newest, strongest tier.
