@@ -1569,7 +1569,7 @@ const VISIBILITY_OPTIONS = [
     id: "public",
     icon: Globe,
     label: "Pública",
-    sub: "Cualquier usuario de MenuPlan puede verla y valorarla.",
+    sub: "Cualquier usuario de HoMenu puede verla y valorarla.",
     color: "#2d5a3d",
     bg: "#e6f3ea",
     border: "#a8d5b5",

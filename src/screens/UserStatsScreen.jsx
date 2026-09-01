@@ -634,7 +634,7 @@ export function UserStatsScreen({
                     borderRadius: 999,
                   }}
                 >
-                  En MenuPlan desde {stats.memberSince}
+                  En HoMenu desde {stats.memberSince}
                 </p>
               )}
             </div>

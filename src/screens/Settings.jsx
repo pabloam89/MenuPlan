@@ -322,7 +322,7 @@ export function SettingsScreen({
           <div style={{ ...rowStyle, borderBottom: "none", cursor: "default" }}>
             <Info size={19} color={GREEN} />
             <span style={{ flex: 1, fontSize: 15, fontWeight: 600, color: INK }}>
-              MenúPlan
+              HoMenu
             </span>
             <span style={{ fontSize: 13, color: "#9ab0a1", fontWeight: 600 }}>v1.0</span>
           </div>

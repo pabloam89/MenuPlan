@@ -141,8 +141,8 @@ export default defineConfig(({ mode }) => {
         includeAssets: ['favicon.svg', 'pwa-icons/apple-touch-icon.png'],
         manifest: {
           id: '/',
-          name: 'MenúPlan',
-          short_name: 'MenúPlan',
+          name: 'HoMenu',
+          short_name: 'HoMenu',
           description: 'El menú familiar de la semana, resuelto con IA.',
           theme_color: '#7e14ff',
           background_color: '#ffffff',

@@ -108,7 +108,7 @@ export function RecipeProvenance({ recipe }) {
   const owner = recipe.owner;
   const up = recipe.rating?.up ?? 0;
   const down = recipe.rating?.down ?? 0;
-  const name = isUserRecipe ? (owner?.name?.split(" ")[0] ?? "Tú") : "MenuPlan";
+  const name = isUserRecipe ? (owner?.name?.split(" ")[0] ?? "Tú") : "HoMenu";
 
   return (
     <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 5, minWidth: 44 }}>

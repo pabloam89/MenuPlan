@@ -82,7 +82,7 @@ export function InstallPwaBanner() {
     >
       {showIos ? (
         <div style={{ flex: 1, fontSize: 14, lineHeight: 1.4 }}>
-          <strong>Instala MenúPlan</strong>
+          <strong>Instala HoMenu</strong>
           <div style={{ opacity: 0.9, marginTop: 4, display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px 6px' }}>
             <span>Toca</span>
             <Share size={16} style={{ flexShrink: 0 }} />
@@ -91,7 +91,7 @@ export function InstallPwaBanner() {
         </div>
       ) : (
         <div style={{ flex: 1, fontSize: 14, lineHeight: 1.35 }}>
-          <strong>Instala MenúPlan</strong>
+          <strong>Instala HoMenu</strong>
           <div style={{ opacity: 0.8, marginTop: 2 }}>Acceso directo desde tu pantalla de inicio, sin buscarlo en el navegador.</div>
         </div>
       )}

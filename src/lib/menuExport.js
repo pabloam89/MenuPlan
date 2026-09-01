@@ -768,7 +768,7 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
 
   const qrBlock = qrDataUrl
     ? `<div class="qr-wrap">
-        <img class="qr" src="${escapeHtml(qrDataUrl)}" alt="QR MenuPlan" width="${compact ? 46 : 60}" height="${compact ? 46 : 60}" />
+        <img class="qr" src="${escapeHtml(qrDataUrl)}" alt="QR HoMenu" width="${compact ? 46 : 60}" height="${compact ? 46 : 60}" />
         <span class="qr-cap">Escanéame</span>
       </div>`
     : "";
@@ -814,7 +814,7 @@ export function buildMenuPrintHtml(data, menuPlan, groups, opts = {}) {
 
     <header class="header">
       <div class="header-left">
-        <span class="brand">MenuPlan</span>
+        <span class="brand">HoMenu</span>
         <h1>${escapeHtml(title)}</h1>
       </div>
       <div class="header-mid">

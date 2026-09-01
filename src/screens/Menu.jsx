@@ -5737,7 +5737,7 @@ export function DishDetail({
                   )}
                   <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
                     <span style={{ fontSize: 13.5, fontWeight: 800, color: recipe.owner ? "#2f6fb8" : "#2d5a3d" }}>
-                      {recipe.owner ? (recipe.owner.name ?? "Tú") : "MenuPlan"}
+                      {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
                     </span>
                     {recipe.createdAt && (
                       <span style={{ fontSize: 12.5, fontWeight: 700, color: "#9ab0a1" }}>
