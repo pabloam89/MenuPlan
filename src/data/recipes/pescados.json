@@ -21422,5 +21422,562 @@
     "sodium_mg": 820,
     "freezable": false,
     "estrella": true
+  },
+  {
+    "id": "pescados_120",
+    "name": "Merluza a la romana con ensalada de naranja, hinojo y aceitunas negras",
+    "category": "pescados",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 32,
+    "carbs_g": 20,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "pescado",
+      "gluten",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Merluza en lomos",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Harina",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Naranja",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Hinojo",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceitunas negras",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Salpimentar los lomos de merluza, pasarlos por harina y después por huevo batido.",
+      "Freír en aceite bien caliente hasta que estén dorados, unos 3-4 min por cada lado.",
+      "Escurrir sobre papel absorbente.",
+      "Laminar el hinojo muy fino y pelar la naranja en gajos.",
+      "Mezclar el hinojo, la naranja y las aceitunas negras, aliñar con un chorrito de aceite.",
+      "Servir la merluza con la ensalada al lado."
+    ],
+    "description": "Merluza rebozada a la romana con una ensalada fresca de naranja, hinojo y aceitunas negras.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_121",
+    "name": "Salmón al horno con limón y eneldo",
+    "category": "pescados",
+    "mainProtein": "pescado_azul",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 360,
+    "protein_g": 30,
+    "carbs_g": 2,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Lomos de salmón",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Eneldo",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Colocar los lomos de salmón en una bandeja de horno, salpimentar.",
+      "Regar con aceite de oliva y zumo de limón, espolvorear con ajo picado y eneldo.",
+      "Hornear 12-15 min hasta que esté hecho por dentro."
+    ],
+    "description": "Lomos de salmón al horno aromatizados con limón, ajo y eneldo fresco.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_122",
+    "name": "Atún encebollado con tomate",
+    "category": "pescados",
+    "mainProtein": "pescado_azul",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 340,
+    "protein_g": 34,
+    "carbs_g": 12,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Atún fresco",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar la cebolla en juliana y pocharla en una sartén con aceite a fuego lento hasta que esté tierna, unos 15 min.",
+      "Añadir el tomate triturado y el vino blanco, cocinar 10 min.",
+      "Salpimentar el atún, incorporarlo a la salsa y cocinar 3-4 min por cada lado.",
+      "Servir caliente con la salsa por encima."
+    ],
+    "description": "Atún fresco cocinado con una salsa de cebolla pochada y tomate.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_123",
+    "name": "Boquerones fritos con ensalada de pepino, yogur y menta",
+    "category": "pescados",
+    "mainProtein": "pescado_azul",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 380,
+    "protein_g": 26,
+    "carbs_g": 22,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "pescado",
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Boquerones limpios",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Harina",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Pepino",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Yogur natural",
+        "amount": 125,
+        "unit": "g"
+      },
+      {
+        "name": "Menta fresca",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Enharinar los boquerones.",
+      "Freír en aceite bien caliente hasta que estén dorados y crujientes, 2-3 min.",
+      "Escurrir en papel absorbente.",
+      "Pelar y cortar el pepino en dados pequeños, mezclar con el yogur y la menta picada.",
+      "Servir los boquerones con la ensalada de pepino al lado."
+    ],
+    "description": "Boquerones fritos crujientes con una ensalada refrescante de pepino, yogur y menta.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_124",
+    "name": "Filetes de merluza a la plancha con ajada",
+    "category": "pescados",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 290,
+    "protein_g": 32,
+    "carbs_g": 4,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Filetes de merluza",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Salpimentar los filetes de merluza y marcarlos a la plancha 3-4 min por cada lado.",
+      "Laminar el ajo y dorarlo en aceite caliente en una sartén aparte.",
+      "Retirar del fuego y añadir el pimentón y el vinagre, remover rápido.",
+      "Verter la ajada caliente por encima del pescado y servir."
+    ],
+    "description": "Filetes de merluza a la plancha con una ajada de ajo, pimentón y vinagre.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_125",
+    "name": "Salmón con parrillada de verduras al horno",
+    "category": "pescados",
+    "mainProtein": "pescado_azul",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 400,
+    "protein_g": 32,
+    "carbs_g": 18,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Lomos de salmón",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Berenjena",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Cortar las verduras en tiras y colocarlas en una bandeja con aceite y sal.",
+      "Hornear 15 min.",
+      "Añadir los lomos de salmón salpimentados encima, regar con un poco de aceite.",
+      "Hornear 12-15 min más hasta que el salmón esté hecho."
+    ],
+    "description": "Salmón al horno servido sobre una parrillada de verduras asadas.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_126",
+    "name": "Bacalao al pil pil sencillo",
+    "category": "pescados",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 340,
+    "protein_g": 30,
+    "carbs_g": 4,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": false,
+    "tupperFriendly": false,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Lomos de bacalao desalado",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 6,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Guindilla",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Laminar el ajo y confitarlo en el aceite a fuego muy suave hasta que esté dorado. Retirar y reservar.",
+      "En el mismo aceite, confitar los lomos de bacalao con la piel hacia arriba a fuego muy bajo, 8-10 min.",
+      "Retirar el pescado con cuidado y reservar el aceite.",
+      "Ligar el aceite con movimientos circulares (con ayuda de una cazuela o batidora de mano) hasta que emulsione y espese.",
+      "Napar el bacalao con la salsa y servir con el ajo dorado y la guindilla."
+    ],
+    "description": "Bacalao confitado a fuego suave con una salsa emulsionada de su propio aceite y ajo.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_127",
+    "name": "Lubina al horno con patatas panadera",
+    "category": "pescados",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 45,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 34,
+    "carbs_g": 30,
+    "fat_g": 18,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Lubina entera limpia",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Patatas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Cortar las patatas y la cebolla en rodajas finas, colocar en la base de una bandeja con aceite y sal.",
+      "Hornear 20 min.",
+      "Colocar la lubina limpia encima con rodajas de limón dentro, salpimentar y regar con aceite.",
+      "Hornear 20-25 min más hasta que esté hecha."
+    ],
+    "description": "Lubina entera al horno sobre una cama de patatas panadera con limón.",
+    "estrella": true
+  },
+  {
+    "id": "pescados_128",
+    "name": "Trucha a la plancha con almendras tostadas",
+    "category": "pescados",
+    "mainProtein": "pescado_blanco",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 360,
+    "protein_g": 32,
+    "carbs_g": 6,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "pescado",
+      "frutos_secos"
+    ],
+    "ingredients": [
+      {
+        "name": "Truchas limpias",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Almendras laminadas",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      }
+    ],
+    "steps": [
+      "Salpimentar las truchas y marcarlas a la plancha 3-4 min por cada lado hasta que estén hechas.",
+      "Tostar las almendras laminadas con el ajo picado en un poco de aceite hasta dorar.",
+      "Espolvorear las almendras y el perejil picado sobre las truchas.",
+      "Servir caliente."
+    ],
+    "description": "Truchas a la plancha con una guarnición crujiente de almendras tostadas al ajo.",
+    "estrella": true
   }
 ]

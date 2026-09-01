@@ -16944,5 +16944,332 @@
       }
     ],
     "estrella": true
+  },
+  {
+    "id": "pasta_arroces_095",
+    "name": "Pasta con champiñones salteados y bacon",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 20,
+    "carbs_g": 60,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Pasta corta",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Bacon en tiras",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Nata para cocinar",
+        "amount": 100,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer la pasta en agua con sal según el envase, escurrir.",
+      "Saltear el bacon en tiras hasta que esté crujiente, retirar.",
+      "En la misma sartén, saltear los champiñones laminados con el ajo picado.",
+      "Añadir la nata y el bacon, cocinar 2 min.",
+      "Mezclar con la pasta y servir."
+    ],
+    "description": "Pasta cremosa con champiñones salteados y bacon crujiente.",
+    "estrella": true
+  },
+  {
+    "id": "pasta_arroces_096",
+    "name": "Arroz blanco con tomate frito, huevo frito y plátano",
+    "category": "pasta_arroces",
+    "mainProtein": "huevo",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "cena"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 14,
+    "carbs_g": 78,
+    "fat_g": 14,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate frito",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Plátano",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer el arroz en agua con sal 15-18 min, escurrir.",
+      "Freír los huevos hasta que la clara esté cuajada.",
+      "Freír el plátano cortado en rodajas hasta que dore.",
+      "Servir el arroz con el tomate frito por encima, el huevo y el plátano al lado."
+    ],
+    "description": "El clásico arroz blanco a la cubana, con tomate frito, huevo y plátano.",
+    "estrella": true
+  },
+  {
+    "id": "pasta_arroces_097",
+    "name": "Macarrones con chorizo y queso gratinado",
+    "category": "pasta_arroces",
+    "mainProtein": "cerdo",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 22,
+    "carbs_g": 62,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Macarrones",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 150,
+        "unit": "ml"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso rallado",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer los macarrones según el envase, escurrir.",
+      "Sofreír la cebolla picada, añadir el chorizo en rodajas y el tomate triturado, cocinar 10 min.",
+      "Mezclar la salsa con la pasta cocida y colocar en una fuente apta para horno.",
+      "Cubrir con queso rallado y gratinar en el horno 5 min hasta dorar."
+    ],
+    "description": "Macarrones con chorizo y tomate, gratinados con queso al horno.",
+    "estrella": true
+  },
+  {
+    "id": "pasta_arroces_098",
+    "name": "Espaguetis con tomate, albahaca fresca y parmesano",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "pasta",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 440,
+    "protein_g": 14,
+    "carbs_g": 68,
+    "fat_g": 12,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "gluten",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Espaguetis",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate triturado",
+        "amount": 250,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Albahaca fresca",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Queso parmesano",
+        "amount": 40,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cocer los espaguetis según el envase, escurrir.",
+      "Sofreír el ajo picado en aceite, añadir el tomate triturado y cocinar 12-15 min hasta espesar.",
+      "Mezclar la salsa con la pasta.",
+      "Añadir albahaca fresca picada y parmesano rallado al servir."
+    ],
+    "description": "Espaguetis con una salsa de tomate casera, albahaca fresca y parmesano.",
+    "estrella": true
+  },
+  {
+    "id": "pasta_arroces_099",
+    "name": "Arroz meloso con verduras",
+    "category": "pasta_arroces",
+    "mainProtein": "none",
+    "mainBase": "arroz",
+    "mealRole": [
+      "plato_unico",
+      "primero"
+    ],
+    "type": "completo",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 400,
+    "protein_g": 10,
+    "carbs_g": 72,
+    "fat_g": 8,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Arroz",
+        "amount": 180,
+        "unit": "g"
+      },
+      {
+        "name": "Calabacín",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Caldo de verduras",
+        "amount": 550,
+        "unit": "ml"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Picar todas las verduras en dados pequeños y sofreír en una cazuela con aceite hasta que estén tiernas.",
+      "Añadir el arroz y sofreír 1 min.",
+      "Incorporar el caldo caliente poco a poco, removiendo, y cocinar 16-18 min a fuego medio hasta que quede meloso.",
+      "Rectificar de sal y servir."
+    ],
+    "description": "Arroz meloso con verduras de temporada, cocinado con caldo.",
+    "estrella": true
   }
 ]

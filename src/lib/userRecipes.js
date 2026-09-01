@@ -6,6 +6,7 @@ import { EU_ALLERGENS } from "./allergens.js";
 import { normalizeRichSteps, richToPlainSteps } from "./recipeSteps.js";
 import { StepRichSchema, isMontaje } from "../data/recipeSchema.js";
 import { recipeCatalog } from "../data/recipeCatalog.js";
+import { lowerFirst } from "./dishNaming.js";
 import guarnicionesData from "../data/recipes/guarniciones.json";
 import {
   SHOPPING_AISLES,
@@ -365,7 +366,7 @@ export function buildGarnishComboRecipe(recipe, garnish) {
     return { name: ing.name, amount, unit: ing.unit };
   });
 
-  const shortGarnish = garnish.shortName ?? garnish.name;
+  const shortGarnish = lowerFirst(garnish.shortName ?? garnish.name);
 
   return {
     id: buildUserRecipeId(),

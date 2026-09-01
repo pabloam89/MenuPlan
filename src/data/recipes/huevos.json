@@ -12469,5 +12469,408 @@
       }
     ],
     "estrella": true
+  },
+  {
+    "id": "huevos_083",
+    "name": "Revuelto de bacon y champiñones",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 360,
+    "protein_g": 22,
+    "carbs_g": 4,
+    "fat_g": 28,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 6,
+        "unit": "ud"
+      },
+      {
+        "name": "Bacon en tiras",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Saltear el bacon en tiras en una sartén hasta que esté dorado y suelte su grasa.",
+      "Limpiar y laminar los champiñones, añadirlos a la sartén y saltear hasta que se doren.",
+      "Batir los huevos con una pizca de sal.",
+      "Verter el huevo batido sobre el bacon y los champiñones, remover a fuego medio hasta que cuaje al gusto.",
+      "Servir caliente."
+    ],
+    "description": "Revuelto de huevo con bacon crujiente y champiñones salteados.",
+    "estrella": true
+  },
+  {
+    "id": "huevos_084",
+    "name": "Tortilla de espárragos trigueros",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 280,
+    "protein_g": 18,
+    "carbs_g": 6,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 6,
+        "unit": "ud"
+      },
+      {
+        "name": "Espárragos trigueros",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar los espárragos en trozos, quitando la parte más dura del tallo.",
+      "Saltear los espárragos con la cebolla picada en una sartén con aceite hasta que estén tiernos.",
+      "Batir los huevos, mezclar con los espárragos salteados y salpimentar.",
+      "Cuajar la mezcla en la sartén a fuego medio, dando la vuelta con ayuda de un plato.",
+      "Servir en porciones."
+    ],
+    "description": "Tortilla cuajada de espárragos trigueros y cebolla.",
+    "estrella": true
+  },
+  {
+    "id": "huevos_085",
+    "name": "Huevos con patatas y chorizo crujiente",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 22,
+    "carbs_g": 24,
+    "fat_g": 30,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Patatas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar las patatas en rodajas finas.",
+      "Freír las patatas a fuego medio en abundante aceite hasta que estén tiernas y doradas.",
+      "Freír el chorizo en rodajas en la misma sartén hasta que esté crujiente.",
+      "Freír los huevos hasta que la clara esté cuajada y la yema líquida.",
+      "Servir todo junto."
+    ],
+    "description": "Huevos fritos con patatas y chorizo crujiente, plato de siempre.",
+    "estrella": true
+  },
+  {
+    "id": "huevos_086",
+    "name": "Tortilla de jamón y queso",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 320,
+    "protein_g": 22,
+    "carbs_g": 3,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 6,
+        "unit": "ud"
+      },
+      {
+        "name": "Jamón cocido en tacos",
+        "amount": 100,
+        "unit": "g"
+      },
+      {
+        "name": "Queso curado rallado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Batir los huevos con el jamón en tacos y el queso rallado, salpimentar.",
+      "Calentar aceite en una sartén y verter la mezcla.",
+      "Cuajar a fuego medio-bajo, dando la vuelta con ayuda de un plato.",
+      "Cuajar por el otro lado y servir en porciones."
+    ],
+    "description": "Tortilla redonda cuajada con jamón en tacos y queso curado.",
+    "estrella": true
+  },
+  {
+    "id": "huevos_087",
+    "name": "Huevos fritos con chorizo y pimientos",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "completo",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 440,
+    "protein_g": 20,
+    "carbs_g": 10,
+    "fat_g": 34,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Chorizo",
+        "amount": 120,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar los pimientos en tiras y saltear en aceite hasta que estén tiernos.",
+      "Freír el chorizo en rodajas hasta que suelte su grasa y esté dorado.",
+      "Freír los huevos en el mismo aceite hasta que la clara esté cuajada.",
+      "Servir todo junto."
+    ],
+    "description": "Huevos fritos con chorizo y pimiento verde salteado.",
+    "estrella": true
+  },
+  {
+    "id": "huevos_088",
+    "name": "Tortilla de atún y tomate",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "extraProteins": [
+      "pescado_azul"
+    ],
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 15,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 310,
+    "protein_g": 26,
+    "carbs_g": 6,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "huevo",
+      "pescado"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 6,
+        "unit": "ud"
+      },
+      {
+        "name": "Atún en lata",
+        "amount": 160,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Picar la cebolla y el tomate, saltear brevemente en una sartén con aceite.",
+      "Batir los huevos, mezclar con el atún escurrido y el sofrito de tomate.",
+      "Cuajar en la sartén por ambos lados con ayuda de un plato.",
+      "Servir en porciones."
+    ],
+    "description": "Tortilla cuajada con atún y un sofrito ligero de tomate.",
+    "estrella": true
+  },
+  {
+    "id": "huevos_089",
+    "name": "Huevos con salchichas y patatas fritas",
+    "category": "huevos",
+    "mainProtein": "huevo",
+    "extraProteins": [
+      "cerdo"
+    ],
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "completo",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 500,
+    "protein_g": 22,
+    "carbs_g": 30,
+    "fat_g": 32,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Huevo",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Salchichas frescas",
+        "amount": 4,
+        "unit": "ud"
+      },
+      {
+        "name": "Patatas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 80,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y cortar las patatas en bastones, freír en abundante aceite hasta que estén doradas.",
+      "Freír las salchichas hasta que estén doradas por todos los lados.",
+      "Freír los huevos hasta que la clara esté cuajada.",
+      "Servir todo junto."
+    ],
+    "description": "Huevos fritos, salchichas y patatas fritas, plato de siempre para los peques y no tan peques.",
+    "estrella": true
   }
 ]

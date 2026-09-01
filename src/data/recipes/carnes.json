@@ -28937,5 +28937,720 @@
       }
     ],
     "estrella": true
+  },
+  {
+    "id": "carnes_146",
+    "name": "Pollo empanado con ensalada de aguacate, tomate y maíz con lima",
+    "category": "carnes",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 38,
+    "carbs_g": 30,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo"
+    ],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Aguacate",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Maíz cocido",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Lima",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 60,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Aplanar la pechuga de pollo en filetes finos y salpimentar.",
+      "Pasar cada filete por huevo batido y luego por pan rallado, presionando bien.",
+      "Freír en aceite bien caliente hasta que estén dorados por ambos lados, unos 3-4 min por cara.",
+      "Escurrir sobre papel absorbente.",
+      "Cortar el aguacate y el tomate en dados, mezclar con el maíz escurrido.",
+      "Aliñar la ensalada con el zumo de lima y un chorrito de aceite de oliva.",
+      "Servir el pollo empanado con la ensalada al lado."
+    ],
+    "description": "Filetes de pollo empanados y crujientes con una ensalada fresca de aguacate, tomate y maíz.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_147",
+    "name": "Filetes de ternera con pimientos asados y cebolla",
+    "category": "carnes",
+    "mainProtein": "ternera",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 410,
+    "protein_g": 34,
+    "carbs_g": 12,
+    "fat_g": 24,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Filetes de ternera",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Pimiento rojo",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimiento verde",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Cortar los pimientos y la cebolla en tiras finas.",
+      "Sofreír las verduras y el ajo picado en una sartén con aceite a fuego medio hasta que estén tiernas y ligeramente doradas, unos 15 min.",
+      "Salpimentar los filetes de ternera.",
+      "Marcar los filetes en una sartén bien caliente 1-2 min por cada lado, al gusto.",
+      "Servir la ternera con los pimientos y la cebolla asados por encima."
+    ],
+    "description": "Filetes de ternera a la plancha con pimientos y cebolla asados lentamente hasta caramelizar.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_148",
+    "name": "Muslos de pollo al horno con patatas y romero",
+    "category": "carnes",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 55,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 520,
+    "protein_g": 32,
+    "carbs_g": 34,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Muslos de pollo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Patatas",
+        "amount": 350,
+        "unit": "g"
+      },
+      {
+        "name": "Romero",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      },
+      {
+        "name": "Limón",
+        "amount": 1,
+        "unit": "ud"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 200°C.",
+      "Cortar las patatas en rodajas y colocarlas en una bandeja de horno.",
+      "Colocar los muslos de pollo salpimentados encima de las patatas.",
+      "Regar con aceite de oliva, zumo de limón, ajo picado y romero.",
+      "Hornear 45-50 min hasta que el pollo esté dorado y las patatas tiernas."
+    ],
+    "description": "Muslos de pollo al horno sobre una cama de patatas aromatizadas con romero y limón.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_149",
+    "name": "Lomo con cebolla caramelizada",
+    "category": "carnes",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 35,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 430,
+    "protein_g": 30,
+    "carbs_g": 16,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Filetes de lomo de cerdo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Azúcar",
+        "amount": 10,
+        "unit": "g"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Cortar la cebolla en juliana fina.",
+      "Pochar la cebolla en una sartén con aceite a fuego lento hasta que esté tierna, unos 15 min.",
+      "Añadir el azúcar y el vino blanco, y cocinar a fuego suave hasta caramelizar, unos 10 min más.",
+      "Salpimentar los filetes de lomo y marcarlos a la plancha 2-3 min por cada lado.",
+      "Servir el lomo con la cebolla caramelizada por encima."
+    ],
+    "description": "Filetes de lomo de cerdo a la plancha con una generosa cebolla caramelizada al vino blanco.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_150",
+    "name": "Pechuga a la plancha con champiñones salteados al ajillo",
+    "category": "carnes",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 340,
+    "protein_g": 38,
+    "carbs_g": 6,
+    "fat_g": 16,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Ajo",
+        "amount": 3,
+        "unit": "ud"
+      },
+      {
+        "name": "Perejil",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Salpimentar la pechuga de pollo y marcarla a la plancha 4-5 min por cada lado hasta que esté hecha.",
+      "Limpiar y laminar los champiñones.",
+      "Saltear los champiñones con el ajo picado en una sartén con aceite a fuego fuerte hasta que doren.",
+      "Terminar con perejil picado.",
+      "Servir la pechuga con los champiñones al ajillo por encima."
+    ],
+    "description": "Pechuga de pollo a la plancha con champiñones salteados con ajo y perejil.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_151",
+    "name": "Filetes de cerdo con puré de patatas y cebollino",
+    "category": "carnes",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 460,
+    "protein_g": 32,
+    "carbs_g": 30,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Filetes de cerdo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Patatas",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Leche",
+        "amount": 80,
+        "unit": "ml"
+      },
+      {
+        "name": "Mantequilla",
+        "amount": 20,
+        "unit": "g"
+      },
+      {
+        "name": "Cebollino",
+        "amount": 5,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 15,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Pelar y trocear las patatas, cocer en agua con sal hasta que estén tiernas, unos 18-20 min.",
+      "Escurrir y triturar con la leche y la mantequilla hasta obtener un puré cremoso. Salpimentar.",
+      "Salpimentar los filetes de cerdo y marcarlos a la plancha 2-3 min por cada lado.",
+      "Servir el filete sobre el puré con cebollino picado por encima."
+    ],
+    "description": "Filetes de cerdo a la plancha sobre un puré de patatas cremoso con cebollino fresco.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_152",
+    "name": "Costillas al horno con patatas panadera",
+    "category": "carnes",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "segundo",
+      "plato_unico"
+    ],
+    "type": "completo",
+    "time": 70,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 560,
+    "protein_g": 32,
+    "carbs_g": 34,
+    "fat_g": 32,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Costillas de cerdo",
+        "amount": 500,
+        "unit": "g"
+      },
+      {
+        "name": "Patatas",
+        "amount": 300,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 0.5,
+        "unit": "ud"
+      },
+      {
+        "name": "Ajo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Pimentón dulce",
+        "amount": 3,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Precalentar el horno a 190°C.",
+      "Salpimentar las costillas.",
+      "Cortar las patatas y la cebolla en rodajas finas y colocarlas en una bandeja de horno.",
+      "Colocar las costillas encima, aliñar con ajo picado, pimentón y aceite de oliva.",
+      "Hornear 55-60 min hasta que las costillas estén doradas y las patatas tiernas."
+    ],
+    "description": "Costillas de cerdo al horno sobre patatas panadera con ajo y pimentón.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_153",
+    "name": "Chuletas de cerdo a la plancha con ensalada de canónigos, granada y queso de cabra",
+    "category": "carnes",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 20,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 34,
+    "carbs_g": 14,
+    "fat_g": 30,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Chuletas de cerdo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Canónigos",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Granada",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Queso de cabra",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 20,
+        "unit": "ml"
+      },
+      {
+        "name": "Vinagre balsámico",
+        "amount": 10,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Salpimentar las chuletas y marcarlas a la plancha 3-4 min por cada lado.",
+      "Desgranar la granada.",
+      "Mezclar los canónigos con los granos de granada y el queso de cabra desmenuzado.",
+      "Aliñar la ensalada con aceite de oliva y vinagre balsámico.",
+      "Servir las chuletas con la ensalada al lado."
+    ],
+    "description": "Chuletas de cerdo a la plancha acompañadas de una ensalada de canónigos, granada y queso de cabra.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_154",
+    "name": "Solomillo de cerdo con pimientos del piquillo",
+    "category": "carnes",
+    "mainProtein": "cerdo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 30,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 400,
+    "protein_g": 34,
+    "carbs_g": 10,
+    "fat_g": 22,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Solomillo de cerdo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Pimientos del piquillo",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Cebolla",
+        "amount": 1,
+        "unit": "ud"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 40,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Salpimentar el solomillo entero y sellarlo en una sartén con aceite bien caliente por todos los lados. Reservar.",
+      "En la misma sartén, pochar la cebolla picada hasta que esté tierna.",
+      "Añadir los pimientos del piquillo troceados y el vino blanco, cocinar 5 min.",
+      "Incorporar de nuevo el solomillo, tapar y cocinar a fuego medio 10-12 min hasta el punto deseado.",
+      "Cortar en medallones y servir con la salsa de pimientos por encima."
+    ],
+    "description": "Solomillo de cerdo sellado y cocinado con una salsa de pimientos del piquillo y cebolla.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_155",
+    "name": "Pechugas rellenas de jamón y queso con ensalada de judías verdes, tomate y huevo",
+    "category": "carnes",
+    "mainProtein": "pollo",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 35,
+    "difficulty": "normal",
+    "season": "all",
+    "kcal": 480,
+    "protein_g": 42,
+    "carbs_g": 16,
+    "fat_g": 26,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": false,
+    "allergens": [
+      "gluten",
+      "huevo",
+      "lactosa"
+    ],
+    "ingredients": [
+      {
+        "name": "Pechuga de pollo",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Jamón cocido",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Queso en lonchas",
+        "amount": 80,
+        "unit": "g"
+      },
+      {
+        "name": "Huevo",
+        "amount": 2,
+        "unit": "ud"
+      },
+      {
+        "name": "Pan rallado",
+        "amount": 60,
+        "unit": "g"
+      },
+      {
+        "name": "Judías verdes",
+        "amount": 200,
+        "unit": "g"
+      },
+      {
+        "name": "Tomate",
+        "amount": 150,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Abrir las pechugas en libro, salpimentar y rellenar con jamón y queso. Cerrar y sujetar con palillos.",
+      "Pasar por huevo batido y pan rallado.",
+      "Dorar en una sartén con aceite hasta que estén doradas por fuera y el queso haya fundido, unos 6-8 min por cada lado.",
+      "Cocer las judías verdes al vapor 8-10 min. Cocer un huevo 10 min, pelar y picar.",
+      "Mezclar las judías con el tomate en dados y el huevo duro picado, aliñar con aceite.",
+      "Servir la pechuga rellena con la ensalada al lado."
+    ],
+    "description": "Pechugas de pollo rellenas de jamón y queso, empanadas y doradas, con una ensalada templada de judías verdes.",
+    "estrella": true
+  },
+  {
+    "id": "carnes_156",
+    "name": "Ternera con champiñones salteados y ensalada de zanahoria rallada, pasas y comino",
+    "category": "carnes",
+    "mainProtein": "ternera",
+    "mealRole": [
+      "cena",
+      "segundo"
+    ],
+    "type": "principal",
+    "time": 25,
+    "difficulty": "facil",
+    "season": "all",
+    "kcal": 420,
+    "protein_g": 34,
+    "carbs_g": 20,
+    "fat_g": 20,
+    "baseServings": 2,
+    "kidFriendly": true,
+    "tupperFriendly": true,
+    "allergens": [],
+    "ingredients": [
+      {
+        "name": "Filetes de ternera",
+        "amount": 400,
+        "unit": "g"
+      },
+      {
+        "name": "Champiñones",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Zanahoria",
+        "amount": 250,
+        "unit": "g"
+      },
+      {
+        "name": "Pasas",
+        "amount": 30,
+        "unit": "g"
+      },
+      {
+        "name": "Comino",
+        "amount": 2,
+        "unit": "g"
+      },
+      {
+        "name": "Aceite de oliva",
+        "amount": 25,
+        "unit": "ml"
+      },
+      {
+        "name": "Vino blanco",
+        "amount": 30,
+        "unit": "ml"
+      }
+    ],
+    "steps": [
+      "Salpimentar los filetes de ternera y marcarlos a la plancha 1-2 min por cada lado. Reservar.",
+      "En la misma sartén, saltear los champiñones laminados con un chorrito de vino blanco hasta dorar.",
+      "Rallar la zanahoria y mezclarla con las pasas, el comino y un chorrito de aceite de oliva.",
+      "Servir la ternera con los champiñones salteados y la ensalada de zanahoria al lado."
+    ],
+    "description": "Filetes de ternera con champiñones salteados y una ensalada crujiente de zanahoria, pasas y comino.",
+    "estrella": true
   }
 ]
