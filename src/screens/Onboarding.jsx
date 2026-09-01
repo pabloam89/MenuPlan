@@ -84,7 +84,6 @@ import {
   GroupAvatarStack,
   groupAvatarFaces,
   ToggleSwitch,
-  WizardSheet,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
@@ -6161,21 +6160,6 @@ const DEMO_SCHOOL_ENTRIES = {
 // Same card language as "¿Cómo coméis en casa?" — both screens ask the same
 // kind of question (one menú for everyone, or one each), so they shouldn't look
 // like two different controls.
-const SCHOOL_SCOPE_CARDS = [
-  {
-    value: "shared",
-    img: "/avatares/cards/mismo_menu_ninos.png",
-    label: "Mismo menú para todos",
-    desc: "Todos comen lo mismo en el comedor",
-  },
-  {
-    value: "individual",
-    img: "/avatares/cards/distinto_menu_ninos.png",
-    label: "Por niño/a",
-    desc: "Cada uno con el menú de su cole",
-  },
-];
-
 // Turn a parser week label ("Semana 1 (1 Jun)") into a title + a Mon–Fri date
 // range for the multi-select. School weeks run Lun–Vie, so the end date is the
 // start + 4 days. Falls back gracefully when the label has no parseable date.
@@ -6257,7 +6241,6 @@ function schoolToolBtn(danger) {
 export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, onReset, demoScript = false }) {
   const schoolKids = data.members.filter((m) => tierForMember(m) === "child");
   const [scope, setScope] = useState("shared");
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [activeKidId, setActiveKidId] = useState(schoolKids[0]?.id ?? null);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
@@ -6480,19 +6463,55 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     });
   };
 
-  // A row of one child leaves the upload button stranded next to a big gap, so
-  // it carries the formats as a label. Past three children the circles need
-  // that width more than the label does — the icon and the sheet's own
-  // subtitle still say what it takes. The shared menú is a single stack, capped
-  // at three faces plus a counter, so it never crowds the label out.
-  const uploadCompact = scope === "individual" && schoolKids.length > 3;
+  // La fila de avatares es a la vez "para quién subo esto" y "qué menú reviso
+  // abajo": "Todos" es el menú compartido, cada cara el suyo propio.
+  const scopeValue = scope === "shared" ? "shared" : activeKidId;
+  const firstName = (m) => (m?.name ?? "").trim().split(/\s+/)[0] || m?.name || "";
+  const soleKid = schoolKids.length === 1 ? schoolKids[0] : null;
 
-  // Picking a card is also the way in to uploading: the choice only matters
-  // because of the file that follows it, so the two happen in one gesture.
-  const openUpload = (value) => {
-    setScope(value);
+  const kidOption = (m) => ({
+    id: m.id,
+    label: firstName(m),
+    abbrev: (m.name ?? "?").trim().charAt(0).toUpperCase() || "?",
+    color: memberAvatarColor(m.id, data.members),
+    members: [m],
+  });
+
+  // "Todos" es el menú compartido y cada cara el suyo propio. Con un solo niño
+  // las dos cosas son la misma: se pinta su cara sola, sin ancla de grupo ni
+  // divisor, y el menú se guarda igualmente en el scope compartido.
+  const scopeOptions = soleKid
+    ? [{ ...kidOption(soleKid), id: "shared" }]
+    : [
+        { id: "shared", label: "Todos", abbrev: "T", color: "#2d5a3d", members: schoolKids },
+        ...schoolKids.map(kidOption),
+      ];
+
+  // Lo que se ve debajo del selector depende de lo elegido arriba: con "Todos"
+  // una sola subida para el menú compartido; en cuanto tocas a un hijo, la
+  // lista entera de hijos, cada uno con la suya — elegir a uno es elegir
+  // "cada niño por su lado", no "solo este".
+  const uploadRows = scope === "shared" ? [scopeOptions[0]] : schoolKids.map(kidOption);
+
+  // Semanas ya guardadas para una fila — lo que enciende su check.
+  const weeksLoadedFor = (id) =>
+    smNorm.weeks.filter((w) => (id === "shared" ? entryHas(w.shared) : entryHas(w.byMember?.[id]))).length;
+
+  // Subir desde una fila también la selecciona, para que la revisión de abajo
+  // enseñe el menú que acabas de cargar.
+  const uploadFor = (id) => {
+    pickScope(id);
+    fileInputRef.current?.click();
+  };
+
+  const pickScope = (id) => {
     setImportError(null);
-    setUploadOpen(true);
+    if (id === "shared") {
+      setScope("shared");
+    } else {
+      setScope("individual");
+      setActiveKidId(id);
+    }
   };
 
   const handleFile = async (file) => {
@@ -6645,150 +6664,105 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   return (
     <OnboardingShell
       title="¿Cómo organizamos el menú del cole?"
-      subtitle="Sube el menú del comedor: igual para todos o distinto por niño."
+      subtitle={soleKid
+        ? `Sube el menú del comedor de ${firstName(soleKid)} y lo repartimos por días.`
+        : "Sube el menú del comedor: igual para todos o distinto por niño."}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      {/* Before any menú is loaded: the two big choice cards double as the
-          upload entry point. Once a menú exists we drop them entirely (the deck
-          below is the focus); upload/delete live in the review toolbar. */}
-      {!hasAnyDish && (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%", paddingBottom: 4 }}>
-        {SCHOOL_SCOPE_CARDS.map(({ value, img, label, desc }) => {
-          const sel = scope === value;
+      {/* Sin pop-up: para quién es el menú y el archivo, en el mismo sitio.
+          Antes había que elegir entre dos tarjetas grandes («todos» / «por
+          niño») y el upload llegaba después en una hoja aparte — pero esa
+          elección no se entiende hasta que tienes el archivo delante, así que
+          ahora van juntos y la fila de avatares hace de las dos tarjetas.
+          Elegir a un niño aquí también cambia el menú que revisas abajo. */}
+      <div style={{ marginBottom: 14 }}>
+        {/* Arriba, quién: todas las caras juntas como "Todos", y al otro lado
+            del divisor cada hijo por su cuenta. Sin botón de subir — esta fila
+            solo elige el destino; el archivo va debajo, uno para lo que tengas
+            seleccionado. */}
+        <ScopeCirclePicker
+          value={scopeValue}
+          onChange={pickScope}
+          allMembers={data.members}
+          options={scopeOptions}
+          dividerAfterFirst={!soleKid}
+          style={{ marginBottom: 18 }}
+        />
+
+        {/* Debajo, el archivo. Con "Todos" es una sola fila con las caras
+            juntas; por hijo, una fila por cada uno con su propia subida. */}
+        {uploadRows.map((r) => {
+          const on = scopeValue === r.id;
+          const weeks = weeksLoadedFor(r.id);
+          const busy = importing && on;
           return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => openUpload(value)}
-              style={{
-                position: "relative",
-                flex: 1,
-                minHeight: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                width: "100%",
-                textAlign: "center",
-                padding: 0,
-                borderRadius: 18,
-                cursor: "pointer",
-                overflow: "hidden",
-                background: sel ? CARD_ACCENT_TEAL : "#f7f9f8",
-                border: `2.5px solid ${sel ? CARD_ACCENT_TEAL : "#e8ede9"}`,
-                boxShadow: sel ? "0 4px 18px rgba(15,118,110,.3)" : "none",
-                transition: "all .18s ease",
-                fontFamily: "inherit",
-              }}
-            >
-              {sel && (
-                <span
-                  style={{
-                    position: "absolute", top: 8, right: 8, zIndex: 2,
-                    width: 20, height: 20, borderRadius: 999,
-                    background: CARD_ACCENT_TEAL, border: "1.5px solid #fff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <Check size={11} color="#fff" strokeWidth={3} />
-                </span>
-              )}
-              <img
-                src={img}
-                alt=""
-                style={{
-                  width: "100%",
-                  flex: 1,
-                  minHeight: 90,
-                  borderBottom: `1px solid ${sel ? "rgba(255,255,255,.15)" : "#e8ede9"}`,
-                  objectFit: "cover",
-                  objectPosition: "center 20%",
-                  display: "block",
-                }}
-              />
-              <span style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "11px 16px 13px" }}>
-                <span>
-                  <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 15, marginBottom: 3 }}>{label}</div>
-                  <div style={{ fontSize: 12, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.35 }}>{desc}</div>
-                </span>
-              </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {uploadOpen && (
-      <WizardSheet
-        icon={School}
-        title={scope === "individual" ? "Por niño/a" : "Mismo menú para todos"}
-        subtitle="Sube el PDF, la foto o el CSV del comedor"
-        onClose={() => !importing && setUploadOpen(false)}
-      >
-      {/* Who the menú is for, then upload, then done — one row of circles and
-          icons instead of three stacked full-width blocks. */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-        {/* Shrinks (and scrolls) as people are added so the upload button keeps
-            the leftover width instead of stranding it as a gap. */}
-        <div style={{ display: "flex", gap: 10, overflowX: "auto", flex: "0 1 auto", minWidth: 0 }}>
-          {scope === "individual" ? (
-            schoolKids.map((m) => (
+            <div key={r.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 8 }}>
               <ScopeCircle
-                key={m.id}
-                label={(m.name ?? "").trim().split(/\s+/)[0] || m.name}
-                color={memberAvatarColor(m.id, data.members)}
-                members={[m]}
+                label={r.label}
+                abbrev={r.abbrev}
+                color={r.color}
+                members={r.members}
                 allMembers={data.members}
-                active={m.id === activeKidId}
-                onClick={() => setActiveKidId(m.id)}
+                active={on}
+                onClick={() => pickScope(r.id)}
               />
-            ))
-          ) : (
-            <ScopeCircle
-              label="Todos"
-              abbrev="T"
-              color="#2d5a3d"
-              members={schoolKids}
-              allMembers={data.members}
-              active
-            />
-          )}
-        </div>
 
-        <button
-          type="button"
-          onClick={() => !importing && fileInputRef.current?.click()}
-          disabled={importing}
-          aria-label="Subir PDF, foto o CSV"
-          title="Subir PDF, foto o CSV"
-          style={{
-            flex: 1,
-            minWidth: 46,
-            height: 46,
-            borderRadius: 14,
-            border: "1.5px dashed rgba(45,90,61,.45)",
-            background: importing ? "#eef3f0" : "#fff",
-            color: "#2d5a3d",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 7,
-            padding: "0 10px",
-            fontSize: 12,
-            fontWeight: 800,
-            fontFamily: "inherit",
-            cursor: importing ? "default" : "pointer",
-          }}
-        >
-          {importing ? <Loader2 size={17} className="rotating" /> : <Upload size={17} />}
-          {!uploadCompact && (
-            <span style={{ whiteSpace: "nowrap" }}>
-              {importing ? "Procesando…" : "PDF, foto o CSV"}
-            </span>
-          )}
-        </button>
+              <button
+                type="button"
+                onClick={() => !importing && uploadFor(r.id)}
+                disabled={importing}
+                aria-label={`Subir el menú de ${r.label} — PDF, foto o CSV`}
+                style={{
+                  flex: 1,
+                  minWidth: 46,
+                  height: 46,
+                  borderRadius: 14,
+                  border: "1.5px dashed rgba(45,90,61,.45)",
+                  background: importing ? "#eef3f0" : "#fff",
+                  color: "#2d5a3d",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 7,
+                  padding: "0 10px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  fontFamily: "inherit",
+                  cursor: importing ? "default" : "pointer",
+                }}
+              >
+                {busy ? <Loader2 size={17} className="rotating" /> : <Upload size={17} />}
+                <span style={{ whiteSpace: "nowrap" }}>
+                  {busy ? "Procesando…" : "PDF, foto o CSV"}
+                </span>
+              </button>
+
+              {/* El check de la hoja, ahora estado en vez de botón: no hay nada
+                  que cerrar, así que dice si esa fila ya tiene su menú. */}
+              <span
+                title={weeks > 0
+                  ? `${weeks} ${weeks === 1 ? "semana cargada" : "semanas cargadas"}`
+                  : "Sin menú todavía"}
+                style={{
+                  flexShrink: 0,
+                  width: 46,
+                  height: 46,
+                  borderRadius: 14,
+                  background: weeks > 0 ? "#1a3a24" : "#e4ebe6",
+                  color: weeks > 0 ? "#fff" : "#b3c3ba",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Check size={20} />
+              </span>
+            </div>
+          );
+        })}
         <input
           ref={fileInputRef}
           type="file"
@@ -6798,143 +6772,125 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           style={{ display: "none" }}
         />
 
-        <button
-          type="button"
-          onClick={() => setUploadOpen(false)}
-          disabled={importing}
-          aria-label="Listo"
-          title="Listo"
-            style={{
-            flexShrink: 0,
-            width: 46,
-            height: 46,
-            borderRadius: 14,
-            border: "none",
-            background: importing ? "#b8c9be" : "#1a3a24",
-            color: "#fff",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            cursor: importing ? "default" : "pointer",
-          }}
-        >
-          <Check size={20} />
-        </button>
-      </div>
+        {!hasAnyDish && !importing && (
+          <p style={{ margin: "10px 0 0", fontSize: 11.5, lineHeight: 1.4, color: "#7a9080" }}>
+            Leemos los platos de cada día y te los enseñamos aquí para que los
+            revises. Si no lo tienes a mano, puedes seguir sin él.
+          </p>
+        )}
 
-            {importing ? (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ height: 5, borderRadius: 3, background: "#e4ebe6", overflow: "hidden", marginBottom: 5 }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${Math.round(displayProgress * 100)}%`,
-                      background: "#2d5a3d",
-                      borderRadius: 3,
-                      transition: "width .8s ease",
-                    }}
-                  />
-                </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8d978f" }}>
-            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
-                    {displayStatus || "…"}
-                  </span>
-            <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{importElapsedSec}s</span>
-                </div>
-                </div>
-      ) : (
-        importedFileName && (
-                  <div
-                    style={{
-              fontSize: 11.5,
-              color: "#7a9080",
-              marginBottom: 10,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {importedFileName}
+              {importing ? (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ height: 5, borderRadius: 3, background: "#e4ebe6", overflow: "hidden", marginBottom: 5 }}>
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${Math.round(displayProgress * 100)}%`,
+                        background: "#2d5a3d",
+                        borderRadius: 3,
+                        transition: "width .8s ease",
+                      }}
+                    />
                   </div>
-        )
-      )}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8d978f" }}>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
+                      {displayStatus || "…"}
+                    </span>
+              <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{importElapsedSec}s</span>
+                  </div>
+                  </div>
+        ) : (
+          importedFileName && (
+                    <div
+                      style={{
+                fontSize: 11.5,
+                color: "#7a9080",
+                marginBottom: 10,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {importedFileName}
+                    </div>
+          )
+        )}
 
-      {importError && (
-        <div
-          style={{
-            background: "#fff3e6",
-            border: "1px solid #f0d0b0",
-            color: "#a35a1f",
-            borderRadius: 10,
-            padding: "8px 10px",
-            fontSize: 11,
-            marginBottom: 8,
-          }}
-        >
-          {importError}
-        </div>
-      )}
+        {importError && (
+          <div
+            style={{
+              background: "#fff3e6",
+              border: "1px solid #f0d0b0",
+              color: "#a35a1f",
+              borderRadius: 10,
+              padding: "8px 10px",
+              fontSize: 11,
+              marginBottom: 8,
+            }}
+          >
+            {importError}
+          </div>
+        )}
 
 
-      {/* Multi-select of every detected week: tick the ones you want to use.
-          Each ticked week becomes a distinct week of your menú. Unticking them
-          all is how you "don't use" a menú — no explicit empty button needed.
-          Stacked full-width rows, each showing its date range (Mon–Fri). */}
-      {parsedWeeks.length > 1 && !importing && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
-          {parsedWeeks.map((w, i) => {
-            const sel = selectedWeekIdxs.has(i);
-            const dishes = Object.keys(w.entries ?? {}).length;
-            const disabled = dishes === 0;
-            const { title, range } = weekChipLabel(w.weekLabel, i);
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => !disabled && toggleWeek(i)}
-                disabled={disabled}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  width: "100%",
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: `1.5px solid ${sel ? "#2d5a3d" : "#d7e5dc"}`,
-                  background: disabled ? "#f1f4f2" : sel ? "#2d5a3d" : "#fff",
-                  color: disabled ? "#aebbb2" : sel ? "#fff" : "#2d5a3d",
-                  fontFamily: "inherit",
-                  cursor: disabled ? "default" : "pointer",
-                  textAlign: "left",
-                  transition: "all .15s ease",
-                }}
-              >
-                <span style={{ width: 82, flexShrink: 0, fontSize: 13.5, fontWeight: 800 }}>{title}</span>
-                <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: disabled ? "#b9c4bd" : sel ? "rgba(255,255,255,.82)" : "#7a9080", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {range || ""}
-                </span>
-                <span
+        {/* Multi-select of every detected week: tick the ones you want to use.
+            Each ticked week becomes a distinct week of your menú. Unticking them
+            all is how you "don't use" a menú — no explicit empty button needed.
+            Stacked full-width rows, each showing its date range (Mon–Fri). */}
+        {parsedWeeks.length > 1 && !importing && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+            {parsedWeeks.map((w, i) => {
+              const sel = selectedWeekIdxs.has(i);
+              const dishes = Object.keys(w.entries ?? {}).length;
+              const disabled = dishes === 0;
+              const { title, range } = weekChipLabel(w.weekLabel, i);
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => !disabled && toggleWeek(i)}
+                  disabled={disabled}
                   style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 6,
-                    flexShrink: 0,
-                    display: "inline-flex",
+                    display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    border: `1.5px solid ${sel ? "rgba(255,255,255,.85)" : "#c5d4cb"}`,
-                    background: sel ? "rgba(255,255,255,.2)" : "#fff",
+                    gap: 10,
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "#d7e5dc"}`,
+                    background: disabled ? "#f1f4f2" : sel ? "#2d5a3d" : "#fff",
+                    color: disabled ? "#aebbb2" : sel ? "#fff" : "#2d5a3d",
+                    fontFamily: "inherit",
+                    cursor: disabled ? "default" : "pointer",
+                    textAlign: "left",
+                    transition: "all .15s ease",
                   }}
                 >
-                  {sel && <Check size={12} strokeWidth={3.4} color="#fff" />}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-      </WizardSheet>
-      )}
+                  <span style={{ width: 82, flexShrink: 0, fontSize: 13.5, fontWeight: 800 }}>{title}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: disabled ? "#b9c4bd" : sel ? "rgba(255,255,255,.82)" : "#7a9080", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {range || ""}
+                  </span>
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 6,
+                      flexShrink: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: `1.5px solid ${sel ? "rgba(255,255,255,.85)" : "#c5d4cb"}`,
+                      background: sel ? "rgba(255,255,255,.2)" : "#fff",
+                    }}
+                  >
+                    {sel && <Check size={12} strokeWidth={3.4} color="#fff" />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* "Cena de los niños = comida de los adultos" ya no vive aquí: se decide
           en la pantalla dedicada «¿Cómo comen los niños?» (OnboardingKidsDinner),
@@ -6983,15 +6939,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             ) : (
               <span style={{ flex: 1 }} />
             )}
-            <button
-              type="button"
-              onClick={() => openUpload(scope)}
-              aria-label="Subir otro menú"
-              title="Cambiar / subir otro"
-              style={schoolToolBtn(false)}
-            >
-              <Upload size={16} />
-            </button>
             {weekCount > 1 && (
               <button
                 type="button"
