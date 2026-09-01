@@ -5,6 +5,7 @@ import { ensureHealthFlags } from "../lib/healthFlags.js";
 import { recipeHitsIntolerances, recipeViolatesDiet } from "../lib/intolerances.js";
 import { isAdaptableRestriction, planAdaptations } from "../lib/substitutions.js";
 import { ingredientWords, wordsOverlapEither } from "./normalizePantryInput.js";
+import { isMontaje, effectiveRecipeTime } from "../data/recipeSchema.js";
 
 // Off-menu categories: the optional desayuno/merienda/postre pool. They live in
 // the same catalog but must never be picked by the comida/cena planner (see the
@@ -369,6 +370,47 @@ export function filterRecipes({
   }
 
   return { recipes: pool, error: null };
+}
+
+// ── Slot-type predicates (user-marked "plato único" / "cena rápida") ──────
+
+// Umbral de "rápida": una receta curada como montaje (tostas, ensaladas de
+// asamblaje...) siempre cuenta, sin importar tiempo/dificultad — es la razón
+// de ser de la categoría. Pero exigir SOLO montaje deja fuera platos que
+// cualquiera llamaría rápidos sin ser de asamblaje (una tortilla francesa a
+// la sartén), así que dificultad fácil + tiempo por debajo del umbral cuenta
+// como camino alternativo (OR), no como sustituto — el catálogo curado a
+// mano no se pierde, solo se amplía. `eaters` ajusta el tiempo vía
+// effectiveRecipeTime() para las recetas marcadas scalesWithEaters (cortar
+// para 6 no es lo mismo que para 3).
+//
+// Vive aquí y no en aiPlanner.js porque Inspíranos arma su mazo de "cena
+// rápida" con este mismo predicado: una segunda copia dejaría que el mazo
+// ofreciera platos que el generador luego no considera rápidos.
+export function recipeMatchesPreferType(recipe, preferType, eaters) {
+  if (!recipe) return false;
+  if (preferType === "plato_unico") return (recipe.mealRole ?? []).includes("plato_unico");
+  if (preferType === "cena_rapida") {
+    if (isMontaje(recipe)) return true;
+    // Same role gate validateMenu.slotAcceptsRole applies to every cena slot —
+    // sin esto, un "segundo" pensado para acompañar un primero (un filete a
+    // la plancha) colaba como cena completa solo por ser fácil y rápido.
+    return (
+      (recipe.mealRole ?? []).includes("cena") &&
+      recipe.difficulty === "facil" &&
+      effectiveRecipeTime(recipe, eaters) < 20
+    );
+  }
+  if (preferType === "comida_rapida") {
+    const roles = recipe.mealRole ?? [];
+    return (
+      !isMontaje(recipe) &&
+      recipe.difficulty === "facil" &&
+      effectiveRecipeTime(recipe, eaters) < 15 &&
+      (roles.includes("plato_unico") || roles.includes("segundo") || roles.includes("primero"))
+    );
+  }
+  return true;
 }
 
 /**

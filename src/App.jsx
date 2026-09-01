@@ -31,11 +31,12 @@ const AccountScreen = lazy(() => import("./screens/Settings.jsx").then(m => ({ d
 const DashboardScreen = lazy(() => import("./screens/Dashboard.jsx").then(m => ({ default: m.DashboardScreen })));
 const RecipePlannerScreen = lazy(() => import("./screens/RecipePlanner.jsx").then(m => ({ default: m.RecipePlannerScreen })));
 const RecipesScreen = lazy(() => import("./screens/RecipesScreen.jsx").then(m => ({ default: m.RecipesScreen })));
+const InspiranosScreen = lazy(() => import("./screens/InspiranosScreen.jsx").then(m => ({ default: m.InspiranosScreen })));
 const HomeProfileScreen = lazy(() => import("./screens/HomeProfileScreen.jsx").then(m => ({ default: m.HomeProfileScreen })));
 const HouseholdsScreen = lazy(() => import("./screens/HouseholdsScreen.jsx").then(m => ({ default: m.HouseholdsScreen })));
 const BibliotecaScreen = lazy(() => import("./screens/BibliotecaScreen.jsx").then(m => ({ default: m.BibliotecaScreen })));
 const UserStatsScreen = lazy(() => import("./screens/UserStatsScreen.jsx").then(m => ({ default: m.UserStatsScreen })));
-import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe } from "./lib/aiPlanner.js";
+import { generateMenuWithAI, pickCatalogReplacement, catalogToFrontendRecipe, activeDiscardIds } from "./lib/aiPlanner.js";
 import { resolvePlannerModel } from "./lib/aiModels.js";
 import { findMenuRestrictionConflicts } from "./utils/menuConflicts.js";
 import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
@@ -101,14 +102,28 @@ import {
   upsertRecipeVotes,
 } from "./lib/recipeVotes.js";
 import {
+  addToCollections,
+  setRecipeCollections,
+  purgeFolder,
+  newFolderId,
+  mergeCollections,
+  mergeFolders,
+  loadRecipeCollections,
+  loadRecipeFolders,
+  saveRecipeCollections,
+  saveRecipeFolder,
+  deleteRecipeFolder,
+} from "./lib/recipeCollections.js";
+import {
   loadRecipeDiscards,
   saveRecipeDiscard,
+  deleteRecipeDiscard,
   upsertRecipeDiscards,
   mergeDiscards,
 } from "./lib/recipeDiscardsSync.js";
 import { loadUserState, saveUserState, clearUserState } from "./lib/userState.js";
 import { loadHouseholdState, saveHouseholdState } from "./lib/householdState.js";
-import { loadHouseholdDiscards, saveHouseholdDiscard } from "./lib/householdDiscardsSync.js";
+import { loadHouseholdDiscards, saveHouseholdDiscard, deleteHouseholdDiscard } from "./lib/householdDiscardsSync.js";
 import { loadHouseholdFavorites, saveHouseholdFavorite, deleteHouseholdFavorite, householdFavoritesToVotes } from "./lib/householdFavoritesSync.js";
 import { useHousehold } from "./lib/useHousehold.js";
 import { shouldAdoptRemoteProfile, mergeUserRecipesById, mergeUserRecipesAfterCloudLoad } from "./lib/profileMerge.js";
@@ -299,6 +314,11 @@ const INITIAL_DATA = {
   // Per-user recipe like/dislike ratings + favorite scope, keyed by recipe id.
   // See lib/recipeVotes.js — the two are independent (VoteEntry: { v, fav }).
   recipeVotes: {},
+  // Inspíranos: en qué carpetas fijas archivó el usuario cada receta al
+  // swipearla. recipeId → collection ids. Ver lib/recipeCollections.js.
+  recipeCollections: {},
+  // Carpetas creadas por el usuario ({ id, name, createdAt }).
+  recipeFolders: [],
   menuModel: "same",
   groups: [],
   meals: ["Comida", "Cena"],
@@ -686,6 +706,9 @@ function migrate(state) {
   if (!["primero_segundo", "1_plato"].includes(d.mealStructure)) d.mealStructure = "primero_segundo";
   d.userRecipes = Array.isArray(d.userRecipes) ? d.userRecipes : [];
   d.recipeVotes = d.recipeVotes && typeof d.recipeVotes === "object" ? d.recipeVotes : {};
+  d.recipeCollections =
+    d.recipeCollections && typeof d.recipeCollections === "object" ? d.recipeCollections : {};
+  d.recipeFolders = Array.isArray(d.recipeFolders) ? d.recipeFolders : [];
   // Discards: normalize both buckets, and prune expired cooldowns on load so the
   // map doesn't grow unbounded across sessions.
   {
@@ -1223,6 +1246,8 @@ export default function App() {
     // isn't the source of truth for the union (same as before).
     const localRecipes = data.userRecipes ?? [];
     const localVotes = data.recipeVotes ?? {};
+    const localCollections = data.recipeCollections ?? {};
+    const localFolders = data.recipeFolders ?? [];
     const localDiscards = data.discards ?? { forever: [], cooldownUntil: {} };
     const localMenus = data.menus ?? {};
     // Spend history is NOT part of the winner-takes-all profile adoption below:
@@ -1247,17 +1272,21 @@ export default function App() {
       const loadDiscards = () =>
         householdId ? loadHouseholdDiscards(householdId) : loadRecipeDiscards(user.id);
 
-      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs] = await Promise.all([
+      const [remoteState, remoteRecipes, remoteVotes, remoteDiscards, remoteHouseholdFavs, remoteCollections, remoteFolders] = await Promise.all([
         loadState(),
         loadUserRecipes(householdReadOnly ? menuUserId : user.id),
         loadRecipeVotes(user.id),
         loadDiscards(),
         householdId ? loadHouseholdFavorites(householdId) : Promise.resolve({}),
+        loadRecipeCollections(user.id),
+        loadRecipeFolders(user.id),
       ]);
       if (cancelled) return;
 
       const deletedRecipeIds = reconcileDeletedRecipeIds(remoteRecipes);
 
+      const mergedCollections = mergeCollections(localCollections, remoteCollections);
+      const mergedFolders = mergeFolders(localFolders, remoteFolders);
       const personalVotes = mergeVotes(localVotes, remoteVotes);
       const mergedVotes = mergeVotes(
         personalVotes,
@@ -1331,6 +1360,8 @@ export default function App() {
           ...(useRemote ? { ...INITIAL_DATA, ...(remoteData ?? {}) } : d),
           userRecipes: mergedUserRecipes,
           recipeVotes: mergedVotes,
+          recipeCollections: mergedCollections,
+          recipeFolders: mergedFolders,
           discards: mergedDiscards,
           priceObs: mergedPriceObs,
           receipts: mergedReceipts,
@@ -2886,6 +2917,115 @@ export default function App() {
     }
   }, [personalRecipeVotes, showToast, user]);
 
+  // Inspíranos: un swipe a la derecha archiva la receta en las carpetas que
+  // cumple Y la marca como favorita. El favorito es lo que hace que el
+  // generador la priorice (filterRecipes la anota isFavorite y aiPlanner se lo
+  // dice al modelo), así que tiene que ir por data.recipeVotes — las favoritas
+  // personales de Biblioteca viven en otro estado que el generador no lee.
+  // Las carpetas, en cambio, son siempre personales: nunca a household.
+  const handleInspireLike = useCallback((recipeId, collectionIds) => {
+    if (householdReadOnly) return;
+    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
+    const nextVotes = setFavoriteScope(data.recipeVotes, baseId, "all");
+    setData((d) => ({
+      ...d,
+      recipeVotes: nextVotes,
+      recipeCollections: addToCollections(d.recipeCollections, baseId, collectionIds),
+    }));
+    if (user?.id) {
+      const entry = nextVotes[baseId] ?? null;
+      if (entry != null) {
+        if (syncHouseholdId) saveHouseholdFavorite(syncHouseholdId, baseId, entry.scope);
+        else saveRecipeVote(user.id, baseId, entry);
+      }
+      saveRecipeCollections(user.id, baseId, collectionIds);
+    }
+  }, [data.recipeVotes, data.recipeCollections, user, householdReadOnly, syncHouseholdId]);
+
+  // Carpetas propias del usuario (las 4 de Inspíranos son fijas y no pasan
+  // por aquí). Devuelve el id para que el selector pueda marcarla al vuelo.
+  const handleCreateFolder = useCallback((name) => {
+    const folder = { id: newFolderId(), name, createdAt: new Date().toISOString() };
+    setData((d) => ({ ...d, recipeFolders: [...(d.recipeFolders ?? []), folder] }));
+    if (user?.id) saveRecipeFolder(user.id, folder);
+    showToast(`Carpeta «${name}» creada`);
+    return folder.id;
+  }, [user, showToast]);
+
+  const handleDeleteFolder = useCallback((folderId) => {
+    setData((d) => ({
+      ...d,
+      recipeFolders: (d.recipeFolders ?? []).filter((f) => f.id !== folderId),
+      // Borrar la carpeta no borra las recetas, solo deja de agruparlas.
+      recipeCollections: purgeFolder(d.recipeCollections, folderId),
+    }));
+    if (user?.id) deleteRecipeFolder(user.id, folderId);
+    showToast("Carpeta borrada");
+  }, [user, showToast]);
+
+  // Los descartes (rechazos de menú) ya existían y ya excluyen del generador,
+  // pero no había forma de verlos: la carpeta "Descartados" de Mis recetas es
+  // la primera superficie que los expone, y desde ahí se recuperan.
+  const discardedIds = useMemo(() => new Set(activeDiscardIds(data)), [data]);
+
+  const handleRecoverRecipe = useCallback((recipeId) => {
+    if (householdReadOnly) return;
+    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
+    setData((d) => {
+      const src = d.discards ?? { forever: [], cooldownUntil: {} };
+      const cooldownUntil = { ...(src.cooldownUntil ?? {}) };
+      delete cooldownUntil[baseId];
+      return {
+        ...d,
+        discards: { forever: (src.forever ?? []).filter((id) => id !== baseId), cooldownUntil },
+      };
+    });
+    if (user?.id) {
+      if (syncHouseholdId) deleteHouseholdDiscard(syncHouseholdId, baseId);
+      else deleteRecipeDiscard(user.id, baseId);
+    }
+    showToast("Recuperada");
+  }, [user, householdReadOnly, syncHouseholdId, showToast]);
+
+  const handleSetRecipeFolders = useCallback((recipeId, folderIds) => {
+    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
+    setData((d) => ({ ...d, recipeCollections: setRecipeCollections(d.recipeCollections, baseId, folderIds) }));
+    if (user?.id) saveRecipeCollections(user.id, baseId, folderIds);
+  }, [user]);
+
+  // Inspíranos: el swipe negativo. Reusa el mismo almacén que los rechazos de
+  // menú, así que ambas cosas caen en la carpeta "Descartados" y se recuperan
+  // igual.
+  //   "no"  (🚫, swipe izquierda) → descartado para siempre, reversible.
+  //   "meh" (😐, swipe abajo)     → ni fu ni fa: enfriamiento de 14 días, así
+  //                                 que puede reaparecer más adelante.
+  // Ninguno de los dos sale del pool del generador por su cuenta: eso ya lo
+  // hace activeDiscardIds con estos mismos datos, que es justo lo que evita
+  // tener dos conceptos de descarte compitiendo.
+  const handleInspireDiscard = useCallback((recipeId, kind) => {
+    if (householdReadOnly) return;
+    const baseId = recipeId ? String(recipeId).split("__").pop() : recipeId;
+    const until = Date.now() + 14 * 86400000;
+    setData((d) => {
+      const src = d.discards ?? { forever: [], cooldownUntil: {} };
+      if (kind === "no") {
+        const forever = Array.from(new Set([...(src.forever ?? []), baseId]));
+        const cooldownUntil = { ...(src.cooldownUntil ?? {}) };
+        delete cooldownUntil[baseId];
+        return { ...d, discards: { forever, cooldownUntil } };
+      }
+      return {
+        ...d,
+        discards: { ...src, cooldownUntil: { ...(src.cooldownUntil ?? {}), [baseId]: until } },
+      };
+    });
+    if (user?.id) {
+      const payload = kind === "no" ? { isPermanent: true } : { cooldownUntil: until };
+      if (syncHouseholdId) saveHouseholdDiscard(syncHouseholdId, baseId, payload);
+      else saveRecipeDiscard(user.id, baseId, payload);
+    }
+  }, [user, householdReadOnly, syncHouseholdId]);
+
   // ── Discards (menu rejections) ──────────────────────────────────────────
   // Base catalog id (prefix-free) of whatever currently sits in a slot, so a
   // discard matches the id filterRecipes/aiPlanner filter on.
@@ -4033,6 +4173,13 @@ export default function App() {
                 user={user}
                 userRecipes={ownUserRecipes}
                 recipeVotes={data.recipeVotes}
+                recipeCollections={data.recipeCollections}
+                recipeFolders={data.recipeFolders}
+                onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
+                onDeleteFolder={householdReadOnly ? undefined : handleDeleteFolder}
+                onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}
+                discardedIds={discardedIds}
+                onRecoverRecipe={householdReadOnly ? undefined : handleRecoverRecipe}
                 scopeGroups={favoriteScopeGroups}
                 readOnly={householdReadOnly}
                 readOnlyLabel={householdReadOnly && activeHousehold ? `Recetas de ${activeHousehold.name}` : null}
@@ -4052,6 +4199,29 @@ export default function App() {
                 }}
                 onDeleteRecipe={handleDeleteRecipe}
                 onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
+                onOpenInspirate={() => fwd(() => setScreen("inspiranos"))}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "inspiranos" && (
+          <div
+            key="inspiranos"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <InspiranosScreen
+                data={data}
+                onLike={handleInspireLike}
+                onDiscard={householdReadOnly ? undefined : handleInspireDiscard}
+                onNav={handleNav}
+                onOpenRecipe={handleOpenCatalogRecipe}
+                recipeCollections={data.recipeCollections}
+                recipeFolders={data.recipeFolders}
+                onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
+                onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}
+                onOpenRecipes={() => back(() => setScreen("recipes"))}
               />
             </Suspense>
           </div>
