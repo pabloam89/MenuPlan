@@ -69,7 +69,7 @@ export function GeneratingScreen() {
           textShadow: "0 2px 18px rgba(0,0,0,.5)",
         }}
       >
-        Menú<span style={{ color: "#7ecb96" }}>Plan</span>
+        Ho<span style={{ color: "#7ecb96" }}>Menu</span>
       </div>
 
       {/* "Un momento" — a la altura del "Just a second" */}

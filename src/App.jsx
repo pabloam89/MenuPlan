@@ -5140,7 +5140,7 @@ function SplashScreen({ onNext, hasSaved, onResume, isAuthed, onGoogle }) {
             textShadow: "0 2px 24px rgba(0,0,0,.55)",
           }}
         >
-          Menú<span style={{ color: "#7ecb96" }}>Plan</span>
+          Ho<span style={{ color: "#7ecb96" }}>Menu</span>
         </h1>
       </div>
 

@@ -1147,7 +1147,7 @@ export function ValuePropsCarousel({ onFinish }) {
                     fontFamily: "'Playfair Display', Georgia, serif",
                   }}
                 >
-                  Menú<span style={{ color: "#7ecb96" }}>Plan</span>
+                  Ho<span style={{ color: "#7ecb96" }}>Menu</span>
                 </div>
               </div>
             </div>

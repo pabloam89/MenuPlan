@@ -174,7 +174,7 @@ export const SwipeCard = forwardRef(function SwipeCard({ recipe, onSwipe, onInfo
             <MenuPlanBadge size={22} />
           )}
           <span style={{ fontSize: 12.5, fontWeight: 700, opacity: .95 }}>
-            {recipe.owner ? (recipe.owner.name ?? "Tú") : "MenuPlan"}
+            {recipe.owner ? (recipe.owner.name ?? "Tú") : "HoMenu"}
           </span>
         </div>
       </div>
