@@ -2,7 +2,6 @@ import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRe
 import { Users, Sparkles, LogOut, RotateCcw, AlertTriangle, Trash2, Check, Play, Eraser, X } from "lucide-react";
 import { BottomNav, APP_SHELL_MAX_WIDTH, GoogleButton, GhostPillButton, GroupAvatarStack, groupAvatarFaces } from "./components/ui.jsx";
 import {
-  OnboardingMode,
   OnboardingMembers,
   OnboardingRestrictions,
   OnboardingMenuModel,
@@ -14,12 +13,17 @@ import {
   OnboardingSchedule,
   OnboardingSchoolMenu,
   OnboardingCooking,
+  OnboardingAppliances,
   OnboardingCookTime,
   OnboardingWeek,
   OnboardingBudget,
   IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
+// Import normal, no lazy: es el paso 0 del asistente y `onbScreens` se pinta
+// sin <Suspense> alrededor. Además vive sobre OnboardingShell, que ya viene en
+// el bundle por el import de arriba, así que separarlo no ahorraba nada.
+import { ScopePickerScreen, SCOPE_TOPIC_STEPS } from "./screens/ScopePickerScreen.jsx";
 import { MenuScreen, DishDetail } from "./screens/Menu.jsx";
 import { CatalogBrowserSheet } from "./screens/CatalogBrowserSheet.jsx";
 import { recipeCatalogById } from "./data/recipeCatalog.js";
@@ -2764,11 +2768,11 @@ export default function App() {
   // regenerateMenu) just to save an allergy edit. This tracks which screen to
   // return to so the restrictions step can behave as a self-contained
   // mini-editor instead. NOTE: keep the index in sync with OnboardingRestrictions'
-  // position in `onbScreens` below (currently 4).
+  // position in `onbScreens` below (currently 2).
   const [editPreferencesOrigin, setEditPreferencesOrigin] = useState(null);
   const openEditPreferences = useCallback((origin) => {
     setEditPreferencesOrigin(origin);
-    _doGoToOnboardingStep(4);
+    _doGoToOnboardingStep(2);
   }, [_doGoToOnboardingStep]);
 
   // "¿Para quién es el menú?" — when the profile already has members, offer to
@@ -2779,6 +2783,10 @@ export default function App() {
   // the steps already configured in Mi perfil (family + cooking), while still
   // walking through the per-menu screens (week, schedule, style, restrictions…).
   const [quickMenu, setQuickMenu] = useState(false);
+  // Temas que el usuario ha marcado en "¿Qué quieres ajustar de tu menú?"
+  // (paso 0). Vacío = genera con lo que hay. Se conserva entre visitas al
+  // asistente para que el picker vuelva con lo de la última vez marcado.
+  const [menuScope, setMenuScope] = useState([]);
   // First-time visitor path: splash → (tutorial) → "¿quién come en casa?" only
   // → straight to Home, instead of the full 9-step wizard. Any other entry
   // into onboarding (edit shortcuts, "Otro grupo", quick menu…) resets this.
@@ -2794,7 +2802,7 @@ export default function App() {
     setQuickMenu(true);
     setFirstRunOnboarding(false);
     dirRef.current = "forward";
-    setOnbStep(0); // quick: modo (0), salta familia (1)
+    setOnbStep(0); // quick: picker de ajustes (0), salta familia (1)
     setScreen("onboarding");
   }, []);
 
@@ -3604,16 +3612,17 @@ export default function App() {
   // "Menu Model" and "School Menu" are skipped when they wouldn't offer any
   // real choice: no kids to diverge from adults, nothing to upload if nobody
   // is on the kids' menu (pure babies don't use the school cafeteria flow).
-  // Orden de `onbScreens`: 0 Modo · 1 Familia · 2 Modelo · 3 Cole · 4 Alergias ·
+  // Orden de `onbScreens`: 0 Ajustes (picker) · 1 Familia · 2 Alergias · 3 Modelo · 4 Cole ·
   // 5 Semana · 6 Compra · 7 Horario · 8 Niños · 9 Estilo · 10 Extras-Comidas ·
-  // 11 Extras-Otros · 12 Tu despensa · 13 Cocina · 14 Tiempos. Los índices de
+  // 11 Extras-Otros · 12 Tu despensa · 13 Cocina · 14 Electrodomésticos ·
+  // 15 Tiempos. Los índices de
   // abajo dependen de ese orden.
   // "Ajustes despensa" (¿cuándo se da por gastado?) vivió aquí como paso 13
   // condicional un día (2026-08-25) — se quitó al día siguiente: la pregunta
   // se entiende mejor mirando la despensa real que a mitad del asistente, así
   // que ahora es un sheet contextual en Compra → En casa (icono de ajustes +
   // primer aviso tras generar un menú), no un paso del wizard.
-  const ONB_STEP_COUNT = 15;
+  const ONB_STEP_COUNT = 16;
   // «¿Cómo coméis en casa?» (mismo/separado) ya no se pregunta cuando hay niños:
   // esa decisión la deriva ahora la pantalla «¿Cómo comen los niños?» (paso 7).
   // Solo sobreviviría para hogares adulto+niño… que es justo cuando hay niños,
@@ -3629,19 +3638,41 @@ export default function App() {
   const basicMode = !data.expertMode;
   // Presupuesto semanal / Tu compra (paso 6): ya cableado (toggle, cards y precios Mercadona).
   const skipBudgetStep = false;
+  // El perfil (quién come + qué evitáis) ya está hecho: se rellenó en el alta.
+  const profileAlreadySetUp = (data.members?.length ?? 0) > 0;
+  // Pasos que ha pedido ajustar el picker (paso 0). Vacío = no ha pedido
+  // ninguno, que es el estado de partida: el asistente es entonces una sola
+  // pantalla y de ahí directo a generar.
+  const scopeSteps = useMemo(
+    () => new Set(menuScope.flatMap((id) => SCOPE_TOPIC_STEPS[id] ?? [])),
+    [menuScope]
+  );
   const isStepHidden = useCallback(
     (i) =>
-      // Sencillo/Avanzado: solo se oculta en el primer acceso (familia → Home).
+      // El picker (paso 0) solo se oculta en el primer acceso (familia → Home).
       // Si además estamos en quickMenu (Generar / Empezar de cero), el paso 0
       // SIEMPRE se muestra — nunca se combina firstRun+quickMenu para saltarlo.
       (i === 0 && firstRunOnboarding && !quickMenu) ||
-      (i === 2 && skipMenuModel) ||
-      (i === 3 && skipSchoolMenu) ||
+      // Del 3 en adelante manda lo que hayas marcado en el picker: lo que no
+      // marcaste no se pregunta. Los pasos 1-2 (perfil) quedan fuera de esta
+      // regla — tienen la suya abajo — y "Editar preferencias"/"Gestionar
+      // alergias" entran a pelo a un paso concreto, así que ahí no aplica.
+      (!editPreferencesOrigin && i >= 3 && !scopeSteps.has(i)) ||
+      (i === 3 && skipMenuModel) ||
+      (i === 4 && skipSchoolMenu) ||
       (i === 6 && skipBudgetStep) ||
       (i === 8 && (skipKidsDinner || basicMode)) ||
       (basicMode && (i === 9 || i === 10 || i === 11)) ||
-      (quickMenu && i === 1),
-    [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding]
+      // Avatares (1) y alergias (2) son perfil, no asistente: se rellenan en el
+      // alta y no se vuelven a preguntar cada vez que generas un menú. La
+      // señal es tener familia, no `quickMenu` — al asistente se entra por
+      // varias puertas y solo una de ellas lo activa. Se editan desde
+      // "Editar preferencias", que entra directo al paso 2.
+      // ...salvo cuando se entra expresamente a editarlas ("Gestionar
+      // alergias"): ahí el paso 2 ES el destino, y ocultarlo hacía que el
+      // normalizador saltase al siguiente visible (la semana del menú).
+      (!firstRunOnboarding && !editPreferencesOrigin && profileAlreadySetUp && (i === 1 || i === 2)),
+    [skipMenuModel, skipSchoolMenu, skipKidsDinner, quickMenu, basicMode, firstRunOnboarding, profileAlreadySetUp, editPreferencesOrigin, scopeSteps]
   );
   const stepNeighbor = useCallback(
     (from, dir) => {
@@ -3657,20 +3688,25 @@ export default function App() {
   );
 
   const safeOnbStep = Math.min(onbStep, ONB_STEP_COUNT - 1);
-  const progressIndex = Math.max(0, visibleSteps.indexOf(safeOnbStep));
+  // La barra cuenta los pasos que has pedido ajustar, no la portada: el paso 0
+  // es el picker, y "1 de 3" incluyéndolo no cuadraría con el "Ajustar 2
+  // pasos" que acabas de pulsar.
+  const adjustSteps = useMemo(() => visibleSteps.filter((i) => i !== 0), [visibleSteps]);
+  const progressIndex = Math.max(0, adjustSteps.indexOf(safeOnbStep));
   const onbProgressValue = useMemo(
     () =>
       // First-run visitors only ever see this one screen before Home, so a
       // "step 1 of 9" progress bar would be meaningless (and about to jump to
       // Home makes it look broken). Hide it entirely for that path.
-      firstRunOnboarding
+      // Y en la portada tampoco: aún no has empezado, no hay nada que medir.
+      firstRunOnboarding || safeOnbStep === 0 || adjustSteps.length === 0
         ? null
         : {
             current: progressIndex,
-            total: visibleSteps.length,
-            onJump: (i) => setOnbStep(visibleSteps[i] ?? 0),
+            total: adjustSteps.length,
+            onJump: (i) => setOnbStep(adjustSteps[i] ?? 0),
           },
-    [firstRunOnboarding, progressIndex, visibleSteps]
+    [firstRunOnboarding, progressIndex, adjustSteps, safeOnbStep]
   );
 
   useLayoutEffect(() => {
@@ -3708,39 +3744,78 @@ export default function App() {
   const backOf = (i) =>
     i === firstVisibleStep ? undefined : () => back(() => setOnbStep(stepNeighbor(i, -1)));
 
+  // CTA del picker. No puede apoyarse en `stepNeighbor`: éste cierra sobre el
+  // `isStepHidden` de ESTE render, que todavía no conoce el scope que acabamos
+  // de marcar. Así que el primer paso se calcula aquí a mano, aplicando solo
+  // los saltos "duros" (los que dependen de la familia, no del picker).
+  const handleScopeContinue = (topicIds) => {
+    // Marcar algo = querer meter mano, así que se reactiva el modo avanzado:
+    // las secciones de estilo/extras están gated por `expertMode` y sin él el
+    // paso al que te manda saldría vacío. Sin nada marcado, básico — que es
+    // exactamente lo que decidía el viejo paso Sencillo/Avanzado.
+    setData((d) => ({ ...d, expertMode: topicIds.length > 0, modePrompted: true }));
+    setMenuScope(topicIds);
+    const steps = [...new Set(topicIds.flatMap((id) => SCOPE_TOPIC_STEPS[id] ?? []))]
+      .sort((a, b) => a - b)
+      .filter((i) => !(i === 3 && skipMenuModel) && !(i === 4 && skipSchoolMenu) && !(i === 8 && skipKidsDinner));
+    if (steps.length === 0) {
+      fwd(goToMenu);
+      return;
+    }
+    fwd(() => setOnbStep(steps[0]));
+  };
+
   const onbScreens = [
-    <OnboardingMode
+    <ScopePickerScreen
       data={data}
-      setData={setData}
-      onNext={nextOf(0)}
+      initialPicked={menuScope}
       onBack={backOf(0)}
-      // El visitante recién llegado aún no tiene familia: ofrecerle "Generar"
-      // aquí no llevaría a ninguna parte (igual que en Familia).
-      onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
-      onReset={handleAbandonOnboarding}
+      // Sin el diálogo de "¿seguro que quieres salir?": en la portada todavía
+      // no has tocado nada, así que no hay progreso que perder ni que
+      // confirmar. Los pasos siguientes sí usan handleAbandonOnboarding.
+      onReset={doAbandonOnboarding}
+      onContinue={handleScopeContinue}
     />,
     <OnboardingMembers
       data={data}
       setData={setData}
-      onNext={
-        firstRunOnboarding
-          ? () => { setFirstRunOnboarding(false); goToDashboard(); }
-          : nextOf(1)
-      }
+      // En el alta, avatares encadena con alergias: los dos son perfil (se
+      // rellenan una vez), no asistente de menú. El alta termina en el paso
+      // siguiente, no aquí.
+      onNext={nextOf(1)}
       onBack={backOf(1)}
       onFinish={firstRunOnboarding ? undefined : () => fwd(goToMenu)}
-      nextLabel={firstRunOnboarding ? "Continuar" : undefined}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingMenuModel
+    <OnboardingRestrictions
       data={data}
       setData={setData}
-      onNext={nextOf(2)}
-      onBack={backOf(2)}
-      onFinish={() => fwd(goToMenu)}
+      // Fin del alta: perfil listo (quién come + qué evitáis) y a Home. Modo y
+      // el resto del asistente se preguntan la primera vez que generes un
+      // menú, ya con esto relleno.
+      onNext={
+        editPreferencesOrigin
+          ? undefined
+          : firstRunOnboarding
+            ? () => { setFirstRunOnboarding(false); goToDashboard(); }
+            : nextOf(2)
+      }
+      onBack={
+        editPreferencesOrigin
+          ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
+          : backOf(2)
+      }
+      onFinish={
+        editPreferencesOrigin
+          ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
+          : firstRunOnboarding
+            ? undefined
+            : () => fwd(goToMenu)
+      }
       onReset={handleAbandonOnboarding}
+      {...(editPreferencesOrigin ? { finishLabel: "Guardar" } : {})}
     />,
-    <OnboardingSchoolMenu
+    <OnboardingMenuModel
       data={data}
       setData={setData}
       onNext={nextOf(3)}
@@ -3748,22 +3823,13 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingRestrictions
+    <OnboardingSchoolMenu
       data={data}
       setData={setData}
-      onNext={editPreferencesOrigin ? undefined : nextOf(4)}
-      onBack={
-        editPreferencesOrigin
-          ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
-          : backOf(4)
-      }
-      onFinish={
-        editPreferencesOrigin
-          ? () => back(() => { setScreen(editPreferencesOrigin); setEditPreferencesOrigin(null); })
-          : () => fwd(goToMenu)
-      }
+      onNext={nextOf(4)}
+      onBack={backOf(4)}
+      onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
-      {...(editPreferencesOrigin ? { finishLabel: "Guardar" } : {})}
     />,
     <OnboardingWeek
       data={data}
@@ -3844,11 +3910,19 @@ export default function App() {
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
-    <OnboardingCookTime
+    <OnboardingAppliances
       data={data}
       setData={setData}
       onNext={nextOf(14)}
       onBack={backOf(14)}
+      onFinish={() => fwd(goToMenu)}
+      onReset={handleAbandonOnboarding}
+    />,
+    <OnboardingCookTime
+      data={data}
+      setData={setData}
+      onNext={nextOf(15)}
+      onBack={backOf(15)}
       onFinish={() => fwd(goToMenu)}
       onReset={handleAbandonOnboarding}
     />,
@@ -4374,6 +4448,7 @@ export default function App() {
                 onReset={handleSoftReset}
                 onDeleteAccount={handleDeleteAccount}
                 onEditMembers={() => fwd(() => setScreen("members"))}
+                onEditPreferences={() => openEditPreferences("profile")}
                 onOpenHouseholds={() => fwd(() => setScreen("households"))}
                 activeHousehold={activeHousehold}
                 householdReadOnly={householdReadOnly}

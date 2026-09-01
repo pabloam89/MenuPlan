@@ -1,0 +1,21 @@
+Esquema — herramientas de cocina (wizard onboarding, 6 opciones).
+Misma fórmula que el catálogo de ingredientes, con acabado metalizado
+(acero cepillado, reflejos suaves) para que se lean como electrodomésticos.
+Esquema (seed 2151241667):
+[{slug}] cute stylized 3D cartoon render in the style of Pixar and Disney, {objeto}, brushed metal finish with soft reflective highlights, {tonos}, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+Archivo: Avatares/cards/kitchen_tools/{slug}.png
+
+--- HERRAMIENTAS DE COCINA (wizard onboarding) ---
+
+[airfryer] cute stylized 3D cartoon render in the style of Pixar and Disney, a compact countertop air fryer with its basket slightly pulled out revealing golden crispy fries, brushed metal finish with soft reflective highlights, warm amber and charcoal metallic tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[horno] cute stylized 3D cartoon render in the style of Pixar and Disney, a chunky built-in oven with its door open and a warm orange glow inside, brushed metal finish with soft reflective highlights, terracotta red-orange and brushed steel tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[microondas] cute stylized 3D cartoon render in the style of Pixar and Disney, a rounded countertop microwave with its door ajar and a soft blue glow from inside, brushed metal finish with soft reflective highlights, muted slate-blue and brushed steel tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[thermomix] cute stylized 3D cartoon render in the style of Pixar and Disney, a sleek kitchen robot food processor with a mixing bowl and small digital display on top, brushed metal finish with soft reflective highlights, deep purple and brushed silver tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[olla_express] cute stylized 3D cartoon render in the style of Pixar and Disney, an electric pressure cooker with a rounded body, a digital control panel with buttons on the front, and a short power cord curled at the base, a small steam valve on the lid releasing a light wisp of steam, brushed metal finish with soft reflective highlights, warm golden-brown and brushed copper tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667
+
+[vaporera] cute stylized 3D cartoon render in the style of Pixar and Disney, an electric countertop food steamer with stacked plastic steaming trays, a water reservoir base with a small control dial, and a short power cord, gentle steam curling up from the top, brushed metal finish with soft reflective highlights, fresh green and brushed steel tones, soft clay-like texture, playful composition, clean white background, soft drop shadows --no face, eyes, mouth, text --seed 2151241667

@@ -224,6 +224,13 @@ export function OnboardingShell({
   onFinish,
   nextLabel = "Continuar",
   finishLabel = "Generar menú",
+  // El título sube a la fila de los botones en vez de ir debajo. Para pasos
+  // que no son "un paso más" del asistente sino su portada (el picker de
+  // ajustes), donde no hay barra de progreso que ocupe ese hueco.
+  inlineTitle = false,
+  // "Salir" en texto se come ~62px de la fila y con el título al lado no cabe
+  // en una línea. Con chevron el título se queda con todo el ancho.
+  resetAsChevron = false,
   nextDisabled = false,
   finishDisabled = false,
   bg = "#f5f9f6",
@@ -273,8 +280,29 @@ export function OnboardingShell({
               Atrás
             </button>
           )}
+          {!onBack && resetAsChevron && onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              aria-label="Atrás"
+              style={{ ...headerBtn, padding: 0, width: 34, height: 34, display: "flex" }}
+            >
+              <ChevronLeft size={18} strokeWidth={2.6} />
+            </button>
+          )}
         </div>
-        {progress && (
+        {/* El hueco central se reserva aunque no haya barra ni título: si no,
+            en los pasos sin progreso NI "Atrás" (Familia en el alta) el botón
+            de la derecha se iba a la izquierda. */}
+        {inlineTitle && title ? (
+          // nowrap + cuerpo justito: la promesa aquí es "una línea". Medido:
+          // el título del picker pide 267px a 17px, y el hueco más estrecho
+          // (móvil de 360 menos padding, chevron y gap) son 278. Entra hasta
+          // pantallas de ~349px de ancho.
+          <h2 style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 17, fontWeight: 900, color: "#1a3a24", letterSpacing: "-.5px", lineHeight: 1.2, whiteSpace: "nowrap" }}>
+            {title}
+          </h2>
+        ) : progress ? (
           <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
             <ProgressDots
               current={progress.current}
@@ -283,9 +311,11 @@ export function OnboardingShell({
               compact
             />
           </div>
+        ) : (
+          <div style={{ flex: 1, minWidth: 0 }} />
         )}
         <div style={{ flex: "0 0 auto" }}>
-          {onReset && (
+          {onReset && !resetAsChevron && (
             <button type="button" onClick={onReset} style={headerBtn}>
               Salir
             </button>
@@ -293,7 +323,7 @@ export function OnboardingShell({
         </div>
       </div>
 
-      {title && (
+      {title && !inlineTitle && (
         <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1a3a24", margin: "0 0 4px" }}>
           {title}
         </h2>
@@ -2558,7 +2588,11 @@ function RestrictionTabCard({
               }}
             />
           )}
-          {textOverlay && (
+          {/* Gradiente + texto solo si hay algo que decir encima de la imagen:
+              con textOverlay=true pero sin title/subtitle (caso "Nivel" como
+              pill en la esquina) no queremos oscurecer la ilustración con un
+              degradado que no sostiene ningún texto. */}
+          {textOverlay && (title || subtitle) && (
             <div style={{
               position: "absolute", inset: 0,
               background: "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.22) 50%, transparent 100%)",
@@ -8723,10 +8757,11 @@ export function OnboardingMealExtrasOtros(props) {
 
 
 // ── ¿Cómo quieres usar la app? (sencillo vs avanzado) ────────────────────────
-// Primera pantalla del asistente: el modo decide QUÉ preguntas vienen después
-// (estilo de comida, extras, nivel de cocina, variedad…), así que tiene que ir
-// antes que todas. Antes vivía en una hoja que saltaba sola en Inicio y en una
-// píldora de la cabecera, y a la gente se le pasaba; aquí no.
+// FUERA DEL ASISTENTE desde 2026-09-01: el paso 0 es ahora ScopePickerScreen
+// ("¿Qué quieres ajustar de tu menú?"), que responde la misma pregunta —
+// cuánto me quiero meter — pero enseñando qué preguntas te ahorras en vez de
+// pedir un sí/no a ciegas. `expertMode` lo sigue fijando ese picker (marcar
+// algo = avanzado). Se conserva aquí por si hiciera falta recuperarlo.
 export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
   const current = data.expertMode ? "expert" : "basic";
   return (
@@ -8764,6 +8799,7 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
             }
           />
         ))}
+
       </div>
     </OnboardingShell>
   );
@@ -9446,23 +9482,88 @@ function capitalize(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+// Nivel de cocina. Antes compartía pantalla con los electrodomésticos, pero
+// son dos preguntas distintas (cuánto disfrutas vs. qué tienes en la encimera)
+// y juntas obligaban a hacer scroll. Ahora: una columna, tres filas, y cada
+// tarjeta se reparte el alto que haya.
 export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  // Arte horizontal (16:9): al apilarse en una columna la celda es apaisada, y
+  // los cuadrados originales se recortaban por arriba y por abajo dejando al
+  // personaje descabezado. Los cuadrados siguen en uso donde la celda es 1:1
+  // (el picker de ajustes), de ahí el sufijo _h en vez de sustituirlos.
+  // Sin subcopy: el nombre del nivel + un icono viven en una pill sobre la
+  // esquina (donde no hay nada de la ilustración, que es la protagonista),
+  // en vez de una franja de texto que tapaba el plato.
   const levels = [
-    { id: "basic", img: "/avatares/cards/cook_nivel_basico.png", label: "Básico", desc: "Lo justo para sobrevivir" },
-    { id: "normal", img: "/avatares/cards/cook_nivel_normal.png", label: "Normal", desc: "Me defiendo bien" },
-    { id: "pro", img: "/avatares/cards/cook_nivel_pro.png", label: "Me gusta cocinar", desc: "Disfruto experimentando" },
+    { id: "basic", img: "/avatares/cards/cook_nivel_basico_h.webp", label: "Básico", Icon: Utensils },
+    { id: "normal", img: "/avatares/cards/cook_nivel_normal_h.webp", label: "Normal", Icon: ChefHat },
+    { id: "pro", img: "/avatares/cards/cook_nivel_pro_h.webp", label: "Me gusta cocinar", Icon: Flame },
   ];
-  const tools = [
-    "Airfryer",
-    "Horno",
-    "Microondas",
-    "Thermomix",
-    "Olla rápida",
-    "Vaporera",
-  ];
-  const availableTools = [...tools, ...(data.customKitchenTools ?? [])];
-  const [addingTool, setAddingTool] = useState(false);
-  const [draftTool, setDraftTool] = useState("");
+  return (
+    <OnboardingShell
+      title="¿Cuánto os gusta cocinar?"
+      subtitle="Ajustamos la dificultad de las recetas a vuestro nivel."
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      finishLabel={finishLabel}
+    >
+      {/* Cada tarjeta pide el 16:9 del arte (aspect-ratio) en vez de estirarse
+          a un tercio del alto: en pantallas altas la celda se ponía en 1,18:1
+          y `cover` recortaba un tercio del ancho — justo el lado donde está la
+          comida. Con `flex: 0 1 auto` conservan su ratio si hay sitio y solo
+          se encogen cuando no lo hay; centradas, para que el hueco sobrante en
+          pantalla alta se reparta arriba y abajo. */}
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 8, height: "100%", minHeight: 0 }}>
+        {levels.map((l) => (
+          <div key={l.id} style={{ flex: "0 1 auto", width: "100%", aspectRatio: "16 / 9", minHeight: 0, display: "flex" }}>
+            <RestrictionTabCard
+              img={l.img}
+              fillHeight
+              // textOverlay=true solo para desactivar la franja de texto de
+              // abajo (ver RestrictionTabCard); sin title/subtitle no pinta
+              // ningún degradado, así que la ilustración se ve entera.
+              textOverlay
+              pill={
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <l.Icon size={12} strokeWidth={2.4} />
+                  {l.label}
+                </span>
+              }
+              // 45% y no el 28% por defecto: cuando toca recortar en vertical
+              // (móvil bajo), el 28% tira hacia arriba y se lleva por delante
+              // los platos, que en estas tres están abajo del todo.
+              imgPosition="center 45%"
+              accent={CARD_ACCENT_TEAL}
+              active={data.cookLevel === l.id}
+              onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+            />
+          </div>
+        ))}
+      </div>
+    </OnboardingShell>
+  );
+}
+
+// Los 6 electrodomésticos que trae la app de serie. Son justo 2 columnas × 3
+// filas: la rejilla se reparte el alto de la pantalla sin scroll. Lo que el
+// usuario añada a mano vive aparte, en la fila de abajo, para no romper eso.
+const APPLIANCES = [
+  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
+  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
+  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
+  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
+  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
+  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
+];
+
+// Sin "Añadir otro": la lista fija son los seis aparatos que el generador sabe
+// aprovechar de verdad (ver resolveCookwareMarker en RecipeSteps.jsx). Un
+// nombre escrito a mano no casaba con ninguna receta, así que solo servía para
+// añadir una fila y con ella scroll. `customKitchenTools` sigue en el modelo de
+// datos y lo que hubiera ahí se respeta; simplemente ya no se edita aquí.
+export function OnboardingAppliances({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   const toggleTool = (tool) =>
     setData((d) => ({
       ...d,
@@ -9470,190 +9571,39 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
         ? (d.kitchenTools ?? []).filter((v) => v !== tool)
         : [...(d.kitchenTools ?? []), tool],
     }));
-  const addCustomTool = () => {
-    const label = titleCase(draftTool);
-    setAddingTool(false);
-    setDraftTool("");
-    if (!label) return;
-    setData((d) => {
-      const customKitchenTools = (d.customKitchenTools ?? []).includes(label)
-        ? d.customKitchenTools ?? []
-        : [...(d.customKitchenTools ?? []), label];
-      const kitchenTools = (d.kitchenTools ?? []).includes(label)
-        ? d.kitchenTools ?? []
-        : [...(d.kitchenTools ?? []), label];
-      return { ...d, customKitchenTools, kitchenTools };
-    });
-  };
-  const removeCustomTool = (tool) =>
-    setData((d) => ({
-      ...d,
-      customKitchenTools: (d.customKitchenTools ?? []).filter((v) => v !== tool),
-      kitchenTools: (d.kitchenTools ?? []).filter((v) => v !== tool),
-    }));
   return (
     <OnboardingShell
-      title="¿Quién cocina y cómo?"
-      subtitle="Tu nivel en la cocina y las herramientas con las que cuentas, para ajustar las recetas."
+      title="¿Qué tenéis en la cocina?"
+      subtitle="Marca lo que uséis. Si no marcas nada, asumimos fuegos y sartenes."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
       finishLabel={finishLabel}
     >
-      {/* Nivel de cocina — mismo estilo que comida/cena/desayuno.
-          En modo básico se asume "normal" y se oculta el selector. */}
-      {data.expertMode && (
-        <>
-          <SectionTitle>¿Cuál es tu nivel en la cocina?</SectionTitle>
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-            {levels.map((l) => {
-              const sel = data.cookLevel === l.id;
-              return (
-                <button
-                  type="button"
-                  key={l.id}
-                  onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
-                  style={{
-                    position: "relative",
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "stretch",
-                    padding: 0,
-                    overflow: "hidden",
-                    borderRadius: 14,
-                    cursor: "pointer",
-                    background: "#fff",
-                    border: `2px solid ${sel ? CARD_ACCENT_TEAL : "#e3ebe6"}`,
-                    boxShadow: sel ? "0 6px 18px rgba(15,118,110,.22)" : "0 1px 3px rgba(20,47,29,.05)",
-                    transition: "all .16s cubic-bezier(.4,0,.2,1)",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {sel && (
-                    <span
-                      style={{
-                        position: "absolute", top: 6, right: 6, zIndex: 2,
-                        width: 18, height: 18, borderRadius: 999,
-                        background: CARD_ACCENT_TEAL, border: "1.5px solid #fff",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      <Check size={10} color="#fff" strokeWidth={3} />
-                    </span>
-                  )}
-                  {/* Ilustración del nivel (contain para que se vea el personaje
-                      entero) sobre un tinte neutro. */}
-                  <div style={{ width: "100%", aspectRatio: "1 / 1", background: "#f4f7f5" }}>
-                    <img
-                      src={l.img}
-                      alt=""
-                      loading="lazy"
-                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                    />
-                  </div>
-                  <div
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      padding: "7px 5px 8px",
-                      background: sel ? CARD_ACCENT_TEAL : "#fff",
-                      textAlign: "center",
-                    }}
-                  >
-                    <span style={{ display: "block", fontWeight: 800, fontSize: 11.5, lineHeight: 1.15, color: sel ? "#fff" : "#25402f" }}>
-                      {l.label}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Despensa — oculto de momento (feature en pausa) */}
-
-      {/* Herramientas — modelo tipo alergias */}
-      <style>{`
-        @keyframes avoidCheckPop {
-          0%   { transform: scale(0.4); opacity: 0; }
-          55%  { transform: scale(1.25); opacity: 1; }
-          100% { transform: scale(1); }
-        }
-        .avoid-pill { transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .12s ease; }
-        .avoid-pill:hover { transform: translateY(-1px); }
-        .avoid-pill:active { transform: translateY(0) scale(.97); }
-        .avoid-pill-check { animation: avoidCheckPop .22s cubic-bezier(.34,1.5,.6,1) both; }
-        .avoid-row { transition: background .15s ease; }
-        .avoid-row:hover { background: #f3f7f4; }
-      `}</style>
-
-      <AvoidSection icon={Utensils} accent={CARD_ACCENT_TEAL} title="¿Con qué herramientas cuentas?">
-        <div>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
-            {availableTools.map((tool) => {
-              const isCustom = (data.customKitchenTools ?? []).includes(tool);
-              const sel = (data.kitchenTools ?? []).includes(tool);
-              return (
-                <AllergenRow
-                  key={tool}
-                  Icon={TOOL_ICON[tool] ?? Wrench}
-                  color={TOOL_COLOR[tool] ?? "#2d5a3d"}
-                  label={tool}
-                  checked={sel}
-                  checkColor={TOOL_COLOR[tool] ?? "#2d5a3d"}
-                  onToggle={() => (isCustom && sel ? removeCustomTool(tool) : toggleTool(tool))}
-                />
-              );
-            })}
-          </div>
-
-          <div style={{ display: "flex", marginTop: 12 }}>
-            <button
-              type="button"
-              onClick={() => setAddingTool((v) => !v)}
-              className="avoid-pill"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 6, height: 36,
-                padding: "0 15px 0 12px", borderRadius: 10, border: "none",
-                background: addingTool ? "#234a31" : "#2d5a3d", color: "#fff",
-                fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                boxShadow: "0 2px 8px rgba(45,90,61,.3)",
-              }}
-            >
-              <Plus size={15} strokeWidth={2.6} /> Añadir otra
-            </button>
-          </div>
-
-          {addingTool && (
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <input
-                autoFocus
-                value={draftTool}
-                onChange={(e) => setDraftTool(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addCustomTool();
-                  if (e.key === "Escape") { setDraftTool(""); setAddingTool(false); }
-                }}
-                placeholder="Otra herramienta"
-                style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 16, outline: "none", fontFamily: "inherit" }}
-              />
-              <button
-                type="button"
-                onClick={addCustomTool}
-                aria-label="Añadir herramienta"
-                style={{ width: 40, borderRadius: 10, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
-              >
-                <Check size={16} strokeWidth={3} />
-              </button>
-            </div>
-          )}
-        </div>
-      </AvoidSection>
+      <div
+        style={{
+          height: "100%", minHeight: 0,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridTemplateRows: "repeat(3, 1fr)",
+          gap: 8,
+        }}
+      >
+        {APPLIANCES.map((a) => (
+          <RestrictionTabCard
+            key={a.id}
+            img={a.img}
+            title={a.id}
+            fillHeight
+            compact
+            textOverlay
+            accent={CARD_ACCENT_TEAL}
+            active={(data.kitchenTools ?? []).includes(a.id)}
+            onClick={() => toggleTool(a.id)}
+          />
+        ))}
+      </div>
     </OnboardingShell>
   );
 }
