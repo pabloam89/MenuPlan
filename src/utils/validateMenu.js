@@ -92,6 +92,27 @@ function proteinGroupsOf(recipe) {
   return groups;
 }
 
+// Raw protein VALUES a dish carries (mainProtein + extraProteins), UNGROUPED —
+// unlike proteinGroupsOf, "pollo" and "cerdo" stay distinct here. Used by rule
+// 3 (proteina_consecutiva), which deliberately allows switching between
+// different meats/fish on consecutive meals (pollo lunch, cerdo dinner is
+// normal variety) but must still catch the literal same ingredient repeating
+// through a secondary protein — e.g. a "Revuelto de gambas" (mainProtein
+// huevo, extraProteins ["marisco"]) right before a "Pasta con gambas"
+// (mainProtein marisco): proteinGroupsOf would already collapse "huevo" out of
+// the "carne" bucket comparison, but comparing by raw value is what actually
+// catches this pair without also flagging every pollo-then-cerdo swap the
+// group-based rules 3c/15 are fine collapsing together.
+function proteinTokensOf(recipe) {
+  const tokens = new Set();
+  const add = (p) => {
+    if (p && p !== "none") tokens.add(p);
+  };
+  add(recipe?.mainProtein);
+  for (const p of recipe?.extraProteins ?? []) add(p);
+  return tokens;
+}
+
 // Normalize a dish name for keyword scans (lowercase, strip accents), matching
 // carbTypeFromText's approach so the "plato de cuchara" detector below stays
 // consistent with the carb classifier.
@@ -178,14 +199,19 @@ function mainMealsOf(mealOrder, poolById) {
 // than one key (e.g. a chicken-and-rice dish is both "carne" and
 // "pasta_arroz"), matching the prompt's own per-bullet "category X OR
 // mainProtein Y" wording.
+//
+// Uses proteinGroupsOf (mainProtein + extraProteins), not a bare mainProtein
+// check: without this, a dish whose animal protein is secondary — e.g.
+// "Revuelto de gambas" (mainProtein huevo, extraProteins ["marisco"]) — only
+// ever counted toward "huevos" and never toward "pescado", so the weekly
+// pescado cap couldn't see it at all. That let marisco dishes stack up
+// unbounded regardless of the configured limit (a tester reported gambas in
+// nearly every slot of the week).
 export const FREQ_KEY_MATCHERS = {
-  carne: (r) =>
-    r.category === "carnes" || ["pollo", "pavo", "cerdo", "ternera"].includes(r.mainProtein),
-  pescado: (r) =>
-    r.category === "pescados" ||
-    ["pescado_blanco", "pescado_azul", "marisco"].includes(r.mainProtein),
-  legumbres: (r) => r.category === "legumbres" || r.mainProtein === "legumbre",
-  huevos: (r) => r.category === "huevos" || r.mainProtein === "huevo",
+  carne: (r) => r.category === "carnes" || proteinGroupsOf(r).has("carne"),
+  pescado: (r) => r.category === "pescados" || proteinGroupsOf(r).has("pescado"),
+  legumbres: (r) => r.category === "legumbres" || proteinGroupsOf(r).has("legumbres"),
+  huevos: (r) => r.category === "huevos" || proteinGroupsOf(r).has("huevos"),
   pasta_arroz: (r) => r.category === "pasta_arroces",
   verdura: (r) => r.category === "ensaladas_verduras" || r.category === "sopas_cremas",
 };
@@ -380,15 +406,20 @@ export function validateMenu(
     const prevR = poolById[prev.recipeId];
     const currR = poolById[curr.recipeId];
     if (!prevR || !currR) continue;
-    if (
-      prevR.mainProtein !== "none" &&
-      currR.mainProtein !== "none" &&
-      prevR.mainProtein === currR.mainProtein
-    ) {
+    // Raw-value comparison (see proteinTokensOf), not protein-GROUP: this
+    // still lets pollo -> cerdo through as normal variety, but also catches a
+    // secondary protein (extraProteins) repeating the neighbor's protein —
+    // e.g. gambas as the extraProteins of an egg dish right before a gambas
+    // pasta dish, which plain mainProtein equality missed entirely (a tester
+    // reported marisco showing up in nearly every slot of the week because of
+    // exactly this gap).
+    const prevTokens = proteinTokensOf(prevR);
+    const shared = [...proteinTokensOf(currR)].find((p) => prevTokens.has(p));
+    if (shared) {
       violations.push({
         rule: "proteina_consecutiva",
         slotId: curr.slotId,
-        message: `Proteína "${currR.mainProtein}" repetida entre ${prev.slotId} y ${curr.slotId}`,
+        message: `Proteína "${shared}" repetida entre ${prev.slotId} ("${prevR.name}") y ${curr.slotId} ("${currR.name}")`,
       });
     }
   }
@@ -1033,7 +1064,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
           if (!neighbor) continue;
           const nr = poolById[neighbor.recipeId];
           if (!nr) continue;
-          if (nr.mainProtein !== "none") neighborProteins.add(nr.mainProtein);
+          for (const token of proteinTokensOf(nr)) neighborProteins.add(token);
           if (isFrito(nr)) neighborFrito = true;
         }
       }
@@ -1109,7 +1140,7 @@ export function applyFallback(slotAssignments, violations, filteredPool, slotsCo
         const carb = getCarbType(r);
         return !(carb && dayCarbsUsed.has(carb));
       },
-      protein: (r) => !neighborProteins.has(r.mainProtein),
+      protein: (r) => ![...proteinTokensOf(r)].some((p) => neighborProteins.has(p)),
       sibling: (r) => !(siblingProtein && r.mainProtein === siblingProtein),
       ensaladaClash: (r) => !(siblingIsEnsalada && isEnsalada(r)),
       primeroGroup: (r) =>

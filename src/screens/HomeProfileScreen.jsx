@@ -420,11 +420,17 @@ export function HomeProfileScreen({
         )}
 
         {/* ── Cuenta y datos ─────────────────────── */}
-        <ProfileOptionRow
-          img="/avatares/cards/cerrar_sesion.jpg"
-          title="Cerrar sesión"
-          onClick={onSignOut}
-        />
+        {/* Solo tiene sentido con sesión activa — sin este guard se mostraba
+            también en el estado deslogueado (junto a la tarjeta "Continuar
+            con Google" de arriba), y pulsarlo no hacía nada porque no había
+            sesión que cerrar. */}
+        {user && (
+          <ProfileOptionRow
+            img="/avatares/cards/cerrar_sesion.jpg"
+            title="Cerrar sesión"
+            onClick={onSignOut}
+          />
+        )}
         <ProfileOptionRow
           img="/avatares/cards/reiniciar_menu.jpg"
           title="Reiniciar menú"

@@ -444,6 +444,61 @@ describe("validateMenu", () => {
       const { violations } = validateMenu(assignments, pool, slots);
       expect(violations.map((v) => v.rule)).not.toContain("proteina_consecutiva");
     });
+
+    it("flags a secondary protein (extraProteins) repeating the neighbor's protein, even with different mainProtein", () => {
+      // Tester report: gambas showed up in nearly every slot of the week.
+      // Root cause — "Revuelto de gambas y ajetes" (mainProtein huevo,
+      // extraProteins ["marisco"]) as comida_2, immediately followed by
+      // "Pasta con gambas" (mainProtein marisco) as that same day's cena.
+      // Plain mainProtein equality (huevo !== marisco) missed this entirely.
+      const pool = [
+        recipe({ id: "revuelto_gambas", mainProtein: "huevo", extraProteins: ["marisco"], mealRole: ["segundo"] }),
+        recipe({ id: "pasta_gambas", mainProtein: "marisco", mealRole: ["cena"] }),
+      ];
+      const slots = [slot("lun_comida_2"), slot("lun_cena")];
+      const assignments = [
+        { slotId: "lun_comida_2", recipeId: "revuelto_gambas" },
+        { slotId: "lun_cena", recipeId: "pasta_gambas" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots);
+      const v = violations.find((x) => x.rule === "proteina_consecutiva");
+      expect(v).toBeTruthy();
+      expect(v.slotId).toBe("lun_cena");
+    });
+
+    it("still allows switching between different meats on consecutive meals (pollo lunch, cerdo dinner)", () => {
+      // Regression guard: rule 3 must stay FINE-grained (raw protein value),
+      // not collapse to the coarse protein GROUP that rules 3c/15 use —
+      // otherwise any two different meats in a row would wrongly collide.
+      const pool = [
+        recipe({ id: "pollo_comida", mainProtein: "pollo", mealRole: ["segundo"] }),
+        recipe({ id: "cerdo_cena", mainProtein: "cerdo", mealRole: ["cena"] }),
+      ];
+      const slots = [slot("lun_comida_2"), slot("lun_cena")];
+      const assignments = [
+        { slotId: "lun_comida_2", recipeId: "pollo_comida" },
+        { slotId: "lun_cena", recipeId: "cerdo_cena" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots);
+      expect(violations.map((v) => v.rule)).not.toContain("proteina_consecutiva");
+    });
+
+    it("applyFallback resolves the extraProteins collision without reintroducing it", () => {
+      const pool = [
+        recipe({ id: "revuelto_gambas", mainProtein: "huevo", extraProteins: ["marisco"], mealRole: ["segundo"] }),
+        recipe({ id: "pasta_gambas", mainProtein: "marisco", mealRole: ["cena"] }),
+        recipe({ id: "pollo_cena", mainProtein: "pollo", mealRole: ["cena"] }),
+      ];
+      const slots = [slot("lun_comida_2"), slot("lun_cena")];
+      const assignments = [
+        { slotId: "lun_comida_2", recipeId: "revuelto_gambas" },
+        { slotId: "lun_cena", recipeId: "pasta_gambas" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots);
+      const fixed = applyFallback(assignments, violations, pool, slots);
+      expect(fixed.find((s) => s.slotId === "lun_cena")?.recipeId).toBe("pollo_cena");
+      expect(validateMenu(fixed, pool, slots).violations.map((v) => v.rule)).not.toContain("proteina_consecutiva");
+    });
   });
 
   describe("proteina_repetida_en_comida (same-meal primero+segundo, e.g. revuelto + tortilla)", () => {
@@ -530,6 +585,26 @@ describe("validateMenu", () => {
       expect(freqViolations[0].targetKey).toBe("carne");
       // The LATER occurrence is the one flagged as "the extra one".
       expect(freqViolations[0].slotId).toBe("mar_comida_2");
+    });
+
+    it("counts a secondary protein (extraProteins) toward its group's cap, not just its own category", () => {
+      // Tester report: gambas in egg dishes ("Revuelto de gambas", category
+      // huevos, mainProtein huevo, extraProteins ["marisco"]) never counted
+      // toward the "pescado" cap, so marisco could stack up unbounded even
+      // with pescado: 2 configured — only the (unrelated) huevos cap saw them.
+      const pool = [
+        recipe({ id: "revuelto_gambas_a", category: "huevos", mainProtein: "huevo", extraProteins: ["marisco"], mealRole: ["segundo"] }),
+        recipe({ id: "revuelto_gambas_b", category: "huevos", mainProtein: "huevo", extraProteins: ["marisco"], mealRole: ["segundo"] }),
+      ];
+      const slots = [slot("lun_comida_2"), slot("mar_comida_2")];
+      const assignments = [
+        { slotId: "lun_comida_2", recipeId: "revuelto_gambas_a" },
+        { slotId: "mar_comida_2", recipeId: "revuelto_gambas_b" },
+      ];
+      const { violations } = validateMenu(assignments, pool, slots, [], { pescado: 1 });
+      const freqViolations = violations.filter((v) => v.rule === "freq_max_exceeded");
+      expect(freqViolations).toHaveLength(1);
+      expect(freqViolations[0].targetKey).toBe("pescado");
     });
 
     it("does not flag a category that's under or exactly at its cap", () => {
