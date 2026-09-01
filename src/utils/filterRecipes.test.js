@@ -140,6 +140,13 @@ describe("filterRecipes intolerances & dietary states", () => {
       const renamed = new Set((r.adaptations ?? []).map((a) => a.from));
       for (const ing of r.ingredients ?? []) {
         if (renamed.has(ing.name)) continue;
+        // El VINAGRE de vino se salta a propósito: contiene la palabra "vino"
+        // pero no es alcohol de cocina — el suyo ya fermentó en ácido acético,
+        // mismo criterio que el comentario de intolerances.js sobre el vinagre
+        // de Jerez. Mientras el choque se detectaba por palabras clave se
+        // renombraba a "Vinagre de vino sin alcohol", una adaptación inventada;
+        // ahora lo decide el catálogo de ingredientes y se queda como está.
+        if (/vinagre/i.test(ing.name)) continue;
         expect(/\bvino\b|\bcerveza\b/i.test(ing.name)).toBe(false);
       }
     }

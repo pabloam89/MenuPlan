@@ -20,6 +20,10 @@ import {
   IndividualMenuSheet,
 } from "./screens/Onboarding.jsx";
 import { OnboardingProgressContext } from "./screens/onboardingProgressContext.js";
+import { buildSharedMenuPayload } from "./lib/sharedMenu.js";
+import { publishMenu, unpublishMenu, loadMyPublishedMenus } from "./lib/social.js";
+import { loadNotifications, countUnread } from "./lib/socialNotifications.js";
+import { setFeedBadge } from "./lib/socialBadge.js";
 // Import normal, no lazy: es el paso 0 del asistente y `onbScreens` se pinta
 // sin <Suspense> alrededor. Además vive sobre OnboardingShell, que ya viene en
 // el bundle por el import de arriba, así que separarlo no ahorraba nada.
@@ -47,7 +51,7 @@ import { GeneratingScreen } from "./screens/GeneratingScreen.jsx";
 import { buildShoppingList } from "./lib/shoppingBuilder.js";
 import { clearPreparedFromSlot } from "./lib/freezer.js";
 import { normalizeIngredientKey } from "./lib/ingredientCategories.js";
-import { getDayMeals, DAYS } from "./lib/planner.js";
+import { getDayMeals, getMeals, DAYS } from "./lib/planner.js";
 import {
   groupsFromModel,
   migrateGroupsForBabies,
@@ -78,7 +82,7 @@ import {
   planHasDishes,
   orderedWeeks,
 } from "./lib/menuArchive.js";
-import { todayDayIdx } from "./lib/weekCalendar.js";
+import { todayDayIdx, getWeekDatesByMenuWeek } from "./lib/weekCalendar.js";
 import {
   saveMenu as saveMenuRemote,
   loadMenuSummaries as loadMenuSummariesRemote,
@@ -374,6 +378,9 @@ const INITIAL_DATA = {
   freqsByGroup: {},
   cookLevel: "normal",
   cookSkills: [],
+  // Cual de los miembros es la persona de la cuenta. Se marca a mano en Mi
+  // perfil; sin marcar, la app lo adivina por el nombre (ver stages.js).
+  accountMemberId: null,
   kitchenTools: [],
   customKitchenTools: [],
   cookTime: { ...COOK_TIME_DEFAULTS },
@@ -624,6 +631,7 @@ function migrate(state) {
     d.goalsManualByGroup = {};
   }
   if (!Array.isArray(d.cookSkills)) d.cookSkills = [];
+  if (typeof d.accountMemberId !== "string") d.accountMemberId = null;
   if (!Array.isArray(d.kitchenTools)) d.kitchenTools = [];
   if (!Array.isArray(d.customKitchenTools)) d.customKitchenTools = [];
   // Normalize school menus: courses (Primero/Segundo/Postre) instead of meals.
@@ -2809,6 +2817,30 @@ export default function App() {
   // the steps already configured in Mi perfil (family + cooking), while still
   // walking through the per-menu screens (week, schedule, style, restrictions…).
   const [quickMenu, setQuickMenu] = useState(false);
+  // Menús que ya tienes publicados, por menu_id, para saber si el botón
+  // dice "Compartir" o "Retirar".
+  const [publishedMenus, setPublishedMenus] = useState({});
+  // Al entrar se pregunta que menus tienes ya en el feed: sin esto, el boton
+  // de compartir decia "Compartir" aunque hubieras publicado ayer, y solo se
+  // corregia publicando otra vez en la misma sesion.
+  useEffect(() => {
+    let alive = true;
+    if (!user?.id) { setPublishedMenus({}); return; }
+    loadMyPublishedMenus(user.id).then((m) => { if (alive) setPublishedMenus(m); });
+    return () => { alive = false; };
+  }, [user?.id]);
+  // El punto del tab Feed necesita saberse al ARRANCAR, no al entrar al Feed
+  // (si hiciera falta entrar para verlo, no avisaria de nada). Una consulta
+  // al iniciar sesion y ya: sin polling — el Feed refresca el punto solo
+  // cuando lo visitas.
+  useEffect(() => {
+    if (!user?.id) return;
+    let alive = true;
+    loadNotifications(user.id).then(({ items, seenAt }) => {
+      if (alive) setFeedBadge(countUnread(items, seenAt) > 0);
+    });
+    return () => { alive = false; };
+  }, [user?.id]);
   // Temas que el usuario ha marcado en "¿Qué quieres ajustar de tu menú?"
   // (paso 0). Vacío = genera con lo que hay. Se conserva entre visitas al
   // asistente para que el picker vuelva con lo de la última vez marcado.
@@ -3152,6 +3184,150 @@ export default function App() {
     });
     trackEvent(user, "dish_viewed", "recipes", { recipeId: recipe.id, garnishId: resolvedGarnishId ?? undefined, sauceId: resolvedSauceId ?? undefined });
   }, [data.members, user]);
+
+  /**
+   * Copiar una receta del Feed a mi biblioteca. Es una INSTANTÁNEA: nace con
+   * id nuevo y dueño nuevo, y no vuelve a mirar al original — si el autor la
+   * edita o borra su cuenta, tu menú de la semana no cambia debajo. Las
+   * columnas copied_from_* solo guardan de quién era, para poder firmarla.
+   *
+   * Nace en privado siempre: copiar algo no es publicarlo.
+   */
+  const handleCopyRecipeFromFeed = useCallback(async (recipeId, ownerId) => {
+    if (householdReadOnly) { showToast("Solo lectura: no puedes copiar aquí"); return null; }
+    const src = await loadPublicRecipe(recipeId);
+    if (!src) { showToast("Esa receta ya no está disponible"); return null; }
+    const copy = {
+      ...src,
+      id: `user_${crypto.randomUUID()}`,
+      visibility: "private",
+      copiedFromRecipeId: recipeId,
+      copiedFromOwnerId: ownerId ?? null,
+      createdAt: Date.now(),
+    };
+    setData((d) => ({ ...d, userRecipes: [...(d.userRecipes ?? []), copy] }));
+    const eaters = Math.max(1, data.members?.length || 4);
+    registerRecipes([catalogToFrontendRecipe(copy, eaters)]);
+    if (user?.id) upsertUserRecipe(user.id, copy);
+    showToast("Receta añadida a tus recetas");
+    // Devuelve el id NUEVO: quien copia necesita saberlo para archivarla en
+    // carpetas, que se guardan contra la copia y no contra el original.
+    return copy.id;
+  }, [householdReadOnly, showToast, data.members, user]);
+
+  /**
+   * La ⓘ del Feed. `handleOpenCatalogRecipe` espera un objeto receta, no un
+   * id, y una receta ajena no está en el catálogo local — así que hay que
+   * traérsela antes. Si no se puede (sin sesión, o es un fixture de diseño),
+   * se abre con lo poco que trae la tarjeta en vez de no abrir nada.
+   */
+  const handleOpenFeedRecipe = useCallback(async (row) => {
+    if (!row?.id) return;
+    const full = (await loadPublicRecipe(row.id)) ?? {
+      id: row.id,
+      name: row.name,
+      category: row.category,
+      type: row.type ?? "principal",
+      time: row.time_minutes ?? null,
+      difficulty: row.difficulty ?? null,
+      photo: row.photo ?? null,
+      ingredients: [],
+      steps: [],
+      source: "user",
+    };
+    handleOpenCatalogRecipe(full);
+  }, [handleOpenCatalogRecipe]);
+
+  /**
+   * Publicar el menú activo en el Feed.
+   *
+   * Lo que se manda NO es el menú: es la proyección que construye
+   * buildSharedMenuPayload — platos por día y avatares anónimos. El menú vivo
+   * lleva en la misma estructura la compra, el presupuesto y los días que
+   * coméis fuera, y eso no sale de aquí (ver el contrato y sus tests).
+   *
+   * Y es una instantánea: seguir editando tu semana no cambia lo publicado
+   * hasta que vuelvas a darle a compartir.
+   */
+  const handlePublishMenu = useCallback(async (scope = "week", visibility = "followers") => {
+    if (!user?.id) { showToast("Inicia sesión para compartir tu menú"); return false; }
+    const menuId = data.activeMenuId ?? "actual";
+    const { dates } = getWeekDatesByMenuWeek({
+      offset: data.menuWeek?.offset ?? 0,
+      startDayIdx: data.menuWeek?.startDayIdx ?? 0,
+    });
+    const iso = (d) => new Date(d).toISOString().slice(0, 10);
+    // "Solo hoy": el payload lleva únicamente el día de hoy, y el rango de
+    // fechas se estrecha a hoy — así en «Hoy cocinan» aparece hoy y mañana ya
+    // no, que es exactamente lo que significa compartir solo el día.
+    const todayLabel = DAYS[(new Date().getDay() + 6) % 7];
+    const todayIso = new Date().toISOString().slice(0, 10);
+
+    const payload = buildSharedMenuPayload({
+      menuPlan,
+      groups: data.groups ?? [],
+      members: data.members ?? [],
+      meals: getMeals(data),
+      onlyDays: scope === "today" ? [todayLabel] : null,
+      weekStart: scope === "today" ? todayIso : (dates?.[0] ? iso(dates[0]) : null),
+      dishName: (id) => recipeCatalogById[id]?.name
+        ?? (data.userRecipes ?? []).find((r) => r.id === id)?.name
+        ?? null,
+      // Las del catálogo las puede abrir cualquiera. Las tuyas, solo si no
+      // están en privado — el nombre del plato se ve igual.
+      isReadable: (id) => {
+        if (!String(id).startsWith("user_")) return true;
+        const own = (data.userRecipes ?? []).find((r) => r.id === id);
+        return Boolean(own && own.visibility && own.visibility !== "private");
+      },
+    });
+
+    const days = payload.weeks?.[0]?.days ?? [];
+    if (days.length === 0) {
+      showToast(scope === "today" ? "Hoy no hay nada planificado que compartir" : "Genera un menú antes de compartirlo");
+      return false;
+    }
+
+    const saved = await publishMenu(user.id, {
+      menuId,
+      title: null,
+      weekStart: payload.weeks[0].weekStart,
+      weekEnd: scope === "today" ? todayIso : (dates?.length ? iso(dates[dates.length - 1]) : null),
+      payload,
+      visibility,
+    });
+    if (!saved) { showToast("No se pudo compartir el menú"); return false; }
+    setPublishedMenus((prev) => ({ ...prev, [menuId]: saved }));
+    showToast("Menú compartido en tu feed");
+    return true;
+  }, [user, data, menuPlan, showToast]);
+
+  const handleUnpublishMenu = useCallback(async () => {
+    const menuId = data.activeMenuId ?? "actual";
+    if (!user?.id) return false;
+    const done = await unpublishMenu(user.id, menuId);
+    if (done) {
+      setPublishedMenus((prev) => { const next = { ...prev }; delete next[menuId]; return next; });
+      showToast("Menú retirado del feed");
+    }
+    return done;
+  }, [user, data.activeMenuId, showToast]);
+
+  /**
+   * Publicar una receta tuya = cambiarle la visibilidad. Sin tabla nueva ni
+   * copia: el interruptor private/friends/public existe desde 0003, esto solo
+   * le pone una puerta comoda en el Feed.
+   */
+  const handlePublishRecipe = useCallback((recipeId, visibility) => {
+    if (!recipeId || !visibility) return false;
+    setData((d) => ({
+      ...d,
+      userRecipes: (d.userRecipes ?? []).map((r) => (r.id === recipeId ? { ...r, visibility } : r)),
+    }));
+    if (user?.id) updateRecipeVisibility(user.id, recipeId, visibility);
+    showToast(visibility === "public" ? "Receta publicada para todo el mundo" : "Receta publicada para tus amigos");
+    return true;
+  }, [user, showToast]);
 
   const handleUpdateUserRecipe = useCallback((updated) => {
     if (householdReadOnly) return;
@@ -4052,6 +4228,9 @@ export default function App() {
           >
             <MenuScreen
               data={data}
+              onPublishToFeed={householdReadOnly ? null : handlePublishMenu}
+              onUnpublishFromFeed={handleUnpublishMenu}
+              menuSharedInFeed={Boolean(publishedMenus[data.activeMenuId ?? "actual"])}
               setData={householdReadOnly ? null : setData}
               menuPlan={menuPlan}
               readOnly={householdReadOnly}
@@ -4299,7 +4478,33 @@ export default function App() {
                 }}
                 onDeleteRecipe={handleDeleteRecipe}
                 onOpenRecipePrefs={() => setRecipePrefsOpen(true)}
-                onOpenInspirate={() => fwd(() => setScreen("inspiranos"))}
+              />
+            </Suspense>
+          </div>
+        )}
+
+        {screen === "feed" && (
+          <div
+            key="feed"
+            className={animDir === "forward" ? "mp-nav-fwd" : "mp-nav-back"}
+          >
+            <Suspense fallback={null}>
+              <FeedScreen
+                user={user}
+                menuShared={Boolean(publishedMenus[data.activeMenuId ?? "actual"])}
+                onPublishMenu={handlePublishMenu}
+                onUnpublishMenu={handleUnpublishMenu}
+                // Solo las CREADAS por ti (filterOwnCreatedRecipes): las
+                // copias del feed llevan el owner del autor original, y
+                // republicarlas seria duplicar su receta firmada por ti.
+                unsharedRecipes={filterOwnCreatedRecipes(data.userRecipes, user).filter((r) => (r.visibility ?? "private") === "private")}
+                onPublishRecipe={handlePublishRecipe}
+                onNav={handleNav}
+                onOpenRecipe={handleOpenFeedRecipe}
+                onCopyRecipe={handleCopyRecipeFromFeed}
+                recipeFolders={data.recipeFolders}
+                onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
+                onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}
               />
             </Suspense>
           </div>
@@ -4313,6 +4518,7 @@ export default function App() {
             <Suspense fallback={null}>
               <InspiranosScreen
                 data={data}
+                user={user}
                 onLike={handleInspireLike}
                 onDiscard={householdReadOnly ? undefined : handleInspireDiscard}
                 onNav={handleNav}
@@ -4321,7 +4527,7 @@ export default function App() {
                 recipeFolders={data.recipeFolders}
                 onCreateFolder={householdReadOnly ? undefined : handleCreateFolder}
                 onSetRecipeFolders={householdReadOnly ? undefined : handleSetRecipeFolders}
-                onOpenRecipes={() => back(() => setScreen("recipes"))}
+                onOpenRecipes={() => back(() => setScreen("feed"))}
               />
             </Suspense>
           </div>

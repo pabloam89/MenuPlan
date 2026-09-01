@@ -11,37 +11,14 @@ import {
 } from "lucide-react";
 import { Avatar, BottomNav, bottomNavSpacer, GoogleButton } from "../components/ui.jsx";
 import { googleInfo } from "./Settings.jsx";
-import { findAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
+import { findAccountMember,
+  resolveAccountMember, memberAvatarColor, memberAvatarThumbSrc, migrateHomeRole, resolveMemberAge, userAvatarSrc } from "../lib/stages.js";
+import { fileToAvatarDataUrl } from "../lib/avatarImage.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
 const BG = "#f4f8f5";
 const HOGAR_ICON = "/avatares/hogares/hogar_propietario.jpg";
-
-// ── Avatar photo upload ─────────────────────────────────────────────────────
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const S = 160;
-        const canvas = document.createElement("canvas");
-        canvas.width = S; canvas.height = S;
-        const ctx = canvas.getContext("2d");
-        const scale = Math.max(S / img.width, S / img.height);
-        const w = img.width * scale, h = img.height * scale;
-        ctx.drawImage(img, (S - w) / 2, (S - h) / 2, w, h);
-        resolve(canvas.toDataURL("image/jpeg", 0.82));
-      };
-      img.onerror = reject;
-      img.src = reader.result;
-    };
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
-}
 
 // ── Primitives ─────────────────────────────────────────────────────────────
 
@@ -278,6 +255,9 @@ export function HomeProfileScreen({
   householdReadOnly = false,
 }) {
   const g = googleInfo(user);
+  // Quien eres tu dentro de la familia. Explicito si lo has marcado; si no, la
+  // adivinanza de siempre por nombre (ver resolveAccountMember en stages.js).
+  const accountMember = resolveAccountMember(members, data.accountMemberId, g.name);
   const fileInputRef = useRef(null);
   const members = data.members ?? [];
   const userRecipes = data.userRecipes ?? [];
@@ -289,14 +269,14 @@ export function HomeProfileScreen({
     e.target.value = "";
     if (!file) return;
     try {
-      const url = await fileToDataUrl(file);
+      const url = await fileToAvatarDataUrl(file);
       setField("profilePhoto", url);
     } catch { /* ignore */ }
   };
 
   const profilePhoto = userAvatarSrc({
     profilePhoto: data.profilePhoto,
-    member: findAccountMember(members, g.name),
+    member: accountMember,
     googlePhoto: g.photo,
   });
 
@@ -392,6 +372,46 @@ export function HomeProfileScreen({
                 </span>
               </div>
             </div>
+
+            {/* Cual de la familia eres tu. Antes se adivinaba comparando tu
+                nombre de Google con el de cada miembro, y si te llamas distinto
+                en los dos sitios la app no sabia quien eras — sin decirlo. Se
+                marca aqui una vez y deja de adivinarse. */}
+            {members.length > 0 && (
+              <div style={{ padding: "0 16px 14px" }}>
+                <p style={{ margin: "0 0 8px", fontSize: 11.5, fontWeight: 800, color: "#42594c" }}>
+                  ¿Cuál de la familia eres tú?
+                </p>
+                <div style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+                  {members.map((m) => {
+                    const on = accountMember?.id === m.id;
+                    return (
+                      <button
+                        key={m.id}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => setField("accountMemberId", on ? null : m.id)}
+                        style={{
+                          display: "flex", flexDirection: "column", alignItems: "center", gap: 4,
+                          flexShrink: 0, width: 62, padding: "7px 3px", borderRadius: 12,
+                          border: `1.5px solid ${on ? GREEN : "#e3ebe6"}`,
+                          background: on ? "rgba(45,90,61,.07)" : "#fff",
+                          cursor: "pointer", fontFamily: "inherit",
+                        }}
+                      >
+                        <Avatar name={m.name} photo={memberAvatarThumbSrc(m)} size={34} color={memberAvatarColor(m.id, members)} />
+                        <span style={{
+                          fontSize: 10.5, fontWeight: on ? 800 : 600, color: on ? INK : "#7a9485",
+                          maxWidth: 54, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        }}>
+                          {m.name}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
           </Card>
         ) : (

@@ -1,10 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { CalendarDays, Sparkles, Zap, Baby, Heart, Ban, Meh, Check, ChevronLeft } from "lucide-react";
 import { BottomNav, bottomNavSpacer, SegmentedControl } from "../components/ui.jsx";
-import { SwipeCard } from "../components/SwipeCard.jsx";
+import { SwipeCard, ActionButton } from "../components/SwipeCard.jsx";
 import { FolderPickerSheet } from "./CatalogBrowserSheet.jsx";
 import { allFolders } from "../lib/recipeCollections.js";
-import { buildInspireDeck, eligibleCatalogPool, intentsForRecipe } from "../utils/recipeIntents.js";
+import { buildInspireDeck, eligibleCatalogPool, intentsForRecipe, promoteSocial, spliceUpcoming } from "../utils/recipeIntents.js";
+import { loadSocialRecipes, hideRecipe } from "../lib/social.js";
 
 const GREEN = "#2d5a3d";
 const INK = "#142f1d";
@@ -37,7 +38,7 @@ const INTENTS = [
  *   😐 abajo   → ni fu ni fa: enfría 14 días, así que puede reaparecer.
  */
 export function InspiranosScreen({
-  data, onLike, onDiscard, onNav, onOpenRecipe, onOpenRecipes,
+  data, user = null, onLike, onDiscard, onNav, onOpenRecipe, onOpenRecipes,
   recipeCollections = {}, recipeFolders = [], onCreateFolder, onSetRecipeFolders,
 }) {
   const [intentIdx, setIntentIdx] = useState(0);
@@ -60,8 +61,41 @@ export function InspiranosScreen({
   // Vive en estado y solo se rehace al cambiar de categoría — que además es lo
   // que queremos: descartar o guardar cambia `data`, y no debe reordenar las
   // cartas que aún no has visto.
-  const buildDeck = (intentId) => buildInspireDeck(eligibleCatalogPool(dataRef.current ?? {}), [intentId]);
+  // Recetas públicas de otra gente. El mazo es el único sitio de la app donde
+  // se hace swipe de platos, así que aquí se mezcla catálogo y gente: cuando
+  // eliges plato, de dónde salga es lo de menos. El Feed va de personas.
+  // Entran por `extraRecipes`, o sea por las MISMAS reglas duras que el
+  // catálogo — alergias incluidas.
+  const socialRef = useRef([]);
+  const buildDeck = (intentId) =>
+    promoteSocial(
+      buildInspireDeck(
+        eligibleCatalogPool(dataRef.current ?? {}, { extraRecipes: socialRef.current }),
+        [intentId],
+      ),
+      socialRef.current,
+    );
   const [deck, setDeck] = useState(() => buildDeck(INTENTS[0].id));
+
+  // Llegan después que el mazo (una petición de red). No se rebaraja: eso
+  // cambiaría la carta que tienes delante a mitad de decisión. Se intercalan
+  // en las siguientes, que además es donde se van a ver.
+  useEffect(() => {
+    let alive = true;
+    loadSocialRecipes({ excludeOwnerId: user?.id }).then((rows) => {
+      if (!alive || rows.length === 0) return;
+      socialRef.current = rows;
+      const socialIds = new Set(rows.map((r) => r.id));
+      const pool = eligibleCatalogPool(dataRef.current ?? {}, { extraRecipes: rows });
+      const cards = buildInspireDeck(pool.filter((r) => socialIds.has(r.id)), [intent.id]);
+      if (cards.length === 0) return;
+      setDeck((prev) => spliceUpcoming(prev, index + 1, cards));
+    });
+    return () => { alive = false; };
+    // Solo al montar y al cambiar de usuario: el cambio de categoría ya
+    // reconstruye el mazo entero con `socialRef` dentro.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const pickIntent = (id) => {
     const idx = INTENTS.findIndex((i) => i.id === id);
@@ -80,9 +114,14 @@ export function InspiranosScreen({
         onLike?.(recipe.id, intentsForRecipe(recipe, [intent.id]));
         setLikedIds((prev) => (prev.includes(recipe.id) ? prev : [...prev, recipe.id]));
         setJustLiked(recipe);
+      } else if (recipe.ownerId) {
+        // Receta de OTRA persona: no está en tu biblioteca, así que no hay
+        // nada que mandar a Descartados — esa carpeta es de lo tuyo. Solo se
+        // apunta "no me la vuelvas a enseñar", en el Feed y aquí.
+        hideRecipe(recipe.id);
       } else {
-        // "no" descarta para siempre; "meh" solo la enfría 14 días. Las dos
-        // acaban en la carpeta Descartados, de donde se recuperan.
+        // Del catálogo: "no" descarta para siempre y "meh" la enfría 14 días.
+        // Las dos acaban en Descartados, de donde se recuperan.
         onDiscard?.(recipe.id, dir);
       }
     }
@@ -272,34 +311,11 @@ export function InspiranosScreen({
         />
       )}
 
-      <BottomNav active="recipes" onNav={onNav} />
+      <BottomNav active="feed" onNav={onNav} />
     </div>
   );
 }
 
-function ActionButton({ label, color, size = 60, disabled, onClick, children, ...pointerProps }) {
-  return (
-    <button
-      type="button"
-      aria-label={label}
-      title={label}
-      disabled={disabled}
-      onClick={onClick}
-      {...pointerProps}
-      style={{
-        width: size, height: size, borderRadius: "50%",
-        border: `2px solid ${disabled ? "#e0eae3" : color}`,
-        background: "#fff", color: disabled ? "#c2d2c8" : color,
-        display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: disabled ? "default" : "pointer",
-        boxShadow: disabled ? "none" : "0 3px 12px rgba(20,47,29,.14)",
-        transition: "transform .12s ease",
-      }}
-    >
-      {children}
-    </button>
-  );
-}
 
 const countPill = {
   display: "inline-flex", alignItems: "center", gap: 5,

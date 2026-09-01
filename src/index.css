@@ -32,6 +32,15 @@ textarea::placeholder {
   opacity: 1;
 }
 
+/* El texto escrito tiene que seguir en 16px (ver la nota de arriba: por debajo,
+   iOS hace zoom al enfocar y ya no se sale). Lo que sí puede ir más pequeño es
+   la pista, que no se escribe: así el campo deja de parecer enorme sin
+   reintroducir el zoom. */
+.mp-field::placeholder {
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Hides the native up/down spinner buttons on <input type="number">, used for
    compact numeric fields (e.g. ticket qty/price) where the arrows eat into an
    already-tight width and overlap the digits. */
@@ -137,6 +146,30 @@ textarea::placeholder {
   animation: mpNudge .62s cubic-bezier(.34,1.3,.64,1) .55s 2 backwards;
 }
 
+/* "Asomarse" al menú de alguien: la pantalla crece desde el avatar en vez de
+   deslizarse, para que se sienta como entrar dentro y no como abrir otra hoja
+   más. Corta y con rebote mínimo — es un vistazo, no una transición de gala. */
+@keyframes mpPeekIn {
+  from { opacity: 0; transform: scale(.90) translateY(14px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.mp-peek-in {
+  animation: mpPeekIn .26s cubic-bezier(.22,1.1,.36,1) both;
+}
+
+/* El cajon de perfil entra desde el borde derecho: viene de "fuera de la
+   pantalla", que es justo lo que es — un sitio al lado, no una pantalla nueva
+   que sustituye a la que estabas mirando. */
+@keyframes mpDrawerIn {
+  from { transform: translateX(100%); }
+  to   { transform: translateX(0); }
+}
+
+.mp-drawer-in {
+  animation: mpDrawerIn .34s cubic-bezier(.22,1,.36,1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mp-overlay-in,
   .mp-sheet-up,
@@ -144,7 +177,9 @@ textarea::placeholder {
   .mp-nav-back,
   .mp-tab-fwd,
   .mp-tab-back,
-  .mp-toast-in {
+  .mp-toast-in,
+  .mp-peek-in,
+  .mp-drawer-in {
     animation: mpFadeIn .12s ease both;
   }
 

@@ -60,6 +60,10 @@ function recipeToRow(recipe, userId) {
     photo: recipe.photo ?? null,
     owner_snapshot: recipe.owner ?? null,
     visibility: recipe.visibility ?? "private",
+    // Atribución de copia (0027_social_feed.sql). Instantánea: la copia no
+    // se resincroniza con el original, esto solo sirve para firmar el "de @X".
+    copied_from_recipe_id: recipe.copiedFromRecipeId ?? null,
+    copied_from_owner_id: recipe.copiedFromOwnerId ?? null,
     created_at: recipe.createdAt
       ? new Date(recipe.createdAt).toISOString()
       : new Date().toISOString(),
@@ -106,6 +110,8 @@ export function rowToRecipe(row) {
     photo: row.photo ?? null,
     owner: row.owner_snapshot ?? null,
     visibility: row.visibility ?? "private",
+    copiedFromRecipeId: row.copied_from_recipe_id ?? undefined,
+    copiedFromOwnerId: row.copied_from_owner_id ?? undefined,
     createdAt: row.created_at ? Date.parse(row.created_at) : Date.now(),
     rating: { up: 0, down: 0, score: 0 },
     source: "user",
@@ -125,6 +131,26 @@ export async function loadUserRecipes(userId) {
     return [];
   }
   return (data ?? []).map(rowToRecipe);
+}
+
+/**
+ * Una receta ajena que este usuario puede leer: la RLS de user_recipes deja
+ * pasar las 'public' a cualquiera y las 'friends' a seguidores mutuos. Si no
+ * tienes permiso no da error, devuelve null — y el que copia se entera de
+ * que ya no está disponible, no de que existe.
+ */
+export async function loadPublicRecipe(recipeId) {
+  if (!supabase || !recipeId) return null;
+  const { data, error } = await supabase
+    .from("user_recipes")
+    .select("*")
+    .eq("id", recipeId)
+    .maybeSingle();
+  if (error) {
+    console.warn("[userRecipes] public load failed", error.message);
+    return null;
+  }
+  return data ? rowToRecipe(data) : null;
 }
 
 /** Inserts or updates a single recipe. */

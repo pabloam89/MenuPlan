@@ -1,4 +1,8 @@
-export const MAIN_TABS = ["dashboard", "recipes", "inspiranos", "menus", "pantry", "menu", "shopping", "analytics", "profile"];
+// El orden define la direccion del slide entre pantallas: tiene que reflejar
+// el orden VISUAL de la barra (Inicio - Recetas - Menu - Compra - Feed), o al
+// saltar de tab la animacion empuja hacia el lado contrario del que tocaste.
+// Las pantallas sin tab propio van junto a su tab de origen.
+export const MAIN_TABS = ["dashboard", "profile", "recipes", "menus", "menu", "pantry", "shopping", "analytics", "feed", "inspiranos"];
 
 export function navDirection(from, to) {
   const a = MAIN_TABS.indexOf(from);

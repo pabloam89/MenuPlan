@@ -103,6 +103,7 @@ import { membersOfGroup, isBabyMenuGroup, adhocReasonLabel } from "../lib/groups
 import { eatersForSlot } from "../lib/slotEaters.js";
 import { summarizeMenuRestrictionConflicts } from "../utils/menuConflicts.js";
 import { Avatar, BottomNav, Chip, EmptyIllustration, GroupAvatarStack, GroupScopePicker, SegmentedControl, WeekRangeBadge, bottomNavSpacer, groupAvatarFaces, APP_SHELL_MAX_WIDTH } from "../components/ui.jsx";
+import { ShareMenuSheet } from "../components/ShareMenuSheet.jsx";
 import { CookTimeEditor } from "../components/CookTimeEditor.jsx";
 import { MenuCoachTour, CoachHelpButton } from "../components/HomeCoachTour.jsx";
 import { RestrictionConflictBanner } from "../components/RestrictionConflictBanner.jsx";
@@ -3731,6 +3732,11 @@ export const MenuScreen = memo(function MenuScreen({
   shoppingItems = null,
   readOnly = false,
   readOnlyLabel = null,
+  // Publicar el menu en el Feed (distinto del "Compartir" nativo de abajo,
+  // que manda texto por WhatsApp/portapapeles y no publica nada en la app).
+  onPublishToFeed = null,
+  onUnpublishFromFeed = null,
+  menuSharedInFeed = false,
 }) {
   const [scope, setScope] = useState("all");
   const [profileOpen, setProfileOpen] = useState(false);
@@ -3940,6 +3946,8 @@ export const MenuScreen = memo(function MenuScreen({
     () => (data.groups ?? []).filter((g) => membersOfGroup(g, data.members).length > 0),
     [data.groups, data.members],
   );
+
+  const [publishSheetOpen, setPublishSheetOpen] = useState(false);
 
   const handleShare = async () => {
     try {
@@ -4298,7 +4306,8 @@ export const MenuScreen = memo(function MenuScreen({
                     // "Análisis" y "Borrar menú" quitados de momento (2026-08-27):
                     // para borrar, ahora se genera otro menú por encima.
                     onOpenMenus && { key: "menus", label: "Menús guardados", Icon: History, coach: "menu-menus", action: onOpenMenus, tint: "#f0e9fe", ink: "#7c3aed" },
-                    hasMenu && { key: "share", label: "Compartir", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
+                    hasMenu && onPublishToFeed && { key: "feed", label: menuSharedInFeed ? "Menú en el Feed" : "Publicar en el Feed", Icon: Users, action: () => setPublishSheetOpen(true), tint: "#e6efff", ink: "#4a6fd4" },
+                    hasMenu && { key: "share", label: "Compartir fuera", Icon: Share2, action: handleShare, tint: "#e0f4f1", ink: "#0d9488" },
                     hasMenu && { key: "download", label: "Descargar PDF", Icon: Download, action: handleDownload, tint: "#fdf0e0", ink: "#d97706" },
                     !isGenerating && !readOnly && onRegenerate && { key: "regen", label: "Regenerar menú", Icon: RotateCw, action: onRegenerate, tint: "#e6f6ec", ink: "#16a34a" },
                   ]
@@ -4869,6 +4878,21 @@ export const MenuScreen = memo(function MenuScreen({
       )}
 
       {showIconCoach && <MenuCoachTour onClose={() => setShowIconCoach(false)} />}
+
+      {publishSheetOpen && (
+        <ShareMenuSheet
+          shared={menuSharedInFeed}
+          onPublish={async (scope) => {
+            const done = await onPublishToFeed?.(scope);
+            if (done) setPublishSheetOpen(false);
+          }}
+          onUnpublish={async () => {
+            await onUnpublishFromFeed?.();
+            setPublishSheetOpen(false);
+          }}
+          onClose={() => setPublishSheetOpen(false)}
+        />
+      )}
 
       <BottomNav active="menu" onNav={onNav} />
     </div>

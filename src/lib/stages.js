@@ -194,6 +194,24 @@ const firstNameOf = (name) =>
  * so it is matched on first name against the signed-in account and left
  * undefined when there is no unambiguous match.
  */
+/**
+ * Cual de los miembros eres TU.
+ *
+ * Antes solo existia findAccountMember(), que lo adivina comparando tu nombre
+ * de Google con el de cada miembro — y devuelve null si no coincide ninguno o
+ * si coinciden dos. Es decir: si en Google te llamas "Jose Luis" y en la app
+ * te pusiste "Josele", la app no sabia quien eras y no lo decia.
+ *
+ * Ahora manda `accountMemberId`, que se marca a mano. La adivinanza se queda
+ * de respaldo para quien todavia no lo haya marcado, asi que nadie pierde el
+ * comportamiento que tenia.
+ */
+export function resolveAccountMember(members, accountMemberId, accountName) {
+  const explicit = (members ?? []).find((m) => m.id === accountMemberId);
+  if (explicit) return explicit;
+  return findAccountMember(members, accountName);
+}
+
 export function findAccountMember(members, accountName) {
   const target = firstNameOf(accountName);
   if (!target) return null;

@@ -53,7 +53,7 @@ import { deckImg } from "../lib/dishPhotoOptimize.js";
 import { allFolders, collectionRecipeIds, collectionCounts, DISCARDED_ID } from "../lib/recipeCollections.js";
 
 // Carpeta virtual: todo lo que has guardado, sin filtrar por carpeta.
-const ALL_ID = "__all__";
+export const ALL_ID = "__all__";
 
 // Arte de cada carpeta fija, reusando las ilustraciones que ya existen — las
 // tres facetas coinciden con el criterio real del filtro (gourmet = apetecible,
@@ -70,7 +70,7 @@ const COLLECTION_ART = {
 
 const CUSTOM_FOLDER_ART = { Icon: FolderIcon, img: "/avatares/cards/otros.jpg" };
 
-const folderArt = (id) => COLLECTION_ART[id] ?? CUSTOM_FOLDER_ART;
+export const folderArt = (id) => COLLECTION_ART[id] ?? CUSTOM_FOLDER_ART;
 import { favoriteRecipeIds, getFavoriteScope, isRecipeFavorite, applyFavoriteScopePick } from "../lib/recipeVotes.js";
 import { categoryImageSrc, proteinImageSrc } from "../lib/ingredientImages.js";
 import { RecipeProvenance } from "../components/RecipeProvenance.jsx";
