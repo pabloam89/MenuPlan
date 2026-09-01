@@ -272,6 +272,7 @@ export function HomeProfileScreen({
   onReset,
   onDeleteAccount,
   onEditMembers,
+  onEditPreferences,
   onOpenHouseholds,
   activeHousehold,
   householdReadOnly = false,
@@ -405,6 +406,18 @@ export function HomeProfileScreen({
 
         {/* ── 2. Tu familia ─────────────────────────── */}
         <FamilyOptionRow members={members} onEditMembers={onEditMembers} />
+
+        {/* Alergias y restricciones se preguntan una sola vez, en el alta
+            (justo después de los avatares), y ya no vuelven a aparecer en el
+            asistente de menú — así que este es el sitio donde se cambian. */}
+        {onEditPreferences && !householdReadOnly && (
+          <ProfileOptionRow
+            img="/avatares/cards/cook_alergias.jpg"
+            title="Gestionar alergias"
+            subtitle="Alergias, intolerancias y lo que no coméis."
+            onClick={onEditPreferences}
+          />
+        )}
 
         {/* ── Cuentas compartidas ───────────────────── */}
         {/* "Hogares" perdió su icono en Inicio (2026-08-24) — cambiar de hogar

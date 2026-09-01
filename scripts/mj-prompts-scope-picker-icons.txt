@@ -1,0 +1,61 @@
+Esquema — iconos del picker "¿Qué quieres ajustar de tu menú?" (12 temas, modo Filas).
+Misma fórmula que el catálogo de ingredientes (mismo seed, para que casen con
+el resto de iconografía de la app), pero con fondo de color en vez de blanco:
+cada tema lleva su propio tono, a modo de badge — así la lista de filas se
+lee de un vistazo por color, no solo por icono.
+Esquema (seed 2151241667):
+[{slug}] cute stylized 3D cartoon render in the style of Pixar and Disney, {objeto}, soft clay-like texture, centered composition, soft radial gradient background in {color}, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+Archivo: Avatares/cards/iconos wizard/{slug}.png
+De ahí a la app con: python scripts/make_scope_picker_icons.py
+(redimensiona a 512x512 webp en public/avatares/cards/scope_picker/)
+
+--- CUÁNDO Y CUÁNTO ---
+
+[semana] cute stylized 3D cartoon render in the style of Pixar and Disney, a small desk calendar with one week circled in green marker, soft clay-like texture, centered composition, soft radial gradient background in deep teal, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[compra] cute stylized 3D cartoon render in the style of Pixar and Disney, a rounded shopping cart filled with a few colorful groceries, soft clay-like texture, centered composition, soft radial gradient background in warm amber, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+--- QUIÉN COME QUÉ ---
+
+[horario] cute stylized 3D cartoon render in the style of Pixar and Disney, a chunky map pin with a tiny house icon inside it, soft clay-like texture, centered composition, soft radial gradient background in leaf green, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[cole] cute stylized 3D cartoon render in the style of Pixar and Disney, a graduation cap with a dangling tassel, soft clay-like texture, centered composition, soft radial gradient background in sky blue, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[ninos] cute stylized 3D cartoon render in the style of Pixar and Disney, a small baby bottle with a pastel pink cap, soft clay-like texture, centered composition, soft radial gradient background in soft pink, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+--- CÓMO COMÉIS ---
+
+[estilo] cute stylized 3D cartoon render in the style of Pixar and Disney, a wooden bowl of fresh mixed salad with cherry tomatoes, soft clay-like texture, centered composition, soft radial gradient background in fresh lime green, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[estructura] cute stylized 3D cartoon render in the style of Pixar and Disney, a fork and knife crossed over each other, soft clay-like texture, centered composition, soft radial gradient background in coral red, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[extras] cute stylized 3D cartoon render in the style of Pixar and Disney, a steaming cup of coffee with a small croissant beside it, soft clay-like texture, centered composition, soft radial gradient background in warm caramel brown, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+--- CÓMO COCINÁIS ---
+
+# Pendiente de generar. De momento el badge usa una copia encogida de la
+# alacena de Pantry.jsx (/avatares/cards/despensa.png), pero a 34px tiene
+# demasiado detalle y encima lleva carita, que el resto del juego no.
+#
+# La caja de cartón del primer intento tampoco valía (parecía una mudanza), y
+# un mueble abierto con baldas se emborrona igual a ese tamaño: en la tira de
+# badges los que leen son los de UNA pieza con silueta clara — calendario,
+# pin, birrete, biberón, cubiertos, cronómetro. Así que un bote, no un mueble.
+#
+# Ojo con el amarillo: compra ya es warm amber y extras caramel brown. Que
+# tire a amarillo franco; si se confunde con compra, probar soft terracotta.
+[despensa] cute stylized 3D cartoon render in the style of Pixar and Disney, a single chunky glass storage jar with a wooden lid, half filled with dry pasta and beans, soft clay-like texture, centered composition, soft radial gradient background in mustard yellow, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+# Alternativas por si el bote de cristal sale muy transparente / poco rotundo:
+[despensa-b] cute stylized 3D cartoon render in the style of Pixar and Disney, two rounded ceramic storage jars stacked one on top of the other, chunky wooden lids, soft clay-like texture, centered composition, soft radial gradient background in mustard yellow, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[despensa-c] cute stylized 3D cartoon render in the style of Pixar and Disney, a chunky rounded tin can with its lid half peeled open, soft clay-like texture, centered composition, soft radial gradient background in mustard yellow, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[cocina] cute stylized 3D cartoon render in the style of Pixar and Disney, a classic white chef hat, soft clay-like texture, centered composition, soft radial gradient background in deep violet, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+# Sin usar: la tarjeta de electros enseña el aparato que tengas marcado
+# (/avatares/cards/electrodomesticos/*.webp), con la Thermomix de portada.
+[electros] cute stylized 3D cartoon render in the style of Pixar and Disney, a small metallic cooking pot with a lid slightly ajar and a wisp of steam, soft clay-like texture, centered composition, soft radial gradient background in slate blue-grey, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1
+
+[tiempos] cute stylized 3D cartoon render in the style of Pixar and Disney, a small round kitchen timer with a twist dial, soft clay-like texture, centered composition, soft radial gradient background in cyan blue, subtle vignette, soft drop shadows --no face, eyes, mouth, text --seed 2151241667 --ar 1:1

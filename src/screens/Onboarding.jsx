@@ -84,7 +84,6 @@ import {
   GroupAvatarStack,
   groupAvatarFaces,
   ToggleSwitch,
-  WizardSheet,
 } from "../components/ui.jsx";
 import { MAX_MENU_WEEKS } from "../lib/menuArchive.js";
 import { getWeekDatesByMenuWeek, calendarDayNumber, formatWeekRangeLabel } from "../lib/weekCalendar.js";
@@ -224,6 +223,13 @@ export function OnboardingShell({
   onFinish,
   nextLabel = "Continuar",
   finishLabel = "Generar menú",
+  // El título sube a la fila de los botones en vez de ir debajo. Para pasos
+  // que no son "un paso más" del asistente sino su portada (el picker de
+  // ajustes), donde no hay barra de progreso que ocupe ese hueco.
+  inlineTitle = false,
+  // "Salir" en texto se come ~62px de la fila y con el título al lado no cabe
+  // en una línea. Con chevron el título se queda con todo el ancho.
+  resetAsChevron = false,
   nextDisabled = false,
   finishDisabled = false,
   bg = "#f5f9f6",
@@ -273,8 +279,29 @@ export function OnboardingShell({
               Atrás
             </button>
           )}
+          {!onBack && resetAsChevron && onReset && (
+            <button
+              type="button"
+              onClick={onReset}
+              aria-label="Atrás"
+              style={{ ...headerBtn, padding: 0, width: 34, height: 34, display: "flex" }}
+            >
+              <ChevronLeft size={18} strokeWidth={2.6} />
+            </button>
+          )}
         </div>
-        {progress && (
+        {/* El hueco central se reserva aunque no haya barra ni título: si no,
+            en los pasos sin progreso NI "Atrás" (Familia en el alta) el botón
+            de la derecha se iba a la izquierda. */}
+        {inlineTitle && title ? (
+          // nowrap + cuerpo justito: la promesa aquí es "una línea". Medido:
+          // el título del picker pide 267px a 17px, y el hueco más estrecho
+          // (móvil de 360 menos padding, chevron y gap) son 278. Entra hasta
+          // pantallas de ~349px de ancho.
+          <h2 style={{ flex: 1, minWidth: 0, margin: 0, fontSize: 17, fontWeight: 900, color: "#1a3a24", letterSpacing: "-.5px", lineHeight: 1.2, whiteSpace: "nowrap" }}>
+            {title}
+          </h2>
+        ) : progress ? (
           <div style={{ flex: 1, minWidth: 0, display: "flex", justifyContent: "center" }}>
             <ProgressDots
               current={progress.current}
@@ -283,9 +310,11 @@ export function OnboardingShell({
               compact
             />
           </div>
+        ) : (
+          <div style={{ flex: 1, minWidth: 0 }} />
         )}
         <div style={{ flex: "0 0 auto" }}>
-          {onReset && (
+          {onReset && !resetAsChevron && (
             <button type="button" onClick={onReset} style={headerBtn}>
               Salir
             </button>
@@ -293,7 +322,7 @@ export function OnboardingShell({
         </div>
       </div>
 
-      {title && (
+      {title && !inlineTitle && (
         <h2 style={{ fontSize: 22, fontWeight: 800, color: "#1a3a24", margin: "0 0 4px" }}>
           {title}
         </h2>
@@ -2558,7 +2587,11 @@ function RestrictionTabCard({
               }}
             />
           )}
-          {textOverlay && (
+          {/* Gradiente + texto solo si hay algo que decir encima de la imagen:
+              con textOverlay=true pero sin title/subtitle (caso "Nivel" como
+              pill en la esquina) no queremos oscurecer la ilustración con un
+              degradado que no sostiene ningún texto. */}
+          {textOverlay && (title || subtitle) && (
             <div style={{
               position: "absolute", inset: 0,
               background: "linear-gradient(to top, rgba(0,0,0,.72) 0%, rgba(0,0,0,.22) 50%, transparent 100%)",
@@ -6127,21 +6160,6 @@ const DEMO_SCHOOL_ENTRIES = {
 // Same card language as "¿Cómo coméis en casa?" — both screens ask the same
 // kind of question (one menú for everyone, or one each), so they shouldn't look
 // like two different controls.
-const SCHOOL_SCOPE_CARDS = [
-  {
-    value: "shared",
-    img: "/avatares/cards/mismo_menu_ninos.png",
-    label: "Mismo menú para todos",
-    desc: "Todos comen lo mismo en el comedor",
-  },
-  {
-    value: "individual",
-    img: "/avatares/cards/distinto_menu_ninos.png",
-    label: "Por niño/a",
-    desc: "Cada uno con el menú de su cole",
-  },
-];
-
 // Turn a parser week label ("Semana 1 (1 Jun)") into a title + a Mon–Fri date
 // range for the multi-select. School weeks run Lun–Vie, so the end date is the
 // start + 4 days. Falls back gracefully when the label has no parseable date.
@@ -6223,7 +6241,6 @@ function schoolToolBtn(danger) {
 export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, onReset, demoScript = false }) {
   const schoolKids = data.members.filter((m) => tierForMember(m) === "child");
   const [scope, setScope] = useState("shared");
-  const [uploadOpen, setUploadOpen] = useState(false);
   const [activeKidId, setActiveKidId] = useState(schoolKids[0]?.id ?? null);
   const [importing, setImporting] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
@@ -6446,19 +6463,55 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
     });
   };
 
-  // A row of one child leaves the upload button stranded next to a big gap, so
-  // it carries the formats as a label. Past three children the circles need
-  // that width more than the label does — the icon and the sheet's own
-  // subtitle still say what it takes. The shared menú is a single stack, capped
-  // at three faces plus a counter, so it never crowds the label out.
-  const uploadCompact = scope === "individual" && schoolKids.length > 3;
+  // La fila de avatares es a la vez "para quién subo esto" y "qué menú reviso
+  // abajo": "Todos" es el menú compartido, cada cara el suyo propio.
+  const scopeValue = scope === "shared" ? "shared" : activeKidId;
+  const firstName = (m) => (m?.name ?? "").trim().split(/\s+/)[0] || m?.name || "";
+  const soleKid = schoolKids.length === 1 ? schoolKids[0] : null;
 
-  // Picking a card is also the way in to uploading: the choice only matters
-  // because of the file that follows it, so the two happen in one gesture.
-  const openUpload = (value) => {
-    setScope(value);
+  const kidOption = (m) => ({
+    id: m.id,
+    label: firstName(m),
+    abbrev: (m.name ?? "?").trim().charAt(0).toUpperCase() || "?",
+    color: memberAvatarColor(m.id, data.members),
+    members: [m],
+  });
+
+  // "Todos" es el menú compartido y cada cara el suyo propio. Con un solo niño
+  // las dos cosas son la misma: se pinta su cara sola, sin ancla de grupo ni
+  // divisor, y el menú se guarda igualmente en el scope compartido.
+  const scopeOptions = soleKid
+    ? [{ ...kidOption(soleKid), id: "shared" }]
+    : [
+        { id: "shared", label: "Todos", abbrev: "T", color: "#2d5a3d", members: schoolKids },
+        ...schoolKids.map(kidOption),
+      ];
+
+  // Lo que se ve debajo del selector depende de lo elegido arriba: con "Todos"
+  // una sola subida para el menú compartido; en cuanto tocas a un hijo, la
+  // lista entera de hijos, cada uno con la suya — elegir a uno es elegir
+  // "cada niño por su lado", no "solo este".
+  const uploadRows = scope === "shared" ? [scopeOptions[0]] : schoolKids.map(kidOption);
+
+  // Semanas ya guardadas para una fila — lo que enciende su check.
+  const weeksLoadedFor = (id) =>
+    smNorm.weeks.filter((w) => (id === "shared" ? entryHas(w.shared) : entryHas(w.byMember?.[id]))).length;
+
+  // Subir desde una fila también la selecciona, para que la revisión de abajo
+  // enseñe el menú que acabas de cargar.
+  const uploadFor = (id) => {
+    pickScope(id);
+    fileInputRef.current?.click();
+  };
+
+  const pickScope = (id) => {
     setImportError(null);
-    setUploadOpen(true);
+    if (id === "shared") {
+      setScope("shared");
+    } else {
+      setScope("individual");
+      setActiveKidId(id);
+    }
   };
 
   const handleFile = async (file) => {
@@ -6611,150 +6664,105 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
   return (
     <OnboardingShell
       title="¿Cómo organizamos el menú del cole?"
-      subtitle="Sube el menú del comedor: igual para todos o distinto por niño."
+      subtitle={soleKid
+        ? `Sube el menú del comedor de ${firstName(soleKid)} y lo repartimos por días.`
+        : "Sube el menú del comedor: igual para todos o distinto por niño."}
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
     >
-      {/* Before any menú is loaded: the two big choice cards double as the
-          upload entry point. Once a menú exists we drop them entirely (the deck
-          below is the focus); upload/delete live in the review toolbar. */}
-      {!hasAnyDish && (
-      <div style={{ display: "flex", flexDirection: "column", gap: 12, height: "100%", paddingBottom: 4 }}>
-        {SCHOOL_SCOPE_CARDS.map(({ value, img, label, desc }) => {
-          const sel = scope === value;
+      {/* Sin pop-up: para quién es el menú y el archivo, en el mismo sitio.
+          Antes había que elegir entre dos tarjetas grandes («todos» / «por
+          niño») y el upload llegaba después en una hoja aparte — pero esa
+          elección no se entiende hasta que tienes el archivo delante, así que
+          ahora van juntos y la fila de avatares hace de las dos tarjetas.
+          Elegir a un niño aquí también cambia el menú que revisas abajo. */}
+      <div style={{ marginBottom: 14 }}>
+        {/* Arriba, quién: todas las caras juntas como "Todos", y al otro lado
+            del divisor cada hijo por su cuenta. Sin botón de subir — esta fila
+            solo elige el destino; el archivo va debajo, uno para lo que tengas
+            seleccionado. */}
+        <ScopeCirclePicker
+          value={scopeValue}
+          onChange={pickScope}
+          allMembers={data.members}
+          options={scopeOptions}
+          dividerAfterFirst={!soleKid}
+          style={{ marginBottom: 18 }}
+        />
+
+        {/* Debajo, el archivo. Con "Todos" es una sola fila con las caras
+            juntas; por hijo, una fila por cada uno con su propia subida. */}
+        {uploadRows.map((r) => {
+          const on = scopeValue === r.id;
+          const weeks = weeksLoadedFor(r.id);
+          const busy = importing && on;
           return (
-            <button
-              key={value}
-              type="button"
-              onClick={() => openUpload(value)}
-              style={{
-                position: "relative",
-                flex: 1,
-                minHeight: 0,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "stretch",
-                width: "100%",
-                textAlign: "center",
-                padding: 0,
-                borderRadius: 18,
-                cursor: "pointer",
-                overflow: "hidden",
-                background: sel ? CARD_ACCENT_TEAL : "#f7f9f8",
-                border: `2.5px solid ${sel ? CARD_ACCENT_TEAL : "#e8ede9"}`,
-                boxShadow: sel ? "0 4px 18px rgba(15,118,110,.3)" : "none",
-                transition: "all .18s ease",
-                fontFamily: "inherit",
-              }}
-            >
-              {sel && (
-                <span
-                  style={{
-                    position: "absolute", top: 8, right: 8, zIndex: 2,
-                    width: 20, height: 20, borderRadius: 999,
-                    background: CARD_ACCENT_TEAL, border: "1.5px solid #fff",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                  }}
-                >
-                  <Check size={11} color="#fff" strokeWidth={3} />
-                </span>
-              )}
-              <img
-                src={img}
-                alt=""
-                style={{
-                  width: "100%",
-                  flex: 1,
-                  minHeight: 90,
-                  borderBottom: `1px solid ${sel ? "rgba(255,255,255,.15)" : "#e8ede9"}`,
-                  objectFit: "cover",
-                  objectPosition: "center 20%",
-                  display: "block",
-                }}
-              />
-              <span style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 6, padding: "11px 16px 13px" }}>
-                <span>
-                  <div style={{ fontWeight: 800, color: sel ? "#fff" : "#1a3a24", fontSize: 15, marginBottom: 3 }}>{label}</div>
-                  <div style={{ fontSize: 12, color: sel ? "rgba(255,255,255,.75)" : "#7a9080", lineHeight: 1.35 }}>{desc}</div>
-                </span>
-              </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {uploadOpen && (
-      <WizardSheet
-        icon={School}
-        title={scope === "individual" ? "Por niño/a" : "Mismo menú para todos"}
-        subtitle="Sube el PDF, la foto o el CSV del comedor"
-        onClose={() => !importing && setUploadOpen(false)}
-      >
-      {/* Who the menú is for, then upload, then done — one row of circles and
-          icons instead of three stacked full-width blocks. */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
-        {/* Shrinks (and scrolls) as people are added so the upload button keeps
-            the leftover width instead of stranding it as a gap. */}
-        <div style={{ display: "flex", gap: 10, overflowX: "auto", flex: "0 1 auto", minWidth: 0 }}>
-          {scope === "individual" ? (
-            schoolKids.map((m) => (
+            <div key={r.id} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginTop: 8 }}>
               <ScopeCircle
-                key={m.id}
-                label={(m.name ?? "").trim().split(/\s+/)[0] || m.name}
-                color={memberAvatarColor(m.id, data.members)}
-                members={[m]}
+                label={r.label}
+                abbrev={r.abbrev}
+                color={r.color}
+                members={r.members}
                 allMembers={data.members}
-                active={m.id === activeKidId}
-                onClick={() => setActiveKidId(m.id)}
+                active={on}
+                onClick={() => pickScope(r.id)}
               />
-            ))
-          ) : (
-            <ScopeCircle
-              label="Todos"
-              abbrev="T"
-              color="#2d5a3d"
-              members={schoolKids}
-              allMembers={data.members}
-              active
-            />
-          )}
-        </div>
 
-        <button
-          type="button"
-          onClick={() => !importing && fileInputRef.current?.click()}
-          disabled={importing}
-          aria-label="Subir PDF, foto o CSV"
-          title="Subir PDF, foto o CSV"
-          style={{
-            flex: 1,
-            minWidth: 46,
-            height: 46,
-            borderRadius: 14,
-            border: "1.5px dashed rgba(45,90,61,.45)",
-            background: importing ? "#eef3f0" : "#fff",
-            color: "#2d5a3d",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 7,
-            padding: "0 10px",
-            fontSize: 12,
-            fontWeight: 800,
-            fontFamily: "inherit",
-            cursor: importing ? "default" : "pointer",
-          }}
-        >
-          {importing ? <Loader2 size={17} className="rotating" /> : <Upload size={17} />}
-          {!uploadCompact && (
-            <span style={{ whiteSpace: "nowrap" }}>
-              {importing ? "Procesando…" : "PDF, foto o CSV"}
-            </span>
-          )}
-        </button>
+              <button
+                type="button"
+                onClick={() => !importing && uploadFor(r.id)}
+                disabled={importing}
+                aria-label={`Subir el menú de ${r.label} — PDF, foto o CSV`}
+                style={{
+                  flex: 1,
+                  minWidth: 46,
+                  height: 46,
+                  borderRadius: 14,
+                  border: "1.5px dashed rgba(45,90,61,.45)",
+                  background: importing ? "#eef3f0" : "#fff",
+                  color: "#2d5a3d",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 7,
+                  padding: "0 10px",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  fontFamily: "inherit",
+                  cursor: importing ? "default" : "pointer",
+                }}
+              >
+                {busy ? <Loader2 size={17} className="rotating" /> : <Upload size={17} />}
+                <span style={{ whiteSpace: "nowrap" }}>
+                  {busy ? "Procesando…" : "PDF, foto o CSV"}
+                </span>
+              </button>
+
+              {/* El check de la hoja, ahora estado en vez de botón: no hay nada
+                  que cerrar, así que dice si esa fila ya tiene su menú. */}
+              <span
+                title={weeks > 0
+                  ? `${weeks} ${weeks === 1 ? "semana cargada" : "semanas cargadas"}`
+                  : "Sin menú todavía"}
+                style={{
+                  flexShrink: 0,
+                  width: 46,
+                  height: 46,
+                  borderRadius: 14,
+                  background: weeks > 0 ? "#1a3a24" : "#e4ebe6",
+                  color: weeks > 0 ? "#fff" : "#b3c3ba",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Check size={20} />
+              </span>
+            </div>
+          );
+        })}
         <input
           ref={fileInputRef}
           type="file"
@@ -6764,143 +6772,125 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
           style={{ display: "none" }}
         />
 
-        <button
-          type="button"
-          onClick={() => setUploadOpen(false)}
-          disabled={importing}
-          aria-label="Listo"
-          title="Listo"
-            style={{
-            flexShrink: 0,
-            width: 46,
-            height: 46,
-            borderRadius: 14,
-            border: "none",
-            background: importing ? "#b8c9be" : "#1a3a24",
-            color: "#fff",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-            cursor: importing ? "default" : "pointer",
-          }}
-        >
-          <Check size={20} />
-        </button>
-      </div>
+        {!hasAnyDish && !importing && (
+          <p style={{ margin: "10px 0 0", fontSize: 11.5, lineHeight: 1.4, color: "#7a9080" }}>
+            Leemos los platos de cada día y te los enseñamos aquí para que los
+            revises. Si no lo tienes a mano, puedes seguir sin él.
+          </p>
+        )}
 
-            {importing ? (
-        <div style={{ marginBottom: 10 }}>
-          <div style={{ height: 5, borderRadius: 3, background: "#e4ebe6", overflow: "hidden", marginBottom: 5 }}>
-                  <div
-                    style={{
-                      height: "100%",
-                      width: `${Math.round(displayProgress * 100)}%`,
-                      background: "#2d5a3d",
-                      borderRadius: 3,
-                      transition: "width .8s ease",
-                    }}
-                  />
-                </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8d978f" }}>
-            <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
-                    {displayStatus || "…"}
-                  </span>
-            <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{importElapsedSec}s</span>
-                </div>
-                </div>
-      ) : (
-        importedFileName && (
-                  <div
-                    style={{
-              fontSize: 11.5,
-              color: "#7a9080",
-              marginBottom: 10,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {importedFileName}
+              {importing ? (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ height: 5, borderRadius: 3, background: "#e4ebe6", overflow: "hidden", marginBottom: 5 }}>
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${Math.round(displayProgress * 100)}%`,
+                        background: "#2d5a3d",
+                        borderRadius: 3,
+                        transition: "width .8s ease",
+                      }}
+                    />
                   </div>
-        )
-      )}
+            <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#8d978f" }}>
+              <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", flex: 1, minWidth: 0 }}>
+                      {displayStatus || "…"}
+                    </span>
+              <span style={{ flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{importElapsedSec}s</span>
+                  </div>
+                  </div>
+        ) : (
+          importedFileName && (
+                    <div
+                      style={{
+                fontSize: 11.5,
+                color: "#7a9080",
+                marginBottom: 10,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {importedFileName}
+                    </div>
+          )
+        )}
 
-      {importError && (
-        <div
-          style={{
-            background: "#fff3e6",
-            border: "1px solid #f0d0b0",
-            color: "#a35a1f",
-            borderRadius: 10,
-            padding: "8px 10px",
-            fontSize: 11,
-            marginBottom: 8,
-          }}
-        >
-          {importError}
-        </div>
-      )}
+        {importError && (
+          <div
+            style={{
+              background: "#fff3e6",
+              border: "1px solid #f0d0b0",
+              color: "#a35a1f",
+              borderRadius: 10,
+              padding: "8px 10px",
+              fontSize: 11,
+              marginBottom: 8,
+            }}
+          >
+            {importError}
+          </div>
+        )}
 
 
-      {/* Multi-select of every detected week: tick the ones you want to use.
-          Each ticked week becomes a distinct week of your menú. Unticking them
-          all is how you "don't use" a menú — no explicit empty button needed.
-          Stacked full-width rows, each showing its date range (Mon–Fri). */}
-      {parsedWeeks.length > 1 && !importing && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
-          {parsedWeeks.map((w, i) => {
-            const sel = selectedWeekIdxs.has(i);
-            const dishes = Object.keys(w.entries ?? {}).length;
-            const disabled = dishes === 0;
-            const { title, range } = weekChipLabel(w.weekLabel, i);
-            return (
-              <button
-                key={i}
-                type="button"
-                onClick={() => !disabled && toggleWeek(i)}
-                disabled={disabled}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 10,
-                  width: "100%",
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: `1.5px solid ${sel ? "#2d5a3d" : "#d7e5dc"}`,
-                  background: disabled ? "#f1f4f2" : sel ? "#2d5a3d" : "#fff",
-                  color: disabled ? "#aebbb2" : sel ? "#fff" : "#2d5a3d",
-                  fontFamily: "inherit",
-                  cursor: disabled ? "default" : "pointer",
-                  textAlign: "left",
-                  transition: "all .15s ease",
-                }}
-              >
-                <span style={{ width: 82, flexShrink: 0, fontSize: 13.5, fontWeight: 800 }}>{title}</span>
-                <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: disabled ? "#b9c4bd" : sel ? "rgba(255,255,255,.82)" : "#7a9080", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-                  {range || ""}
-                </span>
-                <span
+        {/* Multi-select of every detected week: tick the ones you want to use.
+            Each ticked week becomes a distinct week of your menú. Unticking them
+            all is how you "don't use" a menú — no explicit empty button needed.
+            Stacked full-width rows, each showing its date range (Mon–Fri). */}
+        {parsedWeeks.length > 1 && !importing && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 8 }}>
+            {parsedWeeks.map((w, i) => {
+              const sel = selectedWeekIdxs.has(i);
+              const dishes = Object.keys(w.entries ?? {}).length;
+              const disabled = dishes === 0;
+              const { title, range } = weekChipLabel(w.weekLabel, i);
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => !disabled && toggleWeek(i)}
+                  disabled={disabled}
                   style={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: 6,
-                    flexShrink: 0,
-                    display: "inline-flex",
+                    display: "flex",
                     alignItems: "center",
-                    justifyContent: "center",
-                    border: `1.5px solid ${sel ? "rgba(255,255,255,.85)" : "#c5d4cb"}`,
-                    background: sel ? "rgba(255,255,255,.2)" : "#fff",
+                    gap: 10,
+                    width: "100%",
+                    padding: "10px 14px",
+                    borderRadius: 12,
+                    border: `1.5px solid ${sel ? "#2d5a3d" : "#d7e5dc"}`,
+                    background: disabled ? "#f1f4f2" : sel ? "#2d5a3d" : "#fff",
+                    color: disabled ? "#aebbb2" : sel ? "#fff" : "#2d5a3d",
+                    fontFamily: "inherit",
+                    cursor: disabled ? "default" : "pointer",
+                    textAlign: "left",
+                    transition: "all .15s ease",
                   }}
                 >
-                  {sel && <Check size={12} strokeWidth={3.4} color="#fff" />}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-      </WizardSheet>
-      )}
+                  <span style={{ width: 82, flexShrink: 0, fontSize: 13.5, fontWeight: 800 }}>{title}</span>
+                  <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: disabled ? "#b9c4bd" : sel ? "rgba(255,255,255,.82)" : "#7a9080", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                    {range || ""}
+                  </span>
+                  <span
+                    style={{
+                      width: 18,
+                      height: 18,
+                      borderRadius: 6,
+                      flexShrink: 0,
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      border: `1.5px solid ${sel ? "rgba(255,255,255,.85)" : "#c5d4cb"}`,
+                      background: sel ? "rgba(255,255,255,.2)" : "#fff",
+                    }}
+                  >
+                    {sel && <Check size={12} strokeWidth={3.4} color="#fff" />}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       {/* "Cena de los niños = comida de los adultos" ya no vive aquí: se decide
           en la pantalla dedicada «¿Cómo comen los niños?» (OnboardingKidsDinner),
@@ -6949,15 +6939,6 @@ export function OnboardingSchoolMenu({ data, setData, onNext, onBack, onFinish, 
             ) : (
               <span style={{ flex: 1 }} />
             )}
-            <button
-              type="button"
-              onClick={() => openUpload(scope)}
-              aria-label="Subir otro menú"
-              title="Cambiar / subir otro"
-              style={schoolToolBtn(false)}
-            >
-              <Upload size={16} />
-            </button>
             {weekCount > 1 && (
               <button
                 type="button"
@@ -8723,10 +8704,11 @@ export function OnboardingMealExtrasOtros(props) {
 
 
 // ── ¿Cómo quieres usar la app? (sencillo vs avanzado) ────────────────────────
-// Primera pantalla del asistente: el modo decide QUÉ preguntas vienen después
-// (estilo de comida, extras, nivel de cocina, variedad…), así que tiene que ir
-// antes que todas. Antes vivía en una hoja que saltaba sola en Inicio y en una
-// píldora de la cabecera, y a la gente se le pasaba; aquí no.
+// FUERA DEL ASISTENTE desde 2026-09-01: el paso 0 es ahora ScopePickerScreen
+// ("¿Qué quieres ajustar de tu menú?"), que responde la misma pregunta —
+// cuánto me quiero meter — pero enseñando qué preguntas te ahorras en vez de
+// pedir un sí/no a ciegas. `expertMode` lo sigue fijando ese picker (marcar
+// algo = avanzado). Se conserva aquí por si hiciera falta recuperarlo.
 export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onReset, nextLabel }) {
   const current = data.expertMode ? "expert" : "basic";
   return (
@@ -8764,6 +8746,7 @@ export function OnboardingMode({ data, setData, onNext, onBack, onFinish, onRese
             }
           />
         ))}
+
       </div>
     </OnboardingShell>
   );
@@ -9446,23 +9429,88 @@ function capitalize(text) {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
 
+// Nivel de cocina. Antes compartía pantalla con los electrodomésticos, pero
+// son dos preguntas distintas (cuánto disfrutas vs. qué tienes en la encimera)
+// y juntas obligaban a hacer scroll. Ahora: una columna, tres filas, y cada
+// tarjeta se reparte el alto que haya.
 export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
+  // Arte horizontal (16:9): al apilarse en una columna la celda es apaisada, y
+  // los cuadrados originales se recortaban por arriba y por abajo dejando al
+  // personaje descabezado. Los cuadrados siguen en uso donde la celda es 1:1
+  // (el picker de ajustes), de ahí el sufijo _h en vez de sustituirlos.
+  // Sin subcopy: el nombre del nivel + un icono viven en una pill sobre la
+  // esquina (donde no hay nada de la ilustración, que es la protagonista),
+  // en vez de una franja de texto que tapaba el plato.
   const levels = [
-    { id: "basic", img: "/avatares/cards/cook_nivel_basico.png", label: "Básico", desc: "Lo justo para sobrevivir" },
-    { id: "normal", img: "/avatares/cards/cook_nivel_normal.png", label: "Normal", desc: "Me defiendo bien" },
-    { id: "pro", img: "/avatares/cards/cook_nivel_pro.png", label: "Me gusta cocinar", desc: "Disfruto experimentando" },
+    { id: "basic", img: "/avatares/cards/cook_nivel_basico_h.webp", label: "Básico", Icon: Utensils },
+    { id: "normal", img: "/avatares/cards/cook_nivel_normal_h.webp", label: "Normal", Icon: ChefHat },
+    { id: "pro", img: "/avatares/cards/cook_nivel_pro_h.webp", label: "Me gusta cocinar", Icon: Flame },
   ];
-  const tools = [
-    "Airfryer",
-    "Horno",
-    "Microondas",
-    "Thermomix",
-    "Olla rápida",
-    "Vaporera",
-  ];
-  const availableTools = [...tools, ...(data.customKitchenTools ?? [])];
-  const [addingTool, setAddingTool] = useState(false);
-  const [draftTool, setDraftTool] = useState("");
+  return (
+    <OnboardingShell
+      title="¿Cuánto os gusta cocinar?"
+      subtitle="Ajustamos la dificultad de las recetas a vuestro nivel."
+      onBack={onBack}
+      onReset={onReset}
+      onNext={onNext}
+      onFinish={onFinish}
+      finishLabel={finishLabel}
+    >
+      {/* Cada tarjeta pide el 16:9 del arte (aspect-ratio) en vez de estirarse
+          a un tercio del alto: en pantallas altas la celda se ponía en 1,18:1
+          y `cover` recortaba un tercio del ancho — justo el lado donde está la
+          comida. Con `flex: 0 1 auto` conservan su ratio si hay sitio y solo
+          se encogen cuando no lo hay; centradas, para que el hueco sobrante en
+          pantalla alta se reparta arriba y abajo. */}
+      <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 8, height: "100%", minHeight: 0 }}>
+        {levels.map((l) => (
+          <div key={l.id} style={{ flex: "0 1 auto", width: "100%", aspectRatio: "16 / 9", minHeight: 0, display: "flex" }}>
+            <RestrictionTabCard
+              img={l.img}
+              fillHeight
+              // textOverlay=true solo para desactivar la franja de texto de
+              // abajo (ver RestrictionTabCard); sin title/subtitle no pinta
+              // ningún degradado, así que la ilustración se ve entera.
+              textOverlay
+              pill={
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <l.Icon size={12} strokeWidth={2.4} />
+                  {l.label}
+                </span>
+              }
+              // 45% y no el 28% por defecto: cuando toca recortar en vertical
+              // (móvil bajo), el 28% tira hacia arriba y se lleva por delante
+              // los platos, que en estas tres están abajo del todo.
+              imgPosition="center 45%"
+              accent={CARD_ACCENT_TEAL}
+              active={data.cookLevel === l.id}
+              onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
+            />
+          </div>
+        ))}
+      </div>
+    </OnboardingShell>
+  );
+}
+
+// Los 6 electrodomésticos que trae la app de serie. Son justo 2 columnas × 3
+// filas: la rejilla se reparte el alto de la pantalla sin scroll. Lo que el
+// usuario añada a mano vive aparte, en la fila de abajo, para no romper eso.
+const APPLIANCES = [
+  { id: "Airfryer", img: "/avatares/cards/electrodomesticos/airfryer.webp" },
+  { id: "Horno", img: "/avatares/cards/electrodomesticos/horno.webp" },
+  { id: "Microondas", img: "/avatares/cards/electrodomesticos/microondas.webp" },
+  { id: "Olla rápida", img: "/avatares/cards/electrodomesticos/olla_rapida.webp" },
+  { id: "Thermomix", img: "/avatares/cards/electrodomesticos/thermomix.webp" },
+  { id: "Vaporera", img: "/avatares/cards/electrodomesticos/vaporera.webp" },
+];
+
+// Sin "Añadir otro": la lista fija son los seis aparatos que el generador sabe
+// aprovechar de verdad (ver resolveCookwareMarker en RecipeSteps.jsx). Un
+// nombre escrito a mano no casaba con ninguna receta, así que solo servía para
+// añadir una fila y con ella scroll. `customKitchenTools` sigue en el modelo de
+// datos y lo que hubiera ahí se respeta; simplemente ya no se edita aquí.
+export function OnboardingAppliances({ data, setData, onNext, onBack, onFinish, onReset, finishLabel }) {
   const toggleTool = (tool) =>
     setData((d) => ({
       ...d,
@@ -9470,190 +9518,39 @@ export function OnboardingCooking({ data, setData, onNext, onBack, onFinish, onR
         ? (d.kitchenTools ?? []).filter((v) => v !== tool)
         : [...(d.kitchenTools ?? []), tool],
     }));
-  const addCustomTool = () => {
-    const label = titleCase(draftTool);
-    setAddingTool(false);
-    setDraftTool("");
-    if (!label) return;
-    setData((d) => {
-      const customKitchenTools = (d.customKitchenTools ?? []).includes(label)
-        ? d.customKitchenTools ?? []
-        : [...(d.customKitchenTools ?? []), label];
-      const kitchenTools = (d.kitchenTools ?? []).includes(label)
-        ? d.kitchenTools ?? []
-        : [...(d.kitchenTools ?? []), label];
-      return { ...d, customKitchenTools, kitchenTools };
-    });
-  };
-  const removeCustomTool = (tool) =>
-    setData((d) => ({
-      ...d,
-      customKitchenTools: (d.customKitchenTools ?? []).filter((v) => v !== tool),
-      kitchenTools: (d.kitchenTools ?? []).filter((v) => v !== tool),
-    }));
   return (
     <OnboardingShell
-      title="¿Quién cocina y cómo?"
-      subtitle="Tu nivel en la cocina y las herramientas con las que cuentas, para ajustar las recetas."
+      title="¿Qué tenéis en la cocina?"
+      subtitle="Marca lo que uséis. Si no marcas nada, asumimos fuegos y sartenes."
       onBack={onBack}
       onReset={onReset}
       onNext={onNext}
       onFinish={onFinish}
       finishLabel={finishLabel}
     >
-      {/* Nivel de cocina — mismo estilo que comida/cena/desayuno.
-          En modo básico se asume "normal" y se oculta el selector. */}
-      {data.expertMode && (
-        <>
-          <SectionTitle>¿Cuál es tu nivel en la cocina?</SectionTitle>
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-            {levels.map((l) => {
-              const sel = data.cookLevel === l.id;
-              return (
-                <button
-                  type="button"
-                  key={l.id}
-                  onClick={() => setData((d) => ({ ...d, cookLevel: l.id }))}
-                  style={{
-                    position: "relative",
-                    flex: 1,
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "stretch",
-                    padding: 0,
-                    overflow: "hidden",
-                    borderRadius: 14,
-                    cursor: "pointer",
-                    background: "#fff",
-                    border: `2px solid ${sel ? CARD_ACCENT_TEAL : "#e3ebe6"}`,
-                    boxShadow: sel ? "0 6px 18px rgba(15,118,110,.22)" : "0 1px 3px rgba(20,47,29,.05)",
-                    transition: "all .16s cubic-bezier(.4,0,.2,1)",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {sel && (
-                    <span
-                      style={{
-                        position: "absolute", top: 6, right: 6, zIndex: 2,
-                        width: 18, height: 18, borderRadius: 999,
-                        background: CARD_ACCENT_TEAL, border: "1.5px solid #fff",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                      }}
-                    >
-                      <Check size={10} color="#fff" strokeWidth={3} />
-                    </span>
-                  )}
-                  {/* Ilustración del nivel (contain para que se vea el personaje
-                      entero) sobre un tinte neutro. */}
-                  <div style={{ width: "100%", aspectRatio: "1 / 1", background: "#f4f7f5" }}>
-                    <img
-                      src={l.img}
-                      alt=""
-                      loading="lazy"
-                      style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-                    />
-                  </div>
-                  <div
-                    style={{
-                      flex: 1,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      padding: "7px 5px 8px",
-                      background: sel ? CARD_ACCENT_TEAL : "#fff",
-                      textAlign: "center",
-                    }}
-                  >
-                    <span style={{ display: "block", fontWeight: 800, fontSize: 11.5, lineHeight: 1.15, color: sel ? "#fff" : "#25402f" }}>
-                      {l.label}
-                    </span>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Despensa — oculto de momento (feature en pausa) */}
-
-      {/* Herramientas — modelo tipo alergias */}
-      <style>{`
-        @keyframes avoidCheckPop {
-          0%   { transform: scale(0.4); opacity: 0; }
-          55%  { transform: scale(1.25); opacity: 1; }
-          100% { transform: scale(1); }
-        }
-        .avoid-pill { transition: background .15s ease, border-color .15s ease, color .15s ease, box-shadow .15s ease, transform .12s ease; }
-        .avoid-pill:hover { transform: translateY(-1px); }
-        .avoid-pill:active { transform: translateY(0) scale(.97); }
-        .avoid-pill-check { animation: avoidCheckPop .22s cubic-bezier(.34,1.5,.6,1) both; }
-        .avoid-row { transition: background .15s ease; }
-        .avoid-row:hover { background: #f3f7f4; }
-      `}</style>
-
-      <AvoidSection icon={Utensils} accent={CARD_ACCENT_TEAL} title="¿Con qué herramientas cuentas?">
-        <div>
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", columnGap: 16 }}>
-            {availableTools.map((tool) => {
-              const isCustom = (data.customKitchenTools ?? []).includes(tool);
-              const sel = (data.kitchenTools ?? []).includes(tool);
-              return (
-                <AllergenRow
-                  key={tool}
-                  Icon={TOOL_ICON[tool] ?? Wrench}
-                  color={TOOL_COLOR[tool] ?? "#2d5a3d"}
-                  label={tool}
-                  checked={sel}
-                  checkColor={TOOL_COLOR[tool] ?? "#2d5a3d"}
-                  onToggle={() => (isCustom && sel ? removeCustomTool(tool) : toggleTool(tool))}
-                />
-              );
-            })}
-          </div>
-
-          <div style={{ display: "flex", marginTop: 12 }}>
-            <button
-              type="button"
-              onClick={() => setAddingTool((v) => !v)}
-              className="avoid-pill"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 6, height: 36,
-                padding: "0 15px 0 12px", borderRadius: 10, border: "none",
-                background: addingTool ? "#234a31" : "#2d5a3d", color: "#fff",
-                fontSize: 12.5, fontWeight: 800, cursor: "pointer", fontFamily: "inherit",
-                boxShadow: "0 2px 8px rgba(45,90,61,.3)",
-              }}
-            >
-              <Plus size={15} strokeWidth={2.6} /> Añadir otra
-            </button>
-          </div>
-
-          {addingTool && (
-            <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-              <input
-                autoFocus
-                value={draftTool}
-                onChange={(e) => setDraftTool(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") addCustomTool();
-                  if (e.key === "Escape") { setDraftTool(""); setAddingTool(false); }
-                }}
-                placeholder="Otra herramienta"
-                style={{ flex: 1, padding: "9px 12px", borderRadius: 10, border: "1.5px solid #dde7e0", fontSize: 16, outline: "none", fontFamily: "inherit" }}
-              />
-              <button
-                type="button"
-                onClick={addCustomTool}
-                aria-label="Añadir herramienta"
-                style={{ width: 40, borderRadius: 10, border: "none", background: "#2d5a3d", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
-              >
-                <Check size={16} strokeWidth={3} />
-              </button>
-            </div>
-          )}
-        </div>
-      </AvoidSection>
+      <div
+        style={{
+          height: "100%", minHeight: 0,
+          display: "grid",
+          gridTemplateColumns: "1fr 1fr",
+          gridTemplateRows: "repeat(3, 1fr)",
+          gap: 8,
+        }}
+      >
+        {APPLIANCES.map((a) => (
+          <RestrictionTabCard
+            key={a.id}
+            img={a.img}
+            title={a.id}
+            fillHeight
+            compact
+            textOverlay
+            accent={CARD_ACCENT_TEAL}
+            active={(data.kitchenTools ?? []).includes(a.id)}
+            onClick={() => toggleTool(a.id)}
+          />
+        ))}
+      </div>
     </OnboardingShell>
   );
 }

@@ -45,3 +45,6 @@ scripts/.enrich-base-done.json
 # descartables que se regeneran con scripts/gen-test-photos.mjs.
 scripts/test-photos/
 scripts/prompt-test/
+
+# Caché del CLI de Supabase
+supabase/.temp/
